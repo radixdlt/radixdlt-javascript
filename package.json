@@ -27,5 +27,8 @@
   "bugs": {
     "url": "https://github.com/radixdlt/radixdlt-javascript/issues"
   },
-  "homepage": "https://github.com/radixdlt/radixdlt-javascript#readme"
+  "homepage": "https://github.com/radixdlt/radixdlt-javascript#readme",
+  "devDependencies": {
+    "typescript": "^4.1.2"
+  }
 }
