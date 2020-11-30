@@ -1,8 +1,31 @@
 {
-  "name": "radixdlt-ts",
-  "version": "1.0.0",
+  "name": "radixdlt-javascript",
+  "version": "0.0.1",
+  "description": "A client library for interaction with the RadixDLT network and DeFi ecosystem.",
   "main": "index.js",
-  "repository": "git@github.com:radixdlt/radixdlt-javascript.git",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/radixdlt/radixdlt-javascript.git"
+  },
+  "keywords": [
+    "Radix",
+    "RadixDLT",
+    "Crypto",
+    "DeFi",
+    "Cryptocurrency",
+    "XRD",
+    "eXRD",
+    "Money",
+    "Ledger",
+    "Decentralized"
+  ],
   "author": "Alexander Cyon <alex.cyon@gmail.com>",
-  "license": "MIT"
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/radixdlt/radixdlt-javascript/issues"
+  },
+  "homepage": "https://github.com/radixdlt/radixdlt-javascript#readme"
 }
