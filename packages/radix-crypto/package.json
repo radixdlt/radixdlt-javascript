@@ -1,0 +1,38 @@
+{
+  "name": "radix-crypto",
+  "version": "0.0.0",
+  "description": "Cryptographic primitives such as digests (hashing) and Elliptic Curve Cryptography (ECC) methods such as key generation, signing and verify.",
+  "keywords": [
+    "Crypto",
+    "ECC",
+    "Elliptic Curve Cryptography",
+    "Hashing",
+    "SHA256",
+    "Digests",
+    "secp256k1",
+    "Sign",
+    "Verify",
+    "KeyGen"
+  ],
+  "author": "Alexander Cyon <alex.cyon@gmail.com>",
+  "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/radix-crypto#readme",
+  "license": "Apache-2.0",
+  "main": "lib/radix-crypto.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/radixdlt/radixdlt-javascript.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "bugs": {
+    "url": "https://github.com/radixdlt/radixdlt-javascript/issues"
+  }
+}

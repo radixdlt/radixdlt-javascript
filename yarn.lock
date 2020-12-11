@@ -5081,6 +5081,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"radix-js-packages@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "radix-js-packages@workspace:."
+  dependencies:
+    lerna: ^3.22.1
+    typescript: ^4.1.2
+  languageName: unknown
+  linkType: soft
+
 "read-cmd-shim@npm:^1.0.1":
   version: 1.0.5
   resolution: "read-cmd-shim@npm:1.0.5"
@@ -5414,15 +5423,6 @@ __metadata:
   checksum: 059efac2838ef917d4d1da1d80e724ad28c120cdf14ca6ed27ca72db2dc70be3e25421cba5947c6ec3d804c1d2bb9a247254653816ee0722bf943ffdd1ae19ef
   languageName: node
   linkType: hard
-
-"root@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "root@workspace:."
-  dependencies:
-    lerna: ^3.22.1
-    typescript: ^4.1.2
-  languageName: unknown
-  linkType: soft
 
 "run-async@npm:^2.2.0":
   version: 2.4.1
