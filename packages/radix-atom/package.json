@@ -1,23 +1,17 @@
 {
-  "name": "radix-crypto",
+  "name": "radix-atom",
   "version": "0.0.0",
-  "description": "Cryptographic primitives such as digests (hashing) and Elliptic Curve Cryptography (ECC) methods such as key generation, signing and verify.",
+  "description": "Container for CRUD instructions known as 'Particles' that are sent to the Radix decentralized ledger",
   "keywords": [
-    "Crypto",
-    "ECC",
-    "Elliptic Curve Cryptography",
-    "Hashing",
-    "SHA256",
-    "Digests",
-    "secp256k1",
-    "Sign",
-    "Verify",
-    "KeyGen"
+    "Atom",
+    "Container",
+    "CRUD",
+    "Particle"
   ],
   "author": "Alexander Cyon <alex.cyon@gmail.com>",
-  "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/radix-crypto#readme",
+  "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/radix-atom#readme",
   "license": "Apache-2.0",
-  "main": "lib/index.ts",
+  "main": "index.ts",
   "directories": {
     "lib": "lib",
     "test": "__tests__"
@@ -25,6 +19,9 @@
   "files": [
     "lib"
   ],
+  "publishConfig": {
+    "registry": "https://registry.yarnpkg.com"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/radixdlt/radixdlt-javascript.git"

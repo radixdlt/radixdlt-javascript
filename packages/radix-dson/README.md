@@ -1,11 +1,11 @@
-# `crypto`
+# `radix-dson`
 
 > TODO: description
 
 ## Usage
 
 ```
-const crypto = require('crypto');
+const radixDson = require('radix-dson');
 
 // TODO: DEMONSTRATE API
 ```

@@ -1,23 +1,18 @@
 {
-  "name": "radix-crypto",
+  "name": "radix-chemistry",
   "version": "0.0.0",
-  "description": "Cryptographic primitives such as digests (hashing) and Elliptic Curve Cryptography (ECC) methods such as key generation, signing and verify.",
+  "description": "Create Atoms from actions",
   "keywords": [
-    "Crypto",
-    "ECC",
-    "Elliptic Curve Cryptography",
-    "Hashing",
-    "SHA256",
-    "Digests",
-    "secp256k1",
-    "Sign",
-    "Verify",
-    "KeyGen"
+    "Mapper",
+    "Reducer",
+    "Actions",
+    "AtomMapper",
+    "AtomReducer"
   ],
   "author": "Alexander Cyon <alex.cyon@gmail.com>",
-  "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/radix-crypto#readme",
+  "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/radix-chemistry#readme",
   "license": "Apache-2.0",
-  "main": "lib/index.ts",
+  "main": "index.ts",
   "directories": {
     "lib": "lib",
     "test": "__tests__"
@@ -25,6 +20,9 @@
   "files": [
     "lib"
   ],
+  "publishConfig": {
+    "registry": "https://registry.yarnpkg.com"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/radixdlt/radixdlt-javascript.git"
