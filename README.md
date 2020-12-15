@@ -5,6 +5,16 @@
 
 (Actually `radixdlt-typescript` 😉) A client library for interacting with the Radix DLT public network.
 
+# Status
+
+- [x] Setup `lerna` and `yarn workspaces`.  
+- [x] Create placeholder packages and create table of them.  
+- [x] Create API (code example) of `RadixApplicationClient`.  
+- [ ] Create a cross package tsconfig "inheritance" solution, using a shared tsconfig [like Zilliqa's `tsconfig.base.json`](https://github.com/Zilliqa/Zilliqa-JavaScript-Library/blob/dev/tsconfig.base.json) which Zilliqa then ["extends" in each individual package](https://github.com/Zilliqa/Zilliqa-JavaScript-Library/blob/dev/packages/zilliqa-js-blockchain/tsconfig.json#L2) using the tsconfig value [`extends`](https://www.typescriptlang.org/tsconfig#extends).  
+- [ ] Setup [`jest`][jest] testing framework + shared tsconfig test config [like Zilliqa is doing](https://github.com/Zilliqa/Zilliqa-JavaScript-Library/blob/dev/packages/zilliqa-js-blockchain/tsconfig.test.json#L2)
+- [ ] Setup config for [Palantir's `tslint`](https://palantir.github.io/tslint/) (`tslint.json`).  
+
+
 # Packages
 
 This git repository is a so called "monorepo" using [`yarn` *workspaces*](https://classic.yarnpkg.com/en/docs/workspaces/) and [*lerna*](https://github.com/lerna/lerna) **together**,
@@ -130,6 +140,8 @@ assert(tokenTransferAtom.particleGroups.length === 2) // ParticleGroup at index 
 
 
 <!-- LINKS -->
+
+<!-- Radix packages links -->
 [app]: ./packages/radix-application
 [dson]: ./packages/radix-dson
 [chem]: ./packages/radix-chemistry
@@ -139,3 +151,6 @@ assert(tokenTransferAtom.particleGroups.length === 2) // ParticleGroup at index 
 [networking]: ./packages/radix-networking
 [hwLedger]: ./packages/radix-hardware-wallet
 [actions]: ./packages/radix-actions
+
+<!-- Third party links -->
+[jest]: https://jestjs.io/
