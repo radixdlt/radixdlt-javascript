@@ -32,6 +32,8 @@ This git repository is a so called "monorepo" using [`yarn` *workspaces*](https:
 
 # API for [`@radix/application`][app]
 
+**Create `RadixApplicationClient`**
+
 ```typescript
 // The way of interacting with the Radix decentralized ledger / public network is through the `RadixApplicationClient`
 const radixClient = new RadixApplicationClient()
@@ -44,7 +46,11 @@ await radixClient.connectToNode(new TrustedNode('333.444.555.666'))
 
 // Cannot get my address since we have no public key yet.
 await radixClient.myAddress() // Error no publicKey present
+```
 
+**Resolve `publicKey` and `RadixAddress`**
+
+```typescript
 // Initiate Hardware wallet 
 const hardwareWalletLedger = new HardwareWalletLedger(LedgerNanoCommunicationProtocol.HID)
 
@@ -58,10 +64,10 @@ const publicKeyProvider = hardwareWalletLedger.publicKeyProvider()
 radixClient.resolvePublicKeyUsing(publicKeyProvider)
 
 // Prepare derivation path for Ledger 
-const bip44Path = new BIP44Path("m/44'/0/0'/0'")
+const accountIndex0 = new BIP44Path("m/44'/0/0'/0'")
 
 // Resolve public key using ledger device, needs to wait for physical input from user on Ledger Nano
-const publicKey = await publicKeyProvider.resolve(bip44Path) 
+const publicKey = await publicKeyProvider.resolve(accountIndex0) 
 
 // Assert that `radixClient` instance has its active `publicKey` set
 assert(publicKey === radixClient.publicKey) // OK!
@@ -71,7 +77,11 @@ const address = await radixClient.myAddress() // OK! We're connected to a node s
 
 // The address contains the public key `publicKey` derived from the Ledger
 assert(address.publicKey === publicKey)
+```
 
+**Create and sign transfer of XRD tokens to Bob**
+
+```typescript
 // Generate some new address, dependent on 'magic', so dependent on which node we are connected to.
 const bob = await radixClient.addressFromPublicKey(new PublicKey(PrivateKey.generateNew())) 
 
@@ -82,11 +92,21 @@ const xrdTokenDefinition = radixClient.nativeTokenDefinition()
 assert(xrdTokenDefinition.identifier === '/JH1P8f3znbyrDj8F4RWpix7hRkgxqHjdW2fNnKpR3v6ufXnknor/XRD')
 
 // Transfer tokens to Bob, wait for transaction to complete
-const tokenTransferTransaction = await radixClient.transferTokens({
-	to: bob,
-	amount: 1337,
-	identifier: xrdTokenDefinition.identifier
+const tokenTransferTransaction = await radixClient.execute({
+  tokenTransfer: ({
+    to: bob,
+    amount: 1337,
+    identifier: xrdTokenDefinition.identifier
+  }),
+
+  // Have to wait for UI wallet to send atom to Ledger wallet and for user to review & accept tokenTransfer on device
+  signer: await hardwareWalletLedger.sign(accountIndex0)
 })
+```
+
+**Inspect contents of `tokenTransferTransaction`**
+
+```typescript
 
 // A `Transaction` is a container for one or many user actions (for a set of well known particles)
 assert(tokenTransferTransaction.userActions.length === 1)
