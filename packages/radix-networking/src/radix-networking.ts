@@ -1,6 +1,4 @@
-'use strict';
-
-module.exports = radixNetworking;
+module.exports = radixNetworking
 
 function radixNetworking() {
     // TODO

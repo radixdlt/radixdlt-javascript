@@ -1,6 +1,4 @@
-'use strict';
-
-module.exports = radixActions;
+module.exports = radixActions
 
 function radixActions() {
     // TODO

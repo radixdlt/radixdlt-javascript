@@ -1,6 +1,4 @@
-'use strict';
-
-module.exports = radixChemistry;
+module.exports = radixChemistry
 
 function radixChemistry() {
     // TODO

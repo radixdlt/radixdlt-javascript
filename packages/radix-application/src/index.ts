@@ -1,6 +1,4 @@
-'use strict';
-
-module.exports = radixApplication;
+module.exports = radixApplication
 
 function radixApplication() {
     // TODO

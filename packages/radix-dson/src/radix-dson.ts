@@ -1,6 +1,4 @@
-'use strict';
-
-module.exports = radixDson;
+module.exports = radixDson
 
 function radixDson() {
     // TODO

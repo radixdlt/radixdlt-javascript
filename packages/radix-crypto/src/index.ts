@@ -1,6 +1,4 @@
-'use strict';
-
-module.exports = radixCrypto;
+module.exports = radixCrypto
 
 function radixCrypto() {
     // TODO

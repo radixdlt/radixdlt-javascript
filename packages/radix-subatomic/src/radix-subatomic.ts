@@ -1,6 +1,4 @@
-'use strict';
-
-module.exports = radixSubatomic;
+module.exports = radixSubatomic
 
 function radixSubatomic() {
     // TODO

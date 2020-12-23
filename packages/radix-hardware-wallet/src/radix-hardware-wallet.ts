@@ -1,6 +1,4 @@
-'use strict';
-
-module.exports = radixHardwareWallet;
+module.exports = radixHardwareWallet
 
 function radixHardwareWallet() {
     // TODO

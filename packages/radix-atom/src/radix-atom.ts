@@ -1,6 +1,4 @@
-'use strict';
-
-module.exports = radixAtom;
+module.exports = radixAtom
 
 function radixAtom() {
     // TODO
