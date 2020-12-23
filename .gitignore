@@ -8,3 +8,9 @@ yarn-error.log
 !.yarn/releases
 !.yarn/plugins
 .pnp.*
+
+dist
+includes
+tsconfig.tsbuildinfo
+coverage
+devTestOnly/

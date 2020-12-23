@@ -31,7 +31,16 @@
     "url": "git+https://github.com/radixdlt/radixdlt-javascript.git"
   },
   "scripts": {
-    "test": "test"
+    "bootstrap": "lerna bootstrap && yarn build",
+    "build": "yarn build:ts",
+    "build:ts": "tsc -b tsconfig.json",
+    "bundle": "ts-node -P scripts/tsconfig.json scripts/bundle.ts umd,esm",
+    "clean": "lerna clean --yes && lerna run clean && rimraf includes",
+    "test": "cross-env TEST_ENV=unit jest -c jest.config.js --rootDir=.",
+    "test:build": "cross-env TEST_ENV=unit jest -c jest.build.config.js",
+    "test:integration": "cross-env TEST_ENV=integration jest -c jest.iconfig.js --runInBand --verbose --collectCoverage=false",
+    "release": "yarn bootstrap && yarn bundle && lerna publish --exact",
+    "format": "prettier --write '**/*.{ts,tsx,js}' --config .prettierrc"
   },
   "workspaces": [
     "packages/*"

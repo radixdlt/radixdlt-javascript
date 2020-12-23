@@ -10,9 +10,28 @@
 - [x] Setup `lerna` and `yarn workspaces`.  
 - [x] Create placeholder packages and create table of them.  
 - [x] Create API (code example) of `RadixApplicationClient`.  
-- [ ] Create a cross package tsconfig "inheritance" solution, using a shared tsconfig [like Zilliqa's `tsconfig.base.json`](https://github.com/Zilliqa/Zilliqa-JavaScript-Library/blob/dev/tsconfig.base.json) which Zilliqa then ["extends" in each individual package](https://github.com/Zilliqa/Zilliqa-JavaScript-Library/blob/dev/packages/zilliqa-js-blockchain/tsconfig.json#L2) using the tsconfig value [`extends`](https://www.typescriptlang.org/tsconfig#extends).  
+- [x] Create a cross package tsconfig "inheritance" solution, using a shared tsconfig [like Zilliqa's `tsconfig.base.json`](https://github.com/Zilliqa/Zilliqa-JavaScript-Library/blob/dev/tsconfig.base.json) which Zilliqa then ["extends" in each individual package](https://github.com/Zilliqa/Zilliqa-JavaScript-Library/blob/dev/packages/zilliqa-js-blockchain/tsconfig.json#L2) using the tsconfig value [`extends`](https://www.typescriptlang.org/tsconfig#extends).  
 - [ ] Setup [`jest`][jest] testing framework + shared tsconfig test config [like Zilliqa is doing](https://github.com/Zilliqa/Zilliqa-JavaScript-Library/blob/dev/packages/zilliqa-js-blockchain/tsconfig.test.json#L2).
 - [ ] Setup config for [Palantir's `tslint`](https://palantir.github.io/tslint/) (`tslint.json`).  
+
+# Development
+
+This repository makes use of several technologies to provide a better and faster development experience for contributors. It has to be bootstrapped before you can do productive work.
+
+## Bootstrapping
+
+`radixdlt-javascript` leverages [Project References](https://www.typescriptlang.org/docs/handbook/project-references.html), which is available in TypeScript from version `3.0`, thus the build process is slightly different.
+
+```zsh
+# install all dependencies and shared devDependencies
+yarn install
+
+# symlink packages, compile TS source files
+yarn bootstrap
+
+# watch TS source files and recompile on change
+yarn build:ts -w
+```
 
 
 # Packages

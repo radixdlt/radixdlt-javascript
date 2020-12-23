@@ -1,15 +1,12 @@
 {
-  "name": "radix-networking",
+  "name": "radix-actions",
   "version": "0.0.0",
-  "description": "Sending and fetching of Atoms over some transportation protocol, e.g. websockets and/or HTTP",
+  "description": "Declare actions you as a user would like to perform e.g. 'transfer tokens' (`TransferTokensAction`)",
   "keywords": [
-    "AtomPuller",
-    "AtomSender",
-    "WS",
-    "WebSockets"
+    "Actions"
   ],
   "author": "Alexander Cyon <alex.cyon@gmail.com>",
-  "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/radix-networking#readme",
+  "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/radix-actions#readme",
   "license": "Apache-2.0",
   "main": "index.ts",
   "publishConfig": {

@@ -18,13 +18,9 @@
   "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/radix-crypto#readme",
   "license": "Apache-2.0",
   "main": "lib/index.ts",
-  "directories": {
-    "lib": "lib",
-    "test": "__tests__"
+  "publishConfig": {
+    "access": "public"
   },
-  "files": [
-    "lib"
-  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/radixdlt/radixdlt-javascript.git"
@@ -34,5 +30,8 @@
   },
   "bugs": {
     "url": "https://github.com/radixdlt/radixdlt-javascript/issues"
+  },
+  "engines": {
+    "node": ">=15.5.0 <16"
   }
 }

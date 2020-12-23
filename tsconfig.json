@@ -4,7 +4,7 @@
     { "path": "packages/radix-application" },
     { "path": "packages/radix-hardware-wallet" },
     { "path": "packages/radix-networking" },
-    { "path": "packages/radix-actinos" },
+    { "path": "packages/radix-actions" },
     { "path": "packages/radix-atom" },
     { "path": "packages/radix-crypto" },
     { "path": "packages/radix-subatomic" }
