@@ -12,8 +12,8 @@
 - [x] Create API (code example) of `RadixApplicationClient`.  
 - [x] Create a cross package tsconfig "inheritance" solution, using a shared tsconfig [like Zilliqa's `tsconfig.base.json`](https://github.com/Zilliqa/Zilliqa-JavaScript-Library/blob/dev/tsconfig.base.json) which Zilliqa then ["extends" in each individual package](https://github.com/Zilliqa/Zilliqa-JavaScript-Library/blob/dev/packages/zilliqa-js-blockchain/tsconfig.json#L2) using the tsconfig value [`extends`](https://www.typescriptlang.org/tsconfig#extends).  
 - [X] Setup code **linting** config for [`typescript-eslint`](https://github.com/typescript-eslint) (`tslint.json`).  
+- [x] Setup [`jest`][jest] testing framework + shared tsconfig test config [like Zilliqa is doing](https://github.com/Zilliqa/Zilliqa-JavaScript-Library/blob/dev/packages/zilliqa-js-blockchain/tsconfig.test.json#L2).
 - [ ] Setup code **formating** using [`prettier`](https://prettier.io/)
-- [ ] Setup [`jest`][jest] testing framework + shared tsconfig test config [like Zilliqa is doing](https://github.com/Zilliqa/Zilliqa-JavaScript-Library/blob/dev/packages/zilliqa-js-blockchain/tsconfig.test.json#L2).
 
 # Development
 

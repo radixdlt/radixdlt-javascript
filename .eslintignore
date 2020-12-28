@@ -6,3 +6,5 @@ dist
 coverage
 
 .eslintrc.js
+jest.*.js
+jest*.js
