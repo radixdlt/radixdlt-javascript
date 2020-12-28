@@ -57,7 +57,10 @@ module.exports = {
     "functional/no-let": "error",
     "functional/no-loop-statement": "error",
     "no-param-reassign": "error",
-    "functional/functional-parameters": "error",
-    "functional/no-try-statement": "error"
+    "functional/no-try-statement": "error",
+
+    // Disabled because '*.test.ts' files fail to lint 'describe' functions second argument (anonymous function).
+    "functional/no-expression-statement": "off",
+    "functional/functional-parameters": "off",
   }
 };
