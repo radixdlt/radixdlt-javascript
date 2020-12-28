@@ -5,7 +5,7 @@
 ## Usage
 
 ```
-const radixCrypto = require('radix-crypto');
+const radixCrypto = require('radix-crypto')
 
 // TODO: DEMONSTRATE API
 ```

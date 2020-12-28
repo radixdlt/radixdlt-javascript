@@ -5,7 +5,7 @@
 ## Usage
 
 ```
-const radixActions = require('radix-actions');
+const radixActions = require('radix-actions')
 
 // TODO: DEMONSTRATE API
 ```

@@ -5,7 +5,7 @@
 ## Usage
 
 ```
-const radixHardwareWallet = require('radix-hardware-wallet');
+const radixHardwareWallet = require('radix-hardware-wallet')
 
 // TODO: DEMONSTRATE API
 ```

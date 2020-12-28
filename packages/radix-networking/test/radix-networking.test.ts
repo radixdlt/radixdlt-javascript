@@ -1,3 +1,3 @@
 describe('radix-networking', () => {
-    it('needs tests');
-});
+    it('needs tests')
+})

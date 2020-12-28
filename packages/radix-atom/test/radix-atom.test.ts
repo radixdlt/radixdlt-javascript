@@ -1,3 +1,3 @@
 describe('radix-atom', () => {
-    it('needs tests');
-});
+    it('needs tests')
+})

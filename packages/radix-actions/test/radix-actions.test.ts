@@ -1,3 +1,3 @@
 describe('radix-actions', () => {
-    it('needs tests');
-});
+    it('needs tests')
+})

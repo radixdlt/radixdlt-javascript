@@ -1,3 +1,3 @@
 describe('radix-crypto', () => {
-    it('needs tests');
-});
+    it('needs tests')
+})

@@ -5,7 +5,7 @@
 ## Usage
 
 ```
-const radixAtom = require('radix-atom');
+const radixAtom = require('radix-atom')
 
 // TODO: DEMONSTRATE API
 ```

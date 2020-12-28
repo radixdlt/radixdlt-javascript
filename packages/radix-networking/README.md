@@ -5,7 +5,7 @@
 ## Usage
 
 ```
-const radixNetworking = require('radix-networking');
+const radixNetworking = require('radix-networking')
 
 // TODO: DEMONSTRATE API
 ```

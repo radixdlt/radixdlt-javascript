@@ -5,7 +5,7 @@ High level abstraction user facing API for interacting with the Radix decentrali
 ## Usage
 
 ```
-const radixApplication = require('radix-application');
+const radixApplication = require('radix-application')
 
 // TODO: DEMONSTRATE API
 ```

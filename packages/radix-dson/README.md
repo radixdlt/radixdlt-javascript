@@ -5,7 +5,7 @@
 ## Usage
 
 ```
-const radixDson = require('radix-dson');
+const radixDson = require('radix-dson')
 
 // TODO: DEMONSTRATE API
 ```
