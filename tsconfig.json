@@ -1,12 +1,12 @@
 {
   "files": [],
   "references": [
-    { "path": "packages/radix-application" },
-    { "path": "packages/radix-hardware-wallet" },
-    { "path": "packages/radix-networking" },
-    { "path": "packages/radix-actions" },
-    { "path": "packages/radix-atom" },
-    { "path": "packages/radix-crypto" },
-    { "path": "packages/radix-subatomic" }
+    { "path": "packages/application" },
+    { "path": "packages/hardware-wallet" },
+    { "path": "packages/networking" },
+    { "path": "packages/actions" },
+    { "path": "packages/atom" },
+    { "path": "packages/crypto" },
+    { "path": "packages/subatomic" }
   ]
 }

@@ -13,7 +13,7 @@
 - [x] Create a cross package tsconfig "inheritance" solution, using a shared tsconfig [like Zilliqa's `tsconfig.base.json`](https://github.com/Zilliqa/Zilliqa-JavaScript-Library/blob/dev/tsconfig.base.json) which Zilliqa then ["extends" in each individual package](https://github.com/Zilliqa/Zilliqa-JavaScript-Library/blob/dev/packages/zilliqa-js-blockchain/tsconfig.json#L2) using the tsconfig value [`extends`](https://www.typescriptlang.org/tsconfig#extends).  
 - [X] Setup code **linting** config for [`typescript-eslint`](https://github.com/typescript-eslint) (`tslint.json`).  
 - [x] Setup [`jest`][jest] testing framework + shared tsconfig test config [like Zilliqa is doing](https://github.com/Zilliqa/Zilliqa-JavaScript-Library/blob/dev/packages/zilliqa-js-blockchain/tsconfig.test.json#L2).
-- [ ] Setup code **formating** using [`prettier`](https://prettier.io/)
+- [x] Setup code **formating** using [`prettier`](https://prettier.io/)
 
 # Development
 
@@ -33,6 +33,10 @@ yarn bootstrap
 # watch TS source files and recompile on change
 yarn build:ts -w
 ```
+
+# VSCode
+
+To make VSCode format the files according to our linting rules, add the [prettier-eslint plugin](https://marketplace.visualstudio.com/items?itemName=rvest.vs-code-prettier-eslint).
 
 
 # Packages
@@ -162,15 +166,15 @@ assert(tokenTransferAtom.particleGroups.length === 2) // ParticleGroup at index 
 <!-- LINKS -->
 
 <!-- Radix packages links -->
-[app]: ./packages/radix-application
-[dson]: ./packages/radix-dson
-[chem]: ./packages/radix-chemistry
-[atom]: ./packages/radix-atom
-[crypto]: ./packages/radix-crypto
-[subatom]: ./packages/radix-subatomic
-[networking]: ./packages/radix-networking
-[hwLedger]: ./packages/radix-hardware-wallet
-[actions]: ./packages/radix-actions
+[app]: ./packages/application
+[dson]: ./packages/dson
+[chem]: ./packages/chemistry
+[atom]: ./packages/atom
+[crypto]: ./packages/crypto
+[subatom]: ./packages/subatomic
+[networking]: ./packages/networking
+[hwLedger]: ./packages/hardware-wallet
+[actions]: ./packages/actions
 
 <!-- Third party links -->
 [jest]: https://jestjs.io/

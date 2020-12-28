@@ -1,2 +1,2 @@
-const { matchersWithOptions } = require('jest-json-schema');
-expect.extend(matchersWithOptions({ allErrors: true }));
+const { matchersWithOptions } = require('jest-json-schema')
+expect.extend(matchersWithOptions({ allErrors: true }))
