@@ -34,6 +34,10 @@ yarn bootstrap
 yarn build:ts -w
 ```
 
+# VSCode
+
+To make VSCode format the files according to our linting rules, add the [prettier-eslint plugin](https://marketplace.visualstudio.com/items?itemName=rvest.vs-code-prettier-eslint).
+
 
 # Packages
 
@@ -162,15 +166,15 @@ assert(tokenTransferAtom.particleGroups.length === 2) // ParticleGroup at index 
 <!-- LINKS -->
 
 <!-- Radix packages links -->
-[app]: ./packages/radix-application
-[dson]: ./packages/radix-dson
-[chem]: ./packages/radix-chemistry
-[atom]: ./packages/radix-atom
-[crypto]: ./packages/radix-crypto
-[subatom]: ./packages/radix-subatomic
-[networking]: ./packages/radix-networking
-[hwLedger]: ./packages/radix-hardware-wallet
-[actions]: ./packages/radix-actions
+[app]: ./packages/application
+[dson]: ./packages/dson
+[chem]: ./packages/chemistry
+[atom]: ./packages/atom
+[crypto]: ./packages/crypto
+[subatom]: ./packages/subatomic
+[networking]: ./packages/networking
+[hwLedger]: ./packages/hardware-wallet
+[actions]: ./packages/actions
 
 <!-- Third party links -->
 [jest]: https://jestjs.io/

@@ -1,0 +1,32 @@
+{
+  "name": "@radixdlt/chemistry",
+  "version": "0.0.0",
+  "description": "Create Atoms from actions",
+  "keywords": [
+    "Mapper",
+    "Reducer",
+    "Actions",
+    "AtomMapper",
+    "AtomReducer"
+  ],
+  "author": "Alexander Cyon <alex.cyon@gmail.com>",
+  "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/chemistry#readme",
+  "license": "Apache-2.0",
+  "main": "index.ts",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/radixdlt/radixdlt-javascript.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "bugs": {
+    "url": "https://github.com/radixdlt/radixdlt-javascript/issues"
+  },
+  "engines": {
+    "node": ">=15.5.0 <16"
+  }
+}

@@ -8,3 +8,4 @@ coverage
 .eslintrc.js
 jest.*.js
 jest*.js
+*.test.ts
