@@ -12,7 +12,7 @@
   "author": "Alexander Cyon <alex.cyon@gmail.com>",
   "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/chemistry#readme",
   "license": "Apache-2.0",
-  "main": "index.ts",
+  "main": "dist/index.js",
   "publishConfig": {
     "access": "public"
   },

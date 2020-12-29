@@ -34,9 +34,11 @@ yarn bootstrap
 yarn build:ts -w
 ```
 
-# VSCode
+## IDE Support
 
-To make VSCode format the files according to our linting rules, add the [prettier-eslint plugin](https://marketplace.visualstudio.com/items?itemName=rvest.vs-code-prettier-eslint).
+### VSCode
+
+To make VSCode format the files according to our linting rules, add the [_Prettier ESLint_ plugin by Rebecca Vest](https://marketplace.visualstudio.com/items?itemName=rvest.vs-code-prettier-eslint).
 
 
 # Packages
