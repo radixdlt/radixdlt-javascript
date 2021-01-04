@@ -63,9 +63,9 @@ export const PrivateKey = (input: { readonly scalar: UInt256 }): Signer => {
 				signWithIndutnyElliptic({
 					// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 					privateKey: input.scalar,
-					data: input_.unsignedMessage.hasher.hash({
-						unhashedData: input_.unsignedMessage.unhashed,
-					}),
+					data: input_.unsignedMessage.hasher(
+						input_.unsignedMessage.unhashed,
+					),
 				}),
 			)
 		},

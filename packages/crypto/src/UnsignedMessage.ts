@@ -1,4 +1,4 @@
-import { Hasher, SHA256 } from './Hasher'
+import { Hasher, sha256 } from './Hasher'
 
 export type UnsignedMessage = {
 	readonly unhashed: Buffer
@@ -21,6 +21,6 @@ export const unsignedPlainText = (input: {
 
 	return {
 		unhashed: encoded,
-		hasher: input.hasher ?? SHA256(),
+		hasher: input.hasher ?? sha256,
 	}
 }
