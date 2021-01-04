@@ -1,5 +1,5 @@
-import { PrivateKey } from '../src/index'
-import { unsignedPlainText } from '../src/index'
+import { PrivateKey } from '../src'
+import { unsignedPlainText } from '../src'
 import { UInt256 } from '@radixdlt/subatomic'
 
 describe('elliptic curve cryptography', () => {
