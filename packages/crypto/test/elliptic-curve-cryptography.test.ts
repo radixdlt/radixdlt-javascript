@@ -1,6 +1,7 @@
 import { PrivateKey } from '../src'
 import { unsignedPlainText } from '../src'
-import { UInt256 } from '@radixdlt/primitives'
+
+import { UInt256 } from '@radixdlt/uint256'
 
 describe('elliptic curve cryptography', () => {
 	it('should be able to sign messages', async () => {

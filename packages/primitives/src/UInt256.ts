@@ -1,6 +1,6 @@
 import BN from 'bn.js'
-import { UInt256 } from 'uint256'
 import { err, Result, ok } from 'neverthrow'
+import { UInt256 } from '@radixdlt/uint256'
 
 const bnUInt256Max: BN = new BN(2).pow(new BN(256)).sub(new BN(1))
 

@@ -1,4 +1,6 @@
-import { UInt256, uint256FromBN, resultToAsync } from '@radixdlt/primitives'
+import { uint256FromBN, resultToAsync } from '@radixdlt/primitives'
+
+import { UInt256 } from '@radixdlt/uint256'
 
 import { UnsignedMessage } from './UnsignedMessage'
 import { Signature } from './Signature'
