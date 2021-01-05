@@ -4,6 +4,7 @@ import { UnsignedMessage } from './UnsignedMessage'
 import { Signature } from './Signature'
 
 import { ec } from 'elliptic'
+import { combine, Result, ResultAsync } from 'neverthrow'
 
 export type Signer = {
 	/**
@@ -12,13 +13,15 @@ export type Signer = {
 	 * @param {UnsignedMessage} unsignedMessage - The unsigned message to be hashed and signed.
 	 * @returns {Signature} An EC signature produces by this signer when signing the message.
 	 */
-	readonly sign: (unsignedMessage: UnsignedMessage) => Promise<Signature>
+	readonly sign: (
+		unsignedMessage: UnsignedMessage,
+	) => ResultAsync<Signature, Error>
 }
 
 const signWithIndutnyElliptic = (input: {
 	readonly privateKey: UInt256
 	readonly data: Buffer
-}): Signature => {
+}): Result<Signature, Error> => {
 	const secp256k1 = new ec('secp256k1')
 
 	const privateKey = secp256k1.keyFromPrivate(input.privateKey.toString(16))
@@ -27,19 +30,29 @@ const signWithIndutnyElliptic = (input: {
 		canonical: true,
 	})
 
-	return {
-		r: uint256FromBN(ellipticSignature.r),
-		s: uint256FromBN(ellipticSignature.s),
-	}
+	return combine([
+		uint256FromBN(ellipticSignature.r),
+		uint256FromBN(ellipticSignature.s),
+	]).map((resultList) => {
+		const signature: Signature = {
+			r: resultList[0],
+			s: resultList[1],
+		}
+		return signature
+	})
 }
 
 export const PrivateKey = (scalar: UInt256): Signer => {
 	return {
-		sign: async (unsignedMessage: UnsignedMessage): Promise<Signature> => {
-			return signWithIndutnyElliptic({
-				privateKey: scalar,
-				data: unsignedMessage.hasher(unsignedMessage.unhashed),
-			})
+		sign: (
+			unsignedMessage: UnsignedMessage,
+		): ResultAsync<Signature, Error> => {
+			return resultToAsync(
+				signWithIndutnyElliptic({
+					privateKey: scalar,
+					data: unsignedMessage.hasher(unsignedMessage.unhashed),
+				}),
+			)
 		},
 	}
 }

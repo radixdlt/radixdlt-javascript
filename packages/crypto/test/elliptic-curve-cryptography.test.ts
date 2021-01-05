@@ -1,6 +1,6 @@
 import { PrivateKey } from '../src'
 import { unsignedPlainText } from '../src'
-import { UInt256 } from '@radixdlt/subatomic'
+import { UInt256 } from '@radixdlt/primitives'
 
 describe('elliptic curve cryptography', () => {
 	it('should be able to sign messages', async () => {
@@ -10,9 +10,9 @@ describe('elliptic curve cryptography', () => {
 			plainText: 'Satoshi Nakamoto',
 		})
 
-		const signature = await privateKey.sign(messageToSign)
+		const signatureResult = await privateKey.sign(messageToSign)
 
-		expect(signature.r.toString(16)).toBe(
+		expect(signatureResult._unsafeUnwrap().r.toString(16)).toBe(
 			'934b1ea10a4b3c1757e2b0c017d0b6143ce3c9a7e6a4a49860d7a6ab210ee3d8',
 		)
 	})
