@@ -25,3 +25,30 @@ export type Signature = {
 	readonly r: UInt256
 	readonly s: UInt256
 }
+
+export type PublicKey = {
+	readonly asData: (input: { readonly compressed: boolean }) => Buffer
+	readonly isValidSignature: (input: {
+		readonly signature: Signature
+		readonly forData: UnsignedMessage
+	}) => boolean
+}
+
+export type NoInputForDerivationSincePrivateKeyIsCurrentlyAccessible = {
+	readonly derivationMethod: 'none'
+}
+
+export type HierarchicalDeteriministicDerivationPath = {
+	readonly derivationMethod: 'hdPath'
+	readonly toString: () => string
+}
+
+export type PublicKeyDerivation =
+	| HierarchicalDeteriministicDerivationPath
+	| NoInputForDerivationSincePrivateKeyIsCurrentlyAccessible
+
+export type PublicKeyProvider = {
+	readonly derivePublicKey: (
+		publicKeyDerivation?: PublicKeyDerivation,
+	) => ResultAsync<PublicKey, Error>
+}

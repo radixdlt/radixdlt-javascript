@@ -24,7 +24,7 @@ module.exports = {
 		node: true,
 	},
 	rules: {
-		complexity: ['error', 2],
+		complexity: ['error', 3],
 
 		'max-depth': ['error', 2],
 
@@ -40,7 +40,7 @@ module.exports = {
 		'max-lines-per-function': [
 			'error',
 			{
-				max: 20,
+				max: 40,
 				skipBlankLines: true,
 				skipComments: true,
 				IIFEs: true,
@@ -64,9 +64,9 @@ module.exports = {
 		'jsdoc/check-param-names': ['error', { allowExtraTrailingParamDocs: true }],
 		'jsdoc/require-param': ['error', { checkDestructuredRoots: false }],
 
-		// Disabled because '*.test.ts' files fail to lint 'describe' functions second argument (anonymous function).
 		'functional/no-expression-statement': 'off',
-		'functional/no-conditional-statement': 'off', // we'd like to use 'switch'...
+		'functional/no-conditional-statement': 'off',
+		'functional/no-mixed-type': 'off',
 		'functional/functional-parameters': 'off',
 	},
 }
