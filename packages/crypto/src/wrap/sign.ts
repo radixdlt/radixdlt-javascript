@@ -21,10 +21,11 @@ export const signDataWithPrivateKey = (input: {
 	return combine([
 		uint256FromBN(ellipticSignature.r),
 		uint256FromBN(ellipticSignature.s),
-	]).map((resultList) => {
-		return {
+	]).map((resultList) => (
+		{
 			r: resultList[0],
 			s: resultList[1],
 		}
-	})
+	))
+	
 }

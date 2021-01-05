@@ -9,7 +9,7 @@ const bnFromUint256 = (uint256: UInt256): BN => {
 	return new BN(uint256.toString(16), 'hex')
 }
 
-export const getPublicKey = (input: {
+export const publicKeyFromPrivateKey = (input: {
 	readonly privateKey: UInt256
 }): Result<PublicKey, Error> => {
 	const secp256k1 = new ec('secp256k1')
@@ -23,9 +23,9 @@ export const getPublicKey = (input: {
 	}
 
 	const publicKey: PublicKey = {
-		asData: (input_: { readonly compressed: boolean }): Buffer => {
-			return Buffer.from(privateKey.getPublic(input_.compressed, 'array'))
-		},
+		asData: (input_: { readonly compressed: boolean }): Buffer => (
+			Buffer.from(privateKey.getPublic(input_.compressed, 'array'))
+		),
 		isValidSignature: (input_: {
 			readonly signature: Signature
 			readonly forData: UnsignedMessage

@@ -8,30 +8,29 @@ import { errAsync, ResultAsync } from 'neverthrow'
 import {
 	UnsignedMessage,
 	Signature,
-	Signer,
 	PublicKey,
-	PublicKeyProvider,
+	PrivateKey,
 	PublicKeyDerivation,
-	NoInputForDerivationSincePrivateKeyIsCurrentlyAccessible,
+	NoDerivationInputNeeded,
 } from './_types'
-import { getPublicKey } from './wrap/getPublicKey'
+import { publicKeyFromPrivateKey } from './wrap/publicKeyFromPrivateKey'
 
-const noDerivation: NoInputForDerivationSincePrivateKeyIsCurrentlyAccessible = {
+const noDerivation: NoDerivationInputNeeded = {
 	derivationMethod: 'none',
 }
 
-export const PrivateKey = (scalar: UInt256): Signer & PublicKeyProvider => {
+export const privateKeyFromScalar = (scalar: UInt256): PrivateKey => {
 	return {
 		sign: (
 			unsignedMessage: UnsignedMessage,
-		): ResultAsync<Signature, Error> => {
-			return resultToAsync(
+		): ResultAsync<Signature, Error> => (
+			resultToAsync(
 				signDataWithPrivateKey({
 					privateKey: scalar,
 					data: unsignedMessage.hasher(unsignedMessage.unhashed),
 				}),
 			)
-		},
+		),
 
 		derivePublicKey: (
 			publicKeyDerivation?: PublicKeyDerivation,
@@ -39,7 +38,7 @@ export const PrivateKey = (scalar: UInt256): Signer & PublicKeyProvider => {
 			const derivation = publicKeyDerivation ?? noDerivation
 			if (derivation.derivationMethod === 'none') {
 				return resultToAsync(
-					getPublicKey({
+					publicKeyFromPrivateKey({
 						privateKey: scalar,
 					}),
 				)

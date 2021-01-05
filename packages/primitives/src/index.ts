@@ -1,2 +1,2 @@
-export { uint256FromBN, fitsInUInt256 } from './UInt256'
-export { resultToAsync } from './ResultAsync'
+export { uint256FromBN, fitsInUInt256 } from './uint256'
+export { resultToAsync } from './resultAsync'

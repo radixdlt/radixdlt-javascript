@@ -1,4 +1,4 @@
-import { PrivateKey, Signature, unsignedPlainText } from '../src/_index'
+import { privateKeyFromScalar, Signature, unsignedPlainText } from '../src/_index'
 
 import { UInt256 } from '@radixdlt/uint256'
 
@@ -13,7 +13,7 @@ const signatureFromHexStrings = (input: { r: string, s: string }): Signature => 
 
 describe('elliptic curve cryptography', () => {
 	it('should be able to sign messages', async () => {
-		const privateKey = PrivateKey(UInt256.valueOf(1))
+		const privateKey = privateKeyFromScalar(UInt256.valueOf(1))
 
 		const messageToSign = unsignedPlainText({
 			plainText: 'Satoshi Nakamoto',
@@ -36,7 +36,7 @@ describe('elliptic curve cryptography', () => {
 	})
 
 	it('should be able to derive publicKey from privateKey', async () => {
-		const privateKey = PrivateKey(UInt256.valueOf(1))
+		const privateKey = privateKeyFromScalar(UInt256.valueOf(1))
 
 		const publicKeyResult = await privateKey.derivePublicKey()
 		const publicKey = publicKeyResult._unsafeUnwrap()

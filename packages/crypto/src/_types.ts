@@ -34,21 +34,24 @@ export type PublicKey = Readonly<{
 	}>) => boolean
 }>
 
-export type NoInputForDerivationSincePrivateKeyIsCurrentlyAccessible = Readonly<{
+// In the case of private key being directly accessible.
+export type NoDerivationInputNeeded = Readonly<{
 	derivationMethod: 'none'
 }>
 
-export type HierarchicalDeteriministicDerivationPath = Readonly<{
+export type HDPath = Readonly<{
 	derivationMethod: 'hdPath'
 	toString: () => string
 }>
 
 export type PublicKeyDerivation =
-	| HierarchicalDeteriministicDerivationPath
-	| NoInputForDerivationSincePrivateKeyIsCurrentlyAccessible
+	| HDPath
+	| NoDerivationInputNeeded
 
 export type PublicKeyProvider = Readonly<{
 	derivePublicKey: (
 		publicKeyDerivation?: PublicKeyDerivation,
 	) => ResultAsync<PublicKey, Error>
 }>
+
+export type PrivateKey = Signer & PublicKeyProvider

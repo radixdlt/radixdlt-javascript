@@ -11,11 +11,10 @@ import { sha256 } from './algorithms'
 export const unsignedPlainText = (input: {
 	readonly plainText: string
 	readonly hasher?: Hasher
-}): UnsignedMessage => {
-	const encoded = Buffer.from(input.plainText, 'utf8')
-
-	return {
-		unhashed: encoded,
+}): UnsignedMessage => (
+	{
+		unhashed: Buffer.from(input.plainText, 'utf8'),
 		hasher: input.hasher ?? sha256,
 	}
-}
+)
+
