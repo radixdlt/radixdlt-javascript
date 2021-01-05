@@ -1,4 +1,4 @@
+export * from './_types'
+export * from './algorithms'
 export * from './PrivateKey'
 export * from './UnsignedMessage'
-export * from './Signature'
-export * from './Hasher'

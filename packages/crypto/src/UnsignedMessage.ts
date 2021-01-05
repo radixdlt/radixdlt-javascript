@@ -1,9 +1,5 @@
-import { Hasher, sha256 } from './Hasher'
-
-export type UnsignedMessage = {
-	readonly unhashed: Buffer
-	readonly hasher: Hasher
-}
+import { UnsignedMessage, Hasher } from './_types'
+import { sha256 } from './algorithms'
 
 /**
  * Prepares a plaintext string for hashing and signing at a later point in time.

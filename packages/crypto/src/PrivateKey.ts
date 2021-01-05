@@ -1,47 +1,11 @@
-import { uint256FromBN, resultToAsync } from '@radixdlt/primitives'
+import { resultToAsync } from '@radixdlt/primitives'
 
 import { UInt256 } from '@radixdlt/uint256'
 
-import { UnsignedMessage } from './UnsignedMessage'
-import { Signature } from './Signature'
+import { signDataWithPrivateKey } from './wrap/sign'
 
-import { ec } from 'elliptic'
-import { combine, Result, ResultAsync } from 'neverthrow'
-
-export type Signer = {
-	/**
-	 * Produces a cryptographic signature of the input.
-	 *
-	 * @param {UnsignedMessage} unsignedMessage - The unsigned message to be hashed and signed.
-	 * @returns {Signature} An EC signature produces by this signer when signing the message.
-	 */
-	readonly sign: (
-		unsignedMessage: UnsignedMessage,
-	) => ResultAsync<Signature, Error>
-}
-
-const signWithIndutnyElliptic = (input: {
-	readonly privateKey: UInt256
-	readonly data: Buffer
-}): Result<Signature, Error> => {
-	const secp256k1 = new ec('secp256k1')
-
-	const privateKey = secp256k1.keyFromPrivate(input.privateKey.toString(16))
-
-	const ellipticSignature = privateKey.sign(input.data, {
-		canonical: true,
-	})
-
-	return combine([
-		uint256FromBN(ellipticSignature.r),
-		uint256FromBN(ellipticSignature.s),
-	]).map((resultList) => {
-		return {
-			r: resultList[0],
-			s: resultList[1],
-		}
-	})
-}
+import { ResultAsync } from 'neverthrow'
+import { UnsignedMessage, Signature, Signer } from './_types'
 
 export const PrivateKey = (scalar: UInt256): Signer => {
 	return {
@@ -49,7 +13,7 @@ export const PrivateKey = (scalar: UInt256): Signer => {
 			unsignedMessage: UnsignedMessage,
 		): ResultAsync<Signature, Error> => {
 			return resultToAsync(
-				signWithIndutnyElliptic({
+				signDataWithPrivateKey({
 					privateKey: scalar,
 					data: unsignedMessage.hasher(unsignedMessage.unhashed),
 				}),

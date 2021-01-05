@@ -1,5 +1,4 @@
-import { PrivateKey } from '../src'
-import { unsignedPlainText } from '../src'
+import { PrivateKey, unsignedPlainText } from '../src/_index'
 
 import { UInt256 } from '@radixdlt/uint256'
 
