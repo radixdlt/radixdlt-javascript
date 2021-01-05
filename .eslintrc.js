@@ -51,6 +51,8 @@ module.exports = {
 
 		'max-params': ['error', 1],
 
+		'@typescript-eslint/require-await': 'off',
+
 		// ESLint-Plugin-Functional RULES
 		'functional/immutable-data': 'error',
 		'functional/no-let': 'error',
@@ -64,6 +66,7 @@ module.exports = {
 
 		// Disabled because '*.test.ts' files fail to lint 'describe' functions second argument (anonymous function).
 		'functional/no-expression-statement': 'off',
+		'functional/no-conditional-statement': 'off', // we'd like to use 'switch'...
 		'functional/functional-parameters': 'off',
 	},
 }
