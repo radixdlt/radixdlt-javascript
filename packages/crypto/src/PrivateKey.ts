@@ -34,11 +34,10 @@ const signWithIndutnyElliptic = (input: {
 		uint256FromBN(ellipticSignature.r),
 		uint256FromBN(ellipticSignature.s),
 	]).map((resultList) => {
-		const signature: Signature = {
+		return {
 			r: resultList[0],
 			s: resultList[1],
 		}
-		return signature
 	})
 }
 
