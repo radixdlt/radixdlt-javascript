@@ -8,12 +8,13 @@ module.exports = {
 			'./packages/*/tsconfig.test.json',
 		],
 	},
-	plugins: ['@typescript-eslint', 'jest', 'functional'],
+	plugins: ['@typescript-eslint', 'jest', 'functional', 'jsdoc'],
 	extends: [
 		'eslint:recommended',
 		'plugin:@typescript-eslint/recommended',
 		'plugin:@typescript-eslint/recommended-requiring-type-checking',
 		'plugin:jest/recommended',
+		'plugin:jsdoc/recommended',
 		'plugin:functional/external-recommended', // https://github.com/jonaskello/eslint-plugin-functional
 		'plugin:functional/recommended', // https://github.com/jonaskello/eslint-plugin-functional
 		'prettier/@typescript-eslint', // Uses eslint-config-prettier to disable ESLint rules from @typescript-eslint/eslint-plugin that would conflict with prettier
@@ -56,6 +57,10 @@ module.exports = {
 		'functional/no-loop-statement': 'error',
 		'no-param-reassign': 'error',
 		'functional/no-try-statement': 'error',
+
+		// ESLint-Plugin-JSDoc RULES
+		'jsdoc/check-param-names': ['error', { allowExtraTrailingParamDocs: true }],
+		'jsdoc/require-param': ['error', { checkDestructuredRoots: false }],
 
 		// Disabled because '*.test.ts' files fail to lint 'describe' functions second argument (anonymous function).
 		'functional/no-expression-statement': 'off',
