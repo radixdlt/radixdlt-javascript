@@ -1,4 +1,4 @@
-import { UInt256 } from 'packages/primitives/dist'
+import { UInt256 } from '@radixdlt/uint256'
 
 export type Signature = {
 	readonly r: UInt256
