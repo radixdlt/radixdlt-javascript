@@ -13,8 +13,7 @@ export type Signer = {
 	/**
 	 * Produces a cryptographic signature of the input.
 	 *
-	 * @param {Object} input - The input for this function.
-	 * @param {UnsignedMessage} input.unsignedMessage - The unsigned message to be hashed and signed.
+	 * @param {UnsignedMessage} unsignedMessage - The unsigned message to be hashed and signed.
 	 * @returns {Signature} An EC signature produces by this signer when signing the message.
 	 */
 	readonly sign: (input: {
