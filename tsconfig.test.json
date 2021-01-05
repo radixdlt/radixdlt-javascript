@@ -10,6 +10,6 @@
     { "path": "packages/actions" },
     { "path": "packages/atom" },
     { "path": "packages/crypto" },
-    { "path": "packages/subatomic" }
+    { "path": "packages/primitives" }
   ]
 }

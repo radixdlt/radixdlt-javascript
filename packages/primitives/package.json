@@ -1,5 +1,5 @@
 {
-  "name": "@radixdlt/subatomic",
+  "name": "@radixdlt/primitives",
   "version": "0.0.0",
   "description": "Shared common data types",
   "keywords": [
@@ -9,7 +9,7 @@
     "Encoding"
   ],
   "author": "Alexander Cyon <alex.cyon@gmail.com>",
-  "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/subatomic#readme",
+  "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/primitives#readme",
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "publishConfig": {

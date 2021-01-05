@@ -6,6 +6,6 @@
   ],
   "references": [
     {"path": "../dson"},
-    {"path": "../subatomic"}
+    {"path": "../primitives"}
   ]
 }

@@ -35,7 +35,7 @@
     "node": ">=15.5.0 <16"
   },
   "dependencies": {
-    "@radixdlt/subatomic": "0.0.0",
+    "@radixdlt/primitives": "0.0.0",
     "elliptic": "^6.5.3"
   },
   "devDependencies": {

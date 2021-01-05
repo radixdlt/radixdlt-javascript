@@ -55,13 +55,13 @@ This git repository is a so called "monorepo" using [`yarn` *workspaces*](https:
 ||
 | [`@radix/chemistry`][chem] | Creating Atoms from `Transaction` | `AtomToTransactionMapper`, `TransactionToAtomMapper` | [`@radix/atom`][atom], [`@radix/actions`][actions] | None |
 ||
-| [`@radix/actions`][actions] | High level abstractions user initiated actions. | `TokenTransferAction`, `SendMessageAction` | [`@radix/subatomic`][subatom] | None |
+| [`@radix/actions`][actions] | High level abstractions user initiated actions. | `TokenTransferAction`, `SendMessageAction` | [`@radix/primitives`][subatom] | None |
 ||
-| [`@radix/atom`][atom] | Implementation of [Radix *Atom Model*](https://dev.to/radixdlt/knowledgebase-update-atom-model-263i), a container for [CRUD instructions](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) sent to the Radix distributed ledger. | `Atom`, `Particle`, `ParticleGroup`, `Spin` | [`@radix/subatomic`][subatom], [`@radix/dson`][dson] | None |
+| [`@radix/atom`][atom] | Implementation of [Radix *Atom Model*](https://dev.to/radixdlt/knowledgebase-update-atom-model-263i), a container for [CRUD instructions](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) sent to the Radix distributed ledger. | `Atom`, `Particle`, `ParticleGroup`, `Spin` | [`@radix/primitives`][subatom], [`@radix/dson`][dson] | None |
 ||
-| [`@radix/crypto`][crypto] | Toolchain of cryptographic primitives such as SHA256 digests, [ECIES encryption](https://en.wikipedia.org/wiki/Integrated_Encryption_Scheme) and [ECC methods](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography) (KeyGen, Sign, Verify) | `PrivateKey`, `PublicKey`, `KeyPair`, `Hasher`, `Signer` | [`@radix/subatomic`][subatom] | [indutny/elliptic](https://github.com/indutny/elliptic) |
+| [`@radix/crypto`][crypto] | Toolchain of cryptographic primitives such as SHA256 digests, [ECIES encryption](https://en.wikipedia.org/wiki/Integrated_Encryption_Scheme) and [ECC methods](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography) (KeyGen, Sign, Verify) | `PrivateKey`, `PublicKey`, `KeyPair`, `Hasher`, `Signer` | [`@radix/primitives`][subatom] | [indutny/elliptic](https://github.com/indutny/elliptic) |
 ||
-| [`@radix/subatomic`][subatom] | Shared common data types | `Base58`, `UInt256`, `Int64`, `Nonce` | No dependencies | None |
+| [`@radix/primitives`][subatom] | Shared common data types | `Base58`, `UInt256`, `Int64`, `Nonce` | No dependencies | None |
 ||
 | [`@radix/dson`][dson] | The binary data format [**CBOR**](https://cbor.io/) (de-)serialization (+Radix own *DSON*) | `DSONSerializable` | No dependencies | [`cbor`](https://www.npmjs.com/package/cbor) |
 
@@ -173,7 +173,7 @@ assert(tokenTransferAtom.particleGroups.length === 2) // ParticleGroup at index 
 [chem]: ./packages/chemistry
 [atom]: ./packages/atom
 [crypto]: ./packages/crypto
-[subatom]: ./packages/subatomic
+[subatom]: ./packages/primitives
 [networking]: ./packages/networking
 [hwLedger]: ./packages/hardware-wallet
 [actions]: ./packages/actions
