@@ -4,51 +4,51 @@ import { ResultAsync } from 'neverthrow'
 
 export type Hasher = (inputData: Buffer) => Buffer
 
-export type Signer = {
+export type Signer = Readonly<{
 	/**
 	 * Produces a cryptographic signature of the input.
 	 *
 	 * @param {UnsignedMessage} unsignedMessage - The unsigned message to be hashed and signed.
 	 * @returns {Signature} An EC signature produces by this signer when signing the message.
 	 */
-	readonly sign: (
+	sign: (
 		unsignedMessage: UnsignedMessage,
 	) => ResultAsync<Signature, Error>
-}
+}>
 
-export type UnsignedMessage = {
-	readonly unhashed: Buffer
-	readonly hasher: Hasher
-}
+export type UnsignedMessage = Readonly<{
+	unhashed: Buffer
+	hasher: Hasher
+}>
 
-export type Signature = {
-	readonly r: UInt256
-	readonly s: UInt256
-}
+export type Signature = Readonly<{
+	r: UInt256
+	s: UInt256
+}>
 
-export type PublicKey = {
-	readonly asData: (input: { readonly compressed: boolean }) => Buffer
-	readonly isValidSignature: (input: {
-		readonly signature: Signature
-		readonly forData: UnsignedMessage
-	}) => boolean
-}
+export type PublicKey = Readonly<{
+	asData: (input: { readonly compressed: boolean }) => Buffer
+	isValidSignature: (input: Readonly<{
+		signature: Signature
+		forData: UnsignedMessage
+	}>) => boolean
+}>
 
-export type NoInputForDerivationSincePrivateKeyIsCurrentlyAccessible = {
-	readonly derivationMethod: 'none'
-}
+export type NoInputForDerivationSincePrivateKeyIsCurrentlyAccessible = Readonly<{
+	derivationMethod: 'none'
+}>
 
-export type HierarchicalDeteriministicDerivationPath = {
-	readonly derivationMethod: 'hdPath'
-	readonly toString: () => string
-}
+export type HierarchicalDeteriministicDerivationPath = Readonly<{
+	derivationMethod: 'hdPath'
+	toString: () => string
+}>
 
 export type PublicKeyDerivation =
 	| HierarchicalDeteriministicDerivationPath
 	| NoInputForDerivationSincePrivateKeyIsCurrentlyAccessible
 
-export type PublicKeyProvider = {
-	readonly derivePublicKey: (
+export type PublicKeyProvider = Readonly<{
+	derivePublicKey: (
 		publicKeyDerivation?: PublicKeyDerivation,
 	) => ResultAsync<PublicKey, Error>
-}
+}>
