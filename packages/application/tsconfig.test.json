@@ -6,6 +6,6 @@
   ],
   "references": [
     {"path": "../crypto"},
-    {"path": "../chemistry"}
+    {"path": "../atom-transaction-mapping"}
   ]
 }

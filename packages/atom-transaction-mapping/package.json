@@ -1,5 +1,5 @@
 {
-  "name": "@radixdlt/chemistry",
+  "name": "@radixdlt/atom-transaction-mapping",
   "version": "0.0.0",
   "description": "Create Atoms from actions",
   "keywords": [
@@ -10,7 +10,7 @@
     "AtomReducer"
   ],
   "author": "Alexander Cyon <alex.cyon@gmail.com>",
-  "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/chemistry#readme",
+  "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/atom-transaction-mapping#readme",
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "publishConfig": {

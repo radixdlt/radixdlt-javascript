@@ -47,21 +47,21 @@ This git repository is a so called "monorepo" using [`yarn` *workspaces*](https:
 
 | Package | Description | Key Components | Internal Dependency | Notable external dependency |
 | --- | --- | --- | --- | --- |
-| [`@radix/application`][app] | High level abstraction for interacting with the Radix Distributed Ledger | `RadixApplicationClient` | [`@radix/chemistry`][chem], [`@radix/crypto`][crypto] | None |
+| [`@radix/application`][app] | High level abstraction for interacting with the Radix Distributed Ledger | `RadixApplicationClient` | [`@radix/atom-transaction-mapping`][atom-transaction-mapping], [`@radix/crypto`][crypto] | None |
 ||
 | [`@radix/hardware-wallet`][hwLedger] | Ledger Nano hardware wallet application. | `HWWalletLedger` | [`@radix/atom`][atom] | [`LedgerHQ/ledgerjs`](https://github.com/LedgerHQ/ledgerjs) |
 ||
 | [`@radix/networking`][networking] | Sending and receiving of atoms over network transportation. | `AtomPuller`, `AtomSender`, `WebsocketToNode` | [`@radix/atom`][atom] | None |
 ||
-| [`@radix/chemistry`][chem] | Creating Atoms from `Transaction` | `AtomToTransactionMapper`, `TransactionToAtomMapper` | [`@radix/atom`][atom], [`@radix/actions`][actions] | None |
+| [`@radix/atom-transaction-mapping`][atom-transaction-mapping] | Creating Atoms from `Transaction` | `AtomToTransactionMapper`, `TransactionToAtomMapper` | [`@radix/atom`][atom], [`@radix/actions`][actions] | None |
 ||
-| [`@radix/actions`][actions] | High level abstractions user initiated actions. | `TokenTransferAction`, `SendMessageAction` | [`@radix/primitives`][subatom] | None |
+| [`@radix/actions`][actions] | High level abstractions user initiated actions. | `TokenTransferAction`, `SendMessageAction` | [`@radix/primitives`][primitives] | None |
 ||
-| [`@radix/atom`][atom] | Implementation of [Radix *Atom Model*](https://dev.to/radixdlt/knowledgebase-update-atom-model-263i), a container for [CRUD instructions](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) sent to the Radix distributed ledger. | `Atom`, `Particle`, `ParticleGroup`, `Spin` | [`@radix/primitives`][subatom], [`@radix/dson`][dson] | None |
+| [`@radix/atom`][atom] | Implementation of [Radix *Atom Model*](https://dev.to/radixdlt/knowledgebase-update-atom-model-263i), a container for [CRUD instructions](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) sent to the Radix distributed ledger. | `Atom`, `Particle`, `ParticleGroup`, `Spin` | [`@radix/primitives`][primitives], [`@radix/dson`][dson] | None |
 ||
 | [`@radix/crypto`][crypto] | Toolchain of cryptographic primitives such as SHA256 digests, [ECIES encryption](https://en.wikipedia.org/wiki/Integrated_Encryption_Scheme) and [ECC methods](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography) (KeyGen, Sign, Verify) | `PrivateKey`, `PublicKey`, `KeyPair`, `Hasher`, `Signer` | [`@radix/primitives`][subatom] | [indutny/elliptic](https://github.com/indutny/elliptic) |
 ||
-| [`@radix/primitives`][subatom] | Shared common data types | `Base58`, `UInt256`, `Int64`, `Nonce` | No dependencies | None |
+| [`@radix/primitives`][primitives] | Shared common data types | `Base58`, `UInt256`, `Int64`, `Nonce` | No dependencies | [uint256](https://github.com/radixdlt/uint256) |
 ||
 | [`@radix/dson`][dson] | The binary data format [**CBOR**](https://cbor.io/) (de-)serialization (+Radix own *DSON*) | `DSONSerializable` | No dependencies | [`cbor`](https://www.npmjs.com/package/cbor) |
 
@@ -170,7 +170,7 @@ assert(tokenTransferAtom.particleGroups.length === 2) // ParticleGroup at index 
 <!-- Radix packages links -->
 [app]: ./packages/application
 [dson]: ./packages/dson
-[chem]: ./packages/chemistry
+[atom-transaction-mapping]: ./packages/atom-transaction-mapping
 [atom]: ./packages/atom
 [crypto]: ./packages/crypto
 [subatom]: ./packages/primitives
