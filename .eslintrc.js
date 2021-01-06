@@ -61,7 +61,10 @@ module.exports = {
 		'functional/no-try-statement': 'error',
 
 		// ESLint-Plugin-JSDoc RULES
-		'jsdoc/check-param-names': ['error', { allowExtraTrailingParamDocs: true }],
+		'jsdoc/check-param-names': [
+			'error',
+			{ allowExtraTrailingParamDocs: true },
+		],
 		'jsdoc/require-param': ['error', { checkDestructuredRoots: false }],
 
 		'functional/no-expression-statement': 'off',
