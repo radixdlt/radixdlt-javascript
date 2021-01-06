@@ -23,9 +23,8 @@ export const publicKeyFromPrivateKey = (input: {
 	}
 
 	const publicKey: PublicKey = {
-		asData: (input_: { readonly compressed: boolean }): Buffer => (
-			Buffer.from(privateKey.getPublic(input_.compressed, 'array'))
-		),
+		asData: (input_: { readonly compressed: boolean }): Buffer =>
+			Buffer.from(privateKey.getPublic(input_.compressed, 'array')),
 		isValidSignature: (input_: {
 			readonly signature: Signature
 			readonly forData: UnsignedMessage

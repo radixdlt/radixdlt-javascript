@@ -11,9 +11,7 @@ export type Signer = Readonly<{
 	 * @param {UnsignedMessage} unsignedMessage - The unsigned message to be hashed and signed.
 	 * @returns {Signature} An EC signature produces by this signer when signing the message.
 	 */
-	sign: (
-		unsignedMessage: UnsignedMessage,
-	) => ResultAsync<Signature, Error>
+	sign: (unsignedMessage: UnsignedMessage) => ResultAsync<Signature, Error>
 }>
 
 export type UnsignedMessage = Readonly<{
@@ -28,30 +26,16 @@ export type Signature = Readonly<{
 
 export type PublicKey = Readonly<{
 	asData: (input: { readonly compressed: boolean }) => Buffer
-	isValidSignature: (input: Readonly<{
-		signature: Signature
-		forData: UnsignedMessage
-	}>) => boolean
+	isValidSignature: (
+		input: Readonly<{
+			signature: Signature
+			forData: UnsignedMessage
+		}>,
+	) => boolean
 }>
-
-// In the case of private key being directly accessible.
-export type NoDerivationInputNeeded = Readonly<{
-	derivationMethod: 'none'
-}>
-
-export type HDPath = Readonly<{
-	derivationMethod: 'hdPath'
-	toString: () => string
-}>
-
-export type PublicKeyDerivation =
-	| HDPath
-	| NoDerivationInputNeeded
 
 export type PublicKeyProvider = Readonly<{
-	derivePublicKey: (
-		publicKeyDerivation?: PublicKeyDerivation,
-	) => ResultAsync<PublicKey, Error>
+	derivePublicKey: () => ResultAsync<PublicKey, Error>
 }>
 
 export type PrivateKey = Signer & PublicKeyProvider

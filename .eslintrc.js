@@ -65,8 +65,9 @@ module.exports = {
 		'jsdoc/require-param': ['error', { checkDestructuredRoots: false }],
 
 		'functional/no-expression-statement': 'off',
-		'functional/no-conditional-statement': 'off',
+		'functional/no-conditional-statement': 'off', // we like switch statements
 		'functional/no-mixed-type': 'off',
 		'functional/functional-parameters': 'off',
+		'functional/prefer-readonly-type': 'off', // false positive trigger on `Readonly<>` - which we like.
 	},
 }
