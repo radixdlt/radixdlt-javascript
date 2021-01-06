@@ -1,17 +1,18 @@
 {
-  "name": "@radixdlt/subatomic",
+  "name": "@radixdlt/atom-transaction-mapping",
   "version": "0.0.0",
-  "description": "Shared common data types",
+  "description": "Create Atoms from actions",
   "keywords": [
-    "Integers",
-    "Nonce",
-    "Base58",
-    "Encoding"
+    "Mapper",
+    "Reducer",
+    "Actions",
+    "AtomMapper",
+    "AtomReducer"
   ],
   "author": "Alexander Cyon <alex.cyon@gmail.com>",
-  "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/subatomic#readme",
+  "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/atom-transaction-mapping#readme",
   "license": "Apache-2.0",
-  "main": "index.ts",
+  "main": "dist/index.js",
   "publishConfig": {
     "access": "public"
   },

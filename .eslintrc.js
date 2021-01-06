@@ -8,12 +8,13 @@ module.exports = {
 			'./packages/*/tsconfig.test.json',
 		],
 	},
-	plugins: ['@typescript-eslint', 'jest', 'functional'],
+	plugins: ['@typescript-eslint', 'jest', 'functional', 'jsdoc'],
 	extends: [
 		'eslint:recommended',
 		'plugin:@typescript-eslint/recommended',
 		'plugin:@typescript-eslint/recommended-requiring-type-checking',
 		'plugin:jest/recommended',
+		'plugin:jsdoc/recommended',
 		'plugin:functional/external-recommended', // https://github.com/jonaskello/eslint-plugin-functional
 		'plugin:functional/recommended', // https://github.com/jonaskello/eslint-plugin-functional
 		'prettier/@typescript-eslint', // Uses eslint-config-prettier to disable ESLint rules from @typescript-eslint/eslint-plugin that would conflict with prettier
@@ -23,7 +24,7 @@ module.exports = {
 		node: true,
 	},
 	rules: {
-		complexity: ['error', 2],
+		complexity: ['error', 3],
 
 		'max-depth': ['error', 2],
 
@@ -39,7 +40,7 @@ module.exports = {
 		'max-lines-per-function': [
 			'error',
 			{
-				max: 20,
+				max: 40,
 				skipBlankLines: true,
 				skipComments: true,
 				IIFEs: true,
@@ -50,6 +51,8 @@ module.exports = {
 
 		'max-params': ['error', 1],
 
+		'@typescript-eslint/require-await': 'off',
+
 		// ESLint-Plugin-Functional RULES
 		'functional/immutable-data': 'error',
 		'functional/no-let': 'error',
@@ -57,8 +60,17 @@ module.exports = {
 		'no-param-reassign': 'error',
 		'functional/no-try-statement': 'error',
 
-		// Disabled because '*.test.ts' files fail to lint 'describe' functions second argument (anonymous function).
+		// ESLint-Plugin-JSDoc RULES
+		'jsdoc/check-param-names': [
+			'error',
+			{ allowExtraTrailingParamDocs: true },
+		],
+		'jsdoc/require-param': ['error', { checkDestructuredRoots: false }],
+
 		'functional/no-expression-statement': 'off',
+		'functional/no-conditional-statement': 'off', // we like switch statements
+		'functional/no-mixed-type': 'off',
 		'functional/functional-parameters': 'off',
+		'functional/prefer-readonly-type': 'off', // false positive trigger on `Readonly<>` - which we like.
 	},
 }

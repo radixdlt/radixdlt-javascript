@@ -17,7 +17,7 @@
   "author": "Alexander Cyon <alex.cyon@gmail.com>",
   "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/crypto#readme",
   "license": "Apache-2.0",
-  "main": "lib/index.ts",
+  "main": "dist/index.js",
   "publishConfig": {
     "access": "public"
   },
@@ -33,5 +33,14 @@
   },
   "engines": {
     "node": ">=15.5.0 <16"
+  },
+  "dependencies": {
+    "@radixdlt/primitives": "0.0.0",
+    "@radixdlt/uint256": "^1.1.0",
+    "elliptic": "^6.5.3",
+    "neverthrow": "^3.1.4"
+  },
+  "devDependencies": {
+    "@types/elliptic": "^6.4.12"
   }
 }

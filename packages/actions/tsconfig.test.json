@@ -5,6 +5,6 @@
     "test"
   ],
   "references": [
-    {"path": "../subatomic"}
+    {"path": "../primitives"}
   ]
 }

@@ -1,18 +1,17 @@
 {
-  "name": "@radixdlt/chemistry",
+  "name": "@radixdlt/primitives",
   "version": "0.0.0",
-  "description": "Create Atoms from actions",
+  "description": "Shared common data types",
   "keywords": [
-    "Mapper",
-    "Reducer",
-    "Actions",
-    "AtomMapper",
-    "AtomReducer"
+    "Integers",
+    "Nonce",
+    "Base58",
+    "Encoding"
   ],
   "author": "Alexander Cyon <alex.cyon@gmail.com>",
-  "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/chemistry#readme",
+  "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/primitives#readme",
   "license": "Apache-2.0",
-  "main": "index.ts",
+  "main": "dist/index.js",
   "publishConfig": {
     "access": "public"
   },
@@ -28,5 +27,10 @@
   },
   "engines": {
     "node": ">=15.5.0 <16"
+  },
+  "dependencies": {
+    "@radixdlt/uint256": "^1.0.8",
+    "bn.js": "^5.1.3",
+    "neverthrow": "^3.1.4"
   }
 }
