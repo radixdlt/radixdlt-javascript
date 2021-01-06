@@ -4,5 +4,7 @@
     "src",
     "test"
   ],
-  "references": []
+  "references": [
+    {"path": "../dson"}
+  ]
 }

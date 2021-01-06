@@ -12,7 +12,9 @@
   "author": "Alexander Cyon <alex.cyon@gmail.com>",
   "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/atom-transaction-mapping#readme",
   "license": "Apache-2.0",
-  "main": "dist/index.js",
+  "main": "dist/_index.js",
+  "node": "dist/_index.js",
+  "types": "dist/_index.d.ts",
   "publishConfig": {
     "access": "public"
   },

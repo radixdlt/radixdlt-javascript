@@ -20,5 +20,9 @@
     "strict": true,
     "target": "ESNext",
     "skipLibCheck": true,
+    "types": [
+      "node",
+      "jest"
+    ]
   }
 }

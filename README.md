@@ -28,7 +28,7 @@ This repository makes use of several technologies to provide a better and faster
 yarn install
 
 # symlink packages, compile TS source files
-yarn bootstrap
+yarn setup-dev
 
 # watch TS source files and recompile on change
 yarn build:ts -w
@@ -61,7 +61,7 @@ This git repository is a so called "monorepo" using [`yarn` *workspaces*](https:
 ||
 | [`@radix/crypto`][crypto] | Toolchain of cryptographic primitives such as SHA256 digests, [ECIES encryption](https://en.wikipedia.org/wiki/Integrated_Encryption_Scheme) and [ECC methods](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography) (KeyGen, Sign, Verify) | `PrivateKey`, `PublicKey`, `KeyPair`, `Hasher`, `Signer` | [`@radix/primitives`][subatom] | [indutny/elliptic](https://github.com/indutny/elliptic) |
 ||
-| [`@radix/primitives`][primitives] | Shared common data types | `Base58`, `UInt256`, `Int64`, `Nonce` | No dependencies | [uint256](https://github.com/radixdlt/uint256) |
+| [`@radix/primitives`][primitives] | Shared common data types | `Base58`, `UInt256`, `Int64`, `Nonce` | [`@radix/dson`][dson] | [uint256](https://github.com/radixdlt/uint256) |
 ||
 | [`@radix/dson`][dson] | The binary data format [**CBOR**](https://cbor.io/) (de-)serialization (+Radix own *DSON*) | `DSONSerializable` | No dependencies | [`cbor`](https://www.npmjs.com/package/cbor) |
 
@@ -173,7 +173,7 @@ assert(tokenTransferAtom.particleGroups.length === 2) // ParticleGroup at index 
 [atom-transaction-mapping]: ./packages/atom-transaction-mapping
 [atom]: ./packages/atom
 [crypto]: ./packages/crypto
-[subatom]: ./packages/primitives
+[primitives]: ./packages/primitives
 [networking]: ./packages/networking
 [hwLedger]: ./packages/hardware-wallet
 [actions]: ./packages/actions
