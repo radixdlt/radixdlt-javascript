@@ -1,12 +1,14 @@
 export enum DSONOutput {
-    Hash,
-    API
+	Hash,
+	API,
 }
 
 export type DSONCodable = DSONDecodable & DSONEncodable
 
 export type DSONEncodable = {
-    toDSON: (outputMode: DSONOutput) => Buffer
+	toDSON: (outputMode: DSONOutput) => Buffer
 }
 
-export type DSONDecodable = {}
+export type DSONDecodable = {
+	serializer: string
+}
