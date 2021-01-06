@@ -21,6 +21,7 @@
     "jest-json-schema": "^2.1.0",
     "jest-watch-typeahead": "^0.6.1",
     "lerna": "^3.22.1",
+    "lint-staged": ">=10",
     "pinst": "^2.1.1",
     "prettier": "^2.2.1",
     "prettier-eslint": "^12.0.0",
@@ -71,5 +72,8 @@
   },
   "workspaces": [
     "packages/*"
-  ]
+  ],
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": "eslint --cache --fix"
+  }
 }
