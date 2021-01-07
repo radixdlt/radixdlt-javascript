@@ -1,3 +1,4 @@
+import { Byte } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 
 import { ResultAsync } from 'neverthrow'
@@ -39,3 +40,9 @@ export type PublicKeyProvider = Readonly<{
 }>
 
 export type PrivateKey = Signer & PublicKeyProvider
+
+export type Address = Readonly<{
+	publicKey: PublicKey
+	magicByte: Byte
+	toString: () => string
+}>

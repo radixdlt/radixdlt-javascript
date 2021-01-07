@@ -2,6 +2,7 @@ import {
 	privateKeyFromScalar,
 	Signature,
 	unsignedPlainText,
+	publicKeyFromBytes,
 } from '../src/_index'
 
 import { UInt256 } from '@radixdlt/uint256'
@@ -9,15 +10,7 @@ import { UInt256 } from '@radixdlt/uint256'
 const signatureFromHexStrings = (input: {
 	r: string
 	s: string
-}): Signature => {
-	const r = new UInt256(input.r, 16)
-	const s = new UInt256(input.s, 16)
-
-	return {
-		r,
-		s,
-	}
-}
+}): Signature => ({ r: new UInt256(input.r, 16), s: new UInt256(input.s, 16) })
 
 describe('elliptic curve cryptography', () => {
 	it('should be able to sign messages', async () => {
@@ -82,5 +75,24 @@ describe('elliptic curve cryptography', () => {
 		})
 
 		expect(signatureValidation).toBeTruthy
+	})
+
+	it('can create a publicKey from bytes', () => {
+		const publicKeyResult = publicKeyFromBytes(
+			Buffer.from(
+				'0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
+				'hex',
+			),
+		)
+
+		const publicKey = publicKeyResult._unsafeUnwrap()
+
+		const publicKeyUncompressed = publicKey
+			.asData({ compressed: false })
+			.toString('hex')
+
+		expect(publicKeyUncompressed).toBe(
+			'0479be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8',
+		)
 	})
 })
