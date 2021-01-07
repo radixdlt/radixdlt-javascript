@@ -56,7 +56,10 @@
     "url": "git+https://github.com/radixdlt/radixdlt-javascript.git"
   },
   "scripts": {
-    "bootstrap": "lerna bootstrap && yarn build",
+    "setup-dev": "yarn && yarn bootstrap && yarn link-all && yarn build",
+    "bootstrap": "lerna bootstrap",
+    "link-all": "yarn unlink-all && lerna exec --parallel yarn link",
+    "unlink-all": "lerna exec --parallel --bail=false yarn unlink",
     "lint": "yarn eslint . --ext .js,.jsx,.ts,.tsx",
     "build": "yarn build:ts",
     "build:ts": "tsc -b tsconfig.json",
