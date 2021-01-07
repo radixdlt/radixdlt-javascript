@@ -12,8 +12,6 @@
   "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/atom#readme",
   "license": "Apache-2.0",
   "main": "dist/_index.js",
-  "node": "dist/_index.js",
-  "types": "dist/_index.d.ts",
   "publishConfig": {
     "access": "public"
   },
