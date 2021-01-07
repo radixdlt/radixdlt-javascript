@@ -23,7 +23,7 @@ export const addressFromPublicKeyAndMagicByte = (
 	return {
 		publicKey: input.publicKey,
 		magicByte: input.magicByte,
-		toString: (): string => toBase58(checksum(input)),
+		toString: (): string => base58Encode(checksum(input)),
 	}
 }
 
@@ -41,8 +41,4 @@ const checksum = (
 	const checksumFirstByte = checksum.slice(0)
 	const checksummed = Buffer.concat([data, checksumFirstByte])
 	return checksummed
-}
-
-const toBase58 = (data: Buffer): string => {
-	return base58Encode(data)
 }

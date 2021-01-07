@@ -1,6 +1,4 @@
-import { DSONCodable } from '@radixdlt/dson'
-
-export type Magic = DSONCodable & {
+export type Magic = /* DSONCodable & */ {
 	byte: Byte
 }
 

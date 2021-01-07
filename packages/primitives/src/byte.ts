@@ -3,11 +3,16 @@ import { Result, err, ok } from 'neverthrow'
 
 export const fitsInUInt8 = (number: number): boolean => {
 	const isNotTooBig = number <= 255
-	const isNonNegative = number > 0
+	const isNonNegative = number >= 0
 	return isNotTooBig && isNonNegative
 }
 
-export const byteFromNumber = (n: number): Result<Byte, Error> => {
+export const firstByteOfNumber = (n: number): Byte => {
+	const firstByte = Uint8Array.from(Buffer.from([n]))[0]
+	return byteFromNumber(firstByte)._unsafeUnwrap()
+}
+
+const byteFromNumber = (n: number): Result<Byte, Error> => {
 	if (!Number.isInteger(n) || !fitsInUInt8(n)) {
 		return err(new RangeError('Number is out of Uint8 range'))
 	}
