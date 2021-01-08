@@ -6,10 +6,12 @@ import { combine, Result } from 'neverthrow'
 import { ec } from 'elliptic'
 import { Signature } from '../_types'
 
-export const signDataWithPrivateKey = (input: {
-	readonly privateKey: UInt256
-	readonly data: Buffer
-}): Result<Signature, Error> => {
+export const signDataWithPrivateKey = (
+	input: Readonly<{
+		privateKey: UInt256
+		data: Buffer
+	}>,
+): Result<Signature, Error> => {
 	const secp256k1 = new ec('secp256k1')
 
 	const privateKey = secp256k1.keyFromPrivate(input.privateKey.toString(16))
