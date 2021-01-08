@@ -74,7 +74,26 @@ describe('elliptic curve cryptography', () => {
 			forData: message,
 		})
 
-		expect(signatureValidation).toBeTruthy
+		expect(signatureValidation).toBeTruthy()
+	})
+
+	it('can create a publicKey from bytes', () => {
+		const publicKeyResult = publicKeyFromBytes(
+			Buffer.from(
+				'0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
+				'hex',
+			),
+		)
+
+		const publicKey = publicKeyResult._unsafeUnwrap()
+
+		const publicKeyUncompressed = publicKey
+			.asData({ compressed: false })
+			.toString('hex')
+
+		expect(publicKeyUncompressed).toBe(
+			'0479be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8',
+		)
 	})
 
 	it('can create a publicKey from bytes', () => {

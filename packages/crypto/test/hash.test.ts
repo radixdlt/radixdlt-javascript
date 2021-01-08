@@ -1,5 +1,4 @@
-import { radixHash, sha256 } from '../dist/algorithms'
-import { Hasher } from '../dist/_types'
+import { Hasher, sha256, radixHash } from '../src/_index'
 
 const testHash = (testVector: {
 	hasher: Hasher

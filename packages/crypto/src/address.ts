@@ -35,6 +35,12 @@ export const addressFromPublicKeyAndMagicByte = (
 	}
 }
 
+export const addressFromBase58String = (
+	b58String: string,
+): Result<Address, Error> => {
+	return base58Decode(b58String).andThen(addressFromBuffer)
+}
+
 const publicKeyCompressedByteCount = 33
 const checksumByteCount = 4
 const magicByteCount = 1
@@ -55,8 +61,8 @@ const addressFromBuffer = (buffer: Buffer): Result<Address, Error> => {
 		addressByteCount - checksumByteCount,
 	)
 	const checksummedAddress = calculateAndAppendChecksum(checksumDropped)
-	if (checksummedAddress !== buffer) {
-		return err(new Error('Checksum mismatch'))
+	if (Buffer.compare(checksummedAddress, buffer) !== 0) {
+		return err(new Error(`Checksum mismatch`))
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
@@ -74,10 +80,6 @@ const addressFromBuffer = (buffer: Buffer): Result<Address, Error> => {
 			toString: (): string => base58Encode(checksummedAddress),
 		})
 	})
-}
-
-export const address = (base58: string): Result<Address, Error> => {
-	return base58Decode(base58).andThen(addressFromBuffer)
 }
 
 const bytesForAddress = (
