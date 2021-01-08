@@ -11,7 +11,6 @@ const config = {
 	],
 	moduleFileExtensions: ['js', 'ts', 'node', 'json'],
 	moduleNameMapper: {
-		'^@radix-javascript/(.*)$': '<rootDir>/packages/radix-$1/src/index.ts',
 		'cross-fetch': 'jest-fetch-mock',
 	},
 	globals: {

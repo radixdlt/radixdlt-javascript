@@ -10,3 +10,4 @@ export const sha256Twice: Hasher = (inputData: Buffer): Buffer => {
 }
 
 export const radixHash = sha256Twice
+export const radixHashByteCount = 32

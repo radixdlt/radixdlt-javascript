@@ -11,14 +11,17 @@
     "experimentalDecorators": true,
     "preserveConstEnums": true,
     "importHelpers": true,
-    "lib": ["ESNext", "dom"],
+    "lib": ["esnext", "dom"],
     "module": "commonjs",
     "moduleResolution": "node",
     "sourceMap": true,
+    "paths": {
+      "*": ["typings/*", "includes/*"]
+    },
     "resolveJsonModule": true,
     "noUnusedLocals": true,
     "strict": true,
-    "target": "ESNext",
+    "target": "es5",
     "skipLibCheck": true,
     "types": [
       "node",

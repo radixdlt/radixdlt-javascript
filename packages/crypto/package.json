@@ -37,7 +37,7 @@
   "dependencies": {
     "@radixdlt/primitives": "0.0.0",
     "@radixdlt/uint256": "^1.1.0",
-    "@types/bs58": "^4.0.1",
+    "base-x": "^3.0.8",
     "elliptic": "^6.5.3",
     "neverthrow": "^3.1.4"
   },

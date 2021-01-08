@@ -8,7 +8,11 @@ export const fitsInUInt8 = (number: number): boolean => {
 }
 
 export const firstByteOfNumber = (n: number): Byte => {
-	const firstByte = Uint8Array.from(Buffer.from([n]))[0]
+	return firstByteFromBuffer(Buffer.from([n]))
+}
+
+export const firstByteFromBuffer = (buffer: Buffer): Byte => {
+	const firstByte = Uint8Array.from(buffer)[0]
 	return byteFromNumber(firstByte)._unsafeUnwrap()
 }
 
