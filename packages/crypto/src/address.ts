@@ -10,6 +10,8 @@ import { Result, ok, err } from 'neverthrow'
 import { publicKeyFromBytes } from './wrap/publicKey'
 import { base58Encode, base58Decode } from './wrap/baseConversion'
 
+const checksumByteCount = 4
+
 export const addressFromPublicKeyAndMagic = (
 	input: Readonly<{
 		publicKey: PublicKey
@@ -26,46 +28,39 @@ export const addressFromPublicKeyAndMagicByte = (
 		publicKey: PublicKey
 		magicByte: Byte
 	}>,
-): Address => {
-	return {
-		publicKey: input.publicKey,
-		magicByte: input.magicByte,
-		toString: (): string =>
-			base58Encode(calculateAndAppendChecksumFromPubKeyAndMagic(input)),
-	}
-}
+): Address => ({
+	publicKey: input.publicKey,
+	magicByte: input.magicByte,
+	toString: (): string =>
+		base58Encode(calculateAndAppendChecksumFromPubKeyAndMagic(input)),
+})
 
 export const addressFromBase58String = (
 	b58String: string,
-): Result<Address, Error> => {
-	return base58Decode(b58String).andThen(addressFromBuffer)
-}
-
-const publicKeyCompressedByteCount = 33
-const checksumByteCount = 4
-const magicByteCount = 1
-const addressByteCount =
-	magicByteCount + publicKeyCompressedByteCount + checksumByteCount
+): Result<Address, Error> => base58Decode(b58String).andThen(addressFromBuffer)
 
 const addressFromBuffer = (buffer: Buffer): Result<Address, Error> => {
-	if (buffer.length != addressByteCount) {
+	const publicKeyCompressedByteCount = 33
+	const magicByteCount = 1
+	const addressByteCount =
+		magicByteCount + publicKeyCompressedByteCount + checksumByteCount
+
+	if (buffer.length != addressByteCount)
 		return err(
 			new Error(
 				`Expected ${addressByteCount} bytes, but got ${buffer.length}`,
 			),
 		)
-	}
 
 	const checksumDropped = buffer.slice(
 		0,
 		addressByteCount - checksumByteCount,
 	)
-	const checksummedAddress = calculateAndAppendChecksum(checksumDropped)
-	if (Buffer.compare(checksummedAddress, buffer) !== 0) {
-		return err(new Error(`Checksum mismatch`))
-	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
+	const checksummedAddress = calculateAndAppendChecksum(checksumDropped)
+	if (Buffer.compare(checksummedAddress, buffer) !== 0)
+		return err(new Error(`Checksum mismatch`))
+
 	const magicByte: Byte = firstByteFromBuffer(checksummedAddress)
 
 	return publicKeyFromBytes(
@@ -73,13 +68,13 @@ const addressFromBuffer = (buffer: Buffer): Result<Address, Error> => {
 			magicByteCount,
 			magicByteCount + publicKeyCompressedByteCount,
 		),
-	).andThen((pubKey) => {
-		return ok({
+	).andThen((pubKey) =>
+		ok({
 			publicKey: pubKey,
 			magicByte: magicByte,
 			toString: (): string => base58Encode(checksummedAddress),
-		})
-	})
+		}),
+	)
 }
 
 const bytesForAddress = (
@@ -87,12 +82,11 @@ const bytesForAddress = (
 		publicKey: PublicKey
 		magicByte: Byte
 	}>,
-): Buffer => {
-	return Buffer.concat([
+): Buffer =>
+	Buffer.concat([
 		byteToBuffer(input.magicByte),
 		input.publicKey.asData({ compressed: true }),
 	])
-}
 
 const calculateAndAppendChecksumFromPubKeyAndMagic = (
 	input: Readonly<{
@@ -105,9 +99,7 @@ const calculateAndAppendChecksumFromPubKeyAndMagic = (
 }
 
 const calculateAndAppendChecksum = (buffer: Buffer): Buffer => {
-	const checksum = calculateChecksum(buffer)
+	const checksum = radixHash(buffer)
 	const checksumFirstFourBytes = checksum.slice(0, checksumByteCount)
 	return Buffer.concat([buffer, checksumFirstFourBytes])
 }
-
-const calculateChecksum = (buffer: Buffer): Buffer => radixHash(buffer)
