@@ -1,3 +1,11 @@
+import { Long } from 'long'
+
+export type Int64 = Long
+
+export type Nonce = /* CBORCodable & */ {
+	value: Int64
+}
+
 export type Magic = /* DSONCodable & */ {
 	byte: Byte
 }

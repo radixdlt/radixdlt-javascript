@@ -5,6 +5,7 @@
     "test"
   ],
   "references": [
+    {"path": "../util"},
     {"path": "../dson"}
   ]
 }
