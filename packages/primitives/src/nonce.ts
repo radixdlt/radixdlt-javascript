@@ -13,6 +13,4 @@ export const randomInt64 = (
 
 export const randomNonce = (
 	secureRandom: SecureRandom = secureRandomGenerator,
-): Nonce => {
-	return { value: randomInt64(secureRandom) }
-}
+): Nonce => ({ value: randomInt64(secureRandom) })
