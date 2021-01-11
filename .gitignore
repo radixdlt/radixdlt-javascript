@@ -14,3 +14,4 @@ includes
 tsconfig.tsbuildinfo
 coverage
 devTestOnly/
+.eslintcache
