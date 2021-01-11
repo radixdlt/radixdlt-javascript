@@ -47,7 +47,7 @@ export const publicKeyFromPrivateKey = (input: {
 	)
 }
 
-export const publicKeyFromBytes = (
+export const publicKeyFromBytesValidated = (
 	publicKeyBytes: Buffer,
 ): Result<PublicKey, Error> => {
 	return publicKeyFromEllipticKey(secp256k1.keyFromPublic(publicKeyBytes))

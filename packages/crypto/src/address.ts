@@ -1,4 +1,5 @@
 import { Address, PublicKey } from './_types'
+import { publicKeyFromBytes } from './publicKey'
 import { radixHash } from './algorithms'
 import {
 	Magic,
@@ -7,7 +8,6 @@ import {
 	firstByteFromBuffer,
 } from '@radixdlt/primitives'
 import { Result, ok, err } from 'neverthrow'
-import { publicKeyFromBytes } from './wrap/publicKey'
 import { base58Encode, base58Decode } from './wrap/baseConversion'
 
 const checksumByteCount = 4

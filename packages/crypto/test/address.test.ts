@@ -2,25 +2,11 @@ import {
 	addressFromPublicKeyAndMagic,
 	addressFromBase58String,
 	privateKeyFromScalar,
-	PublicKey,
+	publicKeysEquals,
 } from '../src/_index'
 
 import { magicFromNumber } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
-
-const buffersEquals = (lhs: Buffer, rhs: Buffer): boolean => {
-	return Buffer.compare(lhs, rhs) === 0
-}
-
-const pubKeysEquals = (lhs: PublicKey, rhs: PublicKey): boolean => {
-	const comparePubKeyBytes = (compressed: boolean): boolean => {
-		const bytesFromKey = (pubKey: PublicKey): Buffer => {
-			return pubKey.asData({ compressed })
-		}
-		return buffersEquals(bytesFromKey(lhs), bytesFromKey(rhs))
-	}
-	return comparePubKeyBytes(true) && comparePubKeyBytes(false)
-}
 
 describe('Address', () => {
 	it('can be created from a publicKey and radix magix', async () => {
@@ -41,7 +27,7 @@ describe('Address', () => {
 		)._unsafeUnwrap()
 
 		expect(
-			pubKeysEquals(publicKey, addressFromString.publicKey),
+			publicKeysEquals(publicKey, addressFromString.publicKey),
 		).toBeTruthy()
 
 		expect(addressFromString.magicByte.toString()).toBe(
