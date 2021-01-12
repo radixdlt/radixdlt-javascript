@@ -10,4 +10,5 @@ export type ResourceIdentifier = /* DSONCoable */ {
 	address: Address
 	name: string
 	toString: () => string
+	equals: (other: ResourceIdentifier) => boolean
 }

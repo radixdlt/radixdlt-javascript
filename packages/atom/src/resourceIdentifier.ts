@@ -15,10 +15,10 @@ export const resourceIdentifierFromAddressAndName = (input: {
 		address,
 		name,
 		toString: () => ['', address.toString(), name].join(separator),
+		equals: (other) => other.address.equals(address) && other.name === name,
 	}
 }
 
-// eslint-disable-next-line complexity
 export const resourceIdentifierFromString = (
 	identifierString: string,
 ): Result<ResourceIdentifier, Error> => {
@@ -33,6 +33,8 @@ export const resourceIdentifierFromString = (
 			address,
 			name,
 			toString: () => identifierString,
+			equals: (other) =>
+				other.address.equals(address) && other.name === name,
 		}),
 	)
 }

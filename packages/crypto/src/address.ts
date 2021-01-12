@@ -1,5 +1,5 @@
 import { Address, PublicKey } from './_types'
-import { publicKeyFromBytes, publicKeysEquals } from './publicKey'
+import { publicKeyFromBytes } from './publicKey'
 import { radixHash } from './algorithms'
 import {
 	Magic,
@@ -33,6 +33,9 @@ export const addressFromPublicKeyAndMagicByte = (
 	magicByte: input.magicByte,
 	toString: (): string =>
 		base58Encode(calculateAndAppendChecksumFromPubKeyAndMagic(input)),
+	equals: (other) =>
+		input.magicByte === other.magicByte &&
+		input.publicKey.equals(other.publicKey),
 })
 
 export const addressFromBase58String = (
@@ -68,11 +71,14 @@ const addressFromBuffer = (buffer: Buffer): Result<Address, Error> => {
 			magicByteCount,
 			magicByteCount + publicKeyCompressedByteCount,
 		),
-	).andThen((pubKey) =>
+	).andThen((publicKey: PublicKey) =>
 		ok({
-			publicKey: pubKey,
-			magicByte: magicByte,
+			publicKey,
+			magicByte,
 			toString: (): string => base58Encode(checksummedAddress),
+			equals: (other: Address) =>
+				magicByte === other.magicByte &&
+				publicKey.equals(other.publicKey),
 		}),
 	)
 }
@@ -102,10 +108,4 @@ const calculateAndAppendChecksum = (buffer: Buffer): Buffer => {
 	const checksum = radixHash(buffer)
 	const checksumFirstFourBytes = checksum.slice(0, checksumByteCount)
 	return Buffer.concat([buffer, checksumFirstFourBytes])
-}
-
-// eslint-disable-next-line max-params
-export const addressesEqual = (lhs: Address, rhs: Address): boolean => {
-	if (lhs.magicByte !== rhs.magicByte) return false
-	return publicKeysEquals(lhs.publicKey, rhs.publicKey)
 }

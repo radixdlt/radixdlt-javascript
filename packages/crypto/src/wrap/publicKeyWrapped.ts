@@ -4,6 +4,7 @@ import { err, ok, Result } from 'neverthrow'
 import { ec } from 'elliptic'
 import BN from 'bn.js'
 import { PublicKey, Signature, UnsignedMessage } from '../_types'
+import { buffersEquals } from '@radixdlt/util'
 
 const bnFromUint256 = (uint256: UInt256): BN => {
 	return new BN(uint256.toString(16), 'hex')
@@ -18,9 +19,11 @@ const publicKeyFromEllipticKey = (
 		return err(new Error(`Invalid privateKey: ${validation.reason}`))
 	}
 
+	const newKeyAsData = (input_: { readonly compressed: boolean }): Buffer =>
+		Buffer.from(ecKeyPair.getPublic(input_.compressed, 'array'))
+
 	const publicKey: PublicKey = {
-		asData: (input_: { readonly compressed: boolean }): Buffer =>
-			Buffer.from(ecKeyPair.getPublic(input_.compressed, 'array')),
+		asData: newKeyAsData,
 		isValidSignature: (input_: {
 			readonly signature: Signature
 			readonly forData: UnsignedMessage
@@ -31,6 +34,14 @@ const publicKeyFromEllipticKey = (
 			const r = bnFromUint256(signature.r)
 			const s = bnFromUint256(signature.s)
 			return ecKeyPair.verify(new BN(message), { r, s })
+		},
+		equals: (other) => {
+			const comparePubKeyBytes = (compressed: boolean): boolean => {
+				const newKeyBytes = newKeyAsData({ compressed })
+				const otherBytes = other.asData({ compressed })
+				return buffersEquals(newKeyBytes, otherBytes)
+			}
+			return comparePubKeyBytes(true) && comparePubKeyBytes(false)
 		},
 	}
 
