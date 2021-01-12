@@ -6,9 +6,9 @@ import { Address } from '@radixdlt/crypto'
  * On format: `/:address/:name`, e.g.
  * `"/JH1P8f3znbyrDj8F4RWpix7hRkgxqHjdW2fNnKpR3v6ufXnknor/XRD"`
  */
-export type ResourceIdentifier = /* DSONCoable */ {
+export type ResourceIdentifier = /* DSONCoable */ Readonly<{
 	address: Address
 	name: string
 	toString: () => string
 	equals: (other: ResourceIdentifier) => boolean
-}
+}>
