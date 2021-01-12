@@ -36,6 +36,7 @@
     "neverthrow": "^3.1.4"
   },
   "devDependencies": {
+    "@types/bn.js": "^4.11.6",
     "@types/long": "^4.0.1"
   }
 }

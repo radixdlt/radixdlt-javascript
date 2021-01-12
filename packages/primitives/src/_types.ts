@@ -1,5 +1,6 @@
 import { Long } from 'long'
 import { UInt256 } from '@radixdlt/uint256'
+import { Result } from 'neverthrow'
 
 export type Int64 = Long
 
@@ -21,6 +22,8 @@ export type Amount = /* CBORCodable */ Readonly<{
 	lessThan: (other: Amount) => boolean
 	greaterThanOrEquals: (other: Amount) => boolean
 	lessThanOrEquals: (other: Amount) => boolean
+	adding: (other: Amount) => Result<Amount, Error>
+	subtracting: (other: Amount) => Result<Amount, Error>
 }>
 
 export type Granularity = Amount
