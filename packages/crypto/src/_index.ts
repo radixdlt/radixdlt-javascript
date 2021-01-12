@@ -4,4 +4,4 @@ export * from './address'
 export * from './privateKey'
 export * from './unsignedMessage'
 
-export { publicKeyFromBytes } from './wrap/publicKey'
+export * from './publicKey'

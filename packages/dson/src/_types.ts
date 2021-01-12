@@ -1,3 +1,13 @@
+export type CBOREncodable = {
+	toCBOR: (outputMode: DSONOutput) => Buffer
+}
+
+export type CBORDecodable = {
+	fromCBOR: () => never
+}
+
+export type CBORCodable = CBORDecodable & CBOREncodable
+
 export enum DSONOutput {
 	Hash,
 	API,

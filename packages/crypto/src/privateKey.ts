@@ -6,7 +6,7 @@ import { signDataWithPrivateKey } from './wrap/sign'
 
 import { ResultAsync } from 'neverthrow'
 import { UnsignedMessage, Signature, PublicKey, PrivateKey } from './_types'
-import { publicKeyFromPrivateKey } from './wrap/publicKey'
+import { publicKeyFromPrivateKey } from './wrap/publicKeyWrapped'
 
 export const privateKeyFromScalar = (scalar: UInt256): PrivateKey => {
 	return {
