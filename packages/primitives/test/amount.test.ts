@@ -71,4 +71,9 @@ describe('Amount', () => {
 
 		expect(zero.subtracting(one).isErr()).toBe(true)
 	})
+
+	it('can check for multiples', () => {
+		expect(four.isMultipleOf(two)).toBe(true)
+		expect(four.isMultipleOf(three)).toBe(false)
+	})
 })
