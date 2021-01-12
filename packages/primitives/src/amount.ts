@@ -71,7 +71,7 @@ export const amountFromUInt256 = (
 			): Result<Amount, Error> => {
 				const selfBN = bnFromUInt256(magnitude)
 				const otherBN = bnFromUInt256(other.magnitude)
-				const arithmeticResult = operation(selfBN, otherBN) //selfBN.add(otherBN)
+				const arithmeticResult = operation(selfBN, otherBN)
 				return uint256FromBN(arithmeticResult)
 					.map((foo) => ({
 						magnitude: foo,
