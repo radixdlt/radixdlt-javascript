@@ -33,6 +33,9 @@ export const addressFromPublicKeyAndMagicByte = (
 	magicByte: input.magicByte,
 	toString: (): string =>
 		base58Encode(calculateAndAppendChecksumFromPubKeyAndMagic(input)),
+	equals: (other) =>
+		input.magicByte === other.magicByte &&
+		input.publicKey.equals(other.publicKey),
 })
 
 export const addressFromBase58String = (
@@ -68,11 +71,14 @@ const addressFromBuffer = (buffer: Buffer): Result<Address, Error> => {
 			magicByteCount,
 			magicByteCount + publicKeyCompressedByteCount,
 		),
-	).andThen((pubKey) =>
+	).andThen((publicKey: PublicKey) =>
 		ok({
-			publicKey: pubKey,
-			magicByte: magicByte,
+			publicKey,
+			magicByte,
 			toString: (): string => base58Encode(checksummedAddress),
+			equals: (other: Address) =>
+				magicByte === other.magicByte &&
+				publicKey.equals(other.publicKey),
 		}),
 	)
 }

@@ -31,7 +31,6 @@ const randomBytes = (byteCount: number): Result<Buffer, Error> => {
 }
 
 export const secureRandomGenerator: SecureRandom = {
-	randomSecureBytes: (byteCount: number) => {
-		return randomBytes(byteCount)._unsafeUnwrap()
-	},
+	randomSecureBytes: (byteCount: number) =>
+		randomBytes(byteCount)._unsafeUnwrap(),
 }

@@ -2,11 +2,14 @@ import {
 	addressFromPublicKeyAndMagic,
 	addressFromBase58String,
 	privateKeyFromScalar,
-	publicKeysEquals,
+	Address,
 } from '../src/_index'
 
 import { magicFromNumber } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
+
+const toAddress = (b58: string): Address =>
+	addressFromBase58String(b58)._unsafeUnwrap()
 
 describe('Address', () => {
 	it('can be created from a publicKey and radix magix', async () => {
@@ -26,12 +29,29 @@ describe('Address', () => {
 			expctedAddressBase58,
 		)._unsafeUnwrap()
 
-		expect(
-			publicKeysEquals(publicKey, addressFromString.publicKey),
-		).toBeTruthy()
+		expect(publicKey.equals(addressFromString.publicKey)).toBeTruthy()
 
 		expect(addressFromString.magicByte.toString()).toBe(
 			magic.byte.toString(),
 		)
+
+		expect(addressFromString.equals(address)).toBe(true)
+	})
+
+	it('should consider the same address to be equal itself', () => {
+		const makeAddress = (): Address =>
+			toAddress('9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT')
+		expect(makeAddress().equals(makeAddress())).toBe(true)
+	})
+
+	it('should consider two different address with the same magic but different publicKeys as inequal', async () => {
+		const alice = toAddress(
+			'9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
+		)
+		const bob = toAddress(
+			'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+		)
+		expect(alice.magicByte).toBe(bob.magicByte)
+		expect(alice.equals(bob)).toBe(false)
 	})
 })

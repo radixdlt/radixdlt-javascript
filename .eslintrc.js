@@ -24,7 +24,7 @@ module.exports = {
 		node: true,
 	},
 	rules: {
-		complexity: ['error', 3],
+		complexity: ['error', 4],
 
 		'max-depth': ['error', 2],
 

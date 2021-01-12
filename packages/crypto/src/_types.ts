@@ -33,6 +33,7 @@ export type PublicKey = Readonly<{
 			forData: UnsignedMessage
 		}>,
 	) => boolean
+	equals: (other: PublicKey) => boolean
 }>
 
 export type PublicKeyProvider = Readonly<{
@@ -45,4 +46,5 @@ export type Address = Readonly<{
 	publicKey: PublicKey
 	magicByte: Byte
 	toString: () => string
+	equals: (other: Address) => boolean
 }>
