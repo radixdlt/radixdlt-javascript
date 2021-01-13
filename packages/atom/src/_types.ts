@@ -1,4 +1,5 @@
 import { Address } from '@radixdlt/crypto'
+import { Granularity, Nonce, PositiveAmount } from '@radixdlt/primitives'
 
 /**
  * A Radix resource identifier is a human readable index into the Ledger which points to a name state machine
@@ -11,4 +12,14 @@ export type ResourceIdentifier = /* DSONCoable */ Readonly<{
 	name: string
 	toString: () => string
 	equals: (other: ResourceIdentifier) => boolean
+}>
+
+export type TransferrableTokensParticle = /* DSONCoable */ Readonly<{
+	// The recipient address of the tokens to be transffered
+	address: Address
+	// The identifier of which token type is being transferred
+	tokenDefinitionReference: ResourceIdentifier
+	granularity: Granularity
+	nonce: Nonce
+	amount: PositiveAmount
 }>

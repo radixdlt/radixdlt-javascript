@@ -104,6 +104,18 @@ export const amountFromUInt256 = (
 }
 /* eslint-enable max-params */
 
+// eslint-disable-next-line complexity
+export const isAmount = (something: Amount | unknown): something is Amount => {
+	const inspection = something as Amount
+	return (
+		inspection.magnitude !== undefined &&
+		inspection.isMultipleOf !== undefined &&
+		inspection.toString !== undefined &&
+		inspection.equals !== undefined &&
+		inspection.adding !== undefined
+	)
+}
+
 export const maxAmount = amountFromUInt256({
 	magnitude: uint256Max,
 	denomination: Denomination.Atto,

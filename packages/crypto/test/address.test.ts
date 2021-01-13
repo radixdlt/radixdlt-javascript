@@ -3,6 +3,7 @@ import {
 	addressFromBase58String,
 	privateKeyFromScalar,
 	Address,
+	isAddress,
 } from '../src/_index'
 
 import { magicFromNumber } from '@radixdlt/primitives'
@@ -21,6 +22,9 @@ describe('Address', () => {
 			publicKey: publicKey,
 			magic: magic,
 		})
+
+		expect(isAddress(address)).toBe(true)
+
 		const expctedAddressBase58 =
 			'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT'
 		expect(address.toString()).toBe(expctedAddressBase58)

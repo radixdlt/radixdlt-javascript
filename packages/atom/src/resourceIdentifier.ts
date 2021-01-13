@@ -38,3 +38,15 @@ export const resourceIdentifierFromString = (
 		}),
 	)
 }
+
+export const isResourceIdentifier = (
+	something: ResourceIdentifier | unknown,
+): something is ResourceIdentifier => {
+	const inspection = something as ResourceIdentifier
+	return (
+		inspection.address !== undefined &&
+		inspection.name !== undefined &&
+		inspection.toString !== undefined &&
+		inspection.equals !== undefined
+	)
+}
