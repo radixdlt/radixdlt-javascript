@@ -5,10 +5,7 @@ import { ec } from 'elliptic'
 import BN from 'bn.js'
 import { PublicKey, Signature, UnsignedMessage } from '../_types'
 import { buffersEquals } from '@radixdlt/util'
-
-const bnFromUint256 = (uint256: UInt256): BN => {
-	return new BN(uint256.toString(16), 'hex')
-}
+import { bnFromUInt256 } from '@radixdlt/primitives'
 
 const publicKeyFromEllipticKey = (
 	ecKeyPair: ec.KeyPair,
@@ -31,8 +28,8 @@ const publicKeyFromEllipticKey = (
 			const unsignedMessage = input_.forData
 			const message = unsignedMessage.hasher(unsignedMessage.unhashed)
 			const signature = input_.signature
-			const r = bnFromUint256(signature.r)
-			const s = bnFromUint256(signature.s)
+			const r = bnFromUInt256(signature.r)
+			const s = bnFromUInt256(signature.s)
 			return ecKeyPair.verify(new BN(message), { r, s })
 		},
 		equals: (other) => {
