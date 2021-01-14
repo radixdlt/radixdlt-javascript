@@ -26,5 +26,9 @@
   },
   "engines": {
     "node": ">=15.5.0 <16"
+  },
+  "dependencies": {
+    "cbor": "^5.2.0",
+    "neverthrow": "^4.0.1"
   }
 }

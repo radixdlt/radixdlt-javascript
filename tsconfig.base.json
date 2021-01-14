@@ -16,7 +16,7 @@
     "moduleResolution": "node",
     "sourceMap": true,
     "resolveJsonModule": true,
-    "noUnusedLocals": true,
+    "noUnusedLocals": false,
     "strict": true,
     "target": "ESNext",
     "skipLibCheck": true,
