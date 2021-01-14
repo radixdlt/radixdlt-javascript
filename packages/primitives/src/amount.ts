@@ -7,8 +7,9 @@ import {
 	uint256FromUnsafe,
 	uint256FromBN,
 	UInt256InputUnsafe,
+	isUnsafeInputForUInt256,
 	uint256Max,
-} from './uint256'
+} from './uint256-extensions'
 
 export const expressMagnitudeInSmallestDenomination = (
 	input: Readonly<{
@@ -44,15 +45,20 @@ export type AmountInputUnsafe = UInt256InputUnsafe
 
 /* eslint-disable max-params */
 export const amountFromUnsafe = (
-	unsafe: AmountInputUnsafe,
+	input: Amount | AmountInputUnsafe,
 	denomination: Denomination = Denomination.Whole,
-): Result<Amount, Error> =>
-	uint256FromUnsafe(unsafe).andThen((magnitude) =>
-		amountFromUInt256({
-			magnitude,
-			denomination,
-		}),
-	)
+): Result<Amount, Error> => {
+	return isAmount(input)
+		? ok(input)
+		: isUnsafeInputForUInt256(input)
+		? uint256FromUnsafe(input).andThen((magnitude) =>
+				amountFromUInt256({
+					magnitude,
+					denomination,
+				}),
+		  )
+		: err(new Error('bad type'))
+}
 
 const addBN = (a: BN, b: BN): BN => a.add(b)
 const subBN = (a: BN, b: BN): BN => a.sub(b)

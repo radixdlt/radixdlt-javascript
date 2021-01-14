@@ -1,6 +1,6 @@
 import { Address } from '@radixdlt/crypto'
 import { ResourceIdentifier } from './_types'
-import { err, Result } from 'neverthrow'
+import { err, ok, Result } from 'neverthrow'
 import { addressFromBase58String } from '@radixdlt/crypto'
 
 const separator = '/'
@@ -49,4 +49,12 @@ export const isResourceIdentifier = (
 		inspection.toString !== undefined &&
 		inspection.equals !== undefined
 	)
+}
+
+export const resourceIdentifierFromUnsafe = (
+	input: ResourceIdentifier | string,
+): Result<ResourceIdentifier, Error> => {
+	return isResourceIdentifier(input)
+		? ok(input)
+		: resourceIdentifierFromString(input)
 }

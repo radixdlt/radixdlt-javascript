@@ -1,7 +1,7 @@
 import { transferrableTokensParticleFromUnsafe } from '../src/transferrableTokensParticle'
 
 describe('transferrableTokensParticle', () => {
-	it.skip('can be unsafely created from primitives', () => {
+	it('can be unsafely created from primitives', () => {
 		const ttp = transferrableTokensParticleFromUnsafe({
 			address: '9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
 			tokenDefinitionReference:
@@ -11,5 +11,7 @@ describe('transferrableTokensParticle', () => {
 		})._unsafeUnwrap()
 
 		expect(ttp.nonce).toBeTruthy()
+		expect(ttp.amount.toString()).toBe('9000000000000000000')
+		expect(ttp.granularity.toString()).toBe('3000000000000000000')
 	})
 })

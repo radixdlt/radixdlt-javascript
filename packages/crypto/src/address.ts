@@ -121,3 +121,13 @@ export const isAddress = (
 		inspection.equals !== undefined
 	)
 }
+
+export const addressFromUnsafe = (
+	input: Address | string,
+): Result<Address, Error> => {
+	return isAddress(input)
+		? ok(input)
+		: typeof input === 'string'
+		? addressFromBase58String(input)
+		: err(new Error('bad type'))
+}
