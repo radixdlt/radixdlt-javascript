@@ -29,6 +29,7 @@
     "node": ">=15.5.0 <16"
   },
   "dependencies": {
+    "@radixdlt/util": "0.0.0",
     "@radixdlt/dson": "0.0.0",
     "@radixdlt/uint256": "^1.0.8",
     "bn.js": "^5.1.3",
