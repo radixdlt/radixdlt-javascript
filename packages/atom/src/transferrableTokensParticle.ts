@@ -16,11 +16,11 @@ import { Result, err, ok, combine } from 'neverthrow'
 export type TTPInput = Readonly<{
 	address: Address
 	tokenDefinitionReference: ResourceIdentifier
-	granularity: Granularity
 	amount: PositiveAmount
+	granularity: Granularity
 }>
 
-export const transferrableTokensParticle = (
+export const transferrableTokensParticleFrom = (
 	input: TTPInput,
 ): Result<TransferrableTokensParticle, Error> => {
 	if (!input.amount.isMultipleOf(input.granularity)) {
@@ -48,12 +48,8 @@ export const transferrableTokensParticleFromUnsafe = (
 ): Result<TransferrableTokensParticle, Error> => {
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 	const address = addressFromUnsafe(input.address)
-	const tokenDefinitionReference = resourceIdentifierFromUnsafe(
-		input.tokenDefinitionReference,
-	)
-	const granularity: Result<Granularity, Error> = amountFromUnsafe(
-		input.granularity,
-	)
+	const tokenDefinitionReference = resourceIdentifierFromUnsafe(input.tokenDefinitionReference)
+	const granularity: Result<Granularity, Error> = amountFromUnsafe(input.granularity)
 	const amount: Result<PositiveAmount, Error> = amountFromUnsafe(
 		input.amount,
 	).andThen(positiveAmount)
@@ -68,5 +64,5 @@ export const transferrableTokensParticleFromUnsafe = (
 					amount: resultList[3],
 				},
 		)
-		.andThen(transferrableTokensParticle)
+		.andThen(transferrableTokensParticleFrom)
 }
