@@ -27,5 +27,8 @@
   },
   "engines": {
     "node": ">=15.5.0 <16"
+  },
+  "dependencies": {
+    "neverthrow": "^3.2.0"
   }
 }
