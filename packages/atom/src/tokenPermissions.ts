@@ -15,11 +15,11 @@ export const makeTokenPermissions = (
 		}>,
 	): boolean => {
 		switch (input.permission) {
-			case TokenPermission.All:
+			case TokenPermission.ALL:
 				return true
-			case TokenPermission.None:
+			case TokenPermission.NONE:
 				return false
-			case TokenPermission.TokenOwnerOnly:
+			case TokenPermission.TOKEN_OWNER_ONLY:
 				return input.isOwnerOfToken()
 		}
 	}
@@ -37,8 +37,8 @@ export const makeTokenPermissions = (
 		)
 	}
 
-	const mintPermission = valueOfRequiredPermission(TokenTransition.Mint)
-	const burnPermission = valueOfRequiredPermission(TokenTransition.Burn)
+	const mintPermission = valueOfRequiredPermission(TokenTransition.MINT)
+	const burnPermission = valueOfRequiredPermission(TokenTransition.BURN)
 
 	return {
 		canBeMinted: (isOwnerOfToken: IsOwnerOfToken): boolean =>
@@ -50,14 +50,14 @@ export const makeTokenPermissions = (
 
 export const tokenPermissionsAll: TokenPermissions = makeTokenPermissions(
 	new Map([
-		[TokenTransition.Burn, TokenPermission.All],
-		[TokenTransition.Mint, TokenPermission.All],
+		[TokenTransition.BURN, TokenPermission.ALL],
+		[TokenTransition.MINT, TokenPermission.ALL],
 	]),
 )
 
 export const tokenOwnerOnly: TokenPermissions = makeTokenPermissions(
 	new Map([
-		[TokenTransition.Burn, TokenPermission.TokenOwnerOnly],
-		[TokenTransition.Mint, TokenPermission.TokenOwnerOnly],
+		[TokenTransition.BURN, TokenPermission.TOKEN_OWNER_ONLY],
+		[TokenTransition.MINT, TokenPermission.TOKEN_OWNER_ONLY],
 	]),
 )

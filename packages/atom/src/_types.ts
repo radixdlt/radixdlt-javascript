@@ -17,14 +17,14 @@ export type ResourceIdentifier = /* DSONCoable */ Readonly<{
 export type IsOwnerOfToken = () => boolean
 
 export enum TokenPermission {
-	TokenOwnerOnly = 'token_owner_only',
-	All = 'all',
-	None = 'none',
+	TOKEN_OWNER_ONLY = 'token_owner_only',
+	ALL = 'all',
+	NONE = 'none',
 }
 
 export enum TokenTransition {
-	Mint = 'mint',
-	Burn = 'burn',
+	MINT = 'mint',
+	BURN = 'burn',
 }
 
 export type TokenPermissions = /* DSONCodable */ Readonly<{

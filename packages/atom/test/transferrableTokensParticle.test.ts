@@ -1,4 +1,3 @@
-import { transferrableTokensParticleFromUnsafe } from '../src/transferrableTokensParticle'
 import {
 	addressFromPublicKeyAndMagicByte,
 	generatePrivateKey,
@@ -10,7 +9,8 @@ import {
 } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import { resourceIdentifierFromAddressAndName } from '../src/resourceIdentifier'
-import { transferrableTokensParticleFrom } from '../src/transferrableTokensParticle'
+import { transferrableTokensParticle } from '../src/transferrableTokensParticle'
+import { transferrableTokensParticleFromUnsafe } from './utility'
 
 describe('transferrableTokensParticle', () => {
 	it('can be safely created from safe type', async () => {
@@ -30,7 +30,7 @@ describe('transferrableTokensParticle', () => {
 			address,
 			name: 'FOOBAR',
 		})
-		const ttpResult = transferrableTokensParticleFrom({
+		const ttpResult = transferrableTokensParticle({
 			address,
 			tokenDefinitionReference: rri,
 			granularity: granularity,
@@ -63,7 +63,7 @@ describe('transferrableTokensParticle', () => {
 			address,
 			name: 'FOOBAR',
 		})
-		const ttpResult = transferrableTokensParticleFrom({
+		const ttpResult = transferrableTokensParticle({
 			address,
 			tokenDefinitionReference: rri,
 			granularity: granularityOfThree,
