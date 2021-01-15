@@ -1,6 +1,11 @@
 import BN from 'bn.js'
 import { err, Result, ok } from 'neverthrow'
 import { UInt256 } from '@radixdlt/uint256'
+import {
+	isNumberArray,
+	SecureRandom,
+	secureRandomGenerator,
+} from '@radixdlt/util'
 
 const bnUInt256Max: BN = new BN(2).pow(new BN(256)).sub(new BN(1))
 
@@ -34,6 +39,22 @@ export type UInt256InputUnsafe =
 	| number[]
 	| Uint8Array
 	| Buffer
+
+// eslint-disable-next-line complexity
+export const isUnsafeInputForUInt256 = (
+	something: UInt256InputUnsafe | unknown,
+): something is UInt256InputUnsafe => {
+	if (typeof something === 'number') {
+		return true
+	} else if (typeof something === 'string') {
+		return true
+	} else if (isNumberArray(something)) {
+		return true
+	} else if (something instanceof Uint8Array) {
+		return true
+	} else return something instanceof Buffer
+}
+
 export const uint256FromUnsafe = (
 	unsafe: UInt256InputUnsafe,
 ): Result<UInt256, Error> => {
@@ -50,3 +71,10 @@ export const bnFromUInt256 = (uint256: UInt256): BN =>
 	new BN(uint256.toString(16), 'hex')
 
 export const uint256Max = uint256FromBN(bnUInt256Max)._unsafeUnwrap()
+
+export const secureRandomUInt256 = (
+	secureRandom: SecureRandom = secureRandomGenerator,
+): UInt256 => {
+	const randomBytes = secureRandom.randomSecureBytes(32)
+	return new UInt256(randomBytes, 16)
+}

@@ -1,6 +1,8 @@
 import { SecureRandom } from './_types'
 import { Result, ok, err } from 'neverthrow'
 
+/* eslint-disable */
+
 /**
  * randomBytes
  *
@@ -9,25 +11,33 @@ import { Result, ok, err } from 'neverthrow'
  * @param {number} byteCount number of bytes to generate
  * @returns {Result<Buffer, Error>} result of random byte generation.
  */
-// eslint-disable-next-line complexity
-const randomBytes = (byteCount: number): Result<Buffer, Error> => {
+const randomBytes = (byteCount: number): Result<string, Error> => {
+	let buffer: Buffer = Buffer.alloc(byteCount)
 	if (
 		typeof window !== 'undefined' &&
 		window.crypto &&
 		window.crypto.getRandomValues
 	) {
 		const bytes = window.crypto.getRandomValues(new Uint8Array(byteCount))
-		return ok(Buffer.from(bytes))
+		buffer = Buffer.from(bytes)
 	} else if (typeof require !== 'undefined') {
-		const buffer = Buffer.allocUnsafe(byteCount)
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-var-requires
 		const sodium = require('sodium-native')
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
 		sodium.randombytes_buf(buffer)
-		return ok(buffer)
 	} else {
 		return err(new Error('Unable to generate safe random numbers.'))
 	}
+
+	const byteArray = new Uint8Array(
+		buffer.buffer,
+		buffer.byteOffset,
+		buffer.byteLength / Uint8Array.BYTES_PER_ELEMENT,
+	)
+	let byteString = ''
+	for (let i = 0; i < byteCount; i++) {
+		byteString += ('00' + byteArray[i].toString(16)).slice(-2)
+	}
+
+	return ok(byteString)
 }
 
 export const secureRandomGenerator: SecureRandom = {

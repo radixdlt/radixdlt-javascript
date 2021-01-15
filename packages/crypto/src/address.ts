@@ -109,3 +109,25 @@ const calculateAndAppendChecksum = (buffer: Buffer): Buffer => {
 	const checksumFirstFourBytes = checksum.slice(0, checksumByteCount)
 	return Buffer.concat([buffer, checksumFirstFourBytes])
 }
+
+export const isAddress = (
+	something: Address | unknown,
+): something is Address => {
+	const inspection = something as Address
+	return (
+		inspection.magicByte !== undefined &&
+		inspection.publicKey !== undefined &&
+		inspection.toString !== undefined &&
+		inspection.equals !== undefined
+	)
+}
+
+export const addressFromUnsafe = (
+	input: Address | string,
+): Result<Address, Error> => {
+	return isAddress(input)
+		? ok(input)
+		: typeof input === 'string'
+		? addressFromBase58String(input)
+		: err(new Error('bad type'))
+}

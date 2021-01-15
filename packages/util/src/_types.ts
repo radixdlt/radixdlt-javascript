@@ -1,3 +1,3 @@
 export type SecureRandom = {
-	randomSecureBytes: (byteCount: number) => Buffer
+	randomSecureBytes: (byteCount: number) => string
 }

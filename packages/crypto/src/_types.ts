@@ -40,7 +40,10 @@ export type PublicKeyProvider = Readonly<{
 	derivePublicKey: () => ResultAsync<PublicKey, Error>
 }>
 
-export type PrivateKey = Signer & PublicKeyProvider
+export type PrivateKey = Signer &
+	PublicKeyProvider & {
+		toString: () => string
+	}
 
 export type Address = Readonly<{
 	publicKey: PublicKey

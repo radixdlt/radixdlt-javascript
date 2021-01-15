@@ -7,7 +7,7 @@ export const randomInt64 = (
 	secureRandom: SecureRandom = secureRandomGenerator,
 ): Int64 => {
 	const random8Bytes = secureRandom.randomSecureBytes(8)
-	const bytesArray = Uint8Array.from(random8Bytes)
+	const bytesArray = Buffer.from(random8Bytes, 'hex') // Uint8Array.from(random8Bytes)
 	return Long.fromBytes(Array.from(bytesArray))
 }
 

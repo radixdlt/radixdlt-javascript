@@ -26,7 +26,7 @@
     "node": ">=15.5.0 <16"
   },
   "dependencies": {
-    "neverthrow": "^3.1.4",
+    "neverthrow": "^3.2.0",
     "randombytes": "^2.1.0",
     "sodium-native": "^3.2.0"
   }

@@ -6,6 +6,7 @@
   ],
   "references": [
     {"path": "../dson"},
+    {"path": "../crypto"},
     {"path": "../primitives"}
   ]
 }

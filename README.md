@@ -37,23 +37,25 @@ This git repository is a so called "monorepo" using [`yarn` *workspaces*](https:
 
 | Package | Description | Key Components | Internal Dependency | Notable external dependency |
 | --- | --- | --- | --- | --- |
-| [`@radix/application`][app] | High level abstraction for interacting with the Radix Distributed Ledger | `RadixApplicationClient` | [`@radix/atom-transaction-mapping`][atom-transaction-mapping], [`@radix/crypto`][crypto] | None |
+| [`@radixdlt/application`][app] | High level abstraction for interacting with the Radix Distributed Ledger | `RadixApplicationClient` | [`@radixdlt/atom-transaction-mapping`][atom-transaction-mapping], [`@radix/crypto`][crypto] | NONE |
 ||
-| [`@radix/hardware-wallet`][hwLedger] | Ledger Nano hardware wallet application. | `HWWalletLedger` | [`@radix/atom`][atom] | [`LedgerHQ/ledgerjs`](https://github.com/LedgerHQ/ledgerjs) |
+| [`@radixdlt/hardware-wallet`][hwLedger] | Ledger Nano hardware wallet application. | `HWWalletLedger` | [`@radixdlt/atom`][atom] | [`LedgerHQ/ledgerjs`](https://github.com/LedgerHQ/ledgerjs) |
 ||
-| [`@radix/networking`][networking] | Sending and receiving of atoms over network transportation. | `AtomPuller`, `AtomSender`, `WebsocketToNode` | [`@radix/atom`][atom] | None |
+| [`@radixdlt/networking`][networking] | Sending and receiving of atoms over network transportation. | `AtomPuller`, `AtomSender`, `WebsocketToNode` | [`@radixdlt/atom`][atom] | NONE |
 ||
-| [`@radix/atom-transaction-mapping`][atom-transaction-mapping] | Creating Atoms from `Transaction` | `AtomToTransactionMapper`, `TransactionToAtomMapper` | [`@radix/atom`][atom], [`@radix/actions`][actions] | None |
+| [`@radixdlt/atom-transaction-mapping`][atom-transaction-mapping] | Creating Atoms from `Transaction` | `AtomToTransactionMapper`, `TransactionToAtomMapper` | [`@radixdlt/atom`][atom], [`@radix/actions`][actions] | NONE |
 ||
-| [`@radix/actions`][actions] | High level abstractions user initiated actions. | `TokenTransferAction`, `SendMessageAction` | [`@radix/primitives`][primitives] | None |
+| [`@radixdlt/actions`][actions] | High level abstractions user initiated actions. | `TokenTransferAction`, `SendMessageAction` | [`@radixdlt/primitives`][primitives] | NONE |
 ||
-| [`@radix/atom`][atom] | Implementation of [Radix *Atom Model*](https://dev.to/radixdlt/knowledgebase-update-atom-model-263i), a container for [CRUD instructions](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) sent to the Radix distributed ledger. | `Atom`, `Particle`, `ParticleGroup`, `Spin` | [`@radix/primitives`][primitives], [`@radix/dson`][dson] | None |
+| [`@radixdlt/atom`][atom] | Implementation of [Radix *Atom Model*](https://dev.to/radixdlt/knowledgebase-update-atom-model-263i), a container for [CRUD instructions](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) sent to the Radix distributed ledger. | `Atom`, `Particle`, `ParticleGroup`, `Spin` | [`@radixdlt/primitives`][primitives], [`@radix/dson`][dson] | NONE |
 ||
-| [`@radix/crypto`][crypto] | Toolchain of cryptographic primitives such as SHA256 digests, [ECIES encryption](https://en.wikipedia.org/wiki/Integrated_Encryption_Scheme) and [ECC methods](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography) (KeyGen, Sign, Verify) | `PrivateKey`, `PublicKey`, `KeyPair`, `Hasher`, `Signer` | [`@radix/primitives`][subatom] | [indutny/elliptic](https://github.com/indutny/elliptic) |
+| [`@radixdlt/crypto`][crypto] | Toolchain of cryptographic primitives such as SHA256 digests, [ECIES encryption](https://en.wikipedia.org/wiki/Integrated_Encryption_Scheme) and [ECC methods](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography) (KeyGen, Sign, Verify) | `PrivateKey`, `PublicKey`, `KeyPair`, `Hasher`, `Signer` | [`@radixdlt/util`][util], [`@radixdlt/primitives`][primitives] | [indutny/elliptic](https://github.com/indutny/elliptic) |
 ||
-| [`@radix/primitives`][primitives] | Shared common data types | `Base58`, `UInt256`, `Int64`, `Nonce` | [`@radix/dson`][dson] | [uint256](https://github.com/radixdlt/uint256) |
+| [`@radixdlt/primitives`][primitives] | Shared common data types | `Base58`, `UInt256`, `Int64`, `Nonce` | [`@radixdlt/util`][util], [`@radixdlt/dson`][dson] | [uint256](https://github.com/radixdlt/uint256) |
 ||
-| [`@radix/dson`][dson] | The binary data format [**CBOR**](https://cbor.io/) (de-)serialization (+Radix own *DSON*) | `DSONSerializable` | No dependencies | [`cbor`](https://www.npmjs.com/package/cbor) |
+| [`@radixdlt/dson`][dson] | The binary data format [**CBOR**](https://cbor.io/) (de-)serialization (+Radix own *DSON*) | `DSONSerializable` | No dependencies | [`cbor`](https://www.npmjs.com/package/cbor) |
+||
+| [`@radixdlt/util`][util] | Common shared utility functions | `SecureRandom` | No dependencies | [`sodium-native`](https://www.npmjs.com/package/sodium-native), [`randombytes`](https://www.npmjs.com/package/randombytes) |
 
 
 <!-- LINKS -->
@@ -68,6 +70,7 @@ This git repository is a so called "monorepo" using [`yarn` *workspaces*](https:
 [networking]: ./packages/networking
 [hwLedger]: ./packages/hardware-wallet
 [actions]: ./packages/actions
+[util]: ./packages/util
 
 <!-- Third party links -->
 [jest]: https://jestjs.io/
