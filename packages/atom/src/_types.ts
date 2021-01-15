@@ -1,5 +1,10 @@
 import { Address } from '@radixdlt/crypto'
-import { Granularity, Nonce, PositiveAmount } from '@radixdlt/primitives'
+import {
+	Amount,
+	Granularity,
+	Nonce,
+	PositiveAmount,
+} from '@radixdlt/primitives'
 
 /**
  * A Radix resource identifier is a human readable index into the Ledger which points to a name state machine
@@ -27,6 +32,8 @@ export enum TokenTransition {
 	BURN = 'burn',
 }
 
+export type Supply = Amount
+
 export type TokenPermissions = /* DSONCodable */ Readonly<{
 	canBeMinted: (isOwnerOfToken: IsOwnerOfToken) => boolean
 	canBeBurned: (isOwnerOfToken: IsOwnerOfToken) => boolean
@@ -40,5 +47,13 @@ export type TransferrableTokensParticle = /* DSONCoable */ Readonly<{
 	granularity: Granularity
 	nonce: Nonce
 	amount: PositiveAmount
+	permissions: TokenPermissions
+}>
+
+export type UnallocatedTokensParticle = /* DSONCoable */ Readonly<{
+	tokenDefinitionReference: ResourceIdentifier
+	granularity: Granularity
+	nonce: Nonce
+	amount: Supply
 	permissions: TokenPermissions
 }>

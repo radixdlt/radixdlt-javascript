@@ -10,7 +10,7 @@ import {
 import { Result, err, ok } from 'neverthrow'
 import { tokenPermissionsAll } from './tokenPermissions'
 
-export type TTPInput = Readonly<{
+export type TransferrableTokensParticleInput = Readonly<{
 	address: Address
 	tokenDefinitionReference: ResourceIdentifier
 	amount: PositiveAmount
@@ -19,7 +19,7 @@ export type TTPInput = Readonly<{
 }>
 
 export const transferrableTokensParticle = (
-	input: TTPInput,
+	input: TransferrableTokensParticleInput,
 ): Result<TransferrableTokensParticle, Error> => {
 	if (!input.amount.isMultipleOf(input.granularity)) {
 		return err(new Error('Amount not multiple of granularity'))
