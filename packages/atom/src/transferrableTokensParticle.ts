@@ -48,8 +48,12 @@ export const transferrableTokensParticleFromUnsafe = (
 ): Result<TransferrableTokensParticle, Error> => {
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 	const address = addressFromUnsafe(input.address)
-	const tokenDefinitionReference = resourceIdentifierFromUnsafe(input.tokenDefinitionReference)
-	const granularity: Result<Granularity, Error> = amountFromUnsafe(input.granularity)
+	const tokenDefinitionReference = resourceIdentifierFromUnsafe(
+		input.tokenDefinitionReference,
+	)
+	const granularity: Result<Granularity, Error> = amountFromUnsafe(
+		input.granularity,
+	)
 	const amount: Result<PositiveAmount, Error> = amountFromUnsafe(
 		input.amount,
 	).andThen(positiveAmount)

@@ -1,12 +1,18 @@
-import { transferrableTokensParticleFromUnsafe } from "../src/transferrableTokensParticle";
-import { addressFromPublicKeyAndMagicByte, generatePrivateKey } from "@radixdlt/crypto";
-import { amountInSmallestDenomination, Denomination, positiveAmountFromUnsafe } from "@radixdlt/primitives";
-import { UInt256 } from "@radixdlt/uint256";
+import { transferrableTokensParticleFromUnsafe } from '../src/transferrableTokensParticle'
+import {
+	addressFromPublicKeyAndMagicByte,
+	generatePrivateKey,
+} from '@radixdlt/crypto'
+import {
+	amountInSmallestDenomination,
+	Denomination,
+	positiveAmountFromUnsafe,
+} from '@radixdlt/primitives'
+import { UInt256 } from '@radixdlt/uint256'
 import { resourceIdentifierFromAddressAndName } from '../src/resourceIdentifier'
 import { transferrableTokensParticleFrom } from '../src/transferrableTokensParticle'
 
 describe('transferrableTokensParticle', () => {
-
 	it('can be safely created from safe type', async () => {
 		const privateKey = generatePrivateKey()
 		const publicKeyResult = await privateKey.derivePublicKey()
@@ -16,13 +22,19 @@ describe('transferrableTokensParticle', () => {
 			magicByte: 1,
 		})
 		const granularity = amountInSmallestDenomination(UInt256.valueOf(1))
-		const amount = positiveAmountFromUnsafe(1, Denomination.Atto)._unsafeUnwrap()
-		const rri = resourceIdentifierFromAddressAndName({ address, name: 'FOOBAR'})
+		const amount = positiveAmountFromUnsafe(
+			1,
+			Denomination.Atto,
+		)._unsafeUnwrap()
+		const rri = resourceIdentifierFromAddressAndName({
+			address,
+			name: 'FOOBAR',
+		})
 		const ttpResult = transferrableTokensParticleFrom({
 			address,
 			tokenDefinitionReference: rri,
 			granularity: granularity,
-			amount: amount
+			amount: amount,
 		})
 
 		expect(ttpResult.isOk())
@@ -36,14 +48,22 @@ describe('transferrableTokensParticle', () => {
 			publicKey: publicKey,
 			magicByte: 1,
 		})
-		const granularityOfThree = amountInSmallestDenomination(UInt256.valueOf(3))
-		const amount = positiveAmountFromUnsafe(2, Denomination.Atto)._unsafeUnwrap()
-		const rri = resourceIdentifierFromAddressAndName({ address, name: 'FOOBAR'})
+		const granularityOfThree = amountInSmallestDenomination(
+			UInt256.valueOf(3),
+		)
+		const amount = positiveAmountFromUnsafe(
+			2,
+			Denomination.Atto,
+		)._unsafeUnwrap()
+		const rri = resourceIdentifierFromAddressAndName({
+			address,
+			name: 'FOOBAR',
+		})
 		const ttpResult = transferrableTokensParticleFrom({
 			address,
 			tokenDefinitionReference: rri,
 			granularity: granularityOfThree,
-			amount: amount
+			amount: amount,
 		})
 
 		expect(ttpResult.isErr())

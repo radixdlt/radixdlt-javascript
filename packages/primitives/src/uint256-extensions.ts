@@ -1,7 +1,11 @@
 import BN from 'bn.js'
 import { err, Result, ok } from 'neverthrow'
 import { UInt256 } from '@radixdlt/uint256'
-import { isNumberArray, secureRandomGenerator } from '@radixdlt/util'
+import {
+	isNumberArray,
+	SecureRandom,
+	secureRandomGenerator,
+} from '@radixdlt/util'
 
 const bnUInt256Max: BN = new BN(2).pow(new BN(256)).sub(new BN(1))
 
@@ -68,9 +72,9 @@ export const bnFromUInt256 = (uint256: UInt256): BN =>
 
 export const uint256Max = uint256FromBN(bnUInt256Max)._unsafeUnwrap()
 
-export const secureRandomUInt256 = (): UInt256 => {
-	console.error("HEJ HEJ HEJ")
-	const randomBytes = secureRandomGenerator.randomSecureBytes(32)
-	const randomBytesHex = randomBytes.toString('hex')
-	return new UInt256(randomBytesHex, 16)
+export const secureRandomUInt256 = (
+	secureRandom: SecureRandom = secureRandomGenerator,
+): UInt256 => {
+	const randomBytes = secureRandom.randomSecureBytes(32)
+	return new UInt256(randomBytes, 16)
 }

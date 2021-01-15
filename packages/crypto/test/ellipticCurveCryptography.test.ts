@@ -9,8 +9,6 @@ import {
 } from '../src/_index'
 
 import { UInt256 } from '@radixdlt/uint256'
-import { secureRandomGenerator } from '@radixdlt/util'
-import { secureRandomUInt256 } from '@radixdlt/primitives'
 
 const signatureFromHexStrings = (input: {
 	r: string
@@ -18,23 +16,10 @@ const signatureFromHexStrings = (input: {
 }): Signature => ({ r: new UInt256(input.r, 16), s: new UInt256(input.s, 16) })
 
 describe('elliptic curve cryptography', () => {
-
 	it('knows the order of secp256l1', () => {
-		expect(orderOfSecp256k1.toString(10)).toBe('115792089237316195423570985008687907852837564279074904382605163141518161494337')
-	})
-
-	it('foo', () => {
-		const randomBytes = secureRandomGenerator.randomSecureBytes(32)
-		const randomBytesHex = randomBytes.toString('hex')
-		const integer = new UInt256(randomBytesHex, 16)
-
-		expect(randomBytesHex.length).toBe(64)
-		expect(integer.gt(0)).toBe(true)
-	})
-
-	it('bar', () => {
-		const integer = secureRandomUInt256()
-		expect(integer.gt(0)).toBe(true)
+		expect(orderOfSecp256k1.toString(10)).toBe(
+			'115792089237316195423570985008687907852837564279074904382605163141518161494337',
+		)
 	})
 
 	it('can securely generate private keys', () => {
@@ -42,7 +27,6 @@ describe('elliptic curve cryptography', () => {
 			.map((_, i) => generatePrivateKey())
 			.map((privateKey: PrivateKey): string => privateKey.toString())
 		const uniquePrivateKeys = new Set(privateKeys)
-		privateKeys.slice(0, 100).forEach(k => console.log(`PrivateKey: ${k}`))
 		// Probability of collision is: 2^10/2^256 <=> 1/2^246<=> Very very very very low probability.
 		expect(uniquePrivateKeys.size).toBe(privateKeys.length)
 	})
