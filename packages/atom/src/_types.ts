@@ -14,6 +14,24 @@ export type ResourceIdentifier = /* DSONCoable */ Readonly<{
 	equals: (other: ResourceIdentifier) => boolean
 }>
 
+export type IsOwnerOfToken = () => boolean
+
+export enum TokenPermission {
+	TokenOwnerOnly = 'token_owner_only',
+	All = 'all',
+	None = 'none',
+}
+
+export enum TokenTransition {
+	Mint = 'mint',
+	Burn = 'burn',
+}
+
+export type TokenPermissions = /* DSONCodable */ Readonly<{
+	canBeMinted: (isOwnerOfToken: IsOwnerOfToken) => boolean
+	canBeBurned: (isOwnerOfToken: IsOwnerOfToken) => boolean
+}>
+
 export type TransferrableTokensParticle = /* DSONCoable */ Readonly<{
 	// The recipient address of the tokens to be transffered
 	address: Address
@@ -22,4 +40,5 @@ export type TransferrableTokensParticle = /* DSONCoable */ Readonly<{
 	granularity: Granularity
 	nonce: Nonce
 	amount: PositiveAmount
+	permissions: TokenPermissions
 }>

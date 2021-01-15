@@ -38,6 +38,10 @@ describe('transferrableTokensParticle', () => {
 		})
 
 		expect(ttpResult.isOk())
+		const ttp = ttpResult._unsafeUnwrap()
+		const tokenPermissions = ttp.permissions
+		expect(tokenPermissions.canBeBurned(() => false)).toBe(true)
+		expect(tokenPermissions.canBeMinted(() => false)).toBe(true)
 	})
 
 	it('cannot be created from an amount not being a multiple of granularity', async () => {

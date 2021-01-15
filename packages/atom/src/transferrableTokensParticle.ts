@@ -8,16 +8,22 @@ import {
 } from '@radixdlt/primitives'
 
 import { Address, addressFromUnsafe } from '@radixdlt/crypto'
-import { ResourceIdentifier, TransferrableTokensParticle } from './_types'
+import {
+	ResourceIdentifier,
+	TokenPermissions,
+	TransferrableTokensParticle,
+} from './_types'
 import { resourceIdentifierFromUnsafe } from './_index'
 
 import { Result, err, ok, combine } from 'neverthrow'
+import { tokenPermissionsAll } from './tokenPermissions'
 
 export type TTPInput = Readonly<{
 	address: Address
 	tokenDefinitionReference: ResourceIdentifier
 	amount: PositiveAmount
 	granularity: Granularity
+	permissions?: TokenPermissions
 }>
 
 export const transferrableTokensParticleFrom = (
@@ -35,6 +41,7 @@ export const transferrableTokensParticleFrom = (
 		granularity: input.granularity,
 		nonce,
 		amount: input.amount,
+		permissions: input.permissions ?? tokenPermissionsAll,
 	})
 }
 
@@ -44,6 +51,7 @@ export const transferrableTokensParticleFromUnsafe = (
 		tokenDefinitionReference: ResourceIdentifier | string
 		granularity: Granularity | AmountInputUnsafe
 		amount: PositiveAmount | AmountInputUnsafe
+		permissions?: TokenPermissions
 	}>,
 ): Result<TransferrableTokensParticle, Error> => {
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -66,6 +74,7 @@ export const transferrableTokensParticleFromUnsafe = (
 					tokenDefinitionReference: resultList[1],
 					granularity: resultList[2],
 					amount: resultList[3],
+					permissions: input.permissions,
 				},
 		)
 		.andThen(transferrableTokensParticleFrom)
