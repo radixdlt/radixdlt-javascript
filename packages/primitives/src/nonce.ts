@@ -7,10 +7,15 @@ export const randomInt64 = (
 	secureRandom: SecureRandom = secureRandomGenerator,
 ): Int64 => {
 	const random8Bytes = secureRandom.randomSecureBytes(8)
-	const bytesArray = Buffer.from(random8Bytes, 'hex') // Uint8Array.from(random8Bytes)
+	const bytesArray = Buffer.from(random8Bytes, 'hex')
 	return Long.fromBytes(Array.from(bytesArray))
+}
+
+export const nonce = (value: Int64 | number): Nonce => {
+	const int64 = Long.isLong(value) ? value : Long.fromNumber(value)
+	return { value: int64 }
 }
 
 export const randomNonce = (
 	secureRandom: SecureRandom = secureRandomGenerator,
-): Nonce => ({ value: randomInt64(secureRandom) })
+): Nonce => nonce(randomInt64(secureRandom))

@@ -65,6 +65,12 @@ export type UnallocatedTokensParticle = /* DSONCoable */ ParticleType &
 		permissions: TokenPermissions
 	}>
 
+export type ResourceIdentifierParticle = /* DSONCodable */ ParticleType &
+	Readonly<{
+		alwaysZeroNonce: Nonce
+		resourceIdentifier: ResourceIdentifier
+	}>
+
 export enum Spin {
 	/* The implicit and theoretical state `NEUTRAL` for spin is not relevant from a client library perspective, thus omitted.*/
 	UP = 1,
