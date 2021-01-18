@@ -1,4 +1,4 @@
-import { Address, PublicKey } from './_types'
+import { AddressLike, PublicKey } from './_types'
 import { publicKeyFromBytes } from './publicKey'
 import { radixHash } from './algorithms'
 import { Byte, byteToBuffer, firstByteFromBuffer } from '@radixdlt/primitives'
@@ -16,7 +16,7 @@ export type AddressInput =
 			magicByte: Byte
 	  }>
 
-export const makeAddress = (input: AddressInput): Result<Address, Error> => {
+export const Address = (input: AddressInput): Result<AddressLike, Error> => {
 	if (typeof input === 'string') {
 		return addressFromBase58String(input)
 	} else {
@@ -27,17 +27,19 @@ export const makeAddress = (input: AddressInput): Result<Address, Error> => {
 				base58Encode(
 					calculateAndAppendChecksumFromPubKeyAndMagic(input),
 				),
-			equals: (other: Address) =>
+			equals: (other: AddressLike) =>
 				input.magicByte === other.magicByte &&
 				input.publicKey.equals(other.publicKey),
 		})
 	}
 }
 
-const addressFromBase58String = (b58String: string): Result<Address, Error> =>
+const addressFromBase58String = (
+	b58String: string,
+): Result<AddressLike, Error> =>
 	base58Decode(b58String).andThen(addressFromBuffer)
 
-const addressFromBuffer = (buffer: Buffer): Result<Address, Error> => {
+const addressFromBuffer = (buffer: Buffer): Result<AddressLike, Error> => {
 	const publicKeyCompressedByteCount = 33
 	const magicByteCount = 1
 	const addressByteCount =
@@ -71,7 +73,7 @@ const addressFromBuffer = (buffer: Buffer): Result<Address, Error> => {
 			publicKey,
 			magicByte,
 			toString: (): string => base58Encode(checksummedAddress),
-			equals: (other: Address) =>
+			equals: (other: AddressLike) =>
 				magicByte === other.magicByte &&
 				publicKey.equals(other.publicKey),
 		}),
@@ -106,9 +108,9 @@ const calculateAndAppendChecksum = (buffer: Buffer): Buffer => {
 }
 
 export const isAddress = (
-	something: Address | unknown,
-): something is Address => {
-	const inspection = something as Address
+	something: AddressLike | unknown,
+): something is AddressLike => {
+	const inspection = something as AddressLike
 	return (
 		inspection.magicByte !== undefined &&
 		inspection.publicKey !== undefined &&
@@ -118,8 +120,8 @@ export const isAddress = (
 }
 
 export const addressFromUnsafe = (
-	input: Address | string,
-): Result<Address, Error> => {
+	input: AddressLike | string,
+): Result<AddressLike, Error> => {
 	return isAddress(input)
 		? ok(input)
 		: typeof input === 'string'

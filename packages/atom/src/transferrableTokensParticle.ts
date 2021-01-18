@@ -1,6 +1,6 @@
 import { Granularity, PositiveAmount, randomNonce } from '@radixdlt/primitives'
 
-import { Address } from '@radixdlt/crypto'
+import { AddressLike } from '@radixdlt/crypto'
 import {
 	ResourceIdentifier,
 	TokenPermissions,
@@ -11,7 +11,7 @@ import { Result, err, ok } from 'neverthrow'
 import { tokenPermissionsAll } from './tokenPermissions'
 
 export type TransferrableTokensParticleInput = Readonly<{
-	address: Address
+	address: AddressLike
 	tokenDefinitionReference: ResourceIdentifier
 	amount: PositiveAmount
 	granularity: Granularity

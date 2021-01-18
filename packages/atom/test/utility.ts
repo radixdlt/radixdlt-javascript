@@ -1,4 +1,4 @@
-import { Address, addressFromUnsafe } from '@radixdlt/crypto'
+import { AddressLike, addressFromUnsafe } from '@radixdlt/crypto'
 import {
 	ResourceIdentifier,
 	Supply,
@@ -27,7 +27,7 @@ import {
 
 export const transferrableTokensParticleFromUnsafe = (
 	input: Readonly<{
-		address: Address | string
+		address: AddressLike | string
 		tokenDefinitionReference: ResourceIdentifier | string
 		granularity: Granularity | AmountInputUnsafe
 		amount: PositiveAmount | AmountInputUnsafe

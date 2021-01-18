@@ -1,22 +1,22 @@
 import {
-	makeAddress,
-	privateKeyFromScalar,
 	Address,
+	privateKeyFromScalar,
+	AddressLike,
 	isAddress,
 } from '../src/_index'
 
 import { magicFromNumber } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 
-const toAddress = (b58: string): Address => makeAddress(b58)._unsafeUnwrap()
+const toAddress = (b58: string): AddressLike => Address(b58)._unsafeUnwrap()
 
-describe('Address', () => {
+describe('AddressLike', () => {
 	it('can be created from a publicKey and radix magix', async () => {
 		const privateKey = privateKeyFromScalar(UInt256.valueOf(1))
 		const publicKey = (await privateKey.derivePublicKey())._unsafeUnwrap()
 		const magic = magicFromNumber(1337)
 
-		const address = makeAddress({
+		const address = Address({
 			publicKey: publicKey,
 			magicByte: magic.byte,
 		})._unsafeUnwrap()
@@ -27,9 +27,7 @@ describe('Address', () => {
 			'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT'
 		expect(address.toString()).toBe(expctedAddressBase58)
 
-		const addressFromString = makeAddress(
-			expctedAddressBase58,
-		)._unsafeUnwrap()
+		const addressFromString = Address(expctedAddressBase58)._unsafeUnwrap()
 
 		expect(publicKey.equals(addressFromString.publicKey)).toBeTruthy()
 
@@ -41,9 +39,9 @@ describe('Address', () => {
 	})
 
 	it('should consider the same address to be equal itself', () => {
-		const makeAddress = (): Address =>
+		const Address = (): AddressLike =>
 			toAddress('9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT')
-		expect(makeAddress().equals(makeAddress())).toBe(true)
+		expect(Address().equals(Address())).toBe(true)
 	})
 
 	it('should consider two different address with the same magic but different publicKeys as inequal', async () => {

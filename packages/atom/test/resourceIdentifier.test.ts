@@ -1,4 +1,4 @@
-import { makeAddress } from '@radixdlt/crypto'
+import { Address } from '@radixdlt/crypto'
 import {
 	resourceIdentifierFromAddressAndName,
 	resourceIdentifierFromString,
@@ -6,7 +6,7 @@ import {
 
 describe('ResourceIdentifier (RRI)', () => {
 	it('can be created from address+name AND from id-string', () => {
-		const address = makeAddress(
+		const address = Address(
 			'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
 		)._unsafeUnwrap()
 		const name = 'FOOBAR'

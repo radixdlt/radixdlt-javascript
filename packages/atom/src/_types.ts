@@ -1,4 +1,4 @@
-import { Address } from '@radixdlt/crypto'
+import { AddressLike } from '@radixdlt/crypto'
 import {
 	Amount,
 	Granularity,
@@ -13,7 +13,7 @@ import {
  * `"/JH1P8f3znbyrDj8F4RWpix7hRkgxqHjdW2fNnKpR3v6ufXnknor/XRD"`
  */
 export type ResourceIdentifier = /* DSONCoable */ Readonly<{
-	address: Address
+	address: AddressLike
 	name: string
 	toString: () => string
 	equals: (other: ResourceIdentifier) => boolean
@@ -41,7 +41,7 @@ export type TokenPermissions = /* DSONCodable */ Readonly<{
 
 export type TransferrableTokensParticle = /* DSONCoable */ Readonly<{
 	// The recipient address of the tokens to be transffered
-	address: Address
+	address: AddressLike
 	// The identifier of which token type is being transferred
 	tokenDefinitionReference: ResourceIdentifier
 	granularity: Granularity

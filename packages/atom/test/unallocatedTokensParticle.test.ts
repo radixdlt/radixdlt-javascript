@@ -1,4 +1,4 @@
-import { makeAddress, generatePrivateKey } from '@radixdlt/crypto'
+import { Address, generatePrivateKey } from '@radixdlt/crypto'
 import { amountInSmallestDenomination } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import { resourceIdentifierFromAddressAndName } from '../src/resourceIdentifier'
@@ -10,7 +10,7 @@ describe('unallocatedTokensParticle', () => {
 		const privateKey = generatePrivateKey()
 		const publicKeyResult = await privateKey.derivePublicKey()
 		const publicKey = publicKeyResult._unsafeUnwrap()
-		const address = makeAddress({
+		const address = Address({
 			publicKey: publicKey,
 			magicByte: 1,
 		})._unsafeUnwrap()

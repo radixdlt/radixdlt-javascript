@@ -45,9 +45,9 @@ export type PrivateKey = Signer &
 		toString: () => string
 	}
 
-export type Address = Readonly<{
+export type AddressLike = Readonly<{
 	publicKey: PublicKey
 	magicByte: Byte
 	toString: () => string
-	equals: (other: Address) => boolean
+	equals: (other: AddressLike) => boolean
 }>
