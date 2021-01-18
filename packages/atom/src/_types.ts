@@ -20,6 +20,15 @@ export type ResourceIdentifier = /* DSONCoable */ Readonly<{
 	equals: (other: ResourceIdentifier) => boolean
 }>
 
+/**
+ * An Atom Identifier, made up of 256 bits of a hash.
+ * The Atom ID is used so that Atoms can be located using just their hash id.
+ */
+export type AtomIdentifier = /* DSONCoable */ Readonly<{
+	toString: () => string
+	equals: (other: AtomIdentifier) => boolean
+}>
+
 export type IsOwnerOfToken = () => boolean
 
 export enum TokenPermission {
