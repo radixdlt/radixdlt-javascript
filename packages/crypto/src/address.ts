@@ -1,46 +1,41 @@
 import { Address, PublicKey } from './_types'
 import { publicKeyFromBytes } from './publicKey'
 import { radixHash } from './algorithms'
-import {
-	Magic,
-	Byte,
-	byteToBuffer,
-	firstByteFromBuffer,
-} from '@radixdlt/primitives'
+import { Byte, byteToBuffer, firstByteFromBuffer } from '@radixdlt/primitives'
 import { Result, ok, err } from 'neverthrow'
 import { base58Encode, base58Decode } from './wrap/baseConversion'
 
 const checksumByteCount = 4
 
-export const addressFromPublicKeyAndMagic = (
-	input: Readonly<{
-		publicKey: PublicKey
-		magic: Magic
-	}>,
-): Address =>
-	addressFromPublicKeyAndMagicByte({
-		publicKey: input.publicKey,
-		magicByte: input.magic.byte,
-	})
+export type Base58String = string
 
-export const addressFromPublicKeyAndMagicByte = (
-	input: Readonly<{
-		publicKey: PublicKey
-		magicByte: Byte
-	}>,
-): Address => ({
-	publicKey: input.publicKey,
-	magicByte: input.magicByte,
-	toString: (): string =>
-		base58Encode(calculateAndAppendChecksumFromPubKeyAndMagic(input)),
-	equals: (other) =>
-		input.magicByte === other.magicByte &&
-		input.publicKey.equals(other.publicKey),
-})
+export type AddressInput =
+	| Base58String
+	| Readonly<{
+			publicKey: PublicKey
+			magicByte: Byte
+	  }>
 
-export const addressFromBase58String = (
-	b58String: string,
-): Result<Address, Error> => base58Decode(b58String).andThen(addressFromBuffer)
+export const makeAddress = (input: AddressInput): Result<Address, Error> => {
+	if (typeof input === 'string') {
+		return addressFromBase58String(input)
+	} else {
+		return ok({
+			publicKey: input.publicKey,
+			magicByte: input.magicByte,
+			toString: (): string =>
+				base58Encode(
+					calculateAndAppendChecksumFromPubKeyAndMagic(input),
+				),
+			equals: (other: Address) =>
+				input.magicByte === other.magicByte &&
+				input.publicKey.equals(other.publicKey),
+		})
+	}
+}
+
+const addressFromBase58String = (b58String: string): Result<Address, Error> =>
+	base58Decode(b58String).andThen(addressFromBuffer)
 
 const addressFromBuffer = (buffer: Buffer): Result<Address, Error> => {
 	const publicKeyCompressedByteCount = 33

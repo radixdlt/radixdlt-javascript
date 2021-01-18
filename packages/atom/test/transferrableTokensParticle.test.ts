@@ -1,7 +1,4 @@
-import {
-	addressFromPublicKeyAndMagicByte,
-	generatePrivateKey,
-} from '@radixdlt/crypto'
+import { makeAddress, generatePrivateKey } from '@radixdlt/crypto'
 import {
 	amountInSmallestDenomination,
 	Denomination,
@@ -17,19 +14,24 @@ describe('transferrableTokensParticle', () => {
 		const privateKey = generatePrivateKey()
 		const publicKeyResult = await privateKey.derivePublicKey()
 		const publicKey = publicKeyResult._unsafeUnwrap()
-		const address = addressFromPublicKeyAndMagicByte({
+
+		const address = makeAddress({
 			publicKey: publicKey,
 			magicByte: 1,
-		})
+		})._unsafeUnwrap()
+
 		const granularity = amountInSmallestDenomination(UInt256.valueOf(1))
+
 		const amount = positiveAmountFromUnsafe(
 			1,
 			Denomination.Atto,
 		)._unsafeUnwrap()
+
 		const rri = resourceIdentifierFromAddressAndName({
 			address,
 			name: 'FOOBAR',
 		})
+
 		const ttpResult = transferrableTokensParticle({
 			address,
 			tokenDefinitionReference: rri,
@@ -48,21 +50,26 @@ describe('transferrableTokensParticle', () => {
 		const privateKey = generatePrivateKey()
 		const publicKeyResult = await privateKey.derivePublicKey()
 		const publicKey = publicKeyResult._unsafeUnwrap()
-		const address = addressFromPublicKeyAndMagicByte({
+
+		const address = makeAddress({
 			publicKey: publicKey,
 			magicByte: 1,
-		})
+		})._unsafeUnwrap()
+
 		const granularityOfThree = amountInSmallestDenomination(
 			UInt256.valueOf(3),
 		)
+
 		const amount = positiveAmountFromUnsafe(
 			2,
 			Denomination.Atto,
 		)._unsafeUnwrap()
+
 		const rri = resourceIdentifierFromAddressAndName({
 			address,
 			name: 'FOOBAR',
 		})
+
 		const ttpResult = transferrableTokensParticle({
 			address,
 			tokenDefinitionReference: rri,

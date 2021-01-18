@@ -1,7 +1,7 @@
 import { Address } from '@radixdlt/crypto'
 import { ResourceIdentifier } from './_types'
 import { err, ok, Result } from 'neverthrow'
-import { addressFromBase58String } from '@radixdlt/crypto'
+import { makeAddress } from '@radixdlt/crypto'
 
 const separator = '/'
 
@@ -27,8 +27,7 @@ export const resourceIdentifierFromString = (
 	if (components[0].length !== 0) return err(new Error('Expected leading /'))
 	const name = components[2]
 	if (name.length === 0) return err(new Error('Expected non empty name'))
-
-	return addressFromBase58String(components[1]).map(
+	return makeAddress(components[1]).map(
 		(address): ResourceIdentifier => ({
 			address,
 			name,

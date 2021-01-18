@@ -1,6 +1,5 @@
 import {
-	addressFromPublicKeyAndMagic,
-	addressFromBase58String,
+	makeAddress,
 	privateKeyFromScalar,
 	Address,
 	isAddress,
@@ -9,8 +8,7 @@ import {
 import { magicFromNumber } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 
-const toAddress = (b58: string): Address =>
-	addressFromBase58String(b58)._unsafeUnwrap()
+const toAddress = (b58: string): Address => makeAddress(b58)._unsafeUnwrap()
 
 describe('Address', () => {
 	it('can be created from a publicKey and radix magix', async () => {
@@ -18,10 +16,10 @@ describe('Address', () => {
 		const publicKey = (await privateKey.derivePublicKey())._unsafeUnwrap()
 		const magic = magicFromNumber(1337)
 
-		const address = addressFromPublicKeyAndMagic({
+		const address = makeAddress({
 			publicKey: publicKey,
-			magic: magic,
-		})
+			magicByte: magic.byte,
+		})._unsafeUnwrap()
 
 		expect(isAddress(address)).toBe(true)
 
@@ -29,7 +27,7 @@ describe('Address', () => {
 			'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT'
 		expect(address.toString()).toBe(expctedAddressBase58)
 
-		const addressFromString = addressFromBase58String(
+		const addressFromString = makeAddress(
 			expctedAddressBase58,
 		)._unsafeUnwrap()
 
