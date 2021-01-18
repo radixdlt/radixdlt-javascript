@@ -63,16 +63,30 @@ describe('SpunParticle', () => {
 			spin: Spin.DOWN,
 		})
 
-		const testSpunParticleOfTypeUATP = (particle: SpunParticleLike) => {
-			expect(spunUATP.spin).toBe(Spin.DOWN)
-			expect(spunUATP.particle).toBe(unallocatedTokensParticle)
-			expect(spunUATP.particleType).toBe('UnallocatedTokensParticle')
+		const testSpunParticleOfTypeUATP = (
+			spunParticleLike: SpunParticleLike,
+		) => {
+			expect(spunParticleLike.spin).toBe(Spin.DOWN)
+			expect(spunParticleLike.particle).toBe(unallocatedTokensParticle)
+			expect(spunParticleLike.particleType).toBe(
+				'UnallocatedTokensParticle',
+			)
 		}
 
 		testSpunParticleOfTypeUATP(spunUATP)
 		testSpunParticleOfTypeUATP(spunUATP.eraseToAny())
 
 		expect(spunUATP.downed().isErr()).toBe(true)
+
+		const asDownParticleResult = asDownParticle(spunUATP)
+		expect(asDownParticleResult.isOk()).toBe(true)
+		const asDownParticleUATP = asDownParticleResult._unsafeUnwrap()
+		testSpunParticleOfTypeUATP(asDownParticleUATP)
+
+		const asAnyDownParticleResult = asAnyDownParticle(spunUATP)
+		expect(asAnyDownParticleResult.isOk()).toBe(true)
+		const asAnyDownParticleUATP = asAnyDownParticleResult._unsafeUnwrap()
+		testSpunParticleOfTypeUATP(asAnyDownParticleUATP)
 	})
 })
 
