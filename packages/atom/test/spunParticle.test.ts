@@ -1,7 +1,7 @@
 import {
-	SpunParticle,
 	Spin,
-	AnySpunParticle,
+	SpunParticle,
+	SpunParticleLike,
 	TransferrableTokensParticle,
 } from '../src/_types'
 import {
@@ -10,6 +10,7 @@ import {
 	asDownParticle,
 	asUpParticle,
 	spunParticle,
+	spunUpParticle,
 } from '../src/spunParticle'
 import {
 	transferrableTokensParticleFromUnsafe,
@@ -23,27 +24,37 @@ describe('SpunParticle', () => {
 			spin: Spin.UP,
 		})
 
-		const testSpunParticleOfTypeTTP = (particle: AnySpunParticle) => {
-			expect(particle.spin).toBe(Spin.UP)
+		const assertTTPWithSpin = (particle: SpunParticleLike, spin: Spin) => {
+			expect(particle.spin).toBe(spin)
 			expect(particle.particle).toBe(transferrableTokensParticle)
 			expect(particle.particleType).toBe('TransferrableTokensParticle')
 		}
 
-		testSpunParticleOfTypeTTP(spunTTP)
-		testSpunParticleOfTypeTTP(spunTTP.eraseToAny())
+		const assertTTPWithSpinUp = (particle: SpunParticleLike) => {
+			assertTTPWithSpin(particle, Spin.UP)
+		}
+
+		assertTTPWithSpinUp(spunTTP)
+		assertTTPWithSpinUp(spunUpParticle(transferrableTokensParticle))
+		assertTTPWithSpinUp(spunTTP.eraseToAny())
 
 		const asUpParticleResult = asUpParticle(spunTTP)
 		expect(asUpParticleResult.isOk()).toBe(true)
 		const upParticle = asUpParticleResult._unsafeUnwrap()
-		testSpunParticleOfTypeTTP(upParticle)
+		assertTTPWithSpinUp(upParticle)
 
 		const asAnyUpParticleResult = asAnyUpParticle(spunTTP)
 		expect(asAnyUpParticleResult.isOk()).toBe(true)
 		const anyUpParticle = asAnyUpParticleResult._unsafeUnwrap()
-		testSpunParticleOfTypeTTP(anyUpParticle)
+		assertTTPWithSpinUp(anyUpParticle)
 
 		expect(asDownParticle(spunTTP).isErr()).toBe(true)
 		expect(asAnyDownParticle(spunTTP).isErr()).toBe(true)
+
+		const downedResult = spunTTP.downed()
+		expect(downedResult.isOk()).toBe(true)
+		const downedTTP = downedResult._unsafeUnwrap()
+		assertTTPWithSpin(downedTTP, Spin.DOWN)
 	})
 
 	it('can create SpunParticle<UnallocatedTokensParticle>', () => {
@@ -52,7 +63,7 @@ describe('SpunParticle', () => {
 			spin: Spin.DOWN,
 		})
 
-		const testSpunParticleOfTypeUATP = (particle: AnySpunParticle) => {
+		const testSpunParticleOfTypeUATP = (particle: SpunParticleLike) => {
 			expect(spunUATP.spin).toBe(Spin.DOWN)
 			expect(spunUATP.particle).toBe(unallocatedTokensParticle)
 			expect(spunUATP.particleType).toBe('UnallocatedTokensParticle')
@@ -60,6 +71,8 @@ describe('SpunParticle', () => {
 
 		testSpunParticleOfTypeUATP(spunUATP)
 		testSpunParticleOfTypeUATP(spunUATP.eraseToAny())
+
+		expect(spunUATP.downed().isErr()).toBe(true)
 	})
 })
 

@@ -5,6 +5,7 @@ import {
 	Nonce,
 	PositiveAmount,
 } from '@radixdlt/primitives'
+import { Result } from 'neverthrow'
 
 /**
  * A Radix resource identifier is a human readable index into the Ledger which points to a name state machine
@@ -70,40 +71,46 @@ export enum Spin {
 	DOWN = -1,
 }
 
-export type AnySpunParticle = Readonly<{
+export type SpunParticleLike = Readonly<{
 	spin: Spin
 	particle: ParticleType
 	particleType: string
 }>
 
-export type SpunParticle<
-	Particle extends ParticleType
-> = /* DSONCodable & */ AnySpunParticle &
+export type AnySpunParticle = SpunParticleLike &
 	Readonly<{
-		particle: Particle
-		eraseToAny: () => AnySpunParticle
+		downed: () => Result<AnyDownParticle, Error>
 	}>
 
-export type UpParticle<Particle extends ParticleType> = AnySpunParticle &
+export type SpunParticle<
+	Particle extends ParticleType
+> = /* DSONCodable & */ SpunParticleLike &
+	Readonly<{
+		particle: Particle
+		eraseToAny: () => SpunParticleLike
+		downed: () => Result<DownParticle<Particle>, Error>
+	}>
+
+export type UpParticle<Particle extends ParticleType> = SpunParticleLike &
 	Readonly<{
 		spin: Spin.UP
 		particle: Particle
 		eraseToAny: () => AnyUpParticle
 	}>
 
-export type DownParticle<Particle extends ParticleType> = AnySpunParticle &
+export type DownParticle<Particle extends ParticleType> = SpunParticleLike &
 	Readonly<{
 		spin: Spin.DOWN
 		particle: Particle
 		eraseToAny: () => AnyDownParticle
 	}>
 
-export type AnyUpParticle = AnySpunParticle &
+export type AnyUpParticle = SpunParticleLike &
 	Readonly<{
 		spin: Spin.UP
 	}>
 
-export type AnyDownParticle = AnySpunParticle &
+export type AnyDownParticle = SpunParticleLike &
 	Readonly<{
 		spin: Spin.DOWN
 	}>
