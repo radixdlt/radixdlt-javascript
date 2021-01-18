@@ -1,10 +1,20 @@
-import { SpunParticle, Spin, TransferrableTokensParticle } from '../src/_types'
-import { spunParticle } from '../src/spunParticle'
+import {
+	SpunParticle,
+	Spin,
+	AnySpunParticle,
+	TransferrableTokensParticle,
+} from '../src/_types'
+import {
+	asAnyDownParticle,
+	asAnyUpParticle,
+	asDownParticle,
+	asUpParticle,
+	spunParticle,
+} from '../src/spunParticle'
 import {
 	transferrableTokensParticleFromUnsafe,
 	unallocatedTokensParticleFromUnsafe,
 } from './utility'
-import { AnySpunParticle } from '../dist/_types'
 
 describe('SpunParticle', () => {
 	it('can create SpunParticle<TransferrableTokensParticle>', () => {
@@ -21,6 +31,19 @@ describe('SpunParticle', () => {
 
 		testSpunParticleOfTypeTTP(spunTTP)
 		testSpunParticleOfTypeTTP(spunTTP.eraseToAny())
+
+		const asUpParticleResult = asUpParticle(spunTTP)
+		expect(asUpParticleResult.isOk()).toBe(true)
+		const upParticle = asUpParticleResult._unsafeUnwrap()
+		testSpunParticleOfTypeTTP(upParticle)
+
+		const asAnyUpParticleResult = asAnyUpParticle(spunTTP)
+		expect(asAnyUpParticleResult.isOk()).toBe(true)
+		const anyUpParticle = asAnyUpParticleResult._unsafeUnwrap()
+		testSpunParticleOfTypeTTP(anyUpParticle)
+
+		expect(asDownParticle(spunTTP).isErr()).toBe(true)
+		expect(asAnyDownParticle(spunTTP).isErr()).toBe(true)
 	})
 
 	it('can create SpunParticle<UnallocatedTokensParticle>', () => {
