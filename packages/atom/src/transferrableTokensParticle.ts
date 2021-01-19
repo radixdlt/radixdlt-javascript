@@ -2,6 +2,7 @@ import { Granularity, PositiveAmount, randomNonce } from '@radixdlt/primitives'
 
 import { Address } from '@radixdlt/crypto'
 import {
+	ParticleType,
 	ResourceIdentifier,
 	TokenPermissions,
 	TransferrableTokensParticle,
@@ -27,13 +28,51 @@ export const transferrableTokensParticle = (
 
 	const nonce = randomNonce()
 
+	const address = input.address
+	const tokenDefinitionReference = input.tokenDefinitionReference
+	const granularity = input.granularity
+	const amount = input.amount
+	const permissions = input.permissions ?? tokenPermissionsAll
+
 	return ok({
 		particleType: 'TransferrableTokensParticle',
-		address: input.address,
-		tokenDefinitionReference: input.tokenDefinitionReference,
-		granularity: input.granularity,
+		address,
+		tokenDefinitionReference,
+		granularity,
 		nonce,
-		amount: input.amount,
-		permissions: input.permissions ?? tokenPermissionsAll,
+		amount,
+		permissions,
+		// eslint-disable-next-line complexity
+		equals: (otherParticle: ParticleType): boolean => {
+			if (!isTransferrableTokensParticle(otherParticle)) return false
+			const otherTTP = otherParticle
+
+			return (
+				otherTTP.address.equals(address) &&
+				otherTTP.tokenDefinitionReference.equals(
+					tokenDefinitionReference,
+				) &&
+				otherTTP.granularity.equals(granularity) &&
+				otherTTP.nonce.equals(nonce) &&
+				otherTTP.amount.equals(amount) &&
+				otherTTP.permissions.equals(permissions)
+			)
+		},
 	})
+}
+// eslint-disable-next-line complexity
+export const isTransferrableTokensParticle = (
+	something: TransferrableTokensParticle | unknown,
+): something is TransferrableTokensParticle => {
+	const inspection = something as TransferrableTokensParticle
+	return (
+		inspection.particleType === 'TransferrableTokensParticle' &&
+		inspection.address !== undefined &&
+		inspection.tokenDefinitionReference !== undefined &&
+		inspection.granularity !== undefined &&
+		inspection.nonce !== undefined &&
+		inspection.amount !== undefined &&
+		inspection.permissions !== undefined &&
+		inspection.equals !== undefined
+	)
 }

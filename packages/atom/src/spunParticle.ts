@@ -7,8 +7,27 @@ import {
 	DownParticle,
 	AnyUpParticle,
 	AnyDownParticle,
+	SpunParticleLike,
 } from './_types'
 import { Result, err, ok } from 'neverthrow'
+
+export type SpunParticleSimple = Readonly<{
+	spin: Spin
+	particle: ParticleType
+}>
+
+/* eslint-disable max-params */
+const spunParticlesEquals = (
+	lhs: SpunParticleSimple,
+	rhs: SpunParticleLike,
+): boolean => {
+	return (
+		lhs.spin === rhs.spin &&
+		lhs.particle.equals(rhs.particle) &&
+		rhs.particle.equals(lhs.particle)
+	)
+}
+/* eslint-enable max-params */
 
 /**
  * Creates a typed SpunParticle with a specified spin.
@@ -27,6 +46,8 @@ export const spunParticle = <Particle extends ParticleType>(
 	spin: input.spin,
 	particle: input.particle,
 	eraseToAny: () => anySpunParticle(input),
+	equals: (other: SpunParticleLike): boolean =>
+		spunParticlesEquals(input, other),
 	downed: (): Result<DownParticle<Particle>, Error> =>
 		input.spin === Spin.UP
 			? ok(downParticle(input.particle))
@@ -78,6 +99,8 @@ export const anySpunParticle = (
 ): AnySpunParticle => ({
 	spin: input.spin,
 	particle: input.particle,
+	equals: (other: SpunParticleLike): boolean =>
+		spunParticlesEquals(input, other),
 	downed: (): Result<AnyDownParticle, Error> =>
 		input.spin === Spin.UP
 			? ok(downParticle(input.particle))
@@ -96,6 +119,16 @@ export const upParticle = <Particle extends ParticleType>(
 ): UpParticle<Particle> => ({
 	spin: Spin.UP,
 	particle: particle,
+
+	equals: (other: SpunParticleLike): boolean =>
+		spunParticlesEquals(
+			{
+				spin: Spin.UP,
+				particle,
+			},
+			other,
+		),
+
 	eraseToAny: () => anyUpParticle(particle),
 })
 
@@ -111,6 +144,8 @@ export const downParticle = <Particle extends ParticleType>(
 ): DownParticle<Particle> => ({
 	spin: Spin.DOWN,
 	particle: particle,
+	equals: (other: SpunParticleLike): boolean =>
+		spunParticlesEquals({ spin: Spin.DOWN, particle }, other),
 	eraseToAny: () => anyDownParticle(particle),
 })
 
@@ -123,6 +158,8 @@ export const downParticle = <Particle extends ParticleType>(
 export const anyUpParticle = (particle: ParticleType): AnyUpParticle => ({
 	spin: Spin.UP,
 	particle: particle,
+	equals: (other: SpunParticleLike): boolean =>
+		spunParticlesEquals({ spin: Spin.UP, particle }, other),
 })
 
 /**
@@ -134,6 +171,8 @@ export const anyUpParticle = (particle: ParticleType): AnyUpParticle => ({
 export const anyDownParticle = (particle: ParticleType): AnyDownParticle => ({
 	spin: Spin.DOWN,
 	particle: particle,
+	equals: (other: SpunParticleLike): boolean =>
+		spunParticlesEquals({ spin: Spin.DOWN, particle }, other),
 })
 
 export const asAnyUpParticle = (

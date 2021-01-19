@@ -6,6 +6,7 @@ export type Int64 = Long
 
 export type Nonce = /* CBORCodable & */ Readonly<{
 	value: Int64
+	equals: (other: Nonce) => boolean
 }>
 
 export type Magic = /* DSONCodable & */ Readonly<{

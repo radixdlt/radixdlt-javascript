@@ -60,6 +60,28 @@ const exactlyContainMembers = <Element>(
 	)
 }
 
+const exactlyContainParticles = (
+	actual: SpunParticleLike[],
+	expected: SpunParticleLike[],
+): boolean => {
+	const formIntersection = (
+		lhs: SpunParticleLike[],
+		rhs: SpunParticleLike[],
+	): SpunParticleLike[] =>
+		[...lhs].filter((x) => rhs.find((sp) => sp.equals(x)) !== undefined)
+
+	const formDifference = (
+		lhs: SpunParticleLike[],
+		rhs: SpunParticleLike[],
+	): SpunParticleLike[] =>
+		[...lhs].filter((x) => rhs.find((sp) => sp.equals(x)) === undefined)
+
+	return (
+		formDifference(actual, expected).length === 0 &&
+		formIntersection(actual, expected).length === expected.length
+	)
+}
+
 const expectExactlyContainMembers = <Element>(
 	actual: Element[],
 	expected: Element[],
@@ -89,21 +111,43 @@ describe('SpunParticles', () => {
 		expectExactlyContainMembers([1, 2, 3], [1, 2, 3, 4], false)
 	})
 
-	it('can query particles of type T and spin UP', () => {
+	it('can query particles of type and spin', () => {
 		const spunParticles_ = spunParticles([
 			rriParticle0Up,
 			rriParticle1Up,
 			rriParticle0Down,
 			uatParticle0Up,
 		])
-		const upRRIParticles = spunParticles_.upParticlesOfType(
+		const upRIParticles = spunParticles_.upParticlesOfType(
 			'ResourceIdentifierParticle',
 		)
 		expect(
-			exactlyContainMembers(upRRIParticles, [
+			exactlyContainParticles(upRIParticles, [
 				rriParticle0Up,
 				rriParticle1Up,
 			]),
 		).toBe(true)
+
+		const upUATParticles = spunParticles_.upParticlesOfType(
+			'UnallocatedTokensParticle',
+		)
+
+		expect(exactlyContainParticles(upUATParticles, [uatParticle0Up])).toBe(
+			true,
+		)
+
+		const downRIParticles = spunParticles_.downParticlesOfType(
+			'ResourceIdentifierParticle',
+		)
+
+		expect(
+			exactlyContainParticles(downRIParticles, [rriParticle0Down]),
+		).toBe(true)
+
+		const downUATParticles = spunParticles_.downParticlesOfType(
+			'UnallocatedTokensParticle',
+		)
+
+		expect(downUATParticles.length).toBe(0)
 	})
 })

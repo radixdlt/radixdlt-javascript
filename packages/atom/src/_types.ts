@@ -45,12 +45,15 @@ export enum TokenTransition {
 export type Supply = Amount
 
 export type TokenPermissions = /* DSONCodable */ Readonly<{
+	permissions: ReadonlyMap<TokenTransition, TokenPermission>
 	canBeMinted: (isOwnerOfToken: IsOwnerOfToken) => boolean
 	canBeBurned: (isOwnerOfToken: IsOwnerOfToken) => boolean
+	equals: (other: TokenPermissions) => boolean
 }>
 
 export type ParticleType = {
 	particleType: string
+	equals: (other: ParticleType) => boolean
 }
 
 export type TransferrableTokensParticle = /* DSONCoable */ ParticleType &
@@ -89,6 +92,7 @@ export enum Spin {
 export type SpunParticleLike = Readonly<{
 	spin: Spin
 	particle: ParticleType
+	equals: (other: SpunParticleLike) => boolean
 }>
 
 export type AnySpunParticle = SpunParticleLike &
