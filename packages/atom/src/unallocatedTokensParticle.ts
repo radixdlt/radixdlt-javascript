@@ -17,6 +17,7 @@ export type UnallocatedTokensParticleInput = Readonly<{
 export const unallocatedTokensParticle = (
 	input: UnallocatedTokensParticleInput,
 ): UnallocatedTokensParticle => ({
+	particleType: 'UnallocatedTokensParticle',
 	tokenDefinitionReference: input.tokenDefinitionReference,
 	granularity: input.granularity,
 	nonce: randomNonce(),

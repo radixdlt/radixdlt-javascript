@@ -28,6 +28,7 @@ export const transferrableTokensParticle = (
 	const nonce = randomNonce()
 
 	return ok({
+		particleType: 'TransferrableTokensParticle',
 		address: input.address,
 		tokenDefinitionReference: input.tokenDefinitionReference,
 		granularity: input.granularity,

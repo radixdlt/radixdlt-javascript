@@ -61,11 +61,9 @@ module.exports = {
 		'functional/no-try-statement': 'error',
 
 		// ESLint-Plugin-JSDoc RULES
-		'jsdoc/check-param-names': [
-			'error',
-			{ allowExtraTrailingParamDocs: true },
-		],
-		'jsdoc/require-param': ['error', { checkDestructuredRoots: false }],
+		'jsdoc/check-param-names': 'off',
+		'jsdoc/require-param-type': 'off',
+		'jsdoc/require-param': 'off',
 
 		'functional/no-expression-statement': 'off',
 		'functional/no-conditional-statement': 'off', // we like switch statements
