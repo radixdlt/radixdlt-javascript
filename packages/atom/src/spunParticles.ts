@@ -20,7 +20,7 @@ export const spunParticles = (
 	}): SpunParticle<Particle>[] => {
 		return unique
 			.filter((sp) => sp.spin === query.spin)
-			.filter((sp) => sp.particleType === query.particleType)
+			.filter((sp) => sp.particle.particleType === query.particleType)
 			.map((sp) =>
 				spunParticle({
 					spin: sp.spin,
