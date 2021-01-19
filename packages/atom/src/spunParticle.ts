@@ -26,16 +26,10 @@ export const spunParticle = <Particle extends ParticleType>(
 ): SpunParticle<Particle> => ({
 	spin: input.spin,
 	particle: input.particle,
-	particleType: input.particle.particleType,
 	eraseToAny: () => anySpunParticle(input),
 	downed: (): Result<DownParticle<Particle>, Error> =>
 		input.spin === Spin.UP
-			? ok({
-					spin: Spin.DOWN,
-					particle: input.particle,
-					particleType: input.particle.particleType,
-					eraseToAny: () => anyDownParticle(input.particle),
-			  })
+			? ok(downParticle(input.particle))
 			: err(new Error('Cannot down a particle with spin Down')),
 })
 
@@ -84,14 +78,9 @@ export const anySpunParticle = (
 ): AnySpunParticle => ({
 	spin: input.spin,
 	particle: input.particle,
-	particleType: input.particle.particleType,
 	downed: (): Result<AnyDownParticle, Error> =>
 		input.spin === Spin.UP
-			? ok({
-					spin: Spin.DOWN,
-					particle: input.particle,
-					particleType: input.particle.particleType,
-			  })
+			? ok(downParticle(input.particle))
 			: err(new Error('Cannot down a particle with spin Down')),
 })
 
@@ -107,7 +96,6 @@ export const upParticle = <Particle extends ParticleType>(
 ): UpParticle<Particle> => ({
 	spin: Spin.UP,
 	particle: particle,
-	particleType: particle.particleType,
 	eraseToAny: () => anyUpParticle(particle),
 })
 
@@ -123,7 +111,6 @@ export const downParticle = <Particle extends ParticleType>(
 ): DownParticle<Particle> => ({
 	spin: Spin.DOWN,
 	particle: particle,
-	particleType: particle.particleType,
 	eraseToAny: () => anyDownParticle(particle),
 })
 
@@ -136,7 +123,6 @@ export const downParticle = <Particle extends ParticleType>(
 export const anyUpParticle = (particle: ParticleType): AnyUpParticle => ({
 	spin: Spin.UP,
 	particle: particle,
-	particleType: particle.particleType,
 })
 
 /**
@@ -148,7 +134,6 @@ export const anyUpParticle = (particle: ParticleType): AnyUpParticle => ({
 export const anyDownParticle = (particle: ParticleType): AnyDownParticle => ({
 	spin: Spin.DOWN,
 	particle: particle,
-	particleType: particle.particleType,
 })
 
 export const asAnyUpParticle = (
