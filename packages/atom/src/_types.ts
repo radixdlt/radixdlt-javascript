@@ -1,4 +1,4 @@
-import { Address } from '@radixdlt/crypto'
+import { Address, Signature } from '@radixdlt/crypto'
 import {
 	Amount,
 	Granularity,
@@ -129,3 +129,29 @@ export type AnyDownParticle = SpunParticleLike &
 	Readonly<{
 		spin: Spin.DOWN
 	}>
+
+export type SignatureID = string
+export type Signatures = ReadonlyMap<SignatureID, Signature>
+
+export type SpunParticles = Readonly<{
+	spunParticles: SpunParticleLike[]
+	particlesOfTypeWithSpin: <Particle extends ParticleType>(query: {
+		particleType: string
+		spin: Spin
+	}) => SpunParticle<Particle>[]
+	upParticlesOfType: <Particle extends ParticleType>(
+		particleType: string,
+	) => UpParticle<Particle>[]
+	downParticlesOfType: <Particle extends ParticleType>(
+		particleType: string,
+	) => DownParticle<Particle>[]
+}>
+
+export type Message = string
+
+export type Atom = /* DSONCodable & */ Readonly<{
+	particles: SpunParticles
+	signatures?: Signatures
+	message?: Message
+	identifier: AtomIdentifier
+}>
