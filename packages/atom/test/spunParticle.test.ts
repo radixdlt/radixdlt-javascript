@@ -24,10 +24,15 @@ describe('SpunParticle', () => {
 			spin: Spin.UP,
 		})
 
-		const assertTTPWithSpin = (particle: SpunParticleLike, spin: Spin) => {
-			expect(particle.spin).toBe(spin)
-			expect(particle.particle).toBe(transferrableTokensParticle)
-			expect(particle.particleType).toBe('TransferrableTokensParticle')
+		const assertTTPWithSpin = (
+			spunParticle: SpunParticleLike,
+			spin: Spin,
+		) => {
+			expect(spunParticle.spin).toBe(spin)
+			expect(spunParticle.particle).toBe(transferrableTokensParticle)
+			expect(spunParticle.particle.particleType).toBe(
+				'TransferrableTokensParticle',
+			)
 		}
 
 		const assertTTPWithSpinUp = (particle: SpunParticleLike) => {
@@ -68,7 +73,7 @@ describe('SpunParticle', () => {
 		) => {
 			expect(spunParticleLike.spin).toBe(Spin.DOWN)
 			expect(spunParticleLike.particle).toBe(unallocatedTokensParticle)
-			expect(spunParticleLike.particleType).toBe(
+			expect(spunParticleLike.particle.particleType).toBe(
 				'UnallocatedTokensParticle',
 			)
 		}

@@ -80,7 +80,6 @@ export enum Spin {
 export type SpunParticleLike = Readonly<{
 	spin: Spin
 	particle: ParticleType
-	particleType: string
 }>
 
 export type AnySpunParticle = SpunParticleLike &
