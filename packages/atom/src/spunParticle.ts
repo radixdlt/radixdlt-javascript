@@ -30,12 +30,7 @@ export const spunParticle = <Particle extends ParticleType>(
 	eraseToAny: () => anySpunParticle(input),
 	downed: (): Result<DownParticle<Particle>, Error> =>
 		input.spin === Spin.UP
-			? ok({
-					spin: Spin.DOWN,
-					particle: input.particle,
-					particleType: input.particle.particleType,
-					eraseToAny: () => anyDownParticle(input.particle),
-			  })
+			? ok(downParticle(input.particle))
 			: err(new Error('Cannot down a particle with spin Down')),
 })
 
@@ -87,11 +82,7 @@ export const anySpunParticle = (
 	particleType: input.particle.particleType,
 	downed: (): Result<AnyDownParticle, Error> =>
 		input.spin === Spin.UP
-			? ok({
-					spin: Spin.DOWN,
-					particle: input.particle,
-					particleType: input.particle.particleType,
-			  })
+			? ok(downParticle(input.particle))
 			: err(new Error('Cannot down a particle with spin Down')),
 })
 
