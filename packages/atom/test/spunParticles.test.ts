@@ -1,16 +1,34 @@
 import { spunParticles } from '../src/spunParticles'
-import { upParticle, downParticle } from '../src/spunParticle'
+import { downParticle, upParticle } from '../src/spunParticle'
 import { resourceIdentifierFromString } from '../src/resourceIdentifier'
 import { resourceIdentifierParticle } from '../src/resourceIdentifierParticle'
 import {
 	ResourceIdentifier,
+	Spin,
 	SpunParticleLike,
 	UnallocatedTokensParticle,
 } from '../src/_types'
-import { unallocatedTokensParticleFromUnsafe } from './utility'
+import {
+	transferrableTokensParticleFromUnsafe,
+	unallocatedTokensParticleFromUnsafe,
+} from './utility'
+import {
+	ResourceIdentifierParticleType,
+	UnallocatedTokensParticleType,
+	TransferrableTokensParticleType,
+} from '../src/radixParticleTypes'
+import { TransferrableTokensParticle } from '../src/_types'
 
 const makeUATParticle = (rri: ResourceIdentifier): UnallocatedTokensParticle =>
 	unallocatedTokensParticleFromUnsafe({
+		tokenDefinitionReference: rri,
+		granularity: 3,
+		amount: 9,
+	})._unsafeUnwrap()
+
+const makeTTParticle = (rri: ResourceIdentifier): TransferrableTokensParticle =>
+	transferrableTokensParticleFromUnsafe({
+		address: '9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
 		tokenDefinitionReference: rri,
 		granularity: 3,
 		amount: 9,
@@ -26,43 +44,46 @@ const rri1 = resourceIdentifierFromString(
 
 const rriParticle0 = resourceIdentifierParticle(rri0)
 const rriParticle1 = resourceIdentifierParticle(rri1)
-
 const uatParticle0 = makeUATParticle(rri0)
 const uatParticle1 = makeUATParticle(rri1)
+const ttParticle0 = makeTTParticle(rri0)
+const ttParticle1 = makeTTParticle(rri1)
 
 const rriParticle0Up = upParticle(rriParticle0)
-const rriParticle0Down = downParticle(rriParticle0)
-
 const rriParticle1Up = upParticle(rriParticle1)
+const rriParticle0Down = downParticle(rriParticle0)
 const rriParticle1Down = downParticle(rriParticle1)
 
 const uatParticle0Up = upParticle(uatParticle0)
-const uatParticle0Down = downParticle(uatParticle0)
-
 const uatParticle1Up = upParticle(uatParticle1)
+const uatParticle0Down = downParticle(uatParticle0)
 const uatParticle1Down = downParticle(uatParticle1)
 
-const exactlyContainMembers = <Element>(
-	actual: Element[],
-	expected: Element[],
-): boolean => {
-	const formIntersectionS = <T>(lhs: T[], rhs: Set<T>): T[] =>
-		[...lhs].filter((x) => rhs.has(x))
-	const formIntersectionA = <T>(lhs: T[], rhs: T[]): T[] =>
-		formIntersectionS(lhs, new Set(rhs))
-	const formDifferencecS = <T>(lhs: T[], rhs: Set<T>): T[] =>
-		[...lhs].filter((x) => !rhs.has(x))
-	const formDifferenceA = <T>(lhs: T[], rhs: T[]): T[] =>
-		formDifferencecS(lhs, new Set(rhs))
-	return (
-		formDifferenceA(actual, expected).length === 0 &&
-		formIntersectionA(actual, expected).length === expected.length
-	)
-}
+const ttParticle0Up = upParticle(ttParticle0)
+const ttParticle1Up = upParticle(ttParticle1)
+const ttParticle0Down = downParticle(ttParticle0)
+const ttParticle1Down = downParticle(ttParticle1)
+
+const spunParticles_ = spunParticles([
+	rriParticle0Up,
+	rriParticle1Up,
+	rriParticle0Down,
+	rriParticle1Down,
+	uatParticle0Up,
+	uatParticle1Up,
+	uatParticle0Down,
+	uatParticle1Down,
+	ttParticle0Up,
+	ttParticle1Up,
+	ttParticle0Down,
+	ttParticle1Down,
+])
 
 const exactlyContainParticles = (
-	actual: SpunParticleLike[],
-	expected: SpunParticleLike[],
+	input: Readonly<{
+		actual: SpunParticleLike[]
+		expected: SpunParticleLike[]
+	}>,
 ): boolean => {
 	const formIntersection = (
 		lhs: SpunParticleLike[],
@@ -77,17 +98,10 @@ const exactlyContainParticles = (
 		[...lhs].filter((x) => rhs.find((sp) => sp.equals(x)) === undefined)
 
 	return (
-		formDifference(actual, expected).length === 0 &&
-		formIntersection(actual, expected).length === expected.length
+		formDifference(input.actual, input.expected).length === 0 &&
+		formIntersection(input.actual, input.expected).length ===
+			input.expected.length
 	)
-}
-
-const expectExactlyContainMembers = <Element>(
-	actual: Element[],
-	expected: Element[],
-	toBe: boolean = true,
-): void => {
-	expect(exactlyContainMembers(actual, expected)).toBe(toBe)
 }
 
 describe('SpunParticles', () => {
@@ -97,57 +111,373 @@ describe('SpunParticles', () => {
 			rriParticle0Up,
 			rriParticle1Up,
 		]
-		const spunParticles_ = spunParticles(duplicates)
-		expect(spunParticles_.spunParticles).toStrictEqual([
+		const spunParticlesRemovingDuplicates = spunParticles(duplicates)
+		expect(spunParticlesRemovingDuplicates.spunParticles).toStrictEqual([
 			rriParticle0Up,
 			rriParticle1Up,
 		])
 	})
 
-	it('can check exactlyContainMembers on arrays', () => {
-		expectExactlyContainMembers([1, 2, 3], [1, 2, 3])
-		expectExactlyContainMembers([1, 3, 2], [1, 2, 3])
-		expectExactlyContainMembers([1, 2, 3], [1, 2], false)
-		expectExactlyContainMembers([1, 2, 3], [1, 2, 3, 4], false)
-	})
+	describe('anySpunParticles query', () => {
+		it('when querying anySpunParticles without spin or type, no spunParticle is ignored.', () => {
+			expect(
+				exactlyContainParticles({
+					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({}),
+					expected: [
+						rriParticle0Up,
+						rriParticle1Up,
+						rriParticle0Down,
+						rriParticle1Down,
+						uatParticle0Up,
+						uatParticle1Up,
+						uatParticle0Down,
+						uatParticle1Down,
+						ttParticle0Up,
+						ttParticle1Up,
+						ttParticle0Down,
+						ttParticle1Down,
+					],
+				}),
+			).toBe(true)
+		})
 
-	it('can query particles of type and spin', () => {
-		const spunParticles_ = spunParticles([
-			rriParticle0Up,
-			rriParticle1Up,
-			rriParticle0Down,
-			uatParticle0Up,
-		])
-		const upRIParticles = spunParticles_.upParticlesOfType(
-			'ResourceIdentifierParticle',
-		)
-		expect(
-			exactlyContainParticles(upRIParticles, [
-				rriParticle0Up,
-				rriParticle1Up,
-			]),
-		).toBe(true)
+		it('can query anySpunParticles by spin=UP but skip type', () => {
+			expect(
+				exactlyContainParticles({
+					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
+						spin: Spin.UP,
+					}),
+					expected: [
+						rriParticle0Up,
+						rriParticle1Up,
+						uatParticle0Up,
+						uatParticle1Up,
+						ttParticle0Up,
+						ttParticle1Up,
+					],
+				}),
+			).toBe(true)
+		})
 
-		const upUATParticles = spunParticles_.upParticlesOfType(
-			'UnallocatedTokensParticle',
-		)
+		it('can query anySpunParticles by spin=DOWN but skip type', () => {
+			expect(
+				exactlyContainParticles({
+					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
+						spin: Spin.DOWN,
+					}),
+					expected: [
+						rriParticle0Down,
+						rriParticle1Down,
+						uatParticle0Down,
+						uatParticle1Down,
+						ttParticle0Down,
+						ttParticle1Down,
+					],
+				}),
+			).toBe(true)
+		})
 
-		expect(exactlyContainParticles(upUATParticles, [uatParticle0Up])).toBe(
-			true,
-		)
+		it('can query anySpunParticles only by type=ResourceIdentifierParticle', () => {
+			expect(
+				exactlyContainParticles({
+					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
+						particleTypes: [ResourceIdentifierParticleType],
+					}),
+					expected: [
+						rriParticle0Up,
+						rriParticle1Up,
+						rriParticle0Down,
+						rriParticle1Down,
+					],
+				}),
+			).toBe(true)
+		})
 
-		const downRIParticles = spunParticles_.downParticlesOfType(
-			'ResourceIdentifierParticle',
-		)
+		it('can query anySpunParticles only by type=ResourceIdentifierParticle OR UnallocatedTokensParticle', () => {
+			expect(
+				exactlyContainParticles({
+					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
+						particleTypes: [
+							ResourceIdentifierParticleType,
+							UnallocatedTokensParticleType,
+						],
+					}),
+					expected: [
+						rriParticle0Up,
+						rriParticle1Up,
+						rriParticle0Down,
+						rriParticle1Down,
+						uatParticle0Up,
+						uatParticle1Up,
+						uatParticle0Down,
+						uatParticle1Down,
+					],
+				}),
+			).toBe(true)
+		})
 
-		expect(
-			exactlyContainParticles(downRIParticles, [rriParticle0Down]),
-		).toBe(true)
+		it('can query anySpunParticles only by type=UnallocatedTokensParticle OR TransferrableTokensParticle', () => {
+			expect(
+				exactlyContainParticles({
+					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
+						particleTypes: [
+							UnallocatedTokensParticleType,
+							TransferrableTokensParticleType,
+						],
+					}),
+					expected: [
+						uatParticle0Up,
+						uatParticle1Up,
+						uatParticle0Down,
+						uatParticle1Down,
+						ttParticle0Up,
+						ttParticle1Up,
+						ttParticle0Down,
+						ttParticle1Down,
+					],
+				}),
+			).toBe(true)
+		})
 
-		const downUATParticles = spunParticles_.downParticlesOfType(
-			'UnallocatedTokensParticle',
-		)
+		it('can query anySpunParticles only by type=ResourceIdentifierParticle OR TransferrableTokensParticle', () => {
+			expect(
+				exactlyContainParticles({
+					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
+						particleTypes: [
+							ResourceIdentifierParticleType,
+							TransferrableTokensParticleType,
+						],
+					}),
+					expected: [
+						rriParticle0Up,
+						rriParticle1Up,
+						rriParticle0Down,
+						rriParticle1Down,
+						ttParticle0Up,
+						ttParticle1Up,
+						ttParticle0Down,
+						ttParticle1Down,
+					],
+				}),
+			).toBe(true)
+		})
 
-		expect(downUATParticles.length).toBe(0)
+		it('can query anySpunParticles only by type=ResourceIdentifierParticle OR UnallocatedTokensParticle OR TransferrableTokensParticle', () => {
+			expect(
+				exactlyContainParticles({
+					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
+						particleTypes: [
+							ResourceIdentifierParticleType,
+							UnallocatedTokensParticleType,
+							TransferrableTokensParticleType,
+						],
+					}),
+					expected: [
+						rriParticle0Up,
+						rriParticle1Up,
+						rriParticle0Down,
+						rriParticle1Down,
+						uatParticle0Up,
+						uatParticle1Up,
+						uatParticle0Down,
+						uatParticle1Down,
+						ttParticle0Up,
+						ttParticle1Up,
+						ttParticle0Down,
+						ttParticle1Down,
+					],
+				}),
+			).toBe(true)
+		})
+
+		it('can query anySpunParticles by spin=UP and by type=ResourceIdentifierParticle', () => {
+			expect(
+				exactlyContainParticles({
+					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
+						spin: Spin.UP,
+						particleTypes: [ResourceIdentifierParticleType],
+					}),
+					expected: [rriParticle0Up, rriParticle1Up],
+				}),
+			).toBe(true)
+		})
+
+		it('can query anySpunParticles by spin=UP and by type=ResourceIdentifierParticle OR UnallocatedTokensParticle', () => {
+			expect(
+				exactlyContainParticles({
+					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
+						spin: Spin.UP,
+						particleTypes: [
+							ResourceIdentifierParticleType,
+							UnallocatedTokensParticleType,
+						],
+					}),
+					expected: [
+						rriParticle0Up,
+						rriParticle1Up,
+						uatParticle0Up,
+						uatParticle1Up,
+					],
+				}),
+			).toBe(true)
+		})
+
+		it('can query anySpunParticles by spin=UP and by type=UnallocatedTokensParticle OR TransferrableTokensParticle', () => {
+			expect(
+				exactlyContainParticles({
+					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
+						spin: Spin.UP,
+						particleTypes: [
+							UnallocatedTokensParticleType,
+							TransferrableTokensParticleType,
+						],
+					}),
+					expected: [
+						uatParticle0Up,
+						uatParticle1Up,
+						ttParticle0Up,
+						ttParticle1Up,
+					],
+				}),
+			).toBe(true)
+		})
+
+		it('can query anySpunParticles by spin=UP and by type=ResourceIdentifierParticle OR TransferrableTokensParticle', () => {
+			expect(
+				exactlyContainParticles({
+					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
+						spin: Spin.UP,
+						particleTypes: [
+							ResourceIdentifierParticleType,
+							TransferrableTokensParticleType,
+						],
+					}),
+					expected: [
+						rriParticle0Up,
+						rriParticle1Up,
+						ttParticle0Up,
+						ttParticle1Up,
+					],
+				}),
+			).toBe(true)
+		})
+
+		it('can query anySpunParticles by spin=UP and by type=ResourceIdentifierParticle OR UnallocatedTokensParticle OR TransferrableTokensParticle', () => {
+			expect(
+				exactlyContainParticles({
+					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
+						spin: Spin.UP,
+						particleTypes: [
+							ResourceIdentifierParticleType,
+							UnallocatedTokensParticleType,
+							TransferrableTokensParticleType,
+						],
+					}),
+					expected: [
+						rriParticle0Up,
+						rriParticle1Up,
+						uatParticle0Up,
+						uatParticle1Up,
+						ttParticle0Up,
+						ttParticle1Up,
+					],
+				}),
+			).toBe(true)
+		})
+
+		it('can query anySpunParticles by spin=DOWN and by type=ResourceIdentifierParticle', () => {
+			expect(
+				exactlyContainParticles({
+					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
+						spin: Spin.DOWN,
+						particleTypes: [ResourceIdentifierParticleType],
+					}),
+					expected: [rriParticle0Down, rriParticle1Down],
+				}),
+			).toBe(true)
+		})
+
+		it('can query anySpunParticles by spin=DOWN and by type=ResourceIdentifierParticle OR UnallocatedTokensParticle', () => {
+			expect(
+				exactlyContainParticles({
+					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
+						spin: Spin.DOWN,
+						particleTypes: [
+							ResourceIdentifierParticleType,
+							UnallocatedTokensParticleType,
+						],
+					}),
+					expected: [
+						rriParticle0Down,
+						uatParticle0Down,
+						rriParticle1Down,
+						uatParticle1Down,
+					],
+				}),
+			).toBe(true)
+		})
+
+		it('can query anySpunParticles by spin=DOWN and by type=UnallocatedTokensParticle OR TransferrableTokensParticle', () => {
+			expect(
+				exactlyContainParticles({
+					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
+						spin: Spin.DOWN,
+						particleTypes: [
+							UnallocatedTokensParticleType,
+							TransferrableTokensParticleType,
+						],
+					}),
+					expected: [
+						uatParticle0Down,
+						uatParticle1Down,
+						ttParticle0Down,
+						ttParticle1Down,
+					],
+				}),
+			).toBe(true)
+		})
+
+		it('can query anySpunParticles by spin=DOWN and by type=ResourceIdentifierParticle OR TransferrableTokensParticle', () => {
+			expect(
+				exactlyContainParticles({
+					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
+						spin: Spin.DOWN,
+						particleTypes: [
+							ResourceIdentifierParticleType,
+							TransferrableTokensParticleType,
+						],
+					}),
+					expected: [
+						rriParticle0Down,
+						rriParticle1Down,
+						ttParticle0Down,
+						ttParticle1Down,
+					],
+				}),
+			).toBe(true)
+		})
+
+		it('can query anySpunParticles by spin=DOWN and by type=ResourceIdentifierParticle OR UnallocatedTokensParticle OR TransferrableTokensParticle', () => {
+			expect(
+				exactlyContainParticles({
+					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
+						spin: Spin.DOWN,
+						particleTypes: [
+							ResourceIdentifierParticleType,
+							UnallocatedTokensParticleType,
+							TransferrableTokensParticleType,
+						],
+					}),
+					expected: [
+						rriParticle0Down,
+						rriParticle1Down,
+						uatParticle0Down,
+						uatParticle1Down,
+						ttParticle0Down,
+						ttParticle1Down,
+					],
+				}),
+			).toBe(true)
+		})
 	})
 })

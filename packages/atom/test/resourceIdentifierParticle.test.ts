@@ -6,7 +6,7 @@ describe('ResourceIdentifierParticle', () => {
 		const rriParticle = resourceIdentifierParticle(rri)
 		expect(rriParticle.alwaysZeroNonce.value.equals(0)).toBe(true)
 		expect(rriParticle.resourceIdentifier.name).toBe('FOOBAR')
-		expect(rriParticle.particleType).toBe('ResourceIdentifierParticle')
+		// expect(rriParticle.particleType).toBe('ResourceIdentifierParticle')
 	})
 
 	const rri = resourceIdentifierFromString(

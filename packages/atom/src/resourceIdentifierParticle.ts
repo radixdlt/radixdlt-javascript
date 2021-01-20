@@ -1,9 +1,14 @@
 import {
-	ParticleType,
+	ParticleBase,
+	RadixParticle,
 	ResourceIdentifier,
 	ResourceIdentifierParticle,
 } from './_types'
 import { nonce } from '@radixdlt/primitives'
+import {
+	RadixParticleType,
+	ResourceIdentifierParticleType,
+} from './radixParticleTypes'
 
 export const resourceIdentifierParticle = (
 	resourceIdentifier: ResourceIdentifier,
@@ -11,10 +16,18 @@ export const resourceIdentifierParticle = (
 	const alwaysZeroNonce = nonce(0)
 
 	return {
-		particleType: 'ResourceIdentifierParticle',
+		radixParticleType: ResourceIdentifierParticleType,
 		alwaysZeroNonce,
 		resourceIdentifier,
-		equals: (otherParticle: ParticleType): boolean => {
+
+		hasAllegedType: (
+			allegedThis: RadixParticle,
+		): ThisType<ResourceIdentifierParticle> | undefined => {
+			if (!isResourceIdentifierParticle(allegedThis)) return undefined
+			return allegedThis
+		},
+
+		equals: (otherParticle: ParticleBase): boolean => {
 			if (!isResourceIdentifierParticle(otherParticle)) return false
 			const otherRIP = otherParticle
 			return (
@@ -30,7 +43,8 @@ export const isResourceIdentifierParticle = (
 ): something is ResourceIdentifierParticle => {
 	const inspection = something as ResourceIdentifierParticle
 	return (
-		inspection.particleType === 'ResourceIdentifierParticle' &&
+		inspection.radixParticleType ===
+			RadixParticleType.RESOURCE_IDENTIFIER &&
 		inspection.alwaysZeroNonce !== undefined &&
 		inspection.resourceIdentifier !== undefined
 	)

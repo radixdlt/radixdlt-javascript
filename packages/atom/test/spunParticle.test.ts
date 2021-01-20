@@ -30,9 +30,9 @@ describe('SpunParticle', () => {
 		) => {
 			expect(spunParticle.spin).toBe(spin)
 			expect(spunParticle.particle).toBe(transferrableTokensParticle)
-			expect(spunParticle.particle.particleType).toBe(
-				'TransferrableTokensParticle',
-			)
+			// expect(spunParticle.particle.particleType).toBe(
+			// 	'TransferrableTokensParticle',
+			// )
 		}
 
 		const assertTTPWithSpinUp = (particle: SpunParticleLike) => {
@@ -73,9 +73,9 @@ describe('SpunParticle', () => {
 		) => {
 			expect(spunParticleLike.spin).toBe(Spin.DOWN)
 			expect(spunParticleLike.particle).toBe(unallocatedTokensParticle)
-			expect(spunParticleLike.particle.particleType).toBe(
-				'UnallocatedTokensParticle',
-			)
+			// expect(spunParticleLike.particle.particleType).toBe(
+			// 	'UnallocatedTokensParticle',
+			// )
 		}
 
 		testSpunParticleOfTypeUATP(spunUATP)

@@ -2,14 +2,19 @@ import { Granularity, PositiveAmount, randomNonce } from '@radixdlt/primitives'
 
 import { Address } from '@radixdlt/crypto'
 import {
-	ParticleType,
+	ParticleBase,
+	RadixParticle,
 	ResourceIdentifier,
 	TokenPermissions,
 	TransferrableTokensParticle,
 } from './_types'
 
-import { Result, err, ok } from 'neverthrow'
+import { err, ok, Result } from 'neverthrow'
 import { tokenPermissionsAll } from './tokenPermissions'
+import {
+	RadixParticleType,
+	TransferrableTokensParticleType,
+} from './radixParticleTypes'
 
 export type TransferrableTokensParticleInput = Readonly<{
 	address: Address
@@ -35,15 +40,21 @@ export const transferrableTokensParticle = (
 	const permissions = input.permissions ?? tokenPermissionsAll
 
 	return ok({
-		particleType: 'TransferrableTokensParticle',
+		radixParticleType: TransferrableTokensParticleType,
 		address,
 		tokenDefinitionReference,
 		granularity,
 		nonce,
 		amount,
 		permissions,
+		hasAllegedType: (
+			allegedThis: RadixParticle,
+		): ThisType<TransferrableTokensParticle> | undefined => {
+			if (!isTransferrableTokensParticle(allegedThis)) return undefined
+			return allegedThis
+		},
 		// eslint-disable-next-line complexity
-		equals: (otherParticle: ParticleType): boolean => {
+		equals: (otherParticle: ParticleBase): boolean => {
 			if (!isTransferrableTokensParticle(otherParticle)) return false
 			const otherTTP = otherParticle
 
@@ -62,11 +73,12 @@ export const transferrableTokensParticle = (
 }
 // eslint-disable-next-line complexity
 export const isTransferrableTokensParticle = (
-	something: TransferrableTokensParticle | unknown,
+	something: unknown,
 ): something is TransferrableTokensParticle => {
 	const inspection = something as TransferrableTokensParticle
 	return (
-		inspection.particleType === 'TransferrableTokensParticle' &&
+		inspection.radixParticleType ===
+			RadixParticleType.TRANSFERRABLE_TOKENS &&
 		inspection.address !== undefined &&
 		inspection.tokenDefinitionReference !== undefined &&
 		inspection.granularity !== undefined &&

@@ -1,12 +1,17 @@
 import { Granularity, randomNonce } from '@radixdlt/primitives'
 import { tokenPermissionsAll } from './tokenPermissions'
 import {
-	ParticleType,
+	ParticleBase,
+	RadixParticle,
 	ResourceIdentifier,
 	Supply,
 	TokenPermissions,
 	UnallocatedTokensParticle,
 } from './_types'
+import {
+	RadixParticleType,
+	UnallocatedTokensParticleType,
+} from './radixParticleTypes'
 
 export type UnallocatedTokensParticleInput = Readonly<{
 	tokenDefinitionReference: ResourceIdentifier
@@ -25,14 +30,20 @@ export const unallocatedTokensParticle = (
 	const permissions = input.permissions ?? tokenPermissionsAll
 
 	return {
-		particleType: 'UnallocatedTokensParticle',
+		radixParticleType: UnallocatedTokensParticleType,
 		tokenDefinitionReference,
 		granularity,
 		nonce,
 		amount,
 		permissions,
+		hasAllegedType: (
+			allegedThis: RadixParticle,
+		): ThisType<UnallocatedTokensParticle> | undefined => {
+			if (!isUnallocatedTokensParticle(allegedThis)) return undefined
+			return allegedThis
+		},
 		// eslint-disable-next-line complexity
-		equals: (otherParticle: ParticleType): boolean => {
+		equals: (otherParticle: ParticleBase): boolean => {
 			if (!isUnallocatedTokensParticle(otherParticle)) return false
 			const otherUATP = otherParticle
 
@@ -51,11 +62,11 @@ export const unallocatedTokensParticle = (
 
 // eslint-disable-next-line complexity
 export const isUnallocatedTokensParticle = (
-	something: UnallocatedTokensParticle | unknown,
+	something: unknown,
 ): something is UnallocatedTokensParticle => {
 	const inspection = something as UnallocatedTokensParticle
 	return (
-		inspection.particleType === 'UnallocatedTokensParticle' &&
+		inspection.radixParticleType === RadixParticleType.UNALLOCATED_TOKENS &&
 		inspection.tokenDefinitionReference !== undefined &&
 		inspection.granularity !== undefined &&
 		inspection.nonce !== undefined &&
