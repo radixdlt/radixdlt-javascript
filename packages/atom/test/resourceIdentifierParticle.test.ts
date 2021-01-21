@@ -1,12 +1,15 @@
 import { resourceIdentifierFromString } from '../src/resourceIdentifier'
-import { resourceIdentifierParticle } from '../src/resourceIdentifierParticle'
+import {
+	isResourceIdentifierParticle,
+	resourceIdentifierParticle,
+} from '../src/resourceIdentifierParticle'
 
 describe('ResourceIdentifierParticle', () => {
 	it('can be created from an resource identifier', () => {
 		const rriParticle = resourceIdentifierParticle(rri)
 		expect(rriParticle.alwaysZeroNonce.value.equals(0)).toBe(true)
 		expect(rriParticle.resourceIdentifier.name).toBe('FOOBAR')
-		// expect(rriParticle.particleType).toBe('ResourceIdentifierParticle')
+		expect(isResourceIdentifierParticle(rriParticle)).toBe(true)
 	})
 
 	const rri = resourceIdentifierFromString(

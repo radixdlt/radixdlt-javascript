@@ -18,6 +18,7 @@ import {
 } from './utility'
 import { TransferrableTokensParticleType } from '../src/radixParticleTypes'
 import { isTransferrableTokensParticle } from '../src/transferrableTokensParticle'
+import { isUnallocatedTokensParticle } from '../src/unallocatedTokensParticle'
 
 describe('SpunParticle', () => {
 	it('can create SpunParticle<TransferrableTokensParticle>', () => {
@@ -75,9 +76,9 @@ describe('SpunParticle', () => {
 		) => {
 			expect(spunParticleLike.spin).toBe(Spin.DOWN)
 			expect(spunParticleLike.particle).toBe(unallocatedTokensParticle)
-			// expect(spunParticleLike.particle.particleType).toBe(
-			// 	'UnallocatedTokensParticle',
-			// )
+			expect(isUnallocatedTokensParticle(spunParticleLike.particle)).toBe(
+				true,
+			)
 		}
 
 		testSpunParticleOfTypeUATP(spunUATP)

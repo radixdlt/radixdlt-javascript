@@ -93,8 +93,8 @@ export type ResourceIdentifierParticle = /* DSONCodable */ RadixParticle &
 
 export enum Spin {
 	/* The implicit and theoretical state `NEUTRAL` for spin is not relevant from a client library perspective, thus omitted.*/
-	UP = 'Up', //1,
-	DOWN = 'Down', // -1,
+	UP = 1,
+	DOWN = -1,
 }
 
 export type SpunParticleLike = Readonly<{
