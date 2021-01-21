@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "noUnusedLocals": false
+    "noUnusedLocals": false,
   },
   "files": [],
   "include": [
@@ -13,6 +13,9 @@
     { "path": "packages/actions" },
     { "path": "packages/atom" },
     { "path": "packages/crypto" },
-    { "path": "packages/primitives" }
+    { "path": "packages/primitives" },
+    { "path": "packages/util" },
+    { "path": "packages/dson" },
+    { "path": "packages/atom-transaction-mapping" }
   ]
 }
