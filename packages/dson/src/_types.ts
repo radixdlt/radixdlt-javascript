@@ -1,24 +1,30 @@
-export type CBOREncodable = {
-	toCBOR: (outputMode: DSONOutput) => Buffer
-}
+import { Result } from 'neverthrow'
 
-export type CBORDecodable = {
-	fromCBOR: () => never
-}
+export type DSONCodable = {
+	encoding: (outputMode: OutputMode) => CBOREncodableObject
+} & Readonly<{
+	toDSON: (outputMode?: OutputMode) => Result<Buffer, Error>
+}>
 
-export type CBORCodable = CBORDecodable & CBOREncodable
+export type CBOREncodableObject = Readonly<{
+	encodeCBOR: (encoder: any) => boolean
+}>
 
-export enum DSONOutput {
-	Hash,
-	API,
-}
+export type DSONKeyValue = Readonly<{
+	key: string
+	value: DSONCodable | DSONCodable[]
+	outputMode?: OutputMode
+}>
 
-export type DSONCodable = DSONDecodable & DSONEncodable
+export type CBOREncodablePrimitive = string | number | boolean | Buffer
 
-export type DSONEncodable = {
-	toDSON: (outputMode: DSONOutput) => Buffer
-}
+export enum OutputMode {
+	NONE = 0,
+	HASH = 1 << 0,
+	API = 1 << 1,
+	WIRE = 1 << 2,
+	PERSIST = 1 << 3,
 
-export type DSONDecodable = {
-	serializer: string
+	ALL = HASH | API | WIRE | PERSIST,
+	ALL_BUT_HASH = API | WIRE | PERSIST,
 }

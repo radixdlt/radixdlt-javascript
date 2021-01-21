@@ -2,10 +2,12 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "rootDir": "src",
-    "outDir": "dist"
+    "outDir": "dist",
+    "typeRoots": ["customTypes"]
   },
   "include": [
-    "src"
+    "src",
+    "customTypes"
   ],
   "references": []
 }
