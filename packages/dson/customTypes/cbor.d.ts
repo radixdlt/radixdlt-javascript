@@ -18,7 +18,7 @@ declare module 'cbor' {
 		push: (chunk: Buffer) => boolean
 	}
 	type CBOREncodableObject = Readonly<{
-		encodeCBOR: (encoder: any) => boolean
+		encodeCBOR: (encoder: CBOREncoder) => boolean
 	}>
 	type CBOREncodablePrimitive = string | number | boolean | Buffer
 	export const Encoder: Encoder
