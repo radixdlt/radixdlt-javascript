@@ -103,7 +103,7 @@ export const anySpunParticle = (
 		spunParticlesEquals(input, other),
 	downed: (): Result<AnyDownParticle, Error> =>
 		input.spin === Spin.UP
-			? ok(downParticle(input.particle))
+			? ok(anyDownParticle(input.particle))
 			: err(new Error('Cannot down a particle with spin Down')),
 })
 
@@ -116,21 +116,20 @@ export const anySpunParticle = (
  */
 export const upParticle = <Particle extends ParticleBase>(
 	particle: Particle,
-): UpParticle<Particle> => ({
-	spin: Spin.UP,
-	particle: particle,
-
-	equals: (other: SpunParticleLike): boolean =>
-		spunParticlesEquals(
-			{
-				spin: Spin.UP,
-				particle,
-			},
-			other,
-		),
-
-	eraseToAny: () => anyUpParticle(particle),
-})
+): UpParticle<Particle> => {
+	const base = {
+		spin: Spin.UP,
+		particle: particle,
+	}
+	return {
+		spin: Spin.UP,
+		particle: particle,
+		toSpunParticle: (): SpunParticle<Particle> => spunParticle(base),
+		equals: (other: SpunParticleLike): boolean =>
+			spunParticlesEquals(base, other),
+		eraseToAny: () => anyUpParticle(particle),
+	}
+}
 
 /**
  * Creates a typed DownParticle, a container for typed particle with the at compile time known Spin.Down.
@@ -141,13 +140,20 @@ export const upParticle = <Particle extends ParticleBase>(
  */
 export const downParticle = <Particle extends ParticleBase>(
 	particle: Particle,
-): DownParticle<Particle> => ({
-	spin: Spin.DOWN,
-	particle: particle,
-	equals: (other: SpunParticleLike): boolean =>
-		spunParticlesEquals({ spin: Spin.DOWN, particle }, other),
-	eraseToAny: () => anyDownParticle(particle),
-})
+): DownParticle<Particle> => {
+	const base = {
+		spin: Spin.DOWN,
+		particle: particle,
+	}
+	return {
+		spin: Spin.DOWN,
+		particle: particle,
+		toSpunParticle: (): SpunParticle<Particle> => spunParticle(base),
+		equals: (other: SpunParticleLike): boolean =>
+			spunParticlesEquals(base, other),
+		eraseToAny: () => anyDownParticle(particle),
+	}
+}
 
 /**
  * Creates an AnyUpParticle (type-erased UpParticle) with the at compile time known spin UP.
@@ -155,12 +161,19 @@ export const downParticle = <Particle extends ParticleBase>(
  * @param particle {ParticleBase} A particle of any type of to give the spin UP.
  * @returns {AnyUpParticle} an AnyUpParticle (type-erased UpParticle) with the at compile time known spin UP.
  */
-export const anyUpParticle = (particle: ParticleBase): AnyUpParticle => ({
-	spin: Spin.UP,
-	particle: particle,
-	equals: (other: SpunParticleLike): boolean =>
-		spunParticlesEquals({ spin: Spin.UP, particle }, other),
-})
+export const anyUpParticle = (particle: ParticleBase): AnyUpParticle => {
+	const base = {
+		spin: Spin.UP,
+		particle: particle,
+	}
+	return {
+		spin: Spin.UP,
+		particle: particle,
+		toAnySpunParticle: () => anySpunParticle(base),
+		equals: (other: SpunParticleLike): boolean =>
+			spunParticlesEquals(base, other),
+	}
+}
 
 /**
  * Creates an AnyDownParticle (type-erased DownParticle) with the at compile time known spin DOWN.
@@ -168,12 +181,19 @@ export const anyUpParticle = (particle: ParticleBase): AnyUpParticle => ({
  * @param particle {ParticleBase} A particle of any type of to give the spin DOWN.
  * @returns {AnyDownParticle} an AnyDownParticle (type-erased DownParticle) with the at compile time known spin DOWN.
  */
-export const anyDownParticle = (particle: ParticleBase): AnyDownParticle => ({
-	spin: Spin.DOWN,
-	particle: particle,
-	equals: (other: SpunParticleLike): boolean =>
-		spunParticlesEquals({ spin: Spin.DOWN, particle }, other),
-})
+export const anyDownParticle = (particle: ParticleBase): AnyDownParticle => {
+	const base = {
+		spin: Spin.DOWN,
+		particle: particle,
+	}
+	return {
+		spin: Spin.DOWN,
+		particle: particle,
+		toAnySpunParticle: () => anySpunParticle(base),
+		equals: (other: SpunParticleLike): boolean =>
+			spunParticlesEquals(base, other),
+	}
+}
 
 export const asAnyUpParticle = (
 	anySpunParticle: AnySpunParticle,

@@ -1,6 +1,5 @@
 import {
 	ParticleBase,
-	RadixParticle,
 	ResourceIdentifier,
 	ResourceIdentifierParticle,
 } from './_types'
@@ -19,14 +18,6 @@ export const resourceIdentifierParticle = (
 		radixParticleType: ResourceIdentifierParticleType,
 		alwaysZeroNonce,
 		resourceIdentifier,
-
-		hasAllegedType: (
-			allegedThis: RadixParticle,
-		): ThisType<ResourceIdentifierParticle> | undefined => {
-			if (!isResourceIdentifierParticle(allegedThis)) return undefined
-			return allegedThis
-		},
-
 		equals: (otherParticle: ParticleBase): boolean => {
 			if (!isResourceIdentifierParticle(otherParticle)) return false
 			const otherRIP = otherParticle

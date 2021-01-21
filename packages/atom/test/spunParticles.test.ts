@@ -18,6 +18,11 @@ import {
 	TransferrableTokensParticleType,
 } from '../src/radixParticleTypes'
 import { TransferrableTokensParticle } from '../src/_types'
+import {
+	ResourceIdentifierParticle,
+	SpunParticle,
+	SpunParticles,
+} from '../dist/_types'
 
 const makeUATParticle = (rri: ResourceIdentifier): UnallocatedTokensParticle =>
 	unallocatedTokensParticleFromUnsafe({
@@ -476,6 +481,80 @@ describe('SpunParticles', () => {
 						ttParticle0Down,
 						ttParticle1Down,
 					],
+				}),
+			).toBe(true)
+		})
+	})
+
+	describe('query transferrableTokensParticles', () => {
+		it('without spin', () => {
+			expect(
+				exactlyContainParticles({
+					actual: spunParticles_.transferrableTokensParticles(),
+					expected: [
+						ttParticle0Up,
+						ttParticle1Up,
+						ttParticle0Down,
+						ttParticle1Down,
+					],
+				}),
+			).toBe(true)
+		})
+
+		it('with spin=UP', () => {
+			expect(
+				exactlyContainParticles({
+					actual: spunParticles_.transferrableTokensParticles(
+						Spin.UP,
+					),
+					expected: [ttParticle0Up, ttParticle1Up],
+				}),
+			).toBe(true)
+		})
+
+		it('without spin=DOWN', () => {
+			expect(
+				exactlyContainParticles({
+					actual: spunParticles_.transferrableTokensParticles(
+						Spin.DOWN,
+					),
+					expected: [ttParticle0Down, ttParticle1Down],
+				}),
+			).toBe(true)
+		})
+	})
+
+	describe('query unallocatedTokensParticles', () => {
+		it('without spin', () => {
+			expect(
+				exactlyContainParticles({
+					actual: spunParticles_.unallocatedTokensParticles(),
+					expected: [
+						uatParticle0Up,
+						uatParticle1Up,
+						uatParticle0Down,
+						uatParticle1Down,
+					],
+				}),
+			).toBe(true)
+		})
+
+		it('with spin=UP', () => {
+			expect(
+				exactlyContainParticles({
+					actual: spunParticles_.unallocatedTokensParticles(Spin.UP),
+					expected: [uatParticle0Up, uatParticle1Up],
+				}),
+			).toBe(true)
+		})
+
+		it('without spin=DOWN', () => {
+			expect(
+				exactlyContainParticles({
+					actual: spunParticles_.unallocatedTokensParticles(
+						Spin.DOWN,
+					),
+					expected: [uatParticle0Down, uatParticle1Down],
 				}),
 			).toBe(true)
 		})

@@ -59,14 +59,11 @@ export type ParticleBase = {
 export type RadixParticle = ParticleBase &
 	Readonly<{
 		radixParticleType: RadixParticleType
-		hasAllegedType: (
-			allegedThis: RadixParticle,
-		) => ThisType<RadixParticle> | undefined
 	}>
 
 export type TransferrableTokensParticle = /* DSONCoable */ RadixParticle &
 	Readonly<{
-		radixParticleType: RadixParticleType.TRANSFERRABLE_TOKENS
+		radixParticleType: RadixParticleType
 		// The recipient address of the tokens to be transffered
 		address: Address
 		// The identifier of which token type is being transferred
@@ -79,7 +76,7 @@ export type TransferrableTokensParticle = /* DSONCoable */ RadixParticle &
 
 export type UnallocatedTokensParticle = /* DSONCoable */ RadixParticle &
 	Readonly<{
-		radixParticleType: RadixParticleType.UNALLOCATED_TOKENS
+		radixParticleType: RadixParticleType
 		tokenDefinitionReference: ResourceIdentifier
 		granularity: Granularity
 		nonce: Nonce
@@ -89,7 +86,7 @@ export type UnallocatedTokensParticle = /* DSONCoable */ RadixParticle &
 
 export type ResourceIdentifierParticle = /* DSONCodable */ RadixParticle &
 	Readonly<{
-		radixParticleType: RadixParticleType.RESOURCE_IDENTIFIER
+		radixParticleType: RadixParticleType
 		alwaysZeroNonce: Nonce
 		resourceIdentifier: ResourceIdentifier
 	}>
@@ -124,6 +121,7 @@ export type UpParticle<Particle extends ParticleBase> = SpunParticleLike &
 	Readonly<{
 		spin: Spin.UP
 		particle: Particle
+		toSpunParticle: () => SpunParticle<Particle>
 		eraseToAny: () => AnyUpParticle
 	}>
 
@@ -131,17 +129,20 @@ export type DownParticle<Particle extends ParticleBase> = SpunParticleLike &
 	Readonly<{
 		spin: Spin.DOWN
 		particle: Particle
+		toSpunParticle: () => SpunParticle<Particle>
 		eraseToAny: () => AnyDownParticle
 	}>
 
 export type AnyUpParticle = SpunParticleLike &
 	Readonly<{
 		spin: Spin.UP
+		toAnySpunParticle: () => AnySpunParticle
 	}>
 
 export type AnyDownParticle = SpunParticleLike &
 	Readonly<{
 		spin: Spin.DOWN
+		toAnySpunParticle: () => AnySpunParticle
 	}>
 
 export type SignatureID = string
@@ -155,24 +156,18 @@ export type SpunParticles = Readonly<{
 		spin?: Spin
 	}) => AnySpunParticle[]
 
-	spunParticlesOfTypeWithSpin: <Particle extends RadixParticle>(query: {
-		spin?: Spin
-	}) => SpunParticle<Particle>[]
+	transferrableTokensParticles: (
+		spin?: Spin,
+	) => SpunParticle<TransferrableTokensParticle>[]
 
-	// upParticlesOfType: <Particle extends ParticleBase>(
-	// 	allowedVehicleTypes?: InstanceType<typeof VehicleType>[]
-	// ) => UpParticle<Particle>[]
-
-	// downParticlesOfType: <Particle extends ParticleBase>(
-	// 	allowedVehicleTypes?: InstanceType<typeof VehicleType>[]
-	// ) => DownParticle<Particle>[]
+	unallocatedTokensParticles: (
+		spin?: Spin,
+	) => SpunParticle<UnallocatedTokensParticle>[]
 }>
-
-export type Message = string
 
 export type Atom = /* DSONCodable & */ Readonly<{
 	particles: SpunParticles
 	signatures?: Signatures
-	message?: Message
+	message?: string
 	identifier: AtomIdentifier
 }>

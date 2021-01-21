@@ -2,7 +2,6 @@ import { Granularity, randomNonce } from '@radixdlt/primitives'
 import { tokenPermissionsAll } from './tokenPermissions'
 import {
 	ParticleBase,
-	RadixParticle,
 	ResourceIdentifier,
 	Supply,
 	TokenPermissions,
@@ -36,12 +35,6 @@ export const unallocatedTokensParticle = (
 		nonce,
 		amount,
 		permissions,
-		hasAllegedType: (
-			allegedThis: RadixParticle,
-		): ThisType<UnallocatedTokensParticle> | undefined => {
-			if (!isUnallocatedTokensParticle(allegedThis)) return undefined
-			return allegedThis
-		},
 		// eslint-disable-next-line complexity
 		equals: (otherParticle: ParticleBase): boolean => {
 			if (!isUnallocatedTokensParticle(otherParticle)) return false

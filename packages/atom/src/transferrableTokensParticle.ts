@@ -3,7 +3,6 @@ import { Granularity, PositiveAmount, randomNonce } from '@radixdlt/primitives'
 import { Address } from '@radixdlt/crypto'
 import {
 	ParticleBase,
-	RadixParticle,
 	ResourceIdentifier,
 	TokenPermissions,
 	TransferrableTokensParticle,
@@ -47,12 +46,6 @@ export const transferrableTokensParticle = (
 		nonce,
 		amount,
 		permissions,
-		hasAllegedType: (
-			allegedThis: RadixParticle,
-		): ThisType<TransferrableTokensParticle> | undefined => {
-			if (!isTransferrableTokensParticle(allegedThis)) return undefined
-			return allegedThis
-		},
 		// eslint-disable-next-line complexity
 		equals: (otherParticle: ParticleBase): boolean => {
 			if (!isTransferrableTokensParticle(otherParticle)) return false
