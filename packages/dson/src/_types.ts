@@ -1,3 +1,5 @@
+// @ts-ignore
+import cbor from 'cbor'
 import { Result } from 'neverthrow'
 
 export type DSONCodable = {
@@ -7,7 +9,7 @@ export type DSONCodable = {
 }>
 
 export type CBOREncodableObject = Readonly<{
-	encodeCBOR: (encoder: any) => boolean
+	encodeCBOR: (encoder: cbor.CBOREncoder) => boolean
 }>
 
 export type DSONKeyValue = Readonly<{

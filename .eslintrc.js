@@ -52,6 +52,7 @@ module.exports = {
 		'max-params': ['error', 1],
 
 		'@typescript-eslint/require-await': 'off',
+		'@typescript-eslint/ban-ts-comment': 'off',
 
 		// ESLint-Plugin-Functional RULES
 		'functional/immutable-data': 'error',
