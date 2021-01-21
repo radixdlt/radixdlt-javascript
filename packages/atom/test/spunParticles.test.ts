@@ -7,22 +7,22 @@ import {
 	Spin,
 	SpunParticleLike,
 	UnallocatedTokensParticle,
+	ResourceIdentifierParticle,
+	SpunParticle,
+	SpunParticles,
+	TransferrableTokensParticle,
 } from '../src/_types'
+
 import {
 	transferrableTokensParticleFromUnsafe,
 	unallocatedTokensParticleFromUnsafe,
 } from './utility'
+
 import {
 	ResourceIdentifierParticleType,
 	UnallocatedTokensParticleType,
 	TransferrableTokensParticleType,
 } from '../src/radixParticleTypes'
-import { TransferrableTokensParticle } from '../src/_types'
-import {
-	ResourceIdentifierParticle,
-	SpunParticle,
-	SpunParticles,
-} from '../dist/_types'
 
 const makeUATParticle = (rri: ResourceIdentifier): UnallocatedTokensParticle =>
 	unallocatedTokensParticleFromUnsafe({

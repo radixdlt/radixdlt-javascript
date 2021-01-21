@@ -196,21 +196,21 @@ export const anyDownParticle = (particle: ParticleBase): AnyDownParticle => {
 }
 
 export const asAnyUpParticle = (
-	anySpunParticle: AnySpunParticle,
+	spunParticle: SpunParticleLike,
 ): Result<AnyUpParticle, Error> => {
-	if (anySpunParticle.spin !== Spin.UP) {
+	if (spunParticle.spin !== Spin.UP) {
 		return err(new Error('Particle does not have spin UP.'))
 	}
-	return ok(anyUpParticle(anySpunParticle.particle))
+	return ok(anyUpParticle(spunParticle.particle))
 }
 
 export const asAnyDownParticle = (
-	anySpunParticle: AnySpunParticle,
+	spunParticle: SpunParticleLike,
 ): Result<AnyDownParticle, Error> => {
-	if (anySpunParticle.spin !== Spin.DOWN) {
+	if (spunParticle.spin !== Spin.DOWN) {
 		return err(new Error('Particle does not have spin DOWN.'))
 	}
-	return ok(anyDownParticle(anySpunParticle.particle))
+	return ok(anyDownParticle(spunParticle.particle))
 }
 
 export const asUpParticle = <Particle extends ParticleBase>(

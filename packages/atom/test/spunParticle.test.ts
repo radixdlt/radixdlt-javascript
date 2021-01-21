@@ -16,6 +16,8 @@ import {
 	transferrableTokensParticleFromUnsafe,
 	unallocatedTokensParticleFromUnsafe,
 } from './utility'
+import { TransferrableTokensParticleType } from '../src/radixParticleTypes'
+import { isTransferrableTokensParticle } from '../src/transferrableTokensParticle'
 
 describe('SpunParticle', () => {
 	it('can create SpunParticle<TransferrableTokensParticle>', () => {
@@ -30,9 +32,9 @@ describe('SpunParticle', () => {
 		) => {
 			expect(spunParticle.spin).toBe(spin)
 			expect(spunParticle.particle).toBe(transferrableTokensParticle)
-			// expect(spunParticle.particle.particleType).toBe(
-			// 	'TransferrableTokensParticle',
-			// )
+			expect(isTransferrableTokensParticle(spunParticle.particle)).toBe(
+				true,
+			)
 		}
 
 		const assertTTPWithSpinUp = (particle: SpunParticleLike) => {

@@ -164,10 +164,3 @@ export type SpunParticles = Readonly<{
 		spin?: Spin,
 	) => SpunParticle<UnallocatedTokensParticle>[]
 }>
-
-export type Atom = /* DSONCodable & */ Readonly<{
-	particles: SpunParticles
-	signatures?: Signatures
-	message?: string
-	identifier: AtomIdentifier
-}>
