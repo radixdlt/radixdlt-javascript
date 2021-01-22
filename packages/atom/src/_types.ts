@@ -91,6 +91,26 @@ export type ResourceIdentifierParticle = /* DSONCodable */ RadixParticle &
 		resourceIdentifier: ResourceIdentifier
 	}>
 
+export type TokenDefinitionParticleBase = /* DSONCodable */ RadixParticle &
+	Readonly<{
+		name: string
+		description?: string
+		resourceIdentifier: ResourceIdentifier
+		granularity: Granularity
+		url?: URL
+		iconURL?: URL
+	}>
+
+export type FixedTokenDefinitionParticle = TokenDefinitionParticleBase &
+	Readonly<{
+		fixedTokenSupply: Supply
+	}>
+
+export type MutableTokenDefinitionParticle = TokenDefinitionParticleBase &
+	Readonly<{
+		permissions: TokenPermissions
+	}>
+
 export enum Spin {
 	/* The implicit and theoretical state `NEUTRAL` for spin is not relevant from a client library perspective, thus omitted.*/
 	UP = 1,

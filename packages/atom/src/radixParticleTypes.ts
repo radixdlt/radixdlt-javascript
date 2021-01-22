@@ -5,6 +5,8 @@ export enum RadixParticleType {
 	TRANSFERRABLE_TOKENS = 'TransferrableTokensParticle',
 	UNALLOCATED_TOKENS = 'UnallocatedTokensParticle',
 	RESOURCE_IDENTIFIER = 'ResourceIdentifierParticle',
+	FIXED_SUPPLY_TOKEN_DEFINITION = 'FixedSupplyTokenDefintionParticle',
+	MUTABLE_SUPPLY_TOKEN_DEFINITION = 'MutableSupplyTokenDefintionParticle',
 }
 export const TransferrableTokensParticleType =
 	RadixParticleType.TRANSFERRABLE_TOKENS
