@@ -1,4 +1,4 @@
-import { Address } from '@radixdlt/crypto'
+import { Address, Signature } from '@radixdlt/crypto'
 import {
 	Amount,
 	Granularity,
@@ -145,7 +145,7 @@ export type AnyDownParticle = AnySpunParticle &
 	}>
 
 export type SpunParticles = Readonly<{
-	spunParticles: SpunParticleBase[]
+	spunParticles: AnySpunParticle[]
 
 	anySpunParticlesOfTypeWithSpin: (query: {
 		particleTypes?: RadixParticleType[]
@@ -160,3 +160,17 @@ export type SpunParticles = Readonly<{
 		spin?: Spin,
 	) => SpunParticle<UnallocatedTokensParticle>[]
 }>
+
+// TODO change this when we have DSON encoding in place. Should be hash of dson truncated.
+export type PublicKeyID = string
+
+export type SignatureID = PublicKeyID
+export type Signatures = ReadonlyMap<SignatureID, Signature>
+
+export type Atom = /* DSONCodable & */ SpunParticles &
+	Readonly<{
+		signatures: Signatures // can be empty
+		message?: string
+		identifier: () => AtomIdentifier
+		isSigned: () => boolean
+	}>

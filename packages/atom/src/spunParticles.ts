@@ -8,7 +8,11 @@ import {
 	TransferrableTokensParticle,
 	UnallocatedTokensParticle,
 } from './_types'
-import { anySpunParticle, spunParticle } from './spunParticle'
+import {
+	anySpunParticle,
+	isAnySpunParticle,
+	spunParticle,
+} from './spunParticle'
 import {
 	isRadixParticle,
 	RadixParticleType,
@@ -18,7 +22,7 @@ import {
 
 /* eslint-disable max-lines-per-function */
 export const spunParticles = (
-	spunParticles: SpunParticleBase[],
+	spunParticles: AnySpunParticle[],
 ): SpunParticles => {
 	const unique = Array.from(new Set(spunParticles))
 
@@ -104,4 +108,24 @@ export const spunParticles = (
 		transferrableTokensParticles: transferrableTokensParticles,
 		unallocatedTokensParticles: unallocatedTokensParticles,
 	}
+}
+
+// eslint-disable-next-line complexity
+export const isSpunParticles = (
+	something: unknown,
+): something is SpunParticles => {
+	const inspection = something as SpunParticles
+	if (
+		!(
+			inspection.spunParticles !== undefined &&
+			inspection.anySpunParticlesOfTypeWithSpin !== undefined
+		)
+	)
+		return false
+	return inspection.spunParticles.reduce(
+		// eslint-disable-next-line max-params
+		(acc: boolean, element: AnySpunParticle) =>
+			acc || isAnySpunParticle(element) === true,
+		false,
+	)
 }

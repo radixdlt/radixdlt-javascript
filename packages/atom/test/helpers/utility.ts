@@ -1,11 +1,11 @@
-import { Address, addressFromUnsafe } from '@radixdlt/crypto'
+import { Address, addressFromUnsafe, Signature } from '@radixdlt/crypto'
 import {
 	ResourceIdentifier,
 	Supply,
 	TokenPermissions,
 	TransferrableTokensParticle,
 	UnallocatedTokensParticle,
-} from '../src/_types'
+} from '../../src/_types'
 import {
 	amountFromUnsafe,
 	AmountInputUnsafe,
@@ -14,16 +14,17 @@ import {
 	PositiveAmount,
 } from '@radixdlt/primitives'
 import { combine, Result } from 'neverthrow'
-import { resourceIdentifierFromUnsafe } from '../src/resourceIdentifier'
+import { resourceIdentifierFromUnsafe } from '../../src/resourceIdentifier'
 import {
 	transferrableTokensParticle,
 	TransferrableTokensParticleInput,
-} from '../src/transferrableTokensParticle'
+} from '../../src/transferrableTokensParticle'
 
 import {
 	unallocatedTokensParticle,
 	UnallocatedTokensParticleInput,
-} from '../src/unallocatedTokensParticle'
+} from '../../src/unallocatedTokensParticle'
+import { UInt256 } from '@radixdlt/uint256'
 
 export const transferrableTokensParticleFromUnsafe = (
 	input: Readonly<{
@@ -86,4 +87,18 @@ export const unallocatedTokensParticleFromUnsafe = (
 				},
 		)
 		.map(unallocatedTokensParticle)
+}
+
+// TODO CODE DUPLICATION! Move to shared testing only package.
+export const signatureFromHexStrings = (input: {
+	r: string
+	s: string
+}): Signature => {
+	const r = new UInt256(input.r, 16)
+	const s = new UInt256(input.s, 16)
+	return {
+		r,
+		s,
+		equals: (other: Signature): boolean => r.eq(other.r) && s.eq(other.s),
+	}
 }

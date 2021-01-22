@@ -6,7 +6,7 @@ import { amountInSmallestDenomination } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import { resourceIdentifierFromAddressAndName } from '../src/resourceIdentifier'
 import { unallocatedTokensParticle } from '../src/unallocatedTokensParticle'
-import { unallocatedTokensParticleFromUnsafe } from './utility'
+import { unallocatedTokensParticleFromUnsafe } from './helpers/utility'
 
 describe('unallocatedTokensParticle', () => {
 	it('can be safely created from safe type', async () => {

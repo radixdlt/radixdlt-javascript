@@ -1,111 +1,27 @@
 import { spunParticles } from '../src/spunParticles'
-import { downParticle, upParticle } from '../src/spunParticle'
-import { resourceIdentifierFromString } from '../src/resourceIdentifier'
-import { resourceIdentifierParticle } from '../src/resourceIdentifierParticle'
-import {
-	ResourceIdentifier,
-	Spin,
-	UnallocatedTokensParticle,
-	AnySpunParticle,
-	SpunParticles,
-	TransferrableTokensParticle,
-} from '../src/_types'
-
-import {
-	transferrableTokensParticleFromUnsafe,
-	unallocatedTokensParticleFromUnsafe,
-} from './utility'
+import { Spin, AnySpunParticle, SpunParticles } from '../src/_types'
 
 import {
 	ResourceIdentifierParticleType,
 	UnallocatedTokensParticleType,
 	TransferrableTokensParticleType,
 } from '../src/radixParticleTypes'
-
-const makeUATParticle = (rri: ResourceIdentifier): UnallocatedTokensParticle =>
-	unallocatedTokensParticleFromUnsafe({
-		tokenDefinitionReference: rri,
-		granularity: 3,
-		amount: 9,
-	})._unsafeUnwrap()
-
-const makeTTParticle = (rri: ResourceIdentifier): TransferrableTokensParticle =>
-	transferrableTokensParticleFromUnsafe({
-		address: '9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
-		tokenDefinitionReference: rri,
-		granularity: 3,
-		amount: 9,
-	})._unsafeUnwrap()
-
-const rri0 = resourceIdentifierFromString(
-	'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOO',
-)._unsafeUnwrap()
-
-const rri1 = resourceIdentifierFromString(
-	'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/BAR',
-)._unsafeUnwrap()
-
-const rriParticle0 = resourceIdentifierParticle(rri0)
-const rriParticle1 = resourceIdentifierParticle(rri1)
-const uatParticle0 = makeUATParticle(rri0)
-const uatParticle1 = makeUATParticle(rri1)
-const ttParticle0 = makeTTParticle(rri0)
-const ttParticle1 = makeTTParticle(rri1)
-
-const rriParticle0Up = upParticle(rriParticle0)
-const rriParticle1Up = upParticle(rriParticle1)
-const rriParticle0Down = downParticle(rriParticle0)
-const rriParticle1Down = downParticle(rriParticle1)
-
-const uatParticle0Up = upParticle(uatParticle0)
-const uatParticle1Up = upParticle(uatParticle1)
-const uatParticle0Down = downParticle(uatParticle0)
-const uatParticle1Down = downParticle(uatParticle1)
-
-const ttParticle0Up = upParticle(ttParticle0)
-const ttParticle1Up = upParticle(ttParticle1)
-const ttParticle0Down = downParticle(ttParticle0)
-const ttParticle1Down = downParticle(ttParticle1)
-
-const spunParticles_ = spunParticles([
-	rriParticle0Up,
-	rriParticle1Up,
+import {
+	exactlyContainParticles,
+	spunParticles_,
 	rriParticle0Down,
+	rriParticle0Up,
 	rriParticle1Down,
-	uatParticle0Up,
-	uatParticle1Up,
-	uatParticle0Down,
-	uatParticle1Down,
-	ttParticle0Up,
-	ttParticle1Up,
+	rriParticle1Up,
 	ttParticle0Down,
+	ttParticle0Up,
 	ttParticle1Down,
-])
-
-const exactlyContainParticles = (
-	input: Readonly<{
-		actual: AnySpunParticle[]
-		expected: AnySpunParticle[]
-	}>,
-): boolean => {
-	const formIntersection = (
-		lhs: AnySpunParticle[],
-		rhs: AnySpunParticle[],
-	): AnySpunParticle[] =>
-		[...lhs].filter((x) => rhs.find((sp) => sp.equals(x)) !== undefined)
-
-	const formDifference = (
-		lhs: AnySpunParticle[],
-		rhs: AnySpunParticle[],
-	): AnySpunParticle[] =>
-		[...lhs].filter((x) => rhs.find((sp) => sp.equals(x)) === undefined)
-
-	return (
-		formDifference(input.actual, input.expected).length === 0 &&
-		formIntersection(input.actual, input.expected).length ===
-			input.expected.length
-	)
-}
+	ttParticle1Up,
+	uatParticle0Down,
+	uatParticle0Up,
+	uatParticle1Down,
+	uatParticle1Up,
+} from './helpers/particles'
 
 describe('SpunParticles', () => {
 	it('removes duplicates', () => {
