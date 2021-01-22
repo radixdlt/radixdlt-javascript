@@ -65,7 +65,7 @@
     "build:ts": "tsc -b tsconfig.json",
     "bundle": "ts-node -P scripts/tsconfig.json scripts/bundle.ts umd,esm",
     "clean": "lerna clean --yes && lerna run clean && rm -rf includes",
-    "test": "yarn build && cross-env TEST_ENV=unit jest -c jest.config.js --rootDir=.",
+    "test": "cross-env TEST_ENV=unit jest -c jest.config.js --rootDir=.",
     "release": "yarn bootstrap && yarn bundle && lerna publish --exact",
     "format": "prettier --write '**/*.{ts,tsx,js}' --config .prettierrc",
     "sanity": "yarn format && yarn lint && yarn build && yarn test",
