@@ -1,4 +1,8 @@
-import { FixedTokenDefinitionParticle, ParticleBase, Supply } from './_types'
+import {
+	FixedSupplyTokenDefinitionParticle,
+	ParticleBase,
+	Supply,
+} from './_types'
 import { Address } from '@radixdlt/crypto'
 import { Granularity } from '@radixdlt/primitives'
 import { granularityDefault } from '@radixdlt/primitives/dist/granularity'
@@ -92,7 +96,7 @@ const notUndefinedOrCrash = <T>(value: T | undefined): T => {
 }
 
 // eslint-disable-next-line max-lines-per-function
-export const fixedTokenSupplyParticle = (
+export const fixedSupplyTokenDefinitionParticle = (
 	input: Readonly<{
 		symbol: string
 		name: string
@@ -103,10 +107,14 @@ export const fixedTokenSupplyParticle = (
 		url?: URLInput
 		iconURL?: URLInput
 	}>,
-): Result<FixedTokenDefinitionParticle, Error> => {
+): Result<FixedSupplyTokenDefinitionParticle, Error> => {
 	const granularity = input.granularity ?? granularityDefault
 	const address = input.address
 	const fixedTokenSupply = input.supply
+
+	if (!fixedTokenSupply.isMultipleOf(granularity)) {
+		return err(new Error('FixedSupply not multiple of granularity'))
+	}
 
 	return combine([
 		validateTokenDefinitionSymbol(input.symbol),
@@ -115,7 +123,7 @@ export const fixedTokenSupplyParticle = (
 		validateURLInput(input.url),
 		validateURLInput(input.iconURL),
 	]).map(
-		(resultList): FixedTokenDefinitionParticle => {
+		(resultList): FixedSupplyTokenDefinitionParticle => {
 			const symbol = notUndefinedOrCrash(resultList[0])
 			const name = resultList[1]
 			const description = resultList[2]
@@ -126,7 +134,7 @@ export const fixedTokenSupplyParticle = (
 				/* NOT 'name', should be 'symbol; */
 				name: symbol,
 			})
-			return <FixedTokenDefinitionParticle>{
+			return <FixedSupplyTokenDefinitionParticle>{
 				radixParticleType:
 					RadixParticleType.FIXED_SUPPLY_TOKEN_DEFINITION,
 				name,
@@ -160,8 +168,8 @@ export const fixedTokenSupplyParticle = (
 // eslint-disable-next-line complexity
 export const isFixedTokenDefinitionParticle = (
 	something: unknown,
-): something is FixedTokenDefinitionParticle => {
-	const inspection = something as FixedTokenDefinitionParticle
+): something is FixedSupplyTokenDefinitionParticle => {
+	const inspection = something as FixedSupplyTokenDefinitionParticle
 	return (
 		inspection.radixParticleType ===
 			RadixParticleType.FIXED_SUPPLY_TOKEN_DEFINITION &&

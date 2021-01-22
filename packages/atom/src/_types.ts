@@ -101,7 +101,7 @@ export type TokenDefinitionParticleBase = /* DSONCodable */ RadixParticle &
 		iconURL?: URL
 	}>
 
-export type FixedTokenDefinitionParticle = TokenDefinitionParticleBase &
+export type FixedSupplyTokenDefinitionParticle = TokenDefinitionParticleBase &
 	Readonly<{
 		fixedTokenSupply: Supply
 	}>

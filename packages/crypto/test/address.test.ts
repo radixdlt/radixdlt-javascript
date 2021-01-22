@@ -9,7 +9,8 @@ import {
 import { magicFromNumber } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 
-const toAddress = (b58: string): Address =>
+// TODO CODE DUPLICATION remove to separate test package...
+export const toAddress = (b58: string): Address =>
 	addressFromBase58String(b58)._unsafeUnwrap()
 
 describe('Address', () => {

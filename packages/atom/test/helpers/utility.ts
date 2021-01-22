@@ -1,4 +1,9 @@
-import { Address, addressFromUnsafe, Signature } from '@radixdlt/crypto'
+import {
+	Address,
+	addressFromBase58String,
+	addressFromUnsafe,
+	Signature,
+} from '@radixdlt/crypto'
 import {
 	ResourceIdentifier,
 	Supply,
@@ -102,3 +107,7 @@ export const signatureFromHexStrings = (input: {
 		equals: (other: Signature): boolean => r.eq(other.r) && s.eq(other.s),
 	}
 }
+
+// TODO CODE DUPLICATION remove to separate test package...
+export const toAddress = (b58: string): Address =>
+	addressFromBase58String(b58)._unsafeUnwrap()
