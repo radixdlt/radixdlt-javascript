@@ -1,7 +1,7 @@
 import {
 	Spin,
 	SpunParticle,
-	SpunParticleLike,
+	SpunParticleBase,
 	TransferrableTokensParticle,
 } from '../src/_types'
 import {
@@ -28,7 +28,7 @@ describe('SpunParticle', () => {
 		})
 
 		const assertTTPWithSpin = (
-			spunParticle: SpunParticleLike,
+			spunParticle: SpunParticleBase,
 			spin: Spin,
 		) => {
 			expect(spunParticle.spin).toBe(spin)
@@ -38,7 +38,7 @@ describe('SpunParticle', () => {
 			)
 		}
 
-		const assertTTPWithSpinUp = (particle: SpunParticleLike) => {
+		const assertTTPWithSpinUp = (particle: SpunParticleBase) => {
 			assertTTPWithSpin(particle, Spin.UP)
 		}
 
@@ -72,7 +72,7 @@ describe('SpunParticle', () => {
 		})
 
 		const testSpunParticleOfTypeUATP = (
-			spunParticleLike: SpunParticleLike,
+			spunParticleLike: SpunParticleBase,
 		) => {
 			expect(spunParticleLike.spin).toBe(Spin.DOWN)
 			expect(spunParticleLike.particle).toBe(unallocatedTokensParticle)

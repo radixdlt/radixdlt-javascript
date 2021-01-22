@@ -5,10 +5,8 @@ import { resourceIdentifierParticle } from '../src/resourceIdentifierParticle'
 import {
 	ResourceIdentifier,
 	Spin,
-	SpunParticleLike,
 	UnallocatedTokensParticle,
-	ResourceIdentifierParticle,
-	SpunParticle,
+	AnySpunParticle,
 	SpunParticles,
 	TransferrableTokensParticle,
 } from '../src/_types'
@@ -86,20 +84,20 @@ const spunParticles_ = spunParticles([
 
 const exactlyContainParticles = (
 	input: Readonly<{
-		actual: SpunParticleLike[]
-		expected: SpunParticleLike[]
+		actual: AnySpunParticle[]
+		expected: AnySpunParticle[]
 	}>,
 ): boolean => {
 	const formIntersection = (
-		lhs: SpunParticleLike[],
-		rhs: SpunParticleLike[],
-	): SpunParticleLike[] =>
+		lhs: AnySpunParticle[],
+		rhs: AnySpunParticle[],
+	): AnySpunParticle[] =>
 		[...lhs].filter((x) => rhs.find((sp) => sp.equals(x)) !== undefined)
 
 	const formDifference = (
-		lhs: SpunParticleLike[],
-		rhs: SpunParticleLike[],
-	): SpunParticleLike[] =>
+		lhs: AnySpunParticle[],
+		rhs: AnySpunParticle[],
+	): AnySpunParticle[] =>
 		[...lhs].filter((x) => rhs.find((sp) => sp.equals(x)) === undefined)
 
 	return (
@@ -111,7 +109,7 @@ const exactlyContainParticles = (
 
 describe('SpunParticles', () => {
 	it('removes duplicates', () => {
-		const duplicates: SpunParticleLike[] = [
+		const duplicates: AnySpunParticle[] = [
 			rriParticle0Up,
 			rriParticle0Up,
 			rriParticle1Up,

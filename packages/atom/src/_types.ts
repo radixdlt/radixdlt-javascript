@@ -1,4 +1,4 @@
-import { Address, Signature } from '@radixdlt/crypto'
+import { Address } from '@radixdlt/crypto'
 import {
 	Amount,
 	Granularity,
@@ -97,56 +97,55 @@ export enum Spin {
 	DOWN = -1,
 }
 
-export type SpunParticleLike = Readonly<{
+export type SpunParticleBase = Readonly<{
 	spin: Spin
 	particle: ParticleBase
-	equals: (other: SpunParticleLike) => boolean
 }>
 
-export type AnySpunParticle = SpunParticleLike &
+export type AnySpunParticle = SpunParticleBase &
 	Readonly<{
-		downed: () => Result<AnyDownParticle, Error>
+		downedAsAny: () => Result<AnyDownParticle, Error>
+		equals: (other: SpunParticleBase) => boolean
 	}>
 
 export type SpunParticle<
-	Particle extends ParticleBase
-> = /* DSONCodable & */ SpunParticleLike &
+	P extends ParticleBase
+> = /* DSONCodable & */ AnySpunParticle &
 	Readonly<{
-		particle: Particle
-		eraseToAny: () => SpunParticleLike
-		downed: () => Result<DownParticle<Particle>, Error>
+		particle: P
+		eraseToAny: () => AnySpunParticle
+		downed: () => Result<DownParticle<P>, Error>
 	}>
 
-export type UpParticle<Particle extends ParticleBase> = SpunParticleLike &
+export type UpParticle<P extends ParticleBase> = SpunParticle<P> &
 	Readonly<{
 		spin: Spin.UP
-		particle: Particle
-		toSpunParticle: () => SpunParticle<Particle>
+		toSpunParticle: () => SpunParticle<P>
 		eraseToAny: () => AnyUpParticle
 	}>
 
-export type DownParticle<Particle extends ParticleBase> = SpunParticleLike &
+export type DownParticle<P extends ParticleBase> = SpunParticle<P> &
 	Readonly<{
 		spin: Spin.DOWN
-		particle: Particle
-		toSpunParticle: () => SpunParticle<Particle>
+		particle: P
+		toSpunParticle: () => SpunParticle<P>
 		eraseToAny: () => AnyDownParticle
 	}>
 
-export type AnyUpParticle = SpunParticleLike &
+export type AnyUpParticle = AnySpunParticle &
 	Readonly<{
 		spin: Spin.UP
 		toAnySpunParticle: () => AnySpunParticle
 	}>
 
-export type AnyDownParticle = SpunParticleLike &
+export type AnyDownParticle = AnySpunParticle &
 	Readonly<{
 		spin: Spin.DOWN
 		toAnySpunParticle: () => AnySpunParticle
 	}>
 
 export type SpunParticles = Readonly<{
-	spunParticles: SpunParticleLike[]
+	spunParticles: SpunParticleBase[]
 
 	anySpunParticlesOfTypeWithSpin: (query: {
 		particleTypes?: RadixParticleType[]

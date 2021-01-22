@@ -3,7 +3,7 @@ import {
 	RadixParticle,
 	Spin,
 	SpunParticle,
-	SpunParticleLike,
+	SpunParticleBase,
 	SpunParticles,
 	TransferrableTokensParticle,
 	UnallocatedTokensParticle,
@@ -18,17 +18,15 @@ import {
 
 /* eslint-disable max-lines-per-function */
 export const spunParticles = (
-	spunParticles: SpunParticleLike[],
+	spunParticles: SpunParticleBase[],
 ): SpunParticles => {
 	const unique = Array.from(new Set(spunParticles))
 
-	const spunParticlesOfTypeWithSpin = <
-		Particle extends RadixParticle
-	>(query: {
+	const spunParticlesOfTypeWithSpin = <P extends RadixParticle>(query: {
 		particleType: RadixParticleType
 		spin?: Spin
-	}): SpunParticle<Particle>[] => {
-		const spinFilter = (sp: SpunParticleLike): boolean => {
+	}): SpunParticle<P>[] => {
+		const spinFilter = (sp: SpunParticleBase): boolean => {
 			if (!query.spin) return true
 			return sp.spin === query.spin
 		}
@@ -45,7 +43,7 @@ export const spunParticles = (
 			.map((sp) => {
 				return spunParticle({
 					spin: sp.spin,
-					particle: sp.particle as Particle,
+					particle: sp.particle as P,
 				})
 			})
 	}
@@ -57,7 +55,7 @@ export const spunParticles = (
 		if (!query.spin && !query.particleTypes)
 			return unique.map(anySpunParticle)
 
-		const spinFilter = (sp: SpunParticleLike): boolean => {
+		const spinFilter = (sp: SpunParticleBase): boolean => {
 			if (!query.spin) return true
 			return sp.spin === query.spin
 		}
