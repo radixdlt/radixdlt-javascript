@@ -145,9 +145,6 @@ export type AnyDownParticle = SpunParticleLike &
 		toAnySpunParticle: () => AnySpunParticle
 	}>
 
-export type SignatureID = string
-export type Signatures = ReadonlyMap<SignatureID, Signature>
-
 export type SpunParticles = Readonly<{
 	spunParticles: SpunParticleLike[]
 
