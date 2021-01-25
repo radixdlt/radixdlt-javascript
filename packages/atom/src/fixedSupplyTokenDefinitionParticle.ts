@@ -23,7 +23,7 @@ export const validateURLInput = (
 			return ok(url.toString())
 		} catch {
 			return err(
-				new Error(`Failed to create url from string: ${urlInput}`),
+				new Error(`Failed to create url from string: '${urlInput}'.`),
 			)
 		}
 	} else {
@@ -43,7 +43,7 @@ export const validateTokenDefinitionSymbol = (
 	if (symbol.length < minLength || symbol.length > 14) {
 		return err(
 			new Error(
-				`Bad length of token defintion symbol, should be between ${minLength}-${maxLength} chars, but was ${symbol.length}`,
+				`Bad length of token defintion symbol, should be between ${minLength}-${maxLength} chars, but was ${symbol.length}.`,
 			),
 		)
 	}
@@ -64,7 +64,7 @@ export const validateTokenDefinitionName = (
 	if (name.length < minLength || name.length > 14) {
 		return err(
 			new Error(
-				`Bad length of token defintion name, should be between ${minLength}-${maxLength} chars, but was ${name.length}`,
+				`Bad length of token defintion name, should be between ${minLength}-${maxLength} chars, but was ${name.length}.`,
 			),
 		)
 	}
@@ -80,7 +80,7 @@ export const validateDescription = (
 		? ok(description)
 		: err(
 				new Error(
-					`Bad length of token description, should be less than ${TOKEN_DESCRIPTION_MAX_LENGTH}, but was ${description.length}`,
+					`Bad length of token description, should be less than ${TOKEN_DESCRIPTION_MAX_LENGTH}, but was ${description.length}.`,
 				),
 		  )
 }
@@ -113,15 +113,23 @@ export const fixedSupplyTokenDefinitionParticle = (
 	const fixedTokenSupply = input.supply
 
 	if (!fixedTokenSupply.isMultipleOf(granularity)) {
-		return err(new Error('FixedSupply not multiple of granularity'))
+		return err(
+			new Error(
+				`Supply not multiple of granularity (granularity=${granularity.toString()} ∤ supply=${fixedTokenSupply.toString()}).`,
+			),
+		)
 	}
 
 	return combine([
 		validateTokenDefinitionSymbol(input.symbol),
 		validateTokenDefinitionName(input.name),
 		validateDescription(input.description),
-		validateURLInput(input.url),
-		validateURLInput(input.iconURL),
+		validateURLInput(input.url).mapErr(
+			(e) => new Error(`Invalid token info url. ${e.message}`),
+		),
+		validateURLInput(input.iconURL).mapErr(
+			(e) => new Error(`Invalid token icon url. ${e.message}`),
+		),
 	]).map(
 		(resultList): FixedSupplyTokenDefinitionParticle => {
 			const symbol = notUndefinedOrCrash(resultList[0])

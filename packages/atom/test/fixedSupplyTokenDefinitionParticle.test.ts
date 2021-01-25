@@ -56,10 +56,16 @@ describe('fixedSupplyTransferrableTokensDefintionParticle', () => {
 			symbol: 'FOOBAR',
 			name: 'Foobar Coin',
 			address: address,
-			supply: amountInSmallestDenomination(UInt256.valueOf(5)),
-			granularity: amountInSmallestDenomination(UInt256.valueOf(3)), // 3 ∤ 5
+			supply: amountInSmallestDenomination(UInt256.valueOf(2)),
+			granularity: amountInSmallestDenomination(UInt256.valueOf(4)), // 4 ∤ 2
 		})
-		expect(fixedSupplyTokDefPartResult.isErr()).toBe(true)
+		fixedSupplyTokDefPartResult.match(
+			(r) => fail('expected error, but got none'),
+			(f) =>
+				expect(f.message).toBe(
+					'Supply not multiple of granularity (granularity=4 ∤ supply=2).',
+				),
+		)
 	})
 
 	it('cannot be created with an invalid token url (even though it is optional)', () => {
@@ -70,7 +76,13 @@ describe('fixedSupplyTransferrableTokensDefintionParticle', () => {
 			supply: supply,
 			url: '~invalid_url~', // <--- INVALID 'url'
 		})
-		expect(fixedSupplyTokDefPartResult.isErr()).toBe(true)
+		fixedSupplyTokDefPartResult.match(
+			(r) => fail('expected error, but got none'),
+			(f) =>
+				expect(f.message).toBe(
+					`Invalid token info url. Failed to create url from string: '~invalid_url~'.`,
+				),
+		)
 	})
 
 	it('cannot be created with an invalid icon url (even though it is optional)', () => {
@@ -81,7 +93,13 @@ describe('fixedSupplyTransferrableTokensDefintionParticle', () => {
 			supply: supply,
 			iconURL: '~invalid_icon_url~', // <--- INVALID 'iconURL'
 		})
-		expect(fixedSupplyTokDefPartResult.isErr()).toBe(true)
+		fixedSupplyTokDefPartResult.match(
+			(r) => fail('expected error, but got none'),
+			(f) =>
+				expect(f.message).toBe(
+					`Invalid token icon url. Failed to create url from string: '~invalid_icon_url~'.`,
+				),
+		)
 	})
 
 	it('cannot be created with a symbol being too short', () => {
@@ -91,7 +109,13 @@ describe('fixedSupplyTransferrableTokensDefintionParticle', () => {
 			address: address,
 			supply: supply,
 		})
-		expect(fixedSupplyTokDefPartResult.isErr()).toBe(true)
+		fixedSupplyTokDefPartResult.match(
+			(r) => fail('expected error, but got none'),
+			(f) =>
+				expect(f.message).toBe(
+					'Bad length of token defintion symbol, should be between 1-14 chars, but was 0.',
+				),
+		)
 	})
 
 	it('cannot be created with a symbol being too long', () => {
@@ -101,17 +125,29 @@ describe('fixedSupplyTransferrableTokensDefintionParticle', () => {
 			address: address,
 			supply: supply,
 		})
-		expect(fixedSupplyTokDefPartResult.isErr()).toBe(true)
+		fixedSupplyTokDefPartResult.match(
+			(r) => fail('expected error, but got none'),
+			(f) =>
+				expect(f.message).toBe(
+					'Bad length of token defintion symbol, should be between 1-14 chars, but was 15.',
+				),
+		)
 	})
 
 	it('cannot be created with a symbol containing lowercase characters', () => {
 		const fixedSupplyTokDefPartResult = fixedSupplyTokenDefinitionParticle({
-			symbol: 'lowercaseBAD', // <--- TOO LONG 'symbol'
+			symbol: 'lowercaseBAD', // <--- DISALLOWED lowercase CHARS IN 'symbol'
 			name: 'Foobar Coin',
 			address: address,
 			supply: supply,
 		})
-		expect(fixedSupplyTokDefPartResult.isErr()).toBe(true)
+		fixedSupplyTokDefPartResult.match(
+			(r) => fail('expected error, but got none'),
+			(f) =>
+				expect(f.message).toBe(
+					'Symbol contains disallowed characters, only uppercase alphanumerics are allowed.',
+				),
+		)
 	})
 
 	it('cannot be created with a symbol containing disallowed special characters', () => {
@@ -121,13 +157,14 @@ describe('fixedSupplyTransferrableTokensDefintionParticle', () => {
 			address: address,
 			supply: supply,
 		})
-		expect(fixedSupplyTokDefPartResult.isErr()).toBe(true)
 
-		fixedSupplyTokDefPartResult.mapErr((error) => {
-			expect(error.message).toBe(
-				'Symbol contains disallowed characters, only uppercase alphanumerics are allowed.',
-			)
-		})
+		fixedSupplyTokDefPartResult.match(
+			(r) => fail('expected error, but got none'),
+			(f) =>
+				expect(f.message).toBe(
+					'Symbol contains disallowed characters, only uppercase alphanumerics are allowed.',
+				),
+		)
 	})
 
 	it('cannot be created with a description being too long', () => {
@@ -141,6 +178,13 @@ describe('fixedSupplyTransferrableTokensDefintionParticle', () => {
 			address: address,
 			supply: supply,
 		})
-		expect(fixedSupplyTokDefPartResult.isErr()).toBe(true)
+
+		fixedSupplyTokDefPartResult.match(
+			(r) => fail('expected error, but got none'),
+			(f) =>
+				expect(f.message).toBe(
+					'Bad length of token description, should be less than 200, but was 212.',
+				),
+		)
 	})
 })
