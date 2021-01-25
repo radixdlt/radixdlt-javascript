@@ -10,10 +10,19 @@ import {
 
 import { UInt256 } from '@radixdlt/uint256'
 
-const signatureFromHexStrings = (input: {
+// TODO CODE DUPLICATION! Move to shared testing only package.
+export const signatureFromHexStrings = (input: {
 	r: string
 	s: string
-}): Signature => ({ r: new UInt256(input.r, 16), s: new UInt256(input.s, 16) })
+}): Signature => {
+	const r = new UInt256(input.r, 16)
+	const s = new UInt256(input.s, 16)
+	return {
+		r,
+		s,
+		equals: (other: Signature): boolean => r.eq(other.r) && s.eq(other.s),
+	}
+}
 
 describe('elliptic curve cryptography', () => {
 	it('knows the order of secp256l1', () => {

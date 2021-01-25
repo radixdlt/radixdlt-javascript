@@ -23,6 +23,7 @@ export type UnsignedMessage = Readonly<{
 export type Signature = Readonly<{
 	r: UInt256
 	s: UInt256
+	equals: (other: Signature) => boolean
 }>
 
 export type PublicKey = Readonly<{

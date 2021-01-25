@@ -15,7 +15,7 @@ import {
 import {
 	transferrableTokensParticleFromUnsafe,
 	unallocatedTokensParticleFromUnsafe,
-} from './utility'
+} from './helpers/utility'
 import { TransferrableTokensParticleType } from '../src/radixParticleTypes'
 import { isTransferrableTokensParticle } from '../src/transferrableTokensParticle'
 import { isUnallocatedTokensParticle } from '../src/unallocatedTokensParticle'

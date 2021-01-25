@@ -23,8 +23,14 @@ export const signDataWithPrivateKey = (
 	return combine([
 		uint256FromBN(ellipticSignature.r),
 		uint256FromBN(ellipticSignature.s),
-	]).map((resultList) => ({
-		r: resultList[0],
-		s: resultList[1],
-	}))
+	]).map((resultList) => {
+		const r = resultList[0]
+		const s = resultList[1]
+		return {
+			r,
+			s,
+			equals: (other: Signature): boolean =>
+				r.eq(other.r) && s.eq(other.s),
+		}
+	})
 }

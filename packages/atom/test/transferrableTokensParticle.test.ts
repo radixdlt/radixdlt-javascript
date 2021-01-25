@@ -10,7 +10,7 @@ import {
 import { UInt256 } from '@radixdlt/uint256'
 import { resourceIdentifierFromAddressAndName } from '../src/resourceIdentifier'
 import { transferrableTokensParticle } from '../src/transferrableTokensParticle'
-import { transferrableTokensParticleFromUnsafe } from './utility'
+import { transferrableTokensParticleFromUnsafe } from './helpers/utility'
 
 describe('transferrableTokensParticle', () => {
 	it('can be safely created from safe type', async () => {

@@ -9,6 +9,9 @@ import {
 	SpunParticleBase,
 	UpParticle,
 } from './_types'
+
+import { isSpin } from './spin'
+
 import { err, ok, Result } from 'neverthrow'
 
 /* eslint-disable max-params */
@@ -197,4 +200,24 @@ export const asDownParticle = <P extends ParticleBase>(
 		return err(new Error('Particle does not have spin DOWN.'))
 	}
 	return ok(downParticle(spunParticle.particle))
+}
+
+const isParticleBase = (something: unknown): something is ParticleBase => {
+	const inspection = something as ParticleBase
+	return inspection.equals !== undefined
+}
+
+// eslint-disable-next-line complexity
+export const isAnySpunParticle = (
+	something: unknown,
+): something is AnySpunParticle => {
+	const inspection = something as AnySpunParticle
+	return (
+		inspection.spin !== undefined &&
+		isSpin(inspection.spin) &&
+		inspection.particle !== undefined &&
+		isParticleBase(inspection.particle) &&
+		inspection.equals !== undefined &&
+		inspection.downedAsAny() !== undefined
+	)
 }
