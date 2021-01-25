@@ -49,6 +49,7 @@ export type TokenPermissions = /* DSONCodable */ Readonly<{
 	permissions: ReadonlyMap<TokenTransition, TokenPermission>
 	canBeMinted: (isOwnerOfToken: IsOwnerOfToken) => boolean
 	canBeBurned: (isOwnerOfToken: IsOwnerOfToken) => boolean
+	mintPermission: TokenPermission
 	equals: (other: TokenPermissions) => boolean
 }>
 
@@ -106,7 +107,7 @@ export type FixedSupplyTokenDefinitionParticle = TokenDefinitionParticleBase &
 		fixedTokenSupply: Supply
 	}>
 
-export type MutableTokenDefinitionParticle = TokenDefinitionParticleBase &
+export type MutableSupplyTokenDefinitionParticle = TokenDefinitionParticleBase &
 	Readonly<{
 		permissions: TokenPermissions
 	}>

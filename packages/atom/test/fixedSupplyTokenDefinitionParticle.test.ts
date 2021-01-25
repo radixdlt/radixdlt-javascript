@@ -1,19 +1,9 @@
-import {
-	Address,
-	addressFromBase58String,
-	addressFromPublicKeyAndMagicByte,
-	generatePrivateKey,
-} from '@radixdlt/crypto'
-import {
-	amountInSmallestDenomination,
-	Denomination,
-	positiveAmountFromUnsafe,
-} from '@radixdlt/primitives'
+import { amountInSmallestDenomination } from '@radixdlt/primitives'
 import { fixedSupplyTokenDefinitionParticle } from '../src/fixedSupplyTokenDefinitionParticle'
 import { toAddress } from './helpers/utility'
 import { UInt256 } from '@radixdlt/uint256'
 
-describe('fixedSupplyTransferrableTokensDefintionParticle', () => {
+describe('fixedSupplyTokenDefinitionParticle', () => {
 	const address = toAddress(
 		'9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
 	)
