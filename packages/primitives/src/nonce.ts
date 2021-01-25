@@ -13,7 +13,10 @@ export const randomInt64 = (
 
 export const nonce = (value: Int64 | number): Nonce => {
 	const int64 = Long.isLong(value) ? value : Long.fromNumber(value)
-	return { value: int64 }
+	return {
+		value: int64,
+		equals: (other: Nonce): boolean => other.value.equals(int64),
+	}
 }
 
 export const randomNonce = (

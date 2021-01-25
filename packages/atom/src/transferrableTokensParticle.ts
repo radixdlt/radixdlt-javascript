@@ -2,13 +2,18 @@ import { Granularity, PositiveAmount, randomNonce } from '@radixdlt/primitives'
 
 import { Address } from '@radixdlt/crypto'
 import {
+	ParticleBase,
 	ResourceIdentifier,
 	TokenPermissions,
 	TransferrableTokensParticle,
 } from './_types'
 
-import { Result, err, ok } from 'neverthrow'
+import { err, ok, Result } from 'neverthrow'
 import { tokenPermissionsAll } from './tokenPermissions'
+import {
+	RadixParticleType,
+	TransferrableTokensParticleType,
+} from './radixParticleTypes'
 
 export type TransferrableTokensParticleInput = Readonly<{
 	address: Address
@@ -27,13 +32,52 @@ export const transferrableTokensParticle = (
 
 	const nonce = randomNonce()
 
+	const address = input.address
+	const tokenDefinitionReference = input.tokenDefinitionReference
+	const granularity = input.granularity
+	const amount = input.amount
+	const permissions = input.permissions ?? tokenPermissionsAll
+
 	return ok({
-		particleType: 'TransferrableTokensParticle',
-		address: input.address,
-		tokenDefinitionReference: input.tokenDefinitionReference,
-		granularity: input.granularity,
+		radixParticleType: TransferrableTokensParticleType,
+		address,
+		tokenDefinitionReference,
+		granularity,
 		nonce,
-		amount: input.amount,
-		permissions: input.permissions ?? tokenPermissionsAll,
+		amount,
+		permissions,
+		// eslint-disable-next-line complexity
+		equals: (otherParticle: ParticleBase): boolean => {
+			if (!isTransferrableTokensParticle(otherParticle)) return false
+			const otherTTP = otherParticle
+
+			return (
+				otherTTP.address.equals(address) &&
+				otherTTP.tokenDefinitionReference.equals(
+					tokenDefinitionReference,
+				) &&
+				otherTTP.granularity.equals(granularity) &&
+				otherTTP.nonce.equals(nonce) &&
+				otherTTP.amount.equals(amount) &&
+				otherTTP.permissions.equals(permissions)
+			)
+		},
 	})
+}
+// eslint-disable-next-line complexity
+export const isTransferrableTokensParticle = (
+	something: unknown,
+): something is TransferrableTokensParticle => {
+	const inspection = something as TransferrableTokensParticle
+	return (
+		inspection.radixParticleType ===
+			RadixParticleType.TRANSFERRABLE_TOKENS &&
+		inspection.address !== undefined &&
+		inspection.tokenDefinitionReference !== undefined &&
+		inspection.granularity !== undefined &&
+		inspection.nonce !== undefined &&
+		inspection.amount !== undefined &&
+		inspection.permissions !== undefined &&
+		inspection.equals !== undefined
+	)
 }

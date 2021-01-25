@@ -5,6 +5,8 @@ import {
 	TokenTransition,
 } from './_types'
 
+import { mapEquals } from '@radixdlt/util'
+
 export const makeTokenPermissions = (
 	permissions: ReadonlyMap<TokenTransition, TokenPermission>,
 ): TokenPermissions => {
@@ -41,10 +43,14 @@ export const makeTokenPermissions = (
 	const burnPermission = valueOfRequiredPermission(TokenTransition.BURN)
 
 	return {
+		permissions,
 		canBeMinted: (isOwnerOfToken: IsOwnerOfToken): boolean =>
 			check({ permission: mintPermission, isOwnerOfToken }),
 		canBeBurned: (isOwnerOfToken: IsOwnerOfToken): boolean =>
 			check({ permission: burnPermission, isOwnerOfToken }),
+
+		equals: (other: TokenPermissions): boolean =>
+			mapEquals(permissions, other.permissions),
 	}
 }
 

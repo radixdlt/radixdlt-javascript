@@ -27,7 +27,7 @@ describe('ResourceIdentifier (RRI)', () => {
 		expect(rriFromString.address)
 	})
 
-	it('shuold consider two RRIs with same address and name letters but different case as inequal', () => {
+	it('should consider two RRIs with same address and name letters but different case as inequal', () => {
 		const rriLowercase = resourceIdentifierFromString(
 			'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/case',
 		)._unsafeUnwrap()
