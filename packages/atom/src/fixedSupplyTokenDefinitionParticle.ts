@@ -10,6 +10,7 @@ import { RadixParticleType } from './radixParticleTypes'
 import {
 	TokenDefinitionParticleInput,
 	baseTokenDefinitionParticle,
+	isTokenDefinitionParticleBase,
 } from './tokenDefinitionParticleBase'
 
 export const fixedSupplyTokenDefinitionParticle = (
@@ -64,18 +65,14 @@ export const fixedSupplyTokenDefinitionParticle = (
 	)
 }
 
-// eslint-disable-next-line complexity
 export const isFixedTokenDefinitionParticle = (
 	something: unknown,
 ): something is FixedSupplyTokenDefinitionParticle => {
+	if (!isTokenDefinitionParticleBase(something)) return false
 	const inspection = something as FixedSupplyTokenDefinitionParticle
 	return (
 		inspection.radixParticleType ===
 			RadixParticleType.FIXED_SUPPLY_TOKEN_DEFINITION &&
-		inspection.resourceIdentifier !== undefined &&
-		inspection.granularity !== undefined &&
-		inspection.name !== undefined &&
-		inspection.equals !== undefined &&
 		inspection.fixedTokenSupply !== undefined
 	)
 }

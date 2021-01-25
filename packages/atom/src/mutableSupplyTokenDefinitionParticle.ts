@@ -9,6 +9,7 @@ import { Result, err, ok } from 'neverthrow'
 import { RadixParticleType } from './radixParticleTypes'
 import {
 	baseTokenDefinitionParticle,
+	isTokenDefinitionParticleBase,
 	TokenDefinitionParticleInput,
 } from './tokenDefinitionParticleBase'
 import { tokenOwnerOnly } from './tokenPermissions'
@@ -64,18 +65,14 @@ export const mutableSupplyTokenDefinitionParticle = (
 	})
 }
 
-// eslint-disable-next-line complexity
 export const isMutableTokenDefinitionParticle = (
 	something: unknown,
 ): something is MutableSupplyTokenDefinitionParticle => {
+	if (!isTokenDefinitionParticleBase(something)) return false
 	const inspection = something as MutableSupplyTokenDefinitionParticle
 	return (
 		inspection.radixParticleType ===
 			RadixParticleType.FIXED_SUPPLY_TOKEN_DEFINITION &&
-		inspection.resourceIdentifier !== undefined &&
-		inspection.granularity !== undefined &&
-		inspection.name !== undefined &&
-		inspection.equals !== undefined &&
 		inspection.permissions !== undefined
 	)
 }

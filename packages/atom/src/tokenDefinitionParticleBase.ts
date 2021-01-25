@@ -162,3 +162,17 @@ export const baseTokenDefinitionParticle = (
 		},
 	)
 }
+
+// eslint-disable-next-line complexity
+export const isTokenDefinitionParticleBase = (
+	something: unknown,
+): something is TokenDefinitionParticleBase => {
+	const inspection = something as TokenDefinitionParticleBase
+	return (
+		inspection.radixParticleType !== undefined &&
+		inspection.resourceIdentifier !== undefined &&
+		inspection.granularity !== undefined &&
+		inspection.name !== undefined &&
+		inspection.equals !== undefined
+	)
+}
