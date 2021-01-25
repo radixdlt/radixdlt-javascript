@@ -160,3 +160,41 @@ export type SpunParticles = Readonly<{
 		spin?: Spin,
 	) => SpunParticle<UnallocatedTokensParticle>[]
 }>
+
+export type Particle = {
+	equals: (other: any) => boolean
+	nonce: Nonce
+	tokenDefinitionReference: ResourceIdentifier
+}
+
+export type TokenParticle = Particle & {
+	granularity: Granularity
+	amount: Supply
+	permissions: TokenPermissions
+}
+
+/*
+
+export type TransferrableTokensParticle =  TokenParticle &
+	Readonly<{
+		address: Address
+	}>
+
+export type UnallocatedTokensParticle =  TokenParticle &
+	Readonly<{
+	}>
+
+export type ResourceIdentifierParticle =  Particle &
+	Readonly<{
+	}>
+
+export enum Spin {
+
+	UP = 1,
+	DOWN = -1,
+}
+
+export type SpunParticle = Particle & Readonly<{
+	spin: Spin,
+}>
+*/
