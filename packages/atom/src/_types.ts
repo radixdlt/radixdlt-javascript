@@ -49,6 +49,7 @@ export type TokenPermissions = /* DSONCodable */ Readonly<{
 	permissions: ReadonlyMap<TokenTransition, TokenPermission>
 	canBeMinted: (isOwnerOfToken: IsOwnerOfToken) => boolean
 	canBeBurned: (isOwnerOfToken: IsOwnerOfToken) => boolean
+	mintPermission: TokenPermission
 	equals: (other: TokenPermissions) => boolean
 }>
 
@@ -89,6 +90,26 @@ export type ResourceIdentifierParticle = /* DSONCodable */ RadixParticle &
 		radixParticleType: RadixParticleType
 		alwaysZeroNonce: Nonce
 		resourceIdentifier: ResourceIdentifier
+	}>
+
+export type TokenDefinitionParticleBase = /* DSONCodable */ RadixParticle &
+	Readonly<{
+		name: string
+		description?: string
+		resourceIdentifier: ResourceIdentifier
+		granularity: Granularity
+		url?: URL
+		iconURL?: URL
+	}>
+
+export type FixedSupplyTokenDefinitionParticle = TokenDefinitionParticleBase &
+	Readonly<{
+		fixedTokenSupply: Supply
+	}>
+
+export type MutableSupplyTokenDefinitionParticle = TokenDefinitionParticleBase &
+	Readonly<{
+		permissions: TokenPermissions
 	}>
 
 export enum Spin {

@@ -29,6 +29,6 @@
     "node": ">=15.5.0 <16"
   },
   "dependencies": {
-    "neverthrow": "^3.2.0"
+    "neverthrow": "^4.0.1"
   }
 }

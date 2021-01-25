@@ -44,6 +44,7 @@ export const makeTokenPermissions = (
 
 	return {
 		permissions,
+		mintPermission,
 		canBeMinted: (isOwnerOfToken: IsOwnerOfToken): boolean =>
 			check({ permission: mintPermission, isOwnerOfToken }),
 		canBeBurned: (isOwnerOfToken: IsOwnerOfToken): boolean =>
