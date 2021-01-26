@@ -1,4 +1,4 @@
-import { firstByteOfNumber } from './byte'
+import { firstByteOfNumber } from '@radixdlt/util'
 import { Magic } from './_types'
 
 export const magicFromNumber = (number: number): Magic => {

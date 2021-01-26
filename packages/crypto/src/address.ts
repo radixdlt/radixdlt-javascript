@@ -1,16 +1,15 @@
 import { Address, PublicKey } from './_types'
 import { publicKeyFromBytes } from './publicKey'
 import { radixHash } from './algorithms'
-import {
-	Magic,
-	Byte,
-	byteToBuffer,
-	firstByteFromBuffer,
-} from '@radixdlt/primitives'
+import { Magic } from '@radixdlt/primitives'
+import { Byte, byteToBuffer, firstByteFromBuffer } from '@radixdlt/util'
 import { Result, ok, err } from 'neverthrow'
 import { base58Encode, base58Decode } from './wrap/baseConversion'
+import { addObjectEncoding } from '@radixdlt/dson'
 
 const checksumByteCount = 4
+
+export const CBOR_BYTESTRING_PREFIX: Byte = 4
 
 export const addressFromPublicKeyAndMagic = (
 	input: Readonly<{
@@ -28,15 +27,22 @@ export const addressFromPublicKeyAndMagicByte = (
 		publicKey: PublicKey
 		magicByte: Byte
 	}>,
-): Address => ({
-	publicKey: input.publicKey,
-	magicByte: input.magicByte,
-	toString: (): string =>
-		base58Encode(calculateAndAppendChecksumFromPubKeyAndMagic(input)),
-	equals: (other) =>
-		input.magicByte === other.magicByte &&
-		input.publicKey.equals(other.publicKey),
-})
+): Address => {
+	const buffer = calculateAndAppendChecksumFromPubKeyAndMagic(input)
+
+	return {
+		...addObjectEncoding({
+			prefix: CBOR_BYTESTRING_PREFIX,
+			buffer,
+		}),
+		publicKey: input.publicKey,
+		magicByte: input.magicByte,
+		toString: (): string => base58Encode(buffer),
+		equals: (other) =>
+			input.magicByte === other.magicByte &&
+			input.publicKey.equals(other.publicKey),
+	}
+}
 
 export const addressFromBase58String = (
 	b58String: string,
@@ -73,6 +79,7 @@ const addressFromBuffer = (buffer: Buffer): Result<Address, Error> => {
 		),
 	).andThen((publicKey: PublicKey) =>
 		ok({
+			...addObjectEncoding({ prefix: CBOR_BYTESTRING_PREFIX, buffer }),
 			publicKey,
 			magicByte,
 			toString: (): string => base58Encode(checksummedAddress),

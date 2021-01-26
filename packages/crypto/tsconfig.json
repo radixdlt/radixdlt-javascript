@@ -8,6 +8,7 @@
     "src"
   ],
   "references": [
-    {"path": "../primitives"}
+    {"path": "../primitives"},
+    {"path": "../dson"},
   ]
 }

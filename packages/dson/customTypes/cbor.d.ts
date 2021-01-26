@@ -1,14 +1,21 @@
 declare module 'cbor' {
+	import { CBOREncodableObject, CBOREncodablePrimitive } from '../src/_types'
+
 	type Encoder = {
 		new (options: EncoderOptions): CBOREncoder
 	}
 	type EncoderOptions = {
 		highWaterMark: number
+		collapseBigIntegers: boolean
 	}
 	type CBOREncoder = {
 		_encodeAll: (
 			data: (CBOREncodablePrimitive | CBOREncodableObject)[],
 		) => Buffer
+		addSemanticType: (
+			type: any,
+			fn: (encoder: CBOREncoder, obj: any) => boolean,
+		) => undefined
 		pushAny: (
 			any:
 				| CBOREncodablePrimitive
@@ -17,9 +24,5 @@ declare module 'cbor' {
 		) => boolean
 		push: (chunk: Buffer) => boolean
 	}
-	type CBOREncodableObject = Readonly<{
-		encodeCBOR: (encoder: CBOREncoder) => boolean
-	}>
-	type CBOREncodablePrimitive = string | number | boolean | Buffer
 	export const Encoder: Encoder
 }

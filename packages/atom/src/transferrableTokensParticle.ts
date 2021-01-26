@@ -1,4 +1,9 @@
-import { Granularity, PositiveAmount, randomNonce } from '@radixdlt/primitives'
+import {
+	Granularity,
+	Nonce,
+	PositiveAmount,
+	randomNonce,
+} from '@radixdlt/primitives'
 
 import { Address } from '@radixdlt/crypto'
 import {
@@ -14,6 +19,7 @@ import {
 	RadixParticleType,
 	TransferrableTokensParticleType,
 } from './radixParticleTypes'
+import { DSONEncoding, DSONKeyValue, DSONPrimitive } from '@radixdlt/dson'
 
 export type TransferrableTokensParticleInput = Readonly<{
 	address: Address
@@ -21,6 +27,7 @@ export type TransferrableTokensParticleInput = Readonly<{
 	amount: PositiveAmount
 	granularity: Granularity
 	permissions?: TokenPermissions
+	nonce?: Nonce // Only used for testing
 }>
 
 export const transferrableTokensParticle = (
@@ -30,15 +37,45 @@ export const transferrableTokensParticle = (
 		return err(new Error('Amount not multiple of granularity'))
 	}
 
-	const nonce = randomNonce()
-
+	const nonce = input.nonce ?? randomNonce()
 	const address = input.address
 	const tokenDefinitionReference = input.tokenDefinitionReference
 	const granularity = input.granularity
 	const amount = input.amount
 	const permissions = input.permissions ?? tokenPermissionsAll
 
+	const dsonKeyValues: DSONKeyValue[] = [
+		{
+			key: 'address',
+			value: address,
+		},
+		{
+			key: 'tokenDefinitionReference',
+			value: tokenDefinitionReference,
+		},
+		{
+			key: 'granularity',
+			value: granularity,
+		},
+		{
+			key: 'amount',
+			value: amount,
+		},
+		{
+			key: 'nonce',
+			value: nonce,
+		},
+		{
+			key: 'permissions',
+			value: permissions,
+		},
+	]
+
 	return ok({
+		...DSONEncoding({
+			serializer: 'radix.particles.transferrable_tokens',
+			encodingMethodOrKeyValues: dsonKeyValues,
+		}),
 		radixParticleType: TransferrableTokensParticleType,
 		address,
 		tokenDefinitionReference,
@@ -64,6 +101,7 @@ export const transferrableTokensParticle = (
 		},
 	})
 }
+
 // eslint-disable-next-line complexity
 export const isTransferrableTokensParticle = (
 	something: unknown,

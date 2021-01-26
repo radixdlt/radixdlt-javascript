@@ -2,7 +2,7 @@ import { combine, err, ok, Result } from 'neverthrow'
 import { Address } from '@radixdlt/crypto'
 import { Granularity } from '@radixdlt/primitives'
 import { ParticleBase, TokenDefinitionParticleBase } from './_types'
-import { granularityDefault } from '@radixdlt/primitives/dist/granularity'
+import { granularityDefault } from '@radixdlt/primitives'
 import { resourceIdentifierFromAddressAndName } from './resourceIdentifier'
 import { RadixParticleType } from './radixParticleTypes'
 

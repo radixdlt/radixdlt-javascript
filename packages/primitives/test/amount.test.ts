@@ -1,3 +1,5 @@
+import { UInt256 } from '@radixdlt/uint256'
+import { amountFromUInt256 } from '../src/amount'
 import {
 	Amount,
 	amountFromUnsafe,
@@ -75,5 +77,31 @@ describe('Amount', () => {
 	it('can check for multiples', () => {
 		expect(four.isMultipleOf(two)).toBe(true)
 		expect(four.isMultipleOf(three)).toBe(false)
+	})
+
+	it('should be able to DSON encode amount in denomination whole', () => {
+		const amount = amountFromUInt256({
+			magnitude: UInt256.valueOf(6),
+			denomination: Denomination.Whole,
+		})._unsafeUnwrap()
+
+		const expected =
+			'58210500000000000000000000000000000000000000000000000053444835ec580000'
+		const dson = amount.toDSON()._unsafeUnwrap()
+
+		expect(dson.toString('hex')).toBe(expected)
+	})
+
+	it('should be able to DSON encode amount in denomination atto', () => {
+		const amount = amountFromUInt256({
+			magnitude: UInt256.valueOf(7),
+			denomination: Denomination.Atto,
+		})._unsafeUnwrap()
+
+		const expected =
+			'5821050000000000000000000000000000000000000000000000000000000000000007'
+		const dson = amount.toDSON()._unsafeUnwrap()
+
+		expect(dson.toString('hex')).toBe(expected)
 	})
 })

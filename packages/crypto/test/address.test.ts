@@ -8,6 +8,7 @@ import {
 
 import { magicFromNumber } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
+import { OutputMode } from '@radixdlt/dson'
 
 // TODO CODE DUPLICATION remove to separate test package...
 export const toAddress = (b58: string): Address =>
@@ -58,5 +59,16 @@ describe('Address', () => {
 		)
 		expect(alice.magicByte).toBe(bob.magicByte)
 		expect(alice.equals(bob)).toBe(false)
+	})
+
+	it('should be able to DSON encode', () => {
+		const address = toAddress(
+			'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+		)
+		const dson = address.toDSON(OutputMode.ALL)._unsafeUnwrap()
+
+		expect(dson.toString('hex')).toBe(
+			'582704390279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798b1186a1e',
+		)
 	})
 })

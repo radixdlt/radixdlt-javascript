@@ -9,5 +9,7 @@
     "src",
     "customTypes"
   ],
-  "references": []
+  "references": [
+    {"path": "../util"},
+  ]
 }

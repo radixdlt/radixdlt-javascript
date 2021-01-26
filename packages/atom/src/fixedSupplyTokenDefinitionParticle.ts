@@ -4,7 +4,7 @@ import {
 	Supply,
 	TokenDefinitionParticleBase,
 } from './_types'
-import { granularityDefault } from '@radixdlt/primitives/dist/granularity'
+import { granularityDefault } from '@radixdlt/primitives'
 import { Result, err } from 'neverthrow'
 import { RadixParticleType } from './radixParticleTypes'
 import {
@@ -32,6 +32,7 @@ export const fixedSupplyTokenDefinitionParticle = (
 
 	return baseTokenDefinitionParticle({
 		...input,
+		granularity: granularity,
 		// eslint-disable-next-line complexity
 		makeEquals: (
 			thisParticle: TokenDefinitionParticleBase,

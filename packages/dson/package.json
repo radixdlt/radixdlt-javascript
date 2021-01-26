@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "cbor": "^5.2.0",
-    "neverthrow": "^4.0.1"
+    "neverthrow": "^4.0.1",
+    "@radixdlt/util": "^0.0.0"
   }
 }
