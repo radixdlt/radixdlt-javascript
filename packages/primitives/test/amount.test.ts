@@ -1,3 +1,5 @@
+import { UInt256 } from '@radixdlt/uint256'
+import { amountFromUInt256, amountInSmallestDenomination } from '../dist/amount'
 import {
 	Amount,
 	amountFromUnsafe,
@@ -75,5 +77,17 @@ describe('Amount', () => {
 	it('can check for multiples', () => {
 		expect(four.isMultipleOf(two)).toBe(true)
 		expect(four.isMultipleOf(three)).toBe(false)
+	})
+
+	it('should be able to DSON encode', () => {
+		console.log('in the test')
+		const amount = amountFromUInt256({
+			magnitude: UInt256.valueOf(6),
+			denomination: Denomination.Whole
+		})._unsafeUnwrap()
+		const expected = "58210500000000000000000000000000000000000000000000000053444835ec580000"
+		const dson = amount.toDSON()._unsafeUnwrap()
+
+		expect(dson.toString('hex')).toBe(expected)
 	})
 })

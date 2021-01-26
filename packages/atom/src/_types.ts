@@ -1,4 +1,5 @@
 import { Address, Signature } from '@radixdlt/crypto'
+import { DSONCodable } from '@radixdlt/dson'
 import {
 	Amount,
 	Granularity,
@@ -14,7 +15,7 @@ import { RadixParticleType } from './radixParticleTypes'
  * On format: `/:address/:name`, e.g.
  * `"/JH1P8f3znbyrDj8F4RWpix7hRkgxqHjdW2fNnKpR3v6ufXnknor/XRD"`
  */
-export type ResourceIdentifier = /* DSONCoable */ Readonly<{
+export type ResourceIdentifier = DSONCodable & Readonly<{
 	address: Address
 	name: string
 	toString: () => string
@@ -62,7 +63,7 @@ export type RadixParticle = ParticleBase &
 		radixParticleType: RadixParticleType
 	}>
 
-export type TransferrableTokensParticle = /* DSONCoable */ RadixParticle &
+export type TransferrableTokensParticle = RadixParticle &
 	Readonly<{
 		radixParticleType: RadixParticleType
 		// The recipient address of the tokens to be transffered
@@ -85,7 +86,7 @@ export type UnallocatedTokensParticle = /* DSONCoable */ RadixParticle &
 		permissions: TokenPermissions
 	}>
 
-export type ResourceIdentifierParticle = /* DSONCodable */ RadixParticle &
+export type ResourceIdentifierParticle = /* DSON */RadixParticle &
 	Readonly<{
 		radixParticleType: RadixParticleType
 		alwaysZeroNonce: Nonce

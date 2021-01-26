@@ -1,4 +1,5 @@
-import { Byte } from '@radixdlt/primitives'
+import { DSONCodable } from '@radixdlt/dson'
+import { Byte } from '@radixdlt/util'
 import { UInt256 } from '@radixdlt/uint256'
 
 import { ResultAsync } from 'neverthrow'
@@ -46,7 +47,7 @@ export type PrivateKey = Signer &
 		toString: () => string
 	}
 
-export type Address = Readonly<{
+export type Address = DSONCodable & Readonly<{
 	publicKey: PublicKey
 	magicByte: Byte
 	toString: () => string

@@ -10,6 +10,10 @@ import {
 	isUnsafeInputForUInt256,
 	uint256Max,
 } from './uint256-extensions'
+import { addObjectEncoding } from '@radixdlt/dson'
+import { Byte } from '@radixdlt/util'
+
+export const CBOR_BYTESTRING_PREFIX: Byte = 5
 
 /* eslint-disable max-params */
 export const amountInSmallestDenomination = (magnitude: UInt256): Amount => {
@@ -27,8 +31,14 @@ export const amountInSmallestDenomination = (magnitude: UInt256): Amount => {
 			}))
 			.andThen(amountFromUInt256)
 	}
+	
+	const buffer = Buffer.alloc(32)
+	const buf = Buffer.from(magnitude.toString(16), 'hex')
+	console.log(buf)
+	buf.copy(buffer)
 
 	return {
+		...addObjectEncoding(CBOR_BYTESTRING_PREFIX, buffer),
 		magnitude: magnitude,
 		isMultipleOf: (other: Amount) =>
 			magnitude.mod(other.magnitude, false).eq(UInt256.valueOf(0)),
