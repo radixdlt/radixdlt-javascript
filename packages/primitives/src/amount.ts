@@ -31,18 +31,18 @@ export const amountInSmallestDenomination = (magnitude: UInt256): Amount => {
 			}))
 			.andThen(amountFromUInt256)
 	}
-	
-	const buffer = Buffer.alloc(32)
-	const buf = Buffer.from(magnitude.toString(16), 'hex')
-	console.log(buf)
-	buf.copy(buffer)
+
+	const buffer = bnFromUInt256(magnitude).toBuffer('be', 32)
 
 	return {
-		...addObjectEncoding(CBOR_BYTESTRING_PREFIX, buffer),
+		...addObjectEncoding({
+			prefix: CBOR_BYTESTRING_PREFIX,
+			buffer,
+		}),
 		magnitude: magnitude,
 		isMultipleOf: (other: Amount) =>
 			magnitude.mod(other.magnitude, false).eq(UInt256.valueOf(0)),
-		toString: () => magnitude.toString(10),
+		toString: (radix?: number) => magnitude.toString(radix ?? 10),
 		equals: (other: Amount) => magnitude.eq(other.magnitude),
 		greaterThan: (other: Amount) => magnitude.gt(other.magnitude),
 		lessThan: (other: Amount) => magnitude.lt(other.magnitude),

@@ -62,9 +62,13 @@ describe('Address', () => {
 	})
 
 	it('should be able to DSON encode', () => {
-		const address = toAddress('9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT')
+		const address = toAddress(
+			'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+		)
 		const dson = address.toDSON(OutputMode.ALL)._unsafeUnwrap()
-		
-		expect(dson.toString('hex')).toBe('582704390279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798b1186a1e')
+
+		expect(dson.toString('hex')).toBe(
+			'582704390279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798b1186a1e',
+		)
 	})
 })

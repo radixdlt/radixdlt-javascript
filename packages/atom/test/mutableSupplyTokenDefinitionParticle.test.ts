@@ -2,7 +2,7 @@ import { toAddress } from './helpers/utility'
 import { amountInSmallestDenomination } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import { mutableSupplyTokenDefinitionParticle } from '../src/mutableSupplyTokenDefinitionParticle'
-import { tokenOwnerOnly } from '../dist/tokenPermissions'
+import { tokenOwnerOnly } from '../src/tokenPermissions'
 
 describe('mutableSupplyTokenDefinitionParticle', () => {
 	const address = toAddress(

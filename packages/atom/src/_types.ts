@@ -15,12 +15,13 @@ import { RadixParticleType } from './radixParticleTypes'
  * On format: `/:address/:name`, e.g.
  * `"/JH1P8f3znbyrDj8F4RWpix7hRkgxqHjdW2fNnKpR3v6ufXnknor/XRD"`
  */
-export type ResourceIdentifier = DSONCodable & Readonly<{
-	address: Address
-	name: string
-	toString: () => string
-	equals: (other: ResourceIdentifier) => boolean
-}>
+export type ResourceIdentifier = DSONCodable &
+	Readonly<{
+		address: Address
+		name: string
+		toString: () => string
+		equals: (other: ResourceIdentifier) => boolean
+	}>
 
 /**
  * An Atom Identifier, made up of 256 bits of a hash.
@@ -86,7 +87,7 @@ export type UnallocatedTokensParticle = /* DSONCoable */ RadixParticle &
 		permissions: TokenPermissions
 	}>
 
-export type ResourceIdentifierParticle = /* DSON */RadixParticle &
+export type ResourceIdentifierParticle = /* DSON */ RadixParticle &
 	Readonly<{
 		radixParticleType: RadixParticleType
 		alwaysZeroNonce: Nonce

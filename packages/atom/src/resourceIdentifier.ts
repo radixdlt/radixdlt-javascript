@@ -19,7 +19,10 @@ export const resourceIdentifierFromAddressAndName = (input: {
 	const identifier = ['', address.toString(), name].join(separator)
 
 	return {
-		...addObjectEncoding(CBOR_BYTESTRING_PREFIX, Buffer.from(identifier)),
+		...addObjectEncoding({
+			prefix: CBOR_BYTESTRING_PREFIX,
+			buffer: Buffer.from(identifier),
+		}),
 		address,
 		name,
 		toString: () => identifier,
@@ -38,7 +41,10 @@ export const resourceIdentifierFromString = (
 
 	return addressFromBase58String(components[1]).map(
 		(address): ResourceIdentifier => ({
-			...addObjectEncoding(CBOR_BYTESTRING_PREFIX, Buffer.from(identifierString)),
+			...addObjectEncoding({
+				prefix: CBOR_BYTESTRING_PREFIX,
+				buffer: Buffer.from(identifierString),
+			}),
 			address,
 			name,
 			toString: () => identifierString,

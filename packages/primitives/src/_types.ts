@@ -15,19 +15,20 @@ export type Magic = /* DSONCodable & */ Readonly<{
 	byte: Byte
 }>
 
-export type Amount = DSONCodable & Readonly<{
-	// Magnitude expressed in min denomination
-	magnitude: UInt256
-	isMultipleOf: (other: Amount) => boolean
-	toString: () => string
-	equals: (other: Amount) => boolean
-	greaterThan: (other: Amount) => boolean
-	lessThan: (other: Amount) => boolean
-	greaterThanOrEquals: (other: Amount) => boolean
-	lessThanOrEquals: (other: Amount) => boolean
-	adding: (other: Amount) => Result<Amount, Error>
-	subtracting: (other: Amount) => Result<Amount, Error>
-}>
+export type Amount = DSONCodable &
+	Readonly<{
+		// Magnitude expressed in min denomination
+		magnitude: UInt256
+		isMultipleOf: (other: Amount) => boolean
+		toString: (radix?: number) => string
+		equals: (other: Amount) => boolean
+		greaterThan: (other: Amount) => boolean
+		lessThan: (other: Amount) => boolean
+		greaterThanOrEquals: (other: Amount) => boolean
+		lessThanOrEquals: (other: Amount) => boolean
+		adding: (other: Amount) => Result<Amount, Error>
+		subtracting: (other: Amount) => Result<Amount, Error>
+	}>
 
 export type Granularity = Amount
 

@@ -47,9 +47,10 @@ export type PrivateKey = Signer &
 		toString: () => string
 	}
 
-export type Address = DSONCodable & Readonly<{
-	publicKey: PublicKey
-	magicByte: Byte
-	toString: () => string
-	equals: (other: Address) => boolean
-}>
+export type Address = DSONCodable &
+	Readonly<{
+		publicKey: PublicKey
+		magicByte: Byte
+		toString: () => string
+		equals: (other: Address) => boolean
+	}>
