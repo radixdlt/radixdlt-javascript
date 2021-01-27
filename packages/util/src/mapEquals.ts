@@ -1,16 +1,19 @@
 /* eslint-disable */
-export const mapEquals = <K, V>(
-	lhs: ReadonlyMap<K, V>,
-	rhs: ReadonlyMap<K, V>,
+export const mapEquals = <K extends symbol, V>(
+	lhs: Readonly<{ [key in K]: V }>,
+	rhs: Readonly<{ [key in K]: V }>,
 ): boolean => {
-	if (lhs.size !== rhs.size) return false
-	let testVal
+	if (Object.keys(lhs).length !== Object.keys(rhs).length) return false
 
-	for (const [key, val] of lhs) {
-		testVal = rhs.get(key)
+	let testVal: V
+
+	for (const key of Object.keys(lhs)) {
+		// @ts-ignore
+		testVal = rhs[key]
 		// in cases of an undefined value, make sure the key
 		// actually exists on the object so there are no false positives
-		if (testVal !== val || (testVal === undefined && !rhs.has(key))) {
+		// @ts-ignore
+		if (testVal !== lhs[key] || (testVal === undefined && !(key in rhs))) {
 			return false
 		}
 	}
