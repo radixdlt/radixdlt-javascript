@@ -18,8 +18,6 @@ export type DSONKeyValue = Readonly<{
 	outputMode?: OutputMode
 }>
 
-export type CBOREncodablePrimitive = string | number | boolean | Buffer
-
 export enum OutputMode {
 	NONE = 0,
 	HASH = 1 << 0,

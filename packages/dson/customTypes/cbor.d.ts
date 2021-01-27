@@ -1,9 +1,12 @@
+import { CBOREncodablePrimitive } from './cborEncodablePrimitive'
+
 declare module 'cbor' {
 	type Encoder = {
 		new (options: EncoderOptions): CBOREncoder
 	}
 	type EncoderOptions = {
 		highWaterMark: number
+		collapseBigIntegers: boolean
 	}
 	type CBOREncoder = {
 		_encodeAll: (
@@ -20,6 +23,6 @@ declare module 'cbor' {
 	type CBOREncodableObject = Readonly<{
 		encodeCBOR: (encoder: CBOREncoder) => boolean
 	}>
-	type CBOREncodablePrimitive = string | number | boolean | Buffer
+
 	export const Encoder: Encoder
 }

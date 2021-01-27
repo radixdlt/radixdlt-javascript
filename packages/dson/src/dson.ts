@@ -1,8 +1,7 @@
 // @ts-ignore
-import cbor from 'cbor'
+import cbor, { CBOREncodablePrimitive } from 'cbor'
 import {
 	CBOREncodableObject,
-	CBOREncodablePrimitive,
 	DSONCodable,
 	DSONKeyValue,
 	OutputMode,
@@ -18,7 +17,10 @@ import { Result, err, ok } from 'neverthrow'
 export const encodeCbor = (
 	data: CBOREncodableObject,
 ): Result<Buffer, Error> => {
-	const encoder = new cbor.Encoder({ highWaterMark: 90000 })
+	const encoder = new cbor.Encoder({
+		highWaterMark: 90000,
+		collapseBigIntegers: true,
+	})
 
 	try {
 		const encoded = encoder._encodeAll([data])
