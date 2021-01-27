@@ -1,53 +1,63 @@
-import { Granularity, randomNonce } from '@radixdlt/primitives'
+import { randomNonce } from '@radixdlt/primitives'
 import { tokenPermissionsAll } from './tokenPermissions'
-import {
-	ParticleBase,
-	ResourceIdentifier,
-	Supply,
-	TokenPermissions,
-	UnallocatedTokensParticle,
-} from './_types'
+import { ParticleBase, Supply, UnallocatedTokensParticle } from './_types'
 import {
 	RadixParticleType,
 	UnallocatedTokensParticleType,
 } from './radixParticleTypes'
+import { DSONEncoding, DSONKeyValue } from '@radixdlt/dson'
+import {
+	encodableKeyValuesFromTokenParticleBase,
+	isTokenParticleBase,
+	tokenParticleBaseEquals,
+	TokensParticleBaseInput,
+} from './tokenParticleBase'
 
-export type UnallocatedTokensParticleInput = Readonly<{
-	tokenDefinitionReference: ResourceIdentifier
-	granularity: Granularity
-	amount: Supply
-	permissions?: TokenPermissions
-}>
+export type UnallocatedTokensParticleInput = TokensParticleBaseInput &
+	Readonly<{
+		amount: Supply
+	}>
 
 export const unallocatedTokensParticle = (
 	input: UnallocatedTokensParticleInput,
 ): UnallocatedTokensParticle => {
-	const nonce = randomNonce()
+	const nonce = input.nonce ?? randomNonce()
 	const tokenDefinitionReference = input.tokenDefinitionReference
 	const granularity = input.granularity
 	const amount = input.amount
 	const permissions = input.permissions ?? tokenPermissionsAll
 
-	return {
-		radixParticleType: UnallocatedTokensParticleType,
+	const tokenParticleBase = {
 		tokenDefinitionReference,
 		granularity,
 		nonce,
 		amount,
 		permissions,
+	}
+
+	const dsonKeyValues: DSONKeyValue[] = [
+		...encodableKeyValuesFromTokenParticleBase(tokenParticleBase),
+		{
+			key: 'amount',
+			value: amount,
+		},
+	]
+
+	return {
+		...DSONEncoding({
+			serializer: 'radix.particles.unallocated_tokens',
+			encodingMethodOrKeyValues: dsonKeyValues,
+		}),
+		radixParticleType: UnallocatedTokensParticleType,
+		...tokenParticleBase,
 		// eslint-disable-next-line complexity
 		equals: (otherParticle: ParticleBase): boolean => {
 			if (!isUnallocatedTokensParticle(otherParticle)) return false
 			const otherUATP = otherParticle
 
 			return (
-				otherUATP.tokenDefinitionReference.equals(
-					tokenDefinitionReference,
-				) &&
-				otherUATP.granularity.equals(granularity) &&
-				otherUATP.nonce.equals(nonce) &&
-				otherUATP.amount.equals(amount) &&
-				otherUATP.permissions.equals(permissions)
+				tokenParticleBaseEquals(tokenParticleBase, otherParticle) &&
+				otherUATP.amount.equals(amount)
 			)
 		},
 	}
@@ -57,14 +67,11 @@ export const unallocatedTokensParticle = (
 export const isUnallocatedTokensParticle = (
 	something: unknown,
 ): something is UnallocatedTokensParticle => {
+	if (!isTokenParticleBase(something)) return false
 	const inspection = something as UnallocatedTokensParticle
 	return (
 		inspection.radixParticleType === RadixParticleType.UNALLOCATED_TOKENS &&
-		inspection.tokenDefinitionReference !== undefined &&
-		inspection.granularity !== undefined &&
-		inspection.nonce !== undefined &&
 		inspection.amount !== undefined &&
-		inspection.permissions !== undefined &&
 		inspection.equals !== undefined
 	)
 }

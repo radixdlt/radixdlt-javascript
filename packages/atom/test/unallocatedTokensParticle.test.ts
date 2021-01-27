@@ -1,10 +1,13 @@
 import {
+	addressFromBase58String,
 	addressFromPublicKeyAndMagicByte,
 	generatePrivateKey,
 } from '@radixdlt/crypto'
-import { amountInSmallestDenomination } from '@radixdlt/primitives'
+import { OutputMode } from '@radixdlt/dson'
+import { amountInSmallestDenomination, nonce } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import { resourceIdentifierFromAddressAndName } from '../src/resourceIdentifier'
+import { tokenPermissionsAll } from '../src/tokenPermissions'
 import { unallocatedTokensParticle } from '../src/unallocatedTokensParticle'
 import { unallocatedTokensParticleFromUnsafe } from './helpers/utility'
 
@@ -46,5 +49,30 @@ describe('unallocatedTokensParticle', () => {
 		expect(uatp.nonce).toBeTruthy()
 		expect(uatp.amount.toString()).toBe('9000000000000000000')
 		expect(uatp.granularity.toString()).toBe('3000000000000000000')
+	})
+
+	it('should be able to DSON encode', () => {
+		const address = addressFromBase58String(
+			'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+		)._unsafeUnwrap()
+		const rri = resourceIdentifierFromAddressAndName({
+			address,
+			name: 'FOOBAR',
+		})
+		const permissions = tokenPermissionsAll
+		const amount = amountInSmallestDenomination(UInt256.valueOf(6))
+		const granularity = amountInSmallestDenomination(UInt256.valueOf(3))
+		const nonce_ = nonce(1337)
+		const uatp = unallocatedTokensParticle({
+			tokenDefinitionReference: rri,
+			amount: amount,
+			granularity: granularity,
+			permissions: permissions,
+			nonce: nonce_,
+		})
+		const dson = uatp.toDSON(OutputMode.ALL)._unsafeUnwrap()
+		const expected =
+			'bf66616d6f756e7458210500000000000000000000000000000000000000000000000000000000000000066b6772616e756c61726974795821050000000000000000000000000000000000000000000000000000000000000003656e6f6e63651905396b7065726d697373696f6e73bf646275726e63616c6c646d696e7463616c6cff6a73657269616c697a6572782272616469782e7061727469636c65732e756e616c6c6f63617465645f746f6b656e737818746f6b656e446566696e6974696f6e5265666572656e6365583d062f3953386b684c485a6136467379476f36333478516f3951774c67534847705848485737363444356d50594263726e665a563652542f464f4f4241526776657273696f6e1864ff'
+		expect(dson.toString('hex')).toBe(expected)
 	})
 })

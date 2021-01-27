@@ -1,17 +1,7 @@
-import {
-	Granularity,
-	Nonce,
-	PositiveAmount,
-	randomNonce,
-} from '@radixdlt/primitives'
+import { PositiveAmount, randomNonce } from '@radixdlt/primitives'
 
 import { Address } from '@radixdlt/crypto'
-import {
-	ParticleBase,
-	ResourceIdentifier,
-	TokenPermissions,
-	TransferrableTokensParticle,
-} from './_types'
+import { ParticleBase, TransferrableTokensParticle } from './_types'
 
 import { err, ok, Result } from 'neverthrow'
 import { tokenPermissionsAll } from './tokenPermissions'
@@ -19,16 +9,19 @@ import {
 	RadixParticleType,
 	TransferrableTokensParticleType,
 } from './radixParticleTypes'
-import { DSONEncoding, DSONKeyValue, DSONPrimitive } from '@radixdlt/dson'
+import { DSONEncoding, DSONKeyValue } from '@radixdlt/dson'
+import {
+	encodableKeyValuesFromTokenParticleBase,
+	isTokenParticleBase,
+	tokenParticleBaseEquals,
+	TokensParticleBaseInput,
+} from './tokenParticleBase'
 
-export type TransferrableTokensParticleInput = Readonly<{
-	address: Address
-	tokenDefinitionReference: ResourceIdentifier
-	amount: PositiveAmount
-	granularity: Granularity
-	permissions?: TokenPermissions
-	nonce?: Nonce // Only used for testing
-}>
+export type TransferrableTokensParticleInput = TokensParticleBaseInput &
+	Readonly<{
+		amount: PositiveAmount
+		address: Address
+	}>
 
 export const transferrableTokensParticle = (
 	input: TransferrableTokensParticleInput,
@@ -44,30 +37,24 @@ export const transferrableTokensParticle = (
 	const amount = input.amount
 	const permissions = input.permissions ?? tokenPermissionsAll
 
+	const tokenParticleBase = {
+		address,
+		tokenDefinitionReference,
+		granularity,
+		nonce,
+		amount,
+		permissions,
+	}
+
 	const dsonKeyValues: DSONKeyValue[] = [
+		...encodableKeyValuesFromTokenParticleBase(tokenParticleBase),
 		{
 			key: 'address',
 			value: address,
 		},
 		{
-			key: 'tokenDefinitionReference',
-			value: tokenDefinitionReference,
-		},
-		{
-			key: 'granularity',
-			value: granularity,
-		},
-		{
 			key: 'amount',
 			value: amount,
-		},
-		{
-			key: 'nonce',
-			value: nonce,
-		},
-		{
-			key: 'permissions',
-			value: permissions,
 		},
 	]
 
@@ -77,26 +64,16 @@ export const transferrableTokensParticle = (
 			encodingMethodOrKeyValues: dsonKeyValues,
 		}),
 		radixParticleType: TransferrableTokensParticleType,
-		address,
-		tokenDefinitionReference,
-		granularity,
-		nonce,
-		amount,
-		permissions,
+		...tokenParticleBase,
 		// eslint-disable-next-line complexity
 		equals: (otherParticle: ParticleBase): boolean => {
 			if (!isTransferrableTokensParticle(otherParticle)) return false
 			const otherTTP = otherParticle
 
 			return (
+				tokenParticleBaseEquals(tokenParticleBase, otherParticle) &&
 				otherTTP.address.equals(address) &&
-				otherTTP.tokenDefinitionReference.equals(
-					tokenDefinitionReference,
-				) &&
-				otherTTP.granularity.equals(granularity) &&
-				otherTTP.nonce.equals(nonce) &&
-				otherTTP.amount.equals(amount) &&
-				otherTTP.permissions.equals(permissions)
+				otherTTP.amount.equals(amount)
 			)
 		},
 	})
@@ -106,16 +83,13 @@ export const transferrableTokensParticle = (
 export const isTransferrableTokensParticle = (
 	something: unknown,
 ): something is TransferrableTokensParticle => {
+	if (!isTokenParticleBase(something)) return false
 	const inspection = something as TransferrableTokensParticle
 	return (
 		inspection.radixParticleType ===
 			RadixParticleType.TRANSFERRABLE_TOKENS &&
 		inspection.address !== undefined &&
-		inspection.tokenDefinitionReference !== undefined &&
-		inspection.granularity !== undefined &&
-		inspection.nonce !== undefined &&
 		inspection.amount !== undefined &&
-		inspection.permissions !== undefined &&
 		inspection.equals !== undefined
 	)
 }

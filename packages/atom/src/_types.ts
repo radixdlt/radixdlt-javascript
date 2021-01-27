@@ -65,28 +65,29 @@ export type RadixParticle = ParticleBase &
 		radixParticleType: RadixParticleType
 	}>
 
+export type TokensParticleBase = Readonly<{
+	// The identifier of which token type is being transferred
+	tokenDefinitionReference: ResourceIdentifier
+	granularity: Granularity
+	nonce: Nonce
+	permissions: TokenPermissions
+}>
+
 export type TransferrableTokensParticle = DSONCodable &
 	RadixParticle &
+	TokensParticleBase &
 	Readonly<{
-		radixParticleType: RadixParticleType
 		// The recipient address of the tokens to be transffered
 		address: Address
-		// The identifier of which token type is being transferred
-		tokenDefinitionReference: ResourceIdentifier
-		granularity: Granularity
-		nonce: Nonce
 		amount: PositiveAmount
-		permissions: TokenPermissions
 	}>
 
-export type UnallocatedTokensParticle = /* DSONCoable */ RadixParticle &
+export type UnallocatedTokensParticle = DSONCodable &
+	RadixParticle &
+	TokensParticleBase &
 	Readonly<{
-		radixParticleType: RadixParticleType
-		tokenDefinitionReference: ResourceIdentifier
-		granularity: Granularity
-		nonce: Nonce
+		// The recipient address of the tokens to be transffered
 		amount: Supply
-		permissions: TokenPermissions
 	}>
 
 export type ResourceIdentifierParticle = /* DSON */ RadixParticle &
