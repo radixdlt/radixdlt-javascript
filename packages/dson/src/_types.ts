@@ -23,6 +23,7 @@ export type CBOREncodablePrimitive =
 	| number
 	| boolean
 	| Buffer
+	| BigInt
 	| Record<string, unknown>
 
 export enum OutputMode {

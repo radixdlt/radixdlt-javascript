@@ -18,7 +18,10 @@ import { Result, err, ok } from 'neverthrow'
 export const encodeCbor = (
 	data: CBOREncodableObject,
 ): Result<Buffer, Error> => {
-	const encoder = new cbor.Encoder({ highWaterMark: 90000 })
+	const encoder = new cbor.Encoder({
+		highWaterMark: 90000,
+		collapseBigIntegers: true,
+	})
 
 	// Overide default object encoder to use stream encoding and lexicographical ordering of keys
 	encoder.addSemanticType(Object, (encoder: CBOREncoder, obj: any) => {
