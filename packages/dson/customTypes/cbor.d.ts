@@ -6,13 +6,16 @@ declare module 'cbor' {
 	}
 	type EncoderOptions = {
 		highWaterMark: number
+		collapseBigIntegers: boolean
 	}
 	type CBOREncoder = {
 		_encodeAll: (
 			data: (CBOREncodablePrimitive | CBOREncodableObject)[],
 		) => Buffer
 		addSemanticType: (
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			type: any,
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			fn: (encoder: CBOREncoder, obj: any) => boolean,
 		) => undefined
 		pushAny: (
@@ -23,5 +26,6 @@ declare module 'cbor' {
 		) => boolean
 		push: (chunk: Buffer) => boolean
 	}
+
 	export const Encoder: Encoder
 }
