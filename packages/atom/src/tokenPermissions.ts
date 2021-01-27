@@ -5,7 +5,7 @@ import {
 	TokenTransition,
 } from './_types'
 
-import { mapEquals } from '@radixdlt/util'
+import { objectEquals } from '@radixdlt/util'
 import { DSONEncoding } from '@radixdlt/dson'
 
 export const makeTokenPermissions = (
@@ -55,7 +55,7 @@ export const makeTokenPermissions = (
 			check({ permission: burnPermission, isOwnerOfToken }),
 
 		equals: (other: TokenPermissions): boolean =>
-			mapEquals(permissions, other.permissions),
+			objectEquals(permissions, other.permissions),
 	}
 }
 
