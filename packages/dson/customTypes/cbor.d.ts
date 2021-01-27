@@ -9,6 +9,10 @@ declare module 'cbor' {
 		_encodeAll: (
 			data: (CBOREncodablePrimitive | CBOREncodableObject)[],
 		) => Buffer
+		addSemanticType: (
+			type: any,
+			fn: (encoder: CBOREncoder, obj: any) => boolean,
+		) => undefined
 		pushAny: (
 			any:
 				| CBOREncodablePrimitive
