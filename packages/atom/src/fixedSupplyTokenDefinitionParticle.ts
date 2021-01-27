@@ -32,6 +32,7 @@ export const fixedSupplyTokenDefinitionParticle = (
 
 	return baseTokenDefinitionParticle({
 		...input,
+		granularity: granularity,
 		// eslint-disable-next-line complexity
 		makeEquals: (
 			thisParticle: TokenDefinitionParticleBase,

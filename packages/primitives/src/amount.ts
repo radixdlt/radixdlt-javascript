@@ -32,7 +32,7 @@ export const amountInSmallestDenomination = (magnitude: UInt256): Amount => {
 		magnitude: magnitude,
 		isMultipleOf: (other: Amount) =>
 			magnitude.mod(other.magnitude, false).eq(UInt256.valueOf(0)),
-		toString: () => magnitude.toString(10),
+		toString: (radix?: number) => magnitude.toString(radix ?? 10),
 		equals: (other: Amount) => magnitude.eq(other.magnitude),
 		greaterThan: (other: Amount) => magnitude.gt(other.magnitude),
 		lessThan: (other: Amount) => magnitude.lt(other.magnitude),
