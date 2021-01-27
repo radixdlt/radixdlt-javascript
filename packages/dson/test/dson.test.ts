@@ -92,6 +92,47 @@ examples.push({
 	dson: Buffer.from([0b1000_0100, 0x01, 0x02, 0x03, 0x04]),
 })
 
+// map
+examples.push({
+    name: 'map_a:1,b:2',
+    native: { a: 1, b: 2 },
+    json: { a: 1, b: 2 },
+    dson: Buffer.from([0b1011_1111, 0b0110_0001, 0x61, 0x01, 0b0110_0001, 0x62, 0x02, 0xFF]),
+})
+
+// map
+examples.push({
+    name: 'map_a:1,b:2_exclude_undefined',
+    native: { a: 1, b: 2, c: undefined },
+    json: { a: 1, b: 2 },
+    dson: Buffer.from([0b1011_1111, 0b0110_0001, 0x61, 0x01, 0b0110_0001, 0x62, 0x02, 0xFF]),
+    dontDeserialize: true,
+})
+
+examples.push({
+    name: 'map_a:1,b:2_exclude_empty_array',
+    native: { a: 1, b: 2, c: [] },
+    json: { a: 1, b: 2 },
+    dson: Buffer.from([0b1011_1111, 0b0110_0001, 0x61, 0x01, 0b0110_0001, 0x62, 0x02, 0xFF]),
+    dontDeserialize: true,
+})
+
+examples.push({
+    name: 'map_a:1,b:2_exclude_empty_object',
+    native: { a: 1, b: 2, c: {} },
+    json: { a: 1, b: 2 },
+    dson: Buffer.from([0b1011_1111, 0b0110_0001, 0x61, 0x01, 0b0110_0001, 0x62, 0x02, 0xFF]),
+    dontDeserialize: true,
+})
+
+examples.push({
+    name: 'map_a:1,b:false',
+    native: { a: 1, b: false },
+    json: { a: 1, b: false },
+    dson: Buffer.from([0b1011_1111, 0b0110_0001, 0x61, 0x01, 0b0110_0001, 0x62, 0b1111_0100, 0xFF]),
+    dontDeserialize: true,
+})
+
 describe('DSON', () => {
 	it('should encode DSON primitives', () => {
 		for (const example of examples) {
