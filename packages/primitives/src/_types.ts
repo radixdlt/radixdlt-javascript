@@ -17,7 +17,7 @@ export type Amount = /* CBORCodable */ Readonly<{
 	// Magnitude expressed in min denomination
 	magnitude: UInt256
 	isMultipleOf: (other: Amount) => boolean
-	toString: () => string
+	toString: (radix?: number) => string
 	equals: (other: Amount) => boolean
 	greaterThan: (other: Amount) => boolean
 	lessThan: (other: Amount) => boolean
