@@ -89,7 +89,8 @@ export type UnallocatedTokensParticle = /* DSONCoable */ RadixParticle &
 		permissions: TokenPermissions
 	}>
 
-export type ResourceIdentifierParticle = /* DSON */ RadixParticle &
+export type ResourceIdentifierParticle = DSONCodable &
+	RadixParticle &
 	Readonly<{
 		radixParticleType: RadixParticleType
 		alwaysZeroNonce: Nonce

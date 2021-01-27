@@ -8,13 +8,29 @@ import {
 	RadixParticleType,
 	ResourceIdentifierParticleType,
 } from './radixParticleTypes'
+import { DSONEncoding, DSONKeyValue } from '@radixdlt/dson'
 
 export const resourceIdentifierParticle = (
 	resourceIdentifier: ResourceIdentifier,
 ): ResourceIdentifierParticle => {
 	const alwaysZeroNonce = nonce(0)
 
+	const dsonKeyValues: DSONKeyValue[] = [
+		{
+			key: 'nonce',
+			value: alwaysZeroNonce,
+		},
+		{
+			key: 'rri',
+			value: resourceIdentifier,
+		},
+	]
+
 	return {
+		...DSONEncoding({
+			serializer: 'radix.particles.rri',
+			encodingMethodOrKeyValues: dsonKeyValues,
+		}),
 		radixParticleType: ResourceIdentifierParticleType,
 		alwaysZeroNonce,
 		resourceIdentifier,
