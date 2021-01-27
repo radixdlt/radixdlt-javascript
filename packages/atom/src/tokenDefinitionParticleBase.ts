@@ -31,15 +31,24 @@ export const onlyUppercasedAlphanumerics = (input: string): boolean => {
 	return new RegExp('^[A-Z0-9]+$').test(input)
 }
 
+export const RADIX_TOKEN_NAME_MIN_LENGTH = 2
+export const RADIX_TOKEN_NAME_MAX_LENGTH = 64
+
+export const RADIX_TOKEN_SYMBOL_MIN_LENGTH = 1
+export const RADIX_TOKEN_SYMBOL_MAX_LENGTH = 14
+
+export const RADIX_TOKEN_DESCRIPTION_MAX_LENGTH = 200
+
 export const validateTokenDefinitionSymbol = (
 	symbol: string,
 ): Result<string, Error> => {
-	const minLength = 1
-	const maxLength = 14
-	if (symbol.length < minLength || symbol.length > 14) {
+	if (
+		symbol.length < RADIX_TOKEN_SYMBOL_MIN_LENGTH ||
+		symbol.length > RADIX_TOKEN_SYMBOL_MAX_LENGTH
+	) {
 		return err(
 			new Error(
-				`Bad length of token defintion symbol, should be between ${minLength}-${maxLength} chars, but was ${symbol.length}.`,
+				`Bad length of token defintion symbol, should be between ${RADIX_TOKEN_SYMBOL_MIN_LENGTH}-${RADIX_TOKEN_SYMBOL_MAX_LENGTH} chars, but was ${symbol.length}.`,
 			),
 		)
 	}
@@ -55,28 +64,28 @@ export const validateTokenDefinitionSymbol = (
 export const validateTokenDefinitionName = (
 	name: string,
 ): Result<string, Error> => {
-	const minLength = 2
-	const maxLength = 64
-	if (name.length < minLength || name.length > 14) {
+	if (
+		name.length < RADIX_TOKEN_NAME_MIN_LENGTH ||
+		name.length > RADIX_TOKEN_NAME_MAX_LENGTH
+	) {
 		return err(
 			new Error(
-				`Bad length of token defintion name, should be between ${minLength}-${maxLength} chars, but was ${name.length}.`,
+				`Bad length of token defintion name, should be between ${RADIX_TOKEN_NAME_MIN_LENGTH}-${RADIX_TOKEN_NAME_MAX_LENGTH} chars, but was ${name.length}.`,
 			),
 		)
 	}
 	return ok(name)
 }
 
-const TOKEN_DESCRIPTION_MAX_LENGTH = 200 as const
 export const validateDescription = (
 	description: string | undefined,
 ): Result<string | undefined, Error> => {
 	if (description === undefined) return ok(undefined)
-	return description.length <= TOKEN_DESCRIPTION_MAX_LENGTH
+	return description.length <= RADIX_TOKEN_DESCRIPTION_MAX_LENGTH
 		? ok(description)
 		: err(
 				new Error(
-					`Bad length of token description, should be less than ${TOKEN_DESCRIPTION_MAX_LENGTH}, but was ${description.length}.`,
+					`Bad length of token description, should be less than ${RADIX_TOKEN_DESCRIPTION_MAX_LENGTH}, but was ${description.length}.`,
 				),
 		  )
 }
@@ -111,9 +120,6 @@ export const baseTokenDefinitionParticle = (
 			) => boolean
 		}>,
 ): Result<TokenDefinitionParticleBase, Error> => {
-	const granularity = input.granularity ?? granularityDefault
-	const address = input.address
-
 	return combine([
 		validateTokenDefinitionSymbol(input.symbol),
 		validateTokenDefinitionName(input.name),
@@ -126,26 +132,18 @@ export const baseTokenDefinitionParticle = (
 		),
 	]).map(
 		(resultList): TokenDefinitionParticleBase => {
-			const symbol = notUndefinedOrCrash(resultList[0])
-			const name = resultList[1]
-			const description = resultList[2]
-			const url = resultList[3]
-			const iconURL = resultList[4]
-			const resourceIdentifier = resourceIdentifierFromAddressAndName({
-				address,
-				/* NOT 'name', should be 'symbol; */
-				name: symbol,
-			})
-
 			const thisBase = <TokenDefinitionParticleBase>{
 				radixParticleType:
 					RadixParticleType.FIXED_SUPPLY_TOKEN_DEFINITION,
-				name,
-				description,
-				granularity,
-				resourceIdentifier,
-				url,
-				iconURL,
+				name: resultList[1],
+				description: resultList[2],
+				granularity: input.granularity ?? granularityDefault,
+				resourceIdentifier: resourceIdentifierFromAddressAndName({
+					address: input.address,
+					name: notUndefinedOrCrash(resultList[0]),
+				}),
+				url: resultList[3],
+				iconURL: resultList[4],
 				equals: (other: ParticleBase) => {
 					// eslint-disable-next-line functional/no-throw-statement
 					throw new Error(

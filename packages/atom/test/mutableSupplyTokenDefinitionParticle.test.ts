@@ -1,40 +1,34 @@
 import { toAddress } from './helpers/utility'
-import { amountInSmallestDenomination } from '@radixdlt/primitives'
-import { UInt256 } from '@radixdlt/uint256'
 import { mutableSupplyTokenDefinitionParticle } from '../src/mutableSupplyTokenDefinitionParticle'
 import { tokenOwnerOnly } from '../src/tokenPermissions'
+import { doTestTokenDefintionParticle } from './helpers/tokenDefinitionParticleBase'
 
 describe('mutableSupplyTokenDefinitionParticle', () => {
 	const address = toAddress(
 		'9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
 	)
 
-	const supply = amountInSmallestDenomination(
-		new UInt256('1000000000000000000000', 10),
-	)
+	const input = {
+		symbol: 'ABCD0123456789',
+		name: 'Foobar Coin',
+		description: 'Best coin ever',
+		address: address,
+		permissions: tokenOwnerOnly,
+		url: 'https://foobar.com',
+		iconURL: 'https://foobar.com/icon.png',
+	}
 
-	it('can be created without specifying permissions', () => {
-		const mutableSupplyTokDefPartResult = mutableSupplyTokenDefinitionParticle(
-			{
-				symbol: 'ABCD0123456789',
-				name: 'Foobar Coin',
-				description: 'Best coin ever',
-				address: address,
-			},
-		)
+	doTestTokenDefintionParticle(input, mutableSupplyTokenDefinitionParticle)
 
-		expect(mutableSupplyTokDefPartResult.isOk())
-		const mutableSupplyTokDefParticle = mutableSupplyTokDefPartResult._unsafeUnwrap()
-
-		expect(mutableSupplyTokDefParticle.resourceIdentifier.toString()).toBe(
-			`/${address}/ABCD0123456789`,
-		)
-
-		expect(mutableSupplyTokDefParticle.name).toBe('Foobar Coin')
-		expect(mutableSupplyTokDefParticle.description).toBe('Best coin ever')
+	it('permissions equals the inputted permissions', () => {
+		const mutableSupplyTokenDefinitionParticle_ = mutableSupplyTokenDefinitionParticle(
+			input,
+		)._unsafeUnwrap()
 
 		expect(
-			mutableSupplyTokDefParticle.permissions.equals(tokenOwnerOnly),
+			mutableSupplyTokenDefinitionParticle_.permissions.equals(
+				tokenOwnerOnly,
+			),
 		).toBe(true)
 	})
 })
