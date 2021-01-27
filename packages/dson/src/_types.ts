@@ -18,7 +18,13 @@ export type DSONKeyValue = Readonly<{
 	outputMode?: OutputMode
 }>
 
-export type CBOREncodablePrimitive = string | number | boolean | Buffer | BigInt
+export type CBOREncodablePrimitive =
+	| string
+	| number
+	| boolean
+	| Buffer
+	| BigInt
+	| Record<string, unknown>
 
 export enum OutputMode {
 	NONE = 0,

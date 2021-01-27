@@ -47,13 +47,14 @@ export enum TokenTransition {
 
 export type Supply = Amount
 
-export type TokenPermissions = /* DSONCodable */ Readonly<{
-	permissions: ReadonlyMap<TokenTransition, TokenPermission>
-	canBeMinted: (isOwnerOfToken: IsOwnerOfToken) => boolean
-	canBeBurned: (isOwnerOfToken: IsOwnerOfToken) => boolean
-	mintPermission: TokenPermission
-	equals: (other: TokenPermissions) => boolean
-}>
+export type TokenPermissions = DSONCodable &
+	Readonly<{
+		permissions: Readonly<{ [key in TokenTransition]: TokenPermission }>
+		canBeMinted: (isOwnerOfToken: IsOwnerOfToken) => boolean
+		canBeBurned: (isOwnerOfToken: IsOwnerOfToken) => boolean
+		mintPermission: TokenPermission
+		equals: (other: TokenPermissions) => boolean
+	}>
 
 export type ParticleBase = {
 	equals: (other: ParticleBase) => boolean
