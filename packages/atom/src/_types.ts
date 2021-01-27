@@ -65,7 +65,8 @@ export type RadixParticle = ParticleBase &
 		radixParticleType: RadixParticleType
 	}>
 
-export type TransferrableTokensParticle = RadixParticle &
+export type TransferrableTokensParticle = DSONCodable &
+	RadixParticle &
 	Readonly<{
 		radixParticleType: RadixParticleType
 		// The recipient address of the tokens to be transffered
