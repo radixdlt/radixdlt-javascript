@@ -6,8 +6,7 @@ import {
 } from '../../src/tokenDefinitionParticleBase'
 import { TokenDefinitionParticleBase } from '../../src/_types'
 
-/* eslint-disable */
-
+// eslint-disable-next-line max-lines-per-function
 export const doTestTokenDefintionParticle = <
 	P extends TokenDefinitionParticleBase,
 	I extends TokenDefinitionParticleInput
@@ -18,7 +17,7 @@ export const doTestTokenDefintionParticle = <
 	it('can be created', () => {
 		const tokenDefinitionParticle = ctor(input)._unsafeUnwrap()
 		expect(tokenDefinitionParticle.resourceIdentifier.toString()).toBe(
-			`/${input.address}/ABCD0123456789`,
+			`/${input.address.toString()}/ABCD0123456789`,
 		)
 
 		expect(tokenDefinitionParticle.name).toBe('Foobar Coin')
@@ -43,7 +42,9 @@ export const doTestTokenDefintionParticle = <
 		})
 
 		tokenDefinitionParticleResult.match(
-			(r) => fail('expected error, but got none'),
+			() => {
+				throw Error('expected error, but got none')
+			},
 			(f) =>
 				expect(f.message).toBe(
 					`Invalid token info url. Failed to create url from string: '~invalid_url~'.`,
@@ -58,7 +59,9 @@ export const doTestTokenDefintionParticle = <
 		})
 
 		tokenDefinitionParticleResult.match(
-			(r) => fail('expected error, but got none'),
+			() => {
+				throw Error('expected error, but got none')
+			},
 			(f) =>
 				expect(f.message).toBe(
 					`Invalid token icon url. Failed to create url from string: '~invalid_icon_url~'.`,
@@ -73,7 +76,9 @@ export const doTestTokenDefintionParticle = <
 		})
 
 		tokenDefinitionParticleResult.match(
-			(r) => fail('expected error, but got none'),
+			() => {
+				throw Error('expected error, but got none')
+			},
 			(f) =>
 				expect(f.message).toBe(
 					'Bad length of token defintion symbol, should be between 1-14 chars, but was 0.',
@@ -88,7 +93,9 @@ export const doTestTokenDefintionParticle = <
 		})
 
 		tokenDefinitionParticleResult.match(
-			(r) => fail('expected error, but got none'),
+			() => {
+				throw Error('expected error, but got none')
+			},
 			(f) =>
 				expect(f.message).toBe(
 					'Bad length of token defintion symbol, should be between 1-14 chars, but was 15.',
@@ -103,7 +110,9 @@ export const doTestTokenDefintionParticle = <
 		})
 
 		tokenDefinitionParticleResult.match(
-			(r) => fail('expected error, but got none'),
+			() => {
+				throw Error('expected error, but got none')
+			},
 			(f) =>
 				expect(f.message).toBe(
 					'Symbol contains disallowed characters, only uppercase alphanumerics are allowed.',
@@ -123,7 +132,9 @@ export const doTestTokenDefintionParticle = <
 				...input,
 				symbol: `${goodSymbolPrefix}${bad}`,
 			}).match(
-				(r) => fail('expected error, but got none'),
+				() => {
+					throw Error('expected error, but got none')
+				},
 				(f) =>
 					expect(f.message).toBe(
 						'Symbol contains disallowed characters, only uppercase alphanumerics are allowed.',
@@ -151,7 +162,9 @@ export const doTestTokenDefintionParticle = <
 		})
 
 		tokenDefinitionParticleResult.match(
-			(r) => fail('expected error, but got none'),
+			() => {
+				throw Error('expected error, but got none')
+			},
 			(f) =>
 				expect(f.message).toBe(
 					'Bad length of token description, should be less than 200, but was 212.',

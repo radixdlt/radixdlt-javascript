@@ -1,6 +1,6 @@
-import { CBOREncodableObject, CBOREncodablePrimitive } from '../src/_types'
-
 declare module 'cbor' {
+	import { CBOREncodableObject, CBOREncodablePrimitive } from '../src/_types'
+
 	type Encoder = {
 		new (options: EncoderOptions): CBOREncoder
 	}
@@ -26,6 +26,5 @@ declare module 'cbor' {
 		) => boolean
 		push: (chunk: Buffer) => boolean
 	}
-
 	export const Encoder: Encoder
 }

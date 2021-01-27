@@ -71,5 +71,9 @@ module.exports = {
 		'functional/no-mixed-type': 'off',
 		'functional/functional-parameters': 'off',
 		'functional/prefer-readonly-type': 'off', // false positive trigger on `Readonly<>` - which we like.
+		'jest/no-export': 'off',
+		'functional/no-return-void': 'off',
+		'max-params': 'off',
+		'functional/no-throw-statement': 'off',
 	},
 }
