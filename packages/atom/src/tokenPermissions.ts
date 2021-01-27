@@ -5,10 +5,11 @@ import {
 	TokenTransition,
 } from './_types'
 
-import { mapEquals } from '@radixdlt/util'
+import { objectEquals } from '@radixdlt/util'
+import { DSONEncoding } from '@radixdlt/dson'
 
 export const makeTokenPermissions = (
-	permissions: ReadonlyMap<TokenTransition, TokenPermission>,
+	permissions: Readonly<{ [key in TokenTransition]: TokenPermission }>,
 ): TokenPermissions => {
 	const check = (
 		input: Readonly<{
@@ -29,7 +30,7 @@ export const makeTokenPermissions = (
 	const valueOfRequiredPermission = (
 		transition: TokenTransition,
 	): TokenPermission => {
-		const permission = permissions.get(transition)
+		const permission = permissions[transition]
 		if (permission) {
 			return permission
 		}
@@ -43,6 +44,9 @@ export const makeTokenPermissions = (
 	const burnPermission = valueOfRequiredPermission(TokenTransition.BURN)
 
 	return {
+		...DSONEncoding({
+			encodingMethodOrKeyValues: () => permissions,
+		}),
 		permissions,
 		mintPermission,
 		canBeMinted: (isOwnerOfToken: IsOwnerOfToken): boolean =>
@@ -51,20 +55,16 @@ export const makeTokenPermissions = (
 			check({ permission: burnPermission, isOwnerOfToken }),
 
 		equals: (other: TokenPermissions): boolean =>
-			mapEquals(permissions, other.permissions),
+			objectEquals(permissions, other.permissions),
 	}
 }
 
-export const tokenPermissionsAll: TokenPermissions = makeTokenPermissions(
-	new Map([
-		[TokenTransition.BURN, TokenPermission.ALL],
-		[TokenTransition.MINT, TokenPermission.ALL],
-	]),
-)
+export const tokenPermissionsAll: TokenPermissions = makeTokenPermissions({
+	[TokenTransition.BURN]: TokenPermission.ALL,
+	[TokenTransition.MINT]: TokenPermission.ALL,
+})
 
-export const tokenOwnerOnly: TokenPermissions = makeTokenPermissions(
-	new Map([
-		[TokenTransition.BURN, TokenPermission.TOKEN_OWNER_ONLY],
-		[TokenTransition.MINT, TokenPermission.TOKEN_OWNER_ONLY],
-	]),
-)
+export const tokenOwnerOnly: TokenPermissions = makeTokenPermissions({
+	[TokenTransition.BURN]: TokenPermission.TOKEN_OWNER_ONLY,
+	[TokenTransition.MINT]: TokenPermission.TOKEN_OWNER_ONLY,
+})

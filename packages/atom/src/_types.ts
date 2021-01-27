@@ -1,4 +1,5 @@
 import { Address, Signature } from '@radixdlt/crypto'
+import { DSONCodable } from '@radixdlt/dson'
 import {
 	Amount,
 	Granularity,
@@ -14,12 +15,13 @@ import { RadixParticleType } from './radixParticleTypes'
  * On format: `/:address/:name`, e.g.
  * `"/JH1P8f3znbyrDj8F4RWpix7hRkgxqHjdW2fNnKpR3v6ufXnknor/XRD"`
  */
-export type ResourceIdentifier = /* DSONCoable */ Readonly<{
-	address: Address
-	name: string
-	toString: () => string
-	equals: (other: ResourceIdentifier) => boolean
-}>
+export type ResourceIdentifier = DSONCodable &
+	Readonly<{
+		address: Address
+		name: string
+		toString: () => string
+		equals: (other: ResourceIdentifier) => boolean
+	}>
 
 /**
  * An Atom Identifier, made up of 256 bits of a hash.
@@ -45,13 +47,14 @@ export enum TokenTransition {
 
 export type Supply = Amount
 
-export type TokenPermissions = /* DSONCodable */ Readonly<{
-	permissions: ReadonlyMap<TokenTransition, TokenPermission>
-	canBeMinted: (isOwnerOfToken: IsOwnerOfToken) => boolean
-	canBeBurned: (isOwnerOfToken: IsOwnerOfToken) => boolean
-	mintPermission: TokenPermission
-	equals: (other: TokenPermissions) => boolean
-}>
+export type TokenPermissions = DSONCodable &
+	Readonly<{
+		permissions: Readonly<{ [key in TokenTransition]: TokenPermission }>
+		canBeMinted: (isOwnerOfToken: IsOwnerOfToken) => boolean
+		canBeBurned: (isOwnerOfToken: IsOwnerOfToken) => boolean
+		mintPermission: TokenPermission
+		equals: (other: TokenPermissions) => boolean
+	}>
 
 export type ParticleBase = {
 	equals: (other: ParticleBase) => boolean
@@ -62,7 +65,8 @@ export type RadixParticle = ParticleBase &
 		radixParticleType: RadixParticleType
 	}>
 
-export type TransferrableTokensParticle = /* DSONCoable */ RadixParticle &
+export type TransferrableTokensParticle = DSONCodable &
+	RadixParticle &
 	Readonly<{
 		radixParticleType: RadixParticleType
 		// The recipient address of the tokens to be transffered
@@ -85,7 +89,7 @@ export type UnallocatedTokensParticle = /* DSONCoable */ RadixParticle &
 		permissions: TokenPermissions
 	}>
 
-export type ResourceIdentifierParticle = /* DSONCodable */ RadixParticle &
+export type ResourceIdentifierParticle = /* DSON */ RadixParticle &
 	Readonly<{
 		radixParticleType: RadixParticleType
 		alwaysZeroNonce: Nonce
