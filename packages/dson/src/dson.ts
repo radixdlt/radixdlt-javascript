@@ -1,7 +1,8 @@
 // @ts-ignore
-import cbor, { CBOREncodablePrimitive } from 'cbor'
+import cbor, { CBOREncoder } from 'cbor'
 import {
 	CBOREncodableObject,
+	CBOREncodablePrimitive,
 	DSONCodable,
 	DSONKeyValue,
 	OutputMode,
@@ -20,6 +21,28 @@ export const encodeCbor = (
 	const encoder = new cbor.Encoder({
 		highWaterMark: 90000,
 		collapseBigIntegers: true,
+	})
+
+	// Overide default object encoder to use stream encoding and lexicographical ordering of keys
+	encoder.addSemanticType(Object, (encoder: CBOREncoder, obj: any) => {
+		const keys = Object.keys(obj)
+
+		keys.sort()
+
+		if (!encoder.push(Buffer.from([0b1011_1111]))) return false
+
+		for (const key of keys) {
+			if (isEmpty(obj[key])) {
+				continue
+			}
+
+			if (!encoder.pushAny(key)) return false
+			if (!encoder.pushAny(obj[key])) return false
+		}
+
+		if (!encoder.push(Buffer.from([0xff]))) return false
+
+		return true
 	})
 
 	try {

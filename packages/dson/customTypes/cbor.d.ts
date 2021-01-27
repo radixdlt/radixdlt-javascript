@@ -1,4 +1,4 @@
-import { CBOREncodablePrimitive } from './cborEncodablePrimitive'
+import { CBOREncodableObject, CBOREncodablePrimitive } from '../src/_types'
 
 declare module 'cbor' {
 	type Encoder = {
@@ -12,6 +12,12 @@ declare module 'cbor' {
 		_encodeAll: (
 			data: (CBOREncodablePrimitive | CBOREncodableObject)[],
 		) => Buffer
+		addSemanticType: (
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			type: any,
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			fn: (encoder: CBOREncoder, obj: any) => boolean,
+		) => undefined
 		pushAny: (
 			any:
 				| CBOREncodablePrimitive
@@ -20,9 +26,6 @@ declare module 'cbor' {
 		) => boolean
 		push: (chunk: Buffer) => boolean
 	}
-	type CBOREncodableObject = Readonly<{
-		encodeCBOR: (encoder: CBOREncoder) => boolean
-	}>
 
 	export const Encoder: Encoder
 }
