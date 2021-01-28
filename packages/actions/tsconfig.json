@@ -8,6 +8,8 @@
     "src"
   ],
   "references": [
-    {"path": "../primitives"}
+    {"path": "../crypto"},
+    {"path": "../primitives"},
+    {"path": "../atom"}
   ]
 }

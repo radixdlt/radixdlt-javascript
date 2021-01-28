@@ -6,6 +6,7 @@ import {
 } from '../../src/tokenDefinitionParticleBase'
 import { TokenDefinitionParticleBase } from '../../src/_types'
 
+// eslint-disable-next-line max-lines-per-function
 export const doTestTokenDefintionParticle = <
 	P extends TokenDefinitionParticleBase,
 	I extends TokenDefinitionParticleInput
@@ -131,7 +132,7 @@ export const doTestTokenDefintionParticle = <
 				...input,
 				symbol: `${goodSymbolPrefix}${bad}`,
 			}).match(
-				(r) => {
+				() => {
 					throw Error('expected error, but got none')
 				},
 				(f) =>
