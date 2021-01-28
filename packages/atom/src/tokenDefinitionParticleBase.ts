@@ -5,6 +5,15 @@ import { ParticleBase, TokenDefinitionParticleBase } from './_types'
 import { granularityDefault } from '@radixdlt/primitives'
 import { resourceIdentifierFromAddressAndName } from './resourceIdentifier'
 import { RadixParticleType } from './radixParticleTypes'
+import {
+	CBOREncodableObject,
+	CBOREncodablePrimitive,
+	DSONCodable,
+	DSONEncoding,
+	DSONKeyValue,
+	DSONPrimitive,
+	OutputMode,
+} from '@radixdlt/dson'
 
 export type URLInput = string | URL
 
@@ -15,8 +24,9 @@ export const validateURLInput = (
 	if (typeof urlInput === 'string') {
 		// eslint-disable-next-line functional/no-try-statement
 		try {
-			const url = new URL(urlInput)
-			return ok(url.toString())
+		// eslint-disable-next-line typescript-eslint/no-unused-vars
+			const __validated_working_url_that_is_discarded = new URL(urlInput)
+			return ok(urlInput)
 		} catch {
 			return err(
 				new Error(`Failed to create url from string: '${urlInput}'.`),
@@ -110,10 +120,49 @@ export type TokenDefinitionParticleInput = Readonly<{
 	iconURL?: URLInput
 }>
 
+export const definedOrNonNull = <T>(value: T | null | undefined): value is T =>
+	value !== null && value !== undefined
+
+export type MaybeEncodableKeyValue = DSONKeyValue | undefined
+
+export const keyValueIfPrimitivePresent = (
+	input: Readonly<{
+		key: string
+		value?: CBOREncodablePrimitive
+		outputMode?: OutputMode
+	}>,
+): MaybeEncodableKeyValue => {
+	if (!definedOrNonNull(input.value)) return undefined
+	const indeed: DSONKeyValue = {
+		key: input.key,
+		value: DSONPrimitive(input.value),
+		outputMode: input.outputMode,
+	}
+	return indeed
+}
+
+export const encodableKeyValuesPresent = (
+	maybes: MaybeEncodableKeyValue[],
+): DSONKeyValue[] => {
+	return maybes.filter(definedOrNonNull)
+}
+
+export const dsonEncodingMarker: DSONCodable = {
+	encoding: (outputMode: OutputMode): CBOREncodableObject => {
+		throw new Error(`impl me using ${outputMode}`)
+	},
+	toDSON: (outputMode?: OutputMode): Result<Buffer, Error> => {
+		throw new Error(`impl me using ${outputMode}`)
+	},
+}
+
 // eslint-disable-next-line max-lines-per-function
 export const baseTokenDefinitionParticle = (
 	input: TokenDefinitionParticleInput &
 		Readonly<{
+			specificEncodableKeyValues: DSONKeyValue[]
+			serializer: string
+			radixParticleType: RadixParticleType
 			makeEquals: (
 				thisParticle: TokenDefinitionParticleBase,
 				other: ParticleBase,
@@ -132,10 +181,9 @@ export const baseTokenDefinitionParticle = (
 		),
 	]).map(
 		(resultList): TokenDefinitionParticleBase => {
-			const thisBase = <TokenDefinitionParticleBase>{
-				radixParticleType:
-					RadixParticleType.FIXED_SUPPLY_TOKEN_DEFINITION,
-				name: resultList[1],
+			const thisBaseBase = <TokenDefinitionParticleBase>{
+				radixParticleType: input.radixParticleType,
+				name: notUndefinedOrCrash(resultList[1]),
 				description: resultList[2],
 				granularity: input.granularity ?? granularityDefault,
 				resourceIdentifier: resourceIdentifierFromAddressAndName({
@@ -150,9 +198,46 @@ export const baseTokenDefinitionParticle = (
 						`Please override and use ${JSON.stringify(other)}`,
 					)
 				},
+				...dsonEncodingMarker,
 			}
 
-			return {
+			const thisBase = <TokenDefinitionParticleBase>{
+				...thisBaseBase,
+				...DSONEncoding({
+					serializer: input.serializer,
+					encodingMethodOrKeyValues: [
+						...input.specificEncodableKeyValues,
+						...encodableKeyValuesPresent([
+							{
+								key: 'rri',
+								value: thisBaseBase.resourceIdentifier,
+							},
+							{
+								key: 'granularity',
+								value: thisBaseBase.granularity,
+							},
+							{
+								key: 'name',
+								value: DSONPrimitive(thisBaseBase.name),
+							},
+							keyValueIfPrimitivePresent({
+								key: 'iconUrl',
+								value: thisBaseBase.iconURL,
+							}),
+							keyValueIfPrimitivePresent({
+								key: 'url',
+								value: thisBaseBase.url,
+							}),
+							keyValueIfPrimitivePresent({
+								key: 'description',
+								value: thisBaseBase.description,
+							}),
+						]),
+					],
+				}),
+			}
+
+			return <TokenDefinitionParticleBase>{
 				...thisBase,
 				equals: (other: ParticleBase): boolean =>
 					input.makeEquals(thisBase, other),

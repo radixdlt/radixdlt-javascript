@@ -19,7 +19,7 @@ import {
 	RadixParticleType,
 	TransferrableTokensParticleType,
 } from './radixParticleTypes'
-import { DSONEncoding, DSONKeyValue, DSONPrimitive } from '@radixdlt/dson'
+import { DSONEncoding, DSONKeyValue } from '@radixdlt/dson'
 
 export type TransferrableTokensParticleInput = Readonly<{
 	address: Address
