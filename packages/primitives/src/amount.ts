@@ -15,6 +15,9 @@ import { Byte } from '@radixdlt/util'
 
 export const CBOR_BYTESTRING_PREFIX: Byte = 5
 
+export const min = (lhs: Amount, rhs: Amount): Amount =>
+	lhs.lessThanOrEquals(rhs) ? lhs : rhs
+
 /* eslint-disable max-params */
 export const amountInSmallestDenomination = (magnitude: UInt256): Amount => {
 	const doArithmetic = (

@@ -1,4 +1,4 @@
-import { TransferTokensAction } from './_types'
+import { TransferTokensAction, UserActionType } from './_types'
 import { Address } from '@radixdlt/crypto'
 import { PositiveAmount } from '@radixdlt/primitives'
 import { ResourceIdentifier } from '@radixdlt/atom'
@@ -19,6 +19,7 @@ export const transferTokensAction = (
 	const uuid = input.uuid ?? uuidv4()
 
 	return {
+		actionType: UserActionType.TOKEN_TRANSFER,
 		recipient: input.to,
 		sender: input.from,
 		tokenResourceIdentifier: input.resourceIdentifier,

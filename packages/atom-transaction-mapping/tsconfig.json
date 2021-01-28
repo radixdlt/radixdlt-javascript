@@ -9,6 +9,9 @@
   ],
   "references": [
     {"path": "../atom"},
-    {"path": "../actions"}
+    {"path": "../actions"},
+    {"path": "../util"},
+    {"path": "../primitives"},
+    {"path": "../crypto"}
   ]
 }

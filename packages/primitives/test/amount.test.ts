@@ -1,5 +1,5 @@
 import { UInt256 } from '@radixdlt/uint256'
-import { amountFromUInt256 } from '../src/amount'
+import { amountFromUInt256, min } from '../src/amount'
 import {
 	Amount,
 	amountFromUnsafe,
@@ -103,5 +103,12 @@ describe('Amount', () => {
 		const dson = amount.toDSON()._unsafeUnwrap()
 
 		expect(dson.toString('hex')).toBe(expected)
+	})
+
+	it('should be possible to find min of two amounts', () => {
+		expect(min(two, five).equals(two))
+		expect(min(five, two).equals(two))
+		expect(min(zero, two).equals(zero))
+		expect(min(three, three).equals(three))
 	})
 })
