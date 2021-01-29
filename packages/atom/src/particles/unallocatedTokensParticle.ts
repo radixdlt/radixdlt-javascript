@@ -58,18 +58,9 @@ export const unallocatedTokensParticle = (
 	}
 }
 
-// eslint-disable-next-line complexity
 export const isUnallocatedTokensParticle = (
 	something: unknown,
 ): something is UnallocatedTokensParticle => {
 	const inspection = something as UnallocatedTokensParticle
-	return (
-		inspection.radixParticleType === RadixParticleType.UNALLOCATED_TOKENS &&
-		inspection.tokenDefinitionReference !== undefined &&
-		inspection.granularity !== undefined &&
-		inspection.nonce !== undefined &&
-		inspection.amount !== undefined &&
-		inspection.permissions !== undefined &&
-		inspection.equals !== undefined
-	)
+	return inspection.radixParticleType === RadixParticleType.UNALLOCATED_TOKENS
 }

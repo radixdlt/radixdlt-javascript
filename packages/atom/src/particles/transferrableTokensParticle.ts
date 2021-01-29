@@ -71,20 +71,11 @@ export const transferrableTokensParticle = (
 	})
 }
 
-// eslint-disable-next-line complexity
 export const isTransferrableTokensParticle = (
 	something: unknown,
 ): something is TransferrableTokensParticle => {
 	const inspection = something as TransferrableTokensParticle
 	return (
-		inspection.radixParticleType ===
-			RadixParticleType.TRANSFERRABLE_TOKENS &&
-		inspection.address !== undefined &&
-		inspection.tokenDefinitionReference !== undefined &&
-		inspection.granularity !== undefined &&
-		inspection.nonce !== undefined &&
-		inspection.amount !== undefined &&
-		inspection.permissions !== undefined &&
-		inspection.equals !== undefined
+		inspection.radixParticleType === RadixParticleType.TRANSFERRABLE_TOKENS
 	)
 }
