@@ -1,28 +1,21 @@
 import { UserAction, UserActionType } from '@radixdlt/actions'
-import { AnyUpParticle, ParticleBase, SpunParticles } from '@radixdlt/atom'
+import {
+	AnySpunParticle,
+	AnyUpParticle,
+	ParticleBase,
+	SpunParticles,
+} from '@radixdlt/atom'
 import { Address } from '@radixdlt/crypto'
 import { Result } from 'neverthrow'
-import { Amount, PositiveAmount } from "@radixdlt/primitives";
+import { Amount } from '@radixdlt/primitives'
 
-export type FungibleParticleTransition<
-	From extends ParticleBase,
-	To extends ParticleBase
-> = Readonly<{
-	removed: From[]
-	migrated: From[]
-	transitioned: To[]
-}>
-
-export type FungibleParticleTransitioner<
-	From extends ParticleBase,
-	To extends ParticleBase
-> = Readonly<{
+export type FungibleParticleTransitioner<From extends ParticleBase> = Readonly<{
 	transition: (
 		input: Readonly<{
-			unconsumedFungibles: From[]
-			toAmount: Amount
+			currentParticles: From[]
+			totalAmountToTransfer: Amount
 		}>,
-	) => Result<FungibleParticleTransition<From, To>, Error>
+	) => Result<AnySpunParticle[], Error>
 }>
 
 export type ActionToParticleGroupsMapper = Readonly<{
