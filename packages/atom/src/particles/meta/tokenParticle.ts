@@ -5,15 +5,13 @@ import { tokenPermissionsAll } from '../../tokenPermissions'
 import { ResourceIdentifier, TokenPermissions } from '../../_types'
 import { TokenParticle } from '../_types'
 import { withParticleEquals } from './particle'
-import { ParticleInput } from './_types'
 
-export type TokenParticleInput = ParticleInput &
-	Readonly<{
-		granularity: Granularity
-		permissions?: TokenPermissions
-		tokenDefinitionReference: ResourceIdentifier
-		nonce?: Nonce
-	}>
+export type TokenParticleInput = Readonly<{
+	granularity: Granularity
+	permissions?: TokenPermissions
+	tokenDefinitionReference: ResourceIdentifier
+	nonce?: Nonce
+}>
 
 const withNonce = (
 	input: TokenParticleInput,
