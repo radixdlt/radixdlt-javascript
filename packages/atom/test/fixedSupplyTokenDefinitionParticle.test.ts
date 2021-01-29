@@ -1,5 +1,5 @@
 import { amountInSmallestDenomination } from '@radixdlt/primitives'
-import { fixedSupplyTokenDefinitionParticle } from '../src/fixedSupplyTokenDefinitionParticle'
+import { fixedSupplyTokenDefinitionParticle } from '../src/particles/fixedSupplyTokenDefinitionParticle'
 import { toAddress } from './helpers/utility'
 import { UInt256 } from '@radixdlt/uint256'
 import { doTestTokenDefintionParticle } from './helpers/tokenDefinitionParticleBase'

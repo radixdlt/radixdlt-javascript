@@ -13,12 +13,13 @@ import {
 	ttParticle0Down,
 	ttParticle1Down,
 } from './helpers/particles'
-import { SignatureID, Signatures, Spin } from '../src/_types'
+import { SignatureID, Signatures } from '../src/_types'
 import {
 	ResourceIdentifierParticleType,
 	TransferrableTokensParticleType,
-} from '../src/radixParticleTypes'
+} from '../src/particles/meta/radixParticleTypes'
 import { signatureFromHexStrings } from './helpers/utility'
+import { Spin } from '../src/particles/_types'
 
 describe('atom', () => {
 	it('can be create empty', () => {

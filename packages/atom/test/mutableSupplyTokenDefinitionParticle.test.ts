@@ -1,5 +1,5 @@
 import { toAddress } from './helpers/utility'
-import { mutableSupplyTokenDefinitionParticle } from '../src/mutableSupplyTokenDefinitionParticle'
+import { mutableSupplyTokenDefinitionParticle } from '../src/particles/mutableSupplyTokenDefinitionParticle'
 import { tokenOwnerOnly } from '../dist/tokenPermissions'
 import { doTestTokenDefintionParticle } from './helpers/tokenDefinitionParticleBase'
 

@@ -1,18 +1,18 @@
-import {
-	MutableSupplyTokenDefinitionParticle,
-	ParticleBase,
-	TokenDefinitionParticleBase,
-	TokenPermission,
-	TokenPermissions,
-} from './_types'
+import { TokenPermission, TokenPermissions } from '../_types'
 import { Result, err, ok } from 'neverthrow'
-import { RadixParticleType } from './radixParticleTypes'
+import { RadixParticleType } from './meta/radixParticleTypes'
+
+import { tokenOwnerOnly } from '../tokenPermissions'
 import {
 	baseTokenDefinitionParticle,
 	isTokenDefinitionParticleBase,
 	TokenDefinitionParticleInput,
 } from './tokenDefinitionParticleBase'
-import { tokenOwnerOnly } from './tokenPermissions'
+import {
+	MutableSupplyTokenDefinitionParticle,
+	ParticleBase,
+	TokenDefinitionParticleBase,
+} from './_types'
 
 const validateTokenPermissions = (
 	permissions: TokenPermissions,
