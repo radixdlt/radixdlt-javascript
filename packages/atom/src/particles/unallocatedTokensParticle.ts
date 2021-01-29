@@ -1,4 +1,4 @@
-import { Granularity } from '@radixdlt/primitives'
+import { Granularity, Nonce } from '@radixdlt/primitives'
 import { ResourceIdentifier, Supply, TokenPermissions } from '../_types'
 import {
 	RadixParticleType,
@@ -7,6 +7,7 @@ import {
 import {
 	tokenDSONKeyValues,
 	tokenParticleProps,
+	TokenParticleInput,
 	withTokenParticleEquals,
 } from './meta/tokenParticle'
 import { DSONCodable, DSONEncoding } from '@radixdlt/dson'
@@ -16,12 +17,10 @@ import {
 	UnallocatedTokensParticleProps,
 } from './_types'
 
-export type UnallocatedTokensParticleInput = Readonly<{
-	tokenDefinitionReference: ResourceIdentifier
-	granularity: Granularity
-	amount: Supply
-	permissions?: TokenPermissions
-}>
+export type UnallocatedTokensParticleInput = TokenParticleInput &
+	Readonly<{
+		amount: Supply
+	}>
 
 const SERIALIZER = 'radix.particles.unallocated_tokens'
 
