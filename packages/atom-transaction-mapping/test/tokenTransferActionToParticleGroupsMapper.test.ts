@@ -130,7 +130,7 @@ describe('TokenTransferActionToParticleGroupsMapper', () => {
 			upTTP(3),
 		].map((p) => p.eraseToAnyUp())
 
-		const spunParticles_ = mapper
+		const particleGroups = mapper
 			.particleGroupsFromAction({
 				action: transferAction,
 				upParticles: spunUpParticles,
@@ -138,31 +138,33 @@ describe('TokenTransferActionToParticleGroupsMapper', () => {
 			})
 			._unsafeUnwrap()
 
-		expect(spunParticles_.spunParticles.length).toBe(4)
+		expect(particleGroups.length).toBe(1)
+		const spunParticles = particleGroups[0].spunParticles.spunParticles
+		expect(spunParticles.length).toBe(4)
 
 		const one = positiveAmountFromUnsafe(1)._unsafeUnwrap()
 		const two = positiveAmountFromUnsafe(2)._unsafeUnwrap()
 		const three = positiveAmountFromUnsafe(3)._unsafeUnwrap()
 		const four = positiveAmountFromUnsafe(4)._unsafeUnwrap()
 
-		const sp0 = spunParticles_.spunParticles[0]
+		const sp0 = spunParticles[0]
 		expect(sp0.spin).toBe(Spin.DOWN)
 		const p0 = sp0.particle as TransferrableTokensParticle
 		expect(p0.amount.equals(two)).toBe(true)
 
-		const sp1 = spunParticles_.spunParticles[1]
+		const sp1 = spunParticles[1]
 		expect(sp1.spin).toBe(Spin.DOWN)
 		const p1 = sp1.particle as TransferrableTokensParticle
 		expect(p1.amount.equals(three)).toBe(true)
 
 		// Change back to Alice
-		const sp2 = spunParticles_.spunParticles[2]
+		const sp2 = spunParticles[2]
 		expect(sp2.spin).toBe(Spin.UP)
 		const p2 = sp2.particle as TransferrableTokensParticle
 		expect(p2.amount.equals(one)).toBe(true)
 		expect(p2.address.equals(alice)).toBe(true)
 
-		const sp3 = spunParticles_.spunParticles[3]
+		const sp3 = spunParticles[3]
 		expect(sp3.spin).toBe(Spin.UP)
 		const p3 = sp3.particle as TransferrableTokensParticle
 		expect(p3.amount.equals(four)).toBe(true)

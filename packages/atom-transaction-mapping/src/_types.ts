@@ -3,7 +3,7 @@ import {
 	AnySpunParticle,
 	AnyUpParticle,
 	ParticleBase,
-	SpunParticles,
+	ParticleGroup,
 } from '@radixdlt/atom'
 import { Address } from '@radixdlt/crypto'
 import { Result } from 'neverthrow'
@@ -26,7 +26,7 @@ export type ActionToParticleGroupsMapper = Readonly<{
 			upParticles: AnyUpParticle[]
 			addressOfActiveAccount: Address
 		}>,
-	) => Result<SpunParticles, Error>
+	) => Result<ParticleGroup[], Error>
 }>
 
 export type TokenTransferActionToParticleGroupsMapper = ActionToParticleGroupsMapper &

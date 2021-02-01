@@ -12,8 +12,9 @@ import {
 	AnyUpParticle,
 	TransferrableTokensParticle,
 	UpParticle,
-	SpunParticles,
 	Spin,
+	ParticleGroup,
+	particleGroup,
 } from '@radixdlt/atom'
 import { Address } from '@radixdlt/crypto'
 import { err, ok, Result } from 'neverthrow'
@@ -83,7 +84,7 @@ const particleGroupsFromTransferTokensAction = (
 		upParticles: UpParticle<TransferrableTokensParticle>[]
 		addressOfActiveAccount: Address
 	}>,
-): Result<SpunParticles, Error> => {
+): Result<ParticleGroup[], Error> => {
 	const transitioner = makeTransitioner<
 		TransferrableTokensParticle,
 		TransferrableTokensParticle
@@ -116,6 +117,7 @@ const particleGroupsFromTransferTokensAction = (
 			totalAmountToTransfer: input.transferTokensAction.amount,
 		})
 		.map((spp) => spunParticles(spp))
+		.map((sps) => [particleGroup(sps)])
 }
 
 export const validateUserActionType = <A extends UserAction>(
@@ -140,7 +142,7 @@ export const tokenTransferActionToParticleGroupsMapper = (): TokenTransferAction
 				upParticles: AnyUpParticle[]
 				addressOfActiveAccount: Address
 			}>,
-		): Result<SpunParticles, Error> => {
+		): Result<ParticleGroup[], Error> => {
 			return validateUserActionSender(input)
 				.andThen((action) =>
 					validateUserActionType<TransferTokensAction>({
