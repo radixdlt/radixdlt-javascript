@@ -18,8 +18,8 @@ export type FungibleParticleTransitioner<From extends ParticleBase> = Readonly<{
 	) => Result<AnySpunParticle[], Error>
 }>
 
-export type ActionToParticleGroupsMapper = Readonly<{
-	actionType: UserActionType
+export type ActionToParticleGroupsMapper<T extends UserActionType> = Readonly<{
+	actionType: T
 	particleGroupsFromAction: (
 		input: Readonly<{
 			action: UserAction
@@ -29,7 +29,5 @@ export type ActionToParticleGroupsMapper = Readonly<{
 	) => Result<ParticleGroup[], Error>
 }>
 
-export type TokenTransferActionToParticleGroupsMapper = ActionToParticleGroupsMapper &
-	Readonly<{
-		actionType: UserActionType.TOKEN_TRANSFER
-	}>
+export type TokenTransferActionToParticleGroupsMapper = ActionToParticleGroupsMapper<UserActionType.TOKEN_TRANSFER>
+export type BurnTokensActionToParticleGroupsMapper = ActionToParticleGroupsMapper<UserActionType.BURN_TOKENS>
