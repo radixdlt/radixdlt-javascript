@@ -4,11 +4,9 @@ import { addressFromBase58String } from '@radixdlt/crypto'
 import {
 	AnyUpParticle,
 	fixedSupplyTokenDefinitionParticle,
-	ResourceIdentifier,
 	resourceIdentifierFromAddressAndName,
 	Spin,
 	TokenDefinitionParticleInput,
-	TokenPermissions,
 	transferrableTokensParticle,
 	TransferrableTokensParticle,
 	upParticle,
@@ -16,25 +14,24 @@ import {
 } from '@radixdlt/atom'
 import {
 	amountFromUInt256,
-	amountInSmallestDenomination,
 	Denomination,
-	Granularity,
-	Nonce,
 	positiveAmountFromUnsafe,
 } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
-import { transferrableTokensParticleFromUnsafe } from '../../atom/test/helpers/utility'
+import { toAddress } from '../../atom/test/helpers/utility'
 
 describe('TokenTransferActionToParticleGroupsMapper', () => {
 	const mapper = tokenTransferActionToParticleGroupsMapper()
 
-	const alice = addressFromBase58String(
+	const alice = toAddress(
 		'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
-	)._unsafeUnwrap()
-
-	const bob = addressFromBase58String(
+	)
+	const bob = toAddress(
 		'9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
-	)._unsafeUnwrap()
+	)
+	const carol = toAddress(
+		'9S8sKfN3wGyJdfyu9RwWvGKtZqq3R1NaxwT63VXi5dEZ6dUJXLyR',
+	)
 
 	const symbol = 'FOOBAR'
 	const rri = resourceIdentifierFromAddressAndName({
@@ -120,6 +117,52 @@ describe('TokenTransferActionToParticleGroupsMapper', () => {
 			})._unsafeUnwrap(),
 		)
 	}
+
+	it(`should fail with 'Insufficient Balance' error when trying to map with a particles list with FixedSupplyTokenDefinitionParticle but no enough transferrable tokens.`, () => {
+		const transferAction = makeTransferAction(4)
+
+		const spunUpParticles: AnyUpParticle[] = [
+			upParticle(fixedSupTokDefParticle),
+			upTTP(3),
+		].map((p) => p.eraseToAnyUp())
+
+		const particleGroupsResult = mapper.particleGroupsFromAction({
+			action: transferAction,
+			upParticles: spunUpParticles,
+			addressOfActiveAccount: alice,
+		})
+
+		particleGroupsResult.match(
+			() => {
+				throw Error('expected error, but got none')
+			},
+			(f) => expect(f.message).toBe(`Insufficient balance.`),
+		)
+	})
+
+	it(`should fail when addressOfActiveAcount is someone elses.`, () => {
+		expect(alice.equals(carol)).toBe(false)
+		const transferAction = makeTransferAction(4)
+
+		const spunUpParticles: AnyUpParticle[] = [
+			upParticle(fixedSupTokDefParticle),
+			upTTP(2),
+			upTTP(3),
+		].map((p) => p.eraseToAnyUp())
+
+		const particleGroupsResult = mapper.particleGroupsFromAction({
+			action: transferAction,
+			upParticles: spunUpParticles,
+			addressOfActiveAccount: carol, // <-- WRONG!
+		})
+
+		particleGroupsResult.match(
+			() => {
+				throw Error('expected error, but got none')
+			},
+			(f) => expect(f.message).toBe(`Wrong sender/signer`),
+		)
+	})
 
 	it(`should work with a FixedSupplyTokenDefinitionParticle and some transferrable tokens particles with change back.`, () => {
 		const transferAction = makeTransferAction(4)
