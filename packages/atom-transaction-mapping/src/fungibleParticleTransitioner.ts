@@ -8,8 +8,7 @@ import {
 import { Amount } from '@radixdlt/primitives'
 import { Result, err, ok } from 'neverthrow'
 
-/* eslint-disable functional/immutable-data, functional/no-let, functional/no-try-statement, functional/no-loop-statement, prefer-const */
-
+/* eslint-disable functional/immutable-data, functional/no-let, functional/no-try-statement, functional/no-loop-statement, prefer-const, max-lines-per-function */
 export const makeTransitioner = <
 	From extends ParticleBase,
 	To extends ParticleBase
@@ -17,7 +16,7 @@ export const makeTransitioner = <
 	input: Readonly<{
 		inputAmountMapper: (from: From) => Amount
 		inputCreator: (amount: Amount, from: From) => From
-		outputCreator: (amount: Amount) => To
+		outputCreator: (amount: Amount, from: From) => To
 	}>,
 ): FungibleParticleTransitioner<From> => {
 	const inputAmountMapper = input.inputAmountMapper
@@ -31,9 +30,7 @@ export const makeTransitioner = <
 				totalAmountToTransfer: Amount
 			}>,
 		): Result<AnySpunParticle[], Error> => {
-			let spunParticles: AnySpunParticle[] = [
-				spunUpParticle(outputCreator(input.totalAmountToTransfer)),
-			]
+			let spunParticles: AnySpunParticle[] = []
 
 			let amountLeftToTransfer = input.totalAmountToTransfer
 
@@ -50,8 +47,19 @@ export const makeTransitioner = <
 								inputCreator(sendBackToSelf, currentParticle),
 							),
 						)
-						return ok(spunParticles)
-					} else if (particleAmount.equals(amountLeftToTransfer)) {
+					}
+
+					if (
+						particleAmount.greaterThanOrEquals(amountLeftToTransfer)
+					) {
+						spunParticles.push(
+							spunUpParticle(
+								outputCreator(
+									input.totalAmountToTransfer,
+									currentParticle,
+								),
+							),
+						)
 						return ok(spunParticles)
 					}
 
@@ -80,5 +88,6 @@ export const makeSimpleTransitioner = <
 	return makeTransitioner({
 		...input,
 		inputCreator: (amount: Amount, _: From) => input.inputCreator(amount),
+		outputCreator: (amount: Amount, _: From) => input.outputCreator(amount),
 	})
 }

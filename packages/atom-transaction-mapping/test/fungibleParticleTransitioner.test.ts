@@ -25,11 +25,13 @@ describe('fungibleParticleTransitioner', () => {
 	type TestParticle = ParticleBase & {
 		amount: Amount
 		id: string
+		isChangeReturnedToSender: boolean
 	}
 
 	const testParticle = (
 		amount: number | Amount,
 		id?: string,
+		isChangeReturnedToSender?: boolean,
 	): TestParticle => {
 		const id_ = id ?? uuidv4()
 		const amount_ =
@@ -39,6 +41,7 @@ describe('fungibleParticleTransitioner', () => {
 		return {
 			amount: amount_,
 			id: id_,
+			isChangeReturnedToSender: isChangeReturnedToSender ?? false,
 			equals: (other) => (other as TestParticle).id === id_,
 		}
 	}
@@ -61,15 +64,15 @@ describe('fungibleParticleTransitioner', () => {
 		expect(spunParticles.length).toBe(2)
 
 		const spunParticle0 = spunParticles[0]
-		expect(spunParticle0.spin).toBe(Spin.UP)
-		expect(spunParticle0.particle.equals(particle)).toBe(false)
-		expect(
-			(spunParticle0.particle as TestParticle).amount.equals(two),
-		).toBe(true)
+		expect(spunParticle0.particle.equals(particle)).toBe(true)
+		expect(spunParticle0.spin).toBe(Spin.DOWN)
 
 		const spunParticle1 = spunParticles[1]
-		expect(spunParticle1.particle.equals(particle)).toBe(true)
-		expect(spunParticle1.spin).toBe(Spin.DOWN)
+		expect(spunParticle1.spin).toBe(Spin.UP)
+		expect(spunParticle1.particle.equals(particle)).toBe(false)
+		expect(
+			(spunParticle1.particle as TestParticle).amount.equals(two),
+		).toBe(true)
 	})
 
 	type SpunTestParticle = SpunParticle<TestParticle>
@@ -95,7 +98,7 @@ describe('fungibleParticleTransitioner', () => {
 		const transitioner = makeTransitioner<TestParticle, TestParticle>({
 			inputAmountMapper: (p) => p.amount,
 			inputCreator: (amount, from: TestParticle) =>
-				/* From */ testParticle(amount, from.id.toUpperCase()),
+				/* From */ testParticle(amount, from.id.toUpperCase(), true),
 			outputCreator: (amount) =>
 				/* To */ testParticle(amount, `up${outCounter}`),
 		})
@@ -115,12 +118,12 @@ describe('fungibleParticleTransitioner', () => {
 		expectTransition({
 			actual: spunParticles,
 			expected: [
-				upTP(testParticle(nine, 'up0')),
+				upTP(testParticle(nine, 'up0', false)),
 				downTP(a),
 				downTP(b),
 				downTP(c),
 				downTP(d),
-				upTP(testParticle(one, 'D')),
+				upTP(testParticle(one, 'D', true)),
 			],
 		})
 	})

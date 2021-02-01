@@ -1,15 +1,6 @@
 import { addressFromBase58String } from '@radixdlt/crypto'
-import {
-	resourceIdentifierFromAddressAndName,
-	tokenPermissionsAll,
-} from '@radixdlt/atom'
-import {
-	amountInSmallestDenomination,
-	Denomination,
-	nonce,
-	positiveAmountFromUnsafe,
-} from '@radixdlt/primitives'
-import { UInt256 } from '@radixdlt/uint256'
+import { resourceIdentifierFromAddressAndName } from '@radixdlt/atom'
+import { Denomination, positiveAmountFromUnsafe } from '@radixdlt/primitives'
 import {
 	transferTokensAction,
 	TransferTokensActionInput,

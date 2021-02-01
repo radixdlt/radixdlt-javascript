@@ -1,5 +1,4 @@
-import { Granularity, Nonce } from '@radixdlt/primitives'
-import { ResourceIdentifier, Supply, TokenPermissions } from '../_types'
+import { Supply } from '../_types'
 import {
 	RadixParticleType,
 	UnallocatedTokensParticleType,

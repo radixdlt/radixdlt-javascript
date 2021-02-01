@@ -1,3 +1,5 @@
+export * from './_types'
+
 export * from './transferrableTokensParticle'
 export * from './unallocatedTokensParticle'
 export * from './tokenDefinitionParticleBase'

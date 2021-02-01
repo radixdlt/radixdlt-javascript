@@ -91,7 +91,7 @@ export type UpParticle<P extends ParticleBase> = SpunParticle<P> &
 	Readonly<{
 		spin: Spin.UP
 		toSpunParticle: () => SpunParticle<P>
-		eraseToAny: () => AnyUpParticle
+		eraseToAnyUp: () => AnyUpParticle
 	}>
 
 export type DownParticle<P extends ParticleBase> = SpunParticle<P> &
@@ -99,7 +99,7 @@ export type DownParticle<P extends ParticleBase> = SpunParticle<P> &
 		spin: Spin.DOWN
 		particle: P
 		toSpunParticle: () => SpunParticle<P>
-		eraseToAny: () => AnyDownParticle
+		eraseToAnyDown: () => AnyDownParticle
 	}>
 
 export type AnyUpParticle = AnySpunParticle &
@@ -129,6 +129,10 @@ export type SpunParticles = Readonly<{
 	unallocatedTokensParticles: (
 		spin?: Spin,
 	) => SpunParticle<UnallocatedTokensParticle>[]
+
+	tokenDefinitionParticleMatchingIdentifier: (
+		resourceIdentifier: ResourceIdentifier,
+	) => TokenDefinitionParticleBase | undefined
 }>
 
 export type TokenParticle = RadixParticle &

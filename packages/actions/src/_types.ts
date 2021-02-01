@@ -11,11 +11,15 @@ export type UserAction = Readonly<{
 	sender: Address
 }>
 
-export type TransferTokensAction = UserAction &
+export type TokensActionBase = UserAction &
 	Readonly<{
-		recipient: Address
 		amount: PositiveAmount
 		tokenResourceIdentifier: ResourceIdentifier
+	}>
+
+export type TransferTokensAction = TokensActionBase &
+	Readonly<{
+		recipient: Address
 		message?: string
 		uuid: string
 	}>

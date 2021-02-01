@@ -5,6 +5,7 @@ import {
 	SpunParticle,
 	SpunParticleBase,
 	SpunParticles,
+	TokenDefinitionParticleBase,
 	TransferrableTokensParticle,
 	UnallocatedTokensParticle,
 } from './_types'
@@ -19,6 +20,7 @@ import {
 	TransferrableTokensParticleType,
 	UnallocatedTokensParticleType,
 } from './meta/radixParticleTypes'
+import { ResourceIdentifier } from '../_types'
 
 /* eslint-disable max-lines-per-function */
 export const spunParticles = (
@@ -102,11 +104,51 @@ export const spunParticles = (
 			particleType: UnallocatedTokensParticleType,
 		})
 
+	const tokenDefinitionParticleMatchingIdentifier = (
+		resourceIdentifier: ResourceIdentifier,
+	): TokenDefinitionParticleBase | undefined => {
+		const firstTokenDefinitionParticleOfType = (
+			particleType: RadixParticleType,
+		): TokenDefinitionParticleBase | undefined => {
+			const tokenParticles = spunParticlesOfTypeWithSpin<TokenDefinitionParticleBase>(
+				{
+					particleType: particleType,
+				},
+			)
+
+			const tokenParticlesMatchingRRI = tokenParticles
+				.map((sp) => sp.particle)
+				.filter((p) => p.resourceIdentifier.equals(resourceIdentifier))
+
+			return tokenParticlesMatchingRRI.length >= 1
+				? tokenParticlesMatchingRRI[0]
+				: undefined
+		}
+
+		const maybeMutableSupplyTokDefPart = firstTokenDefinitionParticleOfType(
+			RadixParticleType.MUTABLE_SUPPLY_TOKEN_DEFINITION,
+		)
+
+		if (maybeMutableSupplyTokDefPart) {
+			return maybeMutableSupplyTokDefPart
+		}
+
+		const maybeFixedSupplyTokDefPart = firstTokenDefinitionParticleOfType(
+			RadixParticleType.FIXED_SUPPLY_TOKEN_DEFINITION,
+		)
+
+		if (maybeFixedSupplyTokDefPart) {
+			return maybeFixedSupplyTokDefPart
+		}
+		return undefined
+	}
+
 	return {
 		spunParticles: unique,
 		anySpunParticlesOfTypeWithSpin: anySpunParticlesOfTypeWithSpin,
 		transferrableTokensParticles: transferrableTokensParticles,
 		unallocatedTokensParticles: unallocatedTokensParticles,
+		tokenDefinitionParticleMatchingIdentifier: tokenDefinitionParticleMatchingIdentifier,
 	}
 }
 
