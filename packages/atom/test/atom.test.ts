@@ -1,10 +1,5 @@
 import { atom } from '../src/atom'
 import { atomIdentifier } from '../src/atomIdentifier'
-
-const mockedAtomIdentifier = atomIdentifier(
-	'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
-)._unsafeUnwrap()
-
 import {
 	exactlyContainParticles,
 	spunParticles_,
@@ -20,12 +15,16 @@ import {
 } from '../src/particles/meta/radixParticleTypes'
 import { signatureFromHexStrings } from './helpers/utility'
 import { Spin } from '../src/particles/_types'
+import { particleGroup } from '../src/particleGroup'
+import { particleGroups } from '../src/particleGroups'
+
+const mockedAtomIdentifier = atomIdentifier(
+	'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+)._unsafeUnwrap()
 
 describe('atom', () => {
 	it('can be create empty', () => {
-		const atom_ = atom({
-			particles: [],
-		})
+		const atom_ = atom({})
 		expect(atom_).toBeDefined()
 		expect(atom_.signatures).toBeDefined()
 		expect(atom_.message).toBeUndefined()
@@ -35,7 +34,7 @@ describe('atom', () => {
 
 	it('can query anySpunParticles by spin=DOWN and by type=ResourceIdentifierParticle OR TransferrableTokensParticle since an atom itself is SpunParticles', () => {
 		const atom_ = atom({
-			particles: spunParticles_,
+			particleGroups: particleGroups([particleGroup(spunParticles_)]),
 		})
 
 		expect(
@@ -59,7 +58,6 @@ describe('atom', () => {
 
 	it('can contain a message', () => {
 		const atom_ = atom({
-			particles: [],
 			message: 'Hello',
 		})
 
@@ -76,15 +74,18 @@ describe('atom', () => {
 		})
 
 		const signatureID: SignatureID = "Alice's Signature"
-		const signatures: Signatures = new Map([[signatureID, signature]])
+
+		const signatures: Signatures = {
+			[signatureID]: signature,
+		}
+
 		const atom_ = atom({
-			particles: [],
 			signatures: signatures,
 		})
 
 		expect(atom_).toBeDefined()
 		expect(atom_.isSigned()).toBe(true)
-		const queriedSignature = atom_.signatures.get(signatureID)
+		const queriedSignature = atom_.signatures[signatureID]
 		if (queriedSignature !== undefined) {
 			expect(queriedSignature.equals(signature))
 		} else {
