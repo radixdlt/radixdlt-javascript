@@ -1,6 +1,6 @@
 import { tokenTransferActionToParticleGroupsMapper } from '../src/tokenTransferActionToParticleGroupsMapper'
 import { TransferTokensAction, transferTokensAction } from '@radixdlt/actions'
-import { addressFromBase58String } from '@radixdlt/crypto'
+import { Address, addressFromBase58String } from '@radixdlt/crypto'
 import {
 	AnyUpParticle,
 	fixedSupplyTokenDefinitionParticle,
@@ -29,8 +29,13 @@ describe('TokenTransferActionToParticleGroupsMapper', () => {
 	const bob = toAddress(
 		'9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
 	)
+
 	const carol = toAddress(
 		'9S8sKfN3wGyJdfyu9RwWvGKtZqq3R1NaxwT63VXi5dEZ6dUJXLyR',
+	)
+
+	const dan = toAddress(
+		'9SBFdPAkvquf9XX82D2Z9DzL2WdmNQGcrxFUnKpVytpkMjZWD9Rb',
 	)
 
 	const symbol = 'FOOBAR'
@@ -106,13 +111,16 @@ describe('TokenTransferActionToParticleGroupsMapper', () => {
 		)
 	})
 
-	const upTTP = (amount: number): UpParticle<TransferrableTokensParticle> => {
+	const upTTP = (
+		amount: number,
+		owner?: Address,
+	): UpParticle<TransferrableTokensParticle> => {
 		return upParticle(
 			transferrableTokensParticle({
 				granularity: fixedSupTokDefParticle.granularity,
 				tokenDefinitionReference:
 					fixedSupTokDefParticle.resourceIdentifier,
-				address: bob,
+				address: owner ?? alice,
 				amount: positiveAmountFromUnsafe(amount)._unsafeUnwrap(),
 			})._unsafeUnwrap(),
 		)
@@ -140,7 +148,7 @@ describe('TokenTransferActionToParticleGroupsMapper', () => {
 		)
 	})
 
-	it(`should fail when addressOfActiveAcount is someone elses.`, () => {
+	it(`should fail with 'Wrong sender/signer' error when addressOfActiveAcount is someone elses.`, () => {
 		expect(alice.equals(carol)).toBe(false)
 		const transferAction = makeTransferAction(4)
 
@@ -161,6 +169,30 @@ describe('TokenTransferActionToParticleGroupsMapper', () => {
 				throw Error('expected error, but got none')
 			},
 			(f) => expect(f.message).toBe(`Wrong sender/signer`),
+		)
+	})
+
+	it(`should fail with 'Insufficient Balance' error when some of the TTPs belong to someone else.`, () => {
+		expect(alice.equals(carol)).toBe(false)
+		const transferAction = makeTransferAction(4)
+
+		const spunUpParticles: AnyUpParticle[] = [
+			upParticle(fixedSupTokDefParticle),
+			upTTP(2, dan),
+			upTTP(3),
+		].map((p) => p.eraseToAnyUp())
+
+		const particleGroupsResult = mapper.particleGroupsFromAction({
+			action: transferAction,
+			upParticles: spunUpParticles,
+			addressOfActiveAccount: alice,
+		})
+
+		particleGroupsResult.match(
+			() => {
+				throw Error('expected error, but got none')
+			},
+			(f) => expect(f.message).toBe(`Insufficient balance.`),
 		)
 	})
 

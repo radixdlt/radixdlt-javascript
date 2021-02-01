@@ -123,6 +123,9 @@ export const validateInputCollectUpParticles = <A extends TokensActionBase>(
 	return validateActionInputForConsumeTokensAction<A>(input).map((_) =>
 		spunParticles(input.upParticles)
 			.transferrableTokensParticles(Spin.UP)
+			.filter((sp) =>
+				sp.particle.address.equals(input.addressOfActiveAccount),
+			)
 			.map((sp) => asUpParticle(sp)._unsafeUnwrap()),
 	)
 }
@@ -149,6 +152,7 @@ const particleGroupsFromTransferTokensAction = (
 			transferrableTokensParticleFromParticle({
 				amount: amount,
 				from: from,
+				address: input.transferTokensAction.recipient,
 			}),
 	})
 
