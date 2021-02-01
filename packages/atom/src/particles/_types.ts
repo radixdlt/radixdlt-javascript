@@ -1,5 +1,5 @@
 import { Address } from '@radixdlt/crypto'
-import { DSONCodable } from '@radixdlt/dson'
+import { DSONCodable } from '@radixdlt/data-formats'
 import { Granularity, Nonce, PositiveAmount } from '@radixdlt/primitives'
 import { Result } from 'neverthrow'
 import { ResourceIdentifier, Supply, TokenPermissions } from '../_types'

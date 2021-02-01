@@ -10,7 +10,7 @@ import {
 	isUnsafeInputForUInt256,
 	uint256Max,
 } from './uint256-extensions'
-import { addObjectEncoding } from '@radixdlt/dson'
+import { DSONObjectEncoding } from '@radixdlt/data-formats'
 import { Byte } from '@radixdlt/util'
 
 export const CBOR_BYTESTRING_PREFIX: Byte = 5
@@ -35,7 +35,7 @@ export const amountInSmallestDenomination = (magnitude: UInt256): Amount => {
 	const buffer = bnFromUInt256(magnitude).toBuffer('be', 32)
 
 	return {
-		...addObjectEncoding({
+		...DSONObjectEncoding({
 			prefix: CBOR_BYTESTRING_PREFIX,
 			buffer,
 		}),

@@ -2,7 +2,7 @@ import { Address } from '@radixdlt/crypto'
 import { ResourceIdentifier } from './_types'
 import { err, ok, Result } from 'neverthrow'
 import { addressFromBase58String } from '@radixdlt/crypto'
-import { addObjectEncoding } from '@radixdlt/dson'
+import { DSONObjectEncoding } from '@radixdlt/data-formats'
 import { Byte } from '@radixdlt/util'
 
 const separator = '/'
@@ -19,7 +19,7 @@ export const resourceIdentifierFromAddressAndName = (input: {
 	const identifier = ['', address.toString(), name].join(separator)
 
 	return {
-		...addObjectEncoding({
+		...DSONObjectEncoding({
 			prefix: CBOR_BYTESTRING_PREFIX,
 			buffer: Buffer.from(identifier),
 		}),
@@ -41,7 +41,7 @@ export const resourceIdentifierFromString = (
 
 	return addressFromBase58String(components[1]).map(
 		(address): ResourceIdentifier => ({
-			...addObjectEncoding({
+			...DSONObjectEncoding({
 				prefix: CBOR_BYTESTRING_PREFIX,
 				buffer: Buffer.from(identifierString),
 			}),

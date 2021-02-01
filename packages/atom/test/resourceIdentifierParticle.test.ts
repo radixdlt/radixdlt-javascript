@@ -1,4 +1,4 @@
-import { OutputMode } from '@radixdlt/dson'
+import { OutputMode } from '@radixdlt/data-formats'
 import { resourceIdentifierFromString } from '../src/resourceIdentifier'
 import {
 	isResourceIdentifierParticle,

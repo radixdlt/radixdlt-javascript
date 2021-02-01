@@ -1,7 +1,7 @@
 {
-  "name": "@radixdlt/dson",
+  "name": "@radixdlt/data-formats",
   "version": "0.0.0",
-  "description": "CBOR serialization and deserialization with a flavour, called DSON. Our custom binary data format.",
+  "description": "Data formats used for serialization.",
   "keywords": [
     "CBOR",
     "DSON",
@@ -10,7 +10,7 @@
   "author": "Alexander Cyon <alex.cyon@gmail.com>",
   "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/dson#readme",
   "license": "Apache-2.0",
-  "main": "dist/_index.js",
+  "main": "dist/index.js",
   "publishConfig": {
     "access": "public"
   },

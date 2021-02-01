@@ -2,9 +2,8 @@
 import cbor from 'cbor'
 import { Result } from 'neverthrow'
 
-export type DSONCodable = {
+export type DSONCodable = Readonly<{
 	encoding: (outputMode: OutputMode) => CBOREncodableObject
-} & Readonly<{
 	toDSON: (outputMode?: OutputMode) => Result<Buffer, Error>
 }>
 
@@ -24,7 +23,7 @@ export type CBOREncodablePrimitive =
 	| boolean
 	| Buffer
 	| bigint
-	| Record<string, unknown>
+	| { [key: string]: CBOREncodablePrimitive }
 
 export enum OutputMode {
 	NONE = 0,

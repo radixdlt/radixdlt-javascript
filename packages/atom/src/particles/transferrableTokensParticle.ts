@@ -5,7 +5,12 @@ import {
 	RadixParticleType,
 	TransferrableTokensParticleType,
 } from './meta/radixParticleTypes'
-import { DSONCodable, DSONEncoding } from '@radixdlt/dson'
+import {
+	DSONCodable,
+	DSONEncoding,
+	JSONEncoding,
+	JSONEncodable,
+} from '@radixdlt/data-formats'
 import {
 	tokenDSONKeyValues,
 	TokenParticleInput,
@@ -43,6 +48,13 @@ const DSON = (
 				value: input.amount,
 			},
 		],
+	})
+
+const JSON = (
+	input: TransferrableTokensParticleProps & TokenParticle,
+): JSONEncodable =>
+	JSONEncoding(SERIALIZER)({
+		address: input.address,
 	})
 
 export const transferrableTokensParticle = (

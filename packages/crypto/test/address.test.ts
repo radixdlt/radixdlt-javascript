@@ -4,11 +4,12 @@ import {
 	privateKeyFromScalar,
 	Address,
 	isAddress,
+	JSON_TAG,
 } from '../src/_index'
 
 import { magicFromNumber } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
-import { OutputMode } from '@radixdlt/dson'
+import { OutputMode } from '@radixdlt/data-formats'
 
 // TODO CODE DUPLICATION remove to separate test package...
 export const toAddress = (b58: string): Address =>
@@ -70,5 +71,13 @@ describe('Address', () => {
 		expect(dson.toString('hex')).toBe(
 			'582704390279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798b1186a1e',
 		)
+	})
+
+	it('should be able to JSON encode', () => {
+		const raw = '9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT'
+		const address = toAddress(raw)
+		const json = address.toJSON()
+
+		expect(json.toString()).toBe(`${JSON_TAG}${raw}`)
 	})
 })

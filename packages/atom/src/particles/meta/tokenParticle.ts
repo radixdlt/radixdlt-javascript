@@ -1,4 +1,4 @@
-import { DSONKeyValue } from '@radixdlt/dson'
+import { DSONKeyValue } from '@radixdlt/data-formats'
 import { Granularity, Nonce, randomNonce } from '@radixdlt/primitives'
 import { pipe } from '@radixdlt/util'
 import { tokenPermissionsAll } from '../../tokenPermissions'

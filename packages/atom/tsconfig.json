@@ -8,7 +8,7 @@
     "src"
   ],
   "references": [
-    {"path": "../dson"},
+    {"path": "../data-formats"},
     {"path": "../crypto"},
     {"path": "../primitives"}
   ]

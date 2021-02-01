@@ -9,6 +9,6 @@
   ],
   "references": [
     {"path": "../primitives"},
-    {"path": "../dson"},
+    {"path": "../data-formats"},
   ]
 }

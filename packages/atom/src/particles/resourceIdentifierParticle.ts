@@ -4,7 +4,7 @@ import {
 	RadixParticleType,
 	ResourceIdentifierParticleType,
 } from './meta/radixParticleTypes'
-import { DSONEncoding, DSONKeyValue } from '@radixdlt/dson'
+import { DSONEncoding, DSONKeyValue } from '@radixdlt/data-formats'
 import { ParticleBase, ResourceIdentifierParticle } from './_types'
 
 export const resourceIdentifierParticle = (

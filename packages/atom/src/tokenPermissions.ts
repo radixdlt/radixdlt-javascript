@@ -6,7 +6,7 @@ import {
 } from './_types'
 
 import { objectEquals } from '@radixdlt/util'
-import { DSONEncoding } from '@radixdlt/dson'
+import { DSONEncoding } from '@radixdlt/data-formats'
 
 export const makeTokenPermissions = (
 	permissions: Readonly<{ [key in TokenTransition]: TokenPermission }>,

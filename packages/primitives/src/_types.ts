@@ -1,7 +1,7 @@
 import { Long } from 'long'
 import { UInt256 } from '@radixdlt/uint256'
 import { Result } from 'neverthrow'
-import { DSONCodable } from '@radixdlt/dson'
+import { DSONCodable } from '@radixdlt/data-formats'
 import { Byte } from '@radixdlt/util'
 
 export type Int64 = Long
