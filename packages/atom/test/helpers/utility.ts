@@ -4,13 +4,7 @@ import {
 	addressFromUnsafe,
 	Signature,
 } from '@radixdlt/crypto'
-import {
-	ResourceIdentifier,
-	Supply,
-	TokenPermissions,
-	TransferrableTokensParticle,
-	UnallocatedTokensParticle,
-} from '../../src/_types'
+import { ResourceIdentifier, Supply, TokenPermissions } from '../../src/_types'
 import {
 	amountFromUnsafe,
 	AmountInputUnsafe,
@@ -23,13 +17,17 @@ import { resourceIdentifierFromUnsafe } from '../../src/resourceIdentifier'
 import {
 	transferrableTokensParticle,
 	TransferrableTokensParticleInput,
-} from '../../src/transferrableTokensParticle'
+} from '../../src/particles/transferrableTokensParticle'
 
 import {
 	unallocatedTokensParticle,
 	UnallocatedTokensParticleInput,
-} from '../../src/unallocatedTokensParticle'
+} from '../../src/particles/unallocatedTokensParticle'
 import { UInt256 } from '@radixdlt/uint256'
+import {
+	TransferrableTokensParticle,
+	UnallocatedTokensParticle,
+} from '../../src/particles/_types'
 
 export const transferrableTokensParticleFromUnsafe = (
 	input: Readonly<{

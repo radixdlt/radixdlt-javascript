@@ -3,7 +3,7 @@ import { resourceIdentifierFromString } from '../src/resourceIdentifier'
 import {
 	isResourceIdentifierParticle,
 	resourceIdentifierParticle,
-} from '../src/resourceIdentifierParticle'
+} from '../src/particles/resourceIdentifierParticle'
 
 describe('ResourceIdentifierParticle', () => {
 	const rri = resourceIdentifierFromString(

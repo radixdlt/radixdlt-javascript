@@ -3,8 +3,8 @@ import { granularityDefault } from '@radixdlt/primitives'
 import {
 	TokenDefinitionParticleInput,
 	RADIX_TOKEN_SYMBOL_MAX_LENGTH,
-} from '../../src/tokenDefinitionParticleBase'
-import { TokenDefinitionParticleBase } from '../../src/_types'
+} from '../../'
+import { TokenDefinitionParticleBase } from '../../src/particles/_types'
 
 // eslint-disable-next-line max-lines-per-function
 export const doTestTokenDefintionParticle = <

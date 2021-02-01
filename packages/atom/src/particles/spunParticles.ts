@@ -18,7 +18,7 @@ import {
 	RadixParticleType,
 	TransferrableTokensParticleType,
 	UnallocatedTokensParticleType,
-} from './radixParticleTypes'
+} from './meta/radixParticleTypes'
 
 /* eslint-disable max-lines-per-function */
 export const spunParticles = (

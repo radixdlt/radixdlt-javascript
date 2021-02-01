@@ -1,14 +1,11 @@
-import {
-	ParticleBase,
-	ResourceIdentifier,
-	ResourceIdentifierParticle,
-} from './_types'
+import { ResourceIdentifier } from '../_types'
 import { nonce } from '@radixdlt/primitives'
 import {
 	RadixParticleType,
 	ResourceIdentifierParticleType,
-} from './radixParticleTypes'
+} from './meta/radixParticleTypes'
 import { DSONEncoding, DSONKeyValue } from '@radixdlt/dson'
+import { ParticleBase, ResourceIdentifierParticle } from './_types'
 
 export const resourceIdentifierParticle = (
 	resourceIdentifier: ResourceIdentifier,
@@ -31,9 +28,11 @@ export const resourceIdentifierParticle = (
 			serializer: 'radix.particles.rri',
 			encodingMethodOrKeyValues: dsonKeyValues,
 		}),
+
 		radixParticleType: ResourceIdentifierParticleType,
 		alwaysZeroNonce,
 		resourceIdentifier,
+
 		equals: (otherParticle: ParticleBase): boolean => {
 			if (!isResourceIdentifierParticle(otherParticle)) return false
 			const otherRIP = otherParticle

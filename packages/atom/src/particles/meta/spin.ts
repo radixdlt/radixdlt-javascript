@@ -1,4 +1,4 @@
-import { Spin } from './_types'
+import { Spin } from '../_types'
 import { isSomeEnum } from '@radixdlt/util'
 
 export const isSpin = (something: unknown): something is Spin => {

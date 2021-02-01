@@ -13,7 +13,7 @@ import {
 import { UInt256 } from '@radixdlt/uint256'
 import { resourceIdentifierFromAddressAndName } from '../src/resourceIdentifier'
 import { tokenPermissionsAll } from '../src/tokenPermissions'
-import { transferrableTokensParticle } from '../src/transferrableTokensParticle'
+import { transferrableTokensParticle } from '../src/particles/transferrableTokensParticle'
 import { transferrableTokensParticleFromUnsafe } from './helpers/utility'
 
 describe('transferrableTokensParticle', () => {
@@ -89,6 +89,47 @@ describe('transferrableTokensParticle', () => {
 		expect(ttp.nonce).toBeTruthy()
 		expect(ttp.amount.toString()).toBe('9000000000000000000')
 		expect(ttp.granularity.toString()).toBe('3000000000000000000')
+	})
+
+	it('should be equal to another ttp', () => {
+		const props = {
+			address: '9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
+			tokenDefinitionReference:
+				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR',
+			granularity: 3,
+			amount: 9,
+		}
+
+		const ttp = transferrableTokensParticleFromUnsafe({
+			...props,
+		})._unsafeUnwrap()
+
+		const ttp2 = transferrableTokensParticleFromUnsafe({
+			...props,
+		})._unsafeUnwrap()
+
+		expect(ttp.equals(ttp2)).toBeTruthy()
+	})
+
+	it('should not be equal to a different ttp', () => {
+		const props = {
+			address: '9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
+			tokenDefinitionReference:
+				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR',
+			granularity: 3,
+			amount: 9,
+		}
+
+		const ttp = transferrableTokensParticleFromUnsafe({
+			...props,
+		})._unsafeUnwrap()
+
+		const ttp2 = transferrableTokensParticleFromUnsafe({
+			...props,
+			granularity: 1,
+		})._unsafeUnwrap()
+
+		expect(ttp.equals(ttp2)).toBeFalsy()
 	})
 
 	it('should be able to DSON encode', () => {

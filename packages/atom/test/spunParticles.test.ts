@@ -1,11 +1,10 @@
-import { spunParticles } from '../src/spunParticles'
-import { Spin, AnySpunParticle, SpunParticles } from '../src/_types'
+import { spunParticles } from '../src/particles/spunParticles'
 
 import {
 	ResourceIdentifierParticleType,
 	UnallocatedTokensParticleType,
 	TransferrableTokensParticleType,
-} from '../src/radixParticleTypes'
+} from '../src/particles/meta/radixParticleTypes'
 import {
 	exactlyContainParticles,
 	spunParticles_,
@@ -22,6 +21,7 @@ import {
 	uatParticle1Down,
 	uatParticle1Up,
 } from './helpers/particles'
+import { AnySpunParticle, Spin } from '../src/particles/_types'
 
 describe('SpunParticles', () => {
 	it('removes duplicates', () => {
