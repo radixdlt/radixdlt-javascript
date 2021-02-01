@@ -1,12 +1,7 @@
-import {
-	AnySpunParticle,
-	Atom,
-	AtomIdentifier,
-	Signatures,
-	SpunParticles,
-} from './_types'
-import { spunParticles, isSpunParticles } from './spunParticles'
+import { Atom, AtomIdentifier, Signatures } from './_types'
+import { spunParticles, isSpunParticles } from './particles/spunParticles'
 import { atomIdentifier } from './atomIdentifier'
+import { AnySpunParticle, SpunParticles } from './particles/_types'
 
 const isSigned = (signatures: Signatures): boolean => {
 	return signatures.size > 0

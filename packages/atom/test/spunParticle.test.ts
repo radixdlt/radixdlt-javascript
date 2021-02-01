@@ -1,24 +1,19 @@
 import {
-	Spin,
-	SpunParticle,
-	SpunParticleBase,
-	TransferrableTokensParticle,
-} from '../src/_types'
-import {
 	asAnyDownParticle,
 	asAnyUpParticle,
 	asDownParticle,
 	asUpParticle,
 	spunParticle,
 	spunUpParticle,
-} from '../src/spunParticle'
+} from '../src/particles/spunParticle'
 import {
 	transferrableTokensParticleFromUnsafe,
 	unallocatedTokensParticleFromUnsafe,
 } from './helpers/utility'
-import { TransferrableTokensParticleType } from '../src/radixParticleTypes'
-import { isTransferrableTokensParticle } from '../src/transferrableTokensParticle'
-import { isUnallocatedTokensParticle } from '../src/unallocatedTokensParticle'
+import { TransferrableTokensParticleType } from '../src/particles/meta/radixParticleTypes'
+import { isTransferrableTokensParticle } from '../src/particles/transferrableTokensParticle'
+import { isUnallocatedTokensParticle } from '../src/particles/unallocatedTokensParticle'
+import { Spin, SpunParticleBase } from '../src/particles/_types'
 
 describe('SpunParticle', () => {
 	it('can create SpunParticle<TransferrableTokensParticle>', () => {

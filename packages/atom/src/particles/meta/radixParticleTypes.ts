@@ -1,5 +1,5 @@
 import { isSomeEnum } from '@radixdlt/util'
-import { RadixParticle } from './_types'
+import { RadixParticle } from '../_types'
 
 export enum RadixParticleType {
 	TRANSFERRABLE_TOKENS = 'TransferrableTokensParticle',

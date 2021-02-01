@@ -10,7 +10,7 @@ import {
 	UpParticle,
 } from './_types'
 
-import { isSpin } from './spin'
+import { isSpin } from './meta/spin'
 
 import { err, ok, Result } from 'neverthrow'
 
@@ -82,7 +82,7 @@ export const spunParticle = <P extends ParticleBase>(
 export const upParticle = <P extends ParticleBase>(
 	particle: P,
 ): UpParticle<P> => {
-	const spin = Spin.UP as const
+	const spin = Spin.UP
 	const spun = spunParticle({ particle, spin })
 	return {
 		...spun,
@@ -102,7 +102,7 @@ export const upParticle = <P extends ParticleBase>(
 export const downParticle = <P extends ParticleBase>(
 	particle: P,
 ): DownParticle<P> => {
-	const spin = Spin.DOWN as const
+	const spin = Spin.DOWN
 	const spun = spunParticle({ particle, spin })
 	return {
 		...spun,
@@ -141,7 +141,7 @@ export const spunDownParticle = <P extends ParticleBase>(
  * @returns {AnyUpParticle} an AnyUpParticle (type-erased UpParticle) with the at compile time known spin UP.
  */
 export const anyUpParticle = (particle: ParticleBase): AnyUpParticle => {
-	const spin = Spin.UP as const
+	const spin = Spin.UP
 	const anySpun = anySpunParticle({ particle, spin })
 	return {
 		...anySpun,
@@ -157,7 +157,7 @@ export const anyUpParticle = (particle: ParticleBase): AnyUpParticle => {
  * @returns {AnyDownParticle} an AnyDownParticle (type-erased DownParticle) with the at compile time known spin DOWN.
  */
 export const anyDownParticle = (particle: ParticleBase): AnyDownParticle => {
-	const spin = Spin.DOWN as const
+	const spin = Spin.DOWN
 	const anySpun = anySpunParticle({ particle, spin })
 	return {
 		...anySpun,

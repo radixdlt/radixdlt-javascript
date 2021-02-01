@@ -3,8 +3,8 @@ import { Address } from '@radixdlt/crypto'
 import { Granularity } from '@radixdlt/primitives'
 import { ParticleBase, TokenDefinitionParticleBase } from './_types'
 import { granularityDefault } from '@radixdlt/primitives'
-import { resourceIdentifierFromAddressAndName } from './resourceIdentifier'
-import { RadixParticleType } from './radixParticleTypes'
+import { RadixParticleType } from './meta/radixParticleTypes'
+import { resourceIdentifierFromAddressAndName } from '../resourceIdentifier'
 
 export type URLInput = string | URL
 

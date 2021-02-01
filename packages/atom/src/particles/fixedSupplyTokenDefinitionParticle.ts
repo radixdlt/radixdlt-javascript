@@ -1,17 +1,17 @@
+import { granularityDefault } from '@radixdlt/primitives'
+import { Result, err } from 'neverthrow'
+import { Supply } from '../_types'
+import { RadixParticleType } from './meta/radixParticleTypes'
+import {
+	baseTokenDefinitionParticle,
+	isTokenDefinitionParticleBase,
+	TokenDefinitionParticleInput,
+} from './tokenDefinitionParticleBase'
 import {
 	FixedSupplyTokenDefinitionParticle,
 	ParticleBase,
-	Supply,
 	TokenDefinitionParticleBase,
 } from './_types'
-import { granularityDefault } from '@radixdlt/primitives'
-import { Result, err } from 'neverthrow'
-import { RadixParticleType } from './radixParticleTypes'
-import {
-	TokenDefinitionParticleInput,
-	baseTokenDefinitionParticle,
-	isTokenDefinitionParticleBase,
-} from './tokenDefinitionParticleBase'
 
 export const fixedSupplyTokenDefinitionParticle = (
 	input: TokenDefinitionParticleInput &
