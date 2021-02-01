@@ -1,17 +1,9 @@
-import { TransferTokensAction, UserActionType } from './_types'
-import { Address } from '@radixdlt/crypto'
-import { PositiveAmount } from '@radixdlt/primitives'
-import { ResourceIdentifier } from '@radixdlt/atom'
+import {
+	TransferTokensAction,
+	TransferTokensActionInput,
+	UserActionType,
+} from './_types'
 import { v4 as uuidv4 } from 'uuid'
-
-export type TransferTokensActionInput = Readonly<{
-	to: Address
-	from: Address
-	amount: PositiveAmount
-	resourceIdentifier: ResourceIdentifier
-	message?: string
-	uuid?: string
-}>
 
 export const transferTokensAction = (
 	input: TransferTokensActionInput,
