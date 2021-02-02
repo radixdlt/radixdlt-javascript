@@ -12,15 +12,19 @@ import {
 	UpParticle,
 } from '@radixdlt/atom'
 import { Address } from '@radixdlt/crypto'
-import { err, Result, ok } from 'neverthrow'
-import { BurnTokensActionToParticleGroupsMapper } from './_types'
-import {
-	transferrableTokensParticleFromParticle,
-	validateInputCollectUpParticles,
-} from './tokenTransferActionToParticleGroupsMapper'
+import { err, Result, ok, combine } from 'neverthrow'
+import { BurnTokensActionToParticleGroupsMapper, MapperInput } from './_types'
+import { transferrableTokensParticleFromParticle } from './tokenTransferActionToParticleGroupsMapper'
 import { makeTransitioner } from './fungibleParticleTransitioner'
 import { Amount, positiveAmount } from '@radixdlt/primitives'
 import { isMutableTokenDefinitionParticle } from '@radixdlt/atom/dist/mutableSupplyTokenDefinitionParticle'
+import {
+	validate,
+	validateConsumeTokensAction,
+	validateUserActionSender,
+	validateUserActionType,
+} from './validation'
+import { collectUpParticles } from './utils'
 
 export const unallocatedTokensParticleFromTransferrable = (
 	input: Readonly<{
@@ -85,51 +89,42 @@ const particleGroupsFromBurnTokensAction = (
 		.map((sps) => [particleGroup(sps)])
 }
 
+const tokenDefinitionValidation = (input: {
+	tokenDefinitionParticle: TokenDefinitionParticleBase
+	burner: Address
+}): Result<any, Error> => {
+	if (!isMutableTokenDefinitionParticle(input.tokenDefinitionParticle)) {
+		return err(new Error(`Can only burn tokens with mutable supply.`))
+	}
+	const mutableToken = input.tokenDefinitionParticle as MutableSupplyTokenDefinitionParticle
+	const isTokenOwner = (): boolean =>
+		mutableToken.resourceIdentifier.address.equals(input.burner)
+	if (!mutableToken.permissions.canBeBurned(isTokenOwner)) {
+		return err(new Error(`Not permission to burn token.`))
+	}
+	return ok(true)
+}
+
 export const burnTokensActionToParticleGroupsMapper = (): BurnTokensActionToParticleGroupsMapper => {
 	const actionType = UserActionType.BURN_TOKENS
 	return {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
 		actionType,
 		particleGroupsFromAction: (
-			input: Readonly<{
-				action: UserAction
-				upParticles: AnyUpParticle[]
-				addressOfActiveAccount: Address
-			}>,
-		): Result<ParticleGroup[], Error> => {
-			return validateInputCollectUpParticles({
-				...input,
-				typeOfThisMapper: actionType,
-				validateTokenDefinition: (
-					tokenDefinitionParticle: TokenDefinitionParticleBase,
-				): Result<true, Error> => {
-					const burner = input.action.sender
-					if (
-						!isMutableTokenDefinitionParticle(
-							tokenDefinitionParticle,
-						)
-					) {
-						return err(
-							new Error(
-								`Can only burn tokens with mutable supply.`,
-							),
-						)
-					}
-					const mutableToken = tokenDefinitionParticle as MutableSupplyTokenDefinitionParticle
-					const isTokenOwner = (): boolean =>
-						mutableToken.resourceIdentifier.address.equals(burner)
-					if (!mutableToken.permissions.canBeBurned(isTokenOwner)) {
-						return err(new Error(`Not permission to burn token.`))
-					}
-					return ok(true)
-				},
-			}).andThen((upParticles) =>
-				particleGroupsFromBurnTokensAction({
-					burnTokensAction: input.action as BurnTokensAction,
-					upParticles: upParticles,
-					addressOfActiveAccount: input.addressOfActiveAccount,
-				}),
-			)
-		},
+			input: MapperInput,
+		): Result<ParticleGroup[], Error> =>
+			validate(
+				validateUserActionSender,
+				validateUserActionType(actionType),
+				validateConsumeTokensAction(tokenDefinitionValidation),
+			)(input)
+				.andThen((res) => combine(collectUpParticles(res)))
+				.andThen((upParticles) =>
+					particleGroupsFromBurnTokensAction({
+						burnTokensAction: input.action as BurnTokensAction,
+						upParticles: upParticles,
+						addressOfActiveAccount: input.addressOfActiveAccount,
+					}),
+				),
 	}
 }
