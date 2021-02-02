@@ -2,6 +2,7 @@ import { toAddress } from './helpers/utility'
 import { mutableSupplyTokenDefinitionParticle } from '../src/particles/mutableSupplyTokenDefinitionParticle'
 import { tokenOwnerOnly } from '../src/tokenPermissions'
 import { doTestTokenDefintionParticle } from './helpers/tokenDefinitionParticleBase'
+import { RadixParticleType } from '../dist/particles/meta/radixParticleTypes'
 
 describe('mutableSupplyTokenDefinitionParticle', () => {
 	const address = toAddress(
@@ -18,7 +19,11 @@ describe('mutableSupplyTokenDefinitionParticle', () => {
 		iconURL: 'https://foobar.com/icon.png',
 	}
 
-	doTestTokenDefintionParticle(input, mutableSupplyTokenDefinitionParticle)
+	doTestTokenDefintionParticle(
+		input,
+		RadixParticleType.MUTABLE_SUPPLY_TOKEN_DEFINITION,
+		mutableSupplyTokenDefinitionParticle,
+	)
 
 	it('permissions equals the inputted permissions', () => {
 		const mutableSupplyTokenDefinitionParticle_ = mutableSupplyTokenDefinitionParticle(

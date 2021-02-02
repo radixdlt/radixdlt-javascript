@@ -34,6 +34,8 @@ export const mutableSupplyTokenDefinitionParticle = (
 	).andThen((permissions) => {
 		return baseTokenDefinitionParticle({
 			...input,
+			radixParticleType:
+				RadixParticleType.MUTABLE_SUPPLY_TOKEN_DEFINITION,
 			// eslint-disable-next-line complexity
 			makeEquals: (
 				thisParticle: TokenDefinitionParticleBase,
@@ -72,7 +74,7 @@ export const isMutableTokenDefinitionParticle = (
 	const inspection = something as MutableSupplyTokenDefinitionParticle
 	return (
 		inspection.radixParticleType ===
-			RadixParticleType.FIXED_SUPPLY_TOKEN_DEFINITION &&
+			RadixParticleType.MUTABLE_SUPPLY_TOKEN_DEFINITION &&
 		inspection.permissions !== undefined
 	)
 }

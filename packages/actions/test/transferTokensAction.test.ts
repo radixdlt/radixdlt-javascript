@@ -3,8 +3,8 @@ import { resourceIdentifierFromAddressAndName } from '@radixdlt/atom'
 import { Denomination, positiveAmountFromUnsafe } from '@radixdlt/primitives'
 import {
 	transferTokensAction,
-	TransferTokensActionInput,
 } from '../src/transferTokensAction'
+import { TransferTokensActionInput } from '../src/_types'
 
 describe('TransferTokensActions', () => {
 	const alice = addressFromBase58String(

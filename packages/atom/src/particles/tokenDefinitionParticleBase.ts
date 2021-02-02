@@ -114,6 +114,7 @@ export type TokenDefinitionParticleInput = Readonly<{
 export const baseTokenDefinitionParticle = (
 	input: TokenDefinitionParticleInput &
 		Readonly<{
+			radixParticleType: RadixParticleType
 			makeEquals: (
 				thisParticle: TokenDefinitionParticleBase,
 				other: ParticleBase,
@@ -133,8 +134,7 @@ export const baseTokenDefinitionParticle = (
 	]).map(
 		(resultList): TokenDefinitionParticleBase => {
 			const thisBase = <TokenDefinitionParticleBase>{
-				radixParticleType:
-					RadixParticleType.FIXED_SUPPLY_TOKEN_DEFINITION,
+				radixParticleType: input.radixParticleType,
 				name: resultList[1],
 				description: resultList[2],
 				granularity: input.granularity ?? granularityDefault,

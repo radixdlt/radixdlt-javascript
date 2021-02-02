@@ -3,6 +3,7 @@ import { fixedSupplyTokenDefinitionParticle } from '../src/particles/fixedSupply
 import { toAddress } from './helpers/utility'
 import { UInt256 } from '@radixdlt/uint256'
 import { doTestTokenDefintionParticle } from './helpers/tokenDefinitionParticleBase'
+import { RadixParticleType } from '../dist/particles/meta/radixParticleTypes'
 
 describe('fixedSupplyTokenDefinitionParticle', () => {
 	const address = toAddress(
@@ -23,7 +24,11 @@ describe('fixedSupplyTokenDefinitionParticle', () => {
 		iconURL: 'https://foobar.com/icon.png',
 	}
 
-	doTestTokenDefintionParticle(input, fixedSupplyTokenDefinitionParticle)
+	doTestTokenDefintionParticle(
+		input,
+		RadixParticleType.FIXED_SUPPLY_TOKEN_DEFINITION,
+		fixedSupplyTokenDefinitionParticle,
+	)
 
 	it('supply equals the inputted supply', () => {
 		const fixedSupplyTokenDefinitionParticle_ = fixedSupplyTokenDefinitionParticle(
