@@ -1,6 +1,7 @@
 import { BurnTokensAction, UserAction, UserActionType } from '@radixdlt/actions'
 import {
 	AnyUpParticle,
+	MutableSupplyTokenDefinitionParticle,
 	particleGroup,
 	ParticleGroup,
 	spunParticles,
@@ -101,14 +102,27 @@ export const burnTokensActionToParticleGroupsMapper = (): BurnTokensActionToPart
 				typeOfThisMapper: actionType,
 				validateTokenDefinition: (
 					tokenDefinitionParticle: TokenDefinitionParticleBase,
-				) =>
-					isMutableTokenDefinitionParticle(tokenDefinitionParticle)
-						? ok(true)
-						: err(
-								new Error(
-									`Can only burn tokens with mutable supply.`,
-								),
-						  ),
+				): Result<true, Error> => {
+					const burner = input.action.sender
+					if (
+						!isMutableTokenDefinitionParticle(
+							tokenDefinitionParticle,
+						)
+					) {
+						return err(
+							new Error(
+								`Can only burn tokens with mutable supply.`,
+							),
+						)
+					}
+					const mutableToken = tokenDefinitionParticle as MutableSupplyTokenDefinitionParticle
+					const isTokenOwner = (): boolean =>
+						mutableToken.resourceIdentifier.address.equals(burner)
+					if (!mutableToken.permissions.canBeBurned(isTokenOwner)) {
+						return err(new Error(`Not permission to burn token.`))
+					}
+					return ok(true)
+				},
 			}).andThen((upParticles) =>
 				particleGroupsFromBurnTokensAction({
 					burnTokensAction: input.action as BurnTokensAction,
