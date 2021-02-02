@@ -2,8 +2,10 @@ import { tokenTransferActionToParticleGroupsMapper } from '../src/tokenTransferA
 import { TransferTokensAction, transferTokensAction } from '@radixdlt/actions'
 import { Address } from '@radixdlt/crypto'
 import {
+	FixedSupplyTokenDefinitionParticle,
 	fixedSupplyTokenDefinitionParticle,
 	resourceIdentifierFromAddressAndName,
+	TokenDefinitionParticleBase,
 	TokenDefinitionParticleInput,
 	transferrableTokensParticle,
 	TransferrableTokensParticle,
@@ -29,6 +31,9 @@ import {
 	rri,
 	alice,
 	fixedSupTokDefParticle,
+	TestCase,
+	TestVector,
+	mutableSupplyTokenDefinitionParticleAllCanMutate,
 } from './consumeTokensActionToParticleGroupsMapperBase'
 
 describe('TokenTransferActionToParticleGroupsMapper', () => {
@@ -45,54 +50,35 @@ describe('TokenTransferActionToParticleGroupsMapper', () => {
 		})
 	}
 
-	testMapperReturns___Unknown_Token___error_when_no_token_definition_particle(
-		{
+	const testTransferActionWithToken = <T extends TokenDefinitionParticleBase>(
+		tokenDefinitionParticle: T,
+	): void => {
+		const tests: TestCase<T>[] = [
+			testMapperReturns___Unknown_Token___error_when_no_token_definition_particle,
+			testMapperReturns___Insufficient_Balance___error_when_no_transferrable_tokens_particles,
+			testMapperReturns___Insufficient_Balance___error_when_not_enough_transferrable_tokens_particles,
+			testMapperReturns___Wrong_Sender___error_when_addressOfActiveAccount_is_someone_elses,
+			testMapperReturns___Insufficient_Balance___error_when_some_of_transferrable_tokens_particles_belongs_to_someone_else,
+			testMapperReturns___works_with_change,
+			testMapperReturns___works_without_change,
+		]
+
+		const vector = <TestVector<T>>{
 			mapper,
 			makeAction: makeTransferAction,
-		},
-	)
+			tokenDefinitionParticle: tokenDefinitionParticle,
+		}
 
-	testMapperReturns___Insufficient_Balance___error_when_no_transferrable_tokens_particles(
-		{
-			mapper,
-			makeAction: makeTransferAction,
-			tokenDefinitionParticle: fixedSupTokDefParticle,
-		},
-	)
+		tests.forEach((t) => t(vector))
+	}
 
-	testMapperReturns___Insufficient_Balance___error_when_not_enough_transferrable_tokens_particles(
-		{
-			mapper,
-			makeAction: makeTransferAction,
-			tokenDefinitionParticle: fixedSupTokDefParticle,
-		},
-	)
-
-	testMapperReturns___Wrong_Sender___error_when_addressOfActiveAccount_is_someone_elses(
-		{
-			mapper,
-			makeAction: makeTransferAction,
-			tokenDefinitionParticle: fixedSupTokDefParticle,
-		},
-	)
-
-	testMapperReturns___Insufficient_Balance___error_when_some_of_transferrable_tokens_particles_belongs_to_someone_else(
-		{
-			mapper,
-			makeAction: makeTransferAction,
-			tokenDefinitionParticle: fixedSupTokDefParticle,
-		},
-	)
-
-	testMapperReturns___works_with_change({
-		mapper,
-		makeAction: makeTransferAction,
-		tokenDefinitionParticle: fixedSupTokDefParticle,
+	describe('Transfer FixedSupply token', () => {
+		testTransferActionWithToken(fixedSupTokDefParticle)
 	})
 
-	testMapperReturns___works_without_change({
-		mapper,
-		makeAction: makeTransferAction,
-		tokenDefinitionParticle: fixedSupTokDefParticle,
+	describe('Transfer MutableSupply token', () => {
+		testTransferActionWithToken(
+			mutableSupplyTokenDefinitionParticleAllCanMutate,
+		)
 	})
 })

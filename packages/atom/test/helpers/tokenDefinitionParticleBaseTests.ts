@@ -5,7 +5,7 @@ import {
 	RADIX_TOKEN_SYMBOL_MAX_LENGTH,
 	isMutableTokenDefinitionParticle,
 	isFixedTokenDefinitionParticle,
-} from '../../'
+} from '../../dist/_index'
 import { TokenDefinitionParticleBase } from '../../src/particles/_types'
 import { RadixParticleType } from '../../src/particles/meta/radixParticleTypes'
 
@@ -20,29 +20,15 @@ export const doTestTokenDefintionParticle = <
 ): void => {
 	it('should have the correct particle type', () => {
 		const tokenDefinitionParticle = ctor(input)._unsafeUnwrap()
-
-		switch (particleType) {
-			case RadixParticleType.FIXED_SUPPLY_TOKEN_DEFINITION:
-				expect(
-					isMutableTokenDefinitionParticle(tokenDefinitionParticle),
-				).toBe(false)
-				expect(
-					isFixedTokenDefinitionParticle(tokenDefinitionParticle),
-				).toBe(true)
-				break
-			case RadixParticleType.MUTABLE_SUPPLY_TOKEN_DEFINITION:
-				expect(
-					isMutableTokenDefinitionParticle(tokenDefinitionParticle),
-				).toBe(true)
-				expect(
-					isFixedTokenDefinitionParticle(tokenDefinitionParticle),
-				).toBe(false)
-				break
-			default:
-				break
-		}
-
 		expect(tokenDefinitionParticle.radixParticleType).toBe(particleType)
+
+		expect(
+			isMutableTokenDefinitionParticle(tokenDefinitionParticle),
+		).toBe(particleType === RadixParticleType.MUTABLE_SUPPLY_TOKEN_DEFINITION)
+
+		expect(
+			isFixedTokenDefinitionParticle(tokenDefinitionParticle),
+		).toBe(particleType === RadixParticleType.FIXED_SUPPLY_TOKEN_DEFINITION)
 	})
 
 	it('can be created', () => {

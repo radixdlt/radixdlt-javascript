@@ -33,8 +33,8 @@ export const fixedSupplyTokenDefinitionParticle = (
 	return baseTokenDefinitionParticle({
 		...input,
 		granularity: granularity,
-		// eslint-disable-next-line complexity
 		radixParticleType: RadixParticleType.FIXED_SUPPLY_TOKEN_DEFINITION,
+		// eslint-disable-next-line complexity
 		makeEquals: (
 			thisParticle: TokenDefinitionParticleBase,
 			other: ParticleBase,

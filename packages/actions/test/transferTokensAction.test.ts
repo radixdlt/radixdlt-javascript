@@ -1,9 +1,7 @@
 import { addressFromBase58String } from '@radixdlt/crypto'
 import { resourceIdentifierFromAddressAndName } from '@radixdlt/atom'
 import { Denomination, positiveAmountFromUnsafe } from '@radixdlt/primitives'
-import {
-	transferTokensAction,
-} from '../src/transferTokensAction'
+import { transferTokensAction } from '../src/transferTokensAction'
 import { TransferTokensActionInput } from '../src/_types'
 
 describe('TransferTokensActions', () => {
