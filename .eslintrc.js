@@ -80,5 +80,6 @@ module.exports = {
 		'functional/no-return-void': 'off',
 		'max-params': 'off',
 		'functional/no-throw-statement': 'off',
+		'max-lines': 'off',
 	},
 }
