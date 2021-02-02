@@ -114,9 +114,7 @@ export type AnyDownParticle = AnySpunParticle &
 		toAnySpunParticle: () => AnySpunParticle
 	}>
 
-export type SpunParticles = Readonly<{
-	spunParticles: AnySpunParticle[]
-
+export type SpunParticleQueryable = Readonly<{
 	anySpunParticlesOfTypeWithSpin: (query: {
 		particleTypes?: RadixParticleType[]
 		spin?: Spin
@@ -134,6 +132,11 @@ export type SpunParticles = Readonly<{
 		resourceIdentifier: ResourceIdentifier,
 	) => TokenDefinitionParticleBase | undefined
 }>
+
+export type SpunParticles = SpunParticleQueryable &
+	Readonly<{
+		spunParticles: AnySpunParticle[]
+	}>
 
 export type TokenParticle = RadixParticle &
 	Readonly<{
