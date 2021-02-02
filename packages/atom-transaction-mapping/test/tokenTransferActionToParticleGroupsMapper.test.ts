@@ -1,14 +1,10 @@
 import { tokenTransferActionToParticleGroupsMapper } from '../src/tokenTransferActionToParticleGroupsMapper'
 import { TransferTokensAction, transferTokensAction } from '@radixdlt/actions'
-import { addressFromBase58String } from '@radixdlt/crypto'
+import { Address } from '@radixdlt/crypto'
 import {
-	AnyUpParticle,
 	fixedSupplyTokenDefinitionParticle,
-	ResourceIdentifier,
 	resourceIdentifierFromAddressAndName,
-	Spin,
 	TokenDefinitionParticleInput,
-	TokenPermissions,
 	transferrableTokensParticle,
 	TransferrableTokensParticle,
 	upParticle,
@@ -16,49 +12,31 @@ import {
 } from '@radixdlt/atom'
 import {
 	amountFromUInt256,
-	amountInSmallestDenomination,
 	Denomination,
-	Granularity,
-	Nonce,
 	positiveAmountFromUnsafe,
 } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
-import { transferrableTokensParticleFromUnsafe } from '../../atom/test/helpers/utility'
+import { toAddress } from '../../atom/test/helpers/utility'
+import {
+	testMapperReturns___Unknown_Token___error_when_no_token_definition_particle,
+	testMapperReturns___Insufficient_Balance___error_when_no_transferrable_tokens_particles,
+	testMapperReturns___Insufficient_Balance___error_when_not_enough_transferrable_tokens_particles,
+	testMapperReturns___Wrong_Sender___error_when_addressOfActiveAccount_is_someone_elses,
+	testMapperReturns___Insufficient_Balance___error_when_some_of_transferrable_tokens_particles_belongs_to_someone_else,
+	testMapperReturns___works_with_change,
+	testMapperReturns___works_without_change,
+	bob,
+	rri,
+	alice,
+	fixedSupTokDefParticle,
+} from './consumeTokensActionToParticleGroupsMapperBase'
 
 describe('TokenTransferActionToParticleGroupsMapper', () => {
 	const mapper = tokenTransferActionToParticleGroupsMapper()
 
-	const alice = addressFromBase58String(
-		'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
-	)._unsafeUnwrap()
-
-	const bob = addressFromBase58String(
-		'9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
-	)._unsafeUnwrap()
-
-	const symbol = 'FOOBAR'
-	const rri = resourceIdentifierFromAddressAndName({
-		address: alice,
-		name: symbol,
-	})
-
-	const name = 'Foobar Coin'
-
-	const tokenDefInput = <TokenDefinitionParticleInput>{
-		symbol,
-		name,
-		address: alice,
-	}
-
-	const fixedSupTokDefParticle = fixedSupplyTokenDefinitionParticle({
-		...tokenDefInput,
-		supply: amountFromUInt256({
-			magnitude: UInt256.valueOf(21_000_000),
-			denomination: Denomination.Whole,
-		})._unsafeUnwrap(),
-	})._unsafeUnwrap()
-
-	const makeTransferAction = (amount: number): TransferTokensAction => {
+	const makeTransferAction = (
+		amount: number = 1337,
+	): TransferTokensAction => {
 		return transferTokensAction({
 			to: bob,
 			from: alice,
@@ -67,107 +45,54 @@ describe('TokenTransferActionToParticleGroupsMapper', () => {
 		})
 	}
 
-	it(`should fail with 'Unknown token with identifier' error when trying to map with an empty particle list.`, () => {
-		const transferAction = makeTransferAction(1337)
-		const spunUpParticles: AnyUpParticle[] = []
+	testMapperReturns___Unknown_Token___error_when_no_token_definition_particle(
+		{
+			mapper,
+			makeAction: makeTransferAction,
+		},
+	)
 
-		const particleGroupsResult = mapper.particleGroupsFromAction({
-			action: transferAction,
-			upParticles: spunUpParticles,
-			addressOfActiveAccount: alice,
-		})
+	testMapperReturns___Insufficient_Balance___error_when_no_transferrable_tokens_particles(
+		{
+			mapper,
+			makeAction: makeTransferAction,
+			tokenDefinitionParticle: fixedSupTokDefParticle,
+		},
+	)
 
-		particleGroupsResult.match(
-			() => {
-				throw Error('expected error, but got none')
-			},
-			(f) =>
-				expect(f.message).toBe(
-					`Unknown token with identifier: '${rri.toString()}'`,
-				),
-		)
+	testMapperReturns___Insufficient_Balance___error_when_not_enough_transferrable_tokens_particles(
+		{
+			mapper,
+			makeAction: makeTransferAction,
+			tokenDefinitionParticle: fixedSupTokDefParticle,
+		},
+	)
+
+	testMapperReturns___Wrong_Sender___error_when_addressOfActiveAccount_is_someone_elses(
+		{
+			mapper,
+			makeAction: makeTransferAction,
+			tokenDefinitionParticle: fixedSupTokDefParticle,
+		},
+	)
+
+	testMapperReturns___Insufficient_Balance___error_when_some_of_transferrable_tokens_particles_belongs_to_someone_else(
+		{
+			mapper,
+			makeAction: makeTransferAction,
+			tokenDefinitionParticle: fixedSupTokDefParticle,
+		},
+	)
+
+	testMapperReturns___works_with_change({
+		mapper,
+		makeAction: makeTransferAction,
+		tokenDefinitionParticle: fixedSupTokDefParticle,
 	})
 
-	it(`should fail with 'Insufficient Balance' error when trying to map with a particles list with FixedSupplyTokenDefinitionParticle but no transferrable tokens.`, () => {
-		const transferAction = makeTransferAction(1337)
-
-		const spunUpParticles: AnyUpParticle[] = [
-			upParticle(fixedSupTokDefParticle).eraseToAnyUp(),
-		]
-
-		const particleGroupsResult = mapper.particleGroupsFromAction({
-			action: transferAction,
-			upParticles: spunUpParticles,
-			addressOfActiveAccount: alice,
-		})
-
-		particleGroupsResult.match(
-			() => {
-				throw Error('expected error, but got none')
-			},
-			(f) => expect(f.message).toBe(`Insufficient balance.`),
-		)
-	})
-
-	const upTTP = (amount: number): UpParticle<TransferrableTokensParticle> => {
-		return upParticle(
-			transferrableTokensParticle({
-				granularity: fixedSupTokDefParticle.granularity,
-				tokenDefinitionReference:
-					fixedSupTokDefParticle.resourceIdentifier,
-				address: bob,
-				amount: positiveAmountFromUnsafe(amount)._unsafeUnwrap(),
-			})._unsafeUnwrap(),
-		)
-	}
-
-	it(`should work with a FixedSupplyTokenDefinitionParticle and some transferrable tokens particles with change back.`, () => {
-		const transferAction = makeTransferAction(4)
-
-		const spunUpParticles: AnyUpParticle[] = [
-			upParticle(fixedSupTokDefParticle),
-			upTTP(2),
-			upTTP(3),
-		].map((p) => p.eraseToAnyUp())
-
-		const particleGroups = mapper
-			.particleGroupsFromAction({
-				action: transferAction,
-				upParticles: spunUpParticles,
-				addressOfActiveAccount: alice,
-			})
-			._unsafeUnwrap()
-
-		expect(particleGroups.length).toBe(1)
-		const spunParticles = particleGroups[0].spunParticles.spunParticles
-		expect(spunParticles.length).toBe(4)
-
-		const one = positiveAmountFromUnsafe(1)._unsafeUnwrap()
-		const two = positiveAmountFromUnsafe(2)._unsafeUnwrap()
-		const three = positiveAmountFromUnsafe(3)._unsafeUnwrap()
-		const four = positiveAmountFromUnsafe(4)._unsafeUnwrap()
-
-		const sp0 = spunParticles[0]
-		expect(sp0.spin).toBe(Spin.DOWN)
-		const p0 = sp0.particle as TransferrableTokensParticle
-		expect(p0.amount.equals(two)).toBe(true)
-
-		const sp1 = spunParticles[1]
-		expect(sp1.spin).toBe(Spin.DOWN)
-		const p1 = sp1.particle as TransferrableTokensParticle
-		expect(p1.amount.equals(three)).toBe(true)
-
-		// Change back to Alice
-		const sp2 = spunParticles[2]
-		expect(sp2.spin).toBe(Spin.UP)
-		const p2 = sp2.particle as TransferrableTokensParticle
-		expect(p2.amount.equals(one)).toBe(true)
-		expect(p2.address.equals(alice)).toBe(true)
-
-		const sp3 = spunParticles[3]
-		expect(sp3.spin).toBe(Spin.UP)
-		const p3 = sp3.particle as TransferrableTokensParticle
-		expect(p3.amount.equals(four)).toBe(true)
-		expect(p3.address.equals(bob)).toBe(true)
+	testMapperReturns___works_without_change({
+		mapper,
+		makeAction: makeTransferAction,
+		tokenDefinitionParticle: fixedSupTokDefParticle,
 	})
 })
