@@ -16,6 +16,7 @@ import {
 	TokenDefinitionParticleBase,
 	TokenDefinitionParticleInput,
 	tokenOwnerOnly,
+	TokenParticle,
 	tokenPermissionsAll,
 	transferrableTokensParticle,
 	TransferrableTokensParticle,
@@ -251,4 +252,114 @@ export const testMapperReturns___Insufficient_Balance___error_when_some_of_trans
 			},
 			(f) => expect(f.message).toBe(`Insufficient balance.`),
 		)
+	})
+
+
+export const testMapperReturns___works_with_change = <
+	T extends TokenDefinitionParticleBase
+>(
+	validateMigratedParticle: (migratedParticle: TokenParticle) => void,
+	validateOutputParticle: (outputParticle: TokenParticle) => void,
+	testVector: TestVector<T>
+): TestCaseReturn =>
+	it(`should work with a ${testVector.tokenDefinitionParticle.radixParticleType} and some TransferrableTokensParticles with change back.`, () => {
+		const mapper = testVector.mapper
+		const action = testVector.makeAction(4)
+		expect(mapper.actionType).toBe(action.actionType)
+
+		const spunUpParticles: AnyUpParticle[] = [
+			upParticle(testVector.tokenDefinitionParticle),
+			upTTP(2, testVector.tokenDefinitionParticle),
+			upTTP(3, testVector.tokenDefinitionParticle),
+		].map((p) => p.eraseToAnyUp())
+
+		const particleGroups = mapper
+			.particleGroupsFromAction({
+				action: action,
+				upParticles: spunUpParticles,
+				addressOfActiveAccount: alice,
+			})
+			._unsafeUnwrap()
+
+		expect(particleGroups.length).toBe(1)
+		const spunParticles = particleGroups[0].spunParticles.spunParticles
+		expect(spunParticles.length).toBe(4)
+
+		const one = positiveAmountFromUnsafe(1)._unsafeUnwrap()
+		const two = positiveAmountFromUnsafe(2)._unsafeUnwrap()
+		const three = positiveAmountFromUnsafe(3)._unsafeUnwrap()
+		const four = positiveAmountFromUnsafe(4)._unsafeUnwrap()
+
+		const sp0 = spunParticles[0]
+		expect(sp0.spin).toBe(Spin.DOWN)
+		const p0 = sp0.particle as TransferrableTokensParticle
+		expect(p0.amount.equals(two)).toBe(true)
+
+		const sp1 = spunParticles[1]
+		expect(sp1.spin).toBe(Spin.DOWN)
+		const p1 = sp1.particle as TransferrableTokensParticle
+		expect(p1.amount.equals(three)).toBe(true)
+
+		// Change back to Alice
+		const sp2 = spunParticles[2]
+		expect(sp2.spin).toBe(Spin.UP)
+		const p2 = sp2.particle as TokenParticle
+		expect(p2.amount.equals(one)).toBe(true)
+		validateMigratedParticle(p2)
+
+		const sp3 = spunParticles[3]
+		expect(sp3.spin).toBe(Spin.UP)
+		const p3 = sp3.particle as TokenParticle
+		expect(p3.amount.equals(four)).toBe(true)
+		validateOutputParticle(p3)
+	})
+
+export const testMapperReturns___works_without_change = <
+	T extends TokenDefinitionParticleBase
+>(
+	validateOutputParticle: (outputParticle: TokenParticle) => void,
+	testVector: TestVector<T>,
+): TestCaseReturn =>
+	it(`should work with a ${testVector.tokenDefinitionParticle.radixParticleType} and some TransferrableTokensParticles with no change back.`, () => {
+		const mapper = testVector.mapper
+		const action = testVector.makeAction(5)
+		expect(mapper.actionType).toBe(action.actionType)
+
+		const spunUpParticles: AnyUpParticle[] = [
+			upParticle(testVector.tokenDefinitionParticle),
+			upTTP(2, testVector.tokenDefinitionParticle),
+			upTTP(3, testVector.tokenDefinitionParticle),
+		].map((p) => p.eraseToAnyUp())
+
+		const particleGroups = mapper
+			.particleGroupsFromAction({
+				action: action,
+				upParticles: spunUpParticles,
+				addressOfActiveAccount: alice,
+			})
+			._unsafeUnwrap()
+
+		expect(particleGroups.length).toBe(1)
+		const spunParticles = particleGroups[0].spunParticles.spunParticles
+		expect(spunParticles.length).toBe(3)
+
+		const two = positiveAmountFromUnsafe(2)._unsafeUnwrap()
+		const three = positiveAmountFromUnsafe(3)._unsafeUnwrap()
+		const five = positiveAmountFromUnsafe(5)._unsafeUnwrap()
+
+		const sp0 = spunParticles[0]
+		expect(sp0.spin).toBe(Spin.DOWN)
+		const p0 = sp0.particle as TransferrableTokensParticle
+		expect(p0.amount.equals(two)).toBe(true)
+
+		const sp1 = spunParticles[1]
+		expect(sp1.spin).toBe(Spin.DOWN)
+		const p1 = sp1.particle as TransferrableTokensParticle
+		expect(p1.amount.equals(three)).toBe(true)
+
+		const sp2 = spunParticles[2]
+		expect(sp2.spin).toBe(Spin.UP)
+		const p2 = sp2.particle as TokenParticle
+		expect(p2.amount.equals(five)).toBe(true)
+		validateOutputParticle(p2)
 	})

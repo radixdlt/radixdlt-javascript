@@ -15,7 +15,8 @@ import {
 	testMapperReturns___Insufficient_Balance___error_when_no_transferrable_tokens_particles,
 	testMapperReturns___Insufficient_Balance___error_when_not_enough_transferrable_tokens_particles,
 	testMapperReturns___Wrong_Sender___error_when_addressOfActiveAccount_is_someone_elses,
-	testMapperReturns___Insufficient_Balance___error_when_some_of_transferrable_tokens_particles_belongs_to_someone_else,
+	testMapperReturns___Insufficient_Balance___error_when_some_of_transferrable_tokens_particles_belongs_to_someone_else,	testMapperReturns___works_with_change,
+	testMapperReturns___works_without_change,
 	rri,
 	alice,
 	bob,
@@ -130,6 +131,7 @@ describe('BurnTokensActionToParticleGroupsMapper', () => {
 				testMapperReturns___Unknown_Token___error_when_no_token_definition_particle,
 				testMapperReturns___Wrong_Sender___error_when_addressOfActiveAccount_is_someone_elses,
 
+
 				// Burn specific
 				testMapperReturns___Can_Only_Burn_Mutable_Tokens___error_when_trying_to_burn_FixedSupplyTokenDefinition,
 			],
@@ -140,14 +142,14 @@ describe('BurnTokensActionToParticleGroupsMapper', () => {
 		testBurnActionWithToken({
 			tokenDefinitionParticle: mutableSupplyTokenDefinitionParticleAllCanMutate,
 			tests: [
+				// testMapperReturns___works_with_change,
+				// testMapperReturns___works_without_change,
+
 				testMapperReturns___Unknown_Token___error_when_no_token_definition_particle,
 				testMapperReturns___Insufficient_Balance___error_when_no_transferrable_tokens_particles,
 				testMapperReturns___Insufficient_Balance___error_when_not_enough_transferrable_tokens_particles,
 				testMapperReturns___Wrong_Sender___error_when_addressOfActiveAccount_is_someone_elses,
 				testMapperReturns___Insufficient_Balance___error_when_some_of_transferrable_tokens_particles_belongs_to_someone_else,
-
-				// Burn specific
-				// works_with_all_mutate
 			],
 		})
 	})
@@ -156,6 +158,9 @@ describe('BurnTokensActionToParticleGroupsMapper', () => {
 		testBurnActionWithToken({
 			tokenDefinitionParticle: mutableSupplyTokenDefinitionParticleOnlyAliceCanMutate,
 			tests: [
+				// testMapperReturns___works_with_change,
+				// testMapperReturns___works_without_change,
+
 				testMapperReturns___Unknown_Token___error_when_no_token_definition_particle,
 				testMapperReturns___Insufficient_Balance___error_when_no_transferrable_tokens_particles,
 				testMapperReturns___Insufficient_Balance___error_when_not_enough_transferrable_tokens_particles,
