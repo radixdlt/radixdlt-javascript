@@ -4,13 +4,14 @@ import {
 	particleGroup,
 	ParticleGroup,
 	spunParticles,
+	TokenDefinitionParticleBase,
 	TransferrableTokensParticle,
 	unallocatedTokensParticle,
 	UnallocatedTokensParticle,
 	UpParticle,
 } from '@radixdlt/atom'
 import { Address } from '@radixdlt/crypto'
-import { Result } from 'neverthrow'
+import { err, Result, ok } from 'neverthrow'
 import { BurnTokensActionToParticleGroupsMapper } from './_types'
 import {
 	transferrableTokensParticleFromParticle,
@@ -18,6 +19,7 @@ import {
 } from './tokenTransferActionToParticleGroupsMapper'
 import { makeTransitioner } from './fungibleParticleTransitioner'
 import { Amount, positiveAmount } from '@radixdlt/primitives'
+import { isMutableTokenDefinitionParticle } from '@radixdlt/atom/dist/mutableSupplyTokenDefinitionParticle'
 
 export const unallocatedTokensParticleFromTransferrable = (
 	input: Readonly<{
@@ -97,6 +99,16 @@ export const burnTokensActionToParticleGroupsMapper = (): BurnTokensActionToPart
 			return validateInputCollectUpParticles({
 				...input,
 				typeOfThisMapper: actionType,
+				validateTokenDefinition: (
+					tokenDefinitionParticle: TokenDefinitionParticleBase,
+				) =>
+					isMutableTokenDefinitionParticle(tokenDefinitionParticle)
+						? ok(true)
+						: err(
+								new Error(
+									`Can only burn tokens with mutable supply.`,
+								),
+						  ),
 			}).andThen((upParticles) =>
 				particleGroupsFromBurnTokensAction({
 					burnTokensAction: input.action as BurnTokensAction,

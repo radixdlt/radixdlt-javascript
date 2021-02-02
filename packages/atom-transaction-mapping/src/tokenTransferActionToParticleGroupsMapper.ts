@@ -15,6 +15,7 @@ import {
 	Spin,
 	ParticleGroup,
 	particleGroup,
+	TokenDefinitionParticleBase,
 } from '@radixdlt/atom'
 import { Address } from '@radixdlt/crypto'
 import { err, ok, Result } from 'neverthrow'
@@ -52,10 +53,16 @@ const validateConsumeTokensAction = <A extends TokensActionBase>(
 	input: Readonly<{
 		action: A
 		upParticles: AnyUpParticle[]
+		validateTokenDefinition?: (
+			tokenDefintionParticleBase: TokenDefinitionParticleBase,
+		) => Result<true, Error>
 	}>,
 ): Result<A, Error> => {
 	const action = input.action
 	const resourceIdentifier = action.tokenResourceIdentifier
+	const validateTokenDefinition =
+		input.validateTokenDefinition ??
+		((_: TokenDefinitionParticleBase) => ok(true))
 
 	const spunParticles_ = spunParticles(input.upParticles)
 
@@ -75,7 +82,7 @@ const validateConsumeTokensAction = <A extends TokensActionBase>(
 		return err(new Error('Amount not multiple of granularity'))
 	}
 
-	return ok(action)
+	return validateTokenDefinition(tokenDefinitionParticle).map((_) => action)
 }
 
 const validateUserActionType = <A extends UserAction>(
@@ -95,6 +102,9 @@ const validateActionInputForConsumeTokensAction = <A extends TokensActionBase>(
 		action: UserAction
 		upParticles: AnyUpParticle[]
 		addressOfActiveAccount: Address
+		validateTokenDefinition?: (
+			tokenDefintionParticleBase: TokenDefinitionParticleBase,
+		) => Result<true, Error>
 	}>,
 ): Result<A, Error> => {
 	return validateUserActionSender(input)
@@ -106,8 +116,8 @@ const validateActionInputForConsumeTokensAction = <A extends TokensActionBase>(
 		)
 		.andThen((typedAction) =>
 			validateConsumeTokensAction({
+				...input,
 				action: typedAction,
-				upParticles: input.upParticles,
 			}),
 		)
 }
@@ -118,6 +128,9 @@ export const validateInputCollectUpParticles = <A extends TokensActionBase>(
 		action: UserAction
 		upParticles: AnyUpParticle[]
 		addressOfActiveAccount: Address
+		validateTokenDefinition?: (
+			tokenDefintionParticleBase: TokenDefinitionParticleBase,
+		) => Result<true, Error>
 	}>,
 ): Result<UpParticle<TransferrableTokensParticle>[], Error> => {
 	return validateActionInputForConsumeTokensAction<A>(input).map((_) =>
