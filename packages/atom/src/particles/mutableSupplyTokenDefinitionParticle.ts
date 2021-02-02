@@ -14,6 +14,8 @@ import {
 	TokenDefinitionParticleBase,
 } from './_types'
 
+const radixParticleType = RadixParticleType.MUTABLE_SUPPLY_TOKEN_DEFINITION
+
 const validateTokenPermissions = (
 	permissions: TokenPermissions,
 ): Result<TokenPermissions, Error> => {
@@ -34,8 +36,7 @@ export const mutableSupplyTokenDefinitionParticle = (
 	).andThen((permissions) => {
 		return baseTokenDefinitionParticle({
 			...input,
-			radixParticleType:
-				RadixParticleType.MUTABLE_SUPPLY_TOKEN_DEFINITION,
+			radixParticleType,
 			// eslint-disable-next-line complexity
 			makeEquals: (
 				thisParticle: TokenDefinitionParticleBase,
@@ -71,10 +72,5 @@ export const isMutableTokenDefinitionParticle = (
 	something: unknown,
 ): something is MutableSupplyTokenDefinitionParticle => {
 	if (!isTokenDefinitionParticleBase(something)) return false
-	const inspection = something as MutableSupplyTokenDefinitionParticle
-	return (
-		inspection.radixParticleType ===
-			RadixParticleType.MUTABLE_SUPPLY_TOKEN_DEFINITION &&
-		inspection.permissions !== undefined
-	)
+	return something.radixParticleType === radixParticleType
 }

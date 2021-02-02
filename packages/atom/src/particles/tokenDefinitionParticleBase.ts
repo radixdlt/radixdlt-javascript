@@ -3,7 +3,7 @@ import { Address } from '@radixdlt/crypto'
 import { Granularity } from '@radixdlt/primitives'
 import { ParticleBase, TokenDefinitionParticleBase } from './_types'
 import { granularityDefault } from '@radixdlt/primitives'
-import { RadixParticleType } from './meta/radixParticleTypes'
+import { isRadixParticle, RadixParticleType } from './meta/radixParticleTypes'
 import { resourceIdentifierFromAddressAndName } from '../resourceIdentifier'
 
 export type URLInput = string | URL
@@ -165,12 +165,11 @@ export const baseTokenDefinitionParticle = (
 export const isTokenDefinitionParticleBase = (
 	something: unknown,
 ): something is TokenDefinitionParticleBase => {
+	if (!isRadixParticle(something)) return false
 	const inspection = something as TokenDefinitionParticleBase
 	return (
-		inspection.radixParticleType !== undefined &&
 		inspection.resourceIdentifier !== undefined &&
 		inspection.granularity !== undefined &&
-		inspection.name !== undefined &&
-		inspection.equals !== undefined
+		inspection.name !== undefined
 	)
 }

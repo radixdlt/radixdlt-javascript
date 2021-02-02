@@ -22,13 +22,13 @@ export const doTestTokenDefintionParticle = <
 		const tokenDefinitionParticle = ctor(input)._unsafeUnwrap()
 		expect(tokenDefinitionParticle.radixParticleType).toBe(particleType)
 
-		expect(
-			isMutableTokenDefinitionParticle(tokenDefinitionParticle),
-		).toBe(particleType === RadixParticleType.MUTABLE_SUPPLY_TOKEN_DEFINITION)
+		expect(isMutableTokenDefinitionParticle(tokenDefinitionParticle)).toBe(
+			particleType === RadixParticleType.MUTABLE_SUPPLY_TOKEN_DEFINITION,
+		)
 
-		expect(
-			isFixedTokenDefinitionParticle(tokenDefinitionParticle),
-		).toBe(particleType === RadixParticleType.FIXED_SUPPLY_TOKEN_DEFINITION)
+		expect(isFixedTokenDefinitionParticle(tokenDefinitionParticle)).toBe(
+			particleType === RadixParticleType.FIXED_SUPPLY_TOKEN_DEFINITION,
+		)
 	})
 
 	it('can be created', () => {

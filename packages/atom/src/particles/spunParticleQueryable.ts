@@ -8,12 +8,7 @@ import {
 	TokenDefinitionParticleBase,
 	UnallocatedTokensParticle,
 } from './_types'
-import {
-	isRadixParticle,
-	RadixParticleType,
-	TransferrableTokensParticleType,
-	UnallocatedTokensParticleType,
-} from './meta/radixParticleTypes'
+import { isRadixParticle, RadixParticleType } from './meta/radixParticleTypes'
 import { anySpunParticle, spunParticle } from './spunParticle'
 import { ResourceIdentifier } from '../_types'
 
@@ -136,13 +131,13 @@ export const spunParticlesQueryable = (
 			spunParticlesOfTypeWithSpin<UnallocatedTokensParticle>({
 				spin,
 				unique,
-				particleType: TransferrableTokensParticleType,
+				particleType: RadixParticleType.TRANSFERRABLE_TOKENS,
 			}),
 		unallocatedTokensParticles: (spin?: Spin) =>
 			spunParticlesOfTypeWithSpin<UnallocatedTokensParticle>({
 				spin,
 				unique,
-				particleType: UnallocatedTokensParticleType,
+				particleType: RadixParticleType.UNALLOCATED_TOKENS,
 			}),
 		tokenDefinitionParticleMatchingIdentifier: (
 			resourceIdentifier: ResourceIdentifier,

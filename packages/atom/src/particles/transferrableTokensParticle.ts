@@ -1,10 +1,7 @@
 import { Address } from '@radixdlt/crypto'
 
 import { err, ok, Result } from 'neverthrow'
-import {
-	RadixParticleType,
-	TransferrableTokensParticleType,
-} from './meta/radixParticleTypes'
+import { isRadixParticle, RadixParticleType } from './meta/radixParticleTypes'
 import { DSONCodable, DSONEncoding } from '@radixdlt/dson'
 import {
 	tokenDSONKeyValues,
@@ -25,6 +22,7 @@ export type TransferrableTokensParticleInput = TokenParticleInput &
 		amount: PositiveAmount
 	}>
 
+const radixParticleType = RadixParticleType.TRANSFERRABLE_TOKENS
 const SERIALIZER = 'radix.particles.transferrable_tokens'
 
 const DSON = (
@@ -56,7 +54,7 @@ export const transferrableTokensParticle = (
 		...tokenParticleProps(input),
 		address: input.address,
 		amount: input.amount,
-		radixParticleType: TransferrableTokensParticleType,
+		radixParticleType,
 	}
 
 	return ok({
@@ -74,8 +72,6 @@ export const transferrableTokensParticle = (
 export const isTransferrableTokensParticle = (
 	something: unknown,
 ): something is TransferrableTokensParticle => {
-	const inspection = something as TransferrableTokensParticle
-	return (
-		inspection.radixParticleType === RadixParticleType.TRANSFERRABLE_TOKENS
-	)
+	if (!isRadixParticle(something)) return false
+	return something.radixParticleType === radixParticleType
 }

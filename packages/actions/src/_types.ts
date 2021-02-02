@@ -47,5 +47,4 @@ export type TransferTokensActionInput = TokensActionBaseInput &
 export type BurnTokensActionInput = TokensActionBaseInput &
 	Readonly<{
 		burner: Address
-		message?: string
 	}>

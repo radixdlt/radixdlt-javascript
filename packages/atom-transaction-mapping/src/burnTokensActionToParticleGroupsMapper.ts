@@ -1,7 +1,7 @@
 import { BurnTokensAction, UserAction, UserActionType } from '@radixdlt/actions'
 import {
 	AnyUpParticle,
-	MutableSupplyTokenDefinitionParticle,
+	isMutableTokenDefinitionParticle,
 	particleGroup,
 	ParticleGroup,
 	spunParticles,
@@ -20,7 +20,6 @@ import {
 } from './tokenTransferActionToParticleGroupsMapper'
 import { makeTransitioner } from './fungibleParticleTransitioner'
 import { Amount, positiveAmount } from '@radixdlt/primitives'
-import { isMutableTokenDefinitionParticle } from '@radixdlt/atom/dist/mutableSupplyTokenDefinitionParticle'
 
 export const unallocatedTokensParticleFromTransferrable = (
 	input: Readonly<{
@@ -115,7 +114,7 @@ export const burnTokensActionToParticleGroupsMapper = (): BurnTokensActionToPart
 							),
 						)
 					}
-					const mutableToken = tokenDefinitionParticle as MutableSupplyTokenDefinitionParticle
+					const mutableToken = tokenDefinitionParticle
 					const isTokenOwner = (): boolean =>
 						mutableToken.resourceIdentifier.address.equals(burner)
 					if (!mutableToken.permissions.canBeBurned(isTokenOwner)) {
