@@ -1,6 +1,5 @@
 import { Address, Signature } from '@radixdlt/crypto'
 import { DSONCodable } from '@radixdlt/dson'
-import { Amount } from '@radixdlt/primitives'
 import { SpunParticleQueryable, SpunParticles } from './particles/_types'
 
 /**
@@ -38,8 +37,6 @@ export enum TokenTransition {
 	MINT = 'mint',
 	BURN = 'burn',
 }
-
-export type Supply = Amount
 
 export type TokenPermissions = DSONCodable &
 	Readonly<{

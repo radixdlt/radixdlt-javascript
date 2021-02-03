@@ -5,6 +5,7 @@ import {
 	ParticleGroup,
 	spunParticles,
 	TokenDefinitionParticleBase,
+	transferrableTokensParticle,
 	TransferrableTokensParticle,
 	unallocatedTokensParticle,
 	UnallocatedTokensParticle,
@@ -13,9 +14,8 @@ import {
 import { Address } from '@radixdlt/crypto'
 import { err, Result, ok, combine } from 'neverthrow'
 import { BurnTokensActionToParticleGroupsMapper, MapperInput } from './_types'
-import { transferrableTokensParticleFromParticle } from './tokenTransferActionToParticleGroupsMapper'
 import { makeTransitioner } from './fungibleParticleTransitioner'
-import { Amount, positiveAmount } from '@radixdlt/primitives'
+import { Amount } from '@radixdlt/primitives'
 import {
 	validate,
 	validateConsumeTokensAction,
@@ -23,19 +23,6 @@ import {
 	validateUserActionType,
 } from './validation'
 import { collectUpParticles } from './utils'
-
-export const unallocatedTokensParticleFromTransferrable = (
-	input: Readonly<{
-		transferrableTokensParticle: TransferrableTokensParticle
-		amount: Amount
-	}>,
-): UnallocatedTokensParticle => {
-	const positiveAmt = positiveAmount(input.amount)._unsafeUnwrap()
-	return unallocatedTokensParticle({
-		...input.transferrableTokensParticle,
-		amount: positiveAmt,
-	})
-}
 
 const particleGroupsFromBurnTokensAction = (
 	input: Readonly<{
@@ -51,23 +38,19 @@ const particleGroupsFromBurnTokensAction = (
 		UnallocatedTokensParticle
 	>({
 		inputAmountMapper: (from: TransferrableTokensParticle) => from.amount,
-		inputCreator: (
-			amount: Amount,
-			from: TransferrableTokensParticle,
-		): TransferrableTokensParticle =>
-			transferrableTokensParticleFromParticle({
+		inputCreator: (amount: Amount, from: TransferrableTokensParticle) =>
+			transferrableTokensParticle({
+				...from,
 				amount,
-				from,
 				address: burnAction.sender,
 			}),
-		outputCreator: (
-			_,
-			from: TransferrableTokensParticle,
-		): UnallocatedTokensParticle =>
-			unallocatedTokensParticleFromTransferrable({
-				amount: burnAction.amount,
-				transferrableTokensParticle: from,
-			}),
+		outputCreator: (_, from: TransferrableTokensParticle) =>
+			ok(
+				unallocatedTokensParticle({
+					...from,
+					amount: burnAction.amount,
+				}),
+			),
 	})
 
 	const consumableParticles = input.upParticles

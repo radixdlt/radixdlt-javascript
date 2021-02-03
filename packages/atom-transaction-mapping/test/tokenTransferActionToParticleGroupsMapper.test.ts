@@ -9,7 +9,7 @@ import {
 	TransferrableTokensParticle,
 	upParticle,
 } from '@radixdlt/atom'
-import { positiveAmountFromUnsafe } from '@radixdlt/primitives'
+import { amountInSmallestDenomination } from '@radixdlt/primitives'
 import {
 	testMapperReturns___Unknown_Token___error_when_no_token_definition_particle,
 	testMapperReturns___Insufficient_Balance___error_when_no_transferrable_tokens_particles,
@@ -29,6 +29,7 @@ import {
 	mutableSupplyTokenDefinitionParticleAllCanMutate,
 } from './consumeTokensActionToParticleGroupsMapperBase'
 import { Address } from '@radixdlt/crypto'
+import { UInt256 } from '@radixdlt/uint256'
 
 describe('TokenTransferActionToParticleGroupsMapper', () => {
 	const mapper = tokenTransferActionToParticleGroupsMapper()
@@ -40,7 +41,7 @@ describe('TokenTransferActionToParticleGroupsMapper', () => {
 		return transferTokensAction({
 			to: bob,
 			from: actor ?? alice,
-			amount: positiveAmountFromUnsafe(amount)._unsafeUnwrap(),
+			amount: amountInSmallestDenomination(UInt256.valueOf(amount)),
 			resourceIdentifier: rri,
 		})
 	}

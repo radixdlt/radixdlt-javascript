@@ -2,7 +2,7 @@ import { toAddress } from './helpers/utility'
 import { mutableSupplyTokenDefinitionParticle } from '../src/particles/mutableSupplyTokenDefinitionParticle'
 import { tokenOwnerOnly } from '../src/tokenPermissions'
 import { doTestTokenDefintionParticle } from './helpers/tokenDefinitionParticleBaseTests'
-import { RadixParticleType } from '../dist/particles/meta/radixParticleTypes'
+import { RadixParticleType } from '../src/particles/meta/radixParticleTypes'
 
 describe('mutableSupplyTokenDefinitionParticle', () => {
 	const address = toAddress(

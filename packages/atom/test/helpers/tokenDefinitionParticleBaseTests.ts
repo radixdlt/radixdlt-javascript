@@ -1,13 +1,15 @@
 import { Result } from 'neverthrow'
 import { granularityDefault } from '@radixdlt/primitives'
-import {
-	TokenDefinitionParticleInput,
-	RADIX_TOKEN_SYMBOL_MAX_LENGTH,
-	isMutableTokenDefinitionParticle,
-	isFixedTokenDefinitionParticle,
-} from '../../dist/_index'
+
 import { TokenDefinitionParticleBase } from '../../src/particles/_types'
 import { RadixParticleType } from '../../src/particles/meta/radixParticleTypes'
+import {
+	RADIX_TOKEN_SYMBOL_MAX_LENGTH,
+	TokenDefinitionParticleInput,
+} from '../../src/particles/tokenDefinitionParticleBase'
+import { isFixedTokenDefinitionParticle } from '../../src/particles/fixedSupplyTokenDefinitionParticle'
+
+import { isMutableTokenDefinitionParticle } from '../../src/particles/mutableSupplyTokenDefinitionParticle'
 
 // eslint-disable-next-line max-lines-per-function
 export const doTestTokenDefintionParticle = <

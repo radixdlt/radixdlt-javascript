@@ -1,5 +1,20 @@
 import { UInt256 } from '@radixdlt/uint256'
-import { amountFromUInt256, min } from '../src/amount'
+import {
+	amountFromUInt256,
+	min,
+	zero,
+	one,
+	two,
+	three,
+	four,
+	five,
+	six,
+	seven,
+	eight,
+	nine,
+	ten,
+	amountInSmallestDenomination,
+} from '../src/amount'
 import {
 	Amount,
 	amountFromUnsafe,
@@ -11,14 +26,31 @@ import {
 const makeAmount = (unsafe: AmountInputUnsafe): Amount =>
 	amountFromUnsafe(unsafe, Denomination.Atto)._unsafeUnwrap()
 
-const zero = makeAmount(0)
-const one = makeAmount(1)
-const two = makeAmount(2)
-const three = makeAmount(3)
-const four = makeAmount(4)
-const five = makeAmount(5)
-
 describe('Amount', () => {
+	it('have correct values and equal itself', () => {
+		;[
+			zero,
+			one,
+			two,
+			three,
+			four,
+			five,
+			six,
+			seven,
+			eight,
+			nine,
+			ten,
+		].forEach((amount, index) => {
+			expect(amount.magnitude.valueOf()).toBe(index)
+			expect(amount.equals(amount)).toBe(true)
+			expect(
+				amount.equals(
+					amountInSmallestDenomination(UInt256.valueOf(index)),
+				),
+			).toBe(true)
+		})
+	})
+
 	it('should consider same numbers expressed in different denomination as equal', () => {
 		const amount = amountFromUnsafe(42)._unsafeUnwrap()
 		const amountFromAtto = amountFromUnsafe(

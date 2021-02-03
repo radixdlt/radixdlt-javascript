@@ -14,12 +14,10 @@ import { Amount, amountInSmallestDenomination } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import { v4 as uuidv4 } from 'uuid'
 import { exactlyContainParticles } from '../../atom/test/helpers/particles'
+import { two, nine, one, ten } from '@radixdlt/primitives/src/amount'
+import { ok } from 'neverthrow'
 
 describe('fungibleParticleTransitioner', () => {
-	const one = amountInSmallestDenomination(UInt256.valueOf(1))
-	const two = amountInSmallestDenomination(UInt256.valueOf(2))
-	const nine = amountInSmallestDenomination(UInt256.valueOf(9))
-	const ten = amountInSmallestDenomination(UInt256.valueOf(10))
 	const eleven = amountInSmallestDenomination(UInt256.valueOf(11))
 
 	type TestParticle = ParticleBase & {
@@ -98,9 +96,11 @@ describe('fungibleParticleTransitioner', () => {
 		const transitioner = makeTransitioner<TestParticle, TestParticle>({
 			inputAmountMapper: (p) => p.amount,
 			inputCreator: (amount, from: TestParticle) =>
-				/* From */ testParticle(amount, from.id.toUpperCase(), true),
+				/* From */ ok(
+					testParticle(amount, from.id.toUpperCase(), true),
+				),
 			outputCreator: (amount) =>
-				/* To */ testParticle(amount, `up${outCounter}`),
+				/* To */ ok(testParticle(amount, `up${outCounter}`)),
 		})
 
 		const a = testParticle(1, 'a')
@@ -132,8 +132,8 @@ describe('fungibleParticleTransitioner', () => {
 		const transitioner = makeTransitioner<TestParticle, TestParticle>({
 			inputAmountMapper: (p) => p.amount,
 			inputCreator: (amount, from: TestParticle) =>
-				/* From */ testParticle(amount, from.id.toUpperCase()),
-			outputCreator: (amount) => /* To */ testParticle(amount, `up0`),
+				/* From */ ok(testParticle(amount, from.id.toUpperCase())),
+			outputCreator: (amount) => /* To */ ok(testParticle(amount, `up0`)),
 		})
 
 		const a = testParticle(1, 'a')
