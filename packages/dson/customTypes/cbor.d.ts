@@ -12,10 +12,12 @@ declare module 'cbor' {
 		_encodeAll: (
 			data: (CBOREncodablePrimitive | CBOREncodableObject)[],
 		) => Buffer
+		/* eslint-disable @typescript-eslint/no-explicit-any */
 		addSemanticType: (
 			type: any,
 			fn: (encoder: CBOREncoder, obj: any) => boolean,
 		) => undefined
+		/* eslint-enable @typescript-eslint/no-explicit-any */
 		pushAny: (
 			any:
 				| CBOREncodablePrimitive

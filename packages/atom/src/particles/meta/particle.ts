@@ -1,5 +1,6 @@
 import { RadixParticle } from '../_types'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ParticleEquals = (p1: any, p2: any) => boolean
 
 const withEquals = (...equalFns: ParticleEquals[]) => (p: RadixParticle) => ({
