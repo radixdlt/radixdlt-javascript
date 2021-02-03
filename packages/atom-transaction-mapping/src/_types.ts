@@ -31,5 +31,11 @@ export type ActionToParticleGroupsMapper<
 	) => Result<ParticleGroup[], Error>
 }>
 
+export type MapperInput = Readonly<{
+	action: UserAction
+	upParticles: AnyUpParticle[]
+	addressOfActiveAccount: Address
+}>
+
 export type TokenTransferActionToParticleGroupsMapper = ActionToParticleGroupsMapper<UserActionType.TOKEN_TRANSFER>
 export type BurnTokensActionToParticleGroupsMapper = ActionToParticleGroupsMapper<UserActionType.BURN_TOKENS>

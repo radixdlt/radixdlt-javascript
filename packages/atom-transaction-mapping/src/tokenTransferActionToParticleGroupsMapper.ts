@@ -1,38 +1,28 @@
+import { TransferTokensAction, UserActionType } from '@radixdlt/actions'
 import {
-	TokensActionBase,
-	TransferTokensAction,
-	UserAction,
-	UserActionType,
-} from '@radixdlt/actions'
-import { TokenTransferActionToParticleGroupsMapper } from './_types'
+	MapperInput,
+	TokenTransferActionToParticleGroupsMapper,
+} from './_types'
 import {
 	spunParticles,
-	asUpParticle,
 	transferrableTokensParticle,
-	AnyUpParticle,
 	TransferrableTokensParticle,
 	UpParticle,
-	Spin,
 	ParticleGroup,
 	particleGroup,
-	TokenDefinitionParticleBase,
 } from '@radixdlt/atom'
 import { Address } from '@radixdlt/crypto'
-import { err, ok, Result } from 'neverthrow'
+import { combine, Result } from 'neverthrow'
 import { Amount } from '@radixdlt/primitives'
 import { positiveAmount } from '@radixdlt/primitives'
 import { makeTransitioner } from './fungibleParticleTransitioner'
-
-const validateUserActionSender = (
-	input: Readonly<{
-		action: UserAction
-		addressOfActiveAccount: Address
-	}>,
-): Result<UserAction, Error> => {
-	return input.action.sender.equals(input.addressOfActiveAccount)
-		? ok(input.action)
-		: err(new Error('Wrong sender/signer'))
-}
+import {
+	validate,
+	validateConsumeTokensAction,
+	validateUserActionSender,
+	validateUserActionType,
+} from './validation'
+import { collectUpParticles } from './utils'
 
 export const transferrableTokensParticleFromParticle = (
 	input: Readonly<{
@@ -47,100 +37,6 @@ export const transferrableTokensParticleFromParticle = (
 		address: input.address ?? input.from.address,
 		amount: positiveAmt,
 	})._unsafeUnwrap()
-}
-
-const validateConsumeTokensAction = <A extends TokensActionBase>(
-	input: Readonly<{
-		action: A
-		upParticles: AnyUpParticle[]
-		validateTokenDefinition?: (
-			tokenDefintionParticleBase: TokenDefinitionParticleBase,
-		) => Result<true, Error>
-	}>,
-): Result<A, Error> => {
-	const action = input.action
-	const resourceIdentifier = action.tokenResourceIdentifier
-	const validateTokenDefinition =
-		input.validateTokenDefinition ??
-		((_: TokenDefinitionParticleBase) => ok(true))
-
-	const spunParticles_ = spunParticles(input.upParticles)
-
-	const tokenDefinitionParticle = spunParticles_.tokenDefinitionParticleMatchingIdentifier(
-		resourceIdentifier,
-	)
-
-	if (!tokenDefinitionParticle) {
-		return err(
-			new Error(
-				`Unknown token with identifier: '${resourceIdentifier.toString()}'`,
-			),
-		)
-	}
-
-	if (!action.amount.isMultipleOf(tokenDefinitionParticle.granularity)) {
-		return err(new Error('Amount not multiple of granularity'))
-	}
-
-	return validateTokenDefinition(tokenDefinitionParticle).map((_) => action)
-}
-
-const validateUserActionType = <A extends UserAction>(
-	input: Readonly<{
-		action: UserAction
-		filterOnType: UserActionType
-	}>,
-): Result<A, Error> => {
-	if (input.action.actionType !== input.filterOnType)
-		return err(new Error('Incorrect UserAction type.'))
-	return ok(input.action as A)
-}
-
-const validateActionInputForConsumeTokensAction = <A extends TokensActionBase>(
-	input: Readonly<{
-		typeOfThisMapper: UserActionType
-		action: UserAction
-		upParticles: AnyUpParticle[]
-		addressOfActiveAccount: Address
-		validateTokenDefinition?: (
-			tokenDefintionParticleBase: TokenDefinitionParticleBase,
-		) => Result<true, Error>
-	}>,
-): Result<A, Error> => {
-	return validateUserActionSender(input)
-		.andThen((action) =>
-			validateUserActionType<A>({
-				action,
-				filterOnType: input.typeOfThisMapper,
-			}),
-		)
-		.andThen((typedAction) =>
-			validateConsumeTokensAction({
-				...input,
-				action: typedAction,
-			}),
-		)
-}
-
-export const validateInputCollectUpParticles = <A extends TokensActionBase>(
-	input: Readonly<{
-		typeOfThisMapper: UserActionType
-		action: UserAction
-		upParticles: AnyUpParticle[]
-		addressOfActiveAccount: Address
-		validateTokenDefinition?: (
-			tokenDefintionParticleBase: TokenDefinitionParticleBase,
-		) => Result<true, Error>
-	}>,
-): Result<UpParticle<TransferrableTokensParticle>[], Error> => {
-	return validateActionInputForConsumeTokensAction<A>(input).map((_) =>
-		spunParticles(input.upParticles)
-			.transferrableTokensParticles(Spin.UP)
-			.filter((sp) =>
-				sp.particle.address.equals(input.addressOfActiveAccount),
-			)
-			.map((sp) => asUpParticle(sp)._unsafeUnwrap()),
-	)
 }
 
 const particleGroupsFromTransferTokensAction = (
@@ -189,25 +85,22 @@ const particleGroupsFromTransferTokensAction = (
 export const tokenTransferActionToParticleGroupsMapper = (): TokenTransferActionToParticleGroupsMapper => {
 	const actionType = UserActionType.TOKEN_TRANSFER
 	return {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
 		actionType,
 		particleGroupsFromAction: (
-			input: Readonly<{
-				action: UserAction
-				upParticles: AnyUpParticle[]
-				addressOfActiveAccount: Address
-			}>,
-		): Result<ParticleGroup[], Error> => {
-			return validateInputCollectUpParticles({
-				...input,
-				typeOfThisMapper: actionType,
-			}).andThen((upParticles) =>
-				particleGroupsFromTransferTokensAction({
-					transferTokensAction: input.action as TransferTokensAction,
-					upParticles: upParticles,
-					addressOfActiveAccount: input.addressOfActiveAccount,
-				}),
-			)
-		},
+			input: MapperInput,
+		): Result<ParticleGroup[], Error> =>
+			validate(
+				validateUserActionSender,
+				validateUserActionType(actionType),
+				validateConsumeTokensAction(),
+			)(input)
+				.andThen((res) => combine(collectUpParticles(res)))
+				.andThen((upParticles) =>
+					particleGroupsFromTransferTokensAction({
+						transferTokensAction: input.action as TransferTokensAction,
+						upParticles: upParticles,
+						addressOfActiveAccount: input.addressOfActiveAccount,
+					}),
+				),
 	}
 }
