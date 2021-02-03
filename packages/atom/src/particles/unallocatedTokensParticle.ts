@@ -28,9 +28,7 @@ export const unallocatedTokensParticle = (
 	return {
 		...DSON(props),
 
-		...withTokenParticleEquals((_: UnallocatedTokensParticle) => true)(
-			props,
-		),
+		...withTokenParticleEquals()(props),
 
 		...props,
 	}
