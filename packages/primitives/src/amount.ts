@@ -133,6 +133,21 @@ export const isAmount = (something: Amount | unknown): something is Amount => {
 	)
 }
 
+const makeAmount = (amount: number): Amount =>
+	amountInSmallestDenomination(UInt256.valueOf(amount))
+
+export const zero = makeAmount(0)
+export const one = makeAmount(1)
+export const two = makeAmount(2)
+export const three = makeAmount(3)
+export const four = makeAmount(4)
+export const five = makeAmount(5)
+export const six = makeAmount(6)
+export const seven = makeAmount(7)
+export const eight = makeAmount(8)
+export const nine = makeAmount(9)
+export const ten = makeAmount(10)
+
 export const maxAmount = amountFromUInt256({
 	magnitude: uint256Max,
 	denomination: Denomination.Atto,

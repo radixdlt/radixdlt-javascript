@@ -4,12 +4,12 @@ import {
 	privateKeyFromScalar,
 	Address,
 	isAddress,
+	generatePrivateKey,
 } from '../src/_index'
 
 import { magicFromNumber } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import { OutputMode } from '@radixdlt/dson'
-import { generatePrivateKey } from '../dist/privateKey'
 
 // TODO CODE DUPLICATION remove to separate test package...
 export const toAddress = (b58: string): Address =>

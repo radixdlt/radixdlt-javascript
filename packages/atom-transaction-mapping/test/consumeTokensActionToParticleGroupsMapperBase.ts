@@ -1,11 +1,5 @@
 /* eslint-disable */
-
-import { tokenTransferActionToParticleGroupsMapper } from '../src/tokenTransferActionToParticleGroupsMapper'
-import {
-	TokensActionBase,
-	TransferTokensAction,
-	transferTokensAction,
-} from '@radixdlt/actions'
+import { TokensActionBase } from '@radixdlt/actions'
 import { Address } from '@radixdlt/crypto'
 import {
 	AnyUpParticle,
@@ -24,13 +18,14 @@ import {
 	UpParticle,
 } from '@radixdlt/atom'
 import {
-	amountFromUInt256,
-	Denomination,
-	positiveAmountFromUnsafe,
+	amountInSmallestDenomination,
+	granularityDefault,
+	maxAmount,
 } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import { toAddress } from '../../atom/test/helpers/utility'
 import { ActionToParticleGroupsMapper } from '../src/_types'
+import { two, three, one, four, five } from '@radixdlt/primitives/src/amount'
 
 export type TestCaseReturn = ReturnType<typeof it>
 
@@ -67,14 +62,12 @@ const tokenDefInput = <TokenDefinitionParticleInput>{
 	symbol,
 	name,
 	address: alice,
+	granularity: one,
 }
 
 export const fixedSupTokDefParticle = fixedSupplyTokenDefinitionParticle({
 	...tokenDefInput,
-	supply: amountFromUInt256({
-		magnitude: UInt256.valueOf(21_000_000),
-		denomination: Denomination.Whole,
-	})._unsafeUnwrap(),
+	supply: maxAmount,
 })._unsafeUnwrap()
 
 export const mutableSupplyTokenDefinitionParticleAllCanMutate = mutableSupplyTokenDefinitionParticle(
@@ -102,7 +95,7 @@ export const upTTP = (
 			tokenDefinitionReference:
 				tokenDefinitionParticle.resourceIdentifier,
 			address: owner ?? alice,
-			amount: positiveAmountFromUnsafe(amount)._unsafeUnwrap(),
+			amount: amountInSmallestDenomination(UInt256.valueOf(amount)),
 		})._unsafeUnwrap(),
 	)
 }
@@ -284,11 +277,6 @@ export const testMapperReturns___works_with_change = <
 		const spunParticles = particleGroups[0].spunParticles.spunParticles
 		expect(spunParticles.length).toBe(4)
 
-		const one = positiveAmountFromUnsafe(1)._unsafeUnwrap()
-		const two = positiveAmountFromUnsafe(2)._unsafeUnwrap()
-		const three = positiveAmountFromUnsafe(3)._unsafeUnwrap()
-		const four = positiveAmountFromUnsafe(4)._unsafeUnwrap()
-
 		const sp0 = spunParticles[0]
 		expect(sp0.spin).toBe(Spin.DOWN)
 		const p0 = sp0.particle as TransferrableTokensParticle
@@ -341,10 +329,6 @@ export const testMapperReturns___works_without_change = <
 		expect(particleGroups.length).toBe(1)
 		const spunParticles = particleGroups[0].spunParticles.spunParticles
 		expect(spunParticles.length).toBe(3)
-
-		const two = positiveAmountFromUnsafe(2)._unsafeUnwrap()
-		const three = positiveAmountFromUnsafe(3)._unsafeUnwrap()
-		const five = positiveAmountFromUnsafe(5)._unsafeUnwrap()
 
 		const sp0 = spunParticles[0]
 		expect(sp0.spin).toBe(Spin.DOWN)

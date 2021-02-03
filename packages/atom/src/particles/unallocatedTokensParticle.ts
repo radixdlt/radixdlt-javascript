@@ -1,4 +1,3 @@
-import { Supply } from '../_types'
 import { isRadixParticle, RadixParticleType } from './meta/radixParticleTypes'
 import {
 	tokenDSONKeyValues,
@@ -7,49 +6,29 @@ import {
 	withTokenParticleEquals,
 } from './meta/tokenParticle'
 import { DSONCodable, DSONEncoding } from '@radixdlt/dson'
-import {
-	TokenParticle,
-	UnallocatedTokensParticle,
-	UnallocatedTokensParticleProps,
-} from './_types'
-
-export type UnallocatedTokensParticleInput = TokenParticleInput &
-	Readonly<{
-		amount: Supply
-	}>
+import { TokenParticle, UnallocatedTokensParticle } from './_types'
 
 const radixParticleType = RadixParticleType.UNALLOCATED_TOKENS
 const SERIALIZER = 'radix.particles.unallocated_tokens'
 
-const DSON = (
-	input: UnallocatedTokensParticleProps & TokenParticle,
-): DSONCodable =>
+const DSON = (input: TokenParticle): DSONCodable =>
 	DSONEncoding({
 		serializer: SERIALIZER,
-		encodingMethodOrKeyValues: [
-			...tokenDSONKeyValues(input),
-			{
-				key: 'amount',
-				value: input.amount,
-			},
-		],
+		encodingMethodOrKeyValues: [...tokenDSONKeyValues(input)],
 	})
 
 export const unallocatedTokensParticle = (
-	input: UnallocatedTokensParticleInput,
+	input: TokenParticleInput,
 ): UnallocatedTokensParticle => {
 	const props = {
 		...tokenParticleProps(input),
-		amount: input.amount,
 		radixParticleType: radixParticleType,
 	}
 
 	return {
 		...DSON(props),
 
-		...withTokenParticleEquals((otherParticle: UnallocatedTokensParticle) =>
-			otherParticle.amount.equals(input.amount),
-		)(props),
+		...withTokenParticleEquals()(props),
 
 		...props,
 	}

@@ -1,5 +1,5 @@
 import { Address } from '@radixdlt/crypto'
-import { PositiveAmount } from '@radixdlt/primitives'
+import { Amount } from '@radixdlt/primitives'
 import { ResourceIdentifier } from '@radixdlt/atom'
 
 export enum UserActionType {
@@ -15,7 +15,7 @@ export type UserAction = Readonly<{
 
 export type TokensActionBase = UserAction &
 	Readonly<{
-		amount: PositiveAmount
+		amount: Amount
 		tokenResourceIdentifier: ResourceIdentifier
 	}>
 
@@ -32,7 +32,7 @@ export type BurnTokensAction = TokensActionBase &
 	}>
 
 export type TokensActionBaseInput = Readonly<{
-	amount: PositiveAmount
+	amount: Amount
 	resourceIdentifier: ResourceIdentifier
 	uuid?: string
 }>

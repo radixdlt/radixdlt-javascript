@@ -3,7 +3,7 @@ import { fixedSupplyTokenDefinitionParticle } from '../src/particles/fixedSupply
 import { toAddress } from './helpers/utility'
 import { UInt256 } from '@radixdlt/uint256'
 import { doTestTokenDefintionParticle } from './helpers/tokenDefinitionParticleBaseTests'
-import { RadixParticleType } from '../dist/particles/meta/radixParticleTypes'
+import { RadixParticleType } from '../src/particles/meta/radixParticleTypes'
 
 describe('fixedSupplyTokenDefinitionParticle', () => {
 	const address = toAddress(

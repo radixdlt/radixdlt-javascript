@@ -8,15 +8,15 @@ import {
 import { Amount } from '@radixdlt/primitives'
 import { Result, err, ok } from 'neverthrow'
 
-/* eslint-disable functional/immutable-data, functional/no-let, functional/no-try-statement, functional/no-loop-statement, prefer-const, max-lines-per-function */
+/* eslint-disable functional/immutable-data, functional/no-let, functional/no-loop-statement, prefer-const, max-lines-per-function */
 export const makeTransitioner = <
 	From extends ParticleBase,
 	To extends ParticleBase
 >(
 	input: Readonly<{
 		inputAmountMapper: (from: From) => Amount
-		inputCreator: (amount: Amount, from: From) => From
-		outputCreator: (amount: Amount, from: From) => To
+		inputCreator: (amount: Amount, from: From) => Result<From, Error>
+		outputCreator: (amount: Amount, from: From) => Result<To, Error>
 	}>,
 ): FungibleParticleTransitioner<From> => {
 	const inputAmountMapper = input.inputAmountMapper
@@ -24,6 +24,7 @@ export const makeTransitioner = <
 	const outputCreator = input.outputCreator
 
 	return {
+		// eslint-disable-next-line complexity
 		transition: (
 			input: Readonly<{
 				currentParticles: From[]
@@ -34,43 +35,44 @@ export const makeTransitioner = <
 
 			let amountLeftToTransfer = input.totalAmountToTransfer
 
-			try {
-				for (const currentParticle of input.currentParticles) {
-					spunParticles.push(spunDownParticle(currentParticle))
-					const particleAmount = inputAmountMapper(currentParticle)
-					if (particleAmount.greaterThan(amountLeftToTransfer)) {
-						const sendBackToSelf = particleAmount
-							.subtracting(amountLeftToTransfer)
-							._unsafeUnwrap()
-						spunParticles.push(
-							spunUpParticle(
-								inputCreator(sendBackToSelf, currentParticle),
-							),
-						)
-					}
-
-					if (
-						particleAmount.greaterThanOrEquals(amountLeftToTransfer)
-					) {
-						spunParticles.push(
-							spunUpParticle(
-								outputCreator(
-									input.totalAmountToTransfer,
-									currentParticle,
-								),
-							),
-						)
-						return ok(spunParticles)
-					}
-
-					amountLeftToTransfer = amountLeftToTransfer
-						.subtracting(particleAmount)
+			for (const currentParticle of input.currentParticles) {
+				spunParticles.push(spunDownParticle(currentParticle))
+				const particleAmount = inputAmountMapper(currentParticle)
+				if (particleAmount.greaterThan(amountLeftToTransfer)) {
+					const sendBackToSelf = particleAmount
+						.subtracting(amountLeftToTransfer)
 						._unsafeUnwrap()
+
+					const migratedResult = inputCreator(
+						sendBackToSelf,
+						currentParticle,
+					)
+					if (migratedResult.isErr())
+						return err(new Error('Failed to migrate particle'))
+
+					spunParticles.push(spunUpParticle(migratedResult.value))
 				}
-				return err(new Error('Insufficient balance.'))
-			} catch (error) {
-				return err(error)
+
+				if (particleAmount.greaterThanOrEquals(amountLeftToTransfer)) {
+					const outputResult = outputCreator(
+						input.totalAmountToTransfer,
+						currentParticle,
+					)
+
+					if (outputResult.isErr())
+						return err(
+							new Error('Failed to create output particle'),
+						)
+
+					spunParticles.push(spunUpParticle(outputResult.value))
+					return ok(spunParticles)
+				}
+
+				amountLeftToTransfer = amountLeftToTransfer
+					.subtracting(particleAmount)
+					._unsafeUnwrap()
 			}
+			return err(new Error('Insufficient balance.'))
 		},
 	}
 }
@@ -87,7 +89,9 @@ export const makeSimpleTransitioner = <
 ): FungibleParticleTransitioner<From> => {
 	return makeTransitioner({
 		...input,
-		inputCreator: (amount: Amount, _: From) => input.inputCreator(amount),
-		outputCreator: (amount: Amount, _: From) => input.outputCreator(amount),
+		inputCreator: (amount: Amount, _: From) =>
+			ok(input.inputCreator(amount)),
+		outputCreator: (amount: Amount, _: From) =>
+			ok(input.outputCreator(amount)),
 	})
 }
