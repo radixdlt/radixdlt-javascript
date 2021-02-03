@@ -9,14 +9,11 @@ import {
 	ttParticle1Down,
 } from './helpers/particles'
 import { SignatureID, Signatures } from '../src/_types'
-import {
-	ResourceIdentifierParticleType,
-	TransferrableTokensParticleType,
-} from '../src/particles/meta/radixParticleTypes'
 import { signatureFromHexStrings } from './helpers/utility'
 import { Spin } from '../src/particles/_types'
 import { particleGroup } from '../src/particleGroup'
 import { particleGroups } from '../src/particleGroups'
+import { RadixParticleType } from '../src/particles/meta/radixParticleTypes'
 
 const mockedAtomIdentifier = atomIdentifier(
 	'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
@@ -42,8 +39,8 @@ describe('atom', () => {
 				actual: atom_.anySpunParticlesOfTypeWithSpin({
 					spin: Spin.DOWN,
 					particleTypes: [
-						ResourceIdentifierParticleType,
-						TransferrableTokensParticleType,
+						RadixParticleType.RESOURCE_IDENTIFIER,
+						RadixParticleType.TRANSFERRABLE_TOKENS,
 					],
 				}),
 				expected: [

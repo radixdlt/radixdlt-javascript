@@ -1,8 +1,5 @@
 import { Supply } from '../_types'
-import {
-	RadixParticleType,
-	UnallocatedTokensParticleType,
-} from './meta/radixParticleTypes'
+import { isRadixParticle, RadixParticleType } from './meta/radixParticleTypes'
 import {
 	tokenDSONKeyValues,
 	tokenParticleProps,
@@ -21,6 +18,7 @@ export type UnallocatedTokensParticleInput = TokenParticleInput &
 		amount: Supply
 	}>
 
+const radixParticleType = RadixParticleType.UNALLOCATED_TOKENS
 const SERIALIZER = 'radix.particles.unallocated_tokens'
 
 const DSON = (
@@ -43,7 +41,7 @@ export const unallocatedTokensParticle = (
 	const props = {
 		...tokenParticleProps(input),
 		amount: input.amount,
-		radixParticleType: UnallocatedTokensParticleType,
+		radixParticleType: radixParticleType,
 	}
 
 	return {
@@ -60,6 +58,6 @@ export const unallocatedTokensParticle = (
 export const isUnallocatedTokensParticle = (
 	something: unknown,
 ): something is UnallocatedTokensParticle => {
-	const inspection = something as UnallocatedTokensParticle
-	return inspection.radixParticleType === RadixParticleType.UNALLOCATED_TOKENS
+	if (!isRadixParticle(something)) return false
+	return something.radixParticleType === radixParticleType
 }

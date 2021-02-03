@@ -6,8 +6,10 @@ import {
 } from '@radixdlt/atom'
 import { Address } from '@radixdlt/crypto'
 import { err, ok, Result } from 'neverthrow'
+import { ValidationWitness } from './burnTokensActionToParticleGroupsMapper'
 import { MapperInput } from './_types'
 
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */
 export const validate = (
 	...validators: ((input: any) => Result<MapperInput, Error>)[]
 ) => (input: MapperInput) =>
@@ -15,6 +17,7 @@ export const validate = (
 		(result, validator) => result.andThen(validator),
 		ok(input),
 	)
+/* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */
 
 export const validateUserActionSender = <
 	T extends Readonly<{
@@ -29,13 +32,15 @@ export const validateUserActionSender = <
 		: err(new Error('Wrong sender/signer'))
 }
 
+export const alwaysValid: ValidationWitness = { witness: 'always valid' }
+
 export const validateConsumeTokensAction = (
 	validateTokenDefinition?: (
 		input: Readonly<{
 			tokenDefinitionParticle: TokenDefinitionParticleBase
 			burner: Address
 		}>,
-	) => Result<true, Error>,
+	) => Result<ValidationWitness, Error>,
 ) => <
 	T extends Readonly<{
 		upParticles: AnyUpParticle[]
@@ -46,7 +51,8 @@ export const validateConsumeTokensAction = (
 	input: T,
 ): Result<T, Error> => {
 	const resourceIdentifier = input.action.tokenResourceIdentifier
-	const tokenDefValidation = validateTokenDefinition ?? (() => ok(true))
+	const tokenDefValidation =
+		validateTokenDefinition ?? (() => ok(alwaysValid))
 
 	const spunParticles_ = spunParticles(input.upParticles)
 

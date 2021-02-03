@@ -1,7 +1,6 @@
-import { BurnTokensAction, UserAction, UserActionType } from '@radixdlt/actions'
+import { BurnTokensAction, UserActionType } from '@radixdlt/actions'
 import {
-	AnyUpParticle,
-	MutableSupplyTokenDefinitionParticle,
+	isMutableTokenDefinitionParticle,
 	particleGroup,
 	ParticleGroup,
 	spunParticles,
@@ -17,7 +16,6 @@ import { BurnTokensActionToParticleGroupsMapper, MapperInput } from './_types'
 import { transferrableTokensParticleFromParticle } from './tokenTransferActionToParticleGroupsMapper'
 import { makeTransitioner } from './fungibleParticleTransitioner'
 import { Amount, positiveAmount } from '@radixdlt/primitives'
-import { isMutableTokenDefinitionParticle } from '@radixdlt/atom/dist/mutableSupplyTokenDefinitionParticle'
 import {
 	validate,
 	validateConsumeTokensAction,
@@ -89,20 +87,21 @@ const particleGroupsFromBurnTokensAction = (
 		.map((sps) => [particleGroup(sps)])
 }
 
+export type ValidationWitness = Readonly<{ witness: string }>
 const tokenDefinitionValidation = (input: {
 	tokenDefinitionParticle: TokenDefinitionParticleBase
 	burner: Address
-}): Result<any, Error> => {
+}): Result<ValidationWitness, Error> => {
 	if (!isMutableTokenDefinitionParticle(input.tokenDefinitionParticle)) {
 		return err(new Error(`Can only burn tokens with mutable supply.`))
 	}
-	const mutableToken = input.tokenDefinitionParticle as MutableSupplyTokenDefinitionParticle
+	const mutableToken = input.tokenDefinitionParticle
 	const isTokenOwner = (): boolean =>
 		mutableToken.resourceIdentifier.address.equals(input.burner)
 	if (!mutableToken.permissions.canBeBurned(isTokenOwner)) {
 		return err(new Error(`Not permission to burn token.`))
 	}
-	return ok(true)
+	return ok(<ValidationWitness>{ witness: 'Has permission to burn' })
 }
 
 export const burnTokensActionToParticleGroupsMapper = (): BurnTokensActionToParticleGroupsMapper => {

@@ -1,6 +1,11 @@
 import { Address } from '@radixdlt/crypto'
 import { DSONCodable } from '@radixdlt/dson'
-import { Granularity, Nonce, PositiveAmount } from '@radixdlt/primitives'
+import {
+	Amount,
+	Granularity,
+	Nonce,
+	PositiveAmount,
+} from '@radixdlt/primitives'
 import { Result } from 'neverthrow'
 import { ResourceIdentifier, Supply, TokenPermissions } from '../_types'
 import { RadixParticleType } from './meta/radixParticleTypes'
@@ -143,5 +148,6 @@ export type TokenParticle = RadixParticle &
 		granularity: Granularity
 		permissions: TokenPermissions
 		tokenDefinitionReference: ResourceIdentifier
+		amount: Amount
 		nonce: Nonce
 	}>

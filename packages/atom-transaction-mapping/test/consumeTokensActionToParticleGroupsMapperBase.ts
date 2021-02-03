@@ -10,10 +10,14 @@ import { Address } from '@radixdlt/crypto'
 import {
 	AnyUpParticle,
 	fixedSupplyTokenDefinitionParticle,
+	mutableSupplyTokenDefinitionParticle,
 	resourceIdentifierFromAddressAndName,
 	Spin,
 	TokenDefinitionParticleBase,
 	TokenDefinitionParticleInput,
+	tokenOwnerOnly,
+	TokenParticle,
+	tokenPermissionsAll,
 	transferrableTokensParticle,
 	TransferrableTokensParticle,
 	upParticle,
@@ -29,6 +33,16 @@ import { toAddress } from '../../atom/test/helpers/utility'
 import { ActionToParticleGroupsMapper } from '../src/_types'
 
 export type TestCaseReturn = ReturnType<typeof it>
+
+export type TestVector<T extends TokenDefinitionParticleBase> = Readonly<{
+	mapper: ActionToParticleGroupsMapper
+	makeAction: (amount: number, actor?: Address) => TokensActionBase
+	tokenDefinitionParticle: T
+}>
+
+export type TestCase<T extends TokenDefinitionParticleBase> = (
+	testVector: TestVector<T>,
+) => TestCaseReturn
 
 export const alice = toAddress(
 	'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
@@ -63,29 +77,44 @@ export const fixedSupTokDefParticle = fixedSupplyTokenDefinitionParticle({
 	})._unsafeUnwrap(),
 })._unsafeUnwrap()
 
-const upTTP = (
+export const mutableSupplyTokenDefinitionParticleAllCanMutate = mutableSupplyTokenDefinitionParticle(
+	{
+		...tokenDefInput,
+		permissions: tokenPermissionsAll,
+	},
+)._unsafeUnwrap()
+
+export const mutableSupplyTokenDefinitionParticleOnlyAliceCanMutate = mutableSupplyTokenDefinitionParticle(
+	{
+		...tokenDefInput,
+		permissions: tokenOwnerOnly,
+	},
+)._unsafeUnwrap()
+
+export const upTTP = (
 	amount: number,
+	tokenDefinitionParticle: TokenDefinitionParticleBase,
 	owner?: Address,
 ): UpParticle<TransferrableTokensParticle> => {
 	return upParticle(
 		transferrableTokensParticle({
-			granularity: fixedSupTokDefParticle.granularity,
-			tokenDefinitionReference: fixedSupTokDefParticle.resourceIdentifier,
+			granularity: tokenDefinitionParticle.granularity,
+			tokenDefinitionReference:
+				tokenDefinitionParticle.resourceIdentifier,
 			address: owner ?? alice,
 			amount: positiveAmountFromUnsafe(amount)._unsafeUnwrap(),
 		})._unsafeUnwrap(),
 	)
 }
 
-export const testMapperReturns___Unknown_Token___error_when_no_token_definition_particle = (
-	input: Readonly<{
-		mapper: ActionToParticleGroupsMapper
-		makeAction: (amount: number) => TokensActionBase
-	}>,
-): TestCaseReturn => {
-	it(`should fail with error 'Unknown Token' when no TokenDefinitionParticle present`, () => {
-		const mapper = input.mapper
-		const action = input.makeAction(4)
+export const testMapperReturns___Unknown_Token___error_when_no_token_definition_particle = <
+	T extends TokenDefinitionParticleBase
+>(
+	testVector: TestVector<T>,
+): TestCaseReturn =>
+	it(`should fail with error 'Unknown Token' when no TokenDefinitionParticle at all present`, () => {
+		const mapper = testVector.mapper
+		const action = testVector.makeAction(4)
 		expect(mapper.actionType).toBe(action.actionType)
 		const particleGroupsResult = mapper.particleGroupsFromAction({
 			action: action,
@@ -103,23 +132,18 @@ export const testMapperReturns___Unknown_Token___error_when_no_token_definition_
 				),
 		)
 	})
-}
 
 export const testMapperReturns___Insufficient_Balance___error_when_no_transferrable_tokens_particles = <
 	T extends TokenDefinitionParticleBase
 >(
-	input: Readonly<{
-		mapper: ActionToParticleGroupsMapper
-		makeAction: (amount: number) => TokensActionBase
-		tokenDefinitionParticle: T
-	}>,
-): TestCaseReturn => {
-	it(`should fail with error 'Insufficient Balance' when FixedSupplyTokenDefinitionParticle but no TransferrableTokensParticle(s) present.`, () => {
-		const mapper = input.mapper
-		const action = input.makeAction(4)
+	testVector: TestVector<T>,
+): TestCaseReturn =>
+	it(`should fail with error 'Insufficient Balance' when ${testVector.tokenDefinitionParticle.radixParticleType} but no TransferrableTokensParticle(s) present.`, () => {
+		const mapper = testVector.mapper
+		const action = testVector.makeAction(4)
 		expect(mapper.actionType).toBe(action.actionType)
 		const spunUpParticles: AnyUpParticle[] = [
-			upParticle(input.tokenDefinitionParticle).eraseToAnyUp(),
+			upParticle(testVector.tokenDefinitionParticle).eraseToAnyUp(),
 			// NO TransferrableTokensParticles to spend
 		]
 
@@ -136,25 +160,20 @@ export const testMapperReturns___Insufficient_Balance___error_when_no_transferra
 			(f) => expect(f.message).toBe(`Insufficient balance.`),
 		)
 	})
-}
 
 export const testMapperReturns___Insufficient_Balance___error_when_not_enough_transferrable_tokens_particles = <
 	T extends TokenDefinitionParticleBase
 >(
-	input: Readonly<{
-		mapper: ActionToParticleGroupsMapper
-		makeAction: (amount: number) => TokensActionBase
-		tokenDefinitionParticle: T
-	}>,
-): void => {
+	testVector: TestVector<T>,
+): void =>
 	it(`should fail with error 'Insufficient Balance' when not enough TransferrableTokensParticles present.`, () => {
-		const mapper = input.mapper
-		const action = input.makeAction(4)
+		const mapper = testVector.mapper
+		const action = testVector.makeAction(4)
 		expect(mapper.actionType).toBe(action.actionType)
 
 		const spunUpParticles: AnyUpParticle[] = [
-			upParticle(input.tokenDefinitionParticle),
-			upTTP(3), // 3 is less than 4.
+			upParticle(testVector.tokenDefinitionParticle),
+			upTTP(3, testVector.tokenDefinitionParticle), // 3 is less than 4.
 		].map((p) => p.eraseToAnyUp())
 
 		const particleGroupsResult = mapper.particleGroupsFromAction({
@@ -170,28 +189,23 @@ export const testMapperReturns___Insufficient_Balance___error_when_not_enough_tr
 			(f) => expect(f.message).toBe(`Insufficient balance.`),
 		)
 	})
-}
 
 export const testMapperReturns___Wrong_Sender___error_when_addressOfActiveAccount_is_someone_elses = <
 	T extends TokenDefinitionParticleBase
 >(
-	input: Readonly<{
-		mapper: ActionToParticleGroupsMapper
-		makeAction: (amount: number) => TokensActionBase
-		tokenDefinitionParticle: T
-	}>,
-): void => {
+	testVector: TestVector<T>,
+): void =>
 	it(`should fail with error 'Wrong sender/signer' when addressOfActiveAcount is someone elses.`, () => {
-		const mapper = input.mapper
-		const action = input.makeAction(5)
+		const mapper = testVector.mapper
+		const action = testVector.makeAction(5)
 		expect(mapper.actionType).toBe(action.actionType)
 
 		expect(alice.equals(carol)).toBe(false)
 
 		const spunUpParticles: AnyUpParticle[] = [
-			upParticle(fixedSupTokDefParticle),
-			upTTP(2),
-			upTTP(3),
+			upParticle(testVector.tokenDefinitionParticle),
+			upTTP(2, testVector.tokenDefinitionParticle),
+			upTTP(3, testVector.tokenDefinitionParticle),
 		].map((p) => p.eraseToAnyUp())
 
 		const particleGroupsResult = mapper.particleGroupsFromAction({
@@ -207,28 +221,23 @@ export const testMapperReturns___Wrong_Sender___error_when_addressOfActiveAccoun
 			(f) => expect(f.message).toBe(`Wrong sender/signer`),
 		)
 	})
-}
 
 export const testMapperReturns___Insufficient_Balance___error_when_some_of_transferrable_tokens_particles_belongs_to_someone_else = <
 	T extends TokenDefinitionParticleBase
 >(
-	input: Readonly<{
-		mapper: ActionToParticleGroupsMapper
-		makeAction: (amount: number) => TokensActionBase
-		tokenDefinitionParticle: T
-	}>,
-): TestCaseReturn => {
+	testVector: TestVector<T>,
+): TestCaseReturn =>
 	it(`should fail with error 'Insufficient Balance' when some of the TransferrableTokensParticles belong to someone else.`, () => {
-		const mapper = input.mapper
-		const action = input.makeAction(4)
+		const mapper = testVector.mapper
+		const action = testVector.makeAction(4)
 		expect(mapper.actionType).toBe(action.actionType)
 
 		expect(alice.equals(carol)).toBe(false)
 
 		const spunUpParticles: AnyUpParticle[] = [
-			upParticle(fixedSupTokDefParticle),
-			upTTP(2, dan), // belongs to Dan instead of Alkice.
-			upTTP(3),
+			upParticle(testVector.tokenDefinitionParticle),
+			upTTP(2, testVector.tokenDefinitionParticle, dan), // belongs to Dan instead of Alkice.
+			upTTP(3, testVector.tokenDefinitionParticle),
 		].map((p) => p.eraseToAnyUp())
 
 		const particleGroupsResult = mapper.particleGroupsFromAction({
@@ -244,26 +253,23 @@ export const testMapperReturns___Insufficient_Balance___error_when_some_of_trans
 			(f) => expect(f.message).toBe(`Insufficient balance.`),
 		)
 	})
-}
 
 export const testMapperReturns___works_with_change = <
 	T extends TokenDefinitionParticleBase
 >(
-	input: Readonly<{
-		mapper: ActionToParticleGroupsMapper
-		makeAction: (amount: number) => TokensActionBase
-		tokenDefinitionParticle: T
-	}>,
-): TestCaseReturn => {
-	it(`should work with a FixedSupplyTokenDefinitionParticle and some TransferrableTokensParticles with change back.`, () => {
-		const mapper = input.mapper
-		const action = input.makeAction(4)
+	validateMigratedParticle: (migratedParticle: TokenParticle) => void,
+	validateOutputParticle: (outputParticle: TokenParticle) => void,
+	testVector: TestVector<T>,
+): TestCaseReturn =>
+	it(`should work with a ${testVector.tokenDefinitionParticle.radixParticleType} and some TransferrableTokensParticles with change back.`, () => {
+		const mapper = testVector.mapper
+		const action = testVector.makeAction(4)
 		expect(mapper.actionType).toBe(action.actionType)
 
 		const spunUpParticles: AnyUpParticle[] = [
-			upParticle(fixedSupTokDefParticle),
-			upTTP(2),
-			upTTP(3),
+			upParticle(testVector.tokenDefinitionParticle),
+			upTTP(2, testVector.tokenDefinitionParticle),
+			upTTP(3, testVector.tokenDefinitionParticle),
 		].map((p) => p.eraseToAnyUp())
 
 		const particleGroups = mapper
@@ -296,36 +302,32 @@ export const testMapperReturns___works_with_change = <
 		// Change back to Alice
 		const sp2 = spunParticles[2]
 		expect(sp2.spin).toBe(Spin.UP)
-		const p2 = sp2.particle as TransferrableTokensParticle
+		const p2 = sp2.particle as TokenParticle
 		expect(p2.amount.equals(one)).toBe(true)
-		expect(p2.address.equals(alice)).toBe(true)
+		validateMigratedParticle(p2)
 
 		const sp3 = spunParticles[3]
 		expect(sp3.spin).toBe(Spin.UP)
-		const p3 = sp3.particle as TransferrableTokensParticle
+		const p3 = sp3.particle as TokenParticle
 		expect(p3.amount.equals(four)).toBe(true)
-		expect(p3.address.equals(bob)).toBe(true)
+		validateOutputParticle(p3)
 	})
-}
 
 export const testMapperReturns___works_without_change = <
 	T extends TokenDefinitionParticleBase
 >(
-	input: Readonly<{
-		mapper: ActionToParticleGroupsMapper
-		makeAction: (amount: number) => TokensActionBase
-		tokenDefinitionParticle: T
-	}>,
-): TestCaseReturn => {
-	it(`should work with a FixedSupplyTokenDefinitionParticle and some TransferrableTokensParticles with no change back.`, () => {
-		const mapper = input.mapper
-		const action = input.makeAction(5)
+	validateOutputParticle: (outputParticle: TokenParticle) => void,
+	testVector: TestVector<T>,
+): TestCaseReturn =>
+	it(`should work with a ${testVector.tokenDefinitionParticle.radixParticleType} and some TransferrableTokensParticles with no change back.`, () => {
+		const mapper = testVector.mapper
+		const action = testVector.makeAction(5)
 		expect(mapper.actionType).toBe(action.actionType)
 
 		const spunUpParticles: AnyUpParticle[] = [
-			upParticle(fixedSupTokDefParticle),
-			upTTP(2),
-			upTTP(3),
+			upParticle(testVector.tokenDefinitionParticle),
+			upTTP(2, testVector.tokenDefinitionParticle),
+			upTTP(3, testVector.tokenDefinitionParticle),
 		].map((p) => p.eraseToAnyUp())
 
 		const particleGroups = mapper
@@ -356,8 +358,7 @@ export const testMapperReturns___works_without_change = <
 
 		const sp2 = spunParticles[2]
 		expect(sp2.spin).toBe(Spin.UP)
-		const p2 = sp2.particle as TransferrableTokensParticle
+		const p2 = sp2.particle as TokenParticle
 		expect(p2.amount.equals(five)).toBe(true)
-		expect(p2.address.equals(bob)).toBe(true)
+		validateOutputParticle(p2)
 	})
-}

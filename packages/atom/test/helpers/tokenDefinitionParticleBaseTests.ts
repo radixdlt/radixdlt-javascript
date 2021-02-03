@@ -3,8 +3,11 @@ import { granularityDefault } from '@radixdlt/primitives'
 import {
 	TokenDefinitionParticleInput,
 	RADIX_TOKEN_SYMBOL_MAX_LENGTH,
-} from '../../'
+	isMutableTokenDefinitionParticle,
+	isFixedTokenDefinitionParticle,
+} from '../../dist/_index'
 import { TokenDefinitionParticleBase } from '../../src/particles/_types'
+import { RadixParticleType } from '../../src/particles/meta/radixParticleTypes'
 
 // eslint-disable-next-line max-lines-per-function
 export const doTestTokenDefintionParticle = <
@@ -12,14 +15,28 @@ export const doTestTokenDefintionParticle = <
 	I extends TokenDefinitionParticleInput
 >(
 	input: I,
+	particleType: RadixParticleType,
 	ctor: (input: I) => Result<P, Error>,
 ): void => {
+	it('should have the correct particle type', () => {
+		const tokenDefinitionParticle = ctor(input)._unsafeUnwrap()
+		expect(tokenDefinitionParticle.radixParticleType).toBe(particleType)
+
+		expect(isMutableTokenDefinitionParticle(tokenDefinitionParticle)).toBe(
+			particleType === RadixParticleType.MUTABLE_SUPPLY_TOKEN_DEFINITION,
+		)
+
+		expect(isFixedTokenDefinitionParticle(tokenDefinitionParticle)).toBe(
+			particleType === RadixParticleType.FIXED_SUPPLY_TOKEN_DEFINITION,
+		)
+	})
+
 	it('can be created', () => {
 		const tokenDefinitionParticle = ctor(input)._unsafeUnwrap()
+
 		expect(tokenDefinitionParticle.resourceIdentifier.toString()).toBe(
 			`/${input.address.toString()}/ABCD0123456789`,
 		)
-
 		expect(tokenDefinitionParticle.name).toBe('Foobar Coin')
 		expect(tokenDefinitionParticle.description).toBe('Best coin ever')
 		expect(tokenDefinitionParticle.url).toBe('https://foobar.com/')

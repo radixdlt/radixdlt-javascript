@@ -1,4 +1,5 @@
 export * from './_types'
 
-export * from './tokenTransferActionToParticleGroupsMapper'
+export * from './burnTokensActionToParticleGroupsMapper'
 export * from './fungibleParticleTransitioner'
+export * from './tokenTransferActionToParticleGroupsMapper'
