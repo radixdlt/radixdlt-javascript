@@ -5,8 +5,10 @@ import {
 	UserActionType,
 } from '@radixdlt/actions'
 import {
+	isTransferrableTokensParticle,
 	MutableSupplyTokenDefinitionParticle,
 	TokenDefinitionParticleBase,
+	TokenParticle,
 	upParticle,
 } from '@radixdlt/atom'
 import { positiveAmountFromUnsafe } from '@radixdlt/primitives'
@@ -15,7 +17,8 @@ import {
 	testMapperReturns___Insufficient_Balance___error_when_no_transferrable_tokens_particles,
 	testMapperReturns___Insufficient_Balance___error_when_not_enough_transferrable_tokens_particles,
 	testMapperReturns___Wrong_Sender___error_when_addressOfActiveAccount_is_someone_elses,
-	testMapperReturns___Insufficient_Balance___error_when_some_of_transferrable_tokens_particles_belongs_to_someone_else,	testMapperReturns___works_with_change,
+	testMapperReturns___Insufficient_Balance___error_when_some_of_transferrable_tokens_particles_belongs_to_someone_else,
+	testMapperReturns___works_with_change,
 	testMapperReturns___works_without_change,
 	rri,
 	alice,
@@ -30,6 +33,7 @@ import {
 import { FixedSupplyTokenDefinitionParticle } from '@radixdlt/atom/src/particles/_types'
 import { RadixParticleType } from '@radixdlt/atom/src/particles/meta/radixParticleTypes'
 import { Address } from '@radixdlt/crypto'
+import { isUnallocatedTokensParticle } from '@radixdlt/atom/src/particles/unallocatedTokensParticle'
 
 const testMapperReturns___Can_Only_Burn_Mutable_Tokens___error_when_trying_to_burn_FixedSupplyTokenDefinition = <
 	T extends TokenDefinitionParticleBase
@@ -95,6 +99,26 @@ const testMapperReturns___NotPermissionToBurn___error_when_trying_to_burn_Mutabl
 		)
 	})
 
+const testMapperReturns_burn_works_with_change = testMapperReturns___works_with_change.bind(
+	null,
+	(migratedParticle: TokenParticle): void => {
+		if (!isTransferrableTokensParticle(migratedParticle))
+			throw new Error(`Expected output particle to be TTP`)
+		expect(migratedParticle.address.equals(alice)).toBe(true)
+	},
+
+	(outputParticle: TokenParticle): void => {
+		expect(isUnallocatedTokensParticle(outputParticle)).toBe(true)
+	},
+)
+
+const testMapperReturns_burn_works_without_change = testMapperReturns___works_without_change.bind(
+	null,
+	(outputParticle: TokenParticle): void => {
+		expect(isUnallocatedTokensParticle(outputParticle)).toBe(true)
+	},
+)
+
 describe('BurnTokensActionToParticleGroupsMapper', () => {
 	const mapper = burnTokensActionToParticleGroupsMapper()
 
@@ -131,7 +155,6 @@ describe('BurnTokensActionToParticleGroupsMapper', () => {
 				testMapperReturns___Unknown_Token___error_when_no_token_definition_particle,
 				testMapperReturns___Wrong_Sender___error_when_addressOfActiveAccount_is_someone_elses,
 
-
 				// Burn specific
 				testMapperReturns___Can_Only_Burn_Mutable_Tokens___error_when_trying_to_burn_FixedSupplyTokenDefinition,
 			],
@@ -142,8 +165,8 @@ describe('BurnTokensActionToParticleGroupsMapper', () => {
 		testBurnActionWithToken({
 			tokenDefinitionParticle: mutableSupplyTokenDefinitionParticleAllCanMutate,
 			tests: [
-				// testMapperReturns___works_with_change,
-				// testMapperReturns___works_without_change,
+				testMapperReturns_burn_works_with_change,
+				testMapperReturns_burn_works_without_change,
 
 				testMapperReturns___Unknown_Token___error_when_no_token_definition_particle,
 				testMapperReturns___Insufficient_Balance___error_when_no_transferrable_tokens_particles,
@@ -158,8 +181,8 @@ describe('BurnTokensActionToParticleGroupsMapper', () => {
 		testBurnActionWithToken({
 			tokenDefinitionParticle: mutableSupplyTokenDefinitionParticleOnlyAliceCanMutate,
 			tests: [
-				// testMapperReturns___works_with_change,
-				// testMapperReturns___works_without_change,
+				testMapperReturns_burn_works_with_change,
+				testMapperReturns_burn_works_without_change,
 
 				testMapperReturns___Unknown_Token___error_when_no_token_definition_particle,
 				testMapperReturns___Insufficient_Balance___error_when_no_transferrable_tokens_particles,

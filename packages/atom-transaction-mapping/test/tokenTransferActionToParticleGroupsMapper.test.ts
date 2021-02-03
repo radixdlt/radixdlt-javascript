@@ -48,28 +48,29 @@ describe('TokenTransferActionToParticleGroupsMapper', () => {
 	const testTransferActionWithToken = <T extends TokenDefinitionParticleBase>(
 		tokenDefinitionParticle: T,
 	): void => {
-
 		const tests: TestCase<T>[] = [
-
 			testMapperReturns___works_with_change.bind(
-				null, 
+				null,
 				(migratedParticle: TokenParticle): void => {
-					if (!isTransferrableTokensParticle(migratedParticle)) throw new Error(`Expected output particle to be TTP`)
+					if (!isTransferrableTokensParticle(migratedParticle))
+						throw new Error(`Expected output particle to be TTP`)
 					expect(migratedParticle.address.equals(alice)).toBe(true)
 				},
 
 				(outputParticle: TokenParticle): void => {
-					if (!isTransferrableTokensParticle(outputParticle)) throw new Error(`Expected output particle to be TTP`)
+					if (!isTransferrableTokensParticle(outputParticle))
+						throw new Error(`Expected output particle to be TTP`)
 					expect(outputParticle.address.equals(bob)).toBe(true)
-				}
+				},
 			),
 
 			testMapperReturns___works_without_change.bind(
-				null, 
+				null,
 				(outputParticle: TokenParticle): void => {
-					if (!isTransferrableTokensParticle(outputParticle)) throw new Error(`Expected output particle to be TTP`)
+					if (!isTransferrableTokensParticle(outputParticle))
+						throw new Error(`Expected output particle to be TTP`)
 					expect(outputParticle.address.equals(bob)).toBe(true)
-				}
+				},
 			),
 
 			testMapperReturns___Unknown_Token___error_when_no_token_definition_particle,

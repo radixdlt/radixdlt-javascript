@@ -254,13 +254,12 @@ export const testMapperReturns___Insufficient_Balance___error_when_some_of_trans
 		)
 	})
 
-
 export const testMapperReturns___works_with_change = <
 	T extends TokenDefinitionParticleBase
 >(
 	validateMigratedParticle: (migratedParticle: TokenParticle) => void,
 	validateOutputParticle: (outputParticle: TokenParticle) => void,
-	testVector: TestVector<T>
+	testVector: TestVector<T>,
 ): TestCaseReturn =>
 	it(`should work with a ${testVector.tokenDefinitionParticle.radixParticleType} and some TransferrableTokensParticles with change back.`, () => {
 		const mapper = testVector.mapper
