@@ -44,15 +44,17 @@ export type ResourceIdentifierParticle = DSONCodable &
 		resourceIdentifier: ResourceIdentifier
 	}>
 
-export type TokenDefinitionParticleBase = /* DSONCodable */ RadixParticle &
-	Readonly<{
-		name: string
-		description?: string
-		resourceIdentifier: ResourceIdentifier
-		granularity: Granularity
-		url?: URL
-		iconURL?: URL
-	}>
+export type TokenDefinitionBase = Readonly<{
+	name: string
+	description?: string
+	resourceIdentifier: ResourceIdentifier
+	granularity: Granularity
+	url?: URL
+	iconURL?: URL
+}>
+
+export type TokenDefinitionParticleBase = /* DSONCodable */ TokenDefinitionBase &
+	RadixParticle
 
 export type FixedSupplyTokenDefinitionParticle = TokenDefinitionParticleBase &
 	Readonly<{
