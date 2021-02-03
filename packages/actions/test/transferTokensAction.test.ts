@@ -3,6 +3,7 @@ import { resourceIdentifierFromAddressAndName } from '@radixdlt/atom'
 import { amountFromUnsafe, Denomination } from '@radixdlt/primitives'
 import { transferTokensAction } from '../src/transferTokensAction'
 import { TransferTokensActionInput } from '../src/_types'
+import { zero } from '@radixdlt/primitives/src/amount'
 
 describe('TransferTokensActions', () => {
 	const alice = addressFromBase58String(
@@ -32,20 +33,25 @@ describe('TransferTokensActions', () => {
 		const tokenTransfer = transferTokensAction({
 			...input,
 			to: bob,
-		})
+		})._unsafeUnwrap()
 		expect(tokenTransfer.recipient.equals(bob)).toBe(true)
+	})
+
+	it(`should have an 'amount' equal to 'input.amount'.`, () => {
+		const tokenTransfer = transferTokensAction(input)._unsafeUnwrap()
+		expect(tokenTransfer.amount.equals(amount)).toBe(true)
 	})
 
 	it(`should have a 'sender' equal to 'input.from'.`, () => {
 		const tokenTransfer = transferTokensAction({
 			...input,
 			from: alice,
-		})
+		})._unsafeUnwrap()
 		expect(tokenTransfer.sender.equals(alice)).toBe(true)
 	})
 
 	it('should be able to skip message.', () => {
-		const tokenTransfer = transferTokensAction(input)
+		const tokenTransfer = transferTokensAction(input)._unsafeUnwrap()
 		expect(tokenTransfer).toBeDefined()
 		expect(tokenTransfer.message).toBeUndefined()
 	})
@@ -54,18 +60,36 @@ describe('TransferTokensActions', () => {
 		const tokenTransfer = transferTokensAction({
 			...input,
 			message: message,
-		})
+		})._unsafeUnwrap()
 		expect(tokenTransfer.message).toBe(message)
 	})
 
 	it('should generate a UUID if none is provided.', () => {
-		const tokenTransfer = transferTokensAction(input)
+		const tokenTransfer = transferTokensAction(input)._unsafeUnwrap()
 		expect(tokenTransfer.uuid).toBeTruthy()
 	})
 
 	it('should be able to specify a UUID.', () => {
 		const uuid = 'randomly generated string'
-		const tokenTransfer = transferTokensAction({ ...input, uuid })
+		const tokenTransfer = transferTokensAction({
+			...input,
+			uuid,
+		})._unsafeUnwrap()
 		expect(tokenTransfer.uuid).toBe(uuid)
+	})
+
+	it('should not be possible to transfer 0 tokens', () => {
+		const tokenTransferResult = transferTokensAction({
+			...input,
+			amount: zero,
+		})
+
+		tokenTransferResult.match(
+			() => {
+				throw Error('expected error, but got none')
+			},
+			(f) =>
+				expect(f.message).toBe(`Cannot transfer a non positve amount.`),
+		)
 	})
 })

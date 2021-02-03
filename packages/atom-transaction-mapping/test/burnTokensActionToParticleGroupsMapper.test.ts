@@ -131,7 +131,7 @@ describe('BurnTokensActionToParticleGroupsMapper', () => {
 			burner: actor ?? alice,
 			amount: amountInSmallestDenomination(UInt256.valueOf(amount)),
 			resourceIdentifier: rri,
-		})
+		})._unsafeUnwrap()
 	}
 
 	const testBurnActionWithToken = <T extends TokenDefinitionParticleBase>(
