@@ -88,7 +88,7 @@ export const upParticle = <P extends ParticleBase>(
 		...spun,
 		spin,
 		toSpunParticle: () => spun,
-		eraseToAny: () => anyUpParticle(particle),
+		eraseToAnyUp: () => anyUpParticle(particle),
 	}
 }
 
@@ -108,7 +108,7 @@ export const downParticle = <P extends ParticleBase>(
 		...spun,
 		spin,
 		toSpunParticle: () => spun,
-		eraseToAny: () => anyDownParticle(particle),
+		eraseToAnyDown: () => anyDownParticle(particle),
 	}
 }
 

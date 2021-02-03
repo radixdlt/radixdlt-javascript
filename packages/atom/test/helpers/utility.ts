@@ -4,13 +4,12 @@ import {
 	addressFromUnsafe,
 	Signature,
 } from '@radixdlt/crypto'
-import { ResourceIdentifier, Supply, TokenPermissions } from '../../src/_types'
+import { ResourceIdentifier, TokenPermissions } from '../../src/_types'
 import {
+	Amount,
 	amountFromUnsafe,
 	AmountInputUnsafe,
 	Granularity,
-	positiveAmount,
-	PositiveAmount,
 } from '@radixdlt/primitives'
 import { combine, Result } from 'neverthrow'
 import { resourceIdentifierFromUnsafe } from '../../src/resourceIdentifier'
@@ -19,22 +18,20 @@ import {
 	TransferrableTokensParticleInput,
 } from '../../src/particles/transferrableTokensParticle'
 
-import {
-	unallocatedTokensParticle,
-	UnallocatedTokensParticleInput,
-} from '../../src/particles/unallocatedTokensParticle'
+import { unallocatedTokensParticle } from '../../src/particles/unallocatedTokensParticle'
 import { UInt256 } from '@radixdlt/uint256'
 import {
 	TransferrableTokensParticle,
 	UnallocatedTokensParticle,
 } from '../../src/particles/_types'
+import { TokenParticleInput } from '../../src/particles/meta/tokenParticle'
 
 export const transferrableTokensParticleFromUnsafe = (
 	input: Readonly<{
 		address: Address | string
 		tokenDefinitionReference: ResourceIdentifier | string
 		granularity: Granularity | AmountInputUnsafe
-		amount: PositiveAmount | AmountInputUnsafe
+		amount: Amount | AmountInputUnsafe
 		permissions?: TokenPermissions
 	}>,
 ): Result<TransferrableTokensParticle, Error> => {
@@ -42,12 +39,8 @@ export const transferrableTokensParticleFromUnsafe = (
 	const tokenDefinitionReference = resourceIdentifierFromUnsafe(
 		input.tokenDefinitionReference,
 	)
-	const granularity: Result<Granularity, Error> = amountFromUnsafe(
-		input.granularity,
-	)
-	const amount: Result<PositiveAmount, Error> = amountFromUnsafe(
-		input.amount,
-	).andThen(positiveAmount)
+	const granularity = amountFromUnsafe(input.granularity)
+	const amount = amountFromUnsafe(input.amount)
 
 	return combine([address, tokenDefinitionReference, granularity, amount])
 		.map(
@@ -67,22 +60,20 @@ export const unallocatedTokensParticleFromUnsafe = (
 	input: Readonly<{
 		tokenDefinitionReference: ResourceIdentifier | string
 		granularity: Granularity | AmountInputUnsafe
-		amount: Supply | AmountInputUnsafe
+		amount: Amount | AmountInputUnsafe
 		permissions?: TokenPermissions
 	}>,
 ): Result<UnallocatedTokensParticle, Error> => {
 	const tokenDefinitionReference = resourceIdentifierFromUnsafe(
 		input.tokenDefinitionReference,
 	)
-	const granularity: Result<Granularity, Error> = amountFromUnsafe(
-		input.granularity,
-	)
-	const amount: Result<Supply, Error> = amountFromUnsafe(input.amount)
+	const granularity = amountFromUnsafe(input.granularity)
+	const amount = amountFromUnsafe(input.amount)
 
 	return combine([tokenDefinitionReference, granularity, amount])
 		.map(
 			(resultList) =>
-				<UnallocatedTokensParticleInput>{
+				<TokenParticleInput>{
 					tokenDefinitionReference: resultList[0],
 					granularity: resultList[1],
 					amount: resultList[2],

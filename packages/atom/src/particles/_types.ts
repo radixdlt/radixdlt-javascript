@@ -1,8 +1,8 @@
 import { Address } from '@radixdlt/crypto'
 import { DSONCodable } from '@radixdlt/dson'
-import { Granularity, Nonce, PositiveAmount } from '@radixdlt/primitives'
+import { Amount, Granularity, Nonce } from '@radixdlt/primitives'
 import { Result } from 'neverthrow'
-import { ResourceIdentifier, Supply, TokenPermissions } from '../_types'
+import { ResourceIdentifier, TokenPermissions } from '../_types'
 import { RadixParticleType } from './meta/radixParticleTypes'
 
 export type ParticleBase = {
@@ -14,6 +14,15 @@ export type RadixParticle = ParticleBase &
 		radixParticleType: RadixParticleType
 	}>
 
+export type TokenParticle = RadixParticle &
+	Readonly<{
+		granularity: Granularity
+		permissions: TokenPermissions
+		tokenDefinitionReference: ResourceIdentifier
+		amount: Amount
+		nonce: Nonce
+	}>
+
 export type TransferrableTokensParticle = DSONCodable &
 	RadixParticle &
 	TokenParticle &
@@ -21,17 +30,11 @@ export type TransferrableTokensParticle = DSONCodable &
 
 export type TransferrableTokensParticleProps = Readonly<{
 	address: Address
-	amount: PositiveAmount
 }>
 
 export type UnallocatedTokensParticle = DSONCodable &
 	RadixParticle &
-	TokenParticle &
-	UnallocatedTokensParticleProps
-
-export type UnallocatedTokensParticleProps = Readonly<{
-	amount: Supply
-}>
+	TokenParticle
 
 export type ResourceIdentifierParticle = DSONCodable &
 	RadixParticle &
@@ -53,7 +56,7 @@ export type TokenDefinitionParticleBase = /* DSONCodable */ RadixParticle &
 
 export type FixedSupplyTokenDefinitionParticle = TokenDefinitionParticleBase &
 	Readonly<{
-		fixedTokenSupply: Supply
+		fixedTokenSupply: Amount
 	}>
 
 export type MutableSupplyTokenDefinitionParticle = TokenDefinitionParticleBase &
@@ -91,7 +94,7 @@ export type UpParticle<P extends ParticleBase> = SpunParticle<P> &
 	Readonly<{
 		spin: Spin.UP
 		toSpunParticle: () => SpunParticle<P>
-		eraseToAny: () => AnyUpParticle
+		eraseToAnyUp: () => AnyUpParticle
 	}>
 
 export type DownParticle<P extends ParticleBase> = SpunParticle<P> &
@@ -99,7 +102,7 @@ export type DownParticle<P extends ParticleBase> = SpunParticle<P> &
 		spin: Spin.DOWN
 		particle: P
 		toSpunParticle: () => SpunParticle<P>
-		eraseToAny: () => AnyDownParticle
+		eraseToAnyDown: () => AnyDownParticle
 	}>
 
 export type AnyUpParticle = AnySpunParticle &
@@ -114,9 +117,7 @@ export type AnyDownParticle = AnySpunParticle &
 		toAnySpunParticle: () => AnySpunParticle
 	}>
 
-export type SpunParticles = Readonly<{
-	spunParticles: AnySpunParticle[]
-
+export type SpunParticleQueryable = Readonly<{
 	anySpunParticlesOfTypeWithSpin: (query: {
 		particleTypes?: RadixParticleType[]
 		spin?: Spin
@@ -129,12 +130,13 @@ export type SpunParticles = Readonly<{
 	unallocatedTokensParticles: (
 		spin?: Spin,
 	) => SpunParticle<UnallocatedTokensParticle>[]
+
+	tokenDefinitionParticleMatchingIdentifier: (
+		resourceIdentifier: ResourceIdentifier,
+	) => TokenDefinitionParticleBase | undefined
 }>
 
-export type TokenParticle = RadixParticle &
+export type SpunParticles = SpunParticleQueryable &
 	Readonly<{
-		granularity: Granularity
-		permissions: TokenPermissions
-		tokenDefinitionReference: ResourceIdentifier
-		nonce: Nonce
+		spunParticles: AnySpunParticle[]
 	}>

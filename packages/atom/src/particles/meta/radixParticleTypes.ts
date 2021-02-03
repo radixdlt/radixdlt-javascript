@@ -8,12 +8,6 @@ export enum RadixParticleType {
 	FIXED_SUPPLY_TOKEN_DEFINITION = 'FixedSupplyTokenDefintionParticle',
 	MUTABLE_SUPPLY_TOKEN_DEFINITION = 'MutableSupplyTokenDefintionParticle',
 }
-export const TransferrableTokensParticleType =
-	RadixParticleType.TRANSFERRABLE_TOKENS
-export const UnallocatedTokensParticleType =
-	RadixParticleType.UNALLOCATED_TOKENS
-export const ResourceIdentifierParticleType =
-	RadixParticleType.RESOURCE_IDENTIFIER
 
 export const isRadixParticle = (
 	something: unknown,

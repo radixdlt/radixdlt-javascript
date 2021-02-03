@@ -48,8 +48,3 @@ export enum Denomination {
 	// Amounts SHOULD be converted to this denomination prior to being sent to a node.
 	Atto = minAmountDenomination,
 }
-
-export type PositiveAmount = /* CBORCodable & */ Amount &
-	Readonly<{
-		witness: string
-	}>

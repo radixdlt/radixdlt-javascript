@@ -5,10 +5,10 @@ import {
 } from '@radixdlt/crypto'
 import { OutputMode } from '@radixdlt/dson'
 import {
+	amountFromUnsafe,
 	amountInSmallestDenomination,
 	Denomination,
 	nonce,
-	positiveAmountFromUnsafe,
 } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import { resourceIdentifierFromAddressAndName } from '../src/resourceIdentifier'
@@ -26,10 +26,7 @@ describe('transferrableTokensParticle', () => {
 			magicByte: 1,
 		})
 		const granularity = amountInSmallestDenomination(UInt256.valueOf(1))
-		const amount = positiveAmountFromUnsafe(
-			1,
-			Denomination.Atto,
-		)._unsafeUnwrap()
+		const amount = amountFromUnsafe(1, Denomination.Atto)._unsafeUnwrap()
 		const rri = resourceIdentifierFromAddressAndName({
 			address,
 			name: 'FOOBAR',
@@ -59,10 +56,7 @@ describe('transferrableTokensParticle', () => {
 		const granularityOfThree = amountInSmallestDenomination(
 			UInt256.valueOf(3),
 		)
-		const amount = positiveAmountFromUnsafe(
-			2,
-			Denomination.Atto,
-		)._unsafeUnwrap()
+		const amount = amountFromUnsafe(2, Denomination.Atto)._unsafeUnwrap()
 		const rri = resourceIdentifierFromAddressAndName({
 			address,
 			name: 'FOOBAR',
@@ -141,10 +135,7 @@ describe('transferrableTokensParticle', () => {
 			name: 'FOOBAR',
 		})
 		const permissions = tokenPermissionsAll
-		const amount = positiveAmountFromUnsafe(
-			6,
-			Denomination.Atto,
-		)._unsafeUnwrap()
+		const amount = amountFromUnsafe(6, Denomination.Atto)._unsafeUnwrap()
 		const granularity = amountInSmallestDenomination(UInt256.valueOf(3))
 		const nonce_ = nonce(1337)
 		const ttp = transferrableTokensParticle({

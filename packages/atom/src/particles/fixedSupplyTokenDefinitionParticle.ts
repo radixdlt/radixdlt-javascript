@@ -1,6 +1,5 @@
-import { granularityDefault } from '@radixdlt/primitives'
+import { Amount, granularityDefault } from '@radixdlt/primitives'
 import { Result, err } from 'neverthrow'
-import { Supply } from '../_types'
 import { RadixParticleType } from './meta/radixParticleTypes'
 import {
 	baseTokenDefinitionParticle,
@@ -13,10 +12,12 @@ import {
 	TokenDefinitionParticleBase,
 } from './_types'
 
+const radixParticleType = RadixParticleType.FIXED_SUPPLY_TOKEN_DEFINITION
+
 export const fixedSupplyTokenDefinitionParticle = (
 	input: TokenDefinitionParticleInput &
 		Readonly<{
-			supply: Supply
+			supply: Amount
 		}>,
 ): Result<FixedSupplyTokenDefinitionParticle, Error> => {
 	const fixedTokenSupply = input.supply
@@ -33,6 +34,7 @@ export const fixedSupplyTokenDefinitionParticle = (
 	return baseTokenDefinitionParticle({
 		...input,
 		granularity: granularity,
+		radixParticleType,
 		// eslint-disable-next-line complexity
 		makeEquals: (
 			thisParticle: TokenDefinitionParticleBase,
@@ -70,10 +72,5 @@ export const isFixedTokenDefinitionParticle = (
 	something: unknown,
 ): something is FixedSupplyTokenDefinitionParticle => {
 	if (!isTokenDefinitionParticleBase(something)) return false
-	const inspection = something as FixedSupplyTokenDefinitionParticle
-	return (
-		inspection.radixParticleType ===
-			RadixParticleType.FIXED_SUPPLY_TOKEN_DEFINITION &&
-		inspection.fixedTokenSupply !== undefined
-	)
+	return something.radixParticleType === radixParticleType
 }
