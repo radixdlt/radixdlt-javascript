@@ -5,7 +5,6 @@ import {
 	ParticleGroup,
 	spunParticles,
 	TokenDefinitionParticleBase,
-	transferrableTokensParticle,
 	TransferrableTokensParticle,
 	unallocatedTokensParticle,
 	UnallocatedTokensParticle,
@@ -15,14 +14,16 @@ import { Address } from '@radixdlt/crypto'
 import { err, Result, ok, combine } from 'neverthrow'
 import { BurnTokensActionToParticleGroupsMapper, MapperInput } from './_types'
 import { makeTransitioner } from './fungibleParticleTransitioner'
-import { Amount } from '@radixdlt/primitives'
 import {
 	validate,
 	validateConsumeTokensAction,
 	validateUserActionSender,
 	validateUserActionType,
 } from './validation'
-import { collectUpParticles } from './utils'
+import {
+	collectUpParticles,
+	transferrableTokensParticleFromOther,
+} from './utils'
 
 const particleGroupsFromBurnTokensAction = (
 	input: Readonly<{
@@ -38,17 +39,16 @@ const particleGroupsFromBurnTokensAction = (
 		UnallocatedTokensParticle
 	>({
 		inputAmountMapper: (from: TransferrableTokensParticle) => from.amount,
-		inputCreator: (amount: Amount, from: TransferrableTokensParticle) =>
-			transferrableTokensParticle({
-				...from,
-				amount,
-				address: burnAction.sender,
-			}),
-		outputCreator: (_, from: TransferrableTokensParticle) =>
+		inputCreator: transferrableTokensParticleFromOther.bind(
+			null,
+			burnAction.sender,
+		),
+		outputCreator: (amount, fromTTP) =>
 			ok(
 				unallocatedTokensParticle({
-					...from,
-					amount: burnAction.amount,
+					...fromTTP,
+					amount,
+					nonce: undefined, // IMPORTANT to not reuse nonce.
 				}),
 			),
 	})
