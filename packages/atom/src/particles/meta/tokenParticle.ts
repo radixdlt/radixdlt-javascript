@@ -1,5 +1,5 @@
 import { DSONKeyValue } from '@radixdlt/data-formats'
-import { Granularity, Nonce, randomNonce } from '@radixdlt/primitives'
+import { Amount, Granularity, Nonce, randomNonce } from '@radixdlt/primitives'
 import { pipe } from '@radixdlt/util'
 import { tokenPermissionsAll } from '../../tokenPermissions'
 import { ResourceIdentifier, TokenPermissions } from '../../_types'
@@ -8,6 +8,7 @@ import { withParticleEquals } from './particle'
 
 export type TokenParticleInput = Readonly<{
 	granularity: Granularity
+	amount: Amount
 	permissions?: TokenPermissions
 	tokenDefinitionReference: ResourceIdentifier
 	nonce?: Nonce
@@ -18,6 +19,13 @@ const withNonce = (
 ): TokenParticleInput & { nonce: Nonce } => ({
 	...input,
 	nonce: input.nonce ?? randomNonce(),
+})
+
+const withAmount = (
+	input: TokenParticleInput,
+): TokenParticleInput & { amount: Amount } => ({
+	...input,
+	amount: input.amount,
 })
 
 const withPermissions = (
@@ -44,16 +52,21 @@ export const tokenDSONKeyValues = (input: TokenParticle): DSONKeyValue[] => [
 		key: 'nonce',
 		value: input.nonce,
 	},
+	{
+		key: 'amount',
+		value: input.amount,
+	},
 ]
 
 export const withTokenParticleEquals = withParticleEquals.bind(
 	null,
 	(p1: TokenParticle, p2: TokenParticle) =>
 		p1.tokenDefinitionReference.equals(p2.tokenDefinitionReference) &&
+		p1.amount.equals(p2.amount) &&
 		p1.granularity.equals(p2.granularity) &&
 		p1.permissions.equals(p2.permissions),
 )
 
 export const tokenParticleProps = (input: TokenParticleInput): TokenParticle =>
-	// eslint-disable-next-line
-	pipe(withNonce, withPermissions)(input)
+	// eslint-disable-next-line  @typescript-eslint/no-unsafe-return
+	pipe(withNonce, withAmount, withPermissions)(input)

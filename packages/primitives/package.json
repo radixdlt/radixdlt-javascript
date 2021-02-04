@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@radixdlt/data-formats": "^0.0.0",
-    "@radixdlt/uint256": "^1.0.8",
+    "@radixdlt/uint256": "^1.1.0",
     "@radixdlt/util": "^0.0.0",
     "bn.js": "^5.1.3",
     "long": "^4.0.0",

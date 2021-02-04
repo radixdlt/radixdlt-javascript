@@ -1,7 +1,7 @@
 import { Address, Signature } from '@radixdlt/crypto'
 import { DSONCodable } from '@radixdlt/data-formats'
 import { Amount } from '@radixdlt/primitives'
-import { SpunParticles } from './particles/_types'
+import { SpunParticleQueryable, SpunParticles } from './particles/_types'
 
 /**
  * A Radix resource identifier is a human readable index into the Ledger which points to a name state machine
@@ -39,8 +39,6 @@ export enum TokenTransition {
 	BURN = 'burn',
 }
 
-export type Supply = Amount
-
 export type TokenPermissions = DSONCodable &
 	Readonly<{
 		permissions: Readonly<{ [key in TokenTransition]: TokenPermission }>
@@ -50,14 +48,25 @@ export type TokenPermissions = DSONCodable &
 		equals: (other: TokenPermissions) => boolean
 	}>
 
+export type ParticleGroup = SpunParticleQueryable &
+	Readonly<{
+		spunParticles: SpunParticles
+	}>
+
+export type ParticleGroups = SpunParticleQueryable &
+	Readonly<{
+		groups: ParticleGroup[]
+	}>
+
 // TODO change this when we have DSON encoding in place. Should be hash of dson truncated.
 export type PublicKeyID = string
 
 export type SignatureID = PublicKeyID
-export type Signatures = ReadonlyMap<SignatureID, Signature>
+export type Signatures = Readonly<{ [key in SignatureID]: Signature }>
 
-export type Atom = /* DSONCodable & */ SpunParticles &
+export type Atom = /* DSONCodable & */ SpunParticleQueryable &
 	Readonly<{
+		particleGroups: ParticleGroups // can be empty
 		signatures: Signatures // can be empty
 		message?: string
 		identifier: () => AtomIdentifier

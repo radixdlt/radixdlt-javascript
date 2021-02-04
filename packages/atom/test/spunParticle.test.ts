@@ -10,7 +10,6 @@ import {
 	transferrableTokensParticleFromUnsafe,
 	unallocatedTokensParticleFromUnsafe,
 } from './helpers/utility'
-import { TransferrableTokensParticleType } from '../src/particles/meta/radixParticleTypes'
 import { isTransferrableTokensParticle } from '../src/particles/transferrableTokensParticle'
 import { isUnallocatedTokensParticle } from '../src/particles/unallocatedTokensParticle'
 import { Spin, SpunParticleBase } from '../src/particles/_types'

@@ -23,6 +23,17 @@
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
+  "dependencies": {
+    "@radixdlt/actions": "^0.0.0",
+    "@radixdlt/atom": "^0.0.0",
+    "@radixdlt/crypto": "^0.0.0",
+    "@radixdlt/primitives": "^0.0.0",
+    "@radixdlt/uint256": "^1.1.0",
+    "@radixdlt/util": "^0.0.0",
+    "@types/uuid": "^8.3.0",
+    "neverthrow": "^4.0.1",
+    "uuid": "^8.3.2"
+  },
   "bugs": {
     "url": "https://github.com/radixdlt/radixdlt-javascript/issues"
   },

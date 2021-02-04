@@ -1,9 +1,4 @@
-import { Granularity, Nonce } from '@radixdlt/primitives'
-import { ResourceIdentifier, Supply, TokenPermissions } from '../_types'
-import {
-	RadixParticleType,
-	UnallocatedTokensParticleType,
-} from './meta/radixParticleTypes'
+import { isRadixParticle, RadixParticleType } from './meta/radixParticleTypes'
 import {
 	tokenDSONKeyValues,
 	tokenParticleProps,
@@ -11,48 +6,29 @@ import {
 	withTokenParticleEquals,
 } from './meta/tokenParticle'
 import { DSONCodable, DSONEncoding } from '@radixdlt/data-formats'
-import {
-	TokenParticle,
-	UnallocatedTokensParticle,
-	UnallocatedTokensParticleProps,
-} from './_types'
+import { TokenParticle, UnallocatedTokensParticle } from './_types'
 
-export type UnallocatedTokensParticleInput = TokenParticleInput &
-	Readonly<{
-		amount: Supply
-	}>
-
+const radixParticleType = RadixParticleType.UNALLOCATED_TOKENS
 const SERIALIZER = 'radix.particles.unallocated_tokens'
 
-const DSON = (
-	input: UnallocatedTokensParticleProps & TokenParticle,
-): DSONCodable =>
+const DSON = (input: TokenParticle): DSONCodable =>
 	DSONEncoding({
 		serializer: SERIALIZER,
-		encodingMethodOrKeyValues: [
-			...tokenDSONKeyValues(input),
-			{
-				key: 'amount',
-				value: input.amount,
-			},
-		],
+		encodingMethodOrKeyValues: [...tokenDSONKeyValues(input)],
 	})
 
 export const unallocatedTokensParticle = (
-	input: UnallocatedTokensParticleInput,
+	input: TokenParticleInput,
 ): UnallocatedTokensParticle => {
 	const props = {
 		...tokenParticleProps(input),
-		amount: input.amount,
-		radixParticleType: UnallocatedTokensParticleType,
+		radixParticleType: radixParticleType,
 	}
 
 	return {
 		...DSON(props),
 
-		...withTokenParticleEquals((otherParticle: UnallocatedTokensParticle) =>
-			otherParticle.amount.equals(input.amount),
-		)(props),
+		...withTokenParticleEquals()(props),
 
 		...props,
 	}
@@ -61,6 +37,6 @@ export const unallocatedTokensParticle = (
 export const isUnallocatedTokensParticle = (
 	something: unknown,
 ): something is UnallocatedTokensParticle => {
-	const inspection = something as UnallocatedTokensParticle
-	return inspection.radixParticleType === RadixParticleType.UNALLOCATED_TOKENS
+	if (!isRadixParticle(something)) return false
+	return something.radixParticleType === radixParticleType
 }

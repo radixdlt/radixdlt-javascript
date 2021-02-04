@@ -1,11 +1,6 @@
 import { spunParticles } from '../src/particles/spunParticles'
 
 import {
-	ResourceIdentifierParticleType,
-	UnallocatedTokensParticleType,
-	TransferrableTokensParticleType,
-} from '../src/particles/meta/radixParticleTypes'
-import {
 	exactlyContainParticles,
 	spunParticles_,
 	rriParticle0Down,
@@ -22,6 +17,7 @@ import {
 	uatParticle1Up,
 } from './helpers/particles'
 import { AnySpunParticle, Spin } from '../src/particles/_types'
+import { RadixParticleType } from '../src/particles/meta/radixParticleTypes'
 
 describe('SpunParticles', () => {
 	it('removes duplicates', () => {
@@ -100,7 +96,7 @@ describe('SpunParticles', () => {
 			expect(
 				exactlyContainParticles({
 					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
-						particleTypes: [ResourceIdentifierParticleType],
+						particleTypes: [RadixParticleType.RESOURCE_IDENTIFIER],
 					}),
 					expected: [
 						rriParticle0Up,
@@ -117,8 +113,8 @@ describe('SpunParticles', () => {
 				exactlyContainParticles({
 					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
 						particleTypes: [
-							ResourceIdentifierParticleType,
-							UnallocatedTokensParticleType,
+							RadixParticleType.RESOURCE_IDENTIFIER,
+							RadixParticleType.UNALLOCATED_TOKENS,
 						],
 					}),
 					expected: [
@@ -140,8 +136,8 @@ describe('SpunParticles', () => {
 				exactlyContainParticles({
 					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
 						particleTypes: [
-							UnallocatedTokensParticleType,
-							TransferrableTokensParticleType,
+							RadixParticleType.UNALLOCATED_TOKENS,
+							RadixParticleType.TRANSFERRABLE_TOKENS,
 						],
 					}),
 					expected: [
@@ -163,8 +159,8 @@ describe('SpunParticles', () => {
 				exactlyContainParticles({
 					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
 						particleTypes: [
-							ResourceIdentifierParticleType,
-							TransferrableTokensParticleType,
+							RadixParticleType.RESOURCE_IDENTIFIER,
+							RadixParticleType.TRANSFERRABLE_TOKENS,
 						],
 					}),
 					expected: [
@@ -186,9 +182,9 @@ describe('SpunParticles', () => {
 				exactlyContainParticles({
 					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
 						particleTypes: [
-							ResourceIdentifierParticleType,
-							UnallocatedTokensParticleType,
-							TransferrableTokensParticleType,
+							RadixParticleType.RESOURCE_IDENTIFIER,
+							RadixParticleType.UNALLOCATED_TOKENS,
+							RadixParticleType.TRANSFERRABLE_TOKENS,
 						],
 					}),
 					expected: [
@@ -214,7 +210,7 @@ describe('SpunParticles', () => {
 				exactlyContainParticles({
 					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
 						spin: Spin.UP,
-						particleTypes: [ResourceIdentifierParticleType],
+						particleTypes: [RadixParticleType.RESOURCE_IDENTIFIER],
 					}),
 					expected: [rriParticle0Up, rriParticle1Up],
 				}),
@@ -227,8 +223,8 @@ describe('SpunParticles', () => {
 					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
 						spin: Spin.UP,
 						particleTypes: [
-							ResourceIdentifierParticleType,
-							UnallocatedTokensParticleType,
+							RadixParticleType.RESOURCE_IDENTIFIER,
+							RadixParticleType.UNALLOCATED_TOKENS,
 						],
 					}),
 					expected: [
@@ -247,8 +243,8 @@ describe('SpunParticles', () => {
 					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
 						spin: Spin.UP,
 						particleTypes: [
-							UnallocatedTokensParticleType,
-							TransferrableTokensParticleType,
+							RadixParticleType.UNALLOCATED_TOKENS,
+							RadixParticleType.TRANSFERRABLE_TOKENS,
 						],
 					}),
 					expected: [
@@ -267,8 +263,8 @@ describe('SpunParticles', () => {
 					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
 						spin: Spin.UP,
 						particleTypes: [
-							ResourceIdentifierParticleType,
-							TransferrableTokensParticleType,
+							RadixParticleType.RESOURCE_IDENTIFIER,
+							RadixParticleType.TRANSFERRABLE_TOKENS,
 						],
 					}),
 					expected: [
@@ -287,9 +283,9 @@ describe('SpunParticles', () => {
 					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
 						spin: Spin.UP,
 						particleTypes: [
-							ResourceIdentifierParticleType,
-							UnallocatedTokensParticleType,
-							TransferrableTokensParticleType,
+							RadixParticleType.RESOURCE_IDENTIFIER,
+							RadixParticleType.UNALLOCATED_TOKENS,
+							RadixParticleType.TRANSFERRABLE_TOKENS,
 						],
 					}),
 					expected: [
@@ -309,7 +305,7 @@ describe('SpunParticles', () => {
 				exactlyContainParticles({
 					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
 						spin: Spin.DOWN,
-						particleTypes: [ResourceIdentifierParticleType],
+						particleTypes: [RadixParticleType.RESOURCE_IDENTIFIER],
 					}),
 					expected: [rriParticle0Down, rriParticle1Down],
 				}),
@@ -322,8 +318,8 @@ describe('SpunParticles', () => {
 					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
 						spin: Spin.DOWN,
 						particleTypes: [
-							ResourceIdentifierParticleType,
-							UnallocatedTokensParticleType,
+							RadixParticleType.RESOURCE_IDENTIFIER,
+							RadixParticleType.UNALLOCATED_TOKENS,
 						],
 					}),
 					expected: [
@@ -342,8 +338,8 @@ describe('SpunParticles', () => {
 					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
 						spin: Spin.DOWN,
 						particleTypes: [
-							UnallocatedTokensParticleType,
-							TransferrableTokensParticleType,
+							RadixParticleType.UNALLOCATED_TOKENS,
+							RadixParticleType.TRANSFERRABLE_TOKENS,
 						],
 					}),
 					expected: [
@@ -362,8 +358,8 @@ describe('SpunParticles', () => {
 					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
 						spin: Spin.DOWN,
 						particleTypes: [
-							ResourceIdentifierParticleType,
-							TransferrableTokensParticleType,
+							RadixParticleType.RESOURCE_IDENTIFIER,
+							RadixParticleType.TRANSFERRABLE_TOKENS,
 						],
 					}),
 					expected: [
@@ -382,9 +378,9 @@ describe('SpunParticles', () => {
 					actual: spunParticles_.anySpunParticlesOfTypeWithSpin({
 						spin: Spin.DOWN,
 						particleTypes: [
-							ResourceIdentifierParticleType,
-							UnallocatedTokensParticleType,
-							TransferrableTokensParticleType,
+							RadixParticleType.RESOURCE_IDENTIFIER,
+							RadixParticleType.UNALLOCATED_TOKENS,
+							RadixParticleType.TRANSFERRABLE_TOKENS,
 						],
 					}),
 					expected: [
