@@ -103,8 +103,8 @@ const notUndefinedOrCrash = <T>(value: T | undefined): T => {
 export type TokenDefinitionParticleInput = Readonly<{
 	symbol: string
 	name: string
-	description?: string
 	address: Address
+	description?: string
 	granularity?: Granularity
 	url?: URLInput
 	iconURL?: URLInput

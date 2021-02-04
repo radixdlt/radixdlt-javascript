@@ -17,8 +17,7 @@ import {
 	TokenTransfer,
 } from './_types'
 import { Observable, from } from 'rxjs'
-import { Amount, zero } from '@radixdlt/primitives'
-import { err, Result } from 'neverthrow'
+import { err, Result, ok } from 'neverthrow'
 import { executedTokenTransfer } from './tokenTransfer'
 
 const uniqueAddressCount = (anySpunParticles: AnySpunParticle[]): number => {
@@ -80,11 +79,6 @@ const pgToTokenTransfer = (
 	)
 		? firstUpParticle
 		: secondUpParticle
-	const upParticleChangeBackToSender = firstUpParticle.particle.address.equals(
-		sender,
-	)
-		? firstUpParticle
-		: secondUpParticle
 
 	if (!upParticleToRecipient)
 		// Illegal state
@@ -102,25 +96,26 @@ const pgToTokenTransfer = (
 		return err(new Error('Action seems to be a burn?'))
 	}
 
-	const amountBackToSenderOrZero =
-		upParticleChangeBackToSender !== undefined
-			? upParticleChangeBackToSender.particle.amount
-			: zero
+	const transfer = executedTokenTransfer({
+		from: sender,
+		to: recipient,
+		amount: upParticleToRecipient.particle.amount,
+		tokenDefinition: upParticleToRecipient.particle,
+	})
 
-	return upParticleToRecipient.particle.amount
-		.subtracting(amountBackToSenderOrZero)
-		.map((amount: Amount) =>
-			executedTokenTransfer({
-				from: sender,
-				to: recipient,
-				amount: amount,
-				tokenDefinition: upParticleToRecipient.particle,
-			}),
-		)
+	return ok(transfer)
 }
 
 const valuePresent = <T>(value: T | null | undefined): value is T => {
 	return value !== null && value !== undefined
+}
+
+const filterTransfer = (
+	input: AtomToActionMapperInput,
+	transfer: TokenTransfer,
+): boolean => {
+	const actor = input.addressOfActiveAccount
+	return transfer.from.equals(actor) || transfer.to.equals(actor)
 }
 
 export const syncMapAtomToTokenTransfers = (
@@ -130,6 +125,7 @@ export const syncMapAtomToTokenTransfers = (
 		.map(pgToTokenTransfer)
 		.map((r) => (r.isOk() ? r.value : undefined))
 		.filter(valuePresent)
+		.filter(filterTransfer.bind(null, input))
 }
 
 export const makeAtomToTokenTransfersMapper = (): AtomToTokenTransfersMapper => {
