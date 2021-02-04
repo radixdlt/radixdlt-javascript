@@ -56,7 +56,11 @@ const pgToTokenTransfer = (
 		.map((sp) => upParticle(sp.particle))
 	const numberOfRecipients = uniqueAddressCount(upTTPs)
 	if (numberOfRecipients < 1 || numberOfRecipients > 2)
-		return err(new Error('Incorrect number of recipients'))
+		return err(
+			new Error(
+				'Incorrect number of recipients, a transfer should only have two participants. Unable to parse.',
+			),
+		)
 
 	const firstUpParticle: UpParticle<TransferrableTokensParticle> = upParticle(
 		upTTPs[0].particle,

@@ -38,6 +38,9 @@ describe('AtomToTokenTransfersMapper', () => {
 	const bob = toAddress(
 		'9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
 	)
+	const carol = toAddress(
+		'9S8sKfN3wGyJdfyu9RwWvGKtZqq3R1NaxwT63VXi5dEZ6dUJXLyR',
+	)
 
 	const granularity: Granularity = one
 	const fixedSupplyTokenDefinitionParticle_ = fixedSupplyTokenDefinitionParticle(
@@ -168,6 +171,37 @@ describe('AtomToTokenTransfersMapper', () => {
 			}),
 			[one, two],
 			alice,
+			validateSingleTransfer(alice, bob, amountToTransfer, aliceCoin),
+		)
+	})
+
+	it('should return empty list when filterering on a third party address', () => {
+		expectSuccess(
+			fixedSupplyTokenDefinitionParticle_,
+			makeTransferWithRRI({
+				amount: three,
+				from: alice,
+				to: bob,
+			}),
+			[one, two],
+			carol, // <--- Neither sender nor recipient
+			((transfers) => {
+				expect(transfers.length).toBe(0)
+			})
+		)
+	})
+
+	it('should return one transfer when filterering on recipient', () => {
+		const amountToTransfer = three
+		expectSuccess(
+			fixedSupplyTokenDefinitionParticle_,
+			makeTransferWithRRI({
+				amount: amountToTransfer,
+				from: alice,
+				to: bob,
+			}),
+			[one, two],
+			bob, // <-- Recipient instead of sender
 			validateSingleTransfer(alice, bob, amountToTransfer, aliceCoin),
 		)
 	})
