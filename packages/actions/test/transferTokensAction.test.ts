@@ -14,7 +14,7 @@ describe('TransferTokensActions', () => {
 		'9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
 	)._unsafeUnwrap()
 
-	const rri = resourceIdentifierFromAddressAndName({
+	const resourceIdentifier = resourceIdentifierFromAddressAndName({
 		address: alice,
 		name: 'FOOBAR',
 	})
@@ -26,7 +26,7 @@ describe('TransferTokensActions', () => {
 		to: bob,
 		from: alice,
 		amount: amount,
-		resourceIdentifier: rri,
+		resourceIdentifier: resourceIdentifier,
 	}
 
 	it(`should have a 'recipient' equal to 'input.to'.`, () => {

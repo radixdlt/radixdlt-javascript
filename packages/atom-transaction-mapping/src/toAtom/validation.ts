@@ -50,7 +50,7 @@ export const validateConsumeTokensAction = (
 >(
 	input: T,
 ): Result<T, Error> => {
-	const resourceIdentifier = input.action.tokenResourceIdentifier
+	const resourceIdentifier = input.action.resourceIdentifier
 	const tokenDefValidation =
 		validateTokenDefinition ?? (() => ok(alwaysValid))
 

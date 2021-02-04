@@ -33,7 +33,7 @@ describe('transferrableTokensParticle', () => {
 		})
 		const ttpResult = transferrableTokensParticle({
 			address,
-			tokenDefinitionReference: rri,
+			resourceIdentifier: rri,
 			granularity: granularity,
 			amount: amount,
 		})
@@ -63,7 +63,7 @@ describe('transferrableTokensParticle', () => {
 		})
 		const ttpResult = transferrableTokensParticle({
 			address,
-			tokenDefinitionReference: rri,
+			resourceIdentifier: rri,
 			granularity: granularityOfThree,
 			amount: amount,
 		})
@@ -74,7 +74,7 @@ describe('transferrableTokensParticle', () => {
 	it('can be unsafely created from primitives', () => {
 		const ttp = transferrableTokensParticleFromUnsafe({
 			address: '9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
-			tokenDefinitionReference:
+			resourceIdentifier:
 				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR',
 			granularity: 3,
 			amount: 9,
@@ -88,7 +88,7 @@ describe('transferrableTokensParticle', () => {
 	it('should be equal to another ttp', () => {
 		const props = {
 			address: '9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
-			tokenDefinitionReference:
+			resourceIdentifier:
 				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR',
 			granularity: 3,
 			amount: 9,
@@ -108,7 +108,7 @@ describe('transferrableTokensParticle', () => {
 	it('should not be equal to a different ttp', () => {
 		const props = {
 			address: '9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
-			tokenDefinitionReference:
+			resourceIdentifier:
 				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR',
 			granularity: 3,
 			amount: 9,
@@ -140,7 +140,7 @@ describe('transferrableTokensParticle', () => {
 		const nonce_ = nonce(1337)
 		const ttp = transferrableTokensParticle({
 			address,
-			tokenDefinitionReference: rri,
+			resourceIdentifier: rri,
 			amount: amount,
 			granularity: granularity,
 			permissions: permissions,

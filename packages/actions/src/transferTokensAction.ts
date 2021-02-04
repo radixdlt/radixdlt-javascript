@@ -19,7 +19,7 @@ export const transferTokensAction = (
 		actionType: UserActionType.TOKEN_TRANSFER,
 		recipient: input.to,
 		sender: input.from,
-		tokenResourceIdentifier: input.resourceIdentifier,
+		resourceIdentifier: input.resourceIdentifier,
 		message: input.message,
 		amount: input.amount,
 		uuid: uuid,

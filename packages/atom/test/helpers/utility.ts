@@ -29,25 +29,25 @@ import { TokenParticleInput } from '../../src/particles/meta/tokenParticle'
 export const transferrableTokensParticleFromUnsafe = (
 	input: Readonly<{
 		address: Address | string
-		tokenDefinitionReference: ResourceIdentifier | string
+		resourceIdentifier: ResourceIdentifier | string
 		granularity: Granularity | AmountInputUnsafe
 		amount: Amount | AmountInputUnsafe
 		permissions?: TokenPermissions
 	}>,
 ): Result<TransferrableTokensParticle, Error> => {
 	const address = addressFromUnsafe(input.address)
-	const tokenDefinitionReference = resourceIdentifierFromUnsafe(
-		input.tokenDefinitionReference,
+	const resourceIdentifier = resourceIdentifierFromUnsafe(
+		input.resourceIdentifier,
 	)
 	const granularity = amountFromUnsafe(input.granularity)
 	const amount = amountFromUnsafe(input.amount)
 
-	return combine([address, tokenDefinitionReference, granularity, amount])
+	return combine([address, resourceIdentifier, granularity, amount])
 		.map(
 			(resultList) =>
 				<TransferrableTokensParticleInput>{
 					address: resultList[0],
-					tokenDefinitionReference: resultList[1],
+					resourceIdentifier: resultList[1],
 					granularity: resultList[2],
 					amount: resultList[3],
 					permissions: input.permissions,
@@ -58,23 +58,23 @@ export const transferrableTokensParticleFromUnsafe = (
 
 export const unallocatedTokensParticleFromUnsafe = (
 	input: Readonly<{
-		tokenDefinitionReference: ResourceIdentifier | string
+		resourceIdentifier: ResourceIdentifier | string
 		granularity: Granularity | AmountInputUnsafe
 		amount: Amount | AmountInputUnsafe
 		permissions?: TokenPermissions
 	}>,
 ): Result<UnallocatedTokensParticle, Error> => {
-	const tokenDefinitionReference = resourceIdentifierFromUnsafe(
-		input.tokenDefinitionReference,
+	const resourceIdentifier = resourceIdentifierFromUnsafe(
+		input.resourceIdentifier,
 	)
 	const granularity = amountFromUnsafe(input.granularity)
 	const amount = amountFromUnsafe(input.amount)
 
-	return combine([tokenDefinitionReference, granularity, amount])
+	return combine([resourceIdentifier, granularity, amount])
 		.map(
 			(resultList) =>
 				<TokenParticleInput>{
-					tokenDefinitionReference: resultList[0],
+					resourceIdentifier: resultList[0],
 					granularity: resultList[1],
 					amount: resultList[2],
 					permissions: input.permissions,

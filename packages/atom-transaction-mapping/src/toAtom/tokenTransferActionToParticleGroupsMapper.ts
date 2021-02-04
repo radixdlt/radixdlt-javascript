@@ -55,9 +55,7 @@ const particleGroupsFromTransferTokensAction = (
 	const consumableParticles = input.upParticles
 		.map((sp) => sp.particle)
 		.filter((p) =>
-			p.tokenDefinitionReference.equals(
-				transferAction.tokenResourceIdentifier,
-			),
+			p.resourceIdentifier.equals(transferAction.resourceIdentifier),
 		)
 
 	return transitioner

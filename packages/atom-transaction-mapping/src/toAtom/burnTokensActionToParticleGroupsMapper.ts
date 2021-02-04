@@ -54,11 +54,9 @@ const particleGroupsFromBurnTokensAction = (
 	})
 
 	const consumableParticles = input.upParticles
-		.map((sp) => sp.particle)
-		.filter((p) =>
-			p.tokenDefinitionReference.equals(
-				burnAction.tokenResourceIdentifier,
-			),
+		.map((sp): TransferrableTokensParticle => sp.particle)
+		.filter((p: TransferrableTokensParticle) =>
+			p.resourceIdentifier.equals(burnAction.resourceIdentifier),
 		)
 
 	return transitioner

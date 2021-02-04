@@ -44,14 +44,14 @@ export const transferrableTokensParticle = (
 	if (input.amount.lessThan(one))
 		return err(new Error('Cannot transfer a non positve amount.'))
 
-	if (!input.amount.isMultipleOf(input.granularity)) {
-		return err(new Error('Amount not multiple of granularity'))
-	}
-
 	const props = {
 		...tokenParticleProps(input),
 		address: input.address,
 		radixParticleType,
+	}
+
+	if (!props.amount.isMultipleOf(props.granularity)) {
+		return err(new Error('Amount not multiple of granularity'))
 	}
 
 	return ok({

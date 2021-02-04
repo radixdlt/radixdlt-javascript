@@ -1,4 +1,4 @@
-import { Atom, TokenDefinitionBase } from '@radixdlt/atom'
+import { Atom, TokenBase, TokenDefinitionBase } from '@radixdlt/atom'
 import { Address } from '@radixdlt/crypto'
 import { Amount } from '@radixdlt/primitives'
 import { Observable } from 'rxjs'
@@ -6,12 +6,12 @@ import { Observable } from 'rxjs'
 export type TokenDefinition = TokenDefinitionBase &
 	Readonly<{
 		/// For MutableSupplyTokens the `supply` fields needs to be calculated by reducing state.
-		supply: Amount
+		supply?: Amount
 	}>
 
 export type TokenAmount = Readonly<{
 	amount: Amount
-	token: TokenDefinition
+	token: TokenBase | TokenDefinition
 }>
 
 export enum ExecutedUserActionType {
@@ -29,18 +29,18 @@ export type TokenTransfer = ExecutedUserAction &
 		tokenAmount: TokenAmount
 	}>
 
+export type AtomToActionMapperInput = Readonly<{
+	atom: Atom
+	addressOfActiveAccount: Address
+}>
+
 export type AtomToExecutedActionsMapper<
 	A extends ExecutedUserAction
 > = Readonly<{
 	executedUserActionType: ExecutedUserActionType
 
 	// Observable<T> map(Atom a, RadixIdentity identity);
-	map: (
-		input: Readonly<{
-			atom: Atom
-			addressOfActiveAccount: Address
-		}>,
-	) => Observable<A>
+	map: (input: AtomToActionMapperInput) => Observable<A>
 }>
 
 export type AtomToTokenTransfersMapper = AtomToExecutedActionsMapper<TokenTransfer>

@@ -18,7 +18,7 @@ export const burnTokensAction = (
 	return ok({
 		actionType: UserActionType.BURN_TOKENS,
 		sender: input.burner,
-		tokenResourceIdentifier: input.resourceIdentifier,
+		resourceIdentifier: input.resourceIdentifier,
 		amount: input.amount,
 		uuid: uuid,
 	})

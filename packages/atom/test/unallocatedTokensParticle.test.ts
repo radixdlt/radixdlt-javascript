@@ -22,12 +22,12 @@ describe('unallocatedTokensParticle', () => {
 		})
 		const granularity = amountInSmallestDenomination(UInt256.valueOf(1))
 		const amount = amountInSmallestDenomination(UInt256.valueOf(1))
-		const rri = resourceIdentifierFromAddressAndName({
+		const resourceIdentifier = resourceIdentifierFromAddressAndName({
 			address,
 			name: 'FOOBAR',
 		})
 		const uatp = unallocatedTokensParticle({
-			tokenDefinitionReference: rri,
+			resourceIdentifier: resourceIdentifier,
 			granularity: granularity,
 			amount: amount,
 		})
@@ -40,7 +40,7 @@ describe('unallocatedTokensParticle', () => {
 
 	it('can be unsafely created from primitives', () => {
 		const uatp = unallocatedTokensParticleFromUnsafe({
-			tokenDefinitionReference:
+			resourceIdentifier:
 				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR',
 			granularity: 3,
 			amount: 9,
@@ -53,7 +53,7 @@ describe('unallocatedTokensParticle', () => {
 
 	it('should be equal to another UATP', () => {
 		const props = {
-			tokenDefinitionReference:
+			resourceIdentifier:
 				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR',
 			granularity: 3,
 			amount: 9,
@@ -71,7 +71,7 @@ describe('unallocatedTokensParticle', () => {
 
 	it('should not be equal to different UATP', () => {
 		const props = {
-			tokenDefinitionReference:
+			resourceIdentifier:
 				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR',
 			granularity: 3,
 			amount: 9,
@@ -92,7 +92,7 @@ describe('unallocatedTokensParticle', () => {
 		const address = addressFromBase58String(
 			'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
 		)._unsafeUnwrap()
-		const rri = resourceIdentifierFromAddressAndName({
+		const resourceIdentifier = resourceIdentifierFromAddressAndName({
 			address,
 			name: 'FOOBAR',
 		})
@@ -101,7 +101,7 @@ describe('unallocatedTokensParticle', () => {
 		const granularity = amountInSmallestDenomination(UInt256.valueOf(3))
 		const nonce_ = nonce(1337)
 		const uatp = unallocatedTokensParticle({
-			tokenDefinitionReference: rri,
+			resourceIdentifier: resourceIdentifier,
 			amount: amount,
 			granularity: granularity,
 			permissions: permissions,
