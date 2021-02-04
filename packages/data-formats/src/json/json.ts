@@ -13,6 +13,8 @@ const defaultPrimitiveDecoders: JSONPrimitiveDecoder[] = [
 	},
 ]
 
+export const extractTag = (str: string): string => `:${str.split(':')[1]}:`
+
 export const toJSON = (
 	data: JSONEncodablePrimitive | JSONEncodable,
 ): JSONEncodablePrimitive => {
@@ -104,7 +106,7 @@ const fromJSONBasic = (...primitiveDecoders: JSONPrimitiveDecoder[]) => (
 				: output
 		}
 		case 'string': {
-			const tag = json.slice(0, 5)
+			const tag = extractTag(json)
 
 			const decoder = primitiveDecoders.filter(
 				(decoder) => decoder[tag],
@@ -121,6 +123,21 @@ const fromJSONBasic = (...primitiveDecoders: JSONPrimitiveDecoder[]) => (
 }
 
 export const fromJSONDefault = fromJSONBasic.bind(
+	/**
+	 *
+	 */
+	/**
+	 *
+	 */
+	/**
+	 *
+	 */
+	/**
+	 *
+	 */
+	/**
+	 *
+	 */
 	null,
 	...defaultPrimitiveDecoders,
 )
