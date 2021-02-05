@@ -36,7 +36,7 @@ const getSenderAndToken = (
 		.map((sp) => sp.particle)
 
 	if (uniqueAddressCountTTPs(downedTTPsFromSender) !== 1)
-		return err(new Error('Incorrect number of senders'))
+		return err(new Error('Incorrect number of senders.'))
 
 	const downedParticleFromSender = downedTTPsFromSender[0]
 
@@ -62,7 +62,11 @@ const validateNotIsTransferNotBurn = (
 	input: SenderTokenAndPG,
 ): Result<SenderTokenAndPG, Error> =>
 	doesPGContainUnallocatedTokensParticleWithSpinUp(input)
-		? err(new Error('Action seems to be a burn?'))
+		? err(
+				new Error(
+					'Action seems to be a burn action, which we will omit and not count as a transfer.',
+				),
+		  )
 		: ok(input)
 
 type ToAndAmount = Readonly<{ to: Address; amount: Amount }>
@@ -81,7 +85,7 @@ const getRecipient = (
 	if (numberOfRecipients < 1 || numberOfRecipients > 2)
 		return err(
 			new Error(
-				'Incorrect number of recipients, a transfer should only have two participants. Unable to parse.',
+				'A transfer should have one or two receivers. Unable to parse.',
 			),
 		)
 

@@ -11,7 +11,8 @@ export const executedTokenTransfer = (
 		tokenDefinition: TokenBase | TokenDefinitionBase
 	}>,
 ): TokenTransfer => ({
-	...input,
+	from: input.from,
+	to: input.to,
 	tokenAmount: <TokenAmount>{
 		amount: input.amount,
 		token: input.tokenDefinition,

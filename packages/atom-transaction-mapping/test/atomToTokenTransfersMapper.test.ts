@@ -13,6 +13,7 @@ import {
 	TransferrableTokensParticle,
 	transferrableTokensParticle,
 	particleGroup,
+	UnallocatedTokensParticle,
 } from '@radixdlt/atom'
 import {
 	TransferTokensAction,
@@ -38,6 +39,7 @@ import {
 import { Address } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
 import { TokenTransfer } from '../src/fromAtom/_types'
+import { unallocatedTokensParticleFromUnsafe } from '../../atom/test/helpers/utility'
 
 describe('AtomToTokenTransfersMapper', () => {
 	const alice = toAddress(
@@ -80,6 +82,21 @@ describe('AtomToTokenTransfersMapper', () => {
 				granularity,
 				resourceIdentifier: resourceIdentifier,
 				address: owner,
+			})._unsafeUnwrap(),
+			spin: spin,
+		})
+	}
+
+	const makeUnallocatedTokenParticleWithSpin = (
+		spin: Spin,
+		resourceIdentifier: ResourceIdentifier,
+		amount: AmountLike,
+	): SpunParticle<UnallocatedTokensParticle> => {
+		return spunParticle({
+			particle: unallocatedTokensParticleFromUnsafe({
+				amount: makeAmount(amount),
+				granularity,
+				resourceIdentifier: resourceIdentifier,
 			})._unsafeUnwrap(),
 			spin: spin,
 		})
@@ -222,10 +239,9 @@ describe('AtomToTokenTransfersMapper', () => {
 		)
 	})
 
+	const makeUpTTP = upTTP.bind(null, aliceCoin)
+	const makeDownTTP = downTTP.bind(null, aliceCoin)
 	it('should fail with a PG containing 3 participants', () => {
-		const makeUpTTP = upTTP.bind(null, aliceCoin)
-		const makeDownTTP = downTTP.bind(null, aliceCoin)
-
 		const weirdParticleGroup = particleGroup([
 			makeUpTTP(alice, five),
 			makeDownTTP(alice, one),
@@ -242,7 +258,45 @@ describe('AtomToTokenTransfersMapper', () => {
 			},
 			(f) =>
 				expect(f.message).toBe(
-					'Incorrect number of recipients, a transfer should only have two participants. Unable to parse.',
+					'A transfer should have one or two receivers. Unable to parse.',
+				),
+		)
+	})
+
+	it('should fail with a PG containing down TTPs from multiple addresses', () => {
+		const weirdParticleGroup = particleGroup([
+			makeDownTTP(alice, one),
+			makeDownTTP(bob, two),
+		])
+
+		const transfersResult = pgToTokenTransfer(weirdParticleGroup)
+		transfersResult.match(
+			() => {
+				throw Error('expected error, but got none')
+			},
+			(f) => expect(f.message).toBe('Incorrect number of senders.'),
+		)
+	})
+
+	it('should fail with a PG containing an UnallocatedTokenParticle', () => {
+		const burnActionParticleGroup = particleGroup([
+			makeUpTTP(alice, three),
+			makeDownTTP(alice, three),
+			makeUnallocatedTokenParticleWithSpin(
+				Spin.UP,
+				aliceCoin,
+				three,
+			).eraseToAny(),
+		])
+
+		const transfersResult = pgToTokenTransfer(burnActionParticleGroup)
+		transfersResult.match(
+			() => {
+				throw Error('expected error, but got none')
+			},
+			(f) =>
+				expect(f.message).toBe(
+					'Action seems to be a burn action, which we will omit and not count as a transfer.',
 				),
 		)
 	})
