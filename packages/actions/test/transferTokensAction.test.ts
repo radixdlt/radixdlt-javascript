@@ -33,12 +33,12 @@ describe('TransferTokensActions', () => {
 		const tokenTransfer = transferTokensAction({
 			...input,
 			to: bob,
-		})._unsafeUnwrap()
+		})
 		expect(tokenTransfer.recipient.equals(bob)).toBe(true)
 	})
 
 	it(`should have an 'amount' equal to 'input.amount'.`, () => {
-		const tokenTransfer = transferTokensAction(input)._unsafeUnwrap()
+		const tokenTransfer = transferTokensAction(input)
 		expect(tokenTransfer.amount.equals(amount)).toBe(true)
 	})
 
@@ -46,12 +46,12 @@ describe('TransferTokensActions', () => {
 		const tokenTransfer = transferTokensAction({
 			...input,
 			from: alice,
-		})._unsafeUnwrap()
+		})
 		expect(tokenTransfer.sender.equals(alice)).toBe(true)
 	})
 
 	it('should be able to skip message.', () => {
-		const tokenTransfer = transferTokensAction(input)._unsafeUnwrap()
+		const tokenTransfer = transferTokensAction(input)
 		expect(tokenTransfer).toBeDefined()
 		expect(tokenTransfer.message).toBeUndefined()
 	})
@@ -60,12 +60,12 @@ describe('TransferTokensActions', () => {
 		const tokenTransfer = transferTokensAction({
 			...input,
 			message: message,
-		})._unsafeUnwrap()
+		})
 		expect(tokenTransfer.message).toBe(message)
 	})
 
 	it('should generate a UUID if none is provided.', () => {
-		const tokenTransfer = transferTokensAction(input)._unsafeUnwrap()
+		const tokenTransfer = transferTokensAction(input)
 		expect(tokenTransfer.uuid).toBeTruthy()
 	})
 
@@ -74,22 +74,16 @@ describe('TransferTokensActions', () => {
 		const tokenTransfer = transferTokensAction({
 			...input,
 			uuid,
-		})._unsafeUnwrap()
+		})
 		expect(tokenTransfer.uuid).toBe(uuid)
 	})
 
-	it('should not be possible to transfer 0 tokens', () => {
-		const tokenTransferResult = transferTokensAction({
+	it('should be possible to transfer 0 tokens', () => {
+		const tokenTransfer = transferTokensAction({
 			...input,
 			amount: zero,
 		})
 
-		tokenTransferResult.match(
-			() => {
-				throw Error('expected error, but got none')
-			},
-			(f) =>
-				expect(f.message).toBe(`Cannot transfer a non positve amount.`),
-		)
+		expect(tokenTransfer.amount.equals(zero)).toBe(true)
 	})
 })

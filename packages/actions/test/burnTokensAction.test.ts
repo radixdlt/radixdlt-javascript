@@ -21,38 +21,32 @@ describe('BurnTokensAction', () => {
 		resourceIdentifier: rri,
 	}
 
-	it('should not be possible to burn 0 tokens', () => {
-		const burnActionResult = burnTokensAction({ ...input, amount: zero })
-
-		burnActionResult.match(
-			() => {
-				throw Error('expected error, but got none')
-			},
-			(f) => expect(f.message).toBe(`Cannot burn a non positve amount.`),
-		)
+	it('should be possible to burn 0 tokens', () => {
+		const burnAction = burnTokensAction({ ...input, amount: zero })
+		expect(burnAction.amount.equals(zero)).toBe(true)
 	})
 
 	it(`should have a 'sender' equal to 'input.burner'.`, () => {
 		const burnTokens = burnTokensAction({
 			...input,
 			burner: alice,
-		})._unsafeUnwrap()
+		})
 		expect(burnTokens.sender.equals(alice)).toBe(true)
 	})
 
 	it(`should have an 'amount' equal to 'input.amount'.`, () => {
-		const burnTokens = burnTokensAction(input)._unsafeUnwrap()
+		const burnTokens = burnTokensAction(input)
 		expect(burnTokens.amount.equals(amount)).toBe(true)
 	})
 
 	it('should generate a UUID if none is provided.', () => {
-		const burnTokens = burnTokensAction(input)._unsafeUnwrap()
+		const burnTokens = burnTokensAction(input)
 		expect(burnTokens.uuid).toBeTruthy()
 	})
 
 	it('should be able to specify a UUID.', () => {
 		const uuid = 'randomly generated string'
-		const burnTokens = burnTokensAction({ ...input, uuid })._unsafeUnwrap()
+		const burnTokens = burnTokensAction({ ...input, uuid })
 		expect(burnTokens.uuid).toBe(uuid)
 	})
 })

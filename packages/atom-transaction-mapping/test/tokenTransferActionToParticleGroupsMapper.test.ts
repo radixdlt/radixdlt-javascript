@@ -37,7 +37,7 @@ describe('TokenTransferActionToParticleGroupsMapper', () => {
 			from: actor ?? alice,
 			amount: amountInSmallestDenomination(UInt256.valueOf(amount)),
 			resourceIdentifier: rri,
-		})._unsafeUnwrap()
+		})
 	}
 
 	const testTransferActionWithToken = <T extends TokenDefinitionParticleBase>(

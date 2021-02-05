@@ -101,7 +101,7 @@ describe('AtomToTokenTransfersMapper', () => {
 			...input,
 			amount: makeAmount(input.amount),
 			resourceIdentifier: rri,
-		})._unsafeUnwrap()
+		})
 
 	const expectSuccess = <T extends TokenDefinitionParticleBase>(
 		tokenDefinitionParticle: T,
