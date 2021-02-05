@@ -1,4 +1,4 @@
-import { DSONKeyValue } from '@radixdlt/dson'
+import { DSONKeyValue } from '@radixdlt/data-formats'
 import {
 	Amount,
 	Granularity,

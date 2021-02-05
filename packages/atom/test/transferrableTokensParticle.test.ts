@@ -3,7 +3,7 @@ import {
 	addressFromPublicKeyAndMagicByte,
 	generatePrivateKey,
 } from '@radixdlt/crypto'
-import { OutputMode } from '@radixdlt/dson'
+import { OutputMode } from '@radixdlt/data-formats'
 import {
 	amountFromUnsafe,
 	amountInSmallestDenomination,

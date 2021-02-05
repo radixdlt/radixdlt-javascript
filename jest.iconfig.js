@@ -2,7 +2,7 @@ const baseConfig = require('./jest.config')
 module.exports = {
 	...baseConfig,
 	moduleNameMapper: {
-		'^@radix-javascript/(.*)$': '<rootDir>/packages/radix-$1/src/index.ts',
+		'^@radix-javascript/(.*)$': '<rootDir>/packages/$1/src/index.ts',
 		'cross-fetch': 'jest-fetch-mock',
 	},
 	setupFilesAfterEnv: ['<rootDir>/jest-framework-setup.js'],

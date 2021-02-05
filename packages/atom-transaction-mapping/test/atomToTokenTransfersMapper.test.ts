@@ -1,9 +1,6 @@
 import { toAddress } from '../../crypto/test/address.test'
 import {
-	AnySpunParticle,
 	anyUpParticle,
-	AnyUpParticle,
-	Atom,
 	atom,
 	fixedSupplyTokenDefinitionParticle,
 	particleGroups,
@@ -15,7 +12,7 @@ import {
 	TokenDefinitionParticleBase,
 	TransferrableTokensParticle,
 	transferrableTokensParticle,
-	upParticle,
+	particleGroup,
 } from '@radixdlt/atom'
 import {
 	TransferTokensAction,
@@ -41,7 +38,6 @@ import {
 import { Address } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
 import { TokenTransfer } from '../src/fromAtom/_types'
-import { particleGroup } from '@radixdlt/atom/dist/particleGroup'
 
 describe('AtomToTokenTransfersMapper', () => {
 	const alice = toAddress(
