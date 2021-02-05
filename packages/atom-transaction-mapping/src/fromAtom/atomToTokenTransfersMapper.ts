@@ -19,11 +19,16 @@ import {
 import { Observable, from } from 'rxjs'
 import { err, Result, ok } from 'neverthrow'
 import { executedTokenTransfer } from './tokenTransfer'
+import { Address } from '@radixdlt/crypto/dist/_types'
+import { Amount } from '@radixdlt/primitives'
 
-const uniqueAddressCount = (anySpunParticles: AnySpunParticle[]): number => {
-	const ttps = spunParticles(anySpunParticles).transferrableTokensParticles()
-	return new Set(ttps.map((sp) => sp.particle.address)).size
+const uniqueAddressCountTTPs = (
+	particles: TransferrableTokensParticle[],
+): number => {
+	return new Set(particles.map((ttp) => ttp.address)).size
 }
+
+// const uniqueAddressCount = (anySpunParticles: AnySpunParticle[]): number => uniqueAddressCountTTPs(spunParticles(anySpunParticles).transferrableTokensParticles().map())
 
 const doesPGContainUnallocatedTokensParticleWithSpinUp = (
 	input: Readonly<{
@@ -37,24 +42,15 @@ const doesPGContainUnallocatedTokensParticleWithSpinUp = (
 			upP.particle.resourceIdentifier.equals(input.resourceIdentifier),
 		)
 
-// eslint-disable-next-line complexity, max-lines-per-function
-export const pgToTokenTransfer = (
+const getRecipientAndAmount = (
+	sender: Address,
 	particleGroup: ParticleGroup,
-): Result<TokenTransfer, Error> => {
-	const downTTPs: DownParticle<TransferrableTokensParticle>[] = particleGroup
-		.transferrableTokensParticles(Spin.DOWN)
-		.map((sp) => downParticle(sp.particle))
-	if (uniqueAddressCount(downTTPs) !== 1)
-		return err(new Error('Incorrect number of senders'))
-
-	const particlesFromSender: DownParticle<TransferrableTokensParticle>[] = downTTPs.map(
-		(sp) => downParticle(sp.particle),
-	)
-
-	const upTTPs: UpParticle<TransferrableTokensParticle>[] = particleGroup
+): Result<{ to: Address; amount: Amount }, Error> => {
+	const upTTPs: TransferrableTokensParticle[] = particleGroup
 		.transferrableTokensParticles(Spin.UP)
-		.map((sp) => upParticle(sp.particle))
-	const numberOfRecipients = uniqueAddressCount(upTTPs)
+		.map((sp) => sp.particle)
+
+	const numberOfRecipients = uniqueAddressCountTTPs(upTTPs)
 	if (numberOfRecipients < 1 || numberOfRecipients > 2)
 		return err(
 			new Error(
@@ -62,52 +58,53 @@ export const pgToTokenTransfer = (
 			),
 		)
 
-	const firstUpParticle: UpParticle<TransferrableTokensParticle> = upParticle(
-		upTTPs[0].particle,
+	const recipient =
+		upTTPs.find((p) => !p.address.equals(sender))?.address ?? sender
+
+	const upParticleToRecipient = upTTPs.find((p) =>
+		p.address.equals(recipient),
 	)
-
-	const secondUpParticle =
-		numberOfRecipients === 2 ? upParticle(upTTPs[1].particle) : undefined
-
-	const sender = particlesFromSender[0].particle.address
-
-	const recipientUpParticle = upTTPs.find(
-		(upP) => !upP.particle.address.equals(sender),
-	)
-	if (!recipientUpParticle)
-		return err(new Error('No transfer to another user. Unable to process'))
-	const recipient = recipientUpParticle.particle.address
-
-	const upParticleToRecipient = firstUpParticle.particle.address.equals(
-		recipient,
-	)
-		? firstUpParticle
-		: secondUpParticle
 
 	if (!upParticleToRecipient)
-		// Illegal state
-		throw new Error(
-			'Incorrect implementation, should have been able to identify upParticleToRecipient',
-		)
+		throw Error('Incorrect implementation, should not happen.')
+
+	return ok({
+		to: recipient,
+		amount: upParticleToRecipient.amount,
+	})
+}
+
+// eslint-disable-next-line complexity, max-lines-per-function
+export const pgToTokenTransfer = (
+	particleGroup: ParticleGroup,
+): Result<TokenTransfer, Error> => {
+	const downedTTPsFromSender: TransferrableTokensParticle[] = particleGroup
+		.transferrableTokensParticles(Spin.DOWN)
+		.map((sp) => sp.particle)
+
+	if (uniqueAddressCountTTPs(downedTTPsFromSender) !== 1)
+		return err(new Error('Incorrect number of senders'))
+
+	const downedParticleFromSender = downedTTPsFromSender[0]
+	const sender = downedParticleFromSender.address
+	const resourceIdentifier = downedParticleFromSender.resourceIdentifier
 
 	if (
 		doesPGContainUnallocatedTokensParticleWithSpinUp({
 			particleGroup,
-			resourceIdentifier:
-				upParticleToRecipient.particle.resourceIdentifier,
+			resourceIdentifier,
 		})
 	) {
 		return err(new Error('Action seems to be a burn?'))
 	}
 
-	const transfer = executedTokenTransfer({
-		from: sender,
-		to: recipient,
-		amount: upParticleToRecipient.particle.amount,
-		tokenDefinition: upParticleToRecipient.particle,
-	})
-
-	return ok(transfer)
+	return getRecipientAndAmount(sender, particleGroup).map((toAndAmount) =>
+		executedTokenTransfer({
+			...toAndAmount,
+			from: sender,
+			tokenDefinition: downedParticleFromSender,
+		}),
+	)
 }
 
 const valuePresent = <T>(value: T | null | undefined): value is T => {
