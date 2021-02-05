@@ -1,7 +1,7 @@
 import {
 	makeSimpleTransitioner,
 	makeTransitioner,
-} from '../src/fungibleParticleTransitioner'
+} from '../src/toAtom/fungibleParticleTransitioner'
 import {
 	AnySpunParticle,
 	ParticleBase,

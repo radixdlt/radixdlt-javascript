@@ -14,7 +14,6 @@ import {
 	TransferrableTokensParticle,
 	TransferrableTokensParticleProps,
 } from './_types'
-import { one } from '@radixdlt/primitives'
 
 export type TransferrableTokensParticleInput = TokenParticleInput &
 	Readonly<{
@@ -41,17 +40,14 @@ const DSON = (
 export const transferrableTokensParticle = (
 	input: TransferrableTokensParticleInput,
 ): Result<TransferrableTokensParticle, Error> => {
-	if (input.amount.lessThan(one))
-		return err(new Error('Cannot transfer a non positve amount.'))
-
-	if (!input.amount.isMultipleOf(input.granularity)) {
-		return err(new Error('Amount not multiple of granularity'))
-	}
-
 	const props = {
 		...tokenParticleProps(input),
 		address: input.address,
 		radixParticleType,
+	}
+
+	if (!props.amount.isMultipleOf(props.granularity)) {
+		return err(new Error('Amount not multiple of granularity'))
 	}
 
 	return ok({

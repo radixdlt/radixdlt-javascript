@@ -5,7 +5,6 @@ import {
 } from './_types'
 import {
 	spunParticles,
-	transferrableTokensParticle,
 	TransferrableTokensParticle,
 	UpParticle,
 	ParticleGroup,
@@ -13,7 +12,6 @@ import {
 } from '@radixdlt/atom'
 import { Address } from '@radixdlt/crypto'
 import { combine, Result } from 'neverthrow'
-import { Amount } from '@radixdlt/primitives'
 import { makeTransitioner } from './fungibleParticleTransitioner'
 import {
 	validate,
@@ -21,7 +19,10 @@ import {
 	validateUserActionSender,
 	validateUserActionType,
 } from './validation'
-import { collectUpParticles } from './utils'
+import {
+	collectUpParticles,
+	transferrableTokensParticleFromOther,
+} from './utils'
 
 const particleGroupsFromTransferTokensAction = (
 	input: Readonly<{
@@ -32,32 +33,25 @@ const particleGroupsFromTransferTokensAction = (
 ): Result<ParticleGroup[], Error> => {
 	const transferAction = input.transferTokensAction
 
-	const newTTP = (
-		address: Address,
-		amount: Amount,
-		from: TransferrableTokensParticle,
-	): Result<TransferrableTokensParticle, Error> =>
-		transferrableTokensParticle({
-			...from,
-			amount,
-			address,
-		})
-
 	const transitioner = makeTransitioner<
 		TransferrableTokensParticle,
 		TransferrableTokensParticle
 	>({
 		inputAmountMapper: (from: TransferrableTokensParticle) => from.amount,
-		inputCreator: newTTP.bind(null, transferAction.sender),
-		outputCreator: newTTP.bind(null, transferAction.recipient),
+		inputCreator: transferrableTokensParticleFromOther.bind(
+			null,
+			transferAction.sender,
+		),
+		outputCreator: transferrableTokensParticleFromOther.bind(
+			null,
+			transferAction.recipient,
+		),
 	})
 
 	const consumableParticles = input.upParticles
 		.map((sp) => sp.particle)
 		.filter((p) =>
-			p.tokenDefinitionReference.equals(
-				transferAction.tokenResourceIdentifier,
-			),
+			p.resourceIdentifier.equals(transferAction.resourceIdentifier),
 		)
 
 	return transitioner

@@ -1,13 +1,9 @@
-import { tokenTransferActionToParticleGroupsMapper } from '../src/tokenTransferActionToParticleGroupsMapper'
+import { tokenTransferActionToParticleGroupsMapper } from '../src/toAtom/tokenTransferActionToParticleGroupsMapper'
 import { TransferTokensAction, transferTokensAction } from '@radixdlt/actions'
 import {
-	AnyUpParticle,
 	isTransferrableTokensParticle,
-	Spin,
 	TokenParticle,
 	TokenDefinitionParticleBase,
-	TransferrableTokensParticle,
-	upParticle,
 } from '@radixdlt/atom'
 import { amountInSmallestDenomination } from '@radixdlt/primitives'
 import {
@@ -21,9 +17,7 @@ import {
 	bob,
 	rri,
 	alice,
-	upTTP,
 	fixedSupTokDefParticle,
-	TestCaseReturn,
 	TestCase,
 	TestVector,
 	mutableSupplyTokenDefinitionParticleAllCanMutate,
@@ -43,7 +37,7 @@ describe('TokenTransferActionToParticleGroupsMapper', () => {
 			from: actor ?? alice,
 			amount: amountInSmallestDenomination(UInt256.valueOf(amount)),
 			resourceIdentifier: rri,
-		})._unsafeUnwrap()
+		})
 	}
 
 	const testTransferActionWithToken = <T extends TokenDefinitionParticleBase>(

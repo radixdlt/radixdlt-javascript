@@ -1,4 +1,3 @@
-import { burnTokensActionToParticleGroupsMapper } from '../src/burnTokensActionToParticleGroupsMapper'
 import {
 	burnTokensAction,
 	BurnTokensAction,
@@ -30,11 +29,11 @@ import {
 	mutableSupplyTokenDefinitionParticleAllCanMutate,
 	mutableSupplyTokenDefinitionParticleOnlyAliceCanMutate,
 } from './consumeTokensActionToParticleGroupsMapperBase'
-import { FixedSupplyTokenDefinitionParticle } from '@radixdlt/atom/src/particles/_types'
 import { RadixParticleType } from '@radixdlt/atom/src/particles/meta/radixParticleTypes'
 import { Address } from '@radixdlt/crypto'
 import { isUnallocatedTokensParticle } from '@radixdlt/atom/src/particles/unallocatedTokensParticle'
 import { UInt256 } from '@radixdlt/uint256'
+import { burnTokensActionToParticleGroupsMapper } from '../src/toAtom/burnTokensActionToParticleGroupsMapper'
 
 const testMapperReturns___Can_Only_Burn_Mutable_Tokens___error_when_trying_to_burn_FixedSupplyTokenDefinition = <
 	T extends TokenDefinitionParticleBase
@@ -131,7 +130,7 @@ describe('BurnTokensActionToParticleGroupsMapper', () => {
 			burner: actor ?? alice,
 			amount: amountInSmallestDenomination(UInt256.valueOf(amount)),
 			resourceIdentifier: rri,
-		})._unsafeUnwrap()
+		})
 	}
 
 	const testBurnActionWithToken = <T extends TokenDefinitionParticleBase>(

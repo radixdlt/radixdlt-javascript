@@ -9,6 +9,8 @@ import {
 	amountInSmallestDenomination,
 	Denomination,
 	nonce,
+	one,
+	zero,
 } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import { resourceIdentifierFromAddressAndName } from '../src/resourceIdentifier'
@@ -33,7 +35,7 @@ describe('transferrableTokensParticle', () => {
 		})
 		const ttpResult = transferrableTokensParticle({
 			address,
-			tokenDefinitionReference: rri,
+			resourceIdentifier: rri,
 			granularity: granularity,
 			amount: amount,
 		})
@@ -63,7 +65,7 @@ describe('transferrableTokensParticle', () => {
 		})
 		const ttpResult = transferrableTokensParticle({
 			address,
-			tokenDefinitionReference: rri,
+			resourceIdentifier: rri,
 			granularity: granularityOfThree,
 			amount: amount,
 		})
@@ -74,7 +76,7 @@ describe('transferrableTokensParticle', () => {
 	it('can be unsafely created from primitives', () => {
 		const ttp = transferrableTokensParticleFromUnsafe({
 			address: '9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
-			tokenDefinitionReference:
+			resourceIdentifier:
 				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR',
 			granularity: 3,
 			amount: 9,
@@ -88,7 +90,7 @@ describe('transferrableTokensParticle', () => {
 	it('should be equal to another ttp', () => {
 		const props = {
 			address: '9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
-			tokenDefinitionReference:
+			resourceIdentifier:
 				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR',
 			granularity: 3,
 			amount: 9,
@@ -108,7 +110,7 @@ describe('transferrableTokensParticle', () => {
 	it('should not be equal to a different ttp', () => {
 		const props = {
 			address: '9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
-			tokenDefinitionReference:
+			resourceIdentifier:
 				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR',
 			granularity: 3,
 			amount: 9,
@@ -126,6 +128,22 @@ describe('transferrableTokensParticle', () => {
 		expect(ttp.equals(ttp2)).toBeFalsy()
 	})
 
+	it('should be able to create with a zero amount', () => {
+		const props = {
+			address: '9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
+			resourceIdentifier:
+				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR',
+			granularity: one,
+			amount: zero,
+		}
+
+		const ttp = transferrableTokensParticleFromUnsafe({
+			...props,
+		})._unsafeUnwrap()
+
+		expect(ttp.amount.equals(zero)).toBe(true)
+	})
+
 	it('should be able to DSON encode', () => {
 		const address = addressFromBase58String(
 			'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
@@ -140,7 +158,7 @@ describe('transferrableTokensParticle', () => {
 		const nonce_ = nonce(1337)
 		const ttp = transferrableTokensParticle({
 			address,
-			tokenDefinitionReference: rri,
+			resourceIdentifier: rri,
 			amount: amount,
 			granularity: granularity,
 			permissions: permissions,

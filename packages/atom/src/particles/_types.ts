@@ -14,11 +14,15 @@ export type RadixParticle = ParticleBase &
 		radixParticleType: RadixParticleType
 	}>
 
-export type TokenParticle = RadixParticle &
+export type TokenBase = Readonly<{
+	granularity: Granularity
+	resourceIdentifier: ResourceIdentifier
+}>
+
+export type TokenParticle = TokenBase &
+	RadixParticle &
 	Readonly<{
-		granularity: Granularity
 		permissions: TokenPermissions
-		tokenDefinitionReference: ResourceIdentifier
 		amount: Amount
 		nonce: Nonce
 	}>
@@ -44,15 +48,16 @@ export type ResourceIdentifierParticle = DSONCodable &
 		resourceIdentifier: ResourceIdentifier
 	}>
 
-export type TokenDefinitionParticleBase = /* DSONCodable */ RadixParticle &
+export type TokenDefinitionBase = TokenBase &
 	Readonly<{
 		name: string
 		description?: string
-		resourceIdentifier: ResourceIdentifier
-		granularity: Granularity
 		url?: URL
 		iconURL?: URL
 	}>
+
+export type TokenDefinitionParticleBase = /* DSONCodable */ TokenDefinitionBase &
+	RadixParticle
 
 export type FixedSupplyTokenDefinitionParticle = TokenDefinitionParticleBase &
 	Readonly<{

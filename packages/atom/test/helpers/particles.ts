@@ -15,20 +15,20 @@ import {
 } from '../../src/particles/_types'
 
 export const makeUATParticle = (
-	rri: ResourceIdentifier,
+	resourceIdentifier: ResourceIdentifier,
 ): UnallocatedTokensParticle =>
 	unallocatedTokensParticleFromUnsafe({
-		tokenDefinitionReference: rri,
+		resourceIdentifier: resourceIdentifier,
 		granularity: 3,
 		amount: 9,
 	})._unsafeUnwrap()
 
 export const makeTTParticle = (
-	rri: ResourceIdentifier,
+	resourceIdentifier: ResourceIdentifier,
 ): TransferrableTokensParticle =>
 	transferrableTokensParticleFromUnsafe({
 		address: '9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
-		tokenDefinitionReference: rri,
+		resourceIdentifier: resourceIdentifier,
 		granularity: 3,
 		amount: 9,
 	})._unsafeUnwrap()

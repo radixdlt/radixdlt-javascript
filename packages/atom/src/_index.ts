@@ -1,6 +1,6 @@
-export * from './_types'
-
 export * from './particles/_index'
+
+export * from './_types'
 
 export * from './atom'
 export * from './atomIdentifier'

@@ -16,7 +16,7 @@ export type UserAction = Readonly<{
 export type TokensActionBase = UserAction &
 	Readonly<{
 		amount: Amount
-		tokenResourceIdentifier: ResourceIdentifier
+		resourceIdentifier: ResourceIdentifier
 	}>
 
 export type TransferTokensAction = TokensActionBase &

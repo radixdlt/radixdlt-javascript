@@ -17,15 +17,11 @@ import {
 	upParticle,
 	UpParticle,
 } from '@radixdlt/atom'
-import {
-	amountInSmallestDenomination,
-	granularityDefault,
-	maxAmount,
-} from '@radixdlt/primitives'
+import { amountInSmallestDenomination, maxAmount } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import { toAddress } from '../../atom/test/helpers/utility'
-import { ActionToParticleGroupsMapper } from '../src/_types'
 import { two, three, one, four, five } from '@radixdlt/primitives/src/amount'
+import { ActionToParticleGroupsMapper } from '../src/toAtom/_types'
 
 export type TestCaseReturn = ReturnType<typeof it>
 
@@ -92,8 +88,7 @@ export const upTTP = (
 	return upParticle(
 		transferrableTokensParticle({
 			granularity: tokenDefinitionParticle.granularity,
-			tokenDefinitionReference:
-				tokenDefinitionParticle.resourceIdentifier,
+			resourceIdentifier: tokenDefinitionParticle.resourceIdentifier,
 			address: owner ?? alice,
 			amount: amountInSmallestDenomination(UInt256.valueOf(amount)),
 		})._unsafeUnwrap(),
@@ -121,7 +116,7 @@ export const testMapperReturns___Unknown_Token___error_when_no_token_definition_
 			},
 			(f) =>
 				expect(f.message).toBe(
-					`Unknown token with identifier: '${action.tokenResourceIdentifier.toString()}'`,
+					`Unknown token with identifier: '${action.resourceIdentifier.toString()}'`,
 				),
 		)
 	})
