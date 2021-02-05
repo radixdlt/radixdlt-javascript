@@ -1,4 +1,10 @@
-import { Atom, TokenBase, TokenDefinitionBase } from '@radixdlt/atom'
+import {
+	Atom,
+	ParticleBase,
+	ResourceIdentifier,
+	TokenBase,
+	TokenDefinitionBase,
+} from '@radixdlt/atom'
 import { Address } from '@radixdlt/crypto'
 import { Amount } from '@radixdlt/primitives'
 import { Observable } from 'rxjs'
@@ -27,6 +33,38 @@ export type TokenTransfer = ExecutedUserAction &
 		from: Address
 		to: Address
 		tokenAmount: TokenAmount
+	}>
+
+export type TokenBalance = Readonly<{
+	owner: Address
+	tokenAmount: TokenAmount
+}>
+
+export enum ApplicationStateType {
+	TOKEN_BALANCES = 'TokenBalances',
+}
+export type ApplicationState = Readonly<{
+	stateType: ApplicationStateType
+}>
+
+export type TokenBalancesState = ApplicationState &
+	Readonly<{
+		balances: Map<ResourceIdentifier, TokenBalance>
+		balanceOf: (
+			resourceIdentifier: ResourceIdentifier,
+		) => TokenBalance | undefined
+	}>
+
+export type ParticleReducer<S extends ApplicationState> = Readonly<{
+	applicationStateType: ApplicationStateType
+	initialState: S
+	reduce: (state: S, particle: ParticleBase) => S
+	combine: (s0: S, s1: S) => S
+}>
+
+export type TokenBalanceReducer = ParticleReducer<TokenBalancesState> &
+	Readonly<{
+		applicationStateType: ApplicationStateType.TOKEN_BALANCES
 	}>
 
 export type AtomToActionMapperInput = Readonly<{

@@ -1,4 +1,4 @@
-import { objectEquals } from '../src/objectEquals'
+import { mapEquals, objectEquals } from '../src/objectEquals'
 
 describe('Map Equals', () => {
 	it('can check for equality of non empty types', () => {
@@ -27,5 +27,34 @@ describe('Map Equals', () => {
 		const rhs = { foo: 1, buz: 2 }
 
 		expect(objectEquals(lhs, rhs)).toBe(false)
+	})
+
+	it('can check for equality between maps', () => {
+		const a = new Map<string, number>([
+			['foo', 42],
+			['bar', 1337],
+		])
+
+		const b = new Map<string, number>([
+			['foo', 42],
+			['bar', 1337],
+		])
+
+		expect(mapEquals(a, b)).toBe(true)
+	})
+
+	it('can check for inequality between maps', () => {
+		const a = new Map<string, number>([
+			['foo', 42],
+			['bar', 1337],
+		])
+
+		const b = new Map<string, number>([
+			['foo', 42],
+			['bar', 1337],
+			['buz', 237],
+		])
+
+		expect(mapEquals(a, b)).toBe(false)
 	})
 })
