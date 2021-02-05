@@ -138,6 +138,21 @@ export const fromJSONDefault = fromJSONBasic.bind(
 	/**
 	 *
 	 */
+	/**
+	 *
+	 */
+	/**
+	 *
+	 */
+	/**
+	 *
+	 */
+	/**
+	 *
+	 */
+	/**
+	 *
+	 */
 	null,
 	...defaultPrimitiveDecoders,
 )
