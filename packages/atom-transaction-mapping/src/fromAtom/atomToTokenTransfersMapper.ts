@@ -38,7 +38,7 @@ const doesPGContainUnallocatedTokensParticleWithSpinUp = (
 		)
 
 // eslint-disable-next-line complexity, max-lines-per-function
-const pgToTokenTransfer = (
+export const pgToTokenTransfer = (
 	particleGroup: ParticleGroup,
 ): Result<TokenTransfer, Error> => {
 	const downTTPs: DownParticle<TransferrableTokensParticle>[] = particleGroup

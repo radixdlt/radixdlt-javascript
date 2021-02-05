@@ -1,11 +1,19 @@
 import { toAddress } from '../../crypto/test/address.test'
 import {
+	AnySpunParticle,
+	anyUpParticle,
 	AnyUpParticle,
+	Atom,
 	atom,
 	fixedSupplyTokenDefinitionParticle,
 	particleGroups,
 	ResourceIdentifier,
+	Spin,
+	SpunParticle,
+	spunParticle,
+	spunUpParticle,
 	TokenDefinitionParticleBase,
+	TransferrableTokensParticle,
 	transferrableTokensParticle,
 	upParticle,
 } from '@radixdlt/atom'
@@ -26,10 +34,14 @@ import {
 	two,
 } from '@radixdlt/primitives'
 import { tokenTransferActionToParticleGroupsMapper } from '../src/toAtom/tokenTransferActionToParticleGroupsMapper'
-import { syncMapAtomToTokenTransfers as mapAtomToTokenTransfers } from '../src/fromAtom/atomToTokenTransfersMapper'
+import {
+	syncMapAtomToTokenTransfers as mapAtomToTokenTransfers,
+	pgToTokenTransfer,
+} from '../src/fromAtom/atomToTokenTransfersMapper'
 import { Address } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
 import { TokenTransfer } from '../src/fromAtom/_types'
+import { particleGroup } from '@radixdlt/atom/dist/particleGroup'
 
 describe('AtomToTokenTransfersMapper', () => {
 	const alice = toAddress(
@@ -60,20 +72,25 @@ describe('AtomToTokenTransfersMapper', () => {
 			? amount
 			: amountInSmallestDenomination(UInt256.valueOf(amount))
 
-	const upTTP = (
+	const makeTTPWithSpin = (
+		spin: Spin,
 		resourceIdentifier: ResourceIdentifier,
 		owner: Address,
 		amount: AmountLike,
-	): AnyUpParticle => {
-		return upParticle(
-			transferrableTokensParticle({
+	): SpunParticle<TransferrableTokensParticle> => {
+		return spunParticle({
+			particle: transferrableTokensParticle({
 				amount: makeAmount(amount),
 				granularity,
 				resourceIdentifier: resourceIdentifier,
 				address: owner,
 			})._unsafeUnwrap(),
-		).eraseToAnyUp()
+			spin: spin,
+		})
 	}
+
+	const upTTP = makeTTPWithSpin.bind(null, Spin.UP)
+	const downTTP = makeTTPWithSpin.bind(null, Spin.DOWN)
 
 	type TransferTokensActionInputIsh = Omit<
 		TransferTokensActionInput,
@@ -102,18 +119,21 @@ describe('AtomToTokenTransfersMapper', () => {
 		const actor = transferAction.sender
 
 		const transferToPGsMapper = tokenTransferActionToParticleGroupsMapper()
-		const upTTPs: AnyUpParticle[] = consumablesFromAmounts.map(
-			upTTP.bind(null, resourceID, actor),
-		)
+
+		const upTTPs = consumablesFromAmounts
+			.map(upTTP.bind(null, resourceID, actor))
+			.map((sp) => sp.eraseToAny())
 
 		const upParticles = [
-			upParticle(tokenDefinitionParticle).eraseToAnyUp(),
+			spunUpParticle(tokenDefinitionParticle).eraseToAny(),
 		].concat(upTTPs)
 
 		const groups = transferToPGsMapper
 			.particleGroupsFromAction({
 				action: transferAction,
-				upParticles: upParticles,
+				upParticles: upParticles.map((sp) =>
+					anyUpParticle(sp.particle),
+				),
 				addressOfActiveAccount: actor,
 			})
 			._unsafeUnwrap()
@@ -185,9 +205,9 @@ describe('AtomToTokenTransfersMapper', () => {
 			}),
 			[one, two],
 			carol, // <--- Neither sender nor recipient
-			((transfers) => {
+			(transfers) => {
 				expect(transfers.length).toBe(0)
-			})
+			},
 		)
 	})
 
@@ -203,6 +223,31 @@ describe('AtomToTokenTransfersMapper', () => {
 			[one, two],
 			bob, // <-- Recipient instead of sender
 			validateSingleTransfer(alice, bob, amountToTransfer, aliceCoin),
+		)
+	})
+
+	it('should fail with a PG containing 3 participants', () => {
+		const makeUpTTP = upTTP.bind(null, aliceCoin)
+		const makeDownTTP = downTTP.bind(null, aliceCoin)
+
+		const weirdParticleGroup = particleGroup([
+			makeUpTTP(alice, five),
+			makeDownTTP(alice, one),
+			makeUpTTP(bob, one),
+
+			makeDownTTP(alice, two),
+			makeUpTTP(carol, two),
+		])
+
+		const transfersResult = pgToTokenTransfer(weirdParticleGroup)
+		transfersResult.match(
+			() => {
+				throw Error('expected error, but got none')
+			},
+			(f) =>
+				expect(f.message).toBe(
+					'Incorrect number of recipients, a transfer should only have two participants. Unable to parse.',
+				),
 		)
 	})
 })
