@@ -15,7 +15,7 @@
     { "path": "packages/crypto" },
     { "path": "packages/primitives" },
     { "path": "packages/util" },
-    { "path": "packages/dson" },
+    { "path": "packages/data-formats" },
     { "path": "packages/atom-transaction-mapping" }
   ]
 }
