@@ -1,4 +1,4 @@
-import { DSONCodable } from '@radixdlt/dson'
+import { DSONCodable, JSONEncodable } from '@radixdlt/data-formats'
 import { Byte } from '@radixdlt/util'
 import { UInt256 } from '@radixdlt/uint256'
 
@@ -47,7 +47,8 @@ export type PrivateKey = Signer &
 		toString: () => string
 	}
 
-export type Address = DSONCodable &
+export type Address = JSONEncodable &
+	DSONCodable &
 	Readonly<{
 		publicKey: PublicKey
 		magicByte: Byte

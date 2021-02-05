@@ -1,7 +1,7 @@
 import { Int64, Nonce } from './_types'
 import Long from 'long'
 import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
-import { DSONEncoding } from '@radixdlt/dson'
+import { DSONEncoding } from '@radixdlt/data-formats'
 
 export const randomInt64 = (
 	secureRandom: SecureRandom = secureRandomGenerator,

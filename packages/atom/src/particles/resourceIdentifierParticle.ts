@@ -1,7 +1,7 @@
 import { ResourceIdentifier } from '../_types'
 import { nonce } from '@radixdlt/primitives'
 import { isRadixParticle, RadixParticleType } from './meta/radixParticleTypes'
-import { DSONEncoding, DSONKeyValue } from '@radixdlt/dson'
+import { DSONEncoding, DSONKeyValue } from '@radixdlt/data-formats'
 import { ParticleBase, ResourceIdentifierParticle } from './_types'
 
 const radixParticleType = RadixParticleType.RESOURCE_IDENTIFIER

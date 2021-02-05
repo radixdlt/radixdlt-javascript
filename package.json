@@ -62,7 +62,7 @@
     "unlink-all": "lerna exec --parallel --bail=false yarn unlink",
     "lint": "yarn eslint . --ext .js,.jsx,.ts,.tsx",
     "build": "yarn build:ts",
-    "build:ts": "tsc -b tsconfig.json",
+    "build:ts": "tsc -b -f tsconfig.json",
     "bundle": "ts-node -P scripts/tsconfig.json scripts/bundle.ts umd,esm",
     "clean": "lerna clean --yes && lerna run clean && rm -rf includes",
     "test": "cross-env TEST_ENV=unit jest -c jest.config.js --rootDir=.",

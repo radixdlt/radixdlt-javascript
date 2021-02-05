@@ -2,7 +2,7 @@ import { Address } from '@radixdlt/crypto'
 
 import { err, ok, Result } from 'neverthrow'
 import { isRadixParticle, RadixParticleType } from './meta/radixParticleTypes'
-import { DSONCodable, DSONEncoding } from '@radixdlt/dson'
+import { DSONCodable, DSONEncoding } from '@radixdlt/data-formats'
 import {
 	tokenDSONKeyValues,
 	TokenParticleInput,

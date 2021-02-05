@@ -9,7 +9,7 @@ import { resourceIdentifierFromAddressAndName } from '../src/resourceIdentifier'
 import { unallocatedTokensParticle } from '../src/particles/unallocatedTokensParticle'
 import { unallocatedTokensParticleFromUnsafe } from './helpers/utility'
 import { tokenPermissionsAll } from '../src/tokenPermissions'
-import { OutputMode } from '@radixdlt/dson'
+import { OutputMode } from '@radixdlt/data-formats'
 
 describe('unallocatedTokensParticle', () => {
 	it('can be safely created from safe type', async () => {

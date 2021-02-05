@@ -5,7 +5,7 @@ import {
 	TokenParticleInput,
 	withTokenParticleEquals,
 } from './meta/tokenParticle'
-import { DSONCodable, DSONEncoding } from '@radixdlt/dson'
+import { DSONCodable, DSONEncoding } from '@radixdlt/data-formats'
 import { TokenParticle, UnallocatedTokensParticle } from './_types'
 
 const radixParticleType = RadixParticleType.UNALLOCATED_TOKENS

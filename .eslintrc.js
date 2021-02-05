@@ -80,6 +80,10 @@ module.exports = {
 		'functional/no-return-void': 'off',
 		'max-params': 'off',
 		'functional/no-throw-statement': 'off',
+		complexity: 'off',
+		'functional/immutable-data': 'off',
+		'@typescript-eslint/no-unsafe-return': 'warn',
+		'@typescript-eslint/no-unsafe-member-access': 'warn',
 		'max-lines': 'off',
 	},
 }
