@@ -20,13 +20,12 @@ import { makeParticleReducer } from './particleReducer'
 
 export const tokenBalancesState = (
 	balances: Map<ResourceIdentifier, TokenBalance>,
-): TokenBalancesState => {
-	return {
-		stateType: ApplicationStateType.TOKEN_BALANCES,
-		balances: balances,
-		balanceOf: (_resourceIdentifier) => undefined,
-	}
-}
+): TokenBalancesState => ({
+	stateType: ApplicationStateType.TOKEN_BALANCES,
+	balances: balances,
+	balanceOf: (resourceIdentifier: ResourceIdentifier) =>
+		balances.get(resourceIdentifier),
+})
 
 export const empty = tokenBalancesState(new Map())
 
