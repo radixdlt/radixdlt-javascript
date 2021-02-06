@@ -4,8 +4,8 @@ import {
 	ParticleReducer,
 	TokenAmount,
 	TokenBalance,
-	TokenBalanceReducer,
-	TokenBalancesState,
+	TokenBalanceForOneAccountReducer,
+	TokenBalanceForOneAccount,
 } from './_types'
 import {
 	AnyUpParticle,
@@ -17,18 +17,24 @@ import { isTransferrableTokensParticle } from '@radixdlt/atom/dist/particles/tra
 import { err, ok, Result } from 'neverthrow'
 import { mapEquals } from '@radixdlt/util'
 import { makeParticleReducer } from './particleReducer'
+import { Address } from '@radixdlt/crypto'
 
-export const tokenBalancesState = (
-	balances: Map<ResourceIdentifier, TokenBalance>,
-): TokenBalancesState => ({
-	stateType: ApplicationStateType.TOKEN_BALANCES,
-	balances: balances,
-	size: balances.size,
+export const tokenBalanceForOneAccount = (
+	input: Readonly<{
+		owner: Address
+		balances: Map<ResourceIdentifier, TokenBalance>
+	}>,
+): TokenBalanceForOneAccount => ({
+	stateType: ApplicationStateType.TOKEN_BALANCE_FOR_ONE_ACCOUNT,
+	balances: input.balances,
+	owner: input.owner,
+	size: input.balances.size,
 	balanceOf: (resourceIdentifier: ResourceIdentifier) =>
-		balances.get(resourceIdentifier),
+		input.balances.get(resourceIdentifier),
 })
 
-export const empty = tokenBalancesState(new Map())
+export const empty = (owner: Address): TokenBalanceForOneAccount =>
+	tokenBalanceForOneAccount({ owner, balances: new Map() })
 
 export const tokenBalance = (
 	ttp: TransferrableTokensParticle,
@@ -50,16 +56,18 @@ export const mergeTokenBalance = (
 		!lhs.tokenAmount.token.resourceIdentifier.equals(
 			rhs.tokenAmount.token.resourceIdentifier,
 		)
-	)
+	) {
 		return err(
 			new Error(
 				`Cannot merge TokenBalance's with different token types.`,
 			),
 		)
-	if (!lhs.owner.equals(rhs.owner))
+	}
+	if (!lhs.owner.equals(rhs.owner)) {
 		return err(
 			new Error(`Cannot merge TokenBalance's with different owners.`),
 		)
+	}
 
 	return lhs.tokenAmount.amount.adding(rhs.tokenAmount.amount).map((sum) => ({
 		owner: lhs.owner,
@@ -74,14 +82,18 @@ export const mergeMaps = <K, V>(
 	input: Readonly<{
 		first: Map<K, V>
 		second: Map<K, V>
-		onDuplicates?: (lhsValue: V, rhsValue: V, duplicatedKey: K) => V
+		onDuplicates?: (
+			lhsValue: V,
+			rhsValue: V,
+			duplicatedKey: K,
+		) => Result<V, Error>
 	}>,
-): Map<K, V> => {
+): Result<Map<K, V>, Error> => {
 	const lhs = input.first
 	const rhs = input.second
 	const onDuplicates =
 		input.onDuplicates ??
-		((_yieldingLHS, dominantRHS, _Key): V => dominantRHS)
+		((_yieldingLHS, dominantRHS, _Key): Result<V, Error> => ok(dominantRHS))
 
 	const mergedSetOfKeys = new Set(
 		([] as K[])
@@ -92,13 +104,19 @@ export const mergeMaps = <K, V>(
 	/* eslint-disable functional/immutable-data, functional/no-let, prefer-const */
 	let combinedMap = new Map<K, V>()
 
-	mergedSetOfKeys.forEach((key) => {
+	for (const key of mergedSetOfKeys) {
+		//.forEach((key) => {
 		const lhsVal = lhs.get(key)
 		const rhsVal = rhs.get(key)
 
 		if (lhsVal && rhsVal) {
 			// Found duplicates...
-			combinedMap.set(key, onDuplicates(lhsVal, rhsVal, key))
+			const mergeResult = onDuplicates(lhsVal, rhsVal, key)
+			if (mergeResult.isOk()) {
+				combinedMap.set(key, mergeResult.value)
+			} else {
+				return err(mergeResult.error)
+			}
 		} else if (lhsVal) {
 			combinedMap.set(key, lhsVal)
 		} else if (rhsVal) {
@@ -106,18 +124,22 @@ export const mergeMaps = <K, V>(
 		} else {
 			throw Error('Incorrect implementation, should never happen.')
 		}
-	})
+	}
 
-	return combinedMap
+	return ok(combinedMap)
 }
 
 const mergeKeyValueWithMap = <K, V>(
 	input: Readonly<{
 		first: Map<K, V>
 		keyValue: { key: K; value: V }
-		onDuplicates?: (lhsValue: V, rhsValue: V, duplicatedKey: K) => V
+		onDuplicates?: (
+			lhsValue: V,
+			rhsValue: V,
+			duplicatedKey: K,
+		) => Result<V, Error>
 	}>,
-): Map<K, V> =>
+): Result<Map<K, V>, Error> =>
 	mergeMaps({
 		...input,
 		second: new Map([[input.keyValue.key, input.keyValue.value]]),
@@ -127,40 +149,47 @@ const addTokenBalances = (
 	firstTB: TokenBalance,
 	secondTB: TokenBalance,
 	_key: ResourceIdentifier,
-): TokenBalance => mergeTokenBalance(firstTB, secondTB).unwrapOr(firstTB)
+): Result<TokenBalance, Error> => mergeTokenBalance(firstTB, secondTB)
 
 const merge = (
 	input: Readonly<{
-		state: TokenBalancesState
+		state: TokenBalanceForOneAccount
 		transferrableTokensParticle: TransferrableTokensParticle
 	}>,
-): TokenBalancesState => {
+): Result<TokenBalanceForOneAccount, Error> => {
 	const balances = input.state.balances
 	const tokenParticle = input.transferrableTokensParticle
-	return tokenBalancesState(
-		mergeKeyValueWithMap({
-			first: balances,
-			keyValue: {
-				key: tokenParticle.resourceIdentifier,
-				value: tokenBalance(tokenParticle),
-			},
-			onDuplicates: addTokenBalances,
+
+	return mergeKeyValueWithMap({
+		first: balances,
+		keyValue: {
+			key: tokenParticle.resourceIdentifier,
+			value: tokenBalance(tokenParticle),
+		},
+		onDuplicates: addTokenBalances,
+	}).map((balances) =>
+		tokenBalanceForOneAccount({
+			owner: input.state.owner,
+			balances: balances,
 		}),
 	)
 }
 
-export const tokenBalanceReducer = (): TokenBalanceReducer =>
+export const tokenBalanceForOneAccountReducer = (
+	owner: Address,
+): TokenBalanceForOneAccountReducer =>
 	makeParticleReducer({
-		applicationStateType: ApplicationStateType.TOKEN_BALANCES,
-		initialState: empty,
+		applicationStateType:
+			ApplicationStateType.TOKEN_BALANCE_FOR_ONE_ACCOUNT,
+		initialState: empty(owner),
 		reduce: (
 			input: Readonly<{
-				state: TokenBalancesState
+				state: TokenBalanceForOneAccount
 				upParticle: AnyUpParticle
 			}>,
-		): TokenBalancesState => {
+		): Result<TokenBalanceForOneAccount, Error> => {
 			if (!isTransferrableTokensParticle(input.upParticle.particle))
-				return input.state
+				return ok(input.state)
 			return merge({
 				state: input.state,
 				transferrableTokensParticle: input.upParticle.particle,
@@ -168,18 +197,26 @@ export const tokenBalanceReducer = (): TokenBalanceReducer =>
 		},
 		combine: (
 			input: Readonly<{
-				current: TokenBalancesState
-				newState: TokenBalancesState
+				current: TokenBalanceForOneAccount
+				newState: TokenBalanceForOneAccount
 			}>,
-		): TokenBalancesState => {
+		): Result<TokenBalanceForOneAccount, Error> => {
+			if (
+				!input.current.owner.equals(owner) ||
+				!input.current.owner.equals(input.newState.owner)
+			)
+				throw new Error('Incorrect implementation, owner mismatch')
 			if (mapEquals(input.current.balances, input.newState.balances))
-				return input.current
+				return ok(input.current)
 
-			return tokenBalancesState(
-				mergeMaps({
-					first: input.current.balances,
-					second: input.newState.balances,
-					onDuplicates: addTokenBalances,
+			return mergeMaps({
+				first: input.current.balances,
+				second: input.newState.balances,
+				onDuplicates: addTokenBalances,
+			}).map((balances) =>
+				tokenBalanceForOneAccount({
+					owner: input.current.owner,
+					balances: balances,
 				}),
 			)
 		},

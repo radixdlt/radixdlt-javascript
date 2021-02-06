@@ -7,6 +7,7 @@ import {
 } from '@radixdlt/atom'
 import { Address } from '@radixdlt/crypto'
 import { Amount } from '@radixdlt/primitives'
+import { Result } from 'neverthrow'
 import { Observable } from 'rxjs'
 
 export type TokenDefinition = TokenDefinitionBase &
@@ -41,32 +42,50 @@ export type TokenBalance = Readonly<{
 }>
 
 export enum ApplicationStateType {
-	TOKEN_BALANCES = 'TokenBalances',
+	TOKEN_BALANCE_FOR_ONE_ACCOUNT = 'TokenBalanceForOneAccount',
 }
 export type ApplicationState = Readonly<{
 	stateType: ApplicationStateType
 }>
 
-export type TokenBalancesState = ApplicationState &
+export type TokenBalanceForOneAccount = ApplicationState &
 	Readonly<{
 		balances: Map<ResourceIdentifier, TokenBalance>
+		owner: Address
 		size: number
 		balanceOf: (
 			resourceIdentifier: ResourceIdentifier,
 		) => TokenBalance | undefined
 	}>
 
+export type TokenBalancesForAccounts = ApplicationState &
+	Readonly<{
+		balances: Map<Address, TokenBalanceForOneAccount>
+		size: number
+
+		balanceOf: (
+			query: Readonly<{
+				owner: Address
+				resourceIdentifier: ResourceIdentifier
+			}>,
+		) => TokenBalance | undefined
+
+		balancesFor: (owner: Address) => TokenBalanceForOneAccount
+	}>
+
 export type ParticleReducer<S extends ApplicationState> = Readonly<{
 	applicationStateType: ApplicationStateType
 	initialState: S
-	reduce: (input: Readonly<{ state: S; upParticle: AnyUpParticle }>) => S
-	combine: (input: Readonly<{ current: S; newState: S }>) => S
-	reduceFromInitialState: (upParticles: AnyUpParticle[]) => S
+	reduce: (
+		input: Readonly<{ state: S; upParticle: AnyUpParticle }>,
+	) => Result<S, Error>
+	combine: (input: Readonly<{ current: S; newState: S }>) => Result<S, Error>
+	reduceFromInitialState: (upParticles: AnyUpParticle[]) => Result<S, Error>
 }>
 
-export type TokenBalanceReducer = ParticleReducer<TokenBalancesState> &
+export type TokenBalanceForOneAccountReducer = ParticleReducer<TokenBalanceForOneAccount> &
 	Readonly<{
-		applicationStateType: ApplicationStateType.TOKEN_BALANCES
+		applicationStateType: ApplicationStateType.TOKEN_BALANCE_FOR_ONE_ACCOUNT
 	}>
 
 export type AtomToActionMapperInput = Readonly<{
