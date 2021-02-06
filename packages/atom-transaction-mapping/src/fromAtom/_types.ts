@@ -50,6 +50,7 @@ export type ApplicationState = Readonly<{
 export type TokenBalancesState = ApplicationState &
 	Readonly<{
 		balances: Map<ResourceIdentifier, TokenBalance>
+		size: number
 		balanceOf: (
 			resourceIdentifier: ResourceIdentifier,
 		) => TokenBalance | undefined

@@ -23,6 +23,7 @@ export const tokenBalancesState = (
 ): TokenBalancesState => ({
 	stateType: ApplicationStateType.TOKEN_BALANCES,
 	balances: balances,
+	size: balances.size,
 	balanceOf: (resourceIdentifier: ResourceIdentifier) =>
 		balances.get(resourceIdentifier),
 })

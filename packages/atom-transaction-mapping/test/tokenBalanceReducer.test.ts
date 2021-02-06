@@ -11,10 +11,13 @@ import { toAddress } from '@radixdlt/atom/test/helpers/utility'
 import {
 	Amount,
 	amountInSmallestDenomination,
+	eight,
+	five,
 	Granularity,
 	isAmount,
 	one,
 	ten,
+	two,
 } from '@radixdlt/primitives'
 import { empty, tokenBalanceReducer } from '../src/fromAtom/tokenBalanceReducer'
 
@@ -64,7 +67,6 @@ describe('TokenBalanceReducer', () => {
 				resourceIdentifier: aliceCoin,
 			}),
 		])
-		expect(balances.balances.size).toBe(1)
 		const balance = balances.balanceOf(aliceCoin)
 		expect(balance).toBeDefined()
 		expect(balance!.owner.equals(alice)).toBe(true)
@@ -72,6 +74,35 @@ describe('TokenBalanceReducer', () => {
 			balance!.tokenAmount.token.resourceIdentifier.equals(aliceCoin),
 		).toBe(true)
 		expect(balance!.tokenAmount.amount.equals(ten)).toBe(true)
+	})
+
+	it('should work with initial state and three TTP', () => {
+		const reducer = tokenBalanceReducer()
+		const balances = reducer.reduceFromInitialState([
+			upTTP({
+				amount: one,
+				owner: alice,
+				resourceIdentifier: aliceCoin,
+			}),
+			upTTP({
+				amount: two,
+				owner: alice,
+				resourceIdentifier: aliceCoin,
+			}),
+			upTTP({
+				amount: five,
+				owner: alice,
+				resourceIdentifier: aliceCoin,
+			}),
+		])
+		expect(balances.size).toBe(1)
+		const balance = balances.balanceOf(aliceCoin)
+		expect(balance).toBeDefined()
+		expect(balance!.owner.equals(alice)).toBe(true)
+		expect(
+			balance!.tokenAmount.token.resourceIdentifier.equals(aliceCoin),
+		).toBe(true)
+		expect(balance!.tokenAmount.amount.equals(eight)).toBe(true)
 	})
 })
 
