@@ -1,18 +1,20 @@
 import {
+	ApplicationState,
 	ApplicationStateType,
+	ParticleReducer,
 	TokenAmount,
 	TokenBalance,
 	TokenBalanceReducer,
 	TokenBalancesState,
 } from './_types'
 import {
-	ParticleBase,
+	AnyUpParticle,
 	ResourceIdentifier,
 	TokenBase,
 	TransferrableTokensParticle,
 } from '@radixdlt/atom'
 import { isTransferrableTokensParticle } from '@radixdlt/atom/dist/particles/transferrableTokensParticle'
-import { err, Result } from 'neverthrow'
+import { err, ok, Result } from 'neverthrow'
 import { mapEquals } from '@radixdlt/util'
 
 export const tokenBalancesState = (
@@ -161,20 +163,46 @@ const combine = (
 	)
 }
 
+const reduceListWithReducer = <S extends ApplicationState>(
+	reducer: ParticleReducer<S>,
+) => (acc: S, curr: AnyUpParticle): S => reducer.reduce(acc, curr)
+
+export const reduceFromInitialState = <S extends ApplicationState>(
+	upParticles: AnyUpParticle[],
+	reducer: ParticleReducer<S>,
+): Result<S, Error> => {
+	const reduced: S = upParticles.reduce(
+		reduceListWithReducer(reducer),
+		reducer.initialState,
+	)
+	return ok(reduced)
+}
+
 export const tokenBalanceReducer = (): TokenBalanceReducer => {
-	return {
+	const reduce = (
+		state: TokenBalancesState,
+		upParticle: AnyUpParticle,
+	): TokenBalancesState => {
+		if (!isTransferrableTokensParticle(upParticle.particle)) return state
+		return merge({
+			state: state,
+			transferrableTokensParticle: upParticle.particle,
+		})
+	}
+
+	const particleReducer = {
 		applicationStateType: ApplicationStateType.TOKEN_BALANCES,
 		initialState: empty,
-		reduce: (
-			state: TokenBalancesState,
-			particle: ParticleBase,
-		): TokenBalancesState => {
-			if (!isTransferrableTokensParticle(particle)) return state
-			return merge({
-				state: state,
-				transferrableTokensParticle: particle,
-			})
+		reduce,
+		combine,
+		reduceFromInitialState: (_: AnyUpParticle[]) => {
+			throw new Error('Impl me')
 		},
-		combine: combine,
+	}
+
+	return {
+		...particleReducer,
+		reduceFromInitialState: (upPartilces: AnyUpParticle[]) =>
+			reduceFromInitialState(upPartilces, particleReducer),
 	}
 }
