@@ -2,13 +2,17 @@ import {
 	AnyUpParticle,
 	isTransferrableTokensParticle,
 	ResourceIdentifier,
+	TransferrableTokensParticle,
 } from '@radixdlt/atom'
 import { Address } from '@radixdlt/crypto'
-import { err, ok, Result } from 'neverthrow'
+import { mapEquals } from '@radixdlt/util'
+import { combine, err, ok, Result } from 'neverthrow'
 import { makeParticleReducer } from './particleReducer'
 import {
 	tokenBalancesForOneAccountReducer,
 	empty as emptyOneAccount,
+	tokenBalancesForOneAccountFromParticle,
+	mergeMaps,
 } from './tokenBalancesForOneAccountReducer'
 import {
 	ApplicationStateType,
@@ -29,24 +33,41 @@ export const tokenBalancesPerAccount = (
 		balances.get(owner) ?? emptyOneAccount(owner),
 })
 
+const tokenBalancesPerAccountFromParticle = (
+	particle: TransferrableTokensParticle,
+): TokenBalancesPerAccount => {
+	const tokenBalancesForOneAccount_ = tokenBalancesForOneAccountFromParticle(
+		particle,
+	)
+	return tokenBalancesPerAccount(
+		new Map([[particle.address, tokenBalancesForOneAccount_]]),
+	)
+}
+
 export const empty = (): TokenBalancesPerAccount =>
 	tokenBalancesPerAccount(new Map())
 
 export const tokenBalancesPerAccountReducer = (): TokenBalancesPerAccountReducer => {
-	let mapOwnerToOneAcccountReducer: Map<
-		Address,
-		TokenBalancesForOneAccountReducer
-	> = new Map()
-	const reducerForAccount = (
-		owner: Address,
-	): TokenBalancesForOneAccountReducer => {
-		if (mapOwnerToOneAcccountReducer.has(owner)) {
-			return mapOwnerToOneAcccountReducer.get(owner)!
-		} else {
-			const newReducer = tokenBalancesForOneAccountReducer(owner)
-			mapOwnerToOneAcccountReducer.set(owner, newReducer)
-			return newReducer
-		}
+	const combine = (
+		input: Readonly<{
+			current: TokenBalancesPerAccount
+			newState: TokenBalancesPerAccount
+		}>,
+	): Result<TokenBalancesPerAccount, Error> => {
+		const currentBalancesMap = input.current.balances
+		const newBalancesMap = input.newState.balances
+		if (mapEquals(currentBalancesMap, newBalancesMap))
+			return ok(input.current)
+
+		return mergeMaps({
+			first: currentBalancesMap,
+			second: newBalancesMap,
+			onDuplicates: (a, b, _) =>
+				tokenBalancesForOneAccountReducer(a.owner).combine({
+					current: a,
+					newState: b,
+				}),
+		}).map((balances) => tokenBalancesPerAccount(balances))
 	}
 
 	return makeParticleReducer({
@@ -58,29 +79,16 @@ export const tokenBalancesPerAccountReducer = (): TokenBalancesPerAccountReducer
 				upParticle: AnyUpParticle
 			}>,
 		): Result<TokenBalancesPerAccount, Error> => {
-			if (!isTransferrableTokensParticle(input.upParticle.particle))
-				return ok(input.state)
-
-			const owner = input.upParticle.particle.address
-			const oneAccountReduccer = reducerForAccount(owner)
-			return oneAccountReduccer
-				.reduce({
-					state: input.state.balancesFor(owner),
-					upParticle: input.upParticle,
-				})
-				.map(
-					(balanceForAccountReduced): TokenBalancesPerAccount => {
-						let balancePerAccount = input.state.balances
-						balancePerAccount.set(owner, balanceForAccountReduced)
-						return tokenBalancesPerAccount(balancePerAccount)
-					},
-				)
+			const particle = input.upParticle.particle
+			if (!isTransferrableTokensParticle(particle)) return ok(input.state)
+			const tokenBalancesPerAccount_ = tokenBalancesPerAccountFromParticle(
+				particle,
+			)
+			return combine({
+				current: input.state,
+				newState: tokenBalancesPerAccount_,
+			})
 		},
-		combine: (
-			input: Readonly<{
-				current: TokenBalancesPerAccount
-				newState: TokenBalancesPerAccount
-			}>,
-		): Result<TokenBalancesPerAccount, Error> => err(new Error('imple me')),
+		combine: combine,
 	})
 }
