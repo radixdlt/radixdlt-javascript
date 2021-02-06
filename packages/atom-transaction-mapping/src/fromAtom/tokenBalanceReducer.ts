@@ -16,6 +16,7 @@ import {
 import { isTransferrableTokensParticle } from '@radixdlt/atom/dist/particles/transferrableTokensParticle'
 import { err, ok, Result } from 'neverthrow'
 import { mapEquals } from '@radixdlt/util'
+import { makeParticleReducer } from './particleReducer'
 
 export const tokenBalancesState = (
 	balances: Map<ResourceIdentifier, TokenBalance>,
@@ -148,61 +149,38 @@ const merge = (
 	)
 }
 
-const combine = (
-	first: TokenBalancesState,
-	second: TokenBalancesState,
-): TokenBalancesState => {
-	if (mapEquals(first.balances, second.balances)) return first
-
-	return tokenBalancesState(
-		mergeMaps({
-			first: first.balances,
-			second: second.balances,
-			onDuplicates: addTokenBalances,
-		}),
-	)
-}
-
-const reduceListWithReducer = <S extends ApplicationState>(
-	reducer: ParticleReducer<S>,
-) => (acc: S, curr: AnyUpParticle): S => reducer.reduce(acc, curr)
-
-export const reduceFromInitialState = <S extends ApplicationState>(
-	upParticles: AnyUpParticle[],
-	reducer: ParticleReducer<S>,
-): Result<S, Error> => {
-	const reduced: S = upParticles.reduce(
-		reduceListWithReducer(reducer),
-		reducer.initialState,
-	)
-	return ok(reduced)
-}
-
-export const tokenBalanceReducer = (): TokenBalanceReducer => {
-	const reduce = (
-		state: TokenBalancesState,
-		upParticle: AnyUpParticle,
-	): TokenBalancesState => {
-		if (!isTransferrableTokensParticle(upParticle.particle)) return state
-		return merge({
-			state: state,
-			transferrableTokensParticle: upParticle.particle,
-		})
-	}
-
-	const particleReducer = {
+export const tokenBalanceReducer = (): TokenBalanceReducer =>
+	makeParticleReducer({
 		applicationStateType: ApplicationStateType.TOKEN_BALANCES,
 		initialState: empty,
-		reduce,
-		combine,
-		reduceFromInitialState: (_: AnyUpParticle[]) => {
-			throw new Error('Impl me')
+		reduce: (
+			input: Readonly<{
+				state: TokenBalancesState
+				upParticle: AnyUpParticle
+			}>,
+		): TokenBalancesState => {
+			if (!isTransferrableTokensParticle(input.upParticle.particle))
+				return input.state
+			return merge({
+				state: input.state,
+				transferrableTokensParticle: input.upParticle.particle,
+			})
 		},
-	}
+		combine: (
+			input: Readonly<{
+				current: TokenBalancesState
+				newState: TokenBalancesState
+			}>,
+		): TokenBalancesState => {
+			if (mapEquals(input.current.balances, input.newState.balances))
+				return input.current
 
-	return {
-		...particleReducer,
-		reduceFromInitialState: (upPartilces: AnyUpParticle[]) =>
-			reduceFromInitialState(upPartilces, particleReducer),
-	}
-}
+			return tokenBalancesState(
+				mergeMaps({
+					first: input.current.balances,
+					second: input.newState.balances,
+					onDuplicates: addTokenBalances,
+				}),
+			)
+		},
+	})

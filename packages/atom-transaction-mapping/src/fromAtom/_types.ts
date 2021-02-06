@@ -7,7 +7,6 @@ import {
 } from '@radixdlt/atom'
 import { Address } from '@radixdlt/crypto'
 import { Amount } from '@radixdlt/primitives'
-import { Result } from 'neverthrow'
 import { Observable } from 'rxjs'
 
 export type TokenDefinition = TokenDefinitionBase &
@@ -59,9 +58,9 @@ export type TokenBalancesState = ApplicationState &
 export type ParticleReducer<S extends ApplicationState> = Readonly<{
 	applicationStateType: ApplicationStateType
 	initialState: S
-	reduce: (state: S, upParticle: AnyUpParticle) => S
-	combine: (s0: S, s1: S) => S
-	reduceFromInitialState: (upParticles: AnyUpParticle[]) => Result<S, Error>
+	reduce: (input: Readonly<{ state: S; upParticle: AnyUpParticle }>) => S
+	combine: (input: Readonly<{ current: S; newState: S }>) => S
+	reduceFromInitialState: (upParticles: AnyUpParticle[]) => S
 }>
 
 export type TokenBalanceReducer = ParticleReducer<TokenBalancesState> &
@@ -78,8 +77,6 @@ export type AtomToExecutedActionsMapper<
 	A extends ExecutedUserAction
 > = Readonly<{
 	executedUserActionType: ExecutedUserActionType
-
-	// Observable<T> map(Atom a, RadixIdentity identity);
 	map: (input: AtomToActionMapperInput) => Observable<A>
 }>
 
