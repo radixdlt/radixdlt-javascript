@@ -4,8 +4,8 @@ import {
 	ParticleReducer,
 	TokenAmount,
 	TokenBalance,
-	TokenBalanceForOneAccountReducer,
-	TokenBalanceForOneAccount,
+	TokenBalancesForOneAccountReducer,
+	TokenBalancesForOneAccount,
 } from './_types'
 import {
 	AnyUpParticle,
@@ -19,13 +19,13 @@ import { mapEquals } from '@radixdlt/util'
 import { makeParticleReducer } from './particleReducer'
 import { Address } from '@radixdlt/crypto'
 
-export const tokenBalanceForOneAccount = (
+export const tokenBalancesForOneAccount = (
 	input: Readonly<{
 		owner: Address
 		balances: Map<ResourceIdentifier, TokenBalance>
 	}>,
-): TokenBalanceForOneAccount => ({
-	stateType: ApplicationStateType.TOKEN_BALANCE_FOR_ONE_ACCOUNT,
+): TokenBalancesForOneAccount => ({
+	stateType: ApplicationStateType.TOKEN_BALANCES_FOR_ONE_ACCOUNT,
 	balances: input.balances,
 	owner: input.owner,
 	size: input.balances.size,
@@ -33,8 +33,20 @@ export const tokenBalanceForOneAccount = (
 		input.balances.get(resourceIdentifier),
 })
 
-export const empty = (owner: Address): TokenBalanceForOneAccount =>
-	tokenBalanceForOneAccount({ owner, balances: new Map() })
+export const tokenBalancesForOneAccountFromParticle = (
+	transferrableTokensParticle: TransferrableTokensParticle,
+): TokenBalancesForOneAccount => {
+	const tokenBalance_ = tokenBalance(transferrableTokensParticle)
+	return tokenBalancesForOneAccount({
+		owner: transferrableTokensParticle.address,
+		balances: new Map([
+			[transferrableTokensParticle.resourceIdentifier, tokenBalance_],
+		]),
+	})
+}
+
+export const empty = (owner: Address): TokenBalancesForOneAccount =>
+	tokenBalancesForOneAccount({ owner, balances: new Map() })
 
 export const tokenBalance = (
 	ttp: TransferrableTokensParticle,
@@ -47,6 +59,10 @@ export const tokenBalance = (
 		},
 	}
 }
+
+const ownerMismatchError = new Error(
+	`Cannot merge TokenBalance's with different owners.`,
+)
 
 export const mergeTokenBalance = (
 	lhs: TokenBalance,
@@ -64,9 +80,7 @@ export const mergeTokenBalance = (
 		)
 	}
 	if (!lhs.owner.equals(rhs.owner)) {
-		return err(
-			new Error(`Cannot merge TokenBalance's with different owners.`),
-		)
+		return err(ownerMismatchError)
 	}
 
 	return lhs.tokenAmount.amount.adding(rhs.tokenAmount.amount).map((sum) => ({
@@ -129,95 +143,62 @@ export const mergeMaps = <K, V>(
 	return ok(combinedMap)
 }
 
-const mergeKeyValueWithMap = <K, V>(
-	input: Readonly<{
-		first: Map<K, V>
-		keyValue: { key: K; value: V }
-		onDuplicates?: (
-			lhsValue: V,
-			rhsValue: V,
-			duplicatedKey: K,
-		) => Result<V, Error>
-	}>,
-): Result<Map<K, V>, Error> =>
-	mergeMaps({
-		...input,
-		second: new Map([[input.keyValue.key, input.keyValue.value]]),
-	})
-
 const addTokenBalances = (
 	firstTB: TokenBalance,
 	secondTB: TokenBalance,
 	_key: ResourceIdentifier,
 ): Result<TokenBalance, Error> => mergeTokenBalance(firstTB, secondTB)
 
-const merge = (
-	input: Readonly<{
-		state: TokenBalanceForOneAccount
-		transferrableTokensParticle: TransferrableTokensParticle
-	}>,
-): Result<TokenBalanceForOneAccount, Error> => {
-	const balances = input.state.balances
-	const tokenParticle = input.transferrableTokensParticle
-
-	return mergeKeyValueWithMap({
-		first: balances,
-		keyValue: {
-			key: tokenParticle.resourceIdentifier,
-			value: tokenBalance(tokenParticle),
-		},
-		onDuplicates: addTokenBalances,
-	}).map((balances) =>
-		tokenBalanceForOneAccount({
-			owner: input.state.owner,
-			balances: balances,
-		}),
-	)
-}
-
-export const tokenBalanceForOneAccountReducer = (
+export const tokenBalancesForOneAccountReducer = (
 	owner: Address,
-): TokenBalanceForOneAccountReducer =>
-	makeParticleReducer({
+): TokenBalancesForOneAccountReducer => {
+	const combine = (
+		input: Readonly<{
+			current: TokenBalancesForOneAccount
+			newState: TokenBalancesForOneAccount
+		}>,
+	): Result<TokenBalancesForOneAccount, Error> => {
+		if (
+			!input.current.owner.equals(owner) ||
+			!input.current.owner.equals(input.newState.owner)
+		)
+			throw new Error('Incorrect implementation, owner mismatch')
+		if (mapEquals(input.current.balances, input.newState.balances))
+			return ok(input.current)
+
+		return mergeMaps({
+			first: input.current.balances,
+			second: input.newState.balances,
+			onDuplicates: addTokenBalances,
+		}).map((balances) =>
+			tokenBalancesForOneAccount({
+				owner: input.current.owner,
+				balances: balances,
+			}),
+		)
+	}
+
+	return makeParticleReducer({
 		applicationStateType:
-			ApplicationStateType.TOKEN_BALANCE_FOR_ONE_ACCOUNT,
+			ApplicationStateType.TOKEN_BALANCES_FOR_ONE_ACCOUNT,
 		initialState: empty(owner),
 		reduce: (
 			input: Readonly<{
-				state: TokenBalanceForOneAccount
+				state: TokenBalancesForOneAccount
 				upParticle: AnyUpParticle
 			}>,
-		): Result<TokenBalanceForOneAccount, Error> => {
-			if (!isTransferrableTokensParticle(input.upParticle.particle))
-				return ok(input.state)
-			return merge({
-				state: input.state,
-				transferrableTokensParticle: input.upParticle.particle,
+		): Result<TokenBalancesForOneAccount, Error> => {
+			const particle = input.upParticle.particle
+			if (!isTransferrableTokensParticle(particle)) return ok(input.state)
+			if (!particle.address.equals(owner)) return err(ownerMismatchError)
+			const tokenBalancesForOneAccount_ = tokenBalancesForOneAccountFromParticle(
+				particle,
+			)
+			return combine({
+				current: input.state,
+				newState: tokenBalancesForOneAccount_,
 			})
 		},
-		combine: (
-			input: Readonly<{
-				current: TokenBalanceForOneAccount
-				newState: TokenBalanceForOneAccount
-			}>,
-		): Result<TokenBalanceForOneAccount, Error> => {
-			if (
-				!input.current.owner.equals(owner) ||
-				!input.current.owner.equals(input.newState.owner)
-			)
-				throw new Error('Incorrect implementation, owner mismatch')
-			if (mapEquals(input.current.balances, input.newState.balances))
-				return ok(input.current)
-
-			return mergeMaps({
-				first: input.current.balances,
-				second: input.newState.balances,
-				onDuplicates: addTokenBalances,
-			}).map((balances) =>
-				tokenBalanceForOneAccount({
-					owner: input.current.owner,
-					balances: balances,
-				}),
-			)
-		},
+		combine: combine,
 	})
+}

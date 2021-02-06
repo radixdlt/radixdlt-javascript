@@ -42,13 +42,14 @@ export type TokenBalance = Readonly<{
 }>
 
 export enum ApplicationStateType {
-	TOKEN_BALANCE_FOR_ONE_ACCOUNT = 'TokenBalanceForOneAccount',
+	TOKEN_BALANCES_FOR_ONE_ACCOUNT = 'TokenBalancesForOneAccount',
+	TOKEN_BALANCES_PER_ACCOUNT = 'TokenBalancesPerAccount',
 }
 export type ApplicationState = Readonly<{
 	stateType: ApplicationStateType
 }>
 
-export type TokenBalanceForOneAccount = ApplicationState &
+export type TokenBalancesForOneAccount = ApplicationState &
 	Readonly<{
 		balances: Map<ResourceIdentifier, TokenBalance>
 		owner: Address
@@ -58,19 +59,11 @@ export type TokenBalanceForOneAccount = ApplicationState &
 		) => TokenBalance | undefined
 	}>
 
-export type TokenBalancesForAccounts = ApplicationState &
+export type TokenBalancesPerAccount = ApplicationState &
 	Readonly<{
-		balances: Map<Address, TokenBalanceForOneAccount>
+		balances: Map<Address, TokenBalancesForOneAccount>
 		size: number
-
-		balanceOf: (
-			query: Readonly<{
-				owner: Address
-				resourceIdentifier: ResourceIdentifier
-			}>,
-		) => TokenBalance | undefined
-
-		balancesFor: (owner: Address) => TokenBalanceForOneAccount
+		balancesFor: (owner: Address) => TokenBalancesForOneAccount
 	}>
 
 export type ParticleReducer<S extends ApplicationState> = Readonly<{
@@ -83,9 +76,14 @@ export type ParticleReducer<S extends ApplicationState> = Readonly<{
 	reduceFromInitialState: (upParticles: AnyUpParticle[]) => Result<S, Error>
 }>
 
-export type TokenBalanceForOneAccountReducer = ParticleReducer<TokenBalanceForOneAccount> &
+export type TokenBalancesForOneAccountReducer = ParticleReducer<TokenBalancesForOneAccount> &
 	Readonly<{
-		applicationStateType: ApplicationStateType.TOKEN_BALANCE_FOR_ONE_ACCOUNT
+		applicationStateType: ApplicationStateType.TOKEN_BALANCES_FOR_ONE_ACCOUNT
+	}>
+
+export type TokenBalancesPerAccountReducer = ParticleReducer<TokenBalancesPerAccount> &
+	Readonly<{
+		applicationStateType: ApplicationStateType.TOKEN_BALANCES_PER_ACCOUNT
 	}>
 
 export type AtomToActionMapperInput = Readonly<{

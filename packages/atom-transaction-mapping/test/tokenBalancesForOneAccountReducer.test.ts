@@ -23,8 +23,8 @@ import {
 } from '@radixdlt/primitives'
 import {
 	empty,
-	tokenBalanceForOneAccountReducer,
-} from '../src/fromAtom/tokenBalanceForOneAccountReducer'
+	tokenBalancesForOneAccountReducer,
+} from '../src/fromAtom/tokenBalancesForOneAccountReducer'
 
 import { UInt256 } from '@radixdlt/uint256'
 
@@ -77,7 +77,7 @@ describe('TokenBalanceReducer', () => {
 		upParticle(makeTTP(input)).eraseToAnyUp()
 
 	it('should work with initial state and one TTP', () => {
-		const reducer = tokenBalanceForOneAccountReducer(alice)
+		const reducer = tokenBalancesForOneAccountReducer(alice)
 		const balances = reducer
 			.reduceFromInitialState([
 				upTTP({
@@ -97,7 +97,7 @@ describe('TokenBalanceReducer', () => {
 	})
 
 	it('should work with initial state and three TTP', () => {
-		const reducer = tokenBalanceForOneAccountReducer(alice)
+		const reducer = tokenBalancesForOneAccountReducer(alice)
 		const balances = reducer
 			.reduceFromInitialState([
 				upTTP({
@@ -128,7 +128,7 @@ describe('TokenBalanceReducer', () => {
 	})
 
 	it('should fail with address mismatch error for TTPS belonging to different addresses', () => {
-		const reducer = tokenBalanceForOneAccountReducer(alice)
+		const reducer = tokenBalancesForOneAccountReducer(alice)
 		const balancesResult = reducer.reduceFromInitialState([
 			upTTP({
 				amount: three,
@@ -154,7 +154,7 @@ describe('TokenBalanceReducer', () => {
 	})
 
 	it('should work with initial state and TTPs with different coins', () => {
-		const reducer = tokenBalanceForOneAccountReducer(alice)
+		const reducer = tokenBalancesForOneAccountReducer(alice)
 		const balances = reducer
 			.reduceFromInitialState([
 				upTTP({
