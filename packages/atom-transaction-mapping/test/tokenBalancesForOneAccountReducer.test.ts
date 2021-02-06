@@ -21,14 +21,11 @@ import {
 	seven,
 	two,
 } from '@radixdlt/primitives'
-import {
-	empty,
-	tokenBalancesForOneAccountReducer,
-} from '../src/fromAtom/tokenBalancesForOneAccountReducer'
+import { tokenBalancesForOneAccountReducer } from '../src/fromAtom/tokenBalancesForOneAccountReducer'
 
 import { UInt256 } from '@radixdlt/uint256'
 
-describe('TokenBalanceReducer', () => {
+describe('TokenBalancesForOneAccountReducer', () => {
 	const alice = toAddress(
 		'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
 	)

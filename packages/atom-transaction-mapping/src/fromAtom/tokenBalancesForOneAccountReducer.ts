@@ -1,7 +1,5 @@
 import {
-	ApplicationState,
 	ApplicationStateType,
-	ParticleReducer,
 	TokenAmount,
 	TokenBalance,
 	TokenBalancesForOneAccountReducer,
@@ -39,14 +37,19 @@ export const tokenBalancesForOneAccountFromParticle = (
 	const tokenBalance_ = tokenBalance(transferrableTokensParticle)
 	return tokenBalancesForOneAccount({
 		owner: transferrableTokensParticle.address,
-		balances: new Map([
+		balances: new Map<ResourceIdentifier, TokenBalance>([
 			[transferrableTokensParticle.resourceIdentifier, tokenBalance_],
 		]),
 	})
 }
 
-export const empty = (owner: Address): TokenBalancesForOneAccount =>
-	tokenBalancesForOneAccount({ owner, balances: new Map() })
+export const emptyTokenBalancesForOneAccount = (
+	owner: Address,
+): TokenBalancesForOneAccount =>
+	tokenBalancesForOneAccount({
+		owner,
+		balances: new Map<ResourceIdentifier, TokenBalance>(),
+	})
 
 export const tokenBalance = (
 	ttp: TransferrableTokensParticle,
@@ -96,7 +99,7 @@ export const mergeMaps = <K, V>(
 	input: Readonly<{
 		first: Map<K, V>
 		second: Map<K, V>
-		onDuplicates?: (
+		onDuplicates: (
 			lhsValue: V,
 			rhsValue: V,
 			duplicatedKey: K,
@@ -105,9 +108,6 @@ export const mergeMaps = <K, V>(
 ): Result<Map<K, V>, Error> => {
 	const lhs = input.first
 	const rhs = input.second
-	const onDuplicates =
-		input.onDuplicates ??
-		((_yieldingLHS, dominantRHS, _Key): Result<V, Error> => ok(dominantRHS))
 
 	const mergedSetOfKeys = new Set(
 		([] as K[])
@@ -115,7 +115,7 @@ export const mergeMaps = <K, V>(
 			.concat(Array.from<K>(rhs.keys())),
 	)
 
-	/* eslint-disable functional/immutable-data, functional/no-let, prefer-const */
+	/* eslint-disable functional/immutable-data, functional/no-let, functional/no-loop-statement, prefer-const */
 	let combinedMap = new Map<K, V>()
 
 	for (const key of mergedSetOfKeys) {
@@ -125,7 +125,7 @@ export const mergeMaps = <K, V>(
 
 		if (lhsVal && rhsVal) {
 			// Found duplicates...
-			const mergeResult = onDuplicates(lhsVal, rhsVal, key)
+			const mergeResult = input.onDuplicates(lhsVal, rhsVal, key)
 			if (mergeResult.isOk()) {
 				combinedMap.set(key, mergeResult.value)
 			} else {
@@ -143,12 +143,7 @@ export const mergeMaps = <K, V>(
 	return ok(combinedMap)
 }
 
-const addTokenBalances = (
-	firstTB: TokenBalance,
-	secondTB: TokenBalance,
-	_key: ResourceIdentifier,
-): Result<TokenBalance, Error> => mergeTokenBalance(firstTB, secondTB)
-
+// eslint-disable-next-line max-lines-per-function
 export const tokenBalancesForOneAccountReducer = (
 	owner: Address,
 ): TokenBalancesForOneAccountReducer => {
@@ -169,7 +164,7 @@ export const tokenBalancesForOneAccountReducer = (
 		return mergeMaps({
 			first: input.current.balances,
 			second: input.newState.balances,
-			onDuplicates: addTokenBalances,
+			onDuplicates: (a, b, _) => mergeTokenBalance(a, b),
 		}).map((balances) =>
 			tokenBalancesForOneAccount({
 				owner: input.current.owner,
@@ -181,7 +176,7 @@ export const tokenBalancesForOneAccountReducer = (
 	return makeParticleReducer({
 		applicationStateType:
 			ApplicationStateType.TOKEN_BALANCES_FOR_ONE_ACCOUNT,
-		initialState: empty(owner),
+		initialState: emptyTokenBalancesForOneAccount(owner),
 		reduce: (
 			input: Readonly<{
 				state: TokenBalancesForOneAccount

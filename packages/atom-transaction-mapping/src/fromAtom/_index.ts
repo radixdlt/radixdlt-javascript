@@ -2,4 +2,4 @@ export * from './_types'
 
 export * from './atomToTokenTransfersMapper'
 export * from './tokenTransfer'
-export * from './tokenBalanceReducer'
+export * from './tokenBalancesPerAccountReducer'
