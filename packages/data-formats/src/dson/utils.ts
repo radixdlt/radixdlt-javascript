@@ -6,7 +6,6 @@ export const DSONObjectEncoding = (input: {
 	prefix: Byte
 	buffer: Buffer
 }): DSONCodable =>
-	DSONEncoding({
-		encodingMethodOrKeyValues: () =>
-			Buffer.concat([byteToBuffer(input.prefix), input.buffer]),
-	})
+	DSONEncoding(undefined)(() =>
+		Buffer.concat([byteToBuffer(input.prefix), input.buffer]),
+	)

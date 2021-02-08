@@ -15,9 +15,7 @@ export const nonce = (value: Int64 | number): Nonce => {
 	const int64 = Long.isLong(value) ? value : Long.fromNumber(value)
 
 	return {
-		...DSONEncoding({
-			encodingMethodOrKeyValues: () => BigInt(int64.toString(10)),
-		}),
+		...DSONEncoding(undefined)(() => BigInt(int64.toString(10))),
 		value: int64,
 		equals: (other: Nonce): boolean => other.value.equals(int64),
 	}

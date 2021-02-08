@@ -44,9 +44,8 @@ export const makeTokenPermissions = (
 	const burnPermission = valueOfRequiredPermission(TokenTransition.BURN)
 
 	return {
-		...DSONEncoding({
-			encodingMethodOrKeyValues: () => permissions,
-		}),
+		...DSONEncoding(undefined)(() => permissions),
+
 		permissions,
 		mintPermission,
 		canBeMinted: (isOwnerOfToken: IsOwnerOfToken): boolean =>
