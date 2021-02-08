@@ -41,17 +41,10 @@ export const doTestTokenDefintionParticle = <
 		)
 		expect(tokenDefinitionParticle.name).toBe('Foobar Coin')
 		expect(tokenDefinitionParticle.description).toBe('Best coin ever')
-		expect(tokenDefinitionParticle.url).toBe('https://foobar.com/')
+		expect(tokenDefinitionParticle.url).toBe('https://foobar.com')
 		expect(tokenDefinitionParticle.iconURL).toBe(
 			'https://foobar.com/icon.png',
 		)
-	})
-
-	it('has a default granularity with value 1 whole', () => {
-		const tokenDefinitionParticle = ctor(input)._unsafeUnwrap()
-		expect(
-			tokenDefinitionParticle.granularity.equals(granularityDefault),
-		).toBe(true)
 	})
 
 	it('cannot be created with an invalid token url (even though it is optional)', () => {

@@ -25,6 +25,7 @@ import {
 	amountFromUnsafe,
 	AmountInputUnsafe,
 	Denomination,
+	Granularity,
 	maxAmount,
 } from '../src/_index'
 
@@ -119,6 +120,21 @@ describe('Amount', () => {
 	it('can check for multiples', () => {
 		expect(four.isMultipleOf(two)).toBe(true)
 		expect(four.isMultipleOf(three)).toBe(false)
+	})
+
+	it('can check for multiple with granularity', () => {
+		const granularity: Granularity = amountFromUInt256({
+			magnitude: UInt256.valueOf(1),
+			denomination: Denomination.Atto,
+		})._unsafeUnwrap()
+
+		const supply = amountFromUInt256({
+			magnitude: UInt256.valueOf(10),
+			denomination: Denomination.Atto,
+		})._unsafeUnwrap()
+
+		expect(supply.isMultipleOf(granularity)).toBe(true)
+		expect(granularity.isMultipleOf(supply)).toBe(false)
 	})
 
 	it('should be able to DSON encode amount in denomination whole', () => {

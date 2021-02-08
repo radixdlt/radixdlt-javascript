@@ -26,16 +26,13 @@ const SERIALIZER = 'radix.particles.transferrable_tokens'
 const DSON = (
 	input: TransferrableTokensParticleProps & TokenParticle,
 ): DSONCodable =>
-	DSONEncoding({
-		serializer: SERIALIZER,
-		encodingMethodOrKeyValues: [
-			...tokenDSONKeyValues(input),
-			{
-				key: 'address',
-				value: input.address,
-			},
-		],
-	})
+	DSONEncoding(SERIALIZER)([
+		...tokenDSONKeyValues(input),
+		{
+			key: 'address',
+			value: input.address,
+		},
+	])
 
 export const transferrableTokensParticle = (
 	input: TransferrableTokensParticleInput,

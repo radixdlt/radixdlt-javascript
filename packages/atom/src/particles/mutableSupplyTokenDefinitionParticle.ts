@@ -36,7 +36,15 @@ export const mutableSupplyTokenDefinitionParticle = (
 	).andThen((permissions) => {
 		return baseTokenDefinitionParticle({
 			...input,
-			radixParticleType,
+			serializer: 'radix.particles.mutable_supply_token_definition',
+			radixParticleType:
+				RadixParticleType.MUTABLE_SUPPLY_TOKEN_DEFINITION,
+			specificEncodableKeyValues: [
+				{
+					key: 'permissions',
+					value: permissions,
+				},
+			],
 			// eslint-disable-next-line complexity
 			makeEquals: (
 				thisParticle: TokenDefinitionParticleBase,

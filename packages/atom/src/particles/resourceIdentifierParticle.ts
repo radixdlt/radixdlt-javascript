@@ -23,10 +23,7 @@ export const resourceIdentifierParticle = (
 	]
 
 	return {
-		...DSONEncoding({
-			serializer: 'radix.particles.rri',
-			encodingMethodOrKeyValues: dsonKeyValues,
-		}),
+		...DSONEncoding('radix.particles.rri')(dsonKeyValues),
 
 		radixParticleType,
 		alwaysZeroNonce,

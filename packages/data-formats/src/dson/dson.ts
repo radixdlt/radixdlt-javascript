@@ -60,36 +60,36 @@ export const encodeCbor = (
  * @param encodingMethodOrKeyValues A function specifying the DSON encoding, OR
  * a list of DSON encodable objects.
  */
-export const DSONEncoding = (
-	input: Readonly<{
-		serializer?: string
-		encodingMethodOrKeyValues:
-			| (() => CBOREncodablePrimitive)
-			| DSONKeyValue[]
-	}>,
+
+export const DSONEncoding = <Serializer extends string | undefined>(
+	serializer: Serializer,
+) => (
+	encodingMethodOrKeyValues: Serializer extends string
+		? DSONKeyValue[]
+		: () => CBOREncodablePrimitive,
 ): DSONCodable => {
-	if (Array.isArray(input.encodingMethodOrKeyValues)) {
-		if (!input.serializer)
+	if (Array.isArray(encodingMethodOrKeyValues)) {
+		if (!serializer)
 			throw new Error(
 				'serializer required when supplying key values for DSON encoding.',
 			)
 
 		return DSONEncodableMap([
-			...defaultKeyValues(input.serializer),
-			...input.encodingMethodOrKeyValues,
+			...defaultKeyValues(serializer as string),
+			...encodingMethodOrKeyValues,
 		])
 	}
 
-	return DSONEncodableObject(input.encodingMethodOrKeyValues)
+	return DSONEncodableObject(
+		encodingMethodOrKeyValues as () => CBOREncodablePrimitive,
+	)
 }
 
 export const DSONPrimitive = (value: CBOREncodablePrimitive): DSONCodable => {
 	if (isEmpty(value))
 		throw new Error('DSON primitives cannot have an empty value.')
 
-	return DSONEncoding({
-		encodingMethodOrKeyValues: () => value,
-	})
+	return DSONEncoding(undefined)(() => value)
 }
 
 /**
