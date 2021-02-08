@@ -6,9 +6,12 @@ import {
 	orderOfSecp256k1,
 	PrivateKey,
 	generatePrivateKey,
+	generateKeyPair,
 } from '../src/_index'
 
 import { UInt256 } from '@radixdlt/uint256'
+import { generatorPointSecp256k1 } from '../src/wrap/publicKeyWrapped'
+import { publicKeyFromPrivateKey } from '../dist/wrap/publicKeyWrapped'
 
 // TODO CODE DUPLICATION! Move to shared testing only package.
 export const signatureFromHexStrings = (input: {
@@ -122,4 +125,33 @@ describe('elliptic curve cryptography', () => {
 			'0479be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8',
 		)
 	})
+
+	it('has G', () => {
+		const g = generatorPointSecp256k1
+		expect(g.x.toString(16)).toBe('79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798')
+		expect(g.y.toString(16)).toBe('483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8')
+	})
+
+	it('G can mult with self', () => {
+		const g = generatorPointSecp256k1
+		const one = UInt256.valueOf(1)
+		// const privateKey = privateKeyFromScalar(one)
+		expect(g.multiply(one).equals(g)).toBe(true)
+		const pubKey = publicKeyFromPrivateKey({ privateKey: one })._unsafeUnwrap()
+		expect(pubKey.decodeToPointOnCurve()._unsafeUnwrap().equals(g)).toBe(true)
+	})
+
+	// it('can do EC multiplication and addition', () => {
+	// 	const keyPair = generateKeyPair()._unsafeUnwrap()
+
+	// 	const publicKey = keyPair.publicKey
+	// 	const privateKey = keyPair.privateKey
+	// 	const pubKeyPoint = publicKey.decodeToPointOnCurve()._unsafeUnwrap()
+	// 	const xyString = pubKeyPoint.x.toString(16) + pubKeyPoint.y.toString(16)
+	// 	expect(publicKey.asData({ compressed: false }).toString('hex')).toBe(xyString)
+
+	// 	pubKeyPoint.
+
+
+	// })
 })

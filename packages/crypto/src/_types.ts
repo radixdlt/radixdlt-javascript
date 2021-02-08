@@ -44,7 +44,7 @@ export type PublicKey = Readonly<{
 			forData: UnsignedMessage
 		}>,
 	) => boolean
-	decodeToPointOnCurve: () => ECPointOnCurve
+	decodeToPointOnCurve: () => Result<ECPointOnCurve, Error>
 	equals: (other: PublicKey) => boolean
 }>
 
@@ -54,12 +54,12 @@ export type PublicKeyProvider = Readonly<{
 
 export type PrivateKey = Signer &
 	PublicKeyProvider & {
-		scalar: UInt256,
+		scalar: UInt256
 		toString: () => string
 	}
 
 export type KeyPair = Readonly<{
-	publicKey: PublicKey,
+	publicKey: PublicKey
 	privateKey: PrivateKey
 }>
 

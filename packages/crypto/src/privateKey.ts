@@ -9,7 +9,13 @@ import { UInt256 } from '@radixdlt/uint256'
 import { signDataWithPrivateKey } from './wrap/sign'
 
 import { Result, ResultAsync } from 'neverthrow'
-import { UnsignedMessage, Signature, PublicKey, PrivateKey, KeyPair } from './_types'
+import {
+	UnsignedMessage,
+	Signature,
+	PublicKey,
+	PrivateKey,
+	KeyPair,
+} from './_types'
 import { publicKeyFromPrivateKey } from './wrap/publicKeyWrapped'
 import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
 

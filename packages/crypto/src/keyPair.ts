@@ -8,10 +8,10 @@ export const generateKeyPair = (
 	secureRandom: SecureRandom = secureRandomGenerator,
 ): Result<KeyPair, Error> => {
 	const privateKey = generatePrivateKey(secureRandom)
-	return publicKeyFromPrivateKey({ privateKey: privateKey.scalar })
-		.map((publicKey) => ({
+	return publicKeyFromPrivateKey({ privateKey: privateKey.scalar }).map(
+		(publicKey) => ({
 			publicKey,
 			privateKey,
-		})
+		}),
 	)
 }
