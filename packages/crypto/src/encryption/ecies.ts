@@ -6,5 +6,5 @@ import { err, Result } from 'neverthrow'
 export const encrypt = (
 	input: ECIESEncryptInput,
 ): Result<ECIESEncryptedMessage, Error> => {
-    return err(new Error('Impl me'))
+	return err(new Error('Impl me'))
 }

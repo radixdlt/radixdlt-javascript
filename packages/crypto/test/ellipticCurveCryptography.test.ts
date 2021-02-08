@@ -128,16 +128,24 @@ describe('elliptic curve cryptography', () => {
 
 	it('has G', () => {
 		const g = generatorPointSecp256k1
-		expect(g.x.toString(16)).toBe('79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798')
-		expect(g.y.toString(16)).toBe('483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8')
+		expect(g.x.toString(16)).toBe(
+			'79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
+		)
+		expect(g.y.toString(16)).toBe(
+			'483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8',
+		)
 	})
 
 	it('G can mult with self', () => {
 		const g = generatorPointSecp256k1
 		const one = UInt256.valueOf(1)
 		expect(g.multiply(one).equals(g)).toBe(true)
-		const pubKey = publicKeyFromPrivateKey({ privateKey: one })._unsafeUnwrap()
-		expect(pubKey.decodeToPointOnCurve()._unsafeUnwrap().equals(g)).toBe(true)
+		const pubKey = publicKeyFromPrivateKey({
+			privateKey: one,
+		})._unsafeUnwrap()
+		expect(pubKey.decodeToPointOnCurve()._unsafeUnwrap().equals(g)).toBe(
+			true,
+		)
 	})
 
 	it('can do EC multiplication', () => {
@@ -147,7 +155,9 @@ describe('elliptic curve cryptography', () => {
 		const pubKeyPoint = publicKey.decodeToPointOnCurve()._unsafeUnwrap()
 		const xyString = pubKeyPoint.x.toString(16) + pubKeyPoint.y.toString(16)
 		const uncompressedPubKeyPrefix = '04'
-		expect(publicKey.asData({ compressed: false }).toString('hex')).toBe(uncompressedPubKeyPrefix + xyString)
+		expect(publicKey.asData({ compressed: false }).toString('hex')).toBe(
+			uncompressedPubKeyPrefix + xyString,
+		)
 		const g = generatorPointSecp256k1
 		g.multiplyWithPrivateKey(privateKey).equals(pubKeyPoint)
 	})

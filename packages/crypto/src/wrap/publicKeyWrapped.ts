@@ -37,20 +37,17 @@ const pointOnCurveFromEllipticShortPoint = (
 	}
 
 	const multiplyByScalar = (by: UInt256): ECPointOnCurve => {
-					const factorShortPoint = shortPoint.mul(
-						bnFromUInt256(by),
-					) as curve.short.ShortPoint
-					// using recursion here!
-					const factorPoint = pointOnCurveFromEllipticShortPoint(
-						factorShortPoint,
-					)
+		const factorShortPoint = shortPoint.mul(
+			bnFromUInt256(by),
+		) as curve.short.ShortPoint
+		// using recursion here!
+		const factorPoint = pointOnCurveFromEllipticShortPoint(factorShortPoint)
 
-					// This should not happen, the internals of the EC lib `Elliptic` should always be
-					// able to perform multiplication between point and a scalar.
-					if (!factorPoint.isOk())
-						throw incorrectImplementationECPointInvalid
-					return factorPoint.value
-				}
+		// This should not happen, the internals of the EC lib `Elliptic` should always be
+		// able to perform multiplication between point and a scalar.
+		if (!factorPoint.isOk()) throw incorrectImplementationECPointInvalid
+		return factorPoint.value
+	}
 
 	return validateOnCurve(shortPoint).andThen((_) => {
 		return combine([
@@ -81,19 +78,22 @@ const pointOnCurveFromEllipticShortPoint = (
 					return sumPoint.value
 				},
 				multiply: multiplyByScalar,
-				multiplyWithPrivateKey: (privateKey: PrivateKey): ECPointOnCurve => multiplyByScalar(privateKey.scalar)
+				multiplyWithPrivateKey: (
+					privateKey: PrivateKey,
+				): ECPointOnCurve => multiplyByScalar(privateKey.scalar),
 			}
 		})
 	})
 }
 
-
-// export const pointOnCurve = (input: Readonly<{ 
+// export const pointOnCurve = (input: Readonly<{
 // 	x: UInt256,
 // 	y: UInt256
-// }>): Result<ECPointOnCurve, Error> => 
+// }>): Result<ECPointOnCurve, Error> =>
 
-export const generatorPointSecp256k1: ECPointOnCurve = pointOnCurveFromEllipticShortPoint(secp256k1.g as curve.short.ShortPoint)._unsafeUnwrap()
+export const generatorPointSecp256k1: ECPointOnCurve = pointOnCurveFromEllipticShortPoint(
+	secp256k1.g as curve.short.ShortPoint,
+)._unsafeUnwrap()
 
 const publicKeyFromEllipticKey = (
 	ecKeyPair: ec.KeyPair,
