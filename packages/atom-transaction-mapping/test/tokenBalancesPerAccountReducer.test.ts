@@ -270,7 +270,7 @@ describe('TokenBalancesPerAccountReducer', () => {
 		expect(balances.size).toBe(2)
 
 		const alicesBalances = balances.balancesFor(alice)
-		expect(alicesBalances.size).toBe(2)
+		expect(alicesBalances.size).toBe(2) // aliceCoin, stellCOiun
 
 		const alicesBalanceOfAliceCoin = alicesBalances.balanceOf(aliceCoin)
 		expect(alicesBalanceOfAliceCoin).toBeDefined()

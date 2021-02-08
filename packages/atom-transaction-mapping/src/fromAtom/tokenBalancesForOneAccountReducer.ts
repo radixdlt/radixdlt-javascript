@@ -119,7 +119,6 @@ export const mergeMaps = <K, V>(
 	let combinedMap = new Map<K, V>()
 
 	for (const key of mergedSetOfKeys) {
-		//.forEach((key) => {
 		const lhsVal = lhs.get(key)
 		const rhsVal = rhs.get(key)
 
@@ -157,7 +156,7 @@ export const tokenBalancesForOneAccountReducer = (
 			!input.current.owner.equals(owner) ||
 			!input.current.owner.equals(input.newState.owner)
 		)
-			throw new Error('Incorrect implementation, owner mismatch')
+			return err(new Error('Incorrect implementation, owner mismatch'))
 		if (mapEquals(input.current.balances, input.newState.balances))
 			return ok(input.current)
 

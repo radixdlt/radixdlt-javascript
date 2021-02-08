@@ -1,4 +1,4 @@
-import { AnyUpParticle } from '@radixdlt/atom'
+import { AnyUpParticle, upParticle } from '@radixdlt/atom'
 import { ok, Result } from 'neverthrow'
 import {
 	ApplicationState,
@@ -7,23 +7,27 @@ import {
 } from './_types'
 
 export const reduceFromInitialState = <S extends ApplicationState>(
-	upParticles: AnyUpParticle[],
-	reducer: ParticleReducer<S>,
-): Result<S, Error> => {
-	return upParticles.reduce(
+	input: Readonly<{
+		initialState: S
+		reduce: (
+			input: Readonly<{ state: S; upParticle: AnyUpParticle }>,
+		) => Result<S, Error>
+		upParticles: AnyUpParticle[]
+	}>,
+): Result<S, Error> =>
+	input.upParticles.reduce(
 		(
 			state: Result<S, Error>,
 			upParticle: AnyUpParticle,
 		): Result<S, Error> => {
 			if (state.isOk()) {
-				return reducer.reduce({ state: state.value, upParticle })
+				return input.reduce({ state: state.value, upParticle })
 			} else {
 				return state
 			}
 		},
-		ok(reducer.initialState),
+		ok(input.initialState),
 	)
-}
 
 export const makeParticleReducer = <
 	S extends ApplicationState,
@@ -45,16 +49,9 @@ export const makeParticleReducer = <
 			'Incorrect implementation, mismatch between application state types.',
 		)
 
-	const particleReducer = {
-		...input,
-		reduceFromInitialState: (_: AnyUpParticle[]) => {
-			throw new Error('Impl me')
-		},
-	}
-
 	return <R>{
-		...particleReducer,
-		reduceFromInitialState: (upPartilces: AnyUpParticle[]) =>
-			reduceFromInitialState(upPartilces, particleReducer),
+		...input,
+		reduceFromInitialState: (upParticles) =>
+			reduceFromInitialState<S>({ ...input, upParticles }),
 	}
 }
