@@ -13,4 +13,17 @@ export const objectEquals = <K extends symbol, V>(
 		).length === 0
 	)
 }
+
+export const autoConvertMapToObject = (map) => {
+	const obj = {}
+	for (const item of [...map]) {
+		const [key, value] = item
+		obj[key] = value
+	}
+	return obj
+}
+
+export const mapEquals = <K, V>(lhs: Map<K, V>, rhs: Map<K, V>): boolean =>
+	objectEquals(autoConvertMapToObject(lhs), autoConvertMapToObject(rhs))
+
 /* eslint-enable */

@@ -1,6 +1,13 @@
-import { Atom, TokenBase, TokenDefinitionBase } from '@radixdlt/atom'
+import {
+	AnyUpParticle,
+	Atom,
+	ResourceIdentifier,
+	TokenBase,
+	TokenDefinitionBase,
+} from '@radixdlt/atom'
 import { Address } from '@radixdlt/crypto'
 import { Amount } from '@radixdlt/primitives'
+import { Result } from 'neverthrow'
 import { Observable } from 'rxjs'
 
 export type TokenDefinition = TokenDefinitionBase &
@@ -29,6 +36,56 @@ export type TokenTransfer = ExecutedUserAction &
 		tokenAmount: TokenAmount
 	}>
 
+export type TokenBalance = Readonly<{
+	owner: Address
+	tokenAmount: TokenAmount
+}>
+
+export enum ApplicationStateType {
+	TOKEN_BALANCES_FOR_ONE_ACCOUNT = 'TokenBalancesForOneAccount',
+	TOKEN_BALANCES_PER_ACCOUNT = 'TokenBalancesPerAccount',
+}
+export type ApplicationState = Readonly<{
+	stateType: ApplicationStateType
+}>
+
+export type TokenBalancesForOneAccount = ApplicationState &
+	Readonly<{
+		balances: Map<ResourceIdentifier, TokenBalance>
+		owner: Address
+		size: number
+		balanceOf: (
+			resourceIdentifier: ResourceIdentifier,
+		) => TokenBalance | undefined
+	}>
+
+export type TokenBalancesPerAccount = ApplicationState &
+	Readonly<{
+		balances: Map<Address, TokenBalancesForOneAccount>
+		size: number
+		balancesFor: (owner: Address) => TokenBalancesForOneAccount
+	}>
+
+export type ParticleReducer<S extends ApplicationState> = Readonly<{
+	applicationStateType: ApplicationStateType
+	initialState: S
+	reduce: (
+		input: Readonly<{ state: S; upParticle: AnyUpParticle }>,
+	) => Result<S, Error>
+	combine: (input: Readonly<{ current: S; newState: S }>) => Result<S, Error>
+	reduceFromInitialState: (upParticles: AnyUpParticle[]) => Result<S, Error>
+}>
+
+export type TokenBalancesForOneAccountReducer = ParticleReducer<TokenBalancesForOneAccount> &
+	Readonly<{
+		applicationStateType: ApplicationStateType.TOKEN_BALANCES_FOR_ONE_ACCOUNT
+	}>
+
+export type TokenBalancesPerAccountReducer = ParticleReducer<TokenBalancesPerAccount> &
+	Readonly<{
+		applicationStateType: ApplicationStateType.TOKEN_BALANCES_PER_ACCOUNT
+	}>
+
 export type AtomToActionMapperInput = Readonly<{
 	atom: Atom
 	addressOfActiveAccount: Address
@@ -38,8 +95,6 @@ export type AtomToExecutedActionsMapper<
 	A extends ExecutedUserAction
 > = Readonly<{
 	executedUserActionType: ExecutedUserActionType
-
-	// Observable<T> map(Atom a, RadixIdentity identity);
 	map: (input: AtomToActionMapperInput) => Observable<A>
 }>
 

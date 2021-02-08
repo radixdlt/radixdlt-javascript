@@ -147,6 +147,11 @@ export const seven = makeAmount(7)
 export const eight = makeAmount(8)
 export const nine = makeAmount(9)
 export const ten = makeAmount(10)
+export const eleven = makeAmount(11)
+export const twelve = makeAmount(12)
+export const thirteen = makeAmount(13)
+export const fourteen = makeAmount(14)
+export const fifteen = makeAmount(15)
 
 export const maxAmount = amountFromUInt256({
 	magnitude: uint256Max,
