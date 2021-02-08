@@ -10,8 +10,11 @@ import {
 } from '../src/_index'
 
 import { UInt256 } from '@radixdlt/uint256'
-import { generatorPointSecp256k1 } from '../src/wrap/publicKeyWrapped'
-import { publicKeyFromPrivateKey } from '../dist/wrap/publicKeyWrapped'
+import { publicKeyFromPrivateKey } from '../src/wrap/publicKeyWrapped'
+import {
+	generatorPointSecp256k1,
+	pointOnCurve,
+} from '../src/wrap/ecPointOnCurve'
 
 // TODO CODE DUPLICATION! Move to shared testing only package.
 export const signatureFromHexStrings = (input: {
@@ -154,12 +157,17 @@ describe('elliptic curve cryptography', () => {
 		const privateKey = keyPair.privateKey
 		const pubKeyPoint = publicKey.decodeToPointOnCurve()._unsafeUnwrap()
 		const xyString = pubKeyPoint.x.toString(16) + pubKeyPoint.y.toString(16)
-		const uncompressedPubKeyPrefix = '04'
-		expect(publicKey.asData({ compressed: false }).toString('hex')).toBe(
-			uncompressedPubKeyPrefix + xyString,
+		const pubKeyUncompHex = publicKey
+			.asData({ compressed: false })
+			.toString('hex')
+		expect(pubKeyUncompHex.slice(pubKeyUncompHex.length - 128)).toBe(
+			xyString,
 		)
-		const g = generatorPointSecp256k1
-		g.multiplyWithPrivateKey(privateKey).equals(pubKeyPoint)
+		expect(
+			generatorPointSecp256k1
+				.multiplyWithPrivateKey(privateKey)
+				.equals(pubKeyPoint),
+		).toBe(true)
 	})
 
 	it('can do EC addition', () => {
@@ -172,5 +180,31 @@ describe('elliptic curve cryptography', () => {
 		const point5GByAddition = point2G.add(point3G)
 		const point5GByMultiplication = g.multiply(five)
 		expect(point5GByAddition.equals(point5GByMultiplication)).toBe(true)
+	})
+
+	it('can construct ECPoint from X and Y', () => {
+		const manualG = pointOnCurve({
+			x: new UInt256(
+				'79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
+				16,
+			),
+			y: new UInt256(
+				'483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8',
+				16,
+			),
+		})._unsafeUnwrap()
+		expect(manualG.equals(generatorPointSecp256k1)).toBe(true)
+	})
+
+	it('cannot construct points that is not on the curve', () => {
+		pointOnCurve({
+			x: UInt256.valueOf(1337),
+			y: UInt256.valueOf(1337),
+		}).match(
+			() => {
+				throw Error('expected error, but got none')
+			},
+			(e) => expect(e.message).toBe(`Not point on curve!`),
+		)
 	})
 })

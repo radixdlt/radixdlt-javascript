@@ -152,7 +152,7 @@ export const dsonEncodingMarker: DSONCodable = {
 		throw new Error(`impl me using ${outputMode}`)
 	},
 	toDSON: (outputMode?: OutputMode): Result<Buffer, Error> => {
-		throw new Error(`impl me ${outputMode ? `using ${outputMode}`: ''}`)
+		throw new Error(`impl me ${outputMode ? `using ${outputMode}` : ''}`)
 	},
 }
 
