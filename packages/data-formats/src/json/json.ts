@@ -18,7 +18,7 @@ export const extractTag = (str: string): string => `:${str.split(':')[1]}:`
 export const toJSON = (
 	data: JSONEncodablePrimitive | JSONEncodable,
 ): JSONEncodablePrimitive => {
-	if (data === undefined || data === null) return data
+	if (data === undefined || data === null) return
 
 	if (Array.isArray(data)) return data.map((item) => toJSON(item))
 
@@ -123,6 +123,21 @@ const fromJSONBasic = (...primitiveDecoders: JSONPrimitiveDecoder[]) => (
 }
 
 export const fromJSONDefault = fromJSONBasic.bind(
+	/**
+	 *
+	 */
+	/**
+	 *
+	 */
+	/**
+	 *
+	 */
+	/**
+	 *
+	 */
+	/**
+	 *
+	 */
 	null,
 	...defaultPrimitiveDecoders,
 )

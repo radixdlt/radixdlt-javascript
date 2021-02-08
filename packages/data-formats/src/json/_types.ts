@@ -9,9 +9,13 @@ export type JSONPrimitiveDecoder = {
 }
 
 export type JSONObjectDecoder = {
-	[serializer: string]: (
-		input: unknown,
-	) => Record<string, JSONEncodablePrimitive>
+	[
+		serializer: string
+	]: /*(
+		input: { [key: string]: JSONEncodablePrimitive },
+	)*/ (
+		input: any,
+	) => { [key: string]: JSONEncodablePrimitive }
 }
 
 export type JSONEncodable = {
@@ -24,3 +28,4 @@ export type JSONEncodablePrimitive =
 	| string
 	| { [key: string]: JSONEncodablePrimitive }
 	| JSONEncodablePrimitive[]
+	| undefined
