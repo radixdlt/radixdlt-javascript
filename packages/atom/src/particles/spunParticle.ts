@@ -63,6 +63,10 @@ export const spunParticle = <P extends ParticleBase>(
 	const anySpun = anySpunParticle(input)
 	return {
 		...anySpun,
+
+		toDSON: input.particle.toDSON,
+		encoding: input.particle.encoding,
+
 		particle: input.particle,
 		eraseToAny: () => anySpun,
 		downed: (): Result<DownParticle<P>, Error> =>

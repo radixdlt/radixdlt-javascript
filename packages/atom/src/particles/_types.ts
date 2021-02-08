@@ -5,7 +5,7 @@ import { Result } from 'neverthrow'
 import { ResourceIdentifier, TokenPermissions } from '../_types'
 import { RadixParticleType } from './meta/radixParticleTypes'
 
-export type ParticleBase = {
+export type ParticleBase = DSONCodable & {
 	equals: (other: ParticleBase) => boolean
 }
 
@@ -27,8 +27,7 @@ export type TokenParticle = TokenBase &
 		nonce: Nonce
 	}>
 
-export type TransferrableTokensParticle = DSONCodable &
-	RadixParticle &
+export type TransferrableTokensParticle = RadixParticle &
 	TokenParticle &
 	TransferrableTokensParticleProps
 
@@ -36,12 +35,9 @@ export type TransferrableTokensParticleProps = Readonly<{
 	address: Address
 }>
 
-export type UnallocatedTokensParticle = DSONCodable &
-	RadixParticle &
-	TokenParticle
+export type UnallocatedTokensParticle = RadixParticle & TokenParticle
 
-export type ResourceIdentifierParticle = DSONCodable &
-	RadixParticle &
+export type ResourceIdentifierParticle = RadixParticle &
 	Readonly<{
 		radixParticleType: RadixParticleType
 		alwaysZeroNonce: Nonce
@@ -56,9 +52,7 @@ export type TokenDefinitionBase = TokenBase &
 		iconURL?: string
 	}>
 
-export type TokenDefinitionParticleBase = DSONCodable &
-	TokenDefinitionBase &
-	RadixParticle
+export type TokenDefinitionParticleBase = TokenDefinitionBase & RadixParticle
 
 export type FixedSupplyTokenDefinitionParticle = TokenDefinitionParticleBase &
 	Readonly<{
@@ -87,9 +81,8 @@ export type AnySpunParticle = SpunParticleBase &
 		equals: (other: SpunParticleBase) => boolean
 	}>
 
-export type SpunParticle<
-	P extends ParticleBase
-> = /* DSONCodable & */ AnySpunParticle &
+export type SpunParticle<P extends ParticleBase> = DSONCodable &
+	AnySpunParticle &
 	Readonly<{
 		particle: P
 		eraseToAny: () => AnySpunParticle
