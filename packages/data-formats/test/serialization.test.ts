@@ -1,3 +1,4 @@
+import { JSONEncodablePrimitive } from '../dist'
 import {
 	DSONPrimitive,
 	DSONEncodableMap,
@@ -410,7 +411,7 @@ describe('JSON', () => {
 			expect(encoded).toEqual(expected)
 		})
 	})
-	/*
+
 	describe('decoding', () => {
 		it('should decode JSON primitives', () => {
 			const fromJSON = fromJSONDefault()()
@@ -430,11 +431,15 @@ describe('JSON', () => {
 			const serializer = 'test.object'
 			const serializer2 = 'test.object2'
 
-			const testObject = (input: {
-				a: string
-				b: string
-				nested: { c: string }
-			}) => ({
+			const testObject = <
+				T extends {
+					a: string
+					b: string
+					nested: { c: string }
+				}
+			>(
+				input: T,
+			) => ({
 				a: input.a,
 				b: input.b,
 				nested: input.nested,
@@ -456,15 +461,22 @@ describe('JSON', () => {
 				},
 			]
 
-			const objectDecoders = [
+			const objectDecoders: JSONObjectDecoder[] = [
 				{
-					[serializer]: (input: any) => ({
+					[serializer]: (input: {
+						a: string
+						b: string
+						nested: { c: string }
+					}) => ({
 						...testObject(input),
 					}),
 				},
 
 				{
-					[serializer2]: (input: any) => ({
+					[serializer2]: (input: {
+						c: string
+						test: { value: string }
+					}) => ({
 						...nestedTestObject(input),
 					}),
 				},
@@ -501,6 +513,4 @@ describe('JSON', () => {
 			expect(decoded).toEqual(expected)
 		})
 	})
-
-	*/
 })
