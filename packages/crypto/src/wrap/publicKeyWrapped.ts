@@ -1,11 +1,13 @@
 import { UInt256 } from '@radixdlt/uint256'
 
-import { err, ok, Result } from 'neverthrow'
-import { ec } from 'elliptic'
+import { combine, err, ok, Result } from 'neverthrow'
+import { curve, ec } from 'elliptic'
 import BN from 'bn.js'
-import { PublicKey, Signature, UnsignedMessage } from '../_types'
+import { ECPointOnCurve, PublicKey, Signature, UnsignedMessage } from '../_types'
 import { buffersEquals } from '@radixdlt/util'
-import { bnFromUInt256 } from '@radixdlt/primitives'
+import { bnFromUInt256, uint256FromBN } from '@radixdlt/primitives'
+
+const secp256k1 = new ec('secp256k1')
 
 const publicKeyFromEllipticKey = (
 	ecKeyPair: ec.KeyPair,
@@ -18,6 +20,41 @@ const publicKeyFromEllipticKey = (
 
 	const newKeyAsData = (input_: { readonly compressed: boolean }): Buffer =>
 		Buffer.from(ecKeyPair.getPublic(input_.compressed, 'array'))
+
+	const pointOnCurveFromEllipticShortPoint = (shortPoint: curve.short.ShortPoint): ECPointOnCurve => {
+		const x = uint256FromBN(shortPoint.getX())._unsafeUnwrap()
+		const y = uint256FromBN(shortPoint.getY())._unsafeUnwrap()
+
+				const pointFromOther = (other: ECPointOnCurve): curve.short.ShortPoint => {
+					const otherX =  bnFromUInt256(other.x)
+					const otherY =  bnFromUInt256(other.y)
+					const shortWeirestrassCurve = secp256k1.curve as curve.short
+					return shortWeirestrassCurve.point(otherX, otherY)
+				}
+
+	// return combine([
+				// uint256FromBN(basePoint.getX()),
+				// uint256FromBN(basePoint.getX())
+			// ]).map((xNy) => {
+				// const x = xNy[0]
+				// const y = xNy[1]
+				
+				return <ECPointOnCurve>{
+					x, y,
+					equals: (other: ECPointOnCurve): boolean => other.x.eq(x) && other.y.eq(y),
+					add: (other: ECPointOnCurve): ECPointOnCurve => { 
+						const sumShortPoint = shortPoint.add(pointFromOther(other)) as curve.short.ShortPoint
+						// using recursion here!
+						return pointOnCurveFromEllipticShortPoint(sumShortPoint)
+					},
+					multiply: (by: UInt256): ECPointOnCurve => { 
+						const factorShortPoint = shortPoint.mul(bnFromUInt256(by)) as curve.short.ShortPoint
+						// using recursion here!
+						return pointOnCurveFromEllipticShortPoint(factorShortPoint)
+					},
+				}
+			// })
+	}
 
 	const publicKey: PublicKey = {
 		asData: newKeyAsData,
@@ -40,12 +77,15 @@ const publicKeyFromEllipticKey = (
 			}
 			return comparePubKeyBytes(true) && comparePubKeyBytes(false)
 		},
+		decodeToPointOnCurve: (): ECPointOnCurve => {
+			const shortPoint = ecKeyPair.getPublic() as curve.short.ShortPoint
+			return pointOnCurveFromEllipticShortPoint(shortPoint)
+		}
 	}
 
 	return ok(publicKey)
 }
 
-const secp256k1 = new ec('secp256k1')
 
 export const publicKeyFromPrivateKey = (input: {
 	readonly privateKey: UInt256
