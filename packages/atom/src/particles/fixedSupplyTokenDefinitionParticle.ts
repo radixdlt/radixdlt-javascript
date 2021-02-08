@@ -1,3 +1,4 @@
+import { DSONEncoding } from '@radixdlt/data-formats'
 import { Amount, granularityDefault } from '@radixdlt/primitives'
 import { Result, err } from 'neverthrow'
 import { RadixParticleType } from './meta/radixParticleTypes'

@@ -24,7 +24,7 @@ export const validateURLInput = (
 	if (typeof urlInput === 'string') {
 		// eslint-disable-next-line functional/no-try-statement
 		try {
-		// eslint-disable-next-line typescript-eslint/no-unused-vars
+			// eslint-disable-next-line
 			const __validated_working_url_that_is_discarded = new URL(urlInput)
 			return ok(urlInput)
 		} catch {
@@ -152,7 +152,7 @@ export const dsonEncodingMarker: DSONCodable = {
 		throw new Error(`impl me using ${outputMode}`)
 	},
 	toDSON: (outputMode?: OutputMode): Result<Buffer, Error> => {
-		throw new Error(`impl me using ${outputMode}`)
+		throw new Error(`impl me ${outputMode ? `using ${outputMode}`: ''}`)
 	},
 }
 
@@ -203,37 +203,35 @@ export const baseTokenDefinitionParticle = (
 
 			const thisBase = <TokenDefinitionParticleBase>{
 				...thisBaseBase,
-				...DSONEncoding(input.serializer)(
-					[
-						...input.specificEncodableKeyValues,
-						...encodableKeyValuesPresent([
-							{
-								key: 'rri',
-								value: thisBaseBase.resourceIdentifier,
-							},
-							{
-								key: 'granularity',
-								value: thisBaseBase.granularity,
-							},
-							{
-								key: 'name',
-								value: DSONPrimitive(thisBaseBase.name),
-							},
-							keyValueIfPrimitivePresent({
-								key: 'iconUrl',
-								value: thisBaseBase.iconURL,
-							}),
-							keyValueIfPrimitivePresent({
-								key: 'url',
-								value: thisBaseBase.url,
-							}),
-							keyValueIfPrimitivePresent({
-								key: 'description',
-								value: thisBaseBase.description,
-							}),
-						]),
-					],
-				),
+				...DSONEncoding(input.serializer)([
+					...input.specificEncodableKeyValues,
+					...encodableKeyValuesPresent([
+						{
+							key: 'rri',
+							value: thisBaseBase.resourceIdentifier,
+						},
+						{
+							key: 'granularity',
+							value: thisBaseBase.granularity,
+						},
+						{
+							key: 'name',
+							value: DSONPrimitive(thisBaseBase.name),
+						},
+						keyValueIfPrimitivePresent({
+							key: 'iconUrl',
+							value: thisBaseBase.iconURL,
+						}),
+						keyValueIfPrimitivePresent({
+							key: 'url',
+							value: thisBaseBase.url,
+						}),
+						keyValueIfPrimitivePresent({
+							key: 'description',
+							value: thisBaseBase.description,
+						}),
+					]),
+				]),
 			}
 
 			return <TokenDefinitionParticleBase>{
