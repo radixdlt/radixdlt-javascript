@@ -34,6 +34,7 @@ export type ECPointOnCurve = Readonly<{
 	equals: (other: ECPointOnCurve) => boolean
 	add: (other: ECPointOnCurve) => ECPointOnCurve
 	multiply: (by: UInt256) => ECPointOnCurve
+	multiplyWithPrivateKey: (privateKey: PrivateKey) => ECPointOnCurve
 }>
 
 export type PublicKey = Readonly<{

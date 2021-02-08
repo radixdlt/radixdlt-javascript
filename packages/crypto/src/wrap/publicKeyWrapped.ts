@@ -5,6 +5,7 @@ import { curve, ec } from 'elliptic'
 import BN from 'bn.js'
 import {
 	ECPointOnCurve,
+	PrivateKey,
 	PublicKey,
 	Signature,
 	UnsignedMessage,
@@ -35,6 +36,22 @@ const pointOnCurveFromEllipticShortPoint = (
 		return ok(<ValidationWitness>{ witness: 'Point is on curve.' })
 	}
 
+	const multiplyByScalar = (by: UInt256): ECPointOnCurve => {
+					const factorShortPoint = shortPoint.mul(
+						bnFromUInt256(by),
+					) as curve.short.ShortPoint
+					// using recursion here!
+					const factorPoint = pointOnCurveFromEllipticShortPoint(
+						factorShortPoint,
+					)
+
+					// This should not happen, the internals of the EC lib `Elliptic` should always be
+					// able to perform multiplication between point and a scalar.
+					if (!factorPoint.isOk())
+						throw incorrectImplementationECPointInvalid
+					return factorPoint.value
+				}
+
 	return validateOnCurve(shortPoint).andThen((_) => {
 		return combine([
 			uint256FromBN(shortPoint.getX()),
@@ -63,25 +80,18 @@ const pointOnCurveFromEllipticShortPoint = (
 						throw incorrectImplementationECPointInvalid
 					return sumPoint.value
 				},
-				multiply: (by: UInt256): ECPointOnCurve => {
-					const factorShortPoint = shortPoint.mul(
-						bnFromUInt256(by),
-					) as curve.short.ShortPoint
-					// using recursion here!
-					const factorPoint = pointOnCurveFromEllipticShortPoint(
-						factorShortPoint,
-					)
-
-					// This should not happen, the internals of the EC lib `Elliptic` should always be
-					// able to perform multiplication between point and a scalar.
-					if (!factorPoint.isOk())
-						throw incorrectImplementationECPointInvalid
-					return factorPoint.value
-				},
+				multiply: multiplyByScalar,
+				multiplyWithPrivateKey: (privateKey: PrivateKey): ECPointOnCurve => multiplyByScalar(privateKey.scalar)
 			}
 		})
 	})
 }
+
+
+// export const pointOnCurve = (input: Readonly<{ 
+// 	x: UInt256,
+// 	y: UInt256
+// }>): Result<ECPointOnCurve, Error> => 
 
 export const generatorPointSecp256k1: ECPointOnCurve = pointOnCurveFromEllipticShortPoint(secp256k1.g as curve.short.ShortPoint)._unsafeUnwrap()
 
