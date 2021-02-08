@@ -1,24 +1,18 @@
 import {
-	Spin,
-	SpunParticle,
-	SpunParticleBase,
-	TransferrableTokensParticle,
-} from '../src/_types'
-import {
 	asAnyDownParticle,
 	asAnyUpParticle,
 	asDownParticle,
 	asUpParticle,
 	spunParticle,
 	spunUpParticle,
-} from '../src/spunParticle'
+} from '../src/particles/spunParticle'
 import {
 	transferrableTokensParticleFromUnsafe,
 	unallocatedTokensParticleFromUnsafe,
 } from './helpers/utility'
-import { TransferrableTokensParticleType } from '../src/radixParticleTypes'
-import { isTransferrableTokensParticle } from '../src/transferrableTokensParticle'
-import { isUnallocatedTokensParticle } from '../src/unallocatedTokensParticle'
+import { isTransferrableTokensParticle } from '../src/particles/transferrableTokensParticle'
+import { isUnallocatedTokensParticle } from '../src/particles/unallocatedTokensParticle'
+import { Spin, SpunParticleBase } from '../src/particles/_types'
 
 describe('SpunParticle', () => {
 	it('can create SpunParticle<TransferrableTokensParticle>', () => {
@@ -100,14 +94,14 @@ describe('SpunParticle', () => {
 
 const transferrableTokensParticle = transferrableTokensParticleFromUnsafe({
 	address: '9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
-	tokenDefinitionReference:
+	resourceIdentifier:
 		'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR',
 	granularity: 3,
 	amount: 9,
 })._unsafeUnwrap()
 
 const unallocatedTokensParticle = unallocatedTokensParticleFromUnsafe({
-	tokenDefinitionReference:
+	resourceIdentifier:
 		'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR',
 	granularity: 3,
 	amount: 9,

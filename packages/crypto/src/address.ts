@@ -5,11 +5,12 @@ import { Magic } from '@radixdlt/primitives'
 import { Byte, byteToBuffer, firstByteFromBuffer } from '@radixdlt/util'
 import { Result, ok, err } from 'neverthrow'
 import { base58Encode, base58Decode } from './wrap/baseConversion'
-import { addObjectEncoding } from '@radixdlt/dson'
+import { DSONObjectEncoding, JSONEncoding } from '@radixdlt/data-formats'
 
 const checksumByteCount = 4
 
 export const CBOR_BYTESTRING_PREFIX: Byte = 4
+export const JSON_TAG = ':adr:'
 
 export const addressFromPublicKeyAndMagic = (
 	input: Readonly<{
@@ -30,14 +31,17 @@ export const addressFromPublicKeyAndMagicByte = (
 ): Address => {
 	const buffer = calculateAndAppendChecksumFromPubKeyAndMagic(input)
 
+	const toString = (): string => base58Encode(buffer)
+
 	return {
-		...addObjectEncoding({
+		...JSONEncoding(undefined)(() => `${JSON_TAG}${toString()}`),
+		...DSONObjectEncoding({
 			prefix: CBOR_BYTESTRING_PREFIX,
 			buffer,
 		}),
 		publicKey: input.publicKey,
 		magicByte: input.magicByte,
-		toString: (): string => base58Encode(buffer),
+		toString,
 		equals: (other) =>
 			input.magicByte === other.magicByte &&
 			input.publicKey.equals(other.publicKey),
@@ -71,6 +75,7 @@ const addressFromBuffer = (buffer: Buffer): Result<Address, Error> => {
 		return err(new Error(`Checksum mismatch`))
 
 	const magicByte: Byte = firstByteFromBuffer(checksummedAddress)
+	const toString = (): string => base58Encode(checksummedAddress)
 
 	return publicKeyFromBytes(
 		checksummedAddress.slice(
@@ -79,10 +84,11 @@ const addressFromBuffer = (buffer: Buffer): Result<Address, Error> => {
 		),
 	).andThen((publicKey: PublicKey) =>
 		ok({
-			...addObjectEncoding({ prefix: CBOR_BYTESTRING_PREFIX, buffer }),
+			...DSONObjectEncoding({ prefix: CBOR_BYTESTRING_PREFIX, buffer }),
+			...JSONEncoding(undefined)(() => `${JSON_TAG}${toString()}`),
 			publicKey,
 			magicByte,
-			toString: (): string => base58Encode(checksummedAddress),
+			toString,
 			equals: (other: Address) =>
 				magicByte === other.magicByte &&
 				publicKey.equals(other.publicKey),

@@ -24,9 +24,9 @@ module.exports = {
 		node: true,
 	},
 	rules: {
-		complexity: ['error', 4],
+		complexity: ['error', 5],
 
-		'max-depth': ['error', 2],
+		'max-depth': ['error', 3],
 
 		'max-lines': [
 			'error',
@@ -50,6 +50,11 @@ module.exports = {
 		'max-nested-callbacks': ['error', 3],
 
 		'max-params': ['error', 1],
+
+		'@typescript-eslint/no-unused-vars': [
+			'warn',
+			{ argsIgnorePattern: '^_' },
+		],
 
 		'@typescript-eslint/require-await': 'off',
 		'@typescript-eslint/ban-ts-comment': 'off',
@@ -75,5 +80,10 @@ module.exports = {
 		'functional/no-return-void': 'off',
 		'max-params': 'off',
 		'functional/no-throw-statement': 'off',
+		complexity: 'off',
+		'functional/immutable-data': 'off',
+		'@typescript-eslint/no-unsafe-return': 'warn',
+		'@typescript-eslint/no-unsafe-member-access': 'warn',
+		'max-lines': 'off',
 	},
 }

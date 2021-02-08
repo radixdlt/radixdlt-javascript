@@ -1,34 +1,34 @@
-import { spunParticles } from '../../src/spunParticles'
-import { downParticle, upParticle } from '../../src/spunParticle'
+import { spunParticles } from '../../src/particles/spunParticles'
+import { downParticle, upParticle } from '../../src/particles/spunParticle'
 import { resourceIdentifierFromString } from '../../src/resourceIdentifier'
-import { resourceIdentifierParticle } from '../../src/resourceIdentifierParticle'
-import {
-	ResourceIdentifier,
-	UnallocatedTokensParticle,
-	AnySpunParticle,
-	TransferrableTokensParticle,
-} from '../../src/_types'
+import { resourceIdentifierParticle } from '../../src/particles/resourceIdentifierParticle'
+import { ResourceIdentifier } from '../../src/_types'
 
 import {
 	transferrableTokensParticleFromUnsafe,
 	unallocatedTokensParticleFromUnsafe,
 } from './utility'
+import {
+	AnySpunParticle,
+	TransferrableTokensParticle,
+	UnallocatedTokensParticle,
+} from '../../src/particles/_types'
 
 export const makeUATParticle = (
-	rri: ResourceIdentifier,
+	resourceIdentifier: ResourceIdentifier,
 ): UnallocatedTokensParticle =>
 	unallocatedTokensParticleFromUnsafe({
-		tokenDefinitionReference: rri,
+		resourceIdentifier: resourceIdentifier,
 		granularity: 3,
 		amount: 9,
 	})._unsafeUnwrap()
 
 export const makeTTParticle = (
-	rri: ResourceIdentifier,
+	resourceIdentifier: ResourceIdentifier,
 ): TransferrableTokensParticle =>
 	transferrableTokensParticleFromUnsafe({
 		address: '9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
-		tokenDefinitionReference: rri,
+		resourceIdentifier: resourceIdentifier,
 		granularity: 3,
 		amount: 9,
 	})._unsafeUnwrap()
@@ -87,14 +87,12 @@ export const exactlyContainParticles = (
 	const formIntersection = (
 		lhs: AnySpunParticle[],
 		rhs: AnySpunParticle[],
-		// eslint-disable-next-line max-params
 	): AnySpunParticle[] =>
 		[...lhs].filter((x) => rhs.find((sp) => sp.equals(x)) !== undefined)
 
 	const formDifference = (
 		lhs: AnySpunParticle[],
 		rhs: AnySpunParticle[],
-		// eslint-disable-next-line max-params
 	): AnySpunParticle[] =>
 		[...lhs].filter((x) => rhs.find((sp) => sp.equals(x)) === undefined)
 

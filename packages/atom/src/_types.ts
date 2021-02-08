@@ -1,13 +1,6 @@
 import { Address, Signature } from '@radixdlt/crypto'
-import { DSONCodable } from '@radixdlt/dson'
-import {
-	Amount,
-	Granularity,
-	Nonce,
-	PositiveAmount,
-} from '@radixdlt/primitives'
-import { Result } from 'neverthrow'
-import { RadixParticleType } from './radixParticleTypes'
+import { DSONCodable } from '@radixdlt/data-formats'
+import { SpunParticleQueryable, SpunParticles } from './particles/_types'
 
 /**
  * A Radix resource identifier is a human readable index into the Ledger which points to a name state machine
@@ -45,8 +38,6 @@ export enum TokenTransition {
 	BURN = 'burn',
 }
 
-export type Supply = Amount
-
 export type TokenPermissions = DSONCodable &
 	Readonly<{
 		permissions: Readonly<{ [key in TokenTransition]: TokenPermission }>
@@ -56,145 +47,25 @@ export type TokenPermissions = DSONCodable &
 		equals: (other: TokenPermissions) => boolean
 	}>
 
-export type ParticleBase = {
-	equals: (other: ParticleBase) => boolean
-}
-
-export type RadixParticle = ParticleBase &
+export type ParticleGroup = SpunParticleQueryable &
 	Readonly<{
-		radixParticleType: RadixParticleType
+		spunParticles: SpunParticles
 	}>
 
-export type TransferrableTokensParticle = DSONCodable &
-	RadixParticle &
+export type ParticleGroups = SpunParticleQueryable &
 	Readonly<{
-		radixParticleType: RadixParticleType
-		// The recipient address of the tokens to be transffered
-		address: Address
-		// The identifier of which token type is being transferred
-		tokenDefinitionReference: ResourceIdentifier
-		granularity: Granularity
-		nonce: Nonce
-		amount: PositiveAmount
-		permissions: TokenPermissions
+		groups: ParticleGroup[]
 	}>
-
-export type UnallocatedTokensParticle = /* DSONCoable */ RadixParticle &
-	Readonly<{
-		radixParticleType: RadixParticleType
-		tokenDefinitionReference: ResourceIdentifier
-		granularity: Granularity
-		nonce: Nonce
-		amount: Supply
-		permissions: TokenPermissions
-	}>
-
-export type ResourceIdentifierParticle = /* DSON */ RadixParticle &
-	Readonly<{
-		radixParticleType: RadixParticleType
-		alwaysZeroNonce: Nonce
-		resourceIdentifier: ResourceIdentifier
-	}>
-
-export type TokenDefinitionParticleBase = DSONCodable &
-	RadixParticle &
-	Readonly<{
-		name: string
-		description?: string
-		resourceIdentifier: ResourceIdentifier
-		granularity: Granularity
-		url?: string
-		iconURL?: string
-	}>
-
-export type FixedSupplyTokenDefinitionParticle = TokenDefinitionParticleBase &
-	Readonly<{
-		fixedTokenSupply: Supply
-	}>
-
-export type MutableSupplyTokenDefinitionParticle = TokenDefinitionParticleBase &
-	Readonly<{
-		permissions: TokenPermissions
-	}>
-
-export enum Spin {
-	/* The implicit and theoretical state `NEUTRAL` for spin is not relevant from a client library perspective, thus omitted.*/
-	UP = 1,
-	DOWN = -1,
-}
-
-export type SpunParticleBase = Readonly<{
-	spin: Spin
-	particle: ParticleBase
-}>
-
-export type AnySpunParticle = SpunParticleBase &
-	Readonly<{
-		downedAsAny: () => Result<AnyDownParticle, Error>
-		equals: (other: SpunParticleBase) => boolean
-	}>
-
-export type SpunParticle<
-	P extends ParticleBase
-> = /* DSONCodable & */ AnySpunParticle &
-	Readonly<{
-		particle: P
-		eraseToAny: () => AnySpunParticle
-		downed: () => Result<DownParticle<P>, Error>
-	}>
-
-export type UpParticle<P extends ParticleBase> = SpunParticle<P> &
-	Readonly<{
-		spin: Spin.UP
-		toSpunParticle: () => SpunParticle<P>
-		eraseToAny: () => AnyUpParticle
-	}>
-
-export type DownParticle<P extends ParticleBase> = SpunParticle<P> &
-	Readonly<{
-		spin: Spin.DOWN
-		particle: P
-		toSpunParticle: () => SpunParticle<P>
-		eraseToAny: () => AnyDownParticle
-	}>
-
-export type AnyUpParticle = AnySpunParticle &
-	Readonly<{
-		spin: Spin.UP
-		toAnySpunParticle: () => AnySpunParticle
-	}>
-
-export type AnyDownParticle = AnySpunParticle &
-	Readonly<{
-		spin: Spin.DOWN
-		toAnySpunParticle: () => AnySpunParticle
-	}>
-
-export type SpunParticles = Readonly<{
-	spunParticles: AnySpunParticle[]
-
-	anySpunParticlesOfTypeWithSpin: (query: {
-		particleTypes?: RadixParticleType[]
-		spin?: Spin
-	}) => AnySpunParticle[]
-
-	transferrableTokensParticles: (
-		spin?: Spin,
-	) => SpunParticle<TransferrableTokensParticle>[]
-
-	unallocatedTokensParticles: (
-		spin?: Spin,
-	) => SpunParticle<UnallocatedTokensParticle>[]
-}>
 
 // TODO change this when we have DSON encoding in place. Should be hash of dson truncated.
 export type PublicKeyID = string
 
 export type SignatureID = PublicKeyID
-export type Signatures = ReadonlyMap<SignatureID, Signature>
+export type Signatures = Readonly<{ [key in SignatureID]: Signature }>
 
-export type Atom = /* DSONCodable & */ SpunParticles &
+export type Atom = /* DSONCodable & */ SpunParticleQueryable &
 	Readonly<{
+		particleGroups: ParticleGroups // can be empty
 		signatures: Signatures // can be empty
 		message?: string
 		identifier: () => AtomIdentifier

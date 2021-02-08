@@ -1,0 +1,35 @@
+{
+  "name": "@radixdlt/data-formats",
+  "version": "0.0.0",
+  "description": "Data formats used for serialization.",
+  "keywords": [
+    "CBOR",
+    "DSON",
+    "Data"
+  ],
+  "author": "Alexander Cyon <alex.cyon@gmail.com>",
+  "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/dson#readme",
+  "license": "Apache-2.0",
+  "main": "dist/index.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/radixdlt/radixdlt-javascript.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "bugs": {
+    "url": "https://github.com/radixdlt/radixdlt-javascript/issues"
+  },
+  "engines": {
+    "node": ">=15.5.0 <16"
+  },
+  "dependencies": {
+    "cbor": "^5.2.0",
+    "neverthrow": "^4.0.1",
+    "@radixdlt/util": "^0.0.0"
+  }
+}

@@ -1,14 +1,10 @@
+export * from './particles/_index'
+
 export * from './_types'
 
 export * from './atom'
 export * from './atomIdentifier'
-export * from './fixedSupplyTokenDefinitionParticle'
+export * from './particleGroup'
+export * from './particleGroups'
 export * from './resourceIdentifier'
-export * from './resourceIdentifierParticle'
-export * from './spin'
-export * from './spunParticle'
-export * from './spunParticles'
 export * from './tokenPermissions'
-export * from './tokenDefinitionParticleBase'
-export * from './transferrableTokensParticle'
-export * from './unallocatedTokensParticle'

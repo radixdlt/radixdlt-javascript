@@ -3,17 +3,19 @@ import {
 	addressFromPublicKeyAndMagicByte,
 	generatePrivateKey,
 } from '@radixdlt/crypto'
-import { OutputMode } from '@radixdlt/dson'
+import { OutputMode } from '@radixdlt/data-formats'
 import {
+	amountFromUnsafe,
 	amountInSmallestDenomination,
 	Denomination,
 	nonce,
-	positiveAmountFromUnsafe,
+	one,
+	zero,
 } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import { resourceIdentifierFromAddressAndName } from '../src/resourceIdentifier'
 import { tokenPermissionsAll } from '../src/tokenPermissions'
-import { transferrableTokensParticle } from '../src/transferrableTokensParticle'
+import { transferrableTokensParticle } from '../src/particles/transferrableTokensParticle'
 import { transferrableTokensParticleFromUnsafe } from './helpers/utility'
 
 describe('transferrableTokensParticle', () => {
@@ -26,17 +28,14 @@ describe('transferrableTokensParticle', () => {
 			magicByte: 1,
 		})
 		const granularity = amountInSmallestDenomination(UInt256.valueOf(1))
-		const amount = positiveAmountFromUnsafe(
-			1,
-			Denomination.Atto,
-		)._unsafeUnwrap()
+		const amount = amountFromUnsafe(1, Denomination.Atto)._unsafeUnwrap()
 		const rri = resourceIdentifierFromAddressAndName({
 			address,
 			name: 'FOOBAR',
 		})
 		const ttpResult = transferrableTokensParticle({
 			address,
-			tokenDefinitionReference: rri,
+			resourceIdentifier: rri,
 			granularity: granularity,
 			amount: amount,
 		})
@@ -59,17 +58,14 @@ describe('transferrableTokensParticle', () => {
 		const granularityOfThree = amountInSmallestDenomination(
 			UInt256.valueOf(3),
 		)
-		const amount = positiveAmountFromUnsafe(
-			2,
-			Denomination.Atto,
-		)._unsafeUnwrap()
+		const amount = amountFromUnsafe(2, Denomination.Atto)._unsafeUnwrap()
 		const rri = resourceIdentifierFromAddressAndName({
 			address,
 			name: 'FOOBAR',
 		})
 		const ttpResult = transferrableTokensParticle({
 			address,
-			tokenDefinitionReference: rri,
+			resourceIdentifier: rri,
 			granularity: granularityOfThree,
 			amount: amount,
 		})
@@ -80,7 +76,7 @@ describe('transferrableTokensParticle', () => {
 	it('can be unsafely created from primitives', () => {
 		const ttp = transferrableTokensParticleFromUnsafe({
 			address: '9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
-			tokenDefinitionReference:
+			resourceIdentifier:
 				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR',
 			granularity: 3,
 			amount: 9,
@@ -89,6 +85,63 @@ describe('transferrableTokensParticle', () => {
 		expect(ttp.nonce).toBeTruthy()
 		expect(ttp.amount.toString()).toBe('9000000000000000000')
 		expect(ttp.granularity.toString()).toBe('3000000000000000000')
+	})
+
+	it('should be equal to another ttp', () => {
+		const props = {
+			address: '9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
+			resourceIdentifier:
+				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR',
+			granularity: 3,
+			amount: 9,
+		}
+
+		const ttp = transferrableTokensParticleFromUnsafe({
+			...props,
+		})._unsafeUnwrap()
+
+		const ttp2 = transferrableTokensParticleFromUnsafe({
+			...props,
+		})._unsafeUnwrap()
+
+		expect(ttp.equals(ttp2)).toBeTruthy()
+	})
+
+	it('should not be equal to a different ttp', () => {
+		const props = {
+			address: '9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
+			resourceIdentifier:
+				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR',
+			granularity: 3,
+			amount: 9,
+		}
+
+		const ttp = transferrableTokensParticleFromUnsafe({
+			...props,
+		})._unsafeUnwrap()
+
+		const ttp2 = transferrableTokensParticleFromUnsafe({
+			...props,
+			granularity: 1,
+		})._unsafeUnwrap()
+
+		expect(ttp.equals(ttp2)).toBeFalsy()
+	})
+
+	it('should be able to create with a zero amount', () => {
+		const props = {
+			address: '9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
+			resourceIdentifier:
+				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR',
+			granularity: one,
+			amount: zero,
+		}
+
+		const ttp = transferrableTokensParticleFromUnsafe({
+			...props,
+		})._unsafeUnwrap()
+
+		expect(ttp.amount.equals(zero)).toBe(true)
 	})
 
 	it('should be able to DSON encode', () => {
@@ -100,15 +153,12 @@ describe('transferrableTokensParticle', () => {
 			name: 'FOOBAR',
 		})
 		const permissions = tokenPermissionsAll
-		const amount = positiveAmountFromUnsafe(
-			6,
-			Denomination.Atto,
-		)._unsafeUnwrap()
+		const amount = amountFromUnsafe(6, Denomination.Atto)._unsafeUnwrap()
 		const granularity = amountInSmallestDenomination(UInt256.valueOf(3))
 		const nonce_ = nonce(1337)
 		const ttp = transferrableTokensParticle({
 			address,
-			tokenDefinitionReference: rri,
+			resourceIdentifier: rri,
 			amount: amount,
 			granularity: granularity,
 			permissions: permissions,

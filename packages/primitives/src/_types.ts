@@ -1,7 +1,7 @@
 import { Long } from 'long'
 import { UInt256 } from '@radixdlt/uint256'
 import { Result } from 'neverthrow'
-import { DSONCodable } from '@radixdlt/dson'
+import { DSONCodable } from '@radixdlt/data-formats'
 import { Byte } from '@radixdlt/util'
 
 export type Int64 = Long
@@ -48,8 +48,3 @@ export enum Denomination {
 	// Amounts SHOULD be converted to this denomination prior to being sent to a node.
 	Atto = minAmountDenomination,
 }
-
-export type PositiveAmount = /* CBORCodable & */ Amount &
-	Readonly<{
-		witness: string
-	}>
