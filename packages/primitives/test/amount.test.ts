@@ -14,6 +14,11 @@ import {
 	nine,
 	ten,
 	amountInSmallestDenomination,
+	twelve,
+	eleven,
+	thirteen,
+	fourteen,
+	fifteen,
 } from '../src/amount'
 import {
 	Amount,
@@ -40,6 +45,11 @@ describe('Amount', () => {
 			eight,
 			nine,
 			ten,
+			eleven,
+			twelve,
+			thirteen,
+			fourteen,
+			fifteen,
 		].forEach((amount, index) => {
 			expect(amount.magnitude.valueOf()).toBe(index)
 			expect(amount.equals(amount)).toBe(true)
