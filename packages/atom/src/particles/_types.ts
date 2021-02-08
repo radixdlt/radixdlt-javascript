@@ -52,11 +52,12 @@ export type TokenDefinitionBase = TokenBase &
 	Readonly<{
 		name: string
 		description?: string
-		url?: URL
-		iconURL?: URL
+		url?: string
+		iconURL?: string
 	}>
 
-export type TokenDefinitionParticleBase = /* DSONCodable */ TokenDefinitionBase &
+export type TokenDefinitionParticleBase = DSONCodable &
+	TokenDefinitionBase &
 	RadixParticle
 
 export type FixedSupplyTokenDefinitionParticle = TokenDefinitionParticleBase &

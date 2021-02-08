@@ -1,3 +1,4 @@
+import { DSONEncoding } from '@radixdlt/data-formats'
 import { Amount, granularityDefault } from '@radixdlt/primitives'
 import { Result, err } from 'neverthrow'
 import { RadixParticleType } from './meta/radixParticleTypes'
@@ -34,7 +35,14 @@ export const fixedSupplyTokenDefinitionParticle = (
 	return baseTokenDefinitionParticle({
 		...input,
 		granularity: granularity,
-		radixParticleType,
+		serializer: 'radix.particles.fixed_supply_token_definition',
+		radixParticleType: RadixParticleType.FIXED_SUPPLY_TOKEN_DEFINITION,
+		specificEncodableKeyValues: [
+			{
+				key: 'supply',
+				value: fixedTokenSupply,
+			},
+		],
 		// eslint-disable-next-line complexity
 		makeEquals: (
 			thisParticle: TokenDefinitionParticleBase,
