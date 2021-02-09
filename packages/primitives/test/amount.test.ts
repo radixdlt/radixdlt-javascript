@@ -26,6 +26,7 @@ import {
 	AmountInputUnsafe,
 	Denomination,
 	Granularity,
+	isUInt256,
 	maxAmount,
 } from '../src/_index'
 
@@ -168,5 +169,11 @@ describe('Amount', () => {
 		expect(min(five, two).equals(two))
 		expect(min(zero, two).equals(zero))
 		expect(min(three, three).equals(three))
+	})
+
+	it('can typeguard UInt256', () => {
+		const uOne = UInt256.valueOf(1)
+		expect(isUInt256(uOne)).toBe(true)
+		expect(isUInt256(1)).toBe(false)
 	})
 })

@@ -42,7 +42,7 @@ export type UInt256InputUnsafe =
 
 // eslint-disable-next-line complexity
 export const isUnsafeInputForUInt256 = (
-	something: UInt256InputUnsafe | unknown,
+	something: unknown,
 ): something is UInt256InputUnsafe => {
 	if (typeof something === 'number') {
 		return true
@@ -77,4 +77,8 @@ export const secureRandomUInt256 = (
 ): UInt256 => {
 	const randomBytes = secureRandom.randomSecureBytes(32)
 	return new UInt256(randomBytes, 16)
+}
+
+export const isUInt256 = (something: unknown): something is UInt256 => {
+	return something instanceof UInt256
 }
