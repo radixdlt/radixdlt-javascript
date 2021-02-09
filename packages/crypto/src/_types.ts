@@ -31,6 +31,7 @@ export type Signature = Readonly<{
 export type ECPointOnCurve = Readonly<{
 	x: UInt256
 	y: UInt256
+	toBuffer: () => Buffer
 	equals: (other: ECPointOnCurve) => boolean
 	add: (other: ECPointOnCurve) => ECPointOnCurve
 	multiply: (by: UInt256) => ECPointOnCurve

@@ -3,18 +3,15 @@ import {
 	Signature,
 	unsignedPlainText,
 	publicKeyFromBytes,
-	orderOfSecp256k1,
 	PrivateKey,
+	Secp256k1,
 	generatePrivateKey,
 	generateKeyPair,
 } from '../src/_index'
 
 import { UInt256 } from '@radixdlt/uint256'
 import { publicKeyFromPrivateKey } from '../src/wrap/publicKeyWrapped'
-import {
-	generatorPointSecp256k1,
-	pointOnCurve,
-} from '../src/wrap/ecPointOnCurve'
+import { pointOnCurve } from '../src/wrap/ecPointOnCurve'
 
 // TODO CODE DUPLICATION! Move to shared testing only package.
 export const signatureFromHexStrings = (input: {
@@ -32,7 +29,7 @@ export const signatureFromHexStrings = (input: {
 
 describe('elliptic curve cryptography', () => {
 	it('knows the order of secp256l1', () => {
-		expect(orderOfSecp256k1.toString(10)).toBe(
+		expect(Secp256k1.order.toString(10)).toBe(
 			'115792089237316195423570985008687907852837564279074904382605163141518161494337',
 		)
 	})
@@ -130,7 +127,7 @@ describe('elliptic curve cryptography', () => {
 	})
 
 	it('has G', () => {
-		const g = generatorPointSecp256k1
+		const g = Secp256k1.generator
 		expect(g.x.toString(16)).toBe(
 			'79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
 		)
@@ -140,7 +137,7 @@ describe('elliptic curve cryptography', () => {
 	})
 
 	it('G can mult with self', () => {
-		const g = generatorPointSecp256k1
+		const g = Secp256k1.generator
 		const one = UInt256.valueOf(1)
 		expect(g.multiply(one).equals(g)).toBe(true)
 		const pubKey = publicKeyFromPrivateKey({
@@ -164,14 +161,14 @@ describe('elliptic curve cryptography', () => {
 			xyString,
 		)
 		expect(
-			generatorPointSecp256k1
+			Secp256k1.generator
 				.multiplyWithPrivateKey(privateKey)
 				.equals(pubKeyPoint),
 		).toBe(true)
 	})
 
 	it('can do EC addition', () => {
-		const g = generatorPointSecp256k1
+		const g = Secp256k1.generator
 		const two = UInt256.valueOf(2)
 		const three = UInt256.valueOf(3)
 		const five = UInt256.valueOf(5)
@@ -193,7 +190,7 @@ describe('elliptic curve cryptography', () => {
 				16,
 			),
 		})._unsafeUnwrap()
-		expect(manualG.equals(generatorPointSecp256k1)).toBe(true)
+		expect(manualG.equals(Secp256k1.generator)).toBe(true)
 	})
 
 	it('cannot construct points that is not on the curve', () => {

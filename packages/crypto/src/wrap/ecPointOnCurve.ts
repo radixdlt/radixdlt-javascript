@@ -13,7 +13,7 @@ import {
 import { buffersEquals, ValidationWitness } from '@radixdlt/util'
 import { bnFromUInt256, uint256FromBN } from '@radixdlt/primitives'
 
-const secp256k1 = new ec('secp256k1')
+const thirdPartyLibEllipticSecp256k1 = new ec('secp256k1')
 
 const pointFromCoordinates = (
 	input: Readonly<{
@@ -23,7 +23,7 @@ const pointFromCoordinates = (
 ): curve.short.ShortPoint => {
 	const otherX = bnFromUInt256(input.x)
 	const otherY = bnFromUInt256(input.y)
-	const shortWeirestrassCurve = secp256k1.curve as curve.short
+	const shortWeirestrassCurve = thirdPartyLibEllipticSecp256k1.curve as curve.short
 	return shortWeirestrassCurve.point(otherX, otherY)
 }
 
@@ -60,6 +60,13 @@ const ecPointOnCurveFromCoordinates = (
 	return <ECPointOnCurve>{
 		x: input.x,
 		y: input.y,
+		toBuffer: () =>
+			Buffer.from(
+				[input.x, input.y]
+					.map((s) => s.toString(16))
+					.reduce((acc, cur) => acc + cur),
+				'hex',
+			),
 		equals: (other: ECPointOnCurve): boolean =>
 			other.x.eq(input.x) && other.y.eq(input.y),
 		add: (other: ECPointOnCurve): ECPointOnCurve => {
@@ -108,7 +115,3 @@ export const pointOnCurve = (
 	}>,
 ): Result<ECPointOnCurve, Error> =>
 	pointOnCurveFromEllipticShortPoint(pointFromCoordinates(input))
-
-export const generatorPointSecp256k1: ECPointOnCurve = pointOnCurveFromEllipticShortPoint(
-	secp256k1.g as curve.short.ShortPoint,
-)._unsafeUnwrap()

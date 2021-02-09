@@ -208,7 +208,7 @@ describe('Address', () => {
 		const raw = '9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT'
 		const address = toAddress(raw)
 		const json = address.toJSON()
-
+		if (!json) fail('Should have json')
 		expect(json.toString()).toBe(`${JSON_TAG}${raw}`)
 	})
 })

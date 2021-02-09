@@ -13,7 +13,7 @@ import { buffersEquals } from '@radixdlt/util'
 import { bnFromUInt256 } from '@radixdlt/primitives'
 import { pointOnCurveFromEllipticShortPoint } from './ecPointOnCurve'
 
-const secp256k1 = new ec('secp256k1')
+const thirdPartyLibEllipticSecp256k1 = new ec('secp256k1')
 
 const publicKeyFromEllipticKey = (
 	ecKeyPair: ec.KeyPair,
@@ -69,12 +69,16 @@ export const publicKeyFromPrivateKey = (
 	}>,
 ): Result<PublicKey, Error> => {
 	return publicKeyFromEllipticKey(
-		secp256k1.keyFromPrivate(input.privateKey.toString(16)),
+		thirdPartyLibEllipticSecp256k1.keyFromPrivate(
+			input.privateKey.toString(16),
+		),
 	)
 }
 
 export const publicKeyFromBytesValidated = (
 	publicKeyBytes: Buffer,
 ): Result<PublicKey, Error> => {
-	return publicKeyFromEllipticKey(secp256k1.keyFromPublic(publicKeyBytes))
+	return publicKeyFromEllipticKey(
+		thirdPartyLibEllipticSecp256k1.keyFromPublic(publicKeyBytes),
+	)
 }
