@@ -5,6 +5,7 @@ import {
 	SERIALIZER,
 	Tag,
 	JSONObjectDecoder,
+	JSONKeyValues,
 } from './_types'
 
 const defaultPrimitiveDecoders: JSONPrimitiveDecoder[] = [
@@ -16,7 +17,7 @@ const defaultPrimitiveDecoders: JSONPrimitiveDecoder[] = [
 export const extractTag = (str: string): string => `:${str.split(':')[1]}:`
 
 export const toJSON = (
-	data: JSONEncodablePrimitive | JSONEncodable,
+	data: JSONEncodablePrimitive | JSONEncodable | JSONKeyValues,
 ): JSONEncodablePrimitive => {
 	if (data === undefined || data === null) return
 
@@ -52,22 +53,21 @@ export const JSONEncoding = <Serializer extends string | undefined>(
 	serializer?: Serializer,
 ) => (
 	encodingMethodOrKeyValues: Serializer extends string
-		? { [key: string]: JSONEncodablePrimitive | JSONEncodable }
+		? JSONKeyValues
 		: () => JSONEncodablePrimitive,
 ): JSONEncodable => {
 	if (typeof encodingMethodOrKeyValues !== 'function') {
 		if (!serializer)
 			throw new Error(
-				'serializer required when supplying key values for DSON encoding.',
+				'serializer required when supplying key values for JSON encoding.',
 			)
 
 		return {
 			toJSON: () => ({
 				serializer: serializer as string,
-				...(toJSON(encodingMethodOrKeyValues as any) as Record<
-					string,
-					unknown
-				>),
+				...(toJSON(encodingMethodOrKeyValues as JSONKeyValues) as {
+					[key: string]: JSONEncodablePrimitive
+				}),
 			}),
 		}
 	}

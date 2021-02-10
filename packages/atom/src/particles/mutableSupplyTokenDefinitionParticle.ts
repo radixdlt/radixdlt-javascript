@@ -39,12 +39,11 @@ export const mutableSupplyTokenDefinitionParticle = (
 			serializer: 'radix.particles.mutable_supply_token_definition',
 			radixParticleType:
 				RadixParticleType.MUTABLE_SUPPLY_TOKEN_DEFINITION,
-			specificEncodableKeyValues: [
-				{
-					key: 'permissions',
-					value: permissions,
-				},
-			],
+
+			specificEncodableKeyValues: {
+				permissions,
+			},
+
 			// eslint-disable-next-line complexity
 			makeEquals: (
 				thisParticle: TokenDefinitionParticleBase,

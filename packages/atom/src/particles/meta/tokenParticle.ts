@@ -1,4 +1,4 @@
-import { DSONKeyValue } from '@radixdlt/data-formats'
+import { DSONKeyValues } from '@radixdlt/data-formats'
 import {
 	Amount,
 	Granularity,
@@ -48,28 +48,13 @@ const withGranularity = (
 	granularity: input.granularity ?? granularityDefault,
 })
 
-export const tokenDSONKeyValues = (input: TokenParticle): DSONKeyValue[] => [
-	{
-		key: 'tokenDefinitionReference',
-		value: input.resourceIdentifier,
-	},
-	{
-		key: 'granularity',
-		value: input.granularity,
-	},
-	{
-		key: 'permissions',
-		value: input.permissions,
-	},
-	{
-		key: 'nonce',
-		value: input.nonce,
-	},
-	{
-		key: 'amount',
-		value: input.amount,
-	},
-]
+export const tokenDSONKeyValues = (input: TokenParticle): DSONKeyValues => ({
+	tokenDefinitionReference: input.resourceIdentifier,
+	granularity: input.granularity,
+	permissions: input.permissions,
+	nonce: input.nonce,
+	amount: input.amount,
+})
 
 export const withTokenParticleEquals = withParticleEquals.bind(
 	null,

@@ -2,7 +2,7 @@ import { JSONEncodablePrimitive } from '../dist'
 import {
 	DSONPrimitive,
 	DSONEncodableMap,
-	DSONKeyValue,
+	DSONKeyValues,
 	OutputMode,
 } from '../src/dson'
 
@@ -201,16 +201,10 @@ describe('DSON encoding', () => {
 	})
 
 	it('should encode a map', () => {
-		const serializationProps = [
-			{
-				key: 'a',
-				value: DSONPrimitive(1),
-			},
-			{
-				key: 'b',
-				value: DSONPrimitive(2),
-			},
-		]
+		const serializationProps: DSONKeyValues = {
+			a: DSONPrimitive(1),
+			b: DSONPrimitive(2),
+		}
 
 		const { toDSON } = DSONEncodableMap(serializationProps)
 
@@ -225,23 +219,14 @@ describe('DSON encoding', () => {
 	})
 
 	it('should encode a nested map', (done) => {
-		const nestedProps = [
-			{
-				key: 'a2',
-				value: DSONPrimitive(3),
-			},
-		]
+		const nestedProps = {
+			a2: DSONPrimitive(3),
+		}
 
-		const serializationProps: DSONKeyValue[] = [
-			{
-				key: 'a',
-				value: DSONPrimitive(1),
-			},
-			{
-				key: 'b',
-				value: DSONEncodableMap(nestedProps),
-			},
-		]
+		const serializationProps: DSONKeyValues = {
+			a: DSONPrimitive(1),
+			b: DSONEncodableMap(nestedProps),
+		}
 
 		const { toDSON } = DSONEncodableMap(serializationProps)
 
@@ -256,52 +241,25 @@ describe('DSON encoding', () => {
 	})
 
 	it('should encode a complex object', (done) => {
-		const particle = DSONEncodableMap([
-			{
-				key: 'particle',
-				value: DSONEncodableMap([]),
-			},
-			{
-				key: 'serializer',
-				value: DSONPrimitive('radix.spun_particle'),
-			},
-			{
-				key: 'spin',
-				value: DSONPrimitive(1),
-			},
-			{
-				key: 'version',
-				value: DSONPrimitive(100),
-			},
-		])
+		const particle = DSONEncodableMap({
+			particle: DSONEncodableMap({}),
+			serializer: DSONPrimitive('radix.spun_particle'),
+			spin: DSONPrimitive(1),
+			version: DSONPrimitive(100),
+		})
 
 		const particleGroups = [
-			DSONEncodableMap([
-				{
-					key: 'particles',
-					value: [particle, particle],
-				},
-				{
-					key: 'serializer',
-					value: DSONPrimitive('radix.particle_group'),
-				},
-				{
-					key: 'version',
-					value: DSONPrimitive(100),
-				},
-			]),
+			DSONEncodableMap({
+				particles: [particle, particle],
+				serializer: DSONPrimitive('radix.particle_group'),
+				version: DSONPrimitive(100),
+			}),
 		]
 
-		const serializationProps: DSONKeyValue[] = [
-			{
-				key: 'particleGroups',
-				value: particleGroups,
-			},
-			{
-				key: 'version',
-				value: DSONPrimitive(100),
-			},
-		]
+		const serializationProps: DSONKeyValues = {
+			particleGroups,
+			version: DSONPrimitive(100),
+		}
 
 		const { toDSON } = DSONEncodableMap(serializationProps)
 
@@ -322,25 +280,20 @@ describe('DSON encoding', () => {
 	})
 
 	it('should only include key values with the specified output mode', (done) => {
-		const nestedProps = [
-			{
-				key: 'a2',
+		const nestedProps: DSONKeyValues = {
+			a2: {
 				value: DSONPrimitive(3),
 				outputMode: OutputMode.HASH,
 			},
-		]
+		}
 
-		const serializationProps: DSONKeyValue[] = [
-			{
-				key: 'a',
+		const serializationProps: DSONKeyValues = {
+			a: {
 				value: DSONPrimitive(1),
 				outputMode: OutputMode.API,
 			},
-			{
-				key: 'b',
-				value: DSONEncodableMap(nestedProps),
-			},
-		]
+			b: DSONEncodableMap(nestedProps),
+		}
 
 		const { toDSON } = DSONEncodableMap(serializationProps)
 

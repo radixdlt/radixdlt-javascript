@@ -37,12 +37,9 @@ export const fixedSupplyTokenDefinitionParticle = (
 		granularity: granularity,
 		serializer: 'radix.particles.fixed_supply_token_definition',
 		radixParticleType: RadixParticleType.FIXED_SUPPLY_TOKEN_DEFINITION,
-		specificEncodableKeyValues: [
-			{
-				key: 'supply',
-				value: fixedTokenSupply,
-			},
-		],
+		specificEncodableKeyValues: {
+			supply: fixedTokenSupply,
+		},
 		// eslint-disable-next-line complexity
 		makeEquals: (
 			thisParticle: TokenDefinitionParticleBase,

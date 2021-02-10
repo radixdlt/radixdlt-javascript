@@ -11,11 +11,12 @@ export type CBOREncodableObject = Readonly<{
 	encodeCBOR: (encoder: cbor.CBOREncoder) => boolean
 }>
 
-export type DSONKeyValue = Readonly<{
-	key: string
-	value: DSONCodable | DSONCodable[]
-	outputMode?: OutputMode
-}>
+export type DSONKeyValues = {
+	[key: string]:
+		| DSONCodable
+		| DSONCodable[]
+		| { value: DSONCodable | DSONCodable[]; outputMode: OutputMode }
+}
 
 export type CBOREncodablePrimitive =
 	| string
