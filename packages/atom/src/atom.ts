@@ -1,6 +1,13 @@
-import { Atom, AtomIdentifier, ParticleGroups, Signatures } from './_types'
+import {
+	Atom,
+	AtomIdentifier,
+	ParticleGroup,
+	ParticleGroups,
+	Signatures,
+} from './_types'
 import { atomIdentifier } from './atomIdentifier'
 import { particleGroups } from './particleGroups'
+import { DSONCodable, DSONEncoding } from '@radixdlt/data-formats'
 
 const isSigned = (signatures: Signatures): boolean => {
 	return Object.keys(signatures).length >= 1
@@ -10,6 +17,17 @@ const isSigned = (signatures: Signatures): boolean => {
 const mockedAtomIdentifier = atomIdentifier(
 	'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
 )._unsafeUnwrap()
+
+const SERIALIZER = 'radix.atom'
+
+const DSON = (
+	input: Readonly<{
+		particleGroups: ParticleGroup[]
+	}>,
+): DSONCodable =>
+	DSONEncoding(SERIALIZER)({
+		particleGroups: input.particleGroups,
+	})
 
 export const atom = (
 	input: Readonly<{
@@ -23,6 +41,10 @@ export const atom = (
 		input.particleGroups ?? particleGroups([])
 
 	return {
+		...DSON({
+			particleGroups: particleGroups_.groups,
+		}),
+
 		particleGroups: particleGroups_,
 		signatures: signatures,
 		message: input.message,

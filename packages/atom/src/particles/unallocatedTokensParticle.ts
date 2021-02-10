@@ -12,7 +12,7 @@ const radixParticleType = RadixParticleType.UNALLOCATED_TOKENS
 const SERIALIZER = 'radix.particles.unallocated_tokens'
 
 const DSON = (input: TokenParticle): DSONCodable =>
-	DSONEncoding(SERIALIZER)([...tokenDSONKeyValues(input)])
+	DSONEncoding(SERIALIZER)({ ...tokenDSONKeyValues(input) })
 
 export const unallocatedTokensParticle = (
 	input: TokenParticleInput,

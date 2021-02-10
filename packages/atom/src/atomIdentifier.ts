@@ -1,5 +1,9 @@
 import { AtomIdentifier } from './_types'
 import { err, ok, Result } from 'neverthrow'
+import { Byte } from '@radixdlt/util'
+import { DSONObjectEncoding } from '@radixdlt/data-formats'
+
+const CBOR_BYTESTRING_PREFIX: Byte = 6
 
 export const atomIdentifier = (
 	bytes: Buffer | string,
@@ -15,6 +19,10 @@ export const atomIdentifier = (
 	const asString = buffer.toString('hex')
 
 	return ok({
+		...DSONObjectEncoding({
+			prefix: CBOR_BYTESTRING_PREFIX,
+			buffer,
+		}),
 		toString: () => asString,
 		equals: (other: AtomIdentifier) => other.toString() === asString,
 	})

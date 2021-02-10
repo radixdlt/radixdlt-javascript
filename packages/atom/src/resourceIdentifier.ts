@@ -7,7 +7,7 @@ import { Byte } from '@radixdlt/util'
 
 const separator = '/'
 
-export const CBOR_BYTESTRING_PREFIX: Byte = 6
+const CBOR_BYTESTRING_PREFIX: Byte = 6
 
 export const resourceIdentifierFromAddressAndName = (input: {
 	address: Address
