@@ -5,7 +5,7 @@ import { hmacSHA256 } from '../../message-authentication-code/hmac'
 import { unsafeAESEncryption } from '../../symmetric-encryption/aes/unsafeAESEncryption'
 
 export const unsafeECIESEncryptionProcedures: ECIESEncryptProcedures = {
-	diffieHellmanRoutine: diffieHellmanPublicKey,
+	diffieHellman: diffieHellmanPublicKey,
 	keyDerivationScheme: unsafeKDF,
 	encryptionScheme: unsafeAESEncryption,
 	messageAuthenticationCodeScheme: hmacSHA256,

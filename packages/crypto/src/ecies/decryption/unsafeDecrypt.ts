@@ -45,7 +45,7 @@ export const unsafeDecrypt = (
 				return {
 					encryptedMessage,
 					privateKey: input.privateKey,
-					setupProcedure: procedures,
+					procedures: procedures,
 					sharedInfo: <SharedInfo>{
 						s2: iv,
 					},

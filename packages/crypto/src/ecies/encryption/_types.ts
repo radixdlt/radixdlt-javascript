@@ -5,7 +5,7 @@ import { ECIESEncryptProcedures, SharedInfo } from '../_types'
 export type ECIESEncryptInput = Readonly<{
 	peerPublicKey: PublicKey
 	M: Buffer // message to encrypt
-	setupProcedure: ECIESEncryptProcedures
+	procedures: ECIESEncryptProcedures
 	sharedInfo?: SharedInfo
 	secureRandom?: SecureRandom
 }>

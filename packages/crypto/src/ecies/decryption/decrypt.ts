@@ -11,7 +11,7 @@ export const eciesDecrypt = (
 	const sharedInfo2 = input.sharedInfo?.s2 ?? Buffer.alloc(0)
 	const sharedInfo = <SharedInfo>{ s1: sharedInfo1, s2: sharedInfo2 }
 
-	const procedures = input.setupProcedure
+	const procedures = input.procedures
 
 	const decryptionScheme = procedures.decryptionScheme
 	const enckeylen = decryptionScheme.length
@@ -27,7 +27,7 @@ export const eciesDecrypt = (
 	const combineDataForKDFInput = kdfScheme.combineDataForKDFInput
 	const KDF = kdfScheme.keyDerivationFunction
 
-	const DH = procedures.diffieHellmanRoutine
+	const DH = procedures.diffieHellman
 
 	/*
 	 * 1️⃣

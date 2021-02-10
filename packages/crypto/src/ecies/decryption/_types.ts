@@ -8,6 +8,6 @@ import {
 export type ECIESDecryptInput = Readonly<{
 	privateKey: PrivateKey
 	encryptedMessage: ECIESEncryptedMessage
-	setupProcedure: ECIESDecryptProcedures
+	procedures: ECIESDecryptProcedures
 	sharedInfo?: SharedInfo
 }>

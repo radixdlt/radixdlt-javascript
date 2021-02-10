@@ -21,7 +21,7 @@ export type ECIESEncryptedMessage = Readonly<{
 }>
 
 export type ECIESProcedures = Readonly<{
-	diffieHellmanRoutine: DiffieHellmanRoutine
+	diffieHellman: DiffieHellmanRoutine
 	keyDerivationScheme: KeyDerivationScheme
 	messageAuthenticationCodeScheme: MessageAuthenticationCodeScheme
 }>

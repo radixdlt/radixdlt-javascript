@@ -22,7 +22,7 @@ export const unsafeEncrypt = (
 		M: input.message,
 		sharedInfo: { s2: iv },
 		secureRandom,
-		setupProcedure: unsafeECIESEncryptionProcedures,
+		procedures: unsafeECIESEncryptionProcedures,
 	}).map((encryptedMessage) => ({
 		...encryptedMessage,
 		toBuffer: (): Buffer => formatOutput({ encryptedMessage, iv }),
