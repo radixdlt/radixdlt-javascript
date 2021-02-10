@@ -75,14 +75,14 @@ export type SpunParticleBase = Readonly<{
 	particle: ParticleBase
 }>
 
-export type AnySpunParticle = SpunParticleBase &
+export type AnySpunParticle = DSONCodable &
+	SpunParticleBase &
 	Readonly<{
 		downedAsAny: () => Result<AnyDownParticle, Error>
 		equals: (other: SpunParticleBase) => boolean
 	}>
 
-export type SpunParticle<P extends ParticleBase> = DSONCodable &
-	AnySpunParticle &
+export type SpunParticle<P extends ParticleBase> = AnySpunParticle &
 	Readonly<{
 		particle: P
 		eraseToAny: () => AnySpunParticle

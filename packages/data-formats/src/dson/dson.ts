@@ -4,7 +4,7 @@ import {
 	CBOREncodableObject,
 	CBOREncodablePrimitive,
 	DSONCodable,
-	DSONKeyValue,
+	DSONKeyValues,
 	OutputMode,
 } from './_types'
 import { Result, err, ok } from 'neverthrow'
@@ -65,24 +65,19 @@ export const DSONEncoding = <Serializer extends string | undefined>(
 	serializer: Serializer,
 ) => (
 	encodingMethodOrKeyValues: Serializer extends string
-		? DSONKeyValue[]
+		? DSONKeyValues
 		: () => CBOREncodablePrimitive,
 ): DSONCodable => {
-	if (Array.isArray(encodingMethodOrKeyValues)) {
-		if (!serializer)
-			throw new Error(
-				'serializer required when supplying key values for DSON encoding.',
-			)
+	const isFunction = (
+		input: DSONKeyValues | (() => CBOREncodablePrimitive),
+	): input is () => CBOREncodablePrimitive => typeof input === 'function'
 
-		return DSONEncodableMap([
-			...defaultKeyValues(serializer as string),
-			...encodingMethodOrKeyValues,
-		])
-	}
-
-	return DSONEncodableObject(
-		encodingMethodOrKeyValues as () => CBOREncodablePrimitive,
-	)
+	return isFunction(encodingMethodOrKeyValues)
+		? DSONEncodableObject(encodingMethodOrKeyValues)
+		: DSONEncodableMap({
+				...defaultKeyValues(serializer as string),
+				...encodingMethodOrKeyValues,
+		  })
 }
 
 export const DSONPrimitive = (value: CBOREncodablePrimitive): DSONCodable => {
@@ -117,30 +112,49 @@ export const DSONEncodableObject = (
  *
  * @param keyValues A list of DSON key value pairs.
  */
-export const DSONEncodableMap = (keyValues: DSONKeyValue[]): DSONCodable => {
+export const DSONEncodableMap = (keyValues: DSONKeyValues): DSONCodable => {
+	const hasOutputMode = (
+		value:
+			| DSONCodable
+			| DSONCodable[]
+			| { value: DSONCodable | DSONCodable[]; outputMode: OutputMode },
+	): value is {
+		value: DSONCodable | DSONCodable[]
+		outputMode: OutputMode
+	} => {
+		return (value as { outputMode: OutputMode }).outputMode ? true : false
+	}
+
 	const encoding = (outputMode: OutputMode) => ({
 		encodeCBOR: (encoder: cbor.CBOREncoder) => {
 			encoder.push(Buffer.from([0b1011_1111]))
 
-			keyValues
+			Object.keys(keyValues)
 				.filter((keyValue) =>
 					allowsOutput(
-						keyValue.outputMode ?? OutputMode.ALL,
+						(keyValues[keyValue] as { outputMode: OutputMode })
+							.outputMode ?? OutputMode.ALL,
 						outputMode,
 					),
 				)
 				.sort((keyValue1, keyValue2) =>
-					keyValue1.key.localeCompare(keyValue2.key),
+					keyValue1.localeCompare(keyValue2),
 				)
 				.map((keyValue) => {
-					encoder.pushAny(keyValue.key)
-					Array.isArray(keyValue.value)
+					encoder.pushAny(keyValue)
+					let value = keyValues[keyValue]
+
+					if (hasOutputMode(value)) {
+						value = value.value
+					}
+
+					Array.isArray(value)
 						? encoder.pushAny(
-								keyValue.value.map((codable) =>
+								value.map((codable) =>
 									codable.encoding(outputMode),
 								),
 						  )
-						: encoder.pushAny(keyValue.value.encoding(outputMode))
+						: encoder.pushAny(value.encoding(outputMode))
 				})
 
 			encoder.push(Buffer.from([0xff]))
@@ -156,16 +170,9 @@ export const DSONEncodableMap = (keyValues: DSONKeyValue[]): DSONCodable => {
 	}
 }
 
-export const defaultKeyValues = (serializer: string): DSONKeyValue[] => [
-	{
-		key: 'serializer',
-		value: DSONPrimitive(serializer),
-	},
-	{
-		key: 'version',
-		value: DSONPrimitive(100),
-	},
-]
+export const defaultKeyValues = (serializer: string): DSONKeyValues => ({
+	serializer: DSONPrimitive(serializer),
+})
 
 const isEmpty = (val: any): boolean => {
 	return (
