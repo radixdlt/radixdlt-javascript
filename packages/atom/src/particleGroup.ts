@@ -8,9 +8,9 @@ const SERIALIZER = 'radix.particle_group'
 
 const DSON = (spunParticles: SpunParticles | AnySpunParticle[]): DSONCodable =>
 	DSONEncoding(SERIALIZER)({
-		particles: isSpunParticleArray(spunParticles)
-			? spunParticles
-			: spunParticles.spunParticles,
+		particles: isSpunParticles(spunParticles)
+			? spunParticles.spunParticles
+			: spunParticles,
 	})
 
 export const particleGroup = (
@@ -27,8 +27,3 @@ export const particleGroup = (
 		),
 	}
 }
-
-const isSpunParticleArray = (
-	spunParticles: SpunParticles | AnySpunParticle[],
-): spunParticles is AnySpunParticle[] =>
-	Array.isArray(spunParticles) ? true : false
