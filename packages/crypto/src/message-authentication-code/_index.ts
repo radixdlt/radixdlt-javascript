@@ -1,3 +1,3 @@
 export * from './_types'
 
-export * from './ecies'
+export * from './hmac'
