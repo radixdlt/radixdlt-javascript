@@ -13,6 +13,9 @@ import {
 import { isSpin } from './meta/spin'
 
 import { err, ok, Result } from 'neverthrow'
+import { DSONEncoding, DSONPrimitive } from '@radixdlt/data-formats'
+
+const SERIALIZER = 'radix.spun_particle'
 
 /* eslint-disable max-params */
 
@@ -38,6 +41,12 @@ export const anySpunParticle = (
 	spunParticleBase: SpunParticleBase,
 ): AnySpunParticle => ({
 	...spunParticleBase,
+
+	...DSONEncoding(SERIALIZER)({
+		particle: spunParticleBase.particle,
+		spin: DSONPrimitive(spunParticleBase.spin),
+	}),
+
 	equals: (other: SpunParticleBase): boolean =>
 		anySpunParticlesEquals(spunParticleBase, other),
 	downedAsAny: (): Result<AnyDownParticle, Error> =>
@@ -61,11 +70,9 @@ export const spunParticle = <P extends ParticleBase>(
 	}>,
 ): SpunParticle<P> => {
 	const anySpun = anySpunParticle(input)
+
 	return {
 		...anySpun,
-
-		toDSON: input.particle.toDSON,
-		encoding: input.particle.encoding,
 
 		particle: input.particle,
 		eraseToAny: () => anySpun,

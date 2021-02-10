@@ -172,7 +172,6 @@ export const DSONEncodableMap = (keyValues: DSONKeyValues): DSONCodable => {
 
 export const defaultKeyValues = (serializer: string): DSONKeyValues => ({
 	serializer: DSONPrimitive(serializer),
-	version: DSONPrimitive(100),
 })
 
 const isEmpty = (val: any): boolean => {

@@ -48,12 +48,14 @@ export type TokenPermissions = DSONCodable &
 		equals: (other: TokenPermissions) => boolean
 	}>
 
-export type ParticleGroup = SpunParticleQueryable &
+export type ParticleGroup = DSONCodable &
+	SpunParticleQueryable &
 	Readonly<{
 		spunParticles: SpunParticles
 	}>
 
-export type ParticleGroups = SpunParticleQueryable &
+export type ParticleGroups = DSONCodable &
+	SpunParticleQueryable &
 	Readonly<{
 		groups: ParticleGroup[]
 	}>
@@ -64,7 +66,8 @@ export type PublicKeyID = string
 export type SignatureID = PublicKeyID
 export type Signatures = Readonly<{ [key in SignatureID]: Signature }>
 
-export type Atom = /*DSONCodable*/ SpunParticleQueryable &
+export type Atom = DSONCodable &
+	SpunParticleQueryable &
 	Readonly<{
 		particleGroups: ParticleGroups // can be empty
 		signatures: Signatures // can be empty
