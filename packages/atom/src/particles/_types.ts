@@ -82,8 +82,7 @@ export type AnySpunParticle = DSONCodable &
 		equals: (other: SpunParticleBase) => boolean
 	}>
 
-export type SpunParticle<P extends ParticleBase> = DSONCodable &
-	AnySpunParticle &
+export type SpunParticle<P extends ParticleBase> = AnySpunParticle &
 	Readonly<{
 		particle: P
 		eraseToAny: () => AnySpunParticle
