@@ -7,7 +7,7 @@ import {
 	secureRandomGenerator,
 } from '@radixdlt/util'
 import { sha512Twice } from '../algorithms'
-import { createHmac, createCipheriv } from 'crypto'
+import { createHmac, createCipheriv, createDecipheriv } from 'crypto'
 import { publicKeyFromBytes } from '../publicKey'
 
 export type ECIESEncryptedMessage = Readonly<{
@@ -32,16 +32,10 @@ export const diffieHellmanPublicKey: DiffieHellmanRoutine = (
 ): ECPointOnCurve =>
 	input.publicKey
 		.decodeToPointOnCurve()
-		.andThen((pointOnCurve) =>
-			diffieHellmanPoint({ privateKey: input.privateKey, pointOnCurve }),
+		.map((pointOnCurve) =>
+			pointOnCurve.multiplyWithPrivateKey(input.privateKey),
 		)
-
-export const diffieHellmanPoint = (
-	input: Readonly<{
-		privateKey: PrivateKey
-		pointOnCurve: ECPointOnCurve
-	}>,
-): ECPointOnCurve => input.pointOnCurve.multiplyWithPrivateKey(input.privateKey)
+		._unsafeUnwrap()
 
 export type SharedInfo = Readonly<{
 	// `s1` (optional shared information), if present, is fed into KDF (Key Derivation Function), that produces a symmetric encryption key
@@ -52,46 +46,151 @@ export type SharedInfo = Readonly<{
 
 export type KeyDerivationScheme = Readonly<{
 	length: number
-	keyDerivationFunction: (input: {
-		sharedSecret: ECPointOnCurve
-		sharedInfo: Buffer
-	}) => Buffer
+	/// Build input
+	combineDataForKDFInput: (
+		input: Readonly<{
+			sharedSecretPoint: ECPointOnCurve
+			sharedInfo: SharedInfo
+		}>,
+	) => Buffer
+	keyDerivationFunction: (input: Buffer) => Buffer
+}>
+
+export const SimpleKDF: KeyDerivationScheme = {
+	length: 64,
+	combineDataForKDFInput: (
+		input: Readonly<{
+			sharedSecretPoint: ECPointOnCurve
+			sharedInfo: SharedInfo
+		}>,
+	): Buffer => Buffer.from(input.sharedSecretPoint.x.toString(16), 'hex'),
+	keyDerivationFunction: sha512Twice,
+}
+
+export type CombineDataIntoCryptInput = (
+	input: Readonly<{
+		message: Buffer
+		sharedInfo: SharedInfo
+	}>,
+) => Buffer
+
+export type Encryptor = Readonly<{
+	encrypt: (input: Readonly<{ dataToEncrypt: Buffer }>) => Buffer
+}>
+
+export type EncryptionFunctionBuilder = Readonly<{
+	buildEncryptionFunction: (
+		input: Readonly<{
+			key: Buffer
+			sharedInfo: SharedInfo
+		}>,
+	) => Encryptor
+}>
+
+export type Decryptor = Readonly<{
+	decrypt: (input: Readonly<{ cipher: Buffer }>) => Buffer
+}>
+
+export type DecryptionFunctionBuilder = Readonly<{
+	buildDecryptionFunction: (
+		input: Readonly<{
+			key: Buffer
+			sharedInfo: SharedInfo
+		}>,
+	) => Decryptor
 }>
 
 export type EncryptionScheme = Readonly<{
 	/// `enckeylen`
 	length: number
-	/// `ENC`
-	encryptionFunction: (
-		input: Readonly<{ message: Buffer; key: Buffer; iv?: Buffer }>,
-	) => Buffer
+	combineDataIntoCryptInput: CombineDataIntoCryptInput
+	encryptionFunctionBuilder: EncryptionFunctionBuilder
+	// encryptionFunction: (
+	// 	input: Readonly<{ key: Buffer; dataToEncrypt: Buffer }>,
+	// ) => Buffer
 }>
 
 export type DecryptionScheme = Readonly<{
 	/// `enckeylen`
 	length: number
-	/// `decryption operation of ENC`
-	decryptionFunction: (
-		input: Readonly<{ cipher: Buffer; key: Buffer; iv?: Buffer }>,
-	) => Buffer
+	combineDataIntoCryptInput: CombineDataIntoCryptInput
+	// decryptFunction: (
+	// 	input: Readonly<{ key: Buffer; cipher: Buffer }>,
+	// ) => Buffer
+	decryptionFunctionBuilder: DecryptionFunctionBuilder
 }>
+
+const simpleDataIntoCryptInputCombiner: CombineDataIntoCryptInput = (
+	input: Readonly<{
+		message: Buffer
+		sharedInfo: SharedInfo
+	}>,
+): Buffer => input.message
+
+export const simpleEncryptionFunctionBuilder = <EncryptionFunctionBuilder>{
+	buildEncryptionFunction: (
+		input: Readonly<{
+			key: Buffer
+			sharedInfo: SharedInfo
+		}>,
+	): Encryptor => ({
+		encrypt: (input_: Readonly<{ dataToEncrypt: Buffer }>): Buffer => {
+			const cipher = createCipheriv(
+				'aes-256-cbc',
+				input.key,
+				input.sharedInfo.s2 ?? null,
+			)
+			const firstChunk = cipher.update(input_.dataToEncrypt)
+			const secondChunk = cipher.final()
+			return Buffer.concat([firstChunk, secondChunk])
+		},
+	}),
+}
+
+
+export const simpleDecryptionFunctionBuilder = <DecryptionFunctionBuilder>{
+	buildDecryptionFunction: (
+		input: Readonly<{
+			key: Buffer
+			sharedInfo: SharedInfo
+		}>,
+	): Decryptor => ({
+		decrypt: (input_: Readonly<{ cipher: Buffer }>): Buffer => {
+			const decipher = createDecipheriv(
+				'aes-256-cbc',
+				input.key,
+				input.sharedInfo.s2 ?? null,
+			)
+			const firstChunk = decipher.update(input_.cipher)
+			const secondChunk = decipher.final()
+			return Buffer.concat([firstChunk, secondChunk])
+		},
+	}),
+}
 
 export const AES256CBCEncryption: EncryptionScheme = {
 	length: 32,
-	encryptionFunction: (
-		input: Readonly<{ message: Buffer; key: Buffer; iv?: Buffer }>,
-	): Buffer => {
-		const iv = input.iv ?? Buffer.alloc(0)
-		const cipher = createCipheriv('aes-256-cbc', input.key, iv)
-		const firstChunk = cipher.update(input.message)
-		const secondChunk = cipher.final()
-		return Buffer.concat([firstChunk, secondChunk])
-	},
+	combineDataIntoCryptInput: simpleDataIntoCryptInputCombiner,
+	encryptionFunctionBuilder: simpleEncryptionFunctionBuilder,
+}
+
+export const AES256CBCDecryption: DecryptionScheme = {
+	length: 32,
+	combineDataIntoCryptInput: simpleDataIntoCryptInputCombiner,
+	decryptionFunctionBuilder: simpleDecryptionFunctionBuilder,
 }
 
 export type MessageAuthenticationCodeScheme = Readonly<{
 	// `mackeylen`
 	length: number
+	/// Build input
+	combineDataForMACInput: (
+		input: Readonly<{
+			sharedInfo: SharedInfo
+			cipher: Buffer
+			ephemeralPublicKey: PublicKey
+		}>,
+	) => Buffer
 	/// `MAC`
 	macFunction: (input: Readonly<{ data: Buffer; key: Buffer }>) => Buffer
 }>
@@ -162,23 +261,32 @@ export const eciesEncrypt = (
 	const M = input.M
 	const sharedInfo1 = input.sharedInfo?.s1 ?? Buffer.alloc(0)
 	const sharedInfo2 = input.sharedInfo?.s2 ?? Buffer.alloc(0)
+	const sharedInfo = { s1: sharedInfo1, s2: sharedInfo2 }
 	const peerPublicKey = input.peerPublicKey
-	const enckeylen = input.setupProcedure.encryptionScheme.length
-	const ENC = input.setupProcedure.encryptionScheme.encryptionFunction
-	const mackeylen =
-		input.setupProcedure.messageAuthenticationCodeScheme.length
-	const KDF = input.setupProcedure.keyDerivationScheme.keyDerivationFunction
-	if (
-		input.setupProcedure.keyDerivationScheme.length !==
-		enckeylen + mackeylen
-	)
+
+	const procedures = input.setupProcedure
+
+	const encryptionScheme = procedures.encryptionScheme
+	const enckeylen = encryptionScheme.length
+	const combineDataIntoCryptInput = encryptionScheme.combineDataIntoCryptInput
+	const encryptionFunctionBuilder = encryptionScheme.encryptionFunctionBuilder
+
+	const macScheme = procedures.messageAuthenticationCodeScheme
+	const mackeylen = macScheme.length
+	const MAC = macScheme.macFunction
+	const combineDataForMACInput = macScheme.combineDataForMACInput
+
+	const kdfScheme = procedures.keyDerivationScheme
+	const combineDataForKDFInput = kdfScheme.combineDataForKDFInput
+	const KDF = kdfScheme.keyDerivationFunction
+
+	if (kdfScheme.length !== enckeylen + mackeylen)
 		return err(
 			new Error(
 				'KDF scheme mismatch, length is not equal to sum of MAC.length and ENC.length, which is required.',
 			),
 		)
-	const MAC = input.setupProcedure.messageAuthenticationCodeScheme.macFunction
-	const DH = input.setupProcedure.diffieHellmanRoutine
+	const DH = procedures.diffieHellmanRoutine
 
 	/*
 	 * 1️⃣
@@ -219,7 +327,11 @@ export const eciesEncrypt = (
 	 * octets from `Z` and `[SharedInfo1]`: Z||S1.
 	 * 💡 Modified: We feed `z||S1` instead
 	 */
-	const K = KDF({ sharedSecret: z, sharedInfo: sharedInfo1 })
+	const kdfInput = combineDataForKDFInput({
+		sharedSecretPoint: z,
+		sharedInfo,
+	})
+	const K = KDF(kdfInput)
 	if (K.length !== enckeylen + mackeylen)
 		return err(new Error('Wrong length of KDF output'))
 
@@ -229,24 +341,34 @@ export const eciesEncrypt = (
 	 * the rightmost `mackeylen` octets of K as a MAC key `MK`
 	 */
 	const EK = K.slice(0, enckeylen)
-	const MK = K.slice(enckeylen, mackeylen)
+	const MK = K.slice(mackeylen)
 
 	/*
 	 * 7️⃣
 	 * Use the encryption operation of the symmetric encryption scheme `ENC` to
 	 * encrypt `M` under `EK` as ciphertext `EM`.
-	 * 💡 Modified: We also pass S2 to encryption scheme,
-	 * e.g. if we use AESwithIV, and S2 is our IV.
+	 * 💡 Modified: We pass in two function, one for building the encryption operation
+	 * and one for building input to encrypt.
 	 */
-	const EM = ENC({ message: M, key: EK, iv: sharedInfo2 })
+	const ENC = encryptionFunctionBuilder.buildEncryptionFunction({
+		key: EK,
+		sharedInfo,
+	})
+	const dataToEncrypt = combineDataIntoCryptInput({ message: M, sharedInfo })
+	const EM = ENC.encrypt({ dataToEncrypt })
 
 	/*
 	 * 8️⃣
 	 * Use the tagging operation of the MAC scheme `MAC` to compute the
-	 * tag `D` on `EM || [SharedInfo2]` under `MK`.
+	 * tag `D` under `MK` on 🗑 REPLACED: `EM || [SharedInfo2]` 🗑
+	 * 💡 Replaced with function to compute input
 	 */
-	const EMￜￜS2 = Buffer.concat([EM, sharedInfo2])
-	const D = MAC({ data: EMￜￜS2, key: MK })
+	const dataToTag = combineDataForMACInput({
+		sharedInfo: { s1: sharedInfo1, s2: sharedInfo2 },
+		cipher: EM,
+		ephemeralPublicKey: R,
+	})
+	const D = MAC({ data: dataToTag, key: MK })
 
 	/*
 	 * 9️⃣
@@ -262,22 +384,28 @@ export const eciesEncrypt = (
 	})
 }
 
-export const SimpleKDF: KeyDerivationScheme = {
-	length: 64,
-	keyDerivationFunction: (input: {
-		sharedSecret: ECPointOnCurve
-		sharedInfo: Buffer
-	}): Buffer => {
-		const secretBytes = Buffer.from(input.sharedSecret.x.toByteArray())
-		const shaInput = Buffer.concat([secretBytes, input.sharedInfo])
-		return sha512Twice(shaInput)
-	},
-}
-
 export const HMACSHA256: MessageAuthenticationCodeScheme = {
 	length: 32,
-	macFunction: (input: Readonly<{ data: Buffer; key: Buffer }>): Buffer =>
-		createHmac('sha256', input.key).update(input.data).digest(),
+	combineDataForMACInput: (
+		input: Readonly<{
+			sharedInfo: SharedInfo
+			cipher: Buffer
+			ephemeralPublicKey: PublicKey
+		}>,
+	): Buffer =>
+		Buffer.concat([
+			input.sharedInfo.s2 ?? Buffer.alloc(0),
+			input.ephemeralPublicKey.asData({ compressed: true }),
+			input.cipher,
+		]),
+	macFunction: (input: Readonly<{ data: Buffer; key: Buffer }>): Buffer => {
+		console.log(`🎉 MACing bytes: ${input.data.toString('hex')}`)
+		console.log(
+			`🎉🔑 MAC key input: '${input.key.toString('hex')}' END key`,
+		)
+		const hmac = createHmac('sha256', input.key)
+		return hmac.update(input.data).digest()
+	},
 }
 
 export const simpleECIESEncryptionProcedures: ECIESEncryptProcedures = {
@@ -383,15 +511,22 @@ const makeBufferReader = (buffer: Buffer): BufferReader => {
 }
 
 /* eslint-enable */
+export const simpleECIESDeryptionProcedures: ECIESDecryptProcedures = {
+	diffieHellmanRoutine: diffieHellmanPublicKey,
+	keyDerivationScheme: SimpleKDF,
+	decryptionScheme: AES256CBCDecryption,
+	messageAuthenticationCodeScheme: HMACSHA256,
+}
 
 export const decrypt = (
 	input: Readonly<{
 		buffer: Buffer
 		privateKey: PrivateKey
-		setupProcedure: ECIESDecryptProcedures
+		setupProcedure?: ECIESDecryptProcedures
 	}>,
 ): Result<Buffer, Error> => {
-	const macScheme = input.setupProcedure.messageAuthenticationCodeScheme
+	const procedures = input.setupProcedure ?? simpleECIESDeryptionProcedures
+	const macScheme = procedures.messageAuthenticationCodeScheme
 
 	const reader = makeBufferReader(input.buffer)
 	return combine([
@@ -413,6 +548,13 @@ export const decrypt = (
 				const cipherText = parsed[2]
 				const macBuf = parsed[3]
 
+				console.log(`🔮 
+					iv: ${iv.toString('hex')}, 
+					ephemeralPubKey: ${sharedSecret.toString('hex')}, 
+					cipherText: ${cipherText.toString('hex')}, 
+					MAC: ${macBuf.toString('hex')}
+				`)
+
 				const encryptedMessage = <ECIESEncryptedMessage>{
 					cipherText,
 					sharedSecret,
@@ -423,7 +565,7 @@ export const decrypt = (
 				return {
 					encryptedMessage,
 					privateKey: input.privateKey,
-					setupProcedure: input.setupProcedure,
+					setupProcedure: procedures,
 					sharedInfo: <SharedInfo>{
 						s2: iv,
 					},
@@ -439,17 +581,24 @@ export const decryptMessage = (
 ): Result<Buffer, Error> => {
 	const sharedInfo1 = input.sharedInfo?.s1 ?? Buffer.alloc(0)
 	const sharedInfo2 = input.sharedInfo?.s2 ?? Buffer.alloc(0)
+	const sharedInfo = <SharedInfo>{ s1: sharedInfo1, s2: sharedInfo2 }
 
 	const procedures = input.setupProcedure
+
 	const decryptionScheme = procedures.decryptionScheme
 	const enckeylen = decryptionScheme.length
-	const decryptionOperation = decryptionScheme.decryptionFunction
+	const combineDataIntoCryptInput = decryptionScheme.combineDataIntoCryptInput
+	const decryptionFunctionBuilder = decryptionScheme.decryptionFunctionBuilder
 
 	const macScheme = procedures.messageAuthenticationCodeScheme
+	const combineDataForMACInput = macScheme.combineDataForMACInput
 	const mackeylen = macScheme.length
 	const MAC = macScheme.macFunction
 
-	const KDF = procedures.keyDerivationScheme.keyDerivationFunction
+	const kdfScheme = procedures.keyDerivationScheme
+	const combineDataForKDFInput = kdfScheme.combineDataForKDFInput
+	const KDF = kdfScheme.keyDerivationFunction
+
 	const DH = procedures.diffieHellmanRoutine
 
 	/*
@@ -475,7 +624,7 @@ export const decryptMessage = (
 	 * Use one of the Diffie-Hellman primitive to derive a shared secret field element `z`
 	 * 􏰖from the ephemeral secret key `k` and Bob's public key `B`.
 	 */
-	const z = DH({ privateKey, public: R })
+	const z = DH({ privateKey: input.privateKey, publicKey: R })
 	/*
 	 * 5️⃣
 	 * Convert `z` to an octet string `Z` using conversion routine
@@ -485,10 +634,15 @@ export const decryptMessage = (
 	/*
 	 * 6️⃣
 	 * Use the key derivation function `KDF` to generate keying data `K` of length `enckeylen + mackeylen`
-	 * octets from `Z` and `[SharedInfo1]`: Z||S1.
-	 * 💡 Modified: We feed `z||S1` instead
+	 * octets from MODIFIED 🗑 `Z` and `[SharedInfo1]`: Z||S1. 🗑
+	 * 💡 Modified: pass in methods instead
 	 */
-	const K = KDF({ sharedSecret: z, sharedInfo: sharedInfo1 })
+
+	const kdfInput = combineDataForKDFInput({
+		sharedSecretPoint: z,
+		sharedInfo,
+	})
+	const K = KDF(kdfInput)
 	if (K.length !== enckeylen + mackeylen)
 		return err(new Error('Wrong length of KDF output'))
 
@@ -498,30 +652,47 @@ export const decryptMessage = (
 	 * the rightmost `mackeylen` octets of K as a MAC key `MK`
 	 */
 	const EK = K.slice(0, enckeylen)
-	const MK = K.slice(enckeylen, mackeylen)
+	const MK = K.slice(mackeylen)
+
+	console.log(
+		`👻 hashH: ${K.toString('hex')}\n\nkeyDataE: ${EK.toString(
+			'hex',
+		)}\n\n,keyDataM: ${MK.toString('hex')}`,
+	)
 
 	/*
 	 * 8️⃣
 	 * Use the tagging operation of the MAC scheme `MAC` to compute the
-	 * tag `D` on `EM || [SharedInfo2]` under `MK`.
+	 * tag `D` under `MK` on 🗑 REPLACED: `EM || [SharedInfo2]` 🗑
+	 * 💡 Replaced with function to compute input
 	 */
-	const EMￜￜS2 = Buffer.concat([EM, sharedInfo2])
-	const D = MAC({ data: EMￜￜS2, key: MK })
+	const dataToTag = combineDataForMACInput({
+		sharedInfo: { s1: sharedInfo1, s2: sharedInfo2 },
+		cipher: EM,
+		ephemeralPublicKey: R,
+	})
+	const D = MAC({ data: dataToTag, key: MK })
+
+	console.log(`🔮 
+					expectedMAC: ${expectedMAC.toString('hex')}
+					calcilatedMac (D): ${D.toString('hex')}
+				`)
 
 	if (!buffersEquals(D, expectedMAC)) return err(new Error('MAC Mismatch'))
 
 	/*
 	 * 9️⃣
 	 * Use the encryption operation of the symmetric encryption scheme `ENC` to
-	 * encrypt `M` under `EK` as ciphertext `EM`.
-	 * 💡 Modified: We also pass S2 to encryption scheme,
-	 * e.g. if we use AESwithIV, and S2 is our IV.
+	 * encrypt MODIFED 🗑 `M` under `EK` as ciphertext `EM`. 🗑
+	 * 💡 Modified: We pass in two function, one for building the decryption operation
+	 * and one for building input to decrypt.
 	 */
-	const decrypted = decryptionOperation({
-		cipher: EM,
-		key: EK,
-		iv: sharedInfo2,
-	})
+
+	const decryptionFunction = decryptionFunctionBuilder.buildDecryptionFunction({ key: EK, sharedInfo })
+
+	const dataToDecrypt = combineDataIntoCryptInput({ message: EM, sharedInfo })
+
+	const decrypted = decryptionFunction.decrypt({ cipher: dataToDecrypt })
 
 	return ok(decrypted)
 }
