@@ -8,7 +8,7 @@ import {
 	CBOREncodablePrimitive,
 	DSONCodable,
 	DSONEncoding,
-	DSONKeyValue,
+	DSONKeyValues,
 	DSONPrimitive,
 	OutputMode,
 } from '@radixdlt/data-formats'
@@ -123,7 +123,7 @@ export type TokenDefinitionParticleInput = Readonly<{
 export const definedOrNonNull = <T>(value: T | null | undefined): value is T =>
 	value !== null && value !== undefined
 
-export type MaybeEncodableKeyValue = DSONKeyValue | undefined
+export type MaybeEncodableKeyValue = DSONKeyValues | undefined
 
 export const keyValueIfPrimitivePresent = (
 	input: Readonly<{
@@ -133,19 +133,25 @@ export const keyValueIfPrimitivePresent = (
 	}>,
 ): MaybeEncodableKeyValue => {
 	if (!definedOrNonNull(input.value)) return undefined
-	const indeed: DSONKeyValue = {
-		key: input.key,
-		value: DSONPrimitive(input.value),
-		outputMode: input.outputMode,
+	const indeed: DSONKeyValues = {
+		[input.key]: {
+			value: DSONPrimitive(input.value),
+			outputMode: input.outputMode ?? OutputMode.ALL,
+		},
 	}
+
 	return indeed
 }
 
 export const encodableKeyValuesPresent = (
-	maybes: MaybeEncodableKeyValue[],
-): DSONKeyValue[] => {
-	return maybes.filter(definedOrNonNull)
-}
+	maybes: DSONKeyValues,
+): DSONKeyValues =>
+	Object.keys(maybes)
+		.filter((key) => definedOrNonNull(maybes[key]))
+		.reduce((result, key) => {
+			result[key] = maybes[key]
+			return result
+		}, {} as DSONKeyValues)
 
 export const dsonEncodingMarker: DSONCodable = {
 	encoding: (outputMode: OutputMode): CBOREncodableObject => {
@@ -160,7 +166,7 @@ export const dsonEncodingMarker: DSONCodable = {
 export const baseTokenDefinitionParticle = (
 	input: TokenDefinitionParticleInput &
 		Readonly<{
-			specificEncodableKeyValues: DSONKeyValue[]
+			specificEncodableKeyValues: DSONKeyValues
 			serializer: string
 			radixParticleType: RadixParticleType
 			makeEquals: (
@@ -203,35 +209,28 @@ export const baseTokenDefinitionParticle = (
 
 			const thisBase = <TokenDefinitionParticleBase>{
 				...thisBaseBase,
-				...DSONEncoding(input.serializer)([
+				...DSONEncoding(input.serializer)({
 					...input.specificEncodableKeyValues,
-					...encodableKeyValuesPresent([
-						{
-							key: 'rri',
-							value: thisBaseBase.resourceIdentifier,
-						},
-						{
-							key: 'granularity',
-							value: thisBaseBase.granularity,
-						},
-						{
-							key: 'name',
-							value: DSONPrimitive(thisBaseBase.name),
-						},
-						keyValueIfPrimitivePresent({
+
+					...encodableKeyValuesPresent({
+						rri: thisBaseBase.resourceIdentifier,
+						granularity: thisBaseBase.granularity,
+						name: DSONPrimitive(thisBaseBase.name),
+
+						...keyValueIfPrimitivePresent({
 							key: 'iconUrl',
 							value: thisBaseBase.iconURL,
 						}),
-						keyValueIfPrimitivePresent({
+						...keyValueIfPrimitivePresent({
 							key: 'url',
 							value: thisBaseBase.url,
 						}),
-						keyValueIfPrimitivePresent({
+						...keyValueIfPrimitivePresent({
 							key: 'description',
 							value: thisBaseBase.description,
 						}),
-					]),
-				]),
+					}),
+				}),
 			}
 
 			return <TokenDefinitionParticleBase>{

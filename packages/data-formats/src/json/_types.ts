@@ -18,6 +18,10 @@ export type JSONObjectDecoder = {
 	) => { [key: string]: JSONEncodablePrimitive }
 }
 
+export type JSONKeyValues = {
+	[key: string]: JSONEncodablePrimitive | JSONEncodable
+}
+
 export type JSONEncodable = {
 	toJSON: () => JSONEncodablePrimitive
 }
