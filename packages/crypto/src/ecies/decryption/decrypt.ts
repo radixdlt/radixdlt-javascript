@@ -2,103 +2,80 @@ import { err, ok, Result } from 'neverthrow'
 import { publicKeyFromBytes } from '../../publicKey'
 import { buffersEquals } from '@radixdlt/util'
 import { ECIESDecryptInput } from './_types'
-import { SharedInfo } from '../_types'
+import { sharedInputOrEmpty } from '../sharedInfo'
 
+/*
+ * We use terminology/notation from SEC-1 (section 5.1) - https://www.secg.org/SEC1-Ver-1.0.pdf
+ *
+ * But a generalized version of it, where DH, KDF, MAC, ENC all are functions being passed into
+ * the algorithm.
+ */
+// eslint-disable-next-line max-lines-per-function
 export const eciesDecrypt = (
 	input: ECIESDecryptInput,
 ): Result<Buffer, Error> => {
-	const sharedInfo1 = input.sharedInfo?.s1 ?? Buffer.alloc(0)
-	const sharedInfo2 = input.sharedInfo?.s2 ?? Buffer.alloc(0)
-	const sharedInfo = <SharedInfo>{ s1: sharedInfo1, s2: sharedInfo2 }
-
-	const procedures = input.procedures
-
-	const decryptionScheme = procedures.decryptionScheme
-	const enckeylen = decryptionScheme.length
-	const combineDataIntoCryptInput = decryptionScheme.combineDataIntoCryptInput
-	const decryptionFunctionBuilder = decryptionScheme.decryptionFunctionBuilder
-
-	const macScheme = procedures.messageAuthenticationCodeScheme
-	const combineDataForMACInput = macScheme.combineDataForMACInput
-	const mackeylen = macScheme.length
-	const MAC = macScheme.macFunction
-
-	const kdfScheme = procedures.keyDerivationScheme
-	const combineDataForKDFInput = kdfScheme.combineDataForKDFInput
-	const KDF = kdfScheme.keyDerivationFunction
-
-	const DH = procedures.diffieHellman
-
-	/*
-	 * 1️⃣
-	 * Done in earlier step, which produced `ECIESDecryptInput`
-	 */
-	const Ṝ = input.encryptedMessage.sharedSecret
+	// Encrypted Message `EM`, to decrypt.
 	const EM = input.encryptedMessage.cipherText
-	const expectedMAC = input.encryptedMessage.tag
+	const sharedInfo = sharedInputOrEmpty(input)
+	const decryptionScheme = input.procedures.decryptionScheme
+	const enckeylen = decryptionScheme.length
+	const macScheme = input.procedures.messageAuthenticationCodeScheme
+	const mackeylen = macScheme.length
+	const kdfScheme = input.procedures.keyDerivationScheme
 
-	/*
-	 * 2️⃣
-	 * Convert octet string `Ṝ` to an elliptic curve point R
-	 * 3️⃣ is part of `decodeToPointOnCurve`
-	 */
+	//  1️⃣ Parse buffer. Done in earlier step, which produced `ECIESDecryptInput`
+	const Ṝ = input.encryptedMessage.sharedSecret
+
+	// 2️⃣ Convert octet string `Ṝ` to an elliptic curve point R
+	// 3️⃣ Assure that Ṝ is valid key, done in `publicKeyFromBytes`
 	const ephemeralPubKeyRes = publicKeyFromBytes(Ṝ)
 	if (ephemeralPubKeyRes.isErr())
 		return err(new Error('Failed to parse ephemeral pub key'))
 	const R = ephemeralPubKeyRes.value
 
-	/*
-	 * 4️⃣
-	 * Use one of the Diffie-Hellman primitive to derive a shared secret field element `z`
-	 * 􏰖from the ephemeral secret key `k` and Bob's public key `B`.
-	 */
-	const z = DH({ privateKey: input.privateKey, publicKey: R })
-	// 5️⃣ Convert `z` to an octet string `Z`. Irrelevant.
+	// 4️⃣ Use Diffie-Hellman to derive a shared secret `R` and peer's private key
+	const z = input.procedures.diffieHellman({
+		privateKey: input.privateKey, // `V`'s private key `d_v`
+		publicKey: R,
+	})
+	// 5️⃣ Convert `z` to an octet string `Z` (Omitted becuase irrelevant).
 
-	/*
-	 * 6️⃣
-	 * Use the key derivation function `KDF` to generate keying data `K` using
-	 * function computing input for KDF.
-	 */
-	const kdfInput = combineDataForKDFInput({
+	// 6️⃣ Use `KDF` to generate key `K`.
+	// 💡 We have generalized this to use passed in functions.
+	const kdfInput = kdfScheme.combineDataForKDFInput({
 		sharedSecretPoint: z,
 		sharedInfo,
 	})
-	const K = KDF(kdfInput)
+	const K = kdfScheme.keyDerivationFunction(kdfInput)
 	if (K.length !== enckeylen + mackeylen)
 		return err(new Error('Wrong length of KDF output'))
 
-	/*
-	 * 7️⃣
-	 * Parse the leftmost `enckeylen` octets of `K` as an encryption key `EK` and
-	 * the rightmost `mackeylen` octets of K as a MAC key `MK`
-	 */
+	// 7️⃣ Parse `K` into encryption key `EK` and MAC key `MK`
 	const EK = K.slice(0, enckeylen)
 	const MK = K.slice(mackeylen)
 
-	/*
-	 * 8️⃣
-	 * Use the tagging operation of the MAC scheme `MAC` to compute the
-	 * tag `D` using key `MK` and function computing input data.
-	 */
-	const dataToTag = combineDataForMACInput({
+	// 8️⃣ Use `MAC` to compute the tag `D` with `MK` as key.
+	// Check that `D` is equal to the `input.encryptedMessage.tag`
+	// 💡 We have generalized this to use passed in functions.
+	const dataToTag = macScheme.combineDataForMACInput({
 		sharedInfo,
 		cipher: EM,
 		ephemeralPublicKey: R,
 	})
-	const D = MAC({ data: dataToTag, key: MK })
+	const D = macScheme.macFunction({ data: dataToTag, key: MK })
 
-	if (!buffersEquals(D, expectedMAC)) return err(new Error('MAC Mismatch'))
+	if (!buffersEquals(D, input.encryptedMessage.tag))
+		return err(new Error('MAC Mismatch'))
 
-	/*
-	 * 9️⃣
-	 * Use the encryption operation of the symmetric encryption scheme
-	 * to decrypt `EM` with `EK` and sharedInfo.
-	 */
-	const decryptionFunction = decryptionFunctionBuilder.buildDecryptionFunction(
+	// 9️⃣ Use symmetric encryption with `EK` as key to encrypt message `M`.
+	// 💡 We have generalized this to use passed in functions.
+	const decryptionFunction = decryptionScheme.decryptionFunctionBuilder.buildDecryptionFunction(
 		{ key: EK, sharedInfo },
 	)
-	const dataToDecrypt = combineDataIntoCryptInput({ message: EM, sharedInfo })
+	const dataToDecrypt = decryptionScheme.combineDataIntoCryptInput({
+		message: EM,
+		sharedInfo,
+	})
 	const decrypted = decryptionFunction.decrypt({ cipher: dataToDecrypt })
 
 	return ok(decrypted)

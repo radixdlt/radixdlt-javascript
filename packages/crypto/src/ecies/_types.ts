@@ -35,3 +35,8 @@ export type ECIESDecryptProcedures = ECIESProcedures &
 	Readonly<{
 		decryptionScheme: DecryptionScheme
 	}>
+
+export type ECIESInput<P extends ECIESProcedures> = Readonly<{
+	procedures: P
+	sharedInfo?: SharedInfo
+}>

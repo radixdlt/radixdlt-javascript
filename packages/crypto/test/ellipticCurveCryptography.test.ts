@@ -153,13 +153,7 @@ describe('elliptic curve cryptography', () => {
 		const publicKey = keyPair.publicKey
 		const privateKey = keyPair.privateKey
 		const pubKeyPoint = publicKey.decodeToPointOnCurve()._unsafeUnwrap()
-		const xyString = pubKeyPoint.x.toString(16) + pubKeyPoint.y.toString(16)
-		const pubKeyUncompHex = publicKey
-			.asData({ compressed: false })
-			.toString('hex')
-		expect(pubKeyUncompHex.slice(pubKeyUncompHex.length - 128)).toBe(
-			xyString,
-		)
+
 		expect(
 			Secp256k1.generator
 				.multiplyWithPrivateKey(privateKey)

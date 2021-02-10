@@ -1,14 +1,9 @@
 import { err, ok, Result } from 'neverthrow'
 import { generateKeyPair } from '../../keyPair'
 import { secureRandomGenerator } from '@radixdlt/util'
-import { ECIESEncryptedMessage, SharedInfo } from '../_types'
+import { ECIESEncryptedMessage } from '../_types'
 import { ECIESEncryptInput } from './_types'
-
-const sharedInputOrEmpty = (encryptInput: ECIESEncryptInput): SharedInfo => {
-	const sharedInfo1 = encryptInput.sharedInfo?.s1 ?? Buffer.alloc(0)
-	const sharedInfo2 = encryptInput.sharedInfo?.s2 ?? Buffer.alloc(0)
-	return { s1: sharedInfo1, s2: sharedInfo2 }
-}
+import { sharedInputOrEmpty } from '../sharedInfo'
 
 /*
  * We use terminology/notation from SEC-1 (section 5.1) - https://www.secg.org/SEC1-Ver-1.0.pdf
@@ -20,6 +15,7 @@ const sharedInputOrEmpty = (encryptInput: ECIESEncryptInput): SharedInfo => {
 export const eciesEncrypt = (
 	input: ECIESEncryptInput,
 ): Result<ECIESEncryptedMessage, Error> => {
+	// Message `M` to encrypt
 	const M = input.M
 	const sharedInfo = sharedInputOrEmpty(input)
 	const encryptionScheme = input.procedures.encryptionScheme
@@ -85,7 +81,7 @@ export const eciesEncrypt = (
 	const EM = ENC.encrypt({ dataToEncrypt })
 
 	// 8️⃣ Use `MAC` to compute the tag `D` with `MK` as key
-	// 💡 Replaced with function to compute input
+	// 💡 We have generalized this to use passed in functions.
 	const dataToTag = macScheme.combineDataForMACInput({
 		sharedInfo,
 		cipher: EM,
