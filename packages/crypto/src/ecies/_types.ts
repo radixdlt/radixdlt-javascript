@@ -1,5 +1,3 @@
-import { PublicKey } from '../_types'
-import { SecureRandom } from '@radixdlt/util'
 import { MessageAuthenticationCodeScheme } from '../message-authentication-code/_types'
 import { KeyDerivationScheme } from '../key-derivation-functions/_types'
 import {

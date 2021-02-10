@@ -5,7 +5,7 @@ type BufferReader = {
 	nextBuffer: (byteCount: number) => Result<Buffer, Error>
 }
 export const makeBufferReader = (buffer: Buffer): BufferReader => {
-	let buf = buffer || new Buffer(0)
+	let buf = buffer || Buffer.alloc(0)
 	if (!Buffer.isBuffer(buf)) throw new Error('A Buffer must be provided')
 	let offset = 0
 
@@ -15,7 +15,7 @@ export const makeBufferReader = (buffer: Buffer): BufferReader => {
 				return err(new Error(`'byteCount' must be no negative`))
 			if (offset + byteCount > buf.length)
 				return err(new Error(`Out of buffer's boundary`))
-			let bufToReturn = new Buffer(byteCount)
+			let bufToReturn = Buffer.alloc(byteCount)
 			buf.copy(bufToReturn, 0, offset, offset + byteCount)
 			offset += byteCount
 			return ok(bufToReturn)

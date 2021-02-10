@@ -2,15 +2,8 @@ import { UInt256 } from '@radixdlt/uint256'
 
 import { combine, err, ok, Result } from 'neverthrow'
 import { curve, ec } from 'elliptic'
-import BN from 'bn.js'
-import {
-	ECPointOnCurve,
-	PrivateKey,
-	PublicKey,
-	Signature,
-	UnsignedMessage,
-} from '../_types'
-import { buffersEquals, ValidationWitness } from '@radixdlt/util'
+import { ECPointOnCurve, PrivateKey } from '../_types'
+import { ValidationWitness } from '@radixdlt/util'
 import { bnFromUInt256, uint256FromBN } from '@radixdlt/primitives'
 
 const thirdPartyLibEllipticSecp256k1 = new ec('secp256k1')

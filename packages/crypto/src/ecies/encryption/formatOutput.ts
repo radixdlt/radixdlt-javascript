@@ -9,6 +9,7 @@ export const formatOutput = (
 	const cipherText = msg.cipherText
 	const MAC = msg.tag
 
+	// eslint-disable-next-line functional/no-let
 	let offset = 0
 	const serializedCiphertext = Buffer.alloc(
 		iv.length +

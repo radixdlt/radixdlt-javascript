@@ -1,8 +1,5 @@
 import { ECPointOnCurve } from './_types'
-import {
-	pointOnCurve,
-	pointOnCurveFromEllipticShortPoint,
-} from './wrap/ecPointOnCurve'
+import { pointOnCurve } from './wrap/ecPointOnCurve'
 import { UInt256 } from '@radixdlt/uint256'
 
 // const generatorPointSecp256k1: ECPointOnCurve = pointOnCurveFromEllipticShortPoint(
