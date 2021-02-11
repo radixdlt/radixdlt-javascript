@@ -23,14 +23,9 @@ const makeCyonDH = (peerPrivateKey: PrivateKey, peerPublicKey: PublicKey) => (
 ): ECPointOnCurve => {
 	const dh = peerPublicKey
 		.decodeToPointOnCurve()
-		.map((pointOnCurve) =>
-			pointOnCurve.multiplyWithPrivateKey(peerPrivateKey),
-		)
-		._unsafeUnwrap()
+		.multiplyWithPrivateKey(peerPrivateKey)
 
-	const ephemeralPoint = input.ephemeralPublicKey
-		.decodeToPointOnCurve()
-		._unsafeUnwrap()
+	const ephemeralPoint = input.ephemeralPublicKey.decodeToPointOnCurve()
 	return dh.add(ephemeralPoint)
 }
 export const unsafeCyonEncrypt = (

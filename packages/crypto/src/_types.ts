@@ -2,7 +2,7 @@ import { DSONCodable, JSONEncodable } from '@radixdlt/data-formats'
 import { Byte } from '@radixdlt/util'
 import { UInt256 } from '@radixdlt/uint256'
 
-import { Result, ResultAsync } from 'neverthrow'
+import { ResultAsync } from 'neverthrow'
 
 export type Hasher = (inputData: Buffer) => Buffer
 
@@ -46,7 +46,7 @@ export type PublicKey = Readonly<{
 			forData: UnsignedMessage
 		}>,
 	) => boolean
-	decodeToPointOnCurve: () => Result<ECPointOnCurve, Error>
+	decodeToPointOnCurve: () => ECPointOnCurve
 	equals: (other: PublicKey) => boolean
 }>
 

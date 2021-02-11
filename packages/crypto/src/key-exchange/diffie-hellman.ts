@@ -16,9 +16,6 @@ export const diffieHellmanPublicKey = <I extends DiffieHellmanInput>(
 		(input as DiffieHellmanEncryptionInput).publicKey ??
 		input.ephemeralPublicKey
 
-	return publicKey
-		.decodeToPointOnCurve()
-		.map((pointOnCurve) => pointOnCurve.multiplyWithPrivateKey(privateKey))
-		._unsafeUnwrap()
+	return publicKey.decodeToPointOnCurve().multiplyWithPrivateKey(privateKey)
 }
 /* eslint-enable */

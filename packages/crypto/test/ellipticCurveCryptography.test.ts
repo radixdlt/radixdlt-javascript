@@ -143,16 +143,14 @@ describe('elliptic curve cryptography', () => {
 		const pubKey = publicKeyFromPrivateKey({
 			privateKey: one,
 		})._unsafeUnwrap()
-		expect(pubKey.decodeToPointOnCurve()._unsafeUnwrap().equals(g)).toBe(
-			true,
-		)
+		expect(pubKey.decodeToPointOnCurve().equals(g)).toBe(true)
 	})
 
 	it('can do EC multiplication', () => {
 		const keyPair = generateKeyPair()._unsafeUnwrap()
 		const publicKey = keyPair.publicKey
 		const privateKey = keyPair.privateKey
-		const pubKeyPoint = publicKey.decodeToPointOnCurve()._unsafeUnwrap()
+		const pubKeyPoint = publicKey.decodeToPointOnCurve()
 
 		expect(
 			Secp256k1.generator

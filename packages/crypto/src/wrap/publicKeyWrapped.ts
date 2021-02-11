@@ -54,9 +54,17 @@ const publicKeyFromEllipticKey = (
 		asData: newKeyAsData,
 		isValidSignature: isValidSignature,
 		equals: equals,
-		decodeToPointOnCurve: (): Result<ECPointOnCurve, Error> => {
+		decodeToPointOnCurve: (): ECPointOnCurve => {
 			const shortPoint = ecKeyPair.getPublic() as curve.short.ShortPoint
-			return pointOnCurveFromEllipticShortPoint(shortPoint)
+			const pointOnCurveResult = pointOnCurveFromEllipticShortPoint(
+				shortPoint,
+			)
+			if (pointOnCurveResult.isErr())
+				throw new Error(
+					`Incorrect implementation, should always be able to decode a valid public key
+					 into a point on the curve, but got error ${pointOnCurveResult.error.message}`,
+				)
+			return pointOnCurveResult.value
 		},
 	}
 
