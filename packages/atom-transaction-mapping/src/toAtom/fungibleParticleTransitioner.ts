@@ -5,7 +5,7 @@ import {
 	ParticleBase,
 	spunUpParticle,
 } from '@radixdlt/atom'
-import { Amount } from '@radixdlt/primitives'
+import { Amount, zero } from '@radixdlt/primitives'
 import { Result, err, ok } from 'neverthrow'
 
 /* eslint-disable functional/immutable-data, functional/no-let, functional/no-loop-statement, prefer-const, max-lines-per-function */
@@ -41,7 +41,7 @@ export const makeTransitioner = <
 				if (particleAmount.greaterThan(amountLeftToTransfer)) {
 					const sendBackToSelf = particleAmount
 						.subtracting(amountLeftToTransfer)
-						._unsafeUnwrap()
+						.unwrapOr(zero)
 
 					const migratedResult = inputCreator(
 						sendBackToSelf,
@@ -70,7 +70,7 @@ export const makeTransitioner = <
 
 				amountLeftToTransfer = amountLeftToTransfer
 					.subtracting(particleAmount)
-					._unsafeUnwrap()
+					.unwrapOr(zero)
 			}
 			return err(new Error('Insufficient balance.'))
 		},
