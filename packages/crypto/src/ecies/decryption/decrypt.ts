@@ -35,8 +35,8 @@ export const eciesDecrypt = (
 
 	// 4️⃣ Use Diffie-Hellman to derive a shared secret `R` and peer's private key
 	const z = input.procedures.diffieHellman({
-		privateKey: input.privateKey, // `V`'s private key `d_v`
-		publicKey: R,
+		ephemeralPublicKey: R,
+		privateKey: input.privateKey,
 	})
 	// 5️⃣ Convert `z` to an octet string `Z` (Omitted becuase irrelevant).
 

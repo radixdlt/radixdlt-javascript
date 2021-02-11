@@ -1,7 +1,7 @@
 import { PublicKey } from '../../_types'
 import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
 import { Result } from 'neverthrow'
-import { ECIESEncryptedMessage } from '../_types'
+import { ECIESEncryptedMessage, ECIESEncryptProcedures } from '../_types'
 import { IVByteCount } from '../_index'
 import { unsafeECIESEncryptionProcedures } from './_index'
 import { formatOutput } from './formatOutput'
@@ -12,8 +12,10 @@ export const unsafeEncrypt = (
 		message: Buffer
 		peerPublicKey: PublicKey
 		secureRandom?: SecureRandom
+		procedures?: ECIESEncryptProcedures
 	}>,
 ): Result<ECIESEncryptedMessage, Error> => {
+	const procedures = input.procedures ?? unsafeECIESEncryptionProcedures
 	const secureRandom = input.secureRandom ?? secureRandomGenerator
 	const iv = Buffer.from(secureRandom.randomSecureBytes(IVByteCount), 'hex')
 
@@ -22,7 +24,7 @@ export const unsafeEncrypt = (
 		M: input.message,
 		sharedInfo: { s2: iv },
 		secureRandom,
-		procedures: unsafeECIESEncryptionProcedures,
+		procedures,
 	}).map((encryptedMessage) => ({
 		...encryptedMessage,
 		toBuffer: (): Buffer => formatOutput({ encryptedMessage, iv }),

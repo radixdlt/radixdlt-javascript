@@ -4,7 +4,12 @@ import {
 	DecryptionScheme,
 	EncryptionScheme,
 } from '../symmetric-encryption/_types'
-import { DiffieHellmanRoutine } from '../key-exchange/_types'
+import {
+	DiffieHellman,
+	DiffieHellmanDecryption,
+	DiffieHellmanEncryption,
+	DiffieHellmanInput,
+} from '../key-exchange/_types'
 
 export type SharedInfo = Readonly<{
 	// `s1` (optional shared information), if present, is fed into KDF (Key Derivation Function), that produces a symmetric encryption key
@@ -21,18 +26,20 @@ export type ECIESEncryptedMessage = Readonly<{
 }>
 
 export type ECIESProcedures = Readonly<{
-	diffieHellman: DiffieHellmanRoutine
+	diffieHellman: DiffieHellman<DiffieHellmanInput>
 	keyDerivationScheme: KeyDerivationScheme
 	messageAuthenticationCodeScheme: MessageAuthenticationCodeScheme
 }>
 
 export type ECIESEncryptProcedures = ECIESProcedures &
 	Readonly<{
+		diffieHellman: DiffieHellmanEncryption
 		encryptionScheme: EncryptionScheme
 	}>
 
 export type ECIESDecryptProcedures = ECIESProcedures &
 	Readonly<{
+		diffieHellman: DiffieHellmanDecryption
 		decryptionScheme: DecryptionScheme
 	}>
 

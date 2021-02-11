@@ -1,7 +1,11 @@
 import { PrivateKey } from '../../_types'
 import { combine, Result } from 'neverthrow'
 import { eciesDecrypt } from './decrypt'
-import { ECIESEncryptedMessage, SharedInfo } from '../_types'
+import {
+	ECIESDecryptProcedures,
+	ECIESEncryptedMessage,
+	SharedInfo,
+} from '../_types'
 import { makeBufferReader } from './bufferReader'
 import { unsafeECIESDecryptionProcedures } from './unsafeECIESDecryptionProcedures'
 import { ECIESDecryptInput, IVByteCount } from '../_index'
@@ -10,9 +14,10 @@ export const unsafeDecrypt = (
 	input: Readonly<{
 		buffer: Buffer
 		privateKey: PrivateKey
+		procedures?: ECIESDecryptProcedures
 	}>,
 ): Result<Buffer, Error> => {
-	const procedures = unsafeECIESDecryptionProcedures
+	const procedures = input.procedures ?? unsafeECIESDecryptionProcedures
 	const macScheme = procedures.messageAuthenticationCodeScheme
 
 	const reader = makeBufferReader(input.buffer)

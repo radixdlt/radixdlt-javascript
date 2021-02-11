@@ -1,15 +1,24 @@
-import { ECPointOnCurve, PrivateKey, PublicKey } from '../_types'
-import { DiffieHellmanRoutine } from './_types'
+import { ECPointOnCurve } from '../_types'
+import {
+	DiffieHellmanDecryptionInput,
+	DiffieHellmanEncryptionInput,
+	DiffieHellmanInput,
+} from './_types'
 
-export const diffieHellmanPublicKey: DiffieHellmanRoutine = (
-	input: Readonly<{
-		privateKey: PrivateKey
-		publicKey: PublicKey
-	}>,
-): ECPointOnCurve =>
-	input.publicKey
+/* eslint-disable */
+export const diffieHellmanPublicKey = <I extends DiffieHellmanInput>(
+	input: I,
+): ECPointOnCurve => {
+	const privateKey =
+		(input as DiffieHellmanEncryptionInput).ephemeralPrivateKey ??
+		(input as DiffieHellmanDecryptionInput).privateKey
+	const publicKey =
+		(input as DiffieHellmanEncryptionInput).publicKey ??
+		input.ephemeralPublicKey
+
+	return publicKey
 		.decodeToPointOnCurve()
-		.map((pointOnCurve) =>
-			pointOnCurve.multiplyWithPrivateKey(input.privateKey),
-		)
+		.map((pointOnCurve) => pointOnCurve.multiplyWithPrivateKey(privateKey))
 		._unsafeUnwrap()
+}
+/* eslint-enable */

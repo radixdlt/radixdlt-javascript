@@ -5,6 +5,10 @@ import { keyPair } from '../src/keyPair'
 import { generateKeyPair } from '../src/keyPair'
 import { unsafeDecrypt } from '../src/ecies/decryption/unsafeDecrypt'
 import { unsafeEncrypt } from '../src/ecies/encryption/unsafeEncrypt'
+import {
+	unsafeCyonDecrypt,
+	unsafeCyonEncrypt,
+} from '../src/ecies/unsafeCyonECIES'
 
 describe('ECIES', () => {
 	it('can encrypt', () => {
@@ -58,5 +62,35 @@ describe('ECIES', () => {
 		})._unsafeUnwrap()
 
 		expect(decrypted.toString()).toBe(message)
+	})
+
+	it('should be possible for sender and recipient to decrypt encrypted message using Cyon ECIES', () => {
+		const alice = generateKeyPair()._unsafeUnwrap()
+		const bob = generateKeyPair()._unsafeUnwrap()
+		const message = 'top secret stuff'
+
+		const encrypted = unsafeCyonEncrypt({
+			message: Buffer.from(message),
+			senderPrivateKey: alice.privateKey,
+			peerPublicKey: bob.publicKey,
+		})._unsafeUnwrap()
+
+		// Recipient Bob can decrupt
+		const bobDecryption = unsafeCyonDecrypt({
+			buffer: encrypted.toBuffer(),
+			publicKey: alice.publicKey, // sender
+			privateKey: bob.privateKey, // recipient
+		})._unsafeUnwrap()
+
+		expect(bobDecryption.toString()).toBe(message)
+
+		// Sender Alice can als decrupt
+		const aliceDecryption = unsafeCyonDecrypt({
+			buffer: encrypted.toBuffer(),
+			publicKey: bob.publicKey, // recipient
+			privateKey: alice.privateKey, // sendert
+		})._unsafeUnwrap()
+
+		expect(aliceDecryption.toString()).toBe(message)
 	})
 })
