@@ -1,13 +1,14 @@
 import { Address } from '@radixdlt/crypto'
-import { DSONCodable } from '@radixdlt/data-formats'
+import { DSONCodable, JSONEncodable } from '@radixdlt/data-formats'
 import { Amount, Granularity, Nonce } from '@radixdlt/primitives'
 import { Result } from 'neverthrow'
 import { ResourceIdentifier, TokenPermissions } from '../_types'
 import { RadixParticleType } from './meta/radixParticleTypes'
 
-export type ParticleBase = DSONCodable & {
-	equals: (other: ParticleBase) => boolean
-}
+export type ParticleBase = JSONEncodable &
+	DSONCodable & {
+		equals: (other: ParticleBase) => boolean
+	}
 
 export type RadixParticle = ParticleBase &
 	Readonly<{
@@ -75,7 +76,8 @@ export type SpunParticleBase = Readonly<{
 	particle: ParticleBase
 }>
 
-export type AnySpunParticle = DSONCodable &
+export type AnySpunParticle = JSONEncodable &
+	DSONCodable &
 	SpunParticleBase &
 	Readonly<{
 		downedAsAny: () => Result<AnyDownParticle, Error>

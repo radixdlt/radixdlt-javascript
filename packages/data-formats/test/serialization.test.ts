@@ -243,9 +243,9 @@ describe('DSON encoding', () => {
 	it('should encode a complex object', (done) => {
 		const particle = DSONEncodableMap({
 			particle: DSONEncodableMap({}),
-			serializer: DSONPrimitive('radix.spun_particle'),
+			serializer: 'radix.spun_particle',
 			spin: DSONPrimitive(1),
-			version: DSONPrimitive(100),
+			version: 100,
 		})
 
 		const particleGroups = [

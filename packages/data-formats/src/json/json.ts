@@ -1,3 +1,4 @@
+import { Result } from 'neverthrow'
 import {
 	JSONPrimitiveDecoder,
 	JSONEncodable,
@@ -25,6 +26,7 @@ export const toJSON = (
 
 	switch (typeof data) {
 		case 'number':
+		case 'bigint':
 		case 'boolean':
 			return data
 		case 'string':

@@ -13,6 +13,7 @@ export type CBOREncodableObject = Readonly<{
 
 export type DSONKeyValues = {
 	[key: string]:
+		| CBOREncodablePrimitive
 		| DSONCodable
 		| DSONCodable[]
 		| { value: DSONCodable | DSONCodable[]; outputMode: OutputMode }

@@ -30,6 +30,7 @@ export type JSONEncodablePrimitive =
 	| number
 	| boolean
 	| string
+	| bigint
 	| { [key: string]: JSONEncodablePrimitive }
 	| JSONEncodablePrimitive[]
 	| undefined

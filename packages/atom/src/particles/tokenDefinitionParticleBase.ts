@@ -10,6 +10,7 @@ import {
 	DSONEncoding,
 	DSONKeyValues,
 	DSONPrimitive,
+	JSONEncoding,
 	OutputMode,
 } from '@radixdlt/data-formats'
 import { isRadixParticle, RadixParticleType } from './meta/_index'
@@ -187,7 +188,7 @@ export const baseTokenDefinitionParticle = (
 		),
 	]).map(
 		(resultList): TokenDefinitionParticleBase => {
-			const thisBaseBase = <TokenDefinitionParticleBase>{
+			const thisBaseBase = {
 				radixParticleType: input.radixParticleType,
 				name: notUndefinedOrCrash(resultList[1]),
 				description: resultList[2],
@@ -207,8 +208,11 @@ export const baseTokenDefinitionParticle = (
 				...dsonEncodingMarker,
 			}
 
-			const thisBase = <TokenDefinitionParticleBase>{
+			const thisBase = {
 				...thisBaseBase,
+
+				...JSONEncoding(input.serializer)({}),
+
 				...DSONEncoding(input.serializer)({
 					...input.specificEncodableKeyValues,
 
@@ -233,7 +237,7 @@ export const baseTokenDefinitionParticle = (
 				}),
 			}
 
-			return <TokenDefinitionParticleBase>{
+			return {
 				...thisBase,
 				equals: (other: ParticleBase): boolean =>
 					input.makeEquals(thisBase, other),

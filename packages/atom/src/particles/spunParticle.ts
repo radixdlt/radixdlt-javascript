@@ -13,7 +13,11 @@ import {
 import { isSpin } from './meta/spin'
 
 import { err, ok, Result } from 'neverthrow'
-import { DSONEncoding, DSONPrimitive } from '@radixdlt/data-formats'
+import {
+	DSONEncoding,
+	DSONPrimitive,
+	JSONEncoding,
+} from '@radixdlt/data-formats'
 
 const SERIALIZER = 'radix.spun_particle'
 
@@ -41,6 +45,11 @@ export const anySpunParticle = (
 	spunParticleBase: SpunParticleBase,
 ): AnySpunParticle => ({
 	...spunParticleBase,
+
+	...JSONEncoding(SERIALIZER)({
+		particle: spunParticleBase.particle,
+		spin: spunParticleBase.spin,
+	}),
 
 	...DSONEncoding(SERIALIZER)({
 		particle: spunParticleBase.particle,

@@ -19,6 +19,7 @@ import {
 	thirteen,
 	fourteen,
 	fifteen,
+	JSON_TAG,
 } from '../src/amount'
 import {
 	Amount,
@@ -161,6 +162,18 @@ describe('Amount', () => {
 		const dson = amount.toDSON()._unsafeUnwrap()
 
 		expect(dson.toString('hex')).toBe(expected)
+	})
+
+	it('should be able to JSON encode', () => {
+		const amount = amountFromUInt256({
+			magnitude: UInt256.valueOf(7),
+			denomination: Denomination.Whole,
+		})._unsafeUnwrap()
+
+		const expected = `${JSON_TAG}7000000000000000000`
+		const json = amount.toJSON()
+
+		expect(json).toBe(expected)
 	})
 
 	it('should be possible to find min of two amounts', () => {
