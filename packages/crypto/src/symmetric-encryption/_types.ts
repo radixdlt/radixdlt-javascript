@@ -38,17 +38,11 @@ export type EncryptionScheme = Readonly<{
 	length: number
 	combineDataIntoCryptInput: CombineDataIntoCryptInput
 	encryptionFunctionBuilder: EncryptionFunctionBuilder
-	// encryptionFunction: (
-	// 	input: Readonly<{ key: Buffer; dataToEncrypt: Buffer }>,
-	// ) => Buffer
 }>
 
 export type DecryptionScheme = Readonly<{
 	/// `enckeylen`
 	length: number
 	combineDataIntoCryptInput: CombineDataIntoCryptInput
-	// decryptFunction: (
-	// 	input: Readonly<{ key: Buffer; cipher: Buffer }>,
-	// ) => Buffer
 	decryptionFunctionBuilder: DecryptionFunctionBuilder
 }>
