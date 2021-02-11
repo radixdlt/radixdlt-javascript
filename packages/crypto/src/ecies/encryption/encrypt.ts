@@ -51,7 +51,7 @@ export const eciesEncrypt = (
 		ephemeralPrivateKey: k,
 		publicKey: input.peerPublicKey,
 	})
-	// 4️⃣ Convert `z` to an octet string `Z` (Omitted becuase irrelevant)
+	// 4️⃣ Convert `z` to an octet string `Z` (Omitted because irrelevant)
 
 	// 5️⃣ Use `KDF` to generate key `K`.
 	// 💡 We have generalized this to use passed in functions.

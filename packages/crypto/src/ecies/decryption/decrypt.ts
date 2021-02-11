@@ -38,7 +38,7 @@ export const eciesDecrypt = (
 		ephemeralPublicKey: R,
 		privateKey: input.privateKey,
 	})
-	// 5️⃣ Convert `z` to an octet string `Z` (Omitted becuase irrelevant).
+	// 5️⃣ Convert `z` to an octet string `Z` (Omitted because irrelevant).
 
 	// 6️⃣ Use `KDF` to generate key `K`.
 	// 💡 We have generalized this to use passed in functions.
