@@ -31,7 +31,7 @@ export const eciesEncrypt = (
 			),
 		)
 
-	// 1️⃣ Select (generate) an ephemeral elliptic curve key pair 􏰃`(k,􏰊 R)􏰄
+	// 1️⃣ Select (generate) an ephemeral elliptic curve key pair `(k,􏰊 R)`
 	const ephemeralKeyPairResult = generateKeyPair(
 		input.secureRandom ?? secureRandomGenerator,
 	)
@@ -45,7 +45,7 @@ export const eciesEncrypt = (
 	// 2️⃣ Convert `R` to an octet string `Ṝ`
 	const Ṝ = R.asData({ compressed: true })
 
-	// 3️⃣ Use Diffie-Hellman to derive a shared secret `z` 􏰖from ephemeral secret key `k` and `peerPublicKey`
+	// 3️⃣ Use Diffie-Hellman to derive a shared secret `z` from ephemeral secret key `k` and `peerPublicKey`
 	const z = input.procedures.diffieHellman({
 		ephemeralPublicKey: R,
 		ephemeralPrivateKey: k,
