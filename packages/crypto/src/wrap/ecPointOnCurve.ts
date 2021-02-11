@@ -50,7 +50,7 @@ const ecPointOnCurveFromCoordinates = (
 		return factorPoint.value
 	}
 
-	return <ECPointOnCurve>{
+	return {
 		x: input.x,
 		y: input.y,
 		toBuffer: () =>
@@ -87,7 +87,7 @@ export const pointOnCurveFromEllipticShortPoint = (
 		somePoint: curve.short.ShortPoint,
 	): Result<ValidationWitness, Error> => {
 		if (!somePoint.validate()) return err(new Error('Not point on curve!'))
-		return ok(<ValidationWitness>{ witness: 'Point is on curve.' })
+		return ok({ witness: 'Point is on curve.' })
 	}
 	return validateOnCurve(shortPoint).andThen((_) => {
 		return combine([

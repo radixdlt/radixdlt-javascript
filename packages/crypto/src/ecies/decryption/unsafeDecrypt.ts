@@ -1,11 +1,7 @@
 import { PrivateKey } from '../../_types'
 import { combine, Result } from 'neverthrow'
 import { eciesDecrypt } from './decrypt'
-import {
-	ECIESDecryptProcedures,
-	ECIESEncryptedMessage,
-	SharedInfo,
-} from '../_types'
+import { ECIESDecryptProcedures } from '../_types'
 import { readBuffer } from './bufferReader'
 import { unsafeECIESDecryptionProcedures } from './unsafeECIESDecryptionProcedures'
 import { ECIESDecryptInput, IVByteCount } from '../_index'
@@ -38,7 +34,7 @@ export const unsafeDecrypt = (
 				const cipherText = parsed[2]
 				const macBuf = parsed[3]
 
-				const encryptedMessage = <ECIESEncryptedMessage>{
+				const encryptedMessage = {
 					cipherText,
 					sharedSecret,
 					tag: macBuf,
@@ -49,7 +45,7 @@ export const unsafeDecrypt = (
 					encryptedMessage,
 					privateKey: input.privateKey,
 					procedures: procedures,
-					sharedInfo: <SharedInfo>{
+					sharedInfo: {
 						s2: iv,
 					},
 				}

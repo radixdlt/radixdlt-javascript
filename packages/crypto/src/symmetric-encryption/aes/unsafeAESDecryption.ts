@@ -1,13 +1,9 @@
 import { createDecipheriv } from 'crypto'
-import {
-	DecryptionFunctionBuilder,
-	DecryptionScheme,
-	Decryptor,
-} from '../_types'
+import { DecryptionScheme, Decryptor } from '../_types'
 import { SharedInfo } from '../../ecies/_types'
 import { simpleDataIntoCryptInputCombiner } from './_index'
 
-const unsafeDecryptionFunctionBuilder = <DecryptionFunctionBuilder>{
+const unsafeDecryptionFunctionBuilder = {
 	buildDecryptionFunction: (
 		input: Readonly<{
 			key: Buffer

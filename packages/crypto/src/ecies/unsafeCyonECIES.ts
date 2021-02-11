@@ -1,11 +1,7 @@
 import { ECPointOnCurve, PrivateKey, PublicKey } from '../_types'
 import { SecureRandom } from '@radixdlt/util'
 import { Result } from 'neverthrow'
-import {
-	ECIESDecryptProcedures,
-	ECIESEncryptedMessage,
-	ECIESEncryptProcedures,
-} from './_types'
+import { ECIESEncryptedMessage } from './_types'
 import { unsafeEncrypt } from './encryption/unsafeEncrypt'
 import { unsafeDecrypt } from './decryption/unsafeDecrypt'
 import { unsafeECIESEncryptionProcedures } from './encryption/unsafeECIESEncryptionProcedures'
@@ -38,7 +34,7 @@ export const unsafeCyonEncrypt = (
 ): Result<ECIESEncryptedMessage, Error> =>
 	unsafeEncrypt({
 		...input,
-		procedures: <ECIESEncryptProcedures>{
+		procedures: {
 			...unsafeECIESEncryptionProcedures,
 			diffieHellman: makeCyonDH(
 				input.senderPrivateKey,
@@ -56,7 +52,7 @@ export const unsafeCyonDecrypt = (
 ): Result<Buffer, Error> =>
 	unsafeDecrypt({
 		...input,
-		procedures: <ECIESDecryptProcedures>{
+		procedures: {
 			...unsafeECIESDecryptionProcedures,
 			diffieHellman: makeCyonDH(input.privateKey, input.publicKey),
 		},

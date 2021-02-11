@@ -1,6 +1,5 @@
 import {
 	ApplicationStateType,
-	TokenAmount,
 	TokenBalance,
 	TokenBalancesForOneAccountReducer,
 	TokenBalancesForOneAccount,
@@ -56,7 +55,7 @@ export const tokenBalance = (
 ): TokenBalance => {
 	return {
 		owner: ttp.address,
-		tokenAmount: <TokenAmount>{
+		tokenAmount: {
 			amount: ttp.amount,
 			token: ttp as TokenBase,
 		},
@@ -88,7 +87,7 @@ export const mergeTokenBalance = (
 
 	return lhs.tokenAmount.amount.adding(rhs.tokenAmount.amount).map((sum) => ({
 		owner: lhs.owner,
-		tokenAmount: <TokenAmount>{
+		tokenAmount: {
 			token: lhs.tokenAmount.token,
 			amount: sum,
 		},

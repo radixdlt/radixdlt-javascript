@@ -1,13 +1,9 @@
 import { createCipheriv } from 'crypto'
-import {
-	EncryptionFunctionBuilder,
-	EncryptionScheme,
-	Encryptor,
-} from '../_types'
+import { EncryptionScheme, Encryptor } from '../_types'
 import { simpleDataIntoCryptInputCombiner } from './_index'
 import { SharedInfo } from '../../ecies/_types'
 
-const unsafeEncryptionFunctionBuilder = <EncryptionFunctionBuilder>{
+const unsafeEncryptionFunctionBuilder = {
 	buildEncryptionFunction: (
 		input: Readonly<{
 			key: Buffer
