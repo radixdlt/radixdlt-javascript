@@ -27,6 +27,17 @@ export type Signature = Readonly<{
 	equals: (other: Signature) => boolean
 }>
 
+// A non-infinity point on the EC curve (e.g. `secp256k1`)
+export type ECPointOnCurve = Readonly<{
+	x: UInt256
+	y: UInt256
+	toBuffer: () => Buffer
+	equals: (other: ECPointOnCurve) => boolean
+	add: (other: ECPointOnCurve) => ECPointOnCurve
+	multiply: (by: UInt256) => ECPointOnCurve
+	multiplyWithPrivateKey: (privateKey: PrivateKey) => ECPointOnCurve
+}>
+
 export type PublicKey = Readonly<{
 	asData: (input: { readonly compressed: boolean }) => Buffer
 	isValidSignature: (
@@ -35,6 +46,7 @@ export type PublicKey = Readonly<{
 			forData: UnsignedMessage
 		}>,
 	) => boolean
+	decodeToPointOnCurve: () => ECPointOnCurve
 	equals: (other: PublicKey) => boolean
 }>
 
@@ -44,8 +56,14 @@ export type PublicKeyProvider = Readonly<{
 
 export type PrivateKey = Signer &
 	PublicKeyProvider & {
+		scalar: UInt256
 		toString: () => string
 	}
+
+export type KeyPair = Readonly<{
+	publicKey: PublicKey
+	privateKey: PrivateKey
+}>
 
 export type Address = JSONEncodable &
 	DSONCodable &

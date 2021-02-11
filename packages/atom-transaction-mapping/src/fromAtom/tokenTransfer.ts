@@ -1,7 +1,7 @@
 import { TokenDefinitionBase, TokenBase } from '@radixdlt/atom'
 import { Address } from '@radixdlt/crypto'
 import { Amount } from '@radixdlt/primitives'
-import { ExecutedUserActionType, TokenTransfer, TokenAmount } from './_types'
+import { ExecutedUserActionType, TokenTransfer } from './_types'
 
 export const executedTokenTransfer = (
 	input: Readonly<{
@@ -13,7 +13,7 @@ export const executedTokenTransfer = (
 ): TokenTransfer => ({
 	from: input.from,
 	to: input.to,
-	tokenAmount: <TokenAmount>{
+	tokenAmount: {
 		amount: input.amount,
 		token: input.tokenDefinition,
 	},

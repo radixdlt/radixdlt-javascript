@@ -144,7 +144,7 @@ export const syncMapAtomToTokenTransfers = (
 }
 
 export const makeAtomToTokenTransfersMapper = (): AtomToTokenTransfersMapper => {
-	return <AtomToTokenTransfersMapper>{
+	return {
 		executedUserActionType: ExecutedUserActionType.TOKEN_TRANSFER,
 
 		map: (input: AtomToActionMapperInput): Observable<TokenTransfer> =>

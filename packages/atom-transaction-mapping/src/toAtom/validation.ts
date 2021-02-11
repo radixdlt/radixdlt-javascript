@@ -6,8 +6,8 @@ import {
 } from '@radixdlt/atom'
 import { Address } from '@radixdlt/crypto'
 import { err, ok, Result } from 'neverthrow'
-import { ValidationWitness } from './burnTokensActionToParticleGroupsMapper'
 import { MapperInput } from './_types'
+import { ValidationWitness } from '@radixdlt/util'
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */
 export const validate = (

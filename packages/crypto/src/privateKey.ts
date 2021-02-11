@@ -12,6 +12,7 @@ import { ResultAsync } from 'neverthrow'
 import { UnsignedMessage, Signature, PublicKey, PrivateKey } from './_types'
 import { publicKeyFromPrivateKey } from './wrap/publicKeyWrapped'
 import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
+import { Secp256k1 } from './secp256k1'
 
 export const privateKeyFromScalar = (scalar: UInt256): PrivateKey => {
 	return {
@@ -35,15 +36,12 @@ export const privateKeyFromScalar = (scalar: UInt256): PrivateKey => {
 		toString: (): string => {
 			return scalar.toString(16)
 		},
+		scalar: scalar,
 	}
 }
 
-export const orderOfSecp256k1 = new UInt256(
-	'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141',
-	16,
-)
 const validateSecp256k1PrivateKey = (scalar: UInt256): boolean =>
-	scalar.gte(UInt256.valueOf(1)) && scalar.lte(orderOfSecp256k1)
+	scalar.gte(UInt256.valueOf(1)) && scalar.lte(Secp256k1.order)
 
 export const generatePrivateKey = (
 	secureRandom: SecureRandom = secureRandomGenerator,
