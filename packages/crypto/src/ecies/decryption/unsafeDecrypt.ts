@@ -6,7 +6,7 @@ import {
 	ECIESEncryptedMessage,
 	SharedInfo,
 } from '../_types'
-import { makeBufferReader } from './bufferReader'
+import { readBuffer } from './bufferReader'
 import { unsafeECIESDecryptionProcedures } from './unsafeECIESDecryptionProcedures'
 import { ECIESDecryptInput, IVByteCount } from '../_index'
 
@@ -20,18 +20,16 @@ export const unsafeDecrypt = (
 	const procedures = input.procedures ?? unsafeECIESDecryptionProcedures
 	const macScheme = procedures.messageAuthenticationCodeScheme
 
-	const reader = makeBufferReader(input.buffer)
+	const readNextBuffer = readBuffer.bind(null, input.buffer)()
 	return combine([
-		reader.nextBuffer(IVByteCount),
-		reader
-			.nextBuffer(1)
+		readNextBuffer(IVByteCount),
+		readNextBuffer(1)
 			.map((keyLenBuf) => keyLenBuf.readUInt8())
-			.andThen((keyLenNum) => reader.nextBuffer(keyLenNum)),
-		reader
-			.nextBuffer(4) // This means that our cihertext can be at most 2^32 = 4.3 billion chars long.
+			.andThen((keyLenNum) => readNextBuffer(keyLenNum)),
+		readNextBuffer(4) // This means that our cihertext can be at most 2^32 = 4.3 billion chars long.
 			.map((cipherLenBuf) => cipherLenBuf.readUInt32BE())
-			.andThen((cipherLenNum) => reader.nextBuffer(cipherLenNum)),
-		reader.nextBuffer(macScheme.length),
+			.andThen((cipherLenNum) => readNextBuffer(cipherLenNum)),
+		readNextBuffer(macScheme.length),
 	])
 		.map(
 			(parsed): ECIESDecryptInput => {
