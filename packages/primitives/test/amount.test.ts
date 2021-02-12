@@ -1,4 +1,4 @@
-import { UInt256 } from "@radixdlt/uint256";
+import { UInt256 } from '@radixdlt/uint256'
 import {
 	amountFromUInt256,
 	amountInSmallestDenomination,
@@ -18,8 +18,8 @@ import {
 	three,
 	twelve,
 	two,
-	zero
-} from "../src/amount";
+	zero,
+} from '../src/amount'
 import {
 	Amount,
 	amountFromUnsafe,
@@ -28,8 +28,8 @@ import {
 	DenominationOutputFormat,
 	Granularity,
 	isUInt256,
-	maxAmount
-} from "../src/_index";
+	maxAmount,
+} from '../src/_index'
 
 const makeAmount = (unsafe: AmountInputUnsafe): Amount =>
 	amountFromUnsafe(unsafe, Denomination.Atto)._unsafeUnwrap()
@@ -190,13 +190,22 @@ describe('Amount', () => {
 	})
 
 	describe('amount toString', () => {
-
-		const doTestToString = (magnitude: number, denomination: Denomination, expected: string): void => {
-			const amount = amountFromUnsafe(magnitude, denomination)._unsafeUnwrap()
-			expect(amount.toString({
-				useLargestDenomination: true,
-				denominationOutputFormat: DenominationOutputFormat.SHOW_NAME,
-			})).toBe(expected)
+		const doTestToString = (
+			magnitude: number,
+			denomination: Denomination,
+			expected: string,
+		): void => {
+			const amount = amountFromUnsafe(
+				magnitude,
+				denomination,
+			)._unsafeUnwrap()
+			expect(
+				amount.toString({
+					useLargestDenomination: true,
+					denominationOutputFormat:
+						DenominationOutputFormat.SHOW_NAME,
+				}),
+			).toBe(expected)
 		}
 
 		it(`(1 exa).toString(useLargestDenomination: true) => '1 Exa'`, () => {

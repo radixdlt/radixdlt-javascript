@@ -4,19 +4,19 @@ import {
 	resourceIdentifierFromAddressAndName,
 	spunUpParticle,
 	TransferrableTokensParticle,
-	transferrableTokensParticle
-} from "@radixdlt/atom";
-import { toAddress } from "../../atom/test/helpers/utility";
+	transferrableTokensParticle,
+} from '@radixdlt/atom'
+import { toAddress } from '../../atom/test/helpers/utility'
 import {
 	Amount,
 	amountFromUInt256,
 	amountInSmallestDenomination,
 	Denomination,
 	isAmount,
-	one
-} from "@radixdlt/primitives";
-import { UInt256 } from "@radixdlt/uint256";
-import { makeTokenFeeProvider, minimumFee } from "../src/tokenFeeProvider";
+	one,
+} from '@radixdlt/primitives'
+import { UInt256 } from '@radixdlt/uint256'
+import { makeTokenFeeProvider, minimumFee } from '../src/tokenFeeProvider'
 
 const Range = function* (total = 0, step = 1, from = 0) {
 	for (let i = 0; i < total; yield from + i++ * step) {}
@@ -70,7 +70,12 @@ describe('TokenFees', () => {
 	}
 
 	const feeTest = (expectedFee: number | Amount, ttpCount: number): void => {
-		const expected = isAmount(expectedFee) ? expectedFee : amountFromUInt256({ magnitude: UInt256.valueOf(expectedFee), denomination: Denomination.Milli })._unsafeUnwrap()
+		const expected = isAmount(expectedFee)
+			? expectedFee
+			: amountFromUInt256({
+					magnitude: UInt256.valueOf(expectedFee),
+					denomination: Denomination.Milli,
+			  })._unsafeUnwrap()
 		feeTestAssert(ttpCount, (fee: Amount) => {
 			console.log(`💵 expected fee: ${expected.toString()}`)
 			expect(fee.equals(expected)).toBe(true)
