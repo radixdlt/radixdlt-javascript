@@ -9,6 +9,8 @@
   ],
   "references": [
     {"path": "../crypto"},
+    {"path": "../atom"},
+    {"path": "../primitives"},
     {"path": "../atom-transaction-mapping"}
   ]
 }

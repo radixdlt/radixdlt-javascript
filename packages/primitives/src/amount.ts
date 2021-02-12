@@ -1,15 +1,22 @@
-import { Amount, Denomination, minAmountDenomination } from './_types'
+import {
+	Amount,
+	AmountStringFormatting,
+	Denomination,
+	DenominationOutputFormat,
+	minAmountDenomination,
+} from './_types'
 import { UInt256 } from '@radixdlt/uint256'
-import { Result, ok, err } from 'neverthrow'
+import { err, ok, Result } from 'neverthrow'
 import BN from 'bn.js'
 import {
 	bnFromUInt256,
-	uint256FromUnsafe,
-	uint256FromBN,
-	UInt256InputUnsafe,
 	isUnsafeInputForUInt256,
+	uint256FromBN,
+	uint256FromUnsafe,
+	UInt256InputUnsafe,
 	uint256Max,
 } from './uint256-extensions'
+import { denominations, formatDenomination } from './denomination'
 import { DSONObjectEncoding } from '@radixdlt/data-formats'
 import { Byte } from '@radixdlt/util'
 
@@ -17,6 +24,37 @@ export const CBOR_BYTESTRING_PREFIX: Byte = 5
 
 export const min = (lhs: Amount, rhs: Amount): Amount =>
 	lhs.lessThanOrEquals(rhs) ? lhs : rhs
+
+const toString = (
+	input: AmountStringFormatting &
+		Readonly<{
+			denomination: Denomination
+			magnitude: UInt256
+		}>,
+): string => {
+	const denomination = input.denomination
+	const radix = input.radix ?? 10
+	const useLargestDenomination = input.useLargestDenomination ?? true
+
+	const magnitudeAndDenom = useLargestDenomination
+		? expressMagnitudeInLargestDenomination({
+				magnitude: input.magnitude,
+				denomination,
+		  })
+		: { magnitude: input.magnitude, denomination: input.denomination }
+
+	const magnitude = magnitudeAndDenom.magnitude
+	const magnitudeString = magnitude.toString(radix)
+	return [
+		magnitudeString,
+		formatDenomination({
+			outputFormat: input.denominationOutputFormat,
+			denomination: magnitudeAndDenom.denomination,
+		}),
+	]
+		.join(' ')
+		.trim()
+}
 
 /* eslint-disable max-params */
 export const amountInSmallestDenomination = (magnitude: UInt256): Amount => {
@@ -45,7 +83,12 @@ export const amountInSmallestDenomination = (magnitude: UInt256): Amount => {
 		magnitude: magnitude,
 		isMultipleOf: (other: Amount) =>
 			magnitude.mod(other.magnitude, false).eq(UInt256.valueOf(0)),
-		toString: (radix?: number) => magnitude.toString(radix ?? 10),
+		toString: (formatting?: AmountStringFormatting) =>
+			toString({
+				magnitude: magnitude,
+				denomination: Denomination.Atto,
+				...formatting,
+			}),
 		equals: (other: Amount) => magnitude.eq(other.magnitude),
 		greaterThan: (other: Amount) => magnitude.gt(other.magnitude),
 		lessThan: (other: Amount) => magnitude.lt(other.magnitude),
@@ -55,7 +98,31 @@ export const amountInSmallestDenomination = (magnitude: UInt256): Amount => {
 			doArithmetic(other, addBN),
 		subtracting: (other: Amount): Result<Amount, Error> =>
 			doArithmetic(other, subBN),
+
+		multiplied: (by: Amount): Result<Amount, Error> =>
+			doArithmetic(by, mulBN),
 	}
+}
+
+export const expressMagnitudeInLargestDenomination = (
+	input: Readonly<{
+		magnitude: UInt256
+		denomination: Denomination
+	}>,
+): Readonly<{
+	magnitude: UInt256
+	denomination: Denomination
+}> => {
+	for (const denomination of denominations) {
+		const conversionResult = convert({
+			magnitude: input.magnitude,
+			from: input.denomination,
+			to: denomination,
+		})
+		if (conversionResult.isOk())
+			return { magnitude: conversionResult.value, denomination }
+	}
+	return input
 }
 
 export const expressMagnitudeInSmallestDenomination = (
@@ -63,9 +130,22 @@ export const expressMagnitudeInSmallestDenomination = (
 		magnitude: UInt256
 		denomination: Denomination
 	}>,
+): Result<UInt256, Error> =>
+	convert({
+		magnitude: input.magnitude,
+		from: input.denomination,
+		to: minAmountDenomination,
+	})
+
+const convert = (
+	input: Readonly<{
+		magnitude: UInt256
+		from: Denomination
+		to: Denomination
+	}>,
 ): Result<UInt256, Error> => {
-	const from = input.denomination.valueOf()
-	const to = minAmountDenomination
+	const from = input.from.valueOf()
+	const to = input.to.valueOf()
 	const magnitude = input.magnitude
 
 	if (from === to) {
@@ -108,6 +188,7 @@ export const amountFromUnsafe = (
 
 const addBN = (a: BN, b: BN): BN => a.add(b)
 const subBN = (a: BN, b: BN): BN => a.sub(b)
+const mulBN = (a: BN, b: BN): BN => a.mul(b)
 
 export const amountFromUInt256 = (
 	input: Readonly<{

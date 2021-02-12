@@ -1,5 +1,6 @@
 import {
 	AnySpunParticle,
+	AnyUpParticle,
 	RadixParticle,
 	Spin,
 	SpunParticle,
@@ -9,7 +10,7 @@ import {
 	UnallocatedTokensParticle,
 } from './_types'
 import { isRadixParticle, RadixParticleType } from './meta/radixParticleTypes'
-import { anySpunParticle, spunParticle } from './spunParticle'
+import { anySpunParticle, anyUpParticle, spunParticle } from './spunParticle'
 import { ResourceIdentifier } from '../_types'
 
 const spunParticlesOfTypeWithSpin = <P extends RadixParticle>(query: {
@@ -84,7 +85,7 @@ const tokenDefinitionParticleMatchingIdentifier = (
 	return undefined
 }
 
-const anySpunParticlesOfTypeWithSpin = (query: {
+const anySpunParticlesOfTypeWithSpinFrom = (query: {
 	unique: AnySpunParticle[]
 	particleTypes?: RadixParticleType[]
 	spin?: Spin
@@ -124,9 +125,18 @@ export const spunParticlesQueryable = (
 ): SpunParticleQueryable => {
 	const unique = Array.from(new Set(anySpunParticles))
 
+	const anySpunParticlesOfTypeWithSpin = (query: {
+		particleTypes?: RadixParticleType[]
+		spin?: Spin
+	}): AnySpunParticle[] =>
+		anySpunParticlesOfTypeWithSpinFrom({ unique, ...query })
+
 	return <SpunParticleQueryable>{
-		anySpunParticlesOfTypeWithSpin: (query) =>
-			anySpunParticlesOfTypeWithSpin({ unique, ...query }),
+		anySpunParticlesOfTypeWithSpin: anySpunParticlesOfTypeWithSpin,
+		upParticles: (): AnyUpParticle[] =>
+			anySpunParticlesOfTypeWithSpin({ spin: Spin.UP }).map((sp) =>
+				anyUpParticle(sp.particle),
+			),
 		transferrableTokensParticles: (spin?: Spin) =>
 			spunParticlesOfTypeWithSpin<UnallocatedTokensParticle>({
 				spin,

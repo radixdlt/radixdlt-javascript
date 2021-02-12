@@ -27,5 +27,13 @@
   },
   "engines": {
     "node": ">=15.5.0 <16"
+  },
+  "dependencies": {
+    "neverthrow": "^4.0.1",
+    "@radixdlt/primitives": "^0.0.0",
+    "@radixdlt/crypto": "^0.0.0",
+    "@radixdlt/atom": "^0.0.0",
+    "@radixdlt/atom-transaction-mapping": "^0.0.0",
+    "@radixdlt/data-formats": "^0.0.0"
   }
 }
