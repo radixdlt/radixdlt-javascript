@@ -1,5 +1,5 @@
 import { Address, Signature } from '@radixdlt/crypto'
-import { DSONCodable } from '@radixdlt/data-formats'
+import { DSONCodable, JSONEncodable } from '@radixdlt/data-formats'
 import { SpunParticleQueryable, SpunParticles } from './particles/_types'
 
 /**
@@ -8,7 +8,8 @@ import { SpunParticleQueryable, SpunParticles } from './particles/_types'
  * On format: `/:address/:name`, e.g.
  * `"/JH1P8f3znbyrDj8F4RWpix7hRkgxqHjdW2fNnKpR3v6ufXnknor/XRD"`
  */
-export type ResourceIdentifier = DSONCodable &
+export type ResourceIdentifier = JSONEncodable &
+	DSONCodable &
 	Readonly<{
 		address: Address
 		name: string
@@ -39,7 +40,8 @@ export enum TokenTransition {
 	BURN = 'burn',
 }
 
-export type TokenPermissions = DSONCodable &
+export type TokenPermissions = JSONEncodable &
+	DSONCodable &
 	Readonly<{
 		permissions: Readonly<{ [key in TokenTransition]: TokenPermission }>
 		canBeMinted: (isOwnerOfToken: IsOwnerOfToken) => boolean

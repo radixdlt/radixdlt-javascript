@@ -1,4 +1,4 @@
-import { Result } from 'neverthrow'
+import { combine, err, ok, Result } from 'neverthrow'
 import {
 	JSONPrimitiveDecoder,
 	JSONEncodable,
@@ -7,11 +7,15 @@ import {
 	Tag,
 	JSONObjectDecoder,
 	JSONKeyValues,
+	FromJSONOutput,
+	JSONDecodableObject,
+	JSONEncodableObject,
+	JSONDecodablePrimitive,
 } from './_types'
 
 const defaultPrimitiveDecoders: JSONPrimitiveDecoder[] = [
 	{
-		[Tag.STRING]: (data) => data,
+		[Tag.STRING]: (data) => ok(data),
 	},
 ]
 
@@ -26,9 +30,10 @@ export const toJSON = (
 
 	switch (typeof data) {
 		case 'number':
-		case 'bigint':
 		case 'boolean':
 			return data
+		case 'bigint':
+			return data.toString()
 		case 'string':
 			return `${Tag.STRING}${data}`
 		case 'object': {
@@ -81,47 +86,71 @@ export const JSONEncoding = <Serializer extends string | undefined>(
 
 const fromJSONBasic = (...primitiveDecoders: JSONPrimitiveDecoder[]) => (
 	...objectDecoders: JSONObjectDecoder[]
-) => (json: JSONEncodablePrimitive): JSONEncodablePrimitive => {
-	if (Array.isArray(json))
-		return json.map((item) =>
+) => (json: JSONDecodablePrimitive): FromJSONOutput => {
+	const handleArray = (arr: JSONDecodablePrimitive[]): FromJSONOutput[] =>
+		arr.map((item) =>
 			fromJSONBasic(...primitiveDecoders)(...objectDecoders)(item),
 		)
 
-	switch (typeof json) {
-		case 'object': {
-			const output = Object.keys(json).reduce((result, key) => {
-				result[key] =
-					key === SERIALIZER
-						? json[key]
-						: fromJSONBasic(...primitiveDecoders)(
-								...objectDecoders,
-						  )(json[key])
-				return result
-			}, {} as Record<string, JSONEncodablePrimitive>)
-
-			const objectDecoder = objectDecoders.find(
-				(decoder) => decoder[output[SERIALIZER] as string],
+	const handleObject = (
+		json: JSONDecodableObject,
+	): JSONEncodableObject | JSONEncodable => {
+		if (json[SERIALIZER]) {
+			const decoder = objectDecoders.find(
+				(decoder) => decoder[json[SERIALIZER] as string],
 			)
 
-			return objectDecoder
-				? objectDecoder[output[SERIALIZER] as string](output)
-				: output
-		}
-		case 'string': {
-			const tag = extractTag(json)
+			if (!decoder)
+				throw Error(
+					`Missing object decoder for serializer ${
+						json[SERIALIZER] as string
+					}`,
+				)
 
-			const decoder = primitiveDecoders.filter(
-				(decoder) => decoder[tag],
-			)[0]
-			if (decoder) return decoder[tag](json.slice(5))
-
-			throw new Error(
-				`No matching primitive decoding for string "${json}"`,
-			)
+			const result = decoder[json[SERIALIZER] as string]({
+				...Object.keys(json).reduce((result, key) => {
+					if (key === SERIALIZER) return result
+					result[key] = fromJSONBasic(...primitiveDecoders)(
+						...objectDecoders,
+					)(json[key])
+					return result
+				}, {} as any),
+			})
+			if (result.isOk()) {
+				return result.value
+			} else {
+				throw result.error
+			}
 		}
-		default:
-			return json
+
+		return Object.keys(json).reduce((result, key) => {
+			result[key] = fromJSONBasic(...primitiveDecoders)(
+				...objectDecoders,
+			)(json[key])
+			return result
+		}, {} as any)
 	}
+
+	const handleString = (json: string): string | JSONEncodable => {
+		const tag = extractTag(json)
+
+		const decoder = primitiveDecoders.find((decoder) => decoder[tag])
+
+		if (decoder) {
+			const result = decoder[tag](json.slice(5))
+			if (result.isOk()) return result.value
+			throw result.error
+		}
+		throw Error(`No matching primitive decoding for string "${json}"`)
+	}
+
+	return Array.isArray(json)
+		? handleArray(json)
+		: typeof json === 'object'
+		? handleObject(json)
+		: typeof json === 'string'
+		? handleString(json)
+		: json
 }
 
 export const fromJSONDefault = fromJSONBasic.bind(

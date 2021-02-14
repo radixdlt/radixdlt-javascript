@@ -1,4 +1,4 @@
-import { DSONKeyValues } from '@radixdlt/data-formats'
+import { DSONKeyValues, SerializableKeyValues } from '@radixdlt/data-formats'
 import {
 	Amount,
 	Granularity,
@@ -48,7 +48,9 @@ const withGranularity = (
 	granularity: input.granularity ?? granularityDefault,
 })
 
-export const tokenDSONKeyValues = (input: TokenParticle): DSONKeyValues => ({
+export const tokenSerializationKeyValues = (
+	input: TokenParticle,
+): SerializableKeyValues => ({
 	tokenDefinitionReference: input.resourceIdentifier,
 	granularity: input.granularity,
 	permissions: input.permissions,

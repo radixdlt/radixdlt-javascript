@@ -2,12 +2,21 @@ import { Address } from '@radixdlt/crypto'
 import { ResourceIdentifier } from './_types'
 import { err, ok, Result } from 'neverthrow'
 import { addressFromBase58String } from '@radixdlt/crypto'
-import { DSONObjectEncoding } from '@radixdlt/data-formats'
+import {
+	DSONObjectEncoding,
+	JSONEncoding,
+	JSONPrimitiveDecoder,
+} from '@radixdlt/data-formats'
 import { Byte } from '@radixdlt/util'
 
 const separator = '/'
 
 const CBOR_BYTESTRING_PREFIX: Byte = 6
+export const JSON_TAG = ':rri:'
+export const JSONDecoder: JSONPrimitiveDecoder = {
+	[JSON_TAG]: (identifier: string) =>
+		resourceIdentifierFromString(identifier),
+}
 
 export const resourceIdentifierFromAddressAndName = (input: {
 	address: Address
@@ -19,6 +28,7 @@ export const resourceIdentifierFromAddressAndName = (input: {
 	const identifier = ['', address.toString(), name].join(separator)
 
 	return {
+		...JSONEncoding(undefined)(() => `${JSON_TAG}${identifier}`),
 		...DSONObjectEncoding({
 			prefix: CBOR_BYTESTRING_PREFIX,
 			buffer: Buffer.from(identifier),
@@ -41,6 +51,7 @@ export const resourceIdentifierFromString = (
 
 	return addressFromBase58String(components[1]).map(
 		(address): ResourceIdentifier => ({
+			...JSONEncoding(undefined)(() => `${JSON_TAG}${identifierString}`),
 			...DSONObjectEncoding({
 				prefix: CBOR_BYTESTRING_PREFIX,
 				buffer: Buffer.from(identifierString),

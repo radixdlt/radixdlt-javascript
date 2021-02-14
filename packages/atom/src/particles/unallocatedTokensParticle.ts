@@ -1,18 +1,26 @@
 import { isRadixParticle, RadixParticleType } from './meta/radixParticleTypes'
 import {
-	tokenDSONKeyValues,
+	tokenSerializationKeyValues,
 	tokenParticleProps,
 	TokenParticleInput,
 	withTokenParticleEquals,
 } from './meta/tokenParticle'
-import { DSONCodable, DSONEncoding } from '@radixdlt/data-formats'
+import {
+	DSONCodable,
+	DSONEncoding,
+	JSONEncodable,
+	JSONEncoding,
+} from '@radixdlt/data-formats'
 import { TokenParticle, UnallocatedTokensParticle } from './_types'
 
 const radixParticleType = RadixParticleType.UNALLOCATED_TOKENS
 const SERIALIZER = 'radix.particles.unallocated_tokens'
 
+const JSON = (input: TokenParticle): JSONEncodable =>
+	JSONEncoding(SERIALIZER)({ ...tokenSerializationKeyValues(input) })
+
 const DSON = (input: TokenParticle): DSONCodable =>
-	DSONEncoding(SERIALIZER)({ ...tokenDSONKeyValues(input) })
+	DSONEncoding(SERIALIZER)({ ...tokenSerializationKeyValues(input) })
 
 export const unallocatedTokensParticle = (
 	input: TokenParticleInput,
@@ -23,6 +31,7 @@ export const unallocatedTokensParticle = (
 	}
 
 	return {
+		...JSON(props),
 		...DSON(props),
 
 		...withTokenParticleEquals()(props),

@@ -2,9 +2,15 @@ import { Address } from '@radixdlt/crypto'
 
 import { err, ok, Result } from 'neverthrow'
 import { isRadixParticle, RadixParticleType } from './meta/radixParticleTypes'
-import { DSONCodable, DSONEncoding } from '@radixdlt/data-formats'
 import {
-	tokenDSONKeyValues,
+	DSONCodable,
+	DSONEncoding,
+	JSONEncodable,
+	JSONEncoding,
+	JSONObjectDecoder,
+} from '@radixdlt/data-formats'
+import {
+	tokenSerializationKeyValues,
 	TokenParticleInput,
 	tokenParticleProps,
 	withTokenParticleEquals,
@@ -22,12 +28,23 @@ export type TransferrableTokensParticleInput = TokenParticleInput &
 
 const radixParticleType = RadixParticleType.TRANSFERRABLE_TOKENS
 const SERIALIZER = 'radix.particles.transferrable_tokens'
+//const JSONDecoder: JSONObjectDecoder = {
+//	[SERIALIZER]: () =>
+//}
 
 const DSON = (
 	input: TransferrableTokensParticleProps & TokenParticle,
 ): DSONCodable =>
 	DSONEncoding(SERIALIZER)({
-		...tokenDSONKeyValues(input),
+		...tokenSerializationKeyValues(input),
+		address: input.address,
+	})
+
+const JSON = (
+	input: TransferrableTokensParticleProps & TokenParticle,
+): JSONEncodable =>
+	JSONEncoding(SERIALIZER)({
+		...tokenSerializationKeyValues(input),
 		address: input.address,
 	})
 
@@ -45,6 +62,7 @@ export const transferrableTokensParticle = (
 	}
 
 	return ok({
+		...JSON(props),
 		...DSON(props),
 
 		...withTokenParticleEquals(

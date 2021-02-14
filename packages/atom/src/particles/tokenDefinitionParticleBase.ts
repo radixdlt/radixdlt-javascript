@@ -136,7 +136,7 @@ export const keyValueIfPrimitivePresent = (
 	if (!definedOrNonNull(input.value)) return undefined
 	const indeed: DSONKeyValues = {
 		[input.key]: {
-			value: DSONPrimitive(input.value),
+			value: input.value,
 			outputMode: input.outputMode ?? OutputMode.ALL,
 		},
 	}
@@ -219,7 +219,7 @@ export const baseTokenDefinitionParticle = (
 					...encodableKeyValuesPresent({
 						rri: thisBaseBase.resourceIdentifier,
 						granularity: thisBaseBase.granularity,
-						name: DSONPrimitive(thisBaseBase.name),
+						name: thisBaseBase.name,
 
 						...keyValueIfPrimitivePresent({
 							key: 'iconUrl',

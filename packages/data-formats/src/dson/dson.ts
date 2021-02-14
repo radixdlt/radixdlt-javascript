@@ -9,6 +9,7 @@ import {
 } from './_types'
 import { Result, err, ok } from 'neverthrow'
 import { pipe } from '@radixdlt/util'
+import { formatKeyValues, hasOutputMode } from './utils'
 
 /**
  * Encodes some encodable object using CBOR. Overrides the default object encoding
@@ -116,47 +117,12 @@ export const DSONEncodableObject = (
 export const DSONEncodableMap = (keyValues: DSONKeyValues): DSONCodable =>
 	pipe(formatKeyValues, DSONEncodableMapFormatted)(keyValues)
 
-const formatKeyValues = (
-	keyValues: DSONKeyValues,
-): {
-	[key: string]:
-		| DSONCodable
-		| DSONCodable[]
-		| { value: DSONCodable | DSONCodable[]; outputMode: OutputMode }
-} => {
-	const formatted = <any>{}
-	for (const key in keyValues) {
-		formatted[key] =
-			typeof (keyValues[key] as DSONCodable).toDSON === 'function' ||
-			(keyValues[key] as {
-				value: DSONCodable | DSONCodable[]
-				outputMode: OutputMode
-			}).value ||
-			Array.isArray(keyValues[key])
-				? keyValues[key]
-				: DSONPrimitive(keyValues[key] as CBOREncodablePrimitive)
-	}
-	return formatted
-}
-
 const DSONEncodableMapFormatted = (keyValues: {
 	[key: string]:
 		| DSONCodable
 		| DSONCodable[]
 		| { value: DSONCodable | DSONCodable[]; outputMode: OutputMode }
 }) => {
-	const hasOutputMode = (
-		value:
-			| DSONCodable
-			| DSONCodable[]
-			| { value: DSONCodable | DSONCodable[]; outputMode: OutputMode },
-	): value is {
-		value: DSONCodable | DSONCodable[]
-		outputMode: OutputMode
-	} => {
-		return (value as { outputMode: OutputMode }).outputMode ? true : false
-	}
-
 	const encoding = (outputMode: OutputMode) => ({
 		encodeCBOR: (encoder: cbor.CBOREncoder) => {
 			encoder.push(Buffer.from([0b1011_1111]))
