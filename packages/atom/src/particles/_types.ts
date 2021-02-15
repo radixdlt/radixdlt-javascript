@@ -122,6 +122,8 @@ export type SpunParticleQueryable = Readonly<{
 		spin?: Spin
 	}) => AnySpunParticle[]
 
+	upParticles: () => AnyUpParticle[]
+
 	transferrableTokensParticles: (
 		spin?: Spin,
 	) => SpunParticle<TransferrableTokensParticle>[]

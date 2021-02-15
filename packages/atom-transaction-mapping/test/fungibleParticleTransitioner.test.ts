@@ -36,7 +36,7 @@ describe('fungibleParticleTransitioner', () => {
 			typeof amount === 'number'
 				? amountInSmallestDenomination(UInt256.valueOf(amount))
 				: amount
-		return {
+		return <TestParticle>{
 			amount: amount_,
 			id: id_,
 			isChangeReturnedToSender: isChangeReturnedToSender ?? false,

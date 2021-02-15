@@ -1,4 +1,3 @@
-import { JSONEncodablePrimitive } from '../dist'
 import {
 	DSONPrimitive,
 	DSONEncodableMap,

@@ -13,7 +13,7 @@ import {
 import { Observable, from } from 'rxjs'
 import { err, Result, ok } from 'neverthrow'
 import { executedTokenTransfer } from './tokenTransfer'
-import { Address } from '@radixdlt/crypto/dist/_types'
+import { Address } from '@radixdlt/crypto/'
 import { Amount } from '@radixdlt/primitives'
 
 const uniqueAddressCountTTPs = (
