@@ -87,6 +87,8 @@ export const JSONEncoding = <Serializer extends string | undefined>(
 const fromJSONBasic = (...primitiveDecoders: JSONPrimitiveDecoder[]) => (
 	...objectDecoders: JSONObjectDecoder[]
 ) => (json: JSONDecodablePrimitive): FromJSONOutput => {
+	const fromJSON = fromJSONBasic(...primitiveDecoders)(...objectDecoders)
+
 	const handleArray = (arr: JSONDecodablePrimitive[]): FromJSONOutput[] =>
 		arr.map((item) =>
 			fromJSONBasic(...primitiveDecoders)(...objectDecoders)(item),
@@ -110,9 +112,7 @@ const fromJSONBasic = (...primitiveDecoders: JSONPrimitiveDecoder[]) => (
 			const result = decoder[json[SERIALIZER] as string]({
 				...Object.keys(json).reduce((result, key) => {
 					if (key === SERIALIZER) return result
-					result[key] = fromJSONBasic(...primitiveDecoders)(
-						...objectDecoders,
-					)(json[key])
+					result[key] = fromJSON(json[key])
 					return result
 				}, {} as any),
 			})
@@ -124,9 +124,7 @@ const fromJSONBasic = (...primitiveDecoders: JSONPrimitiveDecoder[]) => (
 		}
 
 		return Object.keys(json).reduce((result, key) => {
-			result[key] = fromJSONBasic(...primitiveDecoders)(
-				...objectDecoders,
-			)(json[key])
+			result[key] = fromJSON(json[key])
 			return result
 		}, {} as any)
 	}

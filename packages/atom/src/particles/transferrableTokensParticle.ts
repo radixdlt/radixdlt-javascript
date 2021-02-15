@@ -27,15 +27,12 @@ export type TransferrableTokensParticleInput = TokenParticleInput &
 	}>
 
 const radixParticleType = RadixParticleType.TRANSFERRABLE_TOKENS
-const SERIALIZER = 'radix.particles.transferrable_tokens'
-//const JSONDecoder: JSONObjectDecoder = {
-//	[SERIALIZER]: () =>
-//}
+export const TTP_SERIALIZER = 'radix.particles.transferrable_tokens'
 
 const DSON = (
 	input: TransferrableTokensParticleProps & TokenParticle,
 ): DSONCodable =>
-	DSONEncoding(SERIALIZER)({
+	DSONEncoding(TTP_SERIALIZER)({
 		...tokenSerializationKeyValues(input),
 		address: input.address,
 	})
@@ -43,10 +40,15 @@ const DSON = (
 const JSON = (
 	input: TransferrableTokensParticleProps & TokenParticle,
 ): JSONEncodable =>
-	JSONEncoding(SERIALIZER)({
+	JSONEncoding(TTP_SERIALIZER)({
 		...tokenSerializationKeyValues(input),
 		address: input.address,
 	})
+
+export const TTPJSONDecoder: JSONObjectDecoder = {
+	[TTP_SERIALIZER]: (input: TransferrableTokensParticleInput) =>
+		transferrableTokensParticle(input),
+}
 
 export const transferrableTokensParticle = (
 	input: TransferrableTokensParticleInput,

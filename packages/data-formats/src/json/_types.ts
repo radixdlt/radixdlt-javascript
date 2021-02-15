@@ -15,12 +15,18 @@ export type JSONObjectDecoder = {
 }
 
 export type JSONKeyValues = {
-	[key: string]: JSONEncodablePrimitive | JSONEncodable
+	[key: string]: JSONEncodablePrimitive | JSONEncodable | JSONEncodable[]
 	serializer?: string
 }
 
 export type JSONDecodableObject = {
-	[key: string]: number | boolean | string | JSONDecodableObject
+	[key: string]:
+		| number
+		| boolean
+		| string
+		| undefined
+		| JSONDecodableObject
+		| JSONDecodableObject[]
 }
 
 export type JSONEncodableObject = {
@@ -38,6 +44,7 @@ export type FromJSONOutput =
 	| boolean
 	| string
 	| JSONEncodable
+	| undefined
 	| FromJSONOutput[]
 	| JSONEncodableObject
 
@@ -58,5 +65,6 @@ export type JSONDecodablePrimitive =
 	| number
 	| boolean
 	| string
+	| undefined
 	| JSONDecodableObject
 	| JSONDecodablePrimitive[]

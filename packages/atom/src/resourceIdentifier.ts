@@ -13,7 +13,7 @@ const separator = '/'
 
 const CBOR_BYTESTRING_PREFIX: Byte = 6
 export const JSON_TAG = ':rri:'
-export const JSONDecoder: JSONPrimitiveDecoder = {
+export const RRIJSONDecoder: JSONPrimitiveDecoder = {
 	[JSON_TAG]: (identifier: string) =>
 		resourceIdentifierFromString(identifier),
 }

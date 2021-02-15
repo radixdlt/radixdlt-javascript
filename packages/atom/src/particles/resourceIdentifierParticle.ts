@@ -3,28 +3,35 @@ import { nonce } from '@radixdlt/primitives'
 import { isRadixParticle, RadixParticleType } from './meta/radixParticleTypes'
 import {
 	DSONEncoding,
-	DSONKeyValues,
 	JSONEncoding,
+	JSONObjectDecoder,
+	SerializableKeyValues,
 } from '@radixdlt/data-formats'
 import { ParticleBase, ResourceIdentifierParticle } from './_types'
+import { ok } from 'neverthrow'
 
 const radixParticleType = RadixParticleType.RESOURCE_IDENTIFIER
 
-const SERIALIZER = 'radix.particles.rri'
+export const RRI_SERIALIZER = 'radix.particles.rri'
+
+export const RRIParticleJSONDecoder: JSONObjectDecoder = {
+	[RRI_SERIALIZER]: (input: ResourceIdentifier) =>
+		ok(resourceIdentifierParticle(input)),
+}
 
 export const resourceIdentifierParticle = (
 	resourceIdentifier: ResourceIdentifier,
 ): ResourceIdentifierParticle => {
 	const alwaysZeroNonce = nonce(0)
 
-	const dsonKeyValues: DSONKeyValues = {
+	const serializeKeyValues: SerializableKeyValues = {
 		nonce: alwaysZeroNonce,
 		rri: resourceIdentifier,
 	}
 
 	return {
-		...JSONEncoding(SERIALIZER)({}),
-		...DSONEncoding(SERIALIZER)(dsonKeyValues),
+		...JSONEncoding(RRI_SERIALIZER)(serializeKeyValues),
+		...DSONEncoding(RRI_SERIALIZER)(serializeKeyValues),
 
 		radixParticleType,
 		alwaysZeroNonce,

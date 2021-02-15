@@ -7,7 +7,14 @@ import {
 } from './_types'
 import { atomIdentifier } from './atomIdentifier'
 import { particleGroups } from './particleGroups'
-import { DSONCodable, DSONEncoding } from '@radixdlt/data-formats'
+import {
+	DSONCodable,
+	DSONEncoding,
+	JSONEncodable,
+	JSONEncoding,
+	JSONObjectDecoder,
+} from '@radixdlt/data-formats'
+import { ok } from 'neverthrow'
 
 const isSigned = (signatures: Signatures): boolean => {
 	return Object.keys(signatures).length >= 1
@@ -18,29 +25,45 @@ const mockedAtomIdentifier = atomIdentifier(
 	'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
 )._unsafeUnwrap()
 
-const SERIALIZER = 'radix.atom'
+export const ATOM_SERIALIZER = 'radix.atom'
+
+type Input = Readonly<{
+	particleGroups?: ParticleGroups
+	signatures?: Signatures
+	message?: string
+}>
 
 const DSON = (
 	input: Readonly<{
 		particleGroups: ParticleGroup[]
 	}>,
 ): DSONCodable =>
-	DSONEncoding(SERIALIZER)({
+	DSONEncoding(ATOM_SERIALIZER)({
 		particleGroups: input.particleGroups,
 	})
 
-export const atom = (
+const JSON = (
 	input: Readonly<{
-		particleGroups?: ParticleGroups
-		signatures?: Signatures
-		message?: string
+		particleGroups: ParticleGroup[]
 	}>,
-): Atom => {
+): JSONEncodable =>
+	JSONEncoding(ATOM_SERIALIZER)({
+		particleGroups: input.particleGroups,
+	})
+
+export const AtomJSONDecoder: JSONObjectDecoder = {
+	[ATOM_SERIALIZER]: (input: Input) => ok(atom(input)),
+}
+
+export const atom = (input: Input): Atom => {
 	const signatures: Signatures = input.signatures ?? {}
 	const particleGroups_: ParticleGroups =
 		input.particleGroups ?? particleGroups([])
 
 	return {
+		...JSON({
+			particleGroups: particleGroups_.groups,
+		}),
 		...DSON({
 			particleGroups: particleGroups_.groups,
 		}),

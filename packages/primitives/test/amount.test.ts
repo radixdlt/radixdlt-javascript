@@ -1,3 +1,4 @@
+import { fromJSONDefault } from '@radixdlt/data-formats'
 import { UInt256 } from '@radixdlt/uint256'
 import {
 	amountFromUInt256,
@@ -20,6 +21,7 @@ import {
 	fourteen,
 	fifteen,
 	JSON_TAG,
+	AmountJSONDecoder,
 } from '../src/amount'
 import {
 	Amount,
@@ -174,6 +176,19 @@ describe('Amount', () => {
 		const json = amount.toJSON()
 
 		expect(json).toBe(expected)
+	})
+
+	it('should be able to JSON decode', () => {
+		const fromJSON = fromJSONDefault(AmountJSONDecoder)()
+
+		const result = fromJSON(`${JSON_TAG}7000000000000000000`)
+
+		const expected = amountFromUInt256({
+			magnitude: UInt256.valueOf(7),
+			denomination: Denomination.Whole,
+		})._unsafeUnwrap()
+
+		expect(JSON.stringify(result)).toEqual(JSON.stringify(expected))
 	})
 
 	it('should be possible to find min of two amounts', () => {

@@ -50,7 +50,8 @@ export type TokenPermissions = JSONEncodable &
 		equals: (other: TokenPermissions) => boolean
 	}>
 
-export type ParticleGroup = DSONCodable &
+export type ParticleGroup = JSONEncodable &
+	DSONCodable &
 	SpunParticleQueryable &
 	Readonly<{
 		spunParticles: SpunParticles
@@ -68,7 +69,8 @@ export type PublicKeyID = string
 export type SignatureID = PublicKeyID
 export type Signatures = Readonly<{ [key in SignatureID]: Signature }>
 
-export type Atom = DSONCodable &
+export type Atom = JSONEncodable &
+	DSONCodable &
 	SpunParticleQueryable &
 	Readonly<{
 		particleGroups: ParticleGroups // can be empty

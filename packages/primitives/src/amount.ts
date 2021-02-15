@@ -10,13 +10,20 @@ import {
 	isUnsafeInputForUInt256,
 	uint256Max,
 } from './uint256-extensions'
-import { DSONObjectEncoding, JSONEncoding } from '@radixdlt/data-formats'
+import {
+	DSONObjectEncoding,
+	JSONEncoding,
+	JSONObjectDecoder,
+	JSONPrimitiveDecoder,
+} from '@radixdlt/data-formats'
 import { Byte } from '@radixdlt/util'
 
 export const CBOR_BYTESTRING_PREFIX: Byte = 5
 export const JSON_TAG = ':u20:'
-export const JSONDecode = (value: UInt256): Amount =>
-	amountInSmallestDenomination(value)
+export const AmountJSONDecoder: JSONPrimitiveDecoder = {
+	[JSON_TAG]: (data: string): Result<Amount, Error> =>
+		ok(amountInSmallestDenomination(new UInt256(data))),
+}
 
 export const min = (lhs: Amount, rhs: Amount): Amount =>
 	lhs.lessThanOrEquals(rhs) ? lhs : rhs

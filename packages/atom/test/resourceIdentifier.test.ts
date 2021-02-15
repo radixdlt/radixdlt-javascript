@@ -1,7 +1,11 @@
 import { addressFromBase58String } from '@radixdlt/crypto'
+import { fromJSONDefault } from '@radixdlt/data-formats'
+import { RRIParticleJSONDecoder } from '../src/particles/resourceIdentifierParticle'
 import {
+	JSON_TAG,
 	resourceIdentifierFromAddressAndName,
 	resourceIdentifierFromString,
+	RRIJSONDecoder,
 } from '../src/resourceIdentifier'
 
 describe('ResourceIdentifier (RRI)', () => {
@@ -48,5 +52,29 @@ describe('ResourceIdentifier (RRI)', () => {
 			'583d062f3953386b684c485a6136467379476f36333478516f3951774c67534847705848485737363444356d50594263726e665a563652542f464f4f424152'
 
 		expect(dson.toString('hex')).toBe(expected)
+	})
+
+	it('should be able to JSON encode', () => {
+		const rri = resourceIdentifierFromString(
+			'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR',
+		)._unsafeUnwrap()
+
+		const json = rri.toJSON()
+		const expected = `${JSON_TAG}/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR`
+
+		expect(json).toEqual(expected)
+	})
+
+	it('should be able to JSON decode', () => {
+		const fromJSON = fromJSONDefault(RRIJSONDecoder)()
+
+		const raw = `${JSON_TAG}/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR`
+
+		const result = fromJSON(raw)
+		const expected = resourceIdentifierFromString(
+			'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR',
+		)._unsafeUnwrap()
+
+		expect(JSON.stringify(result)).toEqual(JSON.stringify(expected))
 	})
 })

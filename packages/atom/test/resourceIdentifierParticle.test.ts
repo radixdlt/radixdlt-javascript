@@ -1,8 +1,10 @@
-import { OutputMode } from '@radixdlt/data-formats'
+import { fromJSONDefault, OutputMode } from '@radixdlt/data-formats'
 import { resourceIdentifierFromString } from '../src/resourceIdentifier'
 import {
 	isResourceIdentifierParticle,
 	resourceIdentifierParticle,
+	RRIParticleJSONDecoder,
+	RRI_SERIALIZER,
 } from '../src/particles/resourceIdentifierParticle'
 
 describe('ResourceIdentifierParticle', () => {
@@ -24,5 +26,17 @@ describe('ResourceIdentifierParticle', () => {
 
 		const dson = rriParticle.toDSON(OutputMode.ALL)._unsafeUnwrap()
 		expect(dson.toString('hex')).toBe(expected)
+	})
+
+	it('should be able to JSON encode', () => {
+		const rriParticle = resourceIdentifierParticle(rri)
+		const expected = {
+			serializer: RRI_SERIALIZER,
+			nonce: rriParticle.alwaysZeroNonce.toJSON(),
+			rri: rriParticle.resourceIdentifier.toJSON(),
+		}
+		const json = rriParticle.toJSON()
+
+		expect(JSON.stringify(json)).toEqual(JSON.stringify(expected))
 	})
 })
