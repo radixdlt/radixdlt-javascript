@@ -11,36 +11,38 @@ import {
 	maxAmount,
 	zero,
 } from '@radixdlt/primitives'
-import { FeeEntry, TokenFeeProvider, TokenFeeTable } from './_types'
+import { FeeEntry, TokenFeeTable } from './_types'
 import { err, ok, Result } from 'neverthrow'
 import { UInt256 } from '@radixdlt/uint256'
 
-export const tokenFeeProvider = (
-	feeTable: TokenFeeTable,
-): TokenFeeProvider => ({
-	feeFor: (input: Readonly<{ atom: Atom }>): Result<Amount, Error> => {
-		const atom = input.atom
-		const atomDsonResult = atom.toDSON()
-		if (atomDsonResult.isErr()) return err(atomDsonResult.error)
-		const atomByteCount = atomDsonResult.value.length
+export const feeForAtom = (
+	input: Readonly<{
+		atom: Atom
+		feeTable?: TokenFeeTable
+	}>,
+): Result<Amount, Error> => {
+	const feeTable = input.feeTable ?? tokenFeeTable
+	const atom = input.atom
+	const atomDsonResult = atom.toDSON()
+	if (atomDsonResult.isErr()) return err(atomDsonResult.error)
+	const atomByteCount = atomDsonResult.value.length
 
-		/* eslint-disable */
-		let fee: Amount = zero
-		for (const feeEntry of feeTable.feeEntries) {
-			const sumResult = feeEntry
-				.feeFor({
-					upParticles: atom.upParticles(),
-					atomByteCount,
-				})
-				.andThen((feeThisEntry: Amount) => fee.adding(feeThisEntry))
-			if (sumResult.isErr()) return err(sumResult.error)
-			fee = sumResult.value
-		}
-		/* eslint-enable */
-		const minFee = feeTable.minimumFee
-		return ok(fee.lessThan(minFee) ? minFee : fee)
-	},
-})
+	/* eslint-disable */
+	let fee: Amount = zero
+	for (const feeEntry of feeTable.feeEntries) {
+		const sumResult = feeEntry
+			.feeFor({
+				upParticles: atom.upParticles(),
+				atomByteCount,
+			})
+			.andThen((feeThisEntry: Amount) => fee.adding(feeThisEntry))
+		if (sumResult.isErr()) return err(sumResult.error)
+		fee = sumResult.value
+	}
+	/* eslint-enable */
+	const minFee = feeTable.minimumFee
+	return ok(fee.lessThan(minFee) ? minFee : fee)
+}
 
 export const milliRads = (mXRD: number): Amount =>
 	amountFromUInt256({
@@ -76,27 +78,22 @@ const perBytesFeeEntry = (
 				atomByteCount: number
 			}>,
 		): Result<Amount, Error> => {
+			const atomByteCount = input.atomByteCount
+			if (!atomByteCount || !Number.isInteger(atomByteCount)) {
+				return err(new Error(`atomByteCount be a defined number.`))
+			}
+
+			if (atomByteCount <= threshold) {
+				return ok(zero)
+			}
+
+			const numberOfBytesExceedingThreshold = atomByteCount - threshold
+
 			return amountFromUInt256({
-				magnitude: UInt256.valueOf(feeMagnitude),
+				magnitude: UInt256.valueOf(
+					numberOfBytesExceedingThreshold * feeMagnitude,
+				),
 				denomination: denomination,
-			}).andThen((fee: Amount) => {
-				const atomByteCount = input.atomByteCount
-				if (!atomByteCount || !Number.isInteger(atomByteCount)) {
-					return err(new Error(`atomByteCount be a defined number.`))
-				}
-
-				if (atomByteCount <= threshold) {
-					return ok(zero)
-				}
-
-				const numberOfBytesExceedingThreshold =
-					atomByteCount - threshold
-				return amountFromUInt256({
-					magnitude: UInt256.valueOf(numberOfBytesExceedingThreshold),
-					denomination: denomination,
-				}).andThen((overThresholdAmount: Amount) =>
-					fee.multiplied(overThresholdAmount),
-				)
 			})
 		},
 	}
@@ -173,6 +170,3 @@ export const tokenFeeTable: TokenFeeTable = {
 		}),
 	],
 }
-
-export const makeTokenFeeProvider = (): TokenFeeProvider =>
-	tokenFeeProvider(tokenFeeTable)

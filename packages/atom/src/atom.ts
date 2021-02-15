@@ -7,9 +7,7 @@ import {
 } from './_types'
 import { atomIdentifier } from './atomIdentifier'
 import { particleGroups } from './particleGroups'
-import { particleGroup } from './particleGroup'
 import { DSONCodable, DSONEncoding } from '@radixdlt/data-formats'
-import { AnySpunParticle, SpunParticles } from './particles/_types'
 
 const isSigned = (signatures: Signatures): boolean => {
 	return Object.keys(signatures).length >= 1
@@ -55,39 +53,3 @@ export const atom = (
 		...particleGroups_,
 	}
 }
-
-export const atomWithParticleGroups = (
-	input: Readonly<{
-		particleGroups: ParticleGroup[]
-		signatures?: Signatures
-		message?: string
-	}>,
-): Atom =>
-	atom({
-		...input,
-		particleGroups: particleGroups(input.particleGroups),
-	})
-
-export const atomWithParticleGroup = (
-	input: Readonly<{
-		particleGroup: ParticleGroup
-		signatures?: Signatures
-		message?: string
-	}>,
-): Atom =>
-	atomWithParticleGroups({
-		...input,
-		particleGroups: [input.particleGroup],
-	})
-
-export const atomWithSpunParticles = (
-	input: Readonly<{
-		spunParticles: SpunParticles | AnySpunParticle[]
-		signatures?: Signatures
-		message?: string
-	}>,
-): Atom =>
-	atomWithParticleGroup({
-		...input,
-		particleGroup: particleGroup(input.spunParticles),
-	})
