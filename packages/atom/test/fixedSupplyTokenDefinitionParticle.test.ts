@@ -1,9 +1,10 @@
 import {
-	amountFromUInt256, amountFromUnsafe,
+	amountFromUInt256,
+	amountFromUnsafe,
 	amountInSmallestDenomination,
 	Denomination,
-	granularityDefault
-} from "@radixdlt/primitives";
+	granularityDefault,
+} from '@radixdlt/primitives'
 import { toAddress } from './helpers/utility'
 import { UInt256 } from '@radixdlt/uint256'
 import { doTestTokenDefintionParticle } from './helpers/tokenDefinitionParticleBaseTests'

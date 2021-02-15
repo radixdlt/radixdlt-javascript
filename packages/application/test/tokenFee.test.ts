@@ -1,8 +1,15 @@
 import {
 	Atom,
 	atomWithSpunParticles,
+	FixedSupplyTokenDefinitionParticle,
+	fixedSupplyTokenDefinitionParticle,
+	MutableSupplyTokenDefinitionParticle,
+	mutableSupplyTokenDefinitionParticle,
+	ParticleBase,
 	resourceIdentifierFromAddressAndName,
 	spunUpParticle,
+	TokenDefinitionParticleInput,
+	tokenPermissionsAll,
 	TransferrableTokensParticle,
 	transferrableTokensParticle,
 } from '@radixdlt/atom'
@@ -10,8 +17,10 @@ import { toAddress } from '../../atom/test/helpers/utility'
 import {
 	Amount,
 	amountFromUInt256,
+	amountFromUnsafe,
 	amountInSmallestDenomination,
 	Denomination,
+	granularityDefault,
 	isAmount,
 	one,
 } from '@radixdlt/primitives'
@@ -42,7 +51,9 @@ describe('TokenFees', () => {
 			? amount
 			: amountInSmallestDenomination(UInt256.valueOf(amount))
 
-	const makeTTP = (amount: AmountLike): TransferrableTokensParticle =>
+	type ParticleFromNum<P extends ParticleBase> = (num: number) => P
+
+	const makeTTP = (amount: number): TransferrableTokensParticle =>
 		transferrableTokensParticle({
 			amount: makeAmount(amount),
 			granularity: one,
@@ -50,15 +61,45 @@ describe('TokenFees', () => {
 			address: bob,
 		})._unsafeUnwrap()
 
-	const atomWithTTPCountOf = (ttpCount: number): Atom => {
+	const makeTokenDefInput = (
+		symbolNumSuffix: number,
+	): TokenDefinitionParticleInput => ({
+		symbol: `FOO${symbolNumSuffix}`,
+		name: `FOO${symbolNumSuffix}`,
+		address: alice,
+		granularity: granularityDefault,
+	})
+
+	const makeFSTDP = (
+		symbolNumSuffix: number,
+	): FixedSupplyTokenDefinitionParticle =>
+		fixedSupplyTokenDefinitionParticle({
+			...makeTokenDefInput(symbolNumSuffix),
+			supply: amountFromUnsafe(21_000_000)._unsafeUnwrap(),
+		})._unsafeUnwrap()
+
+	const makeMSTDP = (
+		symbolNumSuffix: number,
+	): MutableSupplyTokenDefinitionParticle =>
+		mutableSupplyTokenDefinitionParticle({
+			...makeTokenDefInput(symbolNumSuffix),
+			permissions: tokenPermissionsAll,
+		})._unsafeUnwrap()
+
+	const atomWithParticleCountOf = <P extends ParticleBase>(
+		makeParticle: ParticleFromNum<P>,
+		ttpCount: number,
+	): Atom => {
 		const particles = Array.from(Range(ttpCount, 1, 1))
-			.map(makeTTP)
+			.map(makeParticle)
 			.map(spunUpParticle)
 
 		return atomWithSpunParticles({ spunParticles: particles })
 	}
 
-	const feeTestAssert = (
+	const atomWithTTPCountOf = atomWithParticleCountOf.bind(null, makeTTP)
+
+	const testTTPAssert = (
 		ttpCount: number,
 		assertAmount: (amt: Amount) => void,
 	): void => {
@@ -68,29 +109,79 @@ describe('TokenFees', () => {
 		assertAmount(fee)
 	}
 
-	const feeTest = (expectedFee: number | Amount, ttpCount: number): void => {
+	const testTTP = (expectedFee: number | Amount, ttpCount: number): void => {
 		const expected = isAmount(expectedFee)
 			? expectedFee
 			: amountFromUInt256({
 					magnitude: UInt256.valueOf(expectedFee),
 					denomination: Denomination.Milli,
 			  })._unsafeUnwrap()
-		feeTestAssert(ttpCount, (fee: Amount) => {
+		testTTPAssert(ttpCount, (fee: Amount) => {
 			expect(fee.equals(expected)).toBe(true)
 		})
 	}
 
+	const testFeeWithParticleCountOf = <P extends ParticleBase>(
+		makeParticle: ParticleFromNum<P>,
+		expectedFee: number | Amount,
+		particleCount: number,
+	): void => {
+		const expected = isAmount(expectedFee)
+			? expectedFee
+			: amountFromUInt256({
+					magnitude: UInt256.valueOf(expectedFee),
+					denomination: Denomination.Milli,
+			  })._unsafeUnwrap()
+
+		const atom_ = atomWithParticleCountOf(makeParticle, particleCount)
+
+		const feeProvider = makeTokenFeeProvider()
+		const fee = feeProvider.feeFor({ atom: atom_ })._unsafeUnwrap()
+		expect(fee.equals(expected)).toBe(true)
+	}
+
+	const testMSTDP = testFeeWithParticleCountOf.bind(null, makeMSTDP)
+	const testFSTDP = testFeeWithParticleCountOf.bind(null, makeFSTDP)
+
+	it('should be minimumFee for empty atom', () => {
+		testTTP(minimumFee, 0)
+	})
+
 	it('should be minimumFee for 1 ttp', () => {
-		feeTest(minimumFee, 1)
+		testTTP(minimumFee, 1)
 	})
 
 	it('should be min for 8 ttp', () => {
-		feeTest(minimumFee, 8)
+		testTTP(minimumFee, 8)
 	})
 
 	it('should be over min fee for 9 ttp', () => {
-		feeTestAssert(9, (fee: Amount) => {
+		testTTPAssert(9, (fee: Amount) => {
 			expect(fee.greaterThan(minimumFee)).toBe(true)
 		})
+	})
+
+	it('should be 1000 Milli for 1 FixedSupTokenDefPart', () => {
+		testFSTDP(1000, 1)
+	})
+
+	it('should be 2000 Milli for 2 FixedSupTokenDefPart', () => {
+		testFSTDP(2000, 2)
+	})
+
+	it('should be 7000 Milli for 7 FixedSupTokenDefPart', () => {
+		testFSTDP(7000, 7)
+	})
+
+	it('should be 1000 Milli for 1 MutableSupTokenDefPart', () => {
+		testMSTDP(1000, 1)
+	})
+
+	it('should be 2000 Milli for 2 MutableSupTokenDefPart', () => {
+		testMSTDP(2000, 2)
+	})
+
+	it('should be 7000 Milli for 7 MutableSupTokenDefPart', () => {
+		testMSTDP(7000, 7)
 	})
 })

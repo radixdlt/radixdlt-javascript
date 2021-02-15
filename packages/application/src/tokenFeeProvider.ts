@@ -1,4 +1,9 @@
-import { AnyUpParticle, Atom, spunParticles } from '@radixdlt/atom'
+import {
+	AnyUpParticle,
+	Atom,
+	RadixParticleType,
+	spunParticles,
+} from '@radixdlt/atom'
 import {
 	Amount,
 	amountFromUInt256,
@@ -7,9 +12,8 @@ import {
 	zero,
 } from '@radixdlt/primitives'
 import { FeeEntry, TokenFeeProvider, TokenFeeTable } from './_types'
-import { err, ok, Result, combine } from 'neverthrow'
+import { err, ok, Result } from 'neverthrow'
 import { UInt256 } from '@radixdlt/uint256'
-import { RadixParticleType } from '@radixdlt/atom'
 
 export const tokenFeeProvider = (
 	feeTable: TokenFeeTable,
@@ -114,13 +118,6 @@ const perParticleFeeEntry = (
 	const denomination = input.inDenomination
 	const particleType = input.particleType
 	const particleCountThreshold = input.exceedingCount
-
-	const amountFrom = (amount: number): Result<Amount, Error> =>
-		amountFromUInt256({
-			magnitude: UInt256.valueOf(amount),
-			denomination,
-		})
-
 	return {
 		feeFor: (
 			input: Readonly<{
@@ -140,10 +137,12 @@ const perParticleFeeEntry = (
 			const particleCountExceedingThreshold =
 				particleCount - particleCountThreshold
 
-			return combine([
-				amountFrom(particleCountExceedingThreshold),
-				amountFrom(feeMagnitude),
-			]).andThen((r: Amount[]) => r[0].multiplied(r[1]))
+			return amountFromUInt256({
+				magnitude: UInt256.valueOf(
+					particleCountExceedingThreshold * feeMagnitude,
+				),
+				denomination,
+			})
 		},
 	}
 }
@@ -157,6 +156,20 @@ export const tokenFeeTable: TokenFeeTable = {
 			fee: 1,
 			inDenomination: Denomination.Milli,
 			afterByteCountThresholdOfIsExceeded: 3072,
+		}),
+
+		perParticleFeeEntry({
+			particleType: RadixParticleType.FIXED_SUPPLY_TOKEN_DEFINITION,
+			exceedingCount: 0,
+			fee: 1000,
+			inDenomination: Denomination.Milli,
+		}),
+
+		perParticleFeeEntry({
+			particleType: RadixParticleType.MUTABLE_SUPPLY_TOKEN_DEFINITION,
+			exceedingCount: 0,
+			fee: 1000,
+			inDenomination: Denomination.Milli,
 		}),
 	],
 }

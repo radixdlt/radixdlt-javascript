@@ -1,5 +1,4 @@
 import { Result } from 'neverthrow'
-import { granularityDefault } from '@radixdlt/primitives'
 
 import { TokenDefinitionParticleBase } from '../../src/particles/_types'
 import { RadixParticleType } from '../../src/particles/meta/radixParticleTypes'
