@@ -47,8 +47,8 @@ describe('unallocatedTokensParticle', () => {
 		})._unsafeUnwrap()
 
 		expect(uatp.nonce).toBeTruthy()
-		expect(uatp.amount.toString()).toBe('9000000000000000000')
-		expect(uatp.granularity.toString()).toBe('3000000000000000000')
+		expect(uatp.amount.toString()).toBe('9')
+		expect(uatp.granularity.toString()).toBe('3')
 	})
 
 	it('should be equal to another UATP', () => {

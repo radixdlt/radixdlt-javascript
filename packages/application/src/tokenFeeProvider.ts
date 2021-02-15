@@ -1,4 +1,4 @@
-import { AnyUpParticle, Atom } from '@radixdlt/atom'
+import { AnyUpParticle, Atom, spunParticles } from '@radixdlt/atom'
 import {
 	Amount,
 	amountFromUInt256,
@@ -7,8 +7,9 @@ import {
 	zero,
 } from '@radixdlt/primitives'
 import { FeeEntry, TokenFeeProvider, TokenFeeTable } from './_types'
-import { err, ok, Result } from 'neverthrow'
+import { err, ok, Result, combine } from 'neverthrow'
 import { UInt256 } from '@radixdlt/uint256'
+import { RadixParticleType } from '@radixdlt/atom'
 
 export const tokenFeeProvider = (
 	feeTable: TokenFeeTable,
@@ -74,7 +75,7 @@ const perBytesFeeEntry = (
 			return amountFromUInt256({
 				magnitude: UInt256.valueOf(feeMagnitude),
 				denomination: denomination,
-			}).andThen((fee) => {
+			}).andThen((fee: Amount) => {
 				const atomByteCount = input.atomByteCount
 				if (!atomByteCount || !Number.isInteger(atomByteCount)) {
 					return err(new Error(`atomByteCount be a defined number.`))
@@ -89,10 +90,60 @@ const perBytesFeeEntry = (
 				return amountFromUInt256({
 					magnitude: UInt256.valueOf(numberOfBytesExceedingThreshold),
 					denomination: denomination,
-				}).andThen((overThresholdAmount: Amount) => {
-					return fee.multiplied(overThresholdAmount)
-				})
+				}).andThen((overThresholdAmount: Amount) =>
+					fee.multiplied(overThresholdAmount),
+				)
 			})
+		},
+	}
+}
+
+const perParticleFeeEntry = (
+	input: Readonly<{
+		particleType: RadixParticleType
+		exceedingCount: number
+		fee: number
+		inDenomination: Denomination
+	}>,
+): FeeEntry => {
+	const feeMagnitude = input.fee
+	if (!feeMagnitude || !Number.isInteger(feeMagnitude)) {
+		throw new Error(`Fee be a defined number.`)
+	}
+
+	const denomination = input.inDenomination
+	const particleType = input.particleType
+	const particleCountThreshold = input.exceedingCount
+
+	const amountFrom = (amount: number): Result<Amount, Error> =>
+		amountFromUInt256({
+			magnitude: UInt256.valueOf(amount),
+			denomination,
+		})
+
+	return {
+		feeFor: (
+			input: Readonly<{
+				upParticles: AnyUpParticle[]
+				atomByteCount: number
+			}>,
+		): Result<Amount, Error> => {
+			const particleCount = spunParticles(
+				input.upParticles,
+			).anySpunParticlesOfTypeWithSpin({ particleTypes: [particleType] })
+				.length
+
+			if (particleCount <= particleCountThreshold) {
+				return ok(zero)
+			}
+
+			const particleCountExceedingThreshold =
+				particleCount - particleCountThreshold
+
+			return combine([
+				amountFrom(particleCountExceedingThreshold),
+				amountFrom(feeMagnitude),
+			]).andThen((r: Amount[]) => r[0].multiplied(r[1]))
 		},
 	}
 }

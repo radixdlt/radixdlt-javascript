@@ -20,6 +20,7 @@ export enum DenominationOutputFormat {
 	OMIT,
 	SHOW_NAME,
 	SHOW_SYMBOL,
+	SHOW_EXPONENT_BASE_TEN,
 }
 
 export type AmountStringFormatting = Readonly<{

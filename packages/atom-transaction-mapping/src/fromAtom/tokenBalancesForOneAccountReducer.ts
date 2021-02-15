@@ -10,7 +10,7 @@ import {
 	TokenBase,
 	TransferrableTokensParticle,
 } from '@radixdlt/atom'
-import { isTransferrableTokensParticle } from '@radixdlt/atom/dist/particles/transferrableTokensParticle'
+import { isTransferrableTokensParticle } from '@radixdlt/atom'
 import { err, ok, Result } from 'neverthrow'
 import { mapEquals } from '@radixdlt/util'
 import { makeParticleReducer } from './particleReducer'

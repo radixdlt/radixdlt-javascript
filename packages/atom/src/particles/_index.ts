@@ -1,3 +1,5 @@
+export * from './meta/_index'
+
 export * from './_types'
 
 export * from './fixedSupplyTokenDefinitionParticle'

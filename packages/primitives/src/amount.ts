@@ -2,7 +2,6 @@ import {
 	Amount,
 	AmountStringFormatting,
 	Denomination,
-	DenominationOutputFormat,
 	minAmountDenomination,
 } from './_types'
 import { UInt256 } from '@radixdlt/uint256'
@@ -36,28 +35,28 @@ const toString = (
 	const radix = input.radix ?? 10
 	const useLargestDenomination = input.useLargestDenomination ?? true
 
-	const magnitudeAndDenom = useLargestDenomination
+	const magnitudeAndDenomination = useLargestDenomination
 		? expressMagnitudeInLargestDenomination({
 				magnitude: input.magnitude,
 				denomination,
 		  })
 		: { magnitude: input.magnitude, denomination: input.denomination }
 
-	const magnitude = magnitudeAndDenom.magnitude
+	const magnitude = magnitudeAndDenomination.magnitude
 	const magnitudeString = magnitude.toString(radix)
 	return [
 		magnitudeString,
 		formatDenomination({
 			outputFormat: input.denominationOutputFormat,
-			denomination: magnitudeAndDenom.denomination,
+			denomination: magnitudeAndDenomination.denomination,
 		}),
 	]
 		.join(' ')
 		.trim()
 }
 
-/* eslint-disable max-params */
 export const amountInSmallestDenomination = (magnitude: UInt256): Amount => {
+	/* eslint-disable max-params */
 	const doArithmetic = (
 		other: Amount,
 		operation: (a: BN, b: BN) => BN,
@@ -113,8 +112,9 @@ export const expressMagnitudeInLargestDenomination = (
 	magnitude: UInt256
 	denomination: Denomination
 }> => {
+	// eslint-disable-next-line functional/no-loop-statement
 	for (const denomination of denominations) {
-		const conversionResult = convert({
+		const conversionResult = denominationConversionOfMagnitude({
 			magnitude: input.magnitude,
 			from: input.denomination,
 			to: denomination,
@@ -125,19 +125,19 @@ export const expressMagnitudeInLargestDenomination = (
 	return input
 }
 
-export const expressMagnitudeInSmallestDenomination = (
+const expressMagnitudeInSmallestDenomination = (
 	input: Readonly<{
 		magnitude: UInt256
 		denomination: Denomination
 	}>,
 ): Result<UInt256, Error> =>
-	convert({
+	denominationConversionOfMagnitude({
 		magnitude: input.magnitude,
 		from: input.denomination,
 		to: minAmountDenomination,
 	})
 
-const convert = (
+const denominationConversionOfMagnitude = (
 	input: Readonly<{
 		magnitude: UInt256
 		from: Denomination

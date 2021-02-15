@@ -65,7 +65,6 @@ describe('TokenFees', () => {
 		const atom_ = atomWithTTPCountOf(ttpCount)
 		const feeProvider = makeTokenFeeProvider()
 		const fee = feeProvider.feeFor({ atom: atom_ })._unsafeUnwrap()
-		console.log(`🔮💵 calculated fee: ${fee.toString()}`)
 		assertAmount(fee)
 	}
 
@@ -77,7 +76,6 @@ describe('TokenFees', () => {
 					denomination: Denomination.Milli,
 			  })._unsafeUnwrap()
 		feeTestAssert(ttpCount, (fee: Amount) => {
-			console.log(`💵 expected fee: ${expected.toString()}`)
 			expect(fee.equals(expected)).toBe(true)
 		})
 	}
