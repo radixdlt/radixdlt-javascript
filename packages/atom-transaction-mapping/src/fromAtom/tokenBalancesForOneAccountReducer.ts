@@ -14,7 +14,7 @@ import { isTransferrableTokensParticle } from '@radixdlt/atom'
 import { err, ok, Result } from 'neverthrow'
 import { mapEquals } from '@radixdlt/util'
 import { makeParticleReducer } from './particleReducer'
-import { Address } from '@radixdlt/crypto'
+import { Address } from '@radixdlt/account'
 
 export const tokenBalancesForOneAccount = (
 	input: Readonly<{

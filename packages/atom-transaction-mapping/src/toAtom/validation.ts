@@ -4,7 +4,7 @@ import {
 	spunParticles,
 	TokenDefinitionParticleBase,
 } from '@radixdlt/atom'
-import { Address } from '@radixdlt/crypto'
+import { Address } from '@radixdlt/account'
 import { err, ok, Result } from 'neverthrow'
 import { MapperInput } from './_types'
 import { ValidationWitness } from '@radixdlt/util'

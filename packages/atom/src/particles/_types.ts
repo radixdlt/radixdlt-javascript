@@ -1,13 +1,13 @@
-import { Address } from '@radixdlt/crypto'
+import { Address } from '@radixdlt/account'
 import { DSONCodable } from '@radixdlt/data-formats'
 import { Amount, Granularity, Nonce } from '@radixdlt/primitives'
 import { Result } from 'neverthrow'
 import { ResourceIdentifier, TokenPermissions } from '../_types'
 import { RadixParticleType } from './meta/radixParticleTypes'
 
-export type ParticleBase = DSONCodable & {
+export type ParticleBase = DSONCodable & Readonly<{
 	equals: (other: ParticleBase) => boolean
-}
+}>
 
 export type RadixParticle = ParticleBase &
 	Readonly<{

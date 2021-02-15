@@ -5,7 +5,7 @@ import {
 	ParticleBase,
 	ParticleGroup,
 } from '@radixdlt/atom'
-import { Address } from '@radixdlt/crypto'
+import { Address } from '@radixdlt/account'
 import { Result } from 'neverthrow'
 import { Amount } from '@radixdlt/primitives'
 

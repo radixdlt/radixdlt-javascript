@@ -1,12 +1,14 @@
 {
-  "name": "@radixdlt/actions",
+  "name": "@radixdlt/account",
   "version": "0.0.0",
-  "description": "Declare actions you as a user would like to perform e.g. 'transfer tokens' (`TransferTokensAction`)",
+  "description": "A JavaScript client library for interacting with the Radix Distributed Ledger.",
   "keywords": [
-    "Actions"
+    "Account",
+    "Radix",
+    "RadixDLT"
   ],
   "author": "Alexander Cyon <alex.cyon@gmail.com>",
-  "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/actions#readme",
+  "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/account#readme",
   "license": "Apache-2.0",
   "main": "dist/_index.js",
   "publishConfig": {
@@ -19,18 +21,16 @@
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
-  "dependencies": {
-    "@radixdlt/atom": "^0.0.0",
-    "@radixdlt/account": "^0.0.0",
-    "@radixdlt/primitives": "^0.0.0",
-    "@types/uuid": "^8.3.0",
-    "neverthrow": "^4.0.1",
-    "uuid": "^8.3.2"
-  },
   "bugs": {
     "url": "https://github.com/radixdlt/radixdlt-javascript/issues"
   },
   "engines": {
     "node": ">=15.5.0 <16"
+  },
+  "dependencies": {
+    "@radixdlt/crypto": "^0.0.0",
+    "@radixdlt/primitives": "^0.0.0",
+    "@radixdlt/data-formats": "^0.0.0",
+    "neverthrow": "^4.0.1"
   }
 }

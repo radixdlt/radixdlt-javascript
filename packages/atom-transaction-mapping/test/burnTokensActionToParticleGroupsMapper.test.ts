@@ -30,7 +30,7 @@ import {
 	mutableSupplyTokenDefinitionParticleOnlyAliceCanMutate,
 } from './consumeTokensActionToParticleGroupsMapperBase'
 import { RadixParticleType } from '@radixdlt/atom/src/particles/meta/radixParticleTypes'
-import { Address } from '@radixdlt/crypto'
+import { Address } from '@radixdlt/account'
 import { isUnallocatedTokensParticle } from '@radixdlt/atom/src/particles/unallocatedTokensParticle'
 import { UInt256 } from '@radixdlt/uint256'
 import { burnTokensActionToParticleGroupsMapper } from '../src/toAtom/burnTokensActionToParticleGroupsMapper'

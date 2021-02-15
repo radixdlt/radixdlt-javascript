@@ -1,5 +1,5 @@
 import { combine, err, ok, Result } from 'neverthrow'
-import { Address } from '@radixdlt/crypto'
+import { Address } from '@radixdlt/account'
 import { Granularity } from '@radixdlt/primitives'
 import { ParticleBase, TokenDefinitionParticleBase } from './_types'
 import { granularityDefault } from '@radixdlt/primitives'

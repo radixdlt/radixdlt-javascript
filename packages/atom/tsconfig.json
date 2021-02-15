@@ -9,7 +9,7 @@
   ],
   "references": [
     {"path": "../data-formats"},
-    {"path": "../crypto"},
+    {"path": "../account"},
     {"path": "../primitives"}
   ]
 }

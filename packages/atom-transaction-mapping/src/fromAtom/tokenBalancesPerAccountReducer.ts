@@ -3,7 +3,7 @@ import {
 	isTransferrableTokensParticle,
 	TransferrableTokensParticle,
 } from '@radixdlt/atom'
-import { Address } from '@radixdlt/crypto'
+import { Address } from '@radixdlt/account'
 import { mapEquals } from '@radixdlt/util'
 import { ok, Result } from 'neverthrow'
 import { makeParticleReducer } from './particleReducer'

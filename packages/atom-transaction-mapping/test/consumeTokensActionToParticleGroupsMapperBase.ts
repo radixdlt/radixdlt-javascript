@@ -1,6 +1,6 @@
 /* eslint-disable */
 import { TokensActionBase } from '@radixdlt/actions'
-import { Address } from '@radixdlt/crypto'
+import { Address } from '@radixdlt/account'
 import {
 	AnyUpParticle,
 	fixedSupplyTokenDefinitionParticle,

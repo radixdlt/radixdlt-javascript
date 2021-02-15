@@ -1,4 +1,4 @@
-import { Address } from '@radixdlt/crypto'
+import { Address } from '@radixdlt/account'
 import { ResourceIdentifier } from './_types'
 import { err, ok, Result } from 'neverthrow'
 import { addressFromBase58String } from '@radixdlt/crypto'

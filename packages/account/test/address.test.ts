@@ -6,7 +6,7 @@ import {
 	isAddress,
 	JSON_TAG,
 	generatePrivateKey,
-} from '../src/_index'
+} from '@radixdlt/crypto'
 
 import { magicFromNumber } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'

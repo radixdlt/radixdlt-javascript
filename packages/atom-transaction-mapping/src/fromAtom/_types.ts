@@ -5,7 +5,7 @@ import {
 	TokenBase,
 	TokenDefinitionBase,
 } from '@radixdlt/atom'
-import { Address } from '@radixdlt/crypto'
+import { Address } from '@radixdlt/account'
 import { Amount } from '@radixdlt/primitives'
 import { Result } from 'neverthrow'
 import { Observable } from 'rxjs'

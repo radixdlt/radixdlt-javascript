@@ -1,4 +1,4 @@
-import { toAddress } from '../../crypto/test/address.test'
+import { toAddress } from '../../account/test/address.test'
 import {
 	anyUpParticle,
 	atom,
@@ -36,7 +36,7 @@ import {
 	syncMapAtomToTokenTransfers as mapAtomToTokenTransfers,
 	pgToTokenTransfer,
 } from '../src/fromAtom/atomToTokenTransfersMapper'
-import { Address } from '@radixdlt/crypto'
+import { Address } from '@radixdlt/account'
 import { UInt256 } from '@radixdlt/uint256'
 import { TokenTransfer } from '../src/fromAtom/_types'
 import { unallocatedTokensParticleFromUnsafe } from '../../atom/test/helpers/utility'

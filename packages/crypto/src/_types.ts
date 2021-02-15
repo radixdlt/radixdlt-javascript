@@ -55,21 +55,13 @@ export type PublicKeyProvider = Readonly<{
 }>
 
 export type PrivateKey = Signer &
-	PublicKeyProvider & {
+	PublicKeyProvider &
+	Readonly<{
 		scalar: UInt256
 		toString: () => string
-	}
+	}>
 
 export type KeyPair = Readonly<{
 	publicKey: PublicKey
 	privateKey: PrivateKey
 }>
-
-export type Address = JSONEncodable &
-	DSONCodable &
-	Readonly<{
-		publicKey: PublicKey
-		magicByte: Byte
-		toString: () => string
-		equals: (other: Address) => boolean
-	}>

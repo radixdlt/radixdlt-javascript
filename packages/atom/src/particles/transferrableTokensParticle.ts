@@ -1,4 +1,4 @@
-import { Address } from '@radixdlt/crypto'
+import { Address } from '@radixdlt/account'
 
 import { err, ok, Result } from 'neverthrow'
 import { isRadixParticle, RadixParticleType } from './meta/radixParticleTypes'

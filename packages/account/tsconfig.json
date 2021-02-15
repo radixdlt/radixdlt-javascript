@@ -1,17 +1,15 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "rootDir": "toAtom",
+    "rootDir": "src",
     "outDir": "dist"
   },
   "include": [
-    "toAtom"
+    "src"
   ],
   "references": [
-    {"path": "../atom"},
-    {"path": "../actions"},
-    {"path": "../util"},
+    {"path": "../crypto"},
     {"path": "../primitives"},
-    {"path": "../account"}
+    {"path": "../data-formats"},
   ]
 }

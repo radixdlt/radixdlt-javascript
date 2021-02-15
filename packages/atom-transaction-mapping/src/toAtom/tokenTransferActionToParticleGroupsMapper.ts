@@ -10,7 +10,7 @@ import {
 	ParticleGroup,
 	particleGroup,
 } from '@radixdlt/atom'
-import { Address } from '@radixdlt/crypto'
+import { Address } from '@radixdlt/account'
 import { combine, Result } from 'neverthrow'
 import { makeTransitioner } from './fungibleParticleTransitioner'
 import {

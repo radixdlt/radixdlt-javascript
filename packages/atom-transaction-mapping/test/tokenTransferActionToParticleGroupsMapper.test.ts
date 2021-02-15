@@ -22,7 +22,7 @@ import {
 	TestVector,
 	mutableSupplyTokenDefinitionParticleAllCanMutate,
 } from './consumeTokensActionToParticleGroupsMapperBase'
-import { Address } from '@radixdlt/crypto'
+import { Address } from '@radixdlt/account'
 import { UInt256 } from '@radixdlt/uint256'
 
 describe('TokenTransferActionToParticleGroupsMapper', () => {

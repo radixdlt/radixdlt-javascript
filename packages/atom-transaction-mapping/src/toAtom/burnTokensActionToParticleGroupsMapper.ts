@@ -10,7 +10,7 @@ import {
 	UnallocatedTokensParticle,
 	UpParticle,
 } from '@radixdlt/atom'
-import { Address } from '@radixdlt/crypto'
+import { Address } from '@radixdlt/account'
 import { err, Result, ok, combine } from 'neverthrow'
 import { BurnTokensActionToParticleGroupsMapper, MapperInput } from './_types'
 import { makeTransitioner } from './fungibleParticleTransitioner'

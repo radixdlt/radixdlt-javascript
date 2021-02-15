@@ -1,11 +1,9 @@
-import { Address, PublicKey } from './_types'
-import { publicKeyFromBytes } from './publicKey'
-import { radixHash } from './algorithms'
 import { Magic } from '@radixdlt/primitives'
 import { Byte, byteToBuffer, firstByteFromBuffer } from '@radixdlt/util'
 import { Result, ok, err } from 'neverthrow'
-import { base58Encode, base58Decode } from './wrap/baseConversion'
 import { DSONObjectEncoding, JSONEncoding } from '@radixdlt/data-formats'
+import { PublicKey, base58Encode, base58Decode } from '@radixdlt/crypto'
+import { Address } from './_types'
 
 const checksumByteCount = 4
 
