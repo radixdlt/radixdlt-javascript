@@ -20,12 +20,14 @@ import {
 	amountFromUnsafe,
 	amountInSmallestDenomination,
 	Denomination,
+	DenominationOutputFormat,
 	granularityDefault,
 	isAmount,
 	one,
 } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import { makeTokenFeeProvider, minimumFee } from '../src/tokenFeeProvider'
+import { milliRads } from '../dist/tokenFeeProvider'
 
 const Range = function* (total = 0, step = 1, from = 0) {
 	for (let i = 0; i < total; yield from + i++ * step) {}
@@ -123,21 +125,26 @@ describe('TokenFees', () => {
 
 	const testFeeWithParticleCountOf = <P extends ParticleBase>(
 		makeParticle: ParticleFromNum<P>,
-		expectedFee: number | Amount,
 		particleCount: number,
+		expectedFee: number | ((feeToAssert: Amount) => void),
 	): void => {
-		const expected = isAmount(expectedFee)
-			? expectedFee
-			: amountFromUInt256({
-					magnitude: UInt256.valueOf(expectedFee),
-					denomination: Denomination.Milli,
-			  })._unsafeUnwrap()
-
 		const atom_ = atomWithParticleCountOf(makeParticle, particleCount)
 
 		const feeProvider = makeTokenFeeProvider()
 		const fee = feeProvider.feeFor({ atom: atom_ })._unsafeUnwrap()
-		expect(fee.equals(expected)).toBe(true)
+
+		if (typeof expectedFee === 'number') {
+			const expected = isAmount(expectedFee)
+				? expectedFee
+				: amountFromUInt256({
+						magnitude: UInt256.valueOf(expectedFee),
+						denomination: Denomination.Milli,
+				  })._unsafeUnwrap()
+
+			expect(fee.equals(expected)).toBe(true)
+		} else {
+			expectedFee(fee)
+		}
 	}
 
 	const testMSTDP = testFeeWithParticleCountOf.bind(null, makeMSTDP)
@@ -162,26 +169,32 @@ describe('TokenFees', () => {
 	})
 
 	it('should be 1000 Milli for 1 FixedSupTokenDefPart', () => {
-		testFSTDP(1000, 1)
+		testFSTDP(1, 1000)
 	})
 
 	it('should be 2000 Milli for 2 FixedSupTokenDefPart', () => {
-		testFSTDP(2000, 2)
+		testFSTDP(2, 2000)
 	})
 
 	it('should be 7000 Milli for 7 FixedSupTokenDefPart', () => {
-		testFSTDP(7000, 7)
+		testFSTDP(7, 7000)
+	})
+
+	it('should be more than 15 for 15 FixedSupTokenDefPart due to size of atom', () => {
+		testFSTDP(15, (fee: Amount) => {
+			expect(fee.greaterThan(milliRads(15_000)))
+		})
 	})
 
 	it('should be 1000 Milli for 1 MutableSupTokenDefPart', () => {
-		testMSTDP(1000, 1)
+		testMSTDP(1, 1000)
 	})
 
 	it('should be 2000 Milli for 2 MutableSupTokenDefPart', () => {
-		testMSTDP(2000, 2)
+		testMSTDP(2, 2000)
 	})
 
 	it('should be 7000 Milli for 7 MutableSupTokenDefPart', () => {
-		testMSTDP(7000, 7)
+		testMSTDP(7, 7000)
 	})
 })

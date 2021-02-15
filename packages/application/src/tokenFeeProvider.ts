@@ -76,27 +76,22 @@ const perBytesFeeEntry = (
 				atomByteCount: number
 			}>,
 		): Result<Amount, Error> => {
+			const atomByteCount = input.atomByteCount
+			if (!atomByteCount || !Number.isInteger(atomByteCount)) {
+				return err(new Error(`atomByteCount be a defined number.`))
+			}
+
+			if (atomByteCount <= threshold) {
+				return ok(zero)
+			}
+
+			const numberOfBytesExceedingThreshold = atomByteCount - threshold
+
 			return amountFromUInt256({
-				magnitude: UInt256.valueOf(feeMagnitude),
+				magnitude: UInt256.valueOf(
+					numberOfBytesExceedingThreshold * feeMagnitude,
+				),
 				denomination: denomination,
-			}).andThen((fee: Amount) => {
-				const atomByteCount = input.atomByteCount
-				if (!atomByteCount || !Number.isInteger(atomByteCount)) {
-					return err(new Error(`atomByteCount be a defined number.`))
-				}
-
-				if (atomByteCount <= threshold) {
-					return ok(zero)
-				}
-
-				const numberOfBytesExceedingThreshold =
-					atomByteCount - threshold
-				return amountFromUInt256({
-					magnitude: UInt256.valueOf(numberOfBytesExceedingThreshold),
-					denomination: denomination,
-				}).andThen((overThresholdAmount: Amount) =>
-					fee.multiplied(overThresholdAmount),
-				)
 			})
 		},
 	}
