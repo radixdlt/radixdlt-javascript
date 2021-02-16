@@ -1,4 +1,4 @@
-import { AnyUpParticle, Atom } from '@radixdlt/atom'
+import { AnyUpParticle } from '@radixdlt/atom'
 import { Amount } from '@radixdlt/primitives'
 import { Result } from 'neverthrow'
 
@@ -14,8 +14,4 @@ export type FeeEntry = Readonly<{
 export type TokenFeeTable = Readonly<{
 	minimumFee: Amount
 	feeEntries: FeeEntry[]
-}>
-
-export type TokenFeeProvider = Readonly<{
-	feeFor: (input: Readonly<{ atom: Atom }>) => Result<Amount, Error>
 }>

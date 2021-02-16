@@ -1,6 +1,5 @@
 import {
 	Atom,
-	atomWithSpunParticles,
 	FixedSupplyTokenDefinitionParticle,
 	fixedSupplyTokenDefinitionParticle,
 	MutableSupplyTokenDefinitionParticle,
@@ -20,14 +19,14 @@ import {
 	amountFromUnsafe,
 	amountInSmallestDenomination,
 	Denomination,
-	DenominationOutputFormat,
 	granularityDefault,
 	isAmount,
 	one,
 } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
-import { makeTokenFeeProvider, minimumFee } from '../src/tokenFeeProvider'
+import { feeForAtom, minimumFee } from '../src/tokenFee'
 import { milliRads } from '../dist/tokenFeeProvider'
+import { atomWithSpunParticles } from './atomFromParticles'
 
 const Range = function* (total = 0, step = 1, from = 0) {
 	for (let i = 0; i < total; yield from + i++ * step) {}
@@ -106,8 +105,7 @@ describe('TokenFees', () => {
 		assertAmount: (amt: Amount) => void,
 	): void => {
 		const atom_ = atomWithTTPCountOf(ttpCount)
-		const feeProvider = makeTokenFeeProvider()
-		const fee = feeProvider.feeFor({ atom: atom_ })._unsafeUnwrap()
+		const fee = feeForAtom({ atom: atom_ })._unsafeUnwrap()
 		assertAmount(fee)
 	}
 
@@ -130,8 +128,7 @@ describe('TokenFees', () => {
 	): void => {
 		const atom_ = atomWithParticleCountOf(makeParticle, particleCount)
 
-		const feeProvider = makeTokenFeeProvider()
-		const fee = feeProvider.feeFor({ atom: atom_ })._unsafeUnwrap()
+		const fee = feeForAtom({ atom: atom_ })._unsafeUnwrap()
 
 		if (typeof expectedFee === 'number') {
 			const expected = isAmount(expectedFee)

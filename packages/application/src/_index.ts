@@ -1,3 +1,3 @@
 export * from './_types'
 
-export * from './tokenFeeProvider'
+export * from './tokenFee'
