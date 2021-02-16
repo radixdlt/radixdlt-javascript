@@ -22,7 +22,7 @@ import { particleGroups } from '../src/particleGroups'
 import { RadixParticleType } from '../src/particles/meta/radixParticleTypes'
 import { spunParticle } from '../src/particles/spunParticle'
 import { transferrableTokensParticle } from '../src/particles/transferrableTokensParticle'
-import { addressFromBase58String } from '@radixdlt/crypto'
+import { addressFromBase58String } from '@radixdlt/account'
 import { resourceIdentifierFromAddressAndName } from '../src/resourceIdentifier'
 import {
 	amountFromUnsafe,

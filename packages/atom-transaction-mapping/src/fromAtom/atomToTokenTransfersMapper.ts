@@ -13,8 +13,8 @@ import {
 import { Observable, from } from 'rxjs'
 import { err, Result, ok } from 'neverthrow'
 import { executedTokenTransfer } from './tokenTransfer'
-import { Address } from '@radixdlt/crypto/'
 import { Amount } from '@radixdlt/primitives'
+import { Address } from '@radixdlt/account'
 
 const uniqueAddressCountTTPs = (
 	particles: TransferrableTokensParticle[],

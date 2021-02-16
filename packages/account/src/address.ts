@@ -2,7 +2,13 @@ import { Magic } from '@radixdlt/primitives'
 import { Byte, byteToBuffer, firstByteFromBuffer } from '@radixdlt/util'
 import { Result, ok, err } from 'neverthrow'
 import { DSONObjectEncoding, JSONEncoding } from '@radixdlt/data-formats'
-import { PublicKey, base58Encode, base58Decode } from '@radixdlt/crypto'
+import {
+	PublicKey,
+	base58Encode,
+	base58Decode,
+	publicKeyFromBytes,
+	radixHash,
+} from '@radixdlt/crypto'
 import { Address } from './_types'
 
 const checksumByteCount = 4

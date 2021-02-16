@@ -1,4 +1,5 @@
-import { Address, Signature } from '@radixdlt/crypto'
+import { Signature } from '@radixdlt/crypto'
+import { Address } from '@radixdlt/account'
 import { DSONCodable } from '@radixdlt/data-formats'
 import { SpunParticleQueryable, SpunParticles } from './particles/_types'
 

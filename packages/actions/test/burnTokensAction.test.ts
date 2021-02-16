@@ -1,5 +1,5 @@
 import { resourceIdentifierFromAddressAndName } from '@radixdlt/atom'
-import { addressFromBase58String } from '@radixdlt/crypto'
+import { addressFromBase58String } from '@radixdlt/account'
 import { amountFromUnsafe, Denomination, zero } from '@radixdlt/primitives'
 import { BurnTokensActionInput } from '../src/_types'
 import { burnTokensAction } from '../src/burnTokensAction'

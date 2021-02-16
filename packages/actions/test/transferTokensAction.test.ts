@@ -1,4 +1,4 @@
-import { addressFromBase58String } from '@radixdlt/crypto'
+import { addressFromBase58String } from '@radixdlt/account'
 import { resourceIdentifierFromAddressAndName } from '@radixdlt/atom'
 import { amountFromUnsafe, Denomination } from '@radixdlt/primitives'
 import { transferTokensAction } from '../src/transferTokensAction'

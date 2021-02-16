@@ -25,7 +25,7 @@ import {
 } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import { feeForAtom, minimumFee } from '../src/tokenFee'
-import { milliRads } from '../dist/tokenFeeProvider'
+import { milliRads } from '../src/tokenFee'
 import { atomWithSpunParticles } from './atomFromParticles'
 
 const Range = function* (total = 0, step = 1, from = 0) {

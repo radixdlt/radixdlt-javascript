@@ -5,9 +5,10 @@ import { Result } from 'neverthrow'
 import { ResourceIdentifier, TokenPermissions } from '../_types'
 import { RadixParticleType } from './meta/radixParticleTypes'
 
-export type ParticleBase = DSONCodable & Readonly<{
-	equals: (other: ParticleBase) => boolean
-}>
+export type ParticleBase = DSONCodable &
+	Readonly<{
+		equals: (other: ParticleBase) => boolean
+	}>
 
 export type RadixParticle = ParticleBase &
 	Readonly<{

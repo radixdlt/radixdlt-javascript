@@ -1,8 +1,8 @@
+import { generatePrivateKey } from '@radixdlt/crypto'
 import {
 	addressFromBase58String,
 	addressFromPublicKeyAndMagicByte,
-	generatePrivateKey,
-} from '@radixdlt/crypto'
+} from '@radixdlt/account'
 import { amountInSmallestDenomination, nonce } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import { resourceIdentifierFromAddressAndName } from '../src/resourceIdentifier'

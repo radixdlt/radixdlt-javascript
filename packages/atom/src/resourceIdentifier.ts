@@ -1,7 +1,6 @@
-import { Address } from '@radixdlt/account'
+import { Address, addressFromBase58String } from '@radixdlt/account'
 import { ResourceIdentifier } from './_types'
 import { err, ok, Result } from 'neverthrow'
-import { addressFromBase58String } from '@radixdlt/crypto'
 import { DSONObjectEncoding } from '@radixdlt/data-formats'
 import { Byte } from '@radixdlt/util'
 
@@ -40,7 +39,7 @@ export const resourceIdentifierFromString = (
 	if (name.length === 0) return err(new Error('Expected non empty name'))
 
 	return addressFromBase58String(components[1]).map(
-		(address): ResourceIdentifier => ({
+		(address: Address): ResourceIdentifier => ({
 			...DSONObjectEncoding({
 				prefix: CBOR_BYTESTRING_PREFIX,
 				buffer: Buffer.from(identifierString),

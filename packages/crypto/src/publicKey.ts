@@ -1,1 +1,3 @@
-export { publicKeyFromBytesValidated as publicKeyFromBytes } from './wrap/publicKeyWrapped'
+import { publicKeyFromBytesValidated } from './wrap/publicKeyWrapped'
+
+export const publicKeyFromBytes = publicKeyFromBytesValidated

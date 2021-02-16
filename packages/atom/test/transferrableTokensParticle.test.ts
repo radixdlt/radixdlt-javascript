@@ -1,8 +1,8 @@
+import { generatePrivateKey } from '@radixdlt/crypto'
 import {
 	addressFromBase58String,
 	addressFromPublicKeyAndMagicByte,
-	generatePrivateKey,
-} from '@radixdlt/crypto'
+} from '@radixdlt/account'
 import { OutputMode } from '@radixdlt/data-formats'
 import {
 	amountFromUnsafe,

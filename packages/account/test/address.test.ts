@@ -1,16 +1,15 @@
-import {
-	addressFromPublicKeyAndMagic,
-	addressFromBase58String,
-	privateKeyFromScalar,
-	Address,
-	isAddress,
-	JSON_TAG,
-	generatePrivateKey,
-} from '@radixdlt/crypto'
+import { privateKeyFromScalar, generatePrivateKey } from '@radixdlt/crypto'
 
 import { magicFromNumber } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import { OutputMode } from '@radixdlt/data-formats'
+import { Address } from '../src/_types'
+import {
+	addressFromBase58String,
+	addressFromPublicKeyAndMagic,
+	isAddress,
+	JSON_TAG,
+} from '../src/address'
 
 // TODO CODE DUPLICATION remove to separate test package...
 export const toAddress = (b58: string): Address =>

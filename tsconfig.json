@@ -1,15 +1,16 @@
 {
   "files": [],
   "references": [
-    { "path": "packages/application" },
-    { "path": "packages/hardware-wallet" },
-    { "path": "packages/networking" },
+    { "path": "packages/util" },
+    { "path": "packages/primitives" },
+    { "path": "packages/crypto" },
+    { "path": "packages/data-formats" },
+    { "path": "packages/account" },
     { "path": "packages/actions" },
     { "path": "packages/atom" },
-    { "path": "packages/crypto" },
-    { "path": "packages/primitives" },
-    { "path": "packages/util" },
-    { "path": "packages/data-formats" },
-    { "path": "packages/atom-transaction-mapping" }
+    { "path": "packages/atom-transaction-mapping" },
+    { "path": "packages/networking" },
+    { "path": "packages/hardware-wallet" },
+    { "path": "packages/application" },
   ]
 }

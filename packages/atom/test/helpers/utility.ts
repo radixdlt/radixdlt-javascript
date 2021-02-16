@@ -2,8 +2,8 @@ import {
 	Address,
 	addressFromBase58String,
 	addressFromUnsafe,
-	Signature,
-} from '@radixdlt/crypto'
+} from '@radixdlt/account'
+import { Signature } from '@radixdlt/crypto'
 import { ResourceIdentifier, TokenPermissions } from '../../src/_types'
 import {
 	Amount,
