@@ -17,9 +17,14 @@ import {
 	DSONEncoding,
 	DSONPrimitive,
 	JSONEncoding,
+	JSONObjectDecoder,
 } from '@radixdlt/data-formats'
 
 const SERIALIZER = 'radix.spun_particle'
+
+export const JSONDecoder: JSONObjectDecoder = {
+	[SERIALIZER]: (input: SpunParticleBase) => ok(anySpunParticle(input)),
+}
 
 /* eslint-disable max-params */
 

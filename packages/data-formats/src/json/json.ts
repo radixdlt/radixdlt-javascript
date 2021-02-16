@@ -1,4 +1,4 @@
-import { combine, err, ok, Result } from 'neverthrow'
+import { ok } from 'neverthrow'
 import {
 	JSONPrimitiveDecoder,
 	JSONEncodable,
@@ -12,6 +12,7 @@ import {
 	JSONEncodableObject,
 	JSONDecodablePrimitive,
 } from './_types'
+import { map, mapObjIndexed } from 'ramda'
 
 const defaultPrimitiveDecoders: JSONPrimitiveDecoder[] = [
 	{
@@ -32,8 +33,6 @@ export const toJSON = (
 		case 'number':
 		case 'boolean':
 			return data
-		case 'bigint':
-			return data.toString()
 		case 'string':
 			return `${Tag.STRING}${data}`
 		case 'object': {
@@ -86,7 +85,7 @@ export const JSONEncoding = <Serializer extends string | undefined>(
 
 const fromJSONBasic = (...primitiveDecoders: JSONPrimitiveDecoder[]) => (
 	...objectDecoders: JSONObjectDecoder[]
-) => (json: JSONDecodablePrimitive): FromJSONOutput => {
+) => <T>(json: JSONDecodablePrimitive): T => {
 	const fromJSON = fromJSONBasic(...primitiveDecoders)(...objectDecoders)
 
 	const handleArray = (arr: JSONDecodablePrimitive[]): FromJSONOutput[] =>
@@ -109,13 +108,14 @@ const fromJSONBasic = (...primitiveDecoders: JSONPrimitiveDecoder[]) => (
 					}`,
 				)
 
-			const result = decoder[json[SERIALIZER] as string]({
-				...Object.keys(json).reduce((result, key) => {
-					if (key === SERIALIZER) return result
-					result[key] = fromJSON(json[key])
-					return result
-				}, {} as any),
-			})
+			const result = decoder[json[SERIALIZER] as string](
+				mapObjIndexed(
+					(value, key) =>
+						key === SERIALIZER ? key : fromJSON(value),
+					json,
+				),
+			)
+
 			if (result.isOk()) {
 				return result.value
 			} else {
@@ -123,10 +123,7 @@ const fromJSONBasic = (...primitiveDecoders: JSONPrimitiveDecoder[]) => (
 			}
 		}
 
-		return Object.keys(json).reduce((result, key) => {
-			result[key] = fromJSON(json[key])
-			return result
-		}, {} as any)
+		return mapObjIndexed((value) => fromJSON(value), json) as any
 	}
 
 	const handleString = (json: string): string | JSONEncodable => {
@@ -148,7 +145,7 @@ const fromJSONBasic = (...primitiveDecoders: JSONPrimitiveDecoder[]) => (
 		? handleObject(json)
 		: typeof json === 'string'
 		? handleString(json)
-		: json
+		: (json as any)
 }
 
 export const fromJSONDefault = fromJSONBasic.bind(

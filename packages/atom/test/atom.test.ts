@@ -10,6 +10,7 @@ import {
 } from './helpers/particles'
 import { UInt256 } from '@radixdlt/uint256'
 import {
+	Atom,
 	SignatureID,
 	Signatures,
 	TokenPermission,
@@ -173,7 +174,7 @@ describe('atom', () => {
 				serializer: ATOM_SERIALIZER,
 			}
 
-			const result = fromJSON(json)
+			const result = fromJSON<Atom>(json)
 			const expected = atom({})
 
 			expect(JSON.stringify(result)).toEqual(JSON.stringify(expected))

@@ -30,23 +30,17 @@ export type JSONDecodableObject = {
 }
 
 export type JSONEncodableObject = {
-	[key: string]:
-		| number
-		| boolean
-		| string
-		| bigint
-		| JSONEncodable
-		| JSONEncodableObject
+	[key: string]: FromJSONOutput
 }
 
 export type FromJSONOutput =
 	| number
 	| boolean
 	| string
-	| JSONEncodable
 	| undefined
-	| FromJSONOutput[]
+	| JSONEncodable
 	| JSONEncodableObject
+	| FromJSONOutput[]
 
 export type JSONEncodable = {
 	toJSON: () => JSONEncodablePrimitive
@@ -56,9 +50,8 @@ export type JSONEncodablePrimitive =
 	| number
 	| boolean
 	| string
-	| bigint
 	| undefined
-	| JSONDecodableObject
+	| JSONEncodableObject
 	| JSONEncodablePrimitive[]
 
 export type JSONDecodablePrimitive =

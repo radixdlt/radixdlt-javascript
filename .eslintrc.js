@@ -37,15 +37,7 @@ module.exports = {
 			},
 		],
 
-		'max-lines-per-function': [
-			'warn',
-			{
-				max: 50,
-				skipBlankLines: true,
-				skipComments: true,
-				IIFEs: true,
-			},
-		],
+		'max-lines-per-function': 'off',
 
 		'max-nested-callbacks': ['error', 3],
 

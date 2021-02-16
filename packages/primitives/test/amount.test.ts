@@ -181,14 +181,14 @@ describe('Amount', () => {
 	it('should be able to JSON decode', () => {
 		const fromJSON = fromJSONDefault(AmountJSONDecoder)()
 
-		const result = fromJSON(`${JSON_TAG}7000000000000000000`)
+		const result = fromJSON<Amount>(`${JSON_TAG}7000000000000000000`)
 
 		const expected = amountFromUInt256({
 			magnitude: UInt256.valueOf(7),
 			denomination: Denomination.Whole,
 		})._unsafeUnwrap()
 
-		expect(JSON.stringify(result)).toEqual(JSON.stringify(expected))
+		expect(result.equals(expected)).toBe(true)
 	})
 
 	it('should be possible to find min of two amounts', () => {
