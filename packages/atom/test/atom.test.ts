@@ -174,7 +174,7 @@ describe('atom', () => {
 				serializer: ATOM_SERIALIZER,
 			}
 
-			const result = fromJSON<Atom>(json)
+			const result = fromJSON<Atom>(json)._unsafeUnwrap()
 			const expected = atom({})
 
 			expect(JSON.stringify(result)).toEqual(JSON.stringify(expected))

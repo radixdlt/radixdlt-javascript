@@ -387,7 +387,9 @@ describe('JSON', () => {
 					),
 				)
 				.forEach((example) =>
-					expect(fromJSON(example.json)).toEqual(example.native),
+					expect(fromJSON(example.json)._unsafeUnwrap()).toEqual(
+						example.native,
+					),
 				)
 		})
 
@@ -427,7 +429,7 @@ describe('JSON', () => {
 				},
 			}
 
-			const decoded = fromJSON(json)
+			const decoded = fromJSON(json)._unsafeUnwrap()
 
 			const expected = encodableComplex({
 				prop1: 'a',

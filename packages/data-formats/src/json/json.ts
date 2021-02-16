@@ -1,4 +1,4 @@
-import { ok } from 'neverthrow'
+import { err, ok, Result } from 'neverthrow'
 import {
 	JSONPrimitiveDecoder,
 	JSONEncodable,
@@ -85,13 +85,25 @@ export const JSONEncoding = <Serializer extends string | undefined>(
 
 const fromJSONBasic = (...primitiveDecoders: JSONPrimitiveDecoder[]) => (
 	...objectDecoders: JSONObjectDecoder[]
-) => <T>(json: JSONDecodablePrimitive): T => {
-	const fromJSON = fromJSONBasic(...primitiveDecoders)(...objectDecoders)
+) => <T>(json: JSONDecodableObject): Result<T, Error> => {
+	try {
+		return ok(
+			fromJSONRecursive(...primitiveDecoders)(...objectDecoders)(
+				json,
+			) as any,
+		)
+	} catch (e) {
+		return err(e)
+	}
+}
+
+const fromJSONRecursive = (...primitiveDecoders: JSONPrimitiveDecoder[]) => (
+	...objectDecoders: JSONObjectDecoder[]
+) => (json: JSONDecodablePrimitive): FromJSONOutput => {
+	const fromJSON = fromJSONRecursive(...primitiveDecoders)(...objectDecoders)
 
 	const handleArray = (arr: JSONDecodablePrimitive[]): FromJSONOutput[] =>
-		arr.map((item) =>
-			fromJSONBasic(...primitiveDecoders)(...objectDecoders)(item),
-		)
+		arr.map((item) => fromJSON(item))
 
 	const handleObject = (
 		json: JSONDecodableObject,
@@ -123,7 +135,7 @@ const fromJSONBasic = (...primitiveDecoders: JSONPrimitiveDecoder[]) => (
 			}
 		}
 
-		return mapObjIndexed((value) => fromJSON(value), json) as any
+		return mapObjIndexed((value) => fromJSON(value), json)
 	}
 
 	const handleString = (json: string): string | JSONEncodable => {
@@ -145,7 +157,7 @@ const fromJSONBasic = (...primitiveDecoders: JSONPrimitiveDecoder[]) => (
 		? handleObject(json)
 		: typeof json === 'string'
 		? handleString(json)
-		: (json as any)
+		: json
 }
 
 export const fromJSONDefault = fromJSONBasic.bind(

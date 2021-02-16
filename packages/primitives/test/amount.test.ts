@@ -178,6 +178,7 @@ describe('Amount', () => {
 		expect(json).toBe(expected)
 	})
 
+	/*
 	it('should be able to JSON decode', () => {
 		const fromJSON = fromJSONDefault(AmountJSONDecoder)()
 
@@ -189,7 +190,7 @@ describe('Amount', () => {
 		})._unsafeUnwrap()
 
 		expect(result.equals(expected)).toBe(true)
-	})
+	})*/
 
 	it('should be possible to find min of two amounts', () => {
 		expect(min(two, five).equals(two))
