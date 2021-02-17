@@ -7,6 +7,8 @@ import {
 	serializerNotNeeded,
 } from '@radixdlt/data-formats'
 
+export const NONCE_JSON_TAG = ':u20:'
+
 export const randomInt64 = (
 	secureRandom: SecureRandom = secureRandomGenerator,
 ): Int64 => {
@@ -20,7 +22,7 @@ export const nonce = (value: Int64 | number): Nonce => {
 
 	return {
 		...JSONEncoding(serializerNotNeeded)(() =>
-			BigInt(int64.toString(10)).toString(10),
+			`${NONCE_JSON_TAG}${BigInt(int64.toString(10)).toString(10)}`,
 		),
 		...DSONEncoding(serializerNotNeeded)(() => BigInt(int64.toString(10))),
 

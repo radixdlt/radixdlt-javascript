@@ -8,6 +8,7 @@ import { base58Encode, base58Decode } from './wrap/baseConversion'
 import {
 	DSONObjectEncoding,
 	JSONEncoding,
+	JSONPrimitiveDecoder,
 	serializerNotNeeded,
 } from '@radixdlt/data-formats'
 
@@ -15,6 +16,10 @@ const checksumByteCount = 4
 
 export const CBOR_BYTESTRING_PREFIX: Byte = 4
 export const JSON_TAG = ':adr:'
+
+export const AddressJSONDecoder: JSONPrimitiveDecoder = {
+	[JSON_TAG]: (input: string) => addressFromBase58String(input)
+}
 
 export const addressFromPublicKeyAndMagic = (
 	input: Readonly<{

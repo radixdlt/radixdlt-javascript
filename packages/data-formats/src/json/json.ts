@@ -79,7 +79,7 @@ export const JSONEncoding = <Serializer extends string | undefined>(
 	}
 
 	return {
-		toJSON: encodingMethodOrKeyValues as () => JSONEncodablePrimitive,
+		toJSON: encodingMethodOrKeyValues as () => JSONDecodablePrimitive,
 	}
 }
 
@@ -135,7 +135,7 @@ const fromJSONRecursive = (...primitiveDecoders: JSONPrimitiveDecoder[]) => (
 			}
 		}
 
-		return mapObjIndexed((value) => fromJSON(value), json)
+		return json
 	}
 
 	const handleString = (json: string): string | JSONEncodable => {

@@ -1,4 +1,4 @@
-import { randomNonce, nonce } from '../src/nonce'
+import { randomNonce, nonce, NONCE_JSON_TAG } from '../src/nonce'
 import * as Long from 'long'
 
 describe('Nonce', () => {
@@ -21,12 +21,12 @@ describe('Nonce', () => {
 	it('should be able to JSON encode nonce with small value', () => {
 		const nonce_ = nonce(237)
 		const json = nonce_.toJSON()
-		expect(json).toBe('237')
+		expect(json).toBe(`${NONCE_JSON_TAG}237`)
 	})
 
 	it('should be able to JSON encode nonce with large value', () => {
 		const nonce_ = nonce(Long.MAX_VALUE)
 		const json = nonce_.toJSON()
-		expect(json).toBe('9223372036854775807')
+		expect(json).toBe(`${NONCE_JSON_TAG}9223372036854775807`)
 	})
 })

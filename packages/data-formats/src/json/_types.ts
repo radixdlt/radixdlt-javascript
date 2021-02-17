@@ -25,6 +25,7 @@ export type JSONDecodableObject = {
 		| boolean
 		| string
 		| undefined
+		| JSONDecodablePrimitive
 		| JSONDecodableObject
 		| JSONDecodableObject[]
 }
@@ -43,7 +44,7 @@ export type FromJSONOutput =
 	| FromJSONOutput[]
 
 export type JSONEncodable = {
-	toJSON: () => JSONEncodablePrimitive
+	toJSON: () => JSONDecodablePrimitive
 }
 
 export type JSONEncodablePrimitive =
