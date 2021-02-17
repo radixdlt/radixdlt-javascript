@@ -29,8 +29,9 @@
   },
   "dependencies": {
     "@radixdlt/crypto": "^0.0.0",
-    "@radixdlt/primitives": "^0.0.0",
     "@radixdlt/data-formats": "^0.0.0",
-    "neverthrow": "^4.0.1"
+    "@radixdlt/primitives": "^0.0.0",
+    "neverthrow": "^4.0.1",
+    "rxjs": "7.0.0-beta.10"
   }
 }

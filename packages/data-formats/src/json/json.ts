@@ -123,6 +123,21 @@ const fromJSONBasic = (...primitiveDecoders: JSONPrimitiveDecoder[]) => (
 }
 
 export const fromJSONDefault = fromJSONBasic.bind(
+	/**
+	 *
+	 */
+	/**
+	 *
+	 */
+	/**
+	 *
+	 */
+	/**
+	 *
+	 */
+	/**
+	 *
+	 */
 	null,
 	...defaultPrimitiveDecoders,
 )

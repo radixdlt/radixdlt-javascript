@@ -8,14 +8,14 @@ import { UInt256 } from '@radixdlt/uint256'
 
 import { signDataWithPrivateKey } from './wrap/sign'
 
-import { ResultAsync } from 'neverthrow'
+import { err, ok, Result, ResultAsync } from 'neverthrow'
 import { UnsignedMessage, Signature, PublicKey, PrivateKey } from './_types'
 import { publicKeyFromPrivateKey } from './wrap/publicKeyWrapped'
 import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
 import { Secp256k1 } from './secp256k1'
 
-export const privateKeyFromScalar = (scalar: UInt256): PrivateKey => {
-	return {
+const privateKeyFromValidatedScalar = (scalar: UInt256): PrivateKey => {
+	const privateKey = {
 		sign: (
 			unsignedMessage: UnsignedMessage,
 		): ResultAsync<Signature, Error> =>
@@ -25,19 +25,28 @@ export const privateKeyFromScalar = (scalar: UInt256): PrivateKey => {
 					data: unsignedMessage.hasher(unsignedMessage.unhashed),
 				}),
 			),
-
-		derivePublicKey: (): ResultAsync<PublicKey, Error> =>
-			resultToAsync(
-				publicKeyFromPrivateKey({
-					privateKey: scalar,
-				}),
-			),
-
+		publicKey: () => {
+			throw new Error('Impl me')
+		},
 		toString: (): string => {
 			return scalar.toString(16)
 		},
 		scalar: scalar,
 	}
+
+	return {
+		...privateKey,
+		publicKey: (): PublicKey => publicKeyFromPrivateKey({ privateKey }),
+	}
+}
+
+export const privateKeyFromScalar = (
+	scalar: UInt256,
+): Result<PrivateKey, Error> => {
+	if (!validateSecp256k1PrivateKey(scalar))
+		return err(new Error('Invalid private key scalar.'))
+
+	return ok(privateKeyFromValidatedScalar(scalar))
 }
 
 const validateSecp256k1PrivateKey = (scalar: UInt256): boolean =>
@@ -53,5 +62,5 @@ export const generatePrivateKey = (
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
 		scalar = secureRandomUInt256(secureRandom)
 	}
-	return privateKeyFromScalar(scalar)
+	return privateKeyFromValidatedScalar(scalar)
 }

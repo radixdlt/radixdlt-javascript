@@ -135,7 +135,9 @@ describe('AtomToTokenTransfersMapper', () => {
 
 		const upTTPs = consumablesFromAmounts
 			.map(upTTP.bind(null, resourceID, actor))
-			.map((sp: SpunParticle<TransferrableTokensParticle>) => sp.eraseToAny())
+			.map((sp: SpunParticle<TransferrableTokensParticle>) =>
+				sp.eraseToAny(),
+			)
 
 		const upParticles = [
 			spunUpParticle(tokenDefinitionParticle).eraseToAny(),

@@ -1,10 +1,9 @@
-import { UInt256 } from '@radixdlt/uint256'
-
 import { err, ok, Result } from 'neverthrow'
 import { curve, ec } from 'elliptic'
 import BN from 'bn.js'
 import {
 	ECPointOnCurve,
+	PrivateKey,
 	PublicKey,
 	Signature,
 	UnsignedMessage,
@@ -73,14 +72,21 @@ const publicKeyFromEllipticKey = (
 
 export const publicKeyFromPrivateKey = (
 	input: Readonly<{
-		privateKey: UInt256
+		privateKey: PrivateKey
 	}>,
-): Result<PublicKey, Error> => {
-	return publicKeyFromEllipticKey(
+): PublicKey => {
+	const result = publicKeyFromEllipticKey(
 		thirdPartyLibEllipticSecp256k1.keyFromPrivate(
-			input.privateKey.toString(16),
+			input.privateKey.scalar.toString(16),
 		),
 	)
+
+	if (result.isErr()) {
+		throw new Error(
+			`Failed to derive public key from private key, this should never happend since you passed in an 'PrivateKey' type value, which should have been validated. You must somehow have bypassed validation, or our implementation is incorrect, which is a fatal error.`,
+		)
+	}
+	return result.value
 }
 
 export const publicKeyFromBytesValidated = (
