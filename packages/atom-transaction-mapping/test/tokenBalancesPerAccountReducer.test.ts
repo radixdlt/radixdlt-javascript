@@ -11,22 +11,23 @@ import { toAddress } from '@radixdlt/atom/test/helpers/utility'
 import {
 	Amount,
 	amountInSmallestDenomination,
-	eight,
-	five,
 	Granularity,
 	isAmount,
 	one,
-	ten,
-	three,
-	seven,
 	two,
+	three,
 	four,
+	five,
 	six,
+	seven,
+	eight,
+	ten,
+	eleven,
+	fifteen,
 } from '@radixdlt/primitives'
 
 import { UInt256 } from '@radixdlt/uint256'
 import { tokenBalancesPerAccountReducer } from '../src/fromAtom/_index'
-import { eleven, fifteen } from '@radixdlt/primitives/src/_index'
 
 describe('TokenBalancesPerAccountReducer', () => {
 	const alice = toAddress(

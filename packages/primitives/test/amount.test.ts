@@ -2,33 +2,35 @@ import { fromJSONDefault } from '@radixdlt/data-formats'
 import { UInt256 } from '@radixdlt/uint256'
 import {
 	amountFromUInt256,
-	min,
-	zero,
-	one,
-	two,
-	three,
-	four,
-	five,
-	six,
-	seven,
-	eight,
-	nine,
-	ten,
 	amountInSmallestDenomination,
-	twelve,
+	eight,
 	eleven,
-	thirteen,
-	fourteen,
 	fifteen,
+	five,
+	four,
+	fourteen,
+	min,
+	nine,
+	one,
+	seven,
+	six,
+	ten,
+	thirteen,
 	JSON_TAG,
 	AmountJSONDecoder,
+	three,
+	twelve,
+	two,
+	zero,
 } from '../src/amount'
 import {
 	Amount,
 	amountFromUnsafe,
 	AmountInputUnsafe,
 	Denomination,
+	DenominationOutputFormat,
 	Granularity,
+	isUInt256,
 	maxAmount,
 } from '../src/_index'
 
@@ -107,7 +109,7 @@ describe('Amount', () => {
 		expect(maxAmount.adding(one).isErr()).toBe(true)
 	})
 
-	it('can perform subtaction', () => {
+	it('can perform subtraction', () => {
 		const sub = (lhs: Amount, rhs: Amount): Amount =>
 			lhs.subtracting(rhs)._unsafeUnwrap()
 
@@ -118,6 +120,17 @@ describe('Amount', () => {
 		expect(sub(two, one).equals(one)).toBe(true)
 
 		expect(zero.subtracting(one).isErr()).toBe(true)
+	})
+
+	it('should be able to do multiplication', () => {
+		const mul = (lhs: Amount, rhs: Amount): Amount =>
+			lhs.multiplied(rhs)._unsafeUnwrap()
+
+		const fiveTimesThree = mul(five, three)
+		expect(fiveTimesThree.equals(fifteen)).toBe(true)
+
+		expect(mul(two, two).equals(four)).toBe(true)
+		expect(mul(two, one).equals(two)).toBe(true)
 	})
 
 	it('can check for multiples', () => {
@@ -197,5 +210,51 @@ describe('Amount', () => {
 		expect(min(five, two).equals(two))
 		expect(min(zero, two).equals(zero))
 		expect(min(three, three).equals(three))
+	})
+
+	it('can typeguard UInt256', () => {
+		const uOne = UInt256.valueOf(1)
+		expect(isUInt256(uOne)).toBe(true)
+		expect(isUInt256(1)).toBe(false)
+	})
+
+	describe('amount toString', () => {
+		const doTestToString = (
+			magnitude: number,
+			denomination: Denomination,
+			expected: string,
+		): void => {
+			const amount = amountFromUnsafe(
+				magnitude,
+				denomination,
+			)._unsafeUnwrap()
+			expect(
+				amount.toString({
+					useLargestDenomination: true,
+					denominationOutputFormat:
+						DenominationOutputFormat.SHOW_NAME,
+				}),
+			).toBe(expected)
+		}
+
+		it(`(1 exa).toString(useLargestDenomination: true) => '1 Exa'`, () => {
+			doTestToString(1, Denomination.Exa, '1 Exa')
+		})
+
+		it(`(2_000 peta).toString(useLargestDenomination: true) => '2 Exa'`, () => {
+			doTestToString(2_000, Denomination.Peta, '2 Exa')
+		})
+
+		it(`(30_000 tera).toString(useLargestDenomination: true) => '30 Peta'`, () => {
+			doTestToString(30_000, Denomination.Tera, '30 Peta')
+		})
+
+		it(`(400_000 giga).toString(useLargestDenomination: true) => '400 Tera'`, () => {
+			doTestToString(400_000, Denomination.Giga, '400 Tera')
+		})
+
+		it(`(5_000_000 mega).toString(useLargestDenomination: true) => '5 Tera'`, () => {
+			doTestToString(5_000_000, Denomination.Mega, '5 Tera')
+		})
 	})
 })

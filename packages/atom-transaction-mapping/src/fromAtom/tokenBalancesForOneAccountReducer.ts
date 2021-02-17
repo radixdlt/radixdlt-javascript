@@ -1,6 +1,5 @@
 import {
 	ApplicationStateType,
-	TokenAmount,
 	TokenBalance,
 	TokenBalancesForOneAccountReducer,
 	TokenBalancesForOneAccount,
@@ -11,7 +10,7 @@ import {
 	TokenBase,
 	TransferrableTokensParticle,
 } from '@radixdlt/atom'
-import { isTransferrableTokensParticle } from '@radixdlt/atom/dist/particles/transferrableTokensParticle'
+import { isTransferrableTokensParticle } from '@radixdlt/atom'
 import { err, ok, Result } from 'neverthrow'
 import { mapEquals } from '@radixdlt/util'
 import { makeParticleReducer } from './particleReducer'
@@ -56,7 +55,7 @@ export const tokenBalance = (
 ): TokenBalance => {
 	return {
 		owner: ttp.address,
-		tokenAmount: <TokenAmount>{
+		tokenAmount: {
 			amount: ttp.amount,
 			token: ttp as TokenBase,
 		},
@@ -88,7 +87,7 @@ export const mergeTokenBalance = (
 
 	return lhs.tokenAmount.amount.adding(rhs.tokenAmount.amount).map((sum) => ({
 		owner: lhs.owner,
-		tokenAmount: <TokenAmount>{
+		tokenAmount: {
 			token: lhs.tokenAmount.token,
 			amount: sum,
 		},
@@ -109,16 +108,18 @@ export const mergeMaps = <K, V>(
 	const lhs = input.first
 	const rhs = input.second
 
-	const mergedSetOfKeys = new Set(
-		([] as K[])
-			.concat(Array.from<K>(lhs.keys()))
-			.concat(Array.from<K>(rhs.keys())),
+	const uniqueKeys = Array.from(
+		new Set(
+			([] as K[])
+				.concat(Array.from<K>(lhs.keys()))
+				.concat(Array.from<K>(rhs.keys())),
+		),
 	)
 
 	/* eslint-disable functional/immutable-data, functional/no-let, functional/no-loop-statement, prefer-const */
 	let combinedMap = new Map<K, V>()
 
-	for (const key of mergedSetOfKeys) {
+	for (const key of uniqueKeys) {
 		const lhsVal = lhs.get(key)
 		const rhsVal = rhs.get(key)
 

@@ -3,12 +3,15 @@ import {
 	Signature,
 	unsignedPlainText,
 	publicKeyFromBytes,
-	orderOfSecp256k1,
 	PrivateKey,
+	Secp256k1,
 	generatePrivateKey,
+	generateKeyPair,
 } from '../src/_index'
 
 import { UInt256 } from '@radixdlt/uint256'
+import { publicKeyFromPrivateKey } from '../src/wrap/publicKeyWrapped'
+import { pointOnCurve } from '../src/wrap/ecPointOnCurve'
 
 // TODO CODE DUPLICATION! Move to shared testing only package.
 export const signatureFromHexStrings = (input: {
@@ -26,7 +29,7 @@ export const signatureFromHexStrings = (input: {
 
 describe('elliptic curve cryptography', () => {
 	it('knows the order of secp256l1', () => {
-		expect(orderOfSecp256k1.toString(10)).toBe(
+		expect(Secp256k1.order.toString(10)).toBe(
 			'115792089237316195423570985008687907852837564279074904382605163141518161494337',
 		)
 	})
@@ -120,6 +123,77 @@ describe('elliptic curve cryptography', () => {
 
 		expect(publicKeyUncompressed).toBe(
 			'0479be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8',
+		)
+	})
+
+	it('has G', () => {
+		const g = Secp256k1.generator
+		expect(g.x.toString(16)).toBe(
+			'79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
+		)
+		expect(g.y.toString(16)).toBe(
+			'483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8',
+		)
+	})
+
+	it('G can mult with self', () => {
+		const g = Secp256k1.generator
+		const one = UInt256.valueOf(1)
+		expect(g.multiply(one).equals(g)).toBe(true)
+		const pubKey = publicKeyFromPrivateKey({
+			privateKey: one,
+		})._unsafeUnwrap()
+		expect(pubKey.decodeToPointOnCurve().equals(g)).toBe(true)
+	})
+
+	it('can do EC multiplication', () => {
+		const keyPair = generateKeyPair()._unsafeUnwrap()
+		const publicKey = keyPair.publicKey
+		const privateKey = keyPair.privateKey
+		const pubKeyPoint = publicKey.decodeToPointOnCurve()
+
+		expect(
+			Secp256k1.generator
+				.multiplyWithPrivateKey(privateKey)
+				.equals(pubKeyPoint),
+		).toBe(true)
+	})
+
+	it('can do EC addition', () => {
+		const g = Secp256k1.generator
+		const two = UInt256.valueOf(2)
+		const three = UInt256.valueOf(3)
+		const five = UInt256.valueOf(5)
+		const point2G = g.multiply(two)
+		const point3G = g.multiply(three)
+		const point5GByAddition = point2G.add(point3G)
+		const point5GByMultiplication = g.multiply(five)
+		expect(point5GByAddition.equals(point5GByMultiplication)).toBe(true)
+	})
+
+	it('can construct ECPoint from X and Y', () => {
+		const manualG = pointOnCurve({
+			x: new UInt256(
+				'79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
+				16,
+			),
+			y: new UInt256(
+				'483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8',
+				16,
+			),
+		})._unsafeUnwrap()
+		expect(manualG.equals(Secp256k1.generator)).toBe(true)
+	})
+
+	it('cannot construct points that is not on the curve', () => {
+		pointOnCurve({
+			x: UInt256.valueOf(1337),
+			y: UInt256.valueOf(1337),
+		}).match(
+			() => {
+				throw Error('expected error, but got none')
+			},
+			(e) => expect(e.message).toBe(`Not point on curve!`),
 		)
 	})
 })

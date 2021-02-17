@@ -87,8 +87,8 @@ describe('transferrableTokensParticle', () => {
 		})._unsafeUnwrap()
 
 		expect(ttp.nonce).toBeTruthy()
-		expect(ttp.amount.toString()).toBe('9000000000000000000')
-		expect(ttp.granularity.toString()).toBe('3000000000000000000')
+		expect(ttp.amount.toString()).toBe('9')
+		expect(ttp.granularity.toString()).toBe('3')
 	})
 
 	it('should be equal to another ttp', () => {

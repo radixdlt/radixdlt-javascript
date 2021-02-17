@@ -5,6 +5,8 @@
     "test"
   ],
   "references": [
-    {"path": "../primitives"}
+    {"path": "../primitives"},
+    {"path": "../util"},
+    {"path": "../data-formats"}
   ]
 }

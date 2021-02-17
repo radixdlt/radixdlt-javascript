@@ -37,6 +37,7 @@
   "dependencies": {
     "@radixdlt/primitives": "^0.0.0",
     "@radixdlt/uint256": "^1.1.0",
+    "@radixdlt/util": "^0.0.0",
     "@radixdlt/data-formats": "^0.0.0",
     "base-x": "^3.0.8",
     "elliptic": "^6.5.3",

@@ -12,9 +12,11 @@ export const signDataWithPrivateKey = (
 		data: Buffer
 	}>,
 ): Result<Signature, Error> => {
-	const secp256k1 = new ec('secp256k1')
+	const thirdPartyLibEllipticSecp256k1 = new ec('secp256k1')
 
-	const privateKey = secp256k1.keyFromPrivate(input.privateKey.toString(16))
+	const privateKey = thirdPartyLibEllipticSecp256k1.keyFromPrivate(
+		input.privateKey.toString(16),
+	)
 
 	const ellipticSignature = privateKey.sign(input.data, {
 		canonical: true,

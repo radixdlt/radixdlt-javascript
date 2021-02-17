@@ -24,6 +24,7 @@ import {
 	collectUpParticles,
 	transferrableTokensParticleFromOther,
 } from './utils'
+import { ValidationWitness } from '@radixdlt/util'
 
 const particleGroupsFromBurnTokensAction = (
 	input: Readonly<{
@@ -68,7 +69,6 @@ const particleGroupsFromBurnTokensAction = (
 		.map((sps) => [particleGroup(sps)])
 }
 
-export type ValidationWitness = Readonly<{ witness: string }>
 const tokenDefinitionValidation = (input: {
 	tokenDefinitionParticle: TokenDefinitionParticleBase
 	burner: Address
@@ -82,7 +82,7 @@ const tokenDefinitionValidation = (input: {
 	if (!mutableToken.permissions.canBeBurned(isTokenOwner)) {
 		return err(new Error(`Not permission to burn token.`))
 	}
-	return ok(<ValidationWitness>{ witness: 'Has permission to burn' })
+	return ok({ witness: 'Has permission to burn' })
 }
 
 export const burnTokensActionToParticleGroupsMapper = (): BurnTokensActionToParticleGroupsMapper => {
