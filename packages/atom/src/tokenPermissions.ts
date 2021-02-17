@@ -38,7 +38,7 @@ export const makeTokenPermissions = (
 		if (permission) {
 			return permission
 		}
-		// eslint-disable-next-line functional/no-throw-statement
+
 		throw new Error(
 			`Incorrect implementation - expected value for REQUIRED permission with key: ${transition.valueOf()}, but got none`,
 		)

@@ -18,7 +18,7 @@ export const CBOR_BYTESTRING_PREFIX: Byte = 4
 export const JSON_TAG = ':adr:'
 
 export const AddressJSONDecoder: JSONPrimitiveDecoder = {
-	[JSON_TAG]: (input: string) => addressFromBase58String(input)
+	[JSON_TAG]: (input: string) => addressFromBase58String(input),
 }
 
 export const addressFromPublicKeyAndMagic = (

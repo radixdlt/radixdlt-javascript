@@ -135,7 +135,7 @@ describe('atom', () => {
 			resourceIdentifier: rri,
 			amount,
 			granularity,
-			permissions,
+			permissions: permissions.permissions,
 			nonce: nonce_,
 		})._unsafeUnwrap()
 

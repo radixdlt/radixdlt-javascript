@@ -48,6 +48,7 @@ const particleGroupsFromBurnTokensAction = (
 			ok(
 				unallocatedTokensParticle({
 					...fromTTP,
+					permissions: fromTTP.permissions.permissions,
 					amount,
 					nonce: undefined, // IMPORTANT to not reuse nonce.
 				}),

@@ -7,8 +7,16 @@ import {
 	randomNonce,
 } from '@radixdlt/primitives'
 import { pipe } from '@radixdlt/util'
-import { tokenPermissionsAll } from '../../tokenPermissions'
-import { ResourceIdentifier, TokenPermissions } from '../../_types'
+import {
+	makeTokenPermissions,
+	tokenPermissionsAll,
+} from '../../tokenPermissions'
+import {
+	ResourceIdentifier,
+	TokenPermission,
+	TokenPermissions,
+	TokenTransition,
+} from '../../_types'
 import { TokenParticle } from '../_types'
 import { withParticleEquals } from './particle'
 
@@ -16,7 +24,7 @@ export type TokenParticleInput = Readonly<{
 	amount: Amount
 	resourceIdentifier: ResourceIdentifier
 	granularity?: Granularity
-	permissions?: TokenPermissions
+	permissions?: Readonly<{ [key in TokenTransition]: TokenPermission }>
 	nonce?: Nonce
 }>
 
@@ -36,9 +44,13 @@ const withAmount = (
 
 const withPermissions = (
 	input: TokenParticleInput,
-): TokenParticleInput & { permissions: TokenPermissions } => ({
+): Omit<TokenParticleInput, 'permissions'> & {
+	permissions: TokenPermissions
+} => ({
 	...input,
-	permissions: input.permissions ?? tokenPermissionsAll,
+	permissions: input.permissions
+		? makeTokenPermissions(input.permissions)
+		: tokenPermissionsAll,
 })
 
 const withGranularity = (

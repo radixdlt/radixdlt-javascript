@@ -4,7 +4,11 @@ import {
 	AddressJSONDecoder,
 	generatePrivateKey,
 } from '@radixdlt/crypto'
-import { fromJSONDefault, JSONDecodableObject, OutputMode } from '@radixdlt/data-formats'
+import {
+	fromJSONDefault,
+	JSONDecodableObject,
+	OutputMode,
+} from '@radixdlt/data-formats'
 import {
 	amountFromUnsafe,
 	amountInSmallestDenomination,
@@ -15,7 +19,10 @@ import {
 	zero,
 } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
-import { resourceIdentifierFromAddressAndName, RRIJSONDecoder } from '../src/resourceIdentifier'
+import {
+	resourceIdentifierFromAddressAndName,
+	RRIJSONDecoder,
+} from '../src/resourceIdentifier'
 import { tokenPermissionsAll } from '../src/tokenPermissions'
 import {
 	transferrableTokensParticle,
@@ -168,7 +175,7 @@ describe('transferrableTokensParticle', () => {
 			resourceIdentifier: rri,
 			amount: amount,
 			granularity: granularity,
-			permissions: permissions,
+			permissions: permissions.permissions,
 			nonce: nonce_,
 		})._unsafeUnwrap()
 
@@ -196,7 +203,11 @@ describe('transferrableTokensParticle', () => {
 		})
 
 		it('should be able to JSON decode', () => {
-			const fromJSON = fromJSONDefault(RRIJSONDecoder, AmountJSONDecoder, AddressJSONDecoder)(TTPJSONDecoder)
+			const fromJSON = fromJSONDefault(
+				RRIJSONDecoder,
+				AmountJSONDecoder,
+				AddressJSONDecoder,
+			)(TTPJSONDecoder)
 
 			const json: JSONDecodableObject = {
 				serializer: TTP_SERIALIZER,
@@ -208,7 +219,9 @@ describe('transferrableTokensParticle', () => {
 				address: address.toJSON(),
 			}
 
-			const result = fromJSON<TransferrableTokensParticle>(json)._unsafeUnwrap()
+			const result = fromJSON<TransferrableTokensParticle>(
+				json,
+			)._unsafeUnwrap()
 
 			expect(ttp.equals(result)).toBe(true)
 		})

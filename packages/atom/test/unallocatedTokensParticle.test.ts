@@ -104,7 +104,7 @@ describe('unallocatedTokensParticle', () => {
 			resourceIdentifier: resourceIdentifier,
 			amount: amount,
 			granularity: granularity,
-			permissions: permissions,
+			permissions: permissions.permissions,
 			nonce: nonce_,
 		})
 		const dson = uatp.toDSON(OutputMode.ALL)._unsafeUnwrap()

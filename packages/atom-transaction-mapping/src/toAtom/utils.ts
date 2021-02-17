@@ -18,6 +18,7 @@ export const transferrableTokensParticleFromOther = (
 ): Result<TransferrableTokensParticle, Error> =>
 	transferrableTokensParticle({
 		...from,
+		permissions: from.permissions.permissions,
 		amount,
 		address,
 		nonce: undefined, // IMPORTANT to not reuse nonce.

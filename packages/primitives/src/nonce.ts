@@ -21,8 +21,8 @@ export const nonce = (value: Int64 | number): Nonce => {
 	const int64 = Long.isLong(value) ? value : Long.fromNumber(value)
 
 	return {
-		...JSONEncoding(serializerNotNeeded)(() =>
-			`${NONCE_JSON_TAG}${BigInt(int64.toString(10)).toString(10)}`,
+		...JSONEncoding(serializerNotNeeded)(
+			() => `${NONCE_JSON_TAG}${BigInt(int64.toString(10)).toString(10)}`,
 		),
 		...DSONEncoding(serializerNotNeeded)(() => BigInt(int64.toString(10))),
 
