@@ -5,7 +5,11 @@ import { Magic } from '@radixdlt/primitives'
 import { Byte, byteToBuffer, firstByteFromBuffer } from '@radixdlt/util'
 import { Result, ok, err } from 'neverthrow'
 import { base58Encode, base58Decode } from './wrap/baseConversion'
-import { DSONObjectEncoding, JSONEncoding } from '@radixdlt/data-formats'
+import {
+	DSONObjectEncoding,
+	JSONEncoding,
+	serializerNotNeeded,
+} from '@radixdlt/data-formats'
 
 const checksumByteCount = 4
 
@@ -34,7 +38,7 @@ export const addressFromPublicKeyAndMagicByte = (
 	const toString = (): string => base58Encode(buffer)
 
 	return {
-		...JSONEncoding(undefined)(() => `${JSON_TAG}${toString()}`),
+		...JSONEncoding(serializerNotNeeded)(() => `${JSON_TAG}${toString()}`),
 		...DSONObjectEncoding({
 			prefix: CBOR_BYTESTRING_PREFIX,
 			buffer,
@@ -85,7 +89,9 @@ const addressFromBuffer = (buffer: Buffer): Result<Address, Error> => {
 	).andThen((publicKey: PublicKey) =>
 		ok({
 			...DSONObjectEncoding({ prefix: CBOR_BYTESTRING_PREFIX, buffer }),
-			...JSONEncoding(undefined)(() => `${JSON_TAG}${toString()}`),
+			...JSONEncoding(serializerNotNeeded)(
+				() => `${JSON_TAG}${toString()}`,
+			),
 			publicKey,
 			magicByte,
 			toString,

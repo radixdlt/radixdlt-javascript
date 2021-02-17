@@ -14,6 +14,8 @@ import {
 	toJSON,
 } from '../src/json'
 
+import { serializerNotNeeded } from '../src/util'
+
 const examples: Array<{
 	name: string
 	native: any
@@ -312,7 +314,7 @@ describe('JSON', () => {
 
 	const encodablePrimitive = (value: string) => ({
 		value,
-		...JSONEncoding(undefined)(() => `:tst:${value}`),
+		...JSONEncoding(serializerNotNeeded)(() => `:tst:${value}`),
 	})
 
 	const encodableNestedComplex = (input: { prop1: number }) => {

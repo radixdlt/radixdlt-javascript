@@ -6,6 +6,7 @@ import {
 	DSONObjectEncoding,
 	JSONEncoding,
 	JSONPrimitiveDecoder,
+	serializerNotNeeded,
 } from '@radixdlt/data-formats'
 import { Byte } from '@radixdlt/util'
 
@@ -28,7 +29,7 @@ export const resourceIdentifierFromAddressAndName = (input: {
 	const identifier = ['', address.toString(), name].join(separator)
 
 	return {
-		...JSONEncoding(undefined)(() => `${JSON_TAG}${identifier}`),
+		...JSONEncoding(serializerNotNeeded)(() => `${JSON_TAG}${identifier}`),
 		...DSONObjectEncoding({
 			prefix: CBOR_BYTESTRING_PREFIX,
 			buffer: Buffer.from(identifier),
@@ -51,7 +52,9 @@ export const resourceIdentifierFromString = (
 
 	return addressFromBase58String(components[1]).map(
 		(address): ResourceIdentifier => ({
-			...JSONEncoding(undefined)(() => `${JSON_TAG}${identifierString}`),
+			...JSONEncoding(serializerNotNeeded)(
+				() => `${JSON_TAG}${identifierString}`,
+			),
 			...DSONObjectEncoding({
 				prefix: CBOR_BYTESTRING_PREFIX,
 				buffer: Buffer.from(identifierString),

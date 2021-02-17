@@ -20,6 +20,7 @@ import {
 	JSONEncoding,
 	JSONObjectDecoder,
 	JSONPrimitiveDecoder,
+	serializerNotNeeded,
 } from '@radixdlt/data-formats'
 import { denominations, formatDenomination } from './denomination'
 import { Byte } from '@radixdlt/util'
@@ -86,7 +87,7 @@ export const amountInSmallestDenomination = (magnitude: UInt256): Amount => {
 	const buffer = bnFromUInt256(magnitude).toBuffer('be', 32)
 
 	return {
-		...JSONEncoding(undefined)(
+		...JSONEncoding(serializerNotNeeded)(
 			() => `${JSON_TAG}${magnitude.toString(10)}`,
 		),
 		...DSONObjectEncoding({

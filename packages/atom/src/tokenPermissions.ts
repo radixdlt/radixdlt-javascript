@@ -6,7 +6,11 @@ import {
 } from './_types'
 
 import { objectEquals } from '@radixdlt/util'
-import { DSONEncoding, JSONEncoding } from '@radixdlt/data-formats'
+import {
+	DSONEncoding,
+	JSONEncoding,
+	serializerNotNeeded,
+} from '@radixdlt/data-formats'
 
 export const makeTokenPermissions = (
 	permissions: Readonly<{ [key in TokenTransition]: TokenPermission }>,
@@ -44,9 +48,9 @@ export const makeTokenPermissions = (
 	const burnPermission = valueOfRequiredPermission(TokenTransition.BURN)
 
 	return {
-		...JSONEncoding(undefined)(() => permissions),
+		...JSONEncoding(serializerNotNeeded)(() => permissions),
 
-		...DSONEncoding(undefined)(() => permissions),
+		...DSONEncoding(serializerNotNeeded)(() => permissions),
 
 		permissions,
 		mintPermission,

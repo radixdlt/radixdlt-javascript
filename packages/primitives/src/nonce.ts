@@ -1,7 +1,11 @@
 import { Int64, Nonce } from './_types'
 import Long from 'long'
 import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
-import { DSONEncoding, JSONEncoding } from '@radixdlt/data-formats'
+import {
+	DSONEncoding,
+	JSONEncoding,
+	serializerNotNeeded,
+} from '@radixdlt/data-formats'
 
 export const randomInt64 = (
 	secureRandom: SecureRandom = secureRandomGenerator,
@@ -15,10 +19,10 @@ export const nonce = (value: Int64 | number): Nonce => {
 	const int64 = Long.isLong(value) ? value : Long.fromNumber(value)
 
 	return {
-		...JSONEncoding(undefined)(() =>
+		...JSONEncoding(serializerNotNeeded)(() =>
 			BigInt(int64.toString(10)).toString(10),
 		),
-		...DSONEncoding(undefined)(() => BigInt(int64.toString(10))),
+		...DSONEncoding(serializerNotNeeded)(() => BigInt(int64.toString(10))),
 
 		value: int64,
 		equals: (other: Nonce): boolean => other.value.equals(int64),
