@@ -30,7 +30,8 @@ export type AmountStringFormatting = Readonly<{
 	denominationOutputFormat?: DenominationOutputFormat
 }>
 
-export type Amount = JSONEncodable & DSONCodable &
+export type Amount = JSONEncodable &
+	DSONCodable &
 	Readonly<{
 		// Magnitude expressed in min denomination
 		magnitude: UInt256

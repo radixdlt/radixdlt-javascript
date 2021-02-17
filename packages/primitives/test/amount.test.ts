@@ -33,7 +33,6 @@ import {
 	isUInt256,
 	maxAmount,
 } from '../src/_index'
-
 const makeAmount = (unsafe: AmountInputUnsafe): Amount =>
 	amountFromUnsafe(unsafe, Denomination.Atto)._unsafeUnwrap()
 
