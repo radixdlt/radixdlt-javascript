@@ -7,6 +7,7 @@ import {
 	UnsignedMessage,
 } from '@radixdlt/crypto'
 import { Observable } from 'rxjs'
+import { BIP32 } from './bip32/_types'
 
 export type Address = JSONEncodable &
 	DSONCodable &
@@ -41,10 +42,6 @@ export type AccountT = PublicKeyDeriving &
 	Readonly<{
 		accountId: AccountID
 	}>
-
-export type BIP32 = Readonly<{
-	toString: () => string
-}>
 
 export type HardwareWallet = Readonly<{
 	derivePublicKey: (hdPath: BIP32) => Observable<PublicKey>

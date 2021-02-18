@@ -7,7 +7,8 @@ import {
 import { mergeMap } from 'rxjs/operators'
 import { Observable, of } from 'rxjs'
 import { toObservable } from './resultAsync_observable'
-import { AccountT, AccountID, BIP32, HardwareWallet } from './_types'
+import { AccountT, AccountID, HardwareWallet } from './_types'
+import { BIP32 } from './bip32/_types'
 
 export const accountFromPrivateKey = (privateKey: PrivateKey): AccountT => {
 	const publicKey: PublicKey = privateKey.publicKey()

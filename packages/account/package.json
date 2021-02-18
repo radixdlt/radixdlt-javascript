@@ -31,7 +31,13 @@
     "@radixdlt/crypto": "^0.0.0",
     "@radixdlt/data-formats": "^0.0.0",
     "@radixdlt/primitives": "^0.0.0",
+    "@types/hdkey": "^0.7.1",
+    "hdkey": "^2.0.1",
+    "long": "^4.0.0",
     "neverthrow": "^4.0.1",
     "rxjs": "7.0.0-beta.10"
+  },
+  "devDependencies": {
+    "@types/long": "^4.0.1"
   }
 }
