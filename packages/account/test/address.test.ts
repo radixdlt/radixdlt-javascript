@@ -30,7 +30,9 @@ describe('Address', () => {
 	})
 
 	it('can be created from a publicKey and radix magix', async () => {
-		const privateKey = privateKeyFromScalar(UInt256.valueOf(1))._unsafeUnwrap()
+		const privateKey = privateKeyFromScalar(
+			UInt256.valueOf(1),
+		)._unsafeUnwrap()
 		const publicKey = privateKey.publicKey()
 		const magic = magicFromNumber(1337)
 

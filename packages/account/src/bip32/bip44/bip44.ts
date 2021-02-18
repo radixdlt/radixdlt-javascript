@@ -1,14 +1,18 @@
-import { combine, Err, err, ok, Result, ResultAsync } from 'neverthrow'
-import { bip32Component, bip32Unsafe, hardener, pathSeparator, validateIndexValue } from '../bip32'
-import { BIP32PathComponent, BIP32PathSimple, Int32 } from '../_types'
+import { combine, err, Result } from 'neverthrow'
+import {
+	bip32Component,
+	bip32Unsafe,
+	hardener,
+	pathSeparator,
+	validateIndexValue,
+} from '../bip32'
+import { BIP32PathComponent, Int32 } from '../_types'
 import { BIP44, BIP44ChangeIndex } from './_types'
-import { fromValue } from 'long'
-import { Int64 } from '@radixdlt/primitives'
 
 // export const RADIX_COIN_TYPE: Int64 = fromValue(536)
 export const RADIX_COIN_TYPE = 536
 
-export const bip44Component = (
+const bip44Component = (
 	input: Readonly<{
 		index: Int32
 		isHardened: boolean
@@ -16,21 +20,20 @@ export const bip44Component = (
 		name: string
 	}>,
 ): BIP32PathComponent => {
-
 	return {
 		...bip32Component(input),
-		name: input.name
+		name: input.name,
 	}
 }
 
-export const bip44Purpose = bip44Component({
+const bip44Purpose = bip44Component({
 	index: 44,
 	isHardened: true,
 	level: 1,
 	name: 'purpose',
 })
 
-export const bip44CoinType = (index: Int32): BIP32PathComponent =>
+const bip44CoinType = (index: Int32): BIP32PathComponent =>
 	bip44Component({
 		index: index,
 		isHardened: true,
@@ -38,7 +41,7 @@ export const bip44CoinType = (index: Int32): BIP32PathComponent =>
 		name: 'coin type',
 	})
 
-export const bip44Account = (index: Int32): BIP32PathComponent =>
+const bip44Account = (index: Int32): BIP32PathComponent =>
 	bip44Component({
 		index: index,
 		isHardened: true,
@@ -46,7 +49,7 @@ export const bip44Account = (index: Int32): BIP32PathComponent =>
 		name: 'account',
 	})
 
-export const bip44Change = (index: BIP44ChangeIndex): BIP32PathComponent =>
+const bip44Change = (index: BIP44ChangeIndex): BIP32PathComponent =>
 	bip44Component({
 		index: index as Int32,
 		isHardened: false,
@@ -54,35 +57,24 @@ export const bip44Change = (index: BIP44ChangeIndex): BIP32PathComponent =>
 		name: 'change',
 	})
 
-const validateBIP44CoinType = (
-	coinType: BIP32PathComponent,
-): Result<BIP32PathComponent, Error> => {
-	if (!coinType.isHardened)
-		return err(new Error('Coin type should be hardened'))
-	if (coinType.level !== 2)
-		return err(new Error('Path level of coin type should be 2'))
-	if (coinType.name !== 'coin type')
-		return err(new Error(`Name of path component should be 'coin type'`))
-	return ok(coinType)
-}
-
-export const makeBIP44 = (
+export const bip44 = (
 	input: Readonly<{
-		coinType: Int32
-		account: Int32
-		change: BIP44ChangeIndex
-		addressIndexPath: Readonly<{
-	index: Int32
-	isHardened: boolean
-}>
+		coinType?: Int32 // defauts to `536'` (Radix)
+		account?: Int32 // defaults to `0'`
+		change?: BIP44ChangeIndex // defaults to `0`
+		address: Readonly<{
+			index: Int32
+			isHardened?: boolean // defaults to true
+		}>
 	}>,
 ): BIP44 => {
 	const purpose = bip44Purpose
-	const coinType = bip44CoinType(input.coinType)
-	const account = bip44Account(input.account)
-	const change = bip44Change(input.change)
+	const coinType = bip44CoinType(input.coinType ?? RADIX_COIN_TYPE)
+	const account = bip44Account(input.account ?? 0)
+	const change = bip44Change(input.change ?? 0)
 	const addressIndex = bip44Component({
-		...input.addressIndexPath,
+		index: input.address.index,
+		isHardened: input.address.isHardened ?? true,
 		level: 5,
 		name: 'address index',
 	})
@@ -97,21 +89,9 @@ export const makeBIP44 = (
 		change,
 		addressIndex,
 		pathComponents,
-		toString: () => `m${pathSeparator}` + bip32.toString()
+		toString: () => `m${pathSeparator}` + bip32.toString(),
 	}
 }
-
-export const radixBIP44 = (input: Readonly<{ 
-	account?: Int32 // defaults to `0'`
-	change?: BIP44ChangeIndex // defaults to `0`
-	addressIndex: Int32
-	hardened?: boolean // defaults to 'true'
-}>): BIP44 => makeBIP44({
-	coinType: RADIX_COIN_TYPE,
-	account: input.account ?? 0,
-	change: input.change ?? 0,
-	addressIndexPath: { index: input.addressIndex, isHardened: input.hardened ?? true }
-})
 
 export const bip44FromString = (path: string): Result<BIP44, Error> => {
 	const paths = path.split(pathSeparator)
@@ -154,11 +134,14 @@ export const bip44FromString = (path: string): Result<BIP44, Error> => {
 		validateIndexValue(account),
 		validateIndexValue(addressIndex),
 	]).map((resultList) =>
-		makeBIP44({
+		bip44({
 			coinType: resultList[0],
 			account: resultList[1],
 			change: change as BIP44ChangeIndex,
-			addressIndexPath: { index: resultList[2], isHardened: hardenAddress },
+			address: {
+				index: resultList[2],
+				isHardened: hardenAddress,
+			},
 		}),
 	)
 }

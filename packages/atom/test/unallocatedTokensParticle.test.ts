@@ -12,10 +12,9 @@ import { tokenPermissionsAll } from '../src/tokenPermissions'
 import { OutputMode } from '@radixdlt/data-formats'
 
 describe('unallocatedTokensParticle', () => {
-	it('can be safely created from safe type', async () => {
+	it('can be safely created from safe type', () => {
 		const privateKey = generatePrivateKey()
-		const publicKeyResult = await privateKey.derivePublicKey()
-		const publicKey = publicKeyResult._unsafeUnwrap()
+		const publicKey = privateKey.publicKey()
 		const address = addressFromPublicKeyAndMagicByte({
 			publicKey: publicKey,
 			magicByte: 1,

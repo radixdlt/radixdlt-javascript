@@ -19,10 +19,9 @@ import { transferrableTokensParticle } from '../src/particles/transferrableToken
 import { transferrableTokensParticleFromUnsafe } from './helpers/utility'
 
 describe('transferrableTokensParticle', () => {
-	it('can be safely created from safe type', async () => {
+	it('can be safely created from safe type', () => {
 		const privateKey = generatePrivateKey()
-		const publicKeyResult = await privateKey.derivePublicKey()
-		const publicKey = publicKeyResult._unsafeUnwrap()
+		const publicKey = privateKey.publicKey()
 		const address = addressFromPublicKeyAndMagicByte({
 			publicKey: publicKey,
 			magicByte: 1,
@@ -47,10 +46,9 @@ describe('transferrableTokensParticle', () => {
 		expect(tokenPermissions.canBeMinted(() => false)).toBe(true)
 	})
 
-	it('cannot be created from an amount not being a multiple of granularity', async () => {
+	it('cannot be created from an amount not being a multiple of granularity', () => {
 		const privateKey = generatePrivateKey()
-		const publicKeyResult = await privateKey.derivePublicKey()
-		const publicKey = publicKeyResult._unsafeUnwrap()
+		const publicKey = privateKey.publicKey()
 		const address = addressFromPublicKeyAndMagicByte({
 			publicKey: publicKey,
 			magicByte: 1,

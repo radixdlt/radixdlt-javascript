@@ -11,6 +11,7 @@ import {
 import { buffersEquals } from '@radixdlt/util'
 import { bnFromUInt256 } from '@radixdlt/primitives'
 import { pointOnCurveFromEllipticShortPoint } from './ecPointOnCurve'
+import { UInt256 } from '@radixdlt/uint256'
 
 const thirdPartyLibEllipticSecp256k1 = new ec('secp256k1')
 
@@ -74,10 +75,17 @@ export const publicKeyFromPrivateKey = (
 	input: Readonly<{
 		privateKey: PrivateKey
 	}>,
+): PublicKey =>
+	publicKeyFromPrivateKeyScalar({ scalar: input.privateKey.scalar })
+
+export const publicKeyFromPrivateKeyScalar = (
+	input: Readonly<{
+		scalar: UInt256
+	}>,
 ): PublicKey => {
 	const result = publicKeyFromEllipticKey(
 		thirdPartyLibEllipticSecp256k1.keyFromPrivate(
-			input.privateKey.scalar.toString(16),
+			input.scalar.toString(16),
 		),
 	)
 
