@@ -1,7 +1,12 @@
 import { combine, Err, err, ok, Result, ResultAsync } from 'neverthrow'
-import { bip32Component, validateIndexValue } from '../bip32'
-import { BIP32PathComponent, Int32 } from '../_types'
+import { bip32Component, bip32Unsafe, hardener, pathSeparator, validateIndexValue } from '../bip32'
+import { BIP32PathComponent, BIP32PathSimple, Int32 } from '../_types'
 import { BIP44, BIP44ChangeIndex } from './_types'
+import { fromValue } from 'long'
+import { Int64 } from '@radixdlt/primitives'
+
+// export const RADIX_COIN_TYPE: Int64 = fromValue(536)
+export const RADIX_COIN_TYPE = 536
 
 export const bip44Component = (
 	input: Readonly<{
@@ -66,7 +71,10 @@ export const makeBIP44 = (
 		coinType: Int32
 		account: Int32
 		change: BIP44ChangeIndex
-		addressIndexPath: Readonly<{ index: Int32; hardened: boolean }>
+		addressIndexPath: Readonly<{
+	index: Int32
+	isHardened: boolean
+}>
 	}>,
 ): BIP44 => {
 	const purpose = bip44Purpose
@@ -74,27 +82,36 @@ export const makeBIP44 = (
 	const account = bip44Account(input.account)
 	const change = bip44Change(input.change)
 	const addressIndex = bip44Component({
-		index: input.addressIndexPath.index,
-		isHardened: input.addressIndexPath.hardened,
+		...input.addressIndexPath,
 		level: 5,
 		name: 'address index',
 	})
 	const pathComponents = [purpose, coinType, account, change, addressIndex]
+
+	const bip32 = bip32Unsafe(pathComponents)
 	return {
+		...bip32,
 		purpose,
 		coinType,
 		account,
 		change,
 		addressIndex,
 		pathComponents,
-		toString: () =>
-			['m', ...pathComponents.map((pc) => pc.toString())].join(
-				pathSeparator,
-			),
+		toString: () => `m${pathSeparator}` + bip32.toString()
 	}
 }
-const pathSeparator = '/'
-const hardener = `'`
+
+export const radixBIP44 = (input: Readonly<{ 
+	account?: Int32 // defaults to `0'`
+	change?: BIP44ChangeIndex // defaults to `0`
+	addressIndex: Int32
+	hardened?: boolean // defaults to 'true'
+}>): BIP44 => makeBIP44({
+	coinType: RADIX_COIN_TYPE,
+	account: input.account ?? 0,
+	change: input.change ?? 0,
+	addressIndexPath: { index: input.addressIndex, isHardened: input.hardened ?? true }
+})
 
 export const bip44FromString = (path: string): Result<BIP44, Error> => {
 	const paths = path.split(pathSeparator)
@@ -141,7 +158,7 @@ export const bip44FromString = (path: string): Result<BIP44, Error> => {
 			coinType: resultList[0],
 			account: resultList[1],
 			change: change as BIP44ChangeIndex,
-			addressIndexPath: { index: resultList[2], hardened: hardenAddress },
+			addressIndexPath: { index: resultList[2], isHardened: hardenAddress },
 		}),
 	)
 }

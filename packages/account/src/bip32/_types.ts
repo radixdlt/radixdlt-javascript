@@ -7,9 +7,12 @@ export type BIP32 = Readonly<{
 	toString: () => string
 }>
 
-export type BIP32PathComponent = Readonly<{
+export type BIP32PathSimple = Readonly<{
 	index: Int64
 	isHardened: boolean
+}>
+
+export type BIP32PathComponent = BIP32PathSimple & Readonly<{
 	toString: () => string
 
 	// Not to be confused with the 'index', this is the position of this path component

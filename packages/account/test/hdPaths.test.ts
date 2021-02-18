@@ -1,8 +1,27 @@
-import { bip44Purpose } from '@radixdlt/account'
-import { bip44FromString } from '../src/_index'
+import { bip32, bip32Component, bip32Simple } from '../src/bip32/bip32'
+import { bip44FromString, radixBIP44 } from '../src/_index'
 
 describe('HD paths', () => {
+
+    describe('BIP32', () => {
+        it('can be created', () => {
+            const bip32Path = bip32Simple([
+                { index: 12, isHardened: true },
+                { index: 23, isHardened: false },
+                { index: 34, isHardened: true },
+                { index: 45, isHardened: false },
+            ])
+            expect(bip32Path.toString()).toBe(`12'/23/34'/45`)
+        })
+    })
+
 	describe('BIP44', () => {
+
+        it('can create one for radix', () => {
+            const bip44 = radixBIP44({ addressIndex: 1337 })
+            expect(bip44.toString()).toBe(`m/44'/536'/0'/0/1337'`)
+        })
+
 		it('can be created from a string', () => {
             const path = `m/44'/536'/0'/1/0`
 			const bip44Path = bip44FromString(path)._unsafeUnwrap()
