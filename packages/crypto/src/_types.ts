@@ -48,12 +48,7 @@ export type PublicKey = Readonly<{
 	equals: (other: PublicKey) => boolean
 }>
 
-// export type PublicKeyProvider = Readonly<{
-// 	derivePublicKey: () => ResultAsync<PublicKey, Error>
-// }>
-
 export type PrivateKey = Signer &
-	// PublicKeyProvider &
 	Readonly<{
 		scalar: UInt256
 		publicKey: () => PublicKey
