@@ -38,6 +38,7 @@ export type ECPointOnCurve = Readonly<{
 
 export type PublicKey = Readonly<{
 	asData: (input: { readonly compressed: boolean }) => Buffer
+	toString: (compressed?: boolean) => string
 	isValidSignature: (
 		input: Readonly<{
 			signature: Signature

@@ -53,6 +53,13 @@ export type HardwareWallet = Readonly<{
 	) => Observable<Signature>
 }>
 
+export type Maybe<T> = T | undefined
+
+export type Accounts = Readonly<{
+	get: (id: AccountID | PublicKey | BIP32) => Maybe<AccountT>
+	all: AccountT[]
+}>
+
 export type WalletT = PublicKeyDeriving &
 	Signing &
 	Readonly<{
@@ -60,5 +67,5 @@ export type WalletT = PublicKeyDeriving &
 		addAccount: (newAccount: AccountT) => void
 		addAccountByPrivateKey: (privateKey: PrivateKey) => void
 		observeActiveAccount: () => Observable<AccountT>
-		observeAccounts: () => Observable<Map<AccountID, AccountT>>
+		observeAccounts: () => Observable<Accounts>
 	}>
