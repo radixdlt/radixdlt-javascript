@@ -4,7 +4,6 @@ import {
 	AccountID,
 	AccountIdFromBIP32Path,
 	AccountIdFromPublicKey,
-	Accounts,
 } from './_types'
 
 export const isAccountIdFromBIP32Path = (

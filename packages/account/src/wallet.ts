@@ -1,11 +1,4 @@
-import {
-	Observable,
-	BehaviorSubject,
-	ReplaySubject,
-	Subject,
-	defer,
-	of,
-} from 'rxjs'
+import { Observable, BehaviorSubject, ReplaySubject } from 'rxjs'
 import { accountFromPrivateKey } from './account'
 import { AccountID, Accounts, AccountT, Maybe, WalletT } from './_types'
 import { mergeMap, map } from 'rxjs/operators'
@@ -13,6 +6,7 @@ import { PublicKey } from '@radixdlt/crypto'
 import { BIP32 } from './_index'
 import { accountId } from './accountId'
 
+// eslint-disable-next-line max-lines-per-function
 export const makeWallet = (
 	input: Readonly<{
 		accounts: Set<AccountT>
@@ -27,12 +21,16 @@ export const makeWallet = (
 
 	const addAccount = (newAccount: AccountT): void => {
 		const accountsMap = accountsSubject.getValue()
+		const wasEmpty = accountsMap.size === 0
 		if (accountsMap.has(newAccount.accountId.accountIdString)) {
 			// Skip and don't falsly notify 'accountsSubject' about new account, since it is not new.
 			return
 		}
 		accountsMap.set(newAccount.accountId.accountIdString, newAccount)
 		accountsSubject.next(accountsMap)
+		if (wasEmpty) {
+			activeAccountSubject.next(newAccount)
+		}
 	}
 
 	accounts.forEach(addAccount)
@@ -54,7 +52,7 @@ export const makeWallet = (
 			map((map: Map<string, AccountT>) => ({
 				get: (id: AccountID | PublicKey | BIP32): Maybe<AccountT> =>
 					map.get(accountId(id).accountIdString),
-				all: Object.values(map),
+				all: Array.from(map.values()),
 			})),
 		)
 

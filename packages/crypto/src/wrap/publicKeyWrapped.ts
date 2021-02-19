@@ -15,6 +15,7 @@ import { UInt256 } from '@radixdlt/uint256'
 
 const thirdPartyLibEllipticSecp256k1 = new ec('secp256k1')
 
+// eslint-disable-next-line max-lines-per-function
 const publicKeyFromEllipticKey = (
 	ecKeyPair: ec.KeyPair,
 ): Result<PublicKey, Error> => {
