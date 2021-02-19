@@ -1,6 +1,8 @@
 import { generatePrivateKey, PrivateKey } from '@radixdlt/crypto'
-import { accountFromPrivateKey } from '../src/account'
+import { EMPTY } from 'rxjs'
+import { accountFromHDPath, accountFromPrivateKey } from '../src/account'
 import { makeWallet } from '../src/wallet'
+import { bip44 } from '../src/_index'
 import { WalletT } from '../src/_types'
 
 const walletByAddingAccountFromPrivateKey = (privateKey: PrivateKey): WalletT =>
@@ -9,7 +11,7 @@ const walletByAddingAccountFromPrivateKey = (privateKey: PrivateKey): WalletT =>
 	})
 
 describe('wallet', () => {
-	it('can observe accounts', async (done) => {
+	it('can observe accounts', (done) => {
 		const pk1 = generatePrivateKey()
 		const publicKey = pk1.publicKey()
 		const wallet = walletByAddingAccountFromPrivateKey(pk1)
@@ -21,14 +23,15 @@ describe('wallet', () => {
 		})
 	})
 
-	it('can be created empty', async (done) => {
+	it('can be created empty', (done) => {
 		const wallet = makeWallet({ accounts: new Set() })
 		wallet.observeAccounts().subscribe((result) => {
 			expect(result.all.length).toBe(0)
 			done()
 		})
 	})
-	it('can observe active account', async (done) => {
+
+	it('can observe active account', (done) => {
 		const pk1 = generatePrivateKey()
 		const publicKey = pk1.publicKey()
 		const wallet = walletByAddingAccountFromPrivateKey(pk1)
@@ -39,7 +42,7 @@ describe('wallet', () => {
 		})
 	})
 
-	it('when created with multiple accounts, the first one gets selected', async (done) => {
+	it('when created with multiple accounts, the first one gets selected', (done) => {
 		const pk1 = generatePrivateKey()
 		const pk2 = generatePrivateKey()
 
@@ -58,7 +61,7 @@ describe('wallet', () => {
 		})
 	})
 
-	it('for empty wallets when adding an account the wallet automatically sets it as the active account after subscription', async (done) => {
+	it('for empty wallets when adding an account the wallet automatically sets it as the active account after subscription', (done) => {
 		const wallet = makeWallet({ accounts: new Set() })
 
 		wallet.observeActiveAccount().subscribe((active) => {
@@ -72,7 +75,7 @@ describe('wallet', () => {
 		wallet.addAccountByPrivateKey(pk1)
 	})
 
-	it('for empty wallets when adding an account the wallet automatically sets it as the active account even before subscription', async (done) => {
+	it('for empty wallets when adding an account the wallet automatically sets it as the active account even before subscription', (done) => {
 		const wallet = makeWallet({ accounts: new Set() })
 
 		const pk1 = generatePrivateKey()
@@ -86,7 +89,7 @@ describe('wallet', () => {
 		})
 	})
 
-	it('can list all accounts that has been added', async (done) => {
+	it('can list all accounts that has been added', (done) => {
 		const wallet = makeWallet({ accounts: new Set() })
 		const size = 3
 		Array.from({ length: size })
@@ -98,12 +101,32 @@ describe('wallet', () => {
 			done()
 		})
 	})
-	it('prevents adding of same account twice', async (done) => {
+
+	it('prevents adding of same account twice', (done) => {
 		const pk1 = generatePrivateKey()
 		const wallet = walletByAddingAccountFromPrivateKey(pk1)
 		wallet.addAccountByPrivateKey(pk1)
 		wallet.observeAccounts().subscribe((result) => {
 			expect(result.all.length).toBe(1)
+			done()
+		})
+	})
+
+	it('can add hd accounts', (done) => {
+		const wallet = makeWallet({ accounts: new Set() })
+		const hdPath = bip44({ address: { index: 237 } })
+
+		const hdAccount = accountFromHDPath({
+			hdPath,
+			onHardwareWalletConnect: EMPTY,
+		})
+
+		wallet.addAccount(hdAccount)
+
+		wallet.observeActiveAccount().subscribe((active) => {
+			expect(active.accountId.accountIdString).toBe(
+				`m/44'/536'/0'/0/237'`,
+			)
 			done()
 		})
 	})
