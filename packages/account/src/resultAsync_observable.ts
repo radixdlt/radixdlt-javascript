@@ -15,3 +15,16 @@ export const toObservable = <T, E = Error>(
 			)
 		})
 	})
+
+export const toObservableFromResult = <T, E = Error>(
+	result: Result<T, E>,
+): Observable<T> =>
+	new Observable((subscriber) => {
+		result.match(
+			(value: T) => {
+				subscriber.next(value)
+				subscriber.complete()
+			},
+			(e: E) => subscriber.error(e),
+		)
+	})

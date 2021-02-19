@@ -1,15 +1,19 @@
 import {
 	PrivateKey,
+	privateKeyFromScalar,
 	PublicKey,
 	Signature,
 	UnsignedMessage,
 } from '@radixdlt/crypto'
-import { mergeMap } from 'rxjs/operators'
-import { Observable, of } from 'rxjs'
-import { toObservable } from './resultAsync_observable'
-import { AccountT, HardwareWallet } from './_types'
+import { mergeMap, map } from 'rxjs/operators'
+import { Observable, of, from } from 'rxjs'
+import { toObservable, toObservableFromResult } from './resultAsync_observable'
+import { AccountID, AccountT, HardwareWallet } from './_types'
 import { BIP32 } from './bip32/_types'
 import { accountIdFromBIP32Path, accountIdFromPublicKey } from './accountId'
+import { mnemonicToSeed } from 'bip39'
+import { UInt256 } from '@radixdlt/uint256'
+import HDNode = require('hdkey')
 
 export const accountFromPrivateKey = (privateKey: PrivateKey): AccountT => {
 	const publicKey: PublicKey = privateKey.publicKey()
@@ -25,7 +29,7 @@ export const accountFromPrivateKey = (privateKey: PrivateKey): AccountT => {
 	}
 }
 
-export const accountFromHDPath = (
+export const hwAccountFromHDPath = (
 	input: Readonly<{
 		hdPath: BIP32
 		onHardwareWalletConnect: Observable<HardwareWallet>
@@ -49,5 +53,62 @@ export const accountFromHDPath = (
 					hw.derivePublicKey(input.hdPath),
 				),
 			),
+	}
+}
+
+export const childAccountFromHDPath = (
+	input: Readonly<{
+		hdPath: BIP32
+		rootKey: Readonly<{
+			mnemonic: string
+			password?: string
+		}>
+	}>,
+): AccountT => {
+	const hdNode$ = from(
+		mnemonicToSeed(input.rootKey.mnemonic, input.rootKey.password),
+	).pipe(map((seed) => HDNode.fromMasterSeed(seed)))
+	return childAccountFromHDPathAndNode({
+		hdPath: input.hdPath,
+		hdNode: hdNode$,
+	})
+}
+
+export const childAccountFromHDPathAndNode = (
+	input: Readonly<{
+		hdPath: BIP32
+		hdNode: Observable<HDNode>
+	}>,
+): AccountT => {
+	const hdKey$ = input.hdNode.pipe(
+		map((n) => n.derive(input.hdPath.toString())),
+	)
+	const accountId = accountIdFromBIP32Path(input.hdPath)
+	return accountFromHDChildAccount({ hdKey: hdKey$, accountId })
+}
+
+export const accountFromHDChildAccount = (
+	input: Readonly<{ 
+		hdKey: Observable<HDNode>
+		accountId: AccountID 
+	}>,
+): AccountT => {
+	const hdKey$ = input.hdKey
+
+	const privateKey$ = hdKey$.pipe(
+		mergeMap((k: HDNode) =>
+			toObservableFromResult(
+				privateKeyFromScalar(
+					new UInt256(k.privateKey.toString('hex'), 16),
+				),
+			),
+		),
+	)
+
+	return {
+		sign: (m) =>
+			privateKey$.pipe(mergeMap((pk) => toObservable(pk.sign(m)))),
+		accountId: input.accountId,
+		derivePublicKey: () => privateKey$.pipe(map((pk) => pk.publicKey())),
 	}
 }
