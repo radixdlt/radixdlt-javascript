@@ -1,6 +1,6 @@
 import {
 	PrivateKey,
-	privateKeyFromScalar,
+	privateKeyFromBuffer,
 	PublicKey,
 	Signature,
 	UnsignedMessage,
@@ -12,7 +12,6 @@ import { AccountID, AccountT, HardwareWallet } from './_types'
 import { BIP32 } from './bip32/_types'
 import { accountIdFromBIP32Path, accountIdFromPublicKey } from './accountId'
 import { mnemonicToSeed } from 'bip39'
-import { UInt256 } from '@radixdlt/uint256'
 import HDNode = require('hdkey')
 
 export const accountFromPrivateKey = (privateKey: PrivateKey): AccountT => {
@@ -56,59 +55,44 @@ export const hwAccountFromHDPath = (
 	}
 }
 
-export const childAccountFromHDPath = (
+export const accountFromMnemonicAtHDPath = (
 	input: Readonly<{
-		hdPath: BIP32
-		rootKey: Readonly<{
-			mnemonic: string
+		mnemonic: Readonly<{
+			phrase: string
 			password?: string
 		}>
+		hdPath: BIP32
 	}>,
 ): AccountT => {
 	const hdNode$ = from(
-		mnemonicToSeed(input.rootKey.mnemonic, input.rootKey.password),
+		mnemonicToSeed(input.mnemonic.phrase, input.mnemonic.password),
 	).pipe(map((seed) => HDNode.fromMasterSeed(seed)))
-	return childAccountFromHDPathAndNode({
-		hdPath: input.hdPath,
+	return accountFromHDNodeAtHDPath({
 		hdNode: hdNode$,
+		hdPath: input.hdPath,
 	})
 }
 
-export const childAccountFromHDPathAndNode = (
+export const accountFromHDNodeAtHDPath = (
 	input: Readonly<{
-		hdPath: BIP32
 		hdNode: Observable<HDNode>
+		hdPath: BIP32
 	}>,
 ): AccountT => {
-	const hdKey$ = input.hdNode.pipe(
+	const hdNode$ = input.hdNode.pipe(
 		map((n) => n.derive(input.hdPath.toString())),
 	)
-	const accountId = accountIdFromBIP32Path(input.hdPath)
-	return accountFromHDChildAccount({ hdKey: hdKey$, accountId })
-}
 
-export const accountFromHDChildAccount = (
-	input: Readonly<{ 
-		hdKey: Observable<HDNode>
-		accountId: AccountID 
-	}>,
-): AccountT => {
-	const hdKey$ = input.hdKey
-
-	const privateKey$ = hdKey$.pipe(
+	const privateKey$ = hdNode$.pipe(
 		mergeMap((k: HDNode) =>
-			toObservableFromResult(
-				privateKeyFromScalar(
-					new UInt256(k.privateKey.toString('hex'), 16),
-				),
-			),
+			toObservableFromResult(privateKeyFromBuffer(k.privateKey)),
 		),
 	)
 
 	return {
+		accountId: accountIdFromBIP32Path(input.hdPath),
 		sign: (m) =>
 			privateKey$.pipe(mergeMap((pk) => toObservable(pk.sign(m)))),
-		accountId: input.accountId,
 		derivePublicKey: () => privateKey$.pipe(map((pk) => pk.publicKey())),
 	}
 }

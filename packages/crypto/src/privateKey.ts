@@ -40,6 +40,15 @@ const privateKeyFromValidatedScalar = (scalar: UInt256): PrivateKey => {
 	}
 }
 
+export const privateKeyFromBuffer = (
+	buffer: Buffer,
+): Result<PrivateKey, Error> => privateKeyFromHex(buffer.toString('hex'))
+
+export const privateKeyFromHex = (
+	privateKeyHexString: string,
+): Result<PrivateKey, Error> =>
+	privateKeyFromScalar(new UInt256(privateKeyHexString, 16))
+
 export const privateKeyFromScalar = (
 	scalar: UInt256,
 ): Result<PrivateKey, Error> => {

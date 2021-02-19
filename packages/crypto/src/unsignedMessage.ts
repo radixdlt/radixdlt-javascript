@@ -8,10 +8,12 @@ import { sha256 } from './algorithms'
  * @param {Hasher} [hasher=SHA256] - (optional) A hasher that will be used to hash input.plainText. If none is provided, then SHA256 will be used.
  * @returns {UnsignedMessage} a message to be hashed an signed.
  */
-export const unsignedPlainText = (input: Readonly<{
-	plainText: string
-	hasher?: Hasher
-}>): UnsignedMessage => ({
+export const unsignedPlainText = (
+	input: Readonly<{
+		plainText: string
+		hasher?: Hasher
+	}>,
+): UnsignedMessage => ({
 	unhashed: Buffer.from(input.plainText, 'utf8'),
 	hasher: input.hasher ?? sha256,
 })

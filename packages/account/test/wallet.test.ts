@@ -1,6 +1,9 @@
 import { generatePrivateKey, PrivateKey } from '@radixdlt/crypto'
 import { EMPTY } from 'rxjs'
-import { accountFromPrivateKey, childAccountFromHDPathAndNode } from '../src/account'
+import {
+	accountFromHDNodeAtHDPath,
+	accountFromPrivateKey,
+} from '../src/account'
 import { makeWallet } from '../src/wallet'
 import { bip44 } from '../src/_index'
 import { WalletT } from '../src/_types'
@@ -116,9 +119,9 @@ describe('wallet', () => {
 		const wallet = makeWallet({ accounts: new Set() })
 		const hdPath = bip44({ address: { index: 237 } })
 
-		const hdAccount = childAccountFromHDPathAndNode({
-			hdPath,
+		const hdAccount = accountFromHDNodeAtHDPath({
 			hdNode: EMPTY,
+			hdPath,
 		})
 
 		wallet.addAccount(hdAccount)
