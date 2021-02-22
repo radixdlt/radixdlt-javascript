@@ -6,19 +6,15 @@ import {
 	withTokenParticleEquals,
 } from './meta/tokenParticle'
 import {
-	Decoder,
 	DSONCodable,
 	DSONEncoding,
-	JSONDecodablePrimitive,
 	JSONDecoding,
 	JSONEncodable,
 	JSONEncoding,
-	JSONObjectDecoder,
 	objectDecoder,
 } from '@radixdlt/data-formats'
 import { TokenParticle, UnallocatedTokensParticleT } from './_types'
 import { ok } from 'neverthrow'
-import { Address } from '@radixdlt/crypto'
 import { Amount } from '@radixdlt/primitives'
 import { ResourceIdentifier } from '../resourceIdentifier'
 
@@ -32,7 +28,6 @@ const DSON = (input: TokenParticle): DSONCodable =>
 	DSONEncoding(SERIALIZER)({ ...tokenSerializationKeyValues(input) })
 
 const { fromJSON, JSONDecoders } = JSONDecoding<UnallocatedTokensParticleT>(
-	Address,
 	Amount,
 	ResourceIdentifier,
 )(

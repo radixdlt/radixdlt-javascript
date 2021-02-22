@@ -136,20 +136,21 @@ describe('unallocatedTokensParticle', () => {
 			expect(json).toEqual(expected)
 		})
 
-		/*
 		it('should be able to JSON decode', () => {
 			const json: JSONDecodableObject = {
 				serializer: UnallocatedTokensParticle.SERIALIZER,
-				tokenDefinitionReference: resourceIdentifier.toJSON()._unsafeUnwrap(),
+				resourceIdentifier: resourceIdentifier.toJSON()._unsafeUnwrap(),
 				granularity: granularity.toJSON()._unsafeUnwrap(),
 				permissions: permissions.toJSON()._unsafeUnwrap(),
 				nonce: nonce_.toJSON()._unsafeUnwrap(),
 				amount: amount.toJSON()._unsafeUnwrap(),
 			}
 
-			const result = TTPFromJSON(json)._unsafeUnwrap()
+			const result = UnallocatedTokensParticle.fromJSON(
+				json,
+			)._unsafeUnwrap()
 
-			expect(ttp.equals(result)).toBe(true)
-		})*/
+			expect(uatp.equals(result)).toBe(true)
+		})
 	})
 })
