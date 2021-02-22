@@ -1,6 +1,6 @@
-import { Address } from '@radixdlt/crypto'
-import { Amount } from '@radixdlt/primitives'
-import { ResourceIdentifier } from '@radixdlt/atom'
+import { AddressT } from '@radixdlt/crypto'
+import { AmountT } from '@radixdlt/primitives'
+import { ResourceIdentifierT } from '@radixdlt/atom'
 
 export enum UserActionType {
 	TOKEN_TRANSFER = 'TokenTransfer',
@@ -9,20 +9,20 @@ export enum UserActionType {
 
 export type UserAction = Readonly<{
 	actionType: UserActionType
-	sender: Address
+	sender: AddressT
 	uuid: string
 }>
 
 export type TokensActionBase = UserAction &
 	Readonly<{
-		amount: Amount
-		resourceIdentifier: ResourceIdentifier
+		amount: AmountT
+		resourceIdentifier: ResourceIdentifierT
 	}>
 
 export type TransferTokensAction = TokensActionBase &
 	Readonly<{
 		actionType: UserActionType.TOKEN_TRANSFER
-		recipient: Address
+		recipient: AddressT
 		message?: string
 	}>
 
@@ -32,19 +32,19 @@ export type BurnTokensAction = TokensActionBase &
 	}>
 
 export type TokensActionBaseInput = Readonly<{
-	amount: Amount
-	resourceIdentifier: ResourceIdentifier
+	amount: AmountT
+	resourceIdentifier: ResourceIdentifierT
 	uuid?: string
 }>
 
 export type TransferTokensActionInput = TokensActionBaseInput &
 	Readonly<{
-		to: Address
-		from: Address
+		to: AddressT
+		from: AddressT
 		message?: string
 	}>
 
 export type BurnTokensActionInput = TokensActionBaseInput &
 	Readonly<{
-		burner: Address
+		burner: AddressT
 	}>

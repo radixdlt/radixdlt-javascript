@@ -1,36 +1,15 @@
 import {
 	addressFromBase58String,
 	addressFromPublicKeyAndMagicByte,
-	AddressJSONDecoder,
 	generatePrivateKey,
 } from '@radixdlt/crypto'
-import {
-	fromJSONDefault,
-	JSONDecodableObject,
-	OutputMode,
-} from '@radixdlt/data-formats'
-import {
-	amountFromUnsafe,
-	amountInSmallestDenomination,
-	AmountJSONDecoder,
-	Denomination,
-	nonce,
-	one,
-	zero,
-} from '@radixdlt/primitives'
+import { JSONDecodableObject, OutputMode } from '@radixdlt/data-formats'
+import { Amount, Denomination, nonce, one, zero } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
-import {
-	resourceIdentifierFromAddressAndName,
-	RRIJSONDecoder,
-} from '../src/resourceIdentifier'
+import { TransferrableTokensParticle } from '../src/particles/transferrableTokensParticle'
+import { ResourceIdentifier } from '../src/resourceIdentifier'
 import { tokenPermissionsAll } from '../src/tokenPermissions'
-import {
-	transferrableTokensParticle,
-	TTPJSONDecoder,
-	TTP_SERIALIZER,
-} from '../src/particles/transferrableTokensParticle'
 import { transferrableTokensParticleFromUnsafe } from './helpers/utility'
-import { TransferrableTokensParticle } from '../src/particles/_types'
 
 describe('transferrableTokensParticle', () => {
 	it('can be safely created from safe type', async () => {
@@ -41,13 +20,13 @@ describe('transferrableTokensParticle', () => {
 			publicKey: publicKey,
 			magicByte: 1,
 		})
-		const granularity = amountInSmallestDenomination(UInt256.valueOf(1))
-		const amount = amountFromUnsafe(1, Denomination.Atto)._unsafeUnwrap()
-		const rri = resourceIdentifierFromAddressAndName({
+		const granularity = Amount.inSmallestDenomination(UInt256.valueOf(1))
+		const amount = Amount.fromUnsafe(1, Denomination.Atto)._unsafeUnwrap()
+		const rri = ResourceIdentifier.fromAddressAndName({
 			address,
 			name: 'FOOBAR',
 		})
-		const ttpResult = transferrableTokensParticle({
+		const ttpResult = TransferrableTokensParticle.create({
 			address,
 			resourceIdentifier: rri,
 			granularity: granularity,
@@ -69,15 +48,15 @@ describe('transferrableTokensParticle', () => {
 			publicKey: publicKey,
 			magicByte: 1,
 		})
-		const granularityOfThree = amountInSmallestDenomination(
+		const granularityOfThree = Amount.inSmallestDenomination(
 			UInt256.valueOf(3),
 		)
-		const amount = amountFromUnsafe(2, Denomination.Atto)._unsafeUnwrap()
-		const rri = resourceIdentifierFromAddressAndName({
+		const amount = Amount.fromUnsafe(2, Denomination.Atto)._unsafeUnwrap()
+		const rri = ResourceIdentifier.fromAddressAndName({
 			address,
 			name: 'FOOBAR',
 		})
-		const ttpResult = transferrableTokensParticle({
+		const ttpResult = TransferrableTokensParticle.create({
 			address,
 			resourceIdentifier: rri,
 			granularity: granularityOfThree,
@@ -162,15 +141,15 @@ describe('transferrableTokensParticle', () => {
 		const address = addressFromBase58String(
 			'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
 		)._unsafeUnwrap()
-		const rri = resourceIdentifierFromAddressAndName({
+		const rri = ResourceIdentifier.fromAddressAndName({
 			address,
 			name: 'FOOBAR',
 		})
 		const permissions = tokenPermissionsAll
-		const amount = amountFromUnsafe(6, Denomination.Atto)._unsafeUnwrap()
-		const granularity = amountInSmallestDenomination(UInt256.valueOf(3))
+		const amount = Amount.fromUnsafe(6, Denomination.Atto)._unsafeUnwrap()
+		const granularity = Amount.inSmallestDenomination(UInt256.valueOf(3))
 		const nonce_ = nonce(1337)
-		const ttp = transferrableTokensParticle({
+		const ttp = TransferrableTokensParticle.create({
 			address,
 			resourceIdentifier: rri,
 			amount: amount,
@@ -187,39 +166,33 @@ describe('transferrableTokensParticle', () => {
 		})
 
 		it('should be able to JSON encode', () => {
-			const json = ttp.toJSON()
+			const json = ttp.toJSON()._unsafeUnwrap()
 
 			const expected = {
-				serializer: TTP_SERIALIZER,
-				tokenDefinitionReference: rri.toJSON(),
-				granularity: granularity.toJSON(),
-				permissions: permissions.toJSON(),
-				nonce: nonce_.toJSON(),
-				amount: amount.toJSON(),
-				address: address.toJSON(),
+				serializer: TransferrableTokensParticle.SERIALIZER,
+				tokenDefinitionReference: rri.toJSON()._unsafeUnwrap(),
+				granularity: granularity.toJSON()._unsafeUnwrap(),
+				permissions: permissions.toJSON()._unsafeUnwrap(),
+				nonce: nonce_.toJSON()._unsafeUnwrap(),
+				amount: amount.toJSON()._unsafeUnwrap(),
+				address: address.toJSON()._unsafeUnwrap(),
 			}
 
 			expect(json).toEqual(expected)
 		})
 
 		it('should be able to JSON decode', () => {
-			const fromJSON = fromJSONDefault(
-				RRIJSONDecoder,
-				AmountJSONDecoder,
-				AddressJSONDecoder,
-			)(TTPJSONDecoder)
-
 			const json: JSONDecodableObject = {
-				serializer: TTP_SERIALIZER,
-				resourceIdentifier: rri.toJSON(),
-				granularity: granularity.toJSON(),
-				permissions: permissions.toJSON(),
-				nonce: nonce_.toJSON(),
-				amount: amount.toJSON(),
-				address: address.toJSON(),
+				serializer: TransferrableTokensParticle.SERIALIZER,
+				resourceIdentifier: rri.toJSON()._unsafeUnwrap(),
+				granularity: granularity.toJSON()._unsafeUnwrap(),
+				permissions: permissions.toJSON()._unsafeUnwrap(),
+				nonce: nonce_.toJSON()._unsafeUnwrap(),
+				amount: amount.toJSON()._unsafeUnwrap(),
+				address: address.toJSON()._unsafeUnwrap(),
 			}
 
-			const result = fromJSON<TransferrableTokensParticle>(
+			const result = TransferrableTokensParticle.fromJSON(
 				json,
 			)._unsafeUnwrap()
 

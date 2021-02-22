@@ -4,54 +4,51 @@ import {
 	TokenBalancesForOneAccountReducer,
 	TokenBalancesForOneAccount,
 } from './_types'
-import {
-	AnyUpParticle,
-	ResourceIdentifier,
-	TokenBase,
-	TransferrableTokensParticle,
-} from '@radixdlt/atom'
+import { AnyUpParticle, TokenBase } from '@radixdlt/atom'
 import { isTransferrableTokensParticle } from '@radixdlt/atom'
 import { err, ok, Result } from 'neverthrow'
 import { mapEquals } from '@radixdlt/util'
 import { makeParticleReducer } from './particleReducer'
-import { Address } from '@radixdlt/crypto'
+import { AddressT } from '@radixdlt/crypto/src/_types'
+import { ResourceIdentifierT } from '@radixdlt/atom/src/_types'
+import { TransferrableTokensParticleT } from '@radixdlt/atom/src/_index'
 
 export const tokenBalancesForOneAccount = (
 	input: Readonly<{
-		owner: Address
-		balances: Map<ResourceIdentifier, TokenBalance>
+		owner: AddressT
+		balances: Map<ResourceIdentifierT, TokenBalance>
 	}>,
 ): TokenBalancesForOneAccount => ({
 	stateType: ApplicationStateType.TOKEN_BALANCES_FOR_ONE_ACCOUNT,
 	balances: input.balances,
 	owner: input.owner,
 	size: input.balances.size,
-	balanceOf: (resourceIdentifier: ResourceIdentifier) =>
+	balanceOf: (resourceIdentifier: ResourceIdentifierT) =>
 		input.balances.get(resourceIdentifier),
 })
 
 export const tokenBalancesForOneAccountFromParticle = (
-	transferrableTokensParticle: TransferrableTokensParticle,
+	transferrableTokensParticle: TransferrableTokensParticleT,
 ): TokenBalancesForOneAccount => {
 	const tokenBalance_ = tokenBalance(transferrableTokensParticle)
 	return tokenBalancesForOneAccount({
 		owner: transferrableTokensParticle.address,
-		balances: new Map<ResourceIdentifier, TokenBalance>([
+		balances: new Map<ResourceIdentifierT, TokenBalance>([
 			[transferrableTokensParticle.resourceIdentifier, tokenBalance_],
 		]),
 	})
 }
 
 export const emptyTokenBalancesForOneAccount = (
-	owner: Address,
+	owner: AddressT,
 ): TokenBalancesForOneAccount =>
 	tokenBalancesForOneAccount({
 		owner,
-		balances: new Map<ResourceIdentifier, TokenBalance>(),
+		balances: new Map<ResourceIdentifierT, TokenBalance>(),
 	})
 
 export const tokenBalance = (
-	ttp: TransferrableTokensParticle,
+	ttp: TransferrableTokensParticleT,
 ): TokenBalance => {
 	return {
 		owner: ttp.address,
@@ -145,7 +142,7 @@ export const mergeMaps = <K, V>(
 
 // eslint-disable-next-line max-lines-per-function
 export const tokenBalancesForOneAccountReducer = (
-	owner: Address,
+	owner: AddressT,
 ): TokenBalancesForOneAccountReducer => {
 	const combine = (
 		input: Readonly<{

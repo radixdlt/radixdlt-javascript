@@ -5,12 +5,11 @@ import {
 } from './_types'
 import {
 	spunParticles,
-	TransferrableTokensParticle,
 	UpParticle,
 	ParticleGroup,
 	particleGroup,
 } from '@radixdlt/atom'
-import { Address } from '@radixdlt/crypto'
+import { Address, AddressT } from '@radixdlt/crypto'
 import { combine, Result } from 'neverthrow'
 import { makeTransitioner } from './fungibleParticleTransitioner'
 import {
@@ -23,21 +22,25 @@ import {
 	collectUpParticles,
 	transferrableTokensParticleFromOther,
 } from './utils'
+import {
+	ParticleGroupT,
+	TransferrableTokensParticleT,
+} from '@radixdlt/atom/src/_index'
 
 const particleGroupsFromTransferTokensAction = (
 	input: Readonly<{
 		transferTokensAction: TransferTokensAction
-		upParticles: UpParticle<TransferrableTokensParticle>[]
-		addressOfActiveAccount: Address
+		upParticles: UpParticle<TransferrableTokensParticleT>[]
+		addressOfActiveAccount: AddressT
 	}>,
-): Result<ParticleGroup[], Error> => {
+): Result<ParticleGroupT[], Error> => {
 	const transferAction = input.transferTokensAction
 
 	const transitioner = makeTransitioner<
-		TransferrableTokensParticle,
-		TransferrableTokensParticle
+		TransferrableTokensParticleT,
+		TransferrableTokensParticleT
 	>({
-		inputAmountMapper: (from: TransferrableTokensParticle) => from.amount,
+		inputAmountMapper: (from: TransferrableTokensParticleT) => from.amount,
 		inputCreator: transferrableTokensParticleFromOther.bind(
 			null,
 			transferAction.sender,
@@ -69,7 +72,7 @@ export const tokenTransferActionToParticleGroupsMapper = (): TokenTransferAction
 		actionType,
 		particleGroupsFromAction: (
 			input: MapperInput,
-		): Result<ParticleGroup[], Error> =>
+		): Result<ParticleGroupT[], Error> =>
 			validate(
 				validateUserActionSender,
 				validateUserActionType(actionType),

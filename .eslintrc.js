@@ -53,7 +53,7 @@ module.exports = {
 
 		// ESLint-Plugin-Functional RULES
 		'functional/immutable-data': 'error',
-		'functional/no-let': 'error',
+		'functional/no-let': 'off',
 		'functional/no-loop-statement': 'off',
 		'no-param-reassign': 'error',
 		'functional/no-try-statement': 'off',

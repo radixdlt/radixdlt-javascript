@@ -7,11 +7,13 @@ import {
 } from '../src/dson'
 
 import {
-	fromJSONDefault,
 	JSONPrimitiveDecoder,
 	JSONObjectDecoder,
 	JSONEncoding,
 	toJSON,
+	JSONDecoding,
+	primitiveDecoder,
+	objectDecoder,
 } from '../src/json'
 
 import { serializerNotNeeded } from '../src/util'
@@ -360,7 +362,9 @@ describe('JSON', () => {
 				prop3: encodableNestedComplex({
 					prop1: 0,
 				}),
-			}).toJSON()
+			})
+				.toJSON()
+				._unsafeUnwrap()
 
 			const expected = {
 				serializer: 'test.object',
@@ -379,7 +383,7 @@ describe('JSON', () => {
 
 	describe('decoding', () => {
 		it('should decode JSON primitives', () => {
-			const fromJSON = fromJSONDefault()()
+			const { fromJSON } = JSONDecoding()()
 			examples
 				.filter((example) => example.json)
 				.filter((example) =>
@@ -396,28 +400,26 @@ describe('JSON', () => {
 
 		it('should decode a JSON object', () => {
 			const primitiveDecoders: JSONPrimitiveDecoder[] = [
-				{
-					[':tst:']: (data: string) => ok(encodablePrimitive(data)),
-				},
+				primitiveDecoder(':tst:', (data: string) =>
+					ok(encodablePrimitive(data)),
+				),
 			]
 
 			const objectDecoders: JSONObjectDecoder[] = [
-				{
-					[serializer]: (input: {
-						prop1: string
-						prop2: string
-						prop3: any
-					}) => ok(encodableComplex(input)),
-				},
+				objectDecoder(
+					serializer,
+					(input: { prop1: string; prop2: string; prop3: any }) =>
+						ok(encodableComplex(input)),
+				),
 
-				{
-					[serializer2]: (input: { prop1: number }) =>
-						ok(encodableNestedComplex(input)),
-				},
+				objectDecoder(serializer2, (input: { prop1: number }) =>
+					ok(encodableNestedComplex(input)),
+				),
 			]
 
-			const fromJSON = fromJSONDefault(...primitiveDecoders)(
+			const { fromJSON } = JSONDecoding()(
 				...objectDecoders,
+				...primitiveDecoders,
 			)
 
 			const json = {

@@ -20,13 +20,13 @@ describe('Nonce', () => {
 
 	it('should be able to JSON encode nonce with small value', () => {
 		const nonce_ = nonce(237)
-		const json = nonce_.toJSON()
+		const json = nonce_.toJSON()._unsafeUnwrap()
 		expect(json).toBe(`${NONCE_JSON_TAG}237`)
 	})
 
 	it('should be able to JSON encode nonce with large value', () => {
 		const nonce_ = nonce(Long.MAX_VALUE)
-		const json = nonce_.toJSON()
+		const json = nonce_.toJSON()._unsafeUnwrap()
 		expect(json).toBe(`${NONCE_JSON_TAG}9223372036854775807`)
 	})
 })

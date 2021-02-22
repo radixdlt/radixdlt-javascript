@@ -1,33 +1,35 @@
 /* eslint-disable */
 import { TokensActionBase } from '@radixdlt/actions'
-import { Address } from '@radixdlt/crypto'
+import { Address, AddressT } from '@radixdlt/crypto'
 import {
 	AnyUpParticle,
 	fixedSupplyTokenDefinitionParticle,
 	mutableSupplyTokenDefinitionParticle,
-	resourceIdentifierFromAddressAndName,
 	Spin,
 	TokenDefinitionParticleBase,
 	TokenDefinitionParticleInput,
 	tokenOwnerOnly,
 	TokenParticle,
 	tokenPermissionsAll,
-	transferrableTokensParticle,
 	TransferrableTokensParticle,
 	upParticle,
 	UpParticle,
 } from '@radixdlt/atom'
-import { amountInSmallestDenomination, maxAmount } from '@radixdlt/primitives'
+import { Amount, maxAmount } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import { toAddress } from '../../atom/test/helpers/utility'
 import { two, three, one, four, five } from '@radixdlt/primitives/src/amount'
 import { ActionToParticleGroupsMapper } from '../src/toAtom/_types'
+import {
+	ResourceIdentifier,
+	TransferrableTokensParticleT,
+} from '@radixdlt/atom/src/_index'
 
 export type TestCaseReturn = ReturnType<typeof it>
 
 export type TestVector<T extends TokenDefinitionParticleBase> = Readonly<{
 	mapper: ActionToParticleGroupsMapper
-	makeAction: (amount: number, actor?: Address) => TokensActionBase
+	makeAction: (amount: number, actor?: AddressT) => TokensActionBase
 	tokenDefinitionParticle: T
 }>
 
@@ -47,7 +49,7 @@ const carol = toAddress('9S8sKfN3wGyJdfyu9RwWvGKtZqq3R1NaxwT63VXi5dEZ6dUJXLyR')
 const dan = toAddress('9SBFdPAkvquf9XX82D2Z9DzL2WdmNQGcrxFUnKpVytpkMjZWD9Rb')
 
 const symbol = 'FOOBAR'
-export const rri = resourceIdentifierFromAddressAndName({
+export const rri = ResourceIdentifier.fromAddressAndName({
 	address: alice,
 	name: symbol,
 })
@@ -83,14 +85,14 @@ export const mutableSupplyTokenDefinitionParticleOnlyAliceCanMutate = mutableSup
 export const upTTP = (
 	amount: number,
 	tokenDefinitionParticle: TokenDefinitionParticleBase,
-	owner?: Address,
-): UpParticle<TransferrableTokensParticle> => {
+	owner?: AddressT,
+): UpParticle<TransferrableTokensParticleT> => {
 	return upParticle(
-		transferrableTokensParticle({
+		TransferrableTokensParticle.create({
 			granularity: tokenDefinitionParticle.granularity,
 			resourceIdentifier: tokenDefinitionParticle.resourceIdentifier,
 			address: owner ?? alice,
-			amount: amountInSmallestDenomination(UInt256.valueOf(amount)),
+			amount: Amount.inSmallestDenomination(UInt256.valueOf(amount)),
 		})._unsafeUnwrap(),
 	)
 }
@@ -274,12 +276,12 @@ export const testMapperReturns___works_with_change = <
 
 		const sp0 = spunParticles[0]
 		expect(sp0.spin).toBe(Spin.DOWN)
-		const p0 = sp0.particle as TransferrableTokensParticle
+		const p0 = sp0.particle as TransferrableTokensParticleT
 		expect(p0.amount.equals(two)).toBe(true)
 
 		const sp1 = spunParticles[1]
 		expect(sp1.spin).toBe(Spin.DOWN)
-		const p1 = sp1.particle as TransferrableTokensParticle
+		const p1 = sp1.particle as TransferrableTokensParticleT
 		expect(p1.amount.equals(three)).toBe(true)
 
 		// Change back to Alice
@@ -327,12 +329,12 @@ export const testMapperReturns___works_without_change = <
 
 		const sp0 = spunParticles[0]
 		expect(sp0.spin).toBe(Spin.DOWN)
-		const p0 = sp0.particle as TransferrableTokensParticle
+		const p0 = sp0.particle as TransferrableTokensParticleT
 		expect(p0.amount.equals(two)).toBe(true)
 
 		const sp1 = spunParticles[1]
 		expect(sp1.spin).toBe(Spin.DOWN)
-		const p1 = sp1.particle as TransferrableTokensParticle
+		const p1 = sp1.particle as TransferrableTokensParticleT
 		expect(p1.amount.equals(three)).toBe(true)
 
 		const sp2 = spunParticles[2]

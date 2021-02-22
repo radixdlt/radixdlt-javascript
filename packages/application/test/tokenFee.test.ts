@@ -5,19 +5,13 @@ import {
 	MutableSupplyTokenDefinitionParticle,
 	mutableSupplyTokenDefinitionParticle,
 	ParticleBase,
-	resourceIdentifierFromAddressAndName,
 	spunUpParticle,
 	TokenDefinitionParticleInput,
 	tokenPermissionsAll,
-	TransferrableTokensParticle,
-	transferrableTokensParticle,
 } from '@radixdlt/atom'
 import { toAddress } from '../../atom/test/helpers/utility'
 import {
-	Amount,
-	amountFromUInt256,
-	amountFromUnsafe,
-	amountInSmallestDenomination,
+	AmountT,
 	Denomination,
 	granularityDefault,
 	isAmount,
@@ -26,6 +20,13 @@ import {
 import { UInt256 } from '@radixdlt/uint256'
 import { feeForAtom, milliRads, minimumFee } from '../src/tokenFee'
 import { atomWithSpunParticles } from './atomFromParticles'
+import {
+	AtomT,
+	ResourceIdentifier,
+	TransferrableTokensParticle,
+	TransferrableTokensParticleT,
+} from '@radixdlt/atom/src/_index'
+import { Amount } from '@radixdlt/primitives/src/amount'
 
 const Range = function* (total = 0, step = 1, from = 0) {
 	for (let i = 0; i < total; yield from + i++ * step) {}
@@ -40,21 +41,21 @@ describe('TokenFees', () => {
 		'9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
 	)
 
-	const aliceCoin = resourceIdentifierFromAddressAndName({
+	const aliceCoin = ResourceIdentifier.fromAddressAndName({
 		address: alice,
 		name: 'ALICE',
 	})
 
-	type AmountLike = number | Amount
-	const makeAmount = (amount: AmountLike): Amount =>
+	type AmountLike = number | AmountT
+	const makeAmount = (amount: AmountLike): AmountT =>
 		isAmount(amount)
 			? amount
-			: amountInSmallestDenomination(UInt256.valueOf(amount))
+			: Amount.inSmallestDenomination(UInt256.valueOf(amount))
 
 	type ParticleFromNum<P extends ParticleBase> = (num: number) => P
 
-	const makeTTP = (amount: number): TransferrableTokensParticle =>
-		transferrableTokensParticle({
+	const makeTTP = (amount: number): TransferrableTokensParticleT =>
+		TransferrableTokensParticle.create({
 			amount: makeAmount(amount),
 			granularity: one,
 			resourceIdentifier: aliceCoin,
@@ -75,7 +76,7 @@ describe('TokenFees', () => {
 	): FixedSupplyTokenDefinitionParticle =>
 		fixedSupplyTokenDefinitionParticle({
 			...makeTokenDefInput(symbolNumSuffix),
-			supply: amountFromUnsafe(21_000_000)._unsafeUnwrap(),
+			supply: Amount.fromUnsafe(21_000_000)._unsafeUnwrap(),
 		})._unsafeUnwrap()
 
 	const makeMSTDP = (
@@ -89,7 +90,7 @@ describe('TokenFees', () => {
 	const atomWithParticleCountOf = <P extends ParticleBase>(
 		makeParticle: ParticleFromNum<P>,
 		ttpCount: number,
-	): Atom => {
+	): AtomT => {
 		const particles = Array.from(Range(ttpCount, 1, 1))
 			.map(makeParticle)
 			.map(spunUpParticle)
@@ -101,21 +102,21 @@ describe('TokenFees', () => {
 
 	const testTTPAssert = (
 		ttpCount: number,
-		assertAmount: (amt: Amount) => void,
+		assertAmount: (amt: AmountT) => void,
 	): void => {
 		const atom_ = atomWithTTPCountOf(ttpCount)
 		const fee = feeForAtom({ atom: atom_ })._unsafeUnwrap()
 		assertAmount(fee)
 	}
 
-	const testTTP = (expectedFee: number | Amount, ttpCount: number): void => {
+	const testTTP = (expectedFee: number | AmountT, ttpCount: number): void => {
 		const expected = isAmount(expectedFee)
 			? expectedFee
-			: amountFromUInt256({
+			: Amount.fromUInt256({
 					magnitude: UInt256.valueOf(expectedFee),
 					denomination: Denomination.Milli,
 			  })._unsafeUnwrap()
-		testTTPAssert(ttpCount, (fee: Amount) => {
+		testTTPAssert(ttpCount, (fee: AmountT) => {
 			expect(fee.equals(expected)).toBe(true)
 		})
 	}
@@ -123,7 +124,7 @@ describe('TokenFees', () => {
 	const testFeeWithParticleCountOf = <P extends ParticleBase>(
 		makeParticle: ParticleFromNum<P>,
 		particleCount: number,
-		expectedFee: number | ((feeToAssert: Amount) => void),
+		expectedFee: number | ((feeToAssert: AmountT) => void),
 	): void => {
 		const atom_ = atomWithParticleCountOf(makeParticle, particleCount)
 
@@ -132,7 +133,7 @@ describe('TokenFees', () => {
 		if (typeof expectedFee === 'number') {
 			const expected = isAmount(expectedFee)
 				? expectedFee
-				: amountFromUInt256({
+				: Amount.fromUInt256({
 						magnitude: UInt256.valueOf(expectedFee),
 						denomination: Denomination.Milli,
 				  })._unsafeUnwrap()
@@ -159,7 +160,7 @@ describe('TokenFees', () => {
 	})
 
 	it('should be over min fee for 9 ttp', () => {
-		testTTPAssert(9, (fee: Amount) => {
+		testTTPAssert(9, (fee: AmountT) => {
 			expect(fee.greaterThan(minimumFee)).toBe(true)
 		})
 	})
@@ -177,7 +178,7 @@ describe('TokenFees', () => {
 	})
 
 	it('should be more than 15 for 15 FixedSupTokenDefPart due to size of atom', () => {
-		testFSTDP(15, (fee: Amount) => {
+		testFSTDP(15, (fee: AmountT) => {
 			expect(fee.greaterThan(milliRads(15_000)))
 		})
 	})

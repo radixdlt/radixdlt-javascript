@@ -5,8 +5,9 @@ import {
 	ParticleBase,
 	spunUpParticle,
 } from '@radixdlt/atom'
-import { Amount, zero } from '@radixdlt/primitives'
+import { zero } from '@radixdlt/primitives'
 import { Result, err, ok } from 'neverthrow'
+import { AmountT } from '@radixdlt/primitives/src/_types'
 
 /* eslint-disable functional/immutable-data, functional/no-let, functional/no-loop-statement, prefer-const, max-lines-per-function */
 export const makeTransitioner = <
@@ -14,9 +15,9 @@ export const makeTransitioner = <
 	To extends ParticleBase
 >(
 	input: Readonly<{
-		inputAmountMapper: (from: From) => Amount
-		inputCreator: (amount: Amount, from: From) => Result<From, Error>
-		outputCreator: (amount: Amount, from: From) => Result<To, Error>
+		inputAmountMapper: (from: From) => AmountT
+		inputCreator: (amount: AmountT, from: From) => Result<From, Error>
+		outputCreator: (amount: AmountT, from: From) => Result<To, Error>
 	}>,
 ): FungibleParticleTransitioner<From> => {
 	const inputAmountMapper = input.inputAmountMapper
@@ -28,7 +29,7 @@ export const makeTransitioner = <
 		transition: (
 			input: Readonly<{
 				currentParticles: From[]
-				totalAmountToTransfer: Amount
+				totalAmountToTransfer: AmountT
 			}>,
 		): Result<AnySpunParticle[], Error> => {
 			let spunParticles: AnySpunParticle[] = []
@@ -82,16 +83,16 @@ export const makeSimpleTransitioner = <
 	To extends ParticleBase
 >(
 	input: Readonly<{
-		inputAmountMapper: (from: From) => Amount
-		inputCreator: (amount: Amount) => From
-		outputCreator: (amount: Amount) => To
+		inputAmountMapper: (from: From) => AmountT
+		inputCreator: (amount: AmountT) => From
+		outputCreator: (amount: AmountT) => To
 	}>,
 ): FungibleParticleTransitioner<From> => {
 	return makeTransitioner({
 		...input,
-		inputCreator: (amount: Amount, _: From) =>
+		inputCreator: (amount: AmountT, _: From) =>
 			ok(input.inputCreator(amount)),
-		outputCreator: (amount: Amount, _: From) =>
+		outputCreator: (amount: AmountT, _: From) =>
 			ok(input.outputCreator(amount)),
 	})
 }

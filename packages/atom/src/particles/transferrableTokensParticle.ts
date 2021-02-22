@@ -1,13 +1,17 @@
-import { Address } from '@radixdlt/crypto'
+import { AddressT, Address } from '@radixdlt/crypto'
 
 import { err, ok, Result } from 'neverthrow'
 import { isRadixParticle, RadixParticleType } from './meta/radixParticleTypes'
 import {
+	Decoder,
 	DSONCodable,
 	DSONEncoding,
+	JSONDecoding,
+	JSONDecodablePrimitive,
 	JSONEncodable,
 	JSONEncoding,
 	JSONObjectDecoder,
+	objectDecoder,
 } from '@radixdlt/data-formats'
 import {
 	tokenSerializationKeyValues,
@@ -17,22 +21,24 @@ import {
 } from './meta/tokenParticle'
 import {
 	TokenParticle,
-	TransferrableTokensParticle,
+	TransferrableTokensParticleT,
 	TransferrableTokensParticleProps,
 } from './_types'
+import { Amount } from '@radixdlt/primitives'
+import { ResourceIdentifier } from '../resourceIdentifier'
 
 export type TransferrableTokensParticleInput = TokenParticleInput &
 	Readonly<{
-		address: Address
+		address: AddressT
 	}>
 
 const radixParticleType = RadixParticleType.TRANSFERRABLE_TOKENS
-export const TTP_SERIALIZER = 'radix.particles.transferrable_tokens'
+const SERIALIZER = 'radix.particles.transferrable_tokens'
 
 const DSON = (
 	input: TransferrableTokensParticleProps & TokenParticle,
 ): DSONCodable =>
-	DSONEncoding(TTP_SERIALIZER)({
+	DSONEncoding(SERIALIZER)({
 		...tokenSerializationKeyValues(input),
 		address: input.address,
 	})
@@ -40,19 +46,24 @@ const DSON = (
 const JSON = (
 	input: TransferrableTokensParticleProps & TokenParticle,
 ): JSONEncodable =>
-	JSONEncoding(TTP_SERIALIZER)({
+	JSONEncoding(SERIALIZER)({
 		...tokenSerializationKeyValues(input),
 		address: input.address,
 	})
 
-export const TTPJSONDecoder: JSONObjectDecoder = {
-	[TTP_SERIALIZER]: (input: TransferrableTokensParticleInput) =>
-		transferrableTokensParticle(input),
-}
+const { JSONDecoders, fromJSON } = JSONDecoding<TransferrableTokensParticleT>(
+	Address,
+	Amount,
+	ResourceIdentifier,
+)(
+	objectDecoder(SERIALIZER, (input: TransferrableTokensParticleInput) =>
+		create(input),
+	),
+)
 
-export const transferrableTokensParticle = (
+const create = (
 	input: TransferrableTokensParticleInput,
-): Result<TransferrableTokensParticle, Error> => {
+): Result<TransferrableTokensParticleT, Error> => {
 	const props = {
 		...tokenParticleProps(input),
 		address: input.address,
@@ -68,7 +79,7 @@ export const transferrableTokensParticle = (
 		...DSON(props),
 
 		...withTokenParticleEquals(
-			(otherParticle: TransferrableTokensParticle) =>
+			(otherParticle: TransferrableTokensParticleT) =>
 				otherParticle.address.equals(input.address),
 		)(props),
 
@@ -78,7 +89,14 @@ export const transferrableTokensParticle = (
 
 export const isTransferrableTokensParticle = (
 	something: unknown,
-): something is TransferrableTokensParticle => {
+): something is TransferrableTokensParticleT => {
 	if (!isRadixParticle(something)) return false
 	return something.radixParticleType === radixParticleType
+}
+
+export const TransferrableTokensParticle = {
+	SERIALIZER,
+	fromJSON,
+	JSONDecoders,
+	create,
 }

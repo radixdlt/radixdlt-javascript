@@ -10,7 +10,7 @@ import {
 	UnallocatedTokensParticle,
 	UpParticle,
 } from '@radixdlt/atom'
-import { Address } from '@radixdlt/crypto'
+import { Address, AddressT } from '@radixdlt/crypto'
 import { err, Result, ok, combine } from 'neverthrow'
 import { BurnTokensActionToParticleGroupsMapper, MapperInput } from './_types'
 import { makeTransitioner } from './fungibleParticleTransitioner'
@@ -25,21 +25,26 @@ import {
 	transferrableTokensParticleFromOther,
 } from './utils'
 import { ValidationWitness } from '@radixdlt/util'
+import {
+	ParticleGroupT,
+	TransferrableTokensParticleT,
+	UnallocatedTokensParticleT,
+} from '@radixdlt/atom/src/_index'
 
 const particleGroupsFromBurnTokensAction = (
 	input: Readonly<{
 		burnTokensAction: BurnTokensAction
-		upParticles: UpParticle<TransferrableTokensParticle>[]
-		addressOfActiveAccount: Address
+		upParticles: UpParticle<TransferrableTokensParticleT>[]
+		addressOfActiveAccount: AddressT
 	}>,
-): Result<ParticleGroup[], Error> => {
+): Result<ParticleGroupT[], Error> => {
 	const burnAction = input.burnTokensAction
 
 	const transitioner = makeTransitioner<
-		TransferrableTokensParticle,
-		UnallocatedTokensParticle
+		TransferrableTokensParticleT,
+		UnallocatedTokensParticleT
 	>({
-		inputAmountMapper: (from: TransferrableTokensParticle) => from.amount,
+		inputAmountMapper: (from: TransferrableTokensParticleT) => from.amount,
 		inputCreator: transferrableTokensParticleFromOther.bind(
 			null,
 			burnAction.sender,
@@ -56,8 +61,8 @@ const particleGroupsFromBurnTokensAction = (
 	})
 
 	const consumableParticles = input.upParticles
-		.map((sp): TransferrableTokensParticle => sp.particle)
-		.filter((p: TransferrableTokensParticle) =>
+		.map((sp): TransferrableTokensParticleT => sp.particle)
+		.filter((p: TransferrableTokensParticleT) =>
 			p.resourceIdentifier.equals(burnAction.resourceIdentifier),
 		)
 
@@ -72,7 +77,7 @@ const particleGroupsFromBurnTokensAction = (
 
 const tokenDefinitionValidation = (input: {
 	tokenDefinitionParticle: TokenDefinitionParticleBase
-	burner: Address
+	burner: AddressT
 }): Result<ValidationWitness, Error> => {
 	if (!isMutableTokenDefinitionParticle(input.tokenDefinitionParticle)) {
 		return err(new Error(`Can only burn tokens with mutable supply.`))
@@ -93,7 +98,7 @@ export const burnTokensActionToParticleGroupsMapper = (): BurnTokensActionToPart
 		actionType,
 		particleGroupsFromAction: (
 			input: MapperInput,
-		): Result<ParticleGroup[], Error> =>
+		): Result<ParticleGroupT[], Error> =>
 			validate(
 				validateUserActionSender,
 				validateUserActionType(actionType),

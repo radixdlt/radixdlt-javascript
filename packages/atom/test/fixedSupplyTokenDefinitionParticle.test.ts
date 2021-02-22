@@ -1,22 +1,17 @@
-import {
-	amountFromUInt256,
-	amountFromUnsafe,
-	amountInSmallestDenomination,
-	Denomination,
-	granularityDefault,
-} from '@radixdlt/primitives'
+import { Denomination, granularityDefault } from '@radixdlt/primitives'
 import { toAddress } from './helpers/utility'
 import { UInt256 } from '@radixdlt/uint256'
 import { doTestTokenDefintionParticle } from './helpers/tokenDefinitionParticleBaseTests'
 import { RadixParticleType } from '../src/particles/meta/radixParticleTypes'
 import { fixedSupplyTokenDefinitionParticle } from '../src/particles/fixedSupplyTokenDefinitionParticle'
+import { Amount } from '@radixdlt/primitives/src/amount'
 
 describe('fixedSupplyTokenDefinitionParticle', () => {
 	const address = toAddress(
 		'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
 	)
 
-	const supply = amountFromUInt256({
+	const supply = Amount.fromUInt256({
 		magnitude: UInt256.valueOf(10),
 		denomination: Denomination.Whole,
 	})._unsafeUnwrap()
@@ -52,8 +47,8 @@ describe('fixedSupplyTokenDefinitionParticle', () => {
 		const tokenDefinitionParticleResult = fixedSupplyTokenDefinitionParticle(
 			{
 				...input,
-				supply: amountFromUnsafe(2)._unsafeUnwrap(),
-				granularity: amountFromUnsafe(4)._unsafeUnwrap(), // 4 ∤ 2
+				supply: Amount.fromUnsafe(2)._unsafeUnwrap(),
+				granularity: Amount.fromUnsafe(4)._unsafeUnwrap(), // 4 ∤ 2
 			},
 		)
 

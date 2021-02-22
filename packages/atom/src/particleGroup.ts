@@ -1,10 +1,13 @@
-import { ParticleGroup } from './_types'
+import { ParticleGroupT } from './_types'
 import { AnySpunParticle, SpunParticles } from './particles/_types'
 import { spunParticlesQueryable } from './particles/spunParticleQueryable'
 import {
+	Decoder,
+	JSONDecoding,
 	JSONEncodable,
 	JSONEncoding,
 	JSONObjectDecoder,
+	objectDecoder,
 } from '@radixdlt/data-formats'
 import { ok } from 'neverthrow'
 import {
@@ -12,6 +15,7 @@ import {
 	spunParticles as makeSpunParticles,
 } from './particles/spunParticles'
 import { DSONCodable, DSONEncoding } from '@radixdlt/data-formats'
+import { SpunParticle } from './particles/_index'
 
 const SERIALIZER = 'radix.particle_group'
 
@@ -29,14 +33,15 @@ const JSON = (
 			: spunParticles,
 	})
 
-export const PGJSONDecoder: JSONObjectDecoder = {
-	[SERIALIZER]: (input: SpunParticles | AnySpunParticle[]) =>
+const { JSONDecoders, fromJSON } = JSONDecoding(SpunParticle)(
+	objectDecoder(SERIALIZER, (input: SpunParticles | AnySpunParticle[]) =>
 		ok(particleGroup(input)),
-}
+	),
+)
 
 export const particleGroup = (
 	spunParticles: SpunParticles | AnySpunParticle[],
-): ParticleGroup => {
+): ParticleGroupT => {
 	const spunParticles_: SpunParticles = isSpunParticles(spunParticles)
 		? spunParticles
 		: makeSpunParticles(spunParticles)
@@ -47,4 +52,10 @@ export const particleGroup = (
 		spunParticles: spunParticles_,
 		...spunParticlesQueryable(spunParticles_.spunParticles),
 	}
+}
+
+export const ParticleGroup = {
+	fromJSON,
+	JSONDecoders,
+	SERIALIZER,
 }

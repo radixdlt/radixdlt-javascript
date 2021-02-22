@@ -5,7 +5,7 @@ import {
 	DownParticle,
 	ParticleBase,
 	Spin,
-	SpunParticle,
+	SpunParticleT,
 	SpunParticleBase,
 	UpParticle,
 } from './_types'
@@ -14,17 +14,22 @@ import { isSpin } from './meta/spin'
 
 import { err, ok, Result } from 'neverthrow'
 import {
+	Decoder,
 	DSONEncoding,
 	DSONPrimitive,
+	JSONDecoding,
 	JSONEncoding,
 	JSONObjectDecoder,
+	objectDecoder,
 } from '@radixdlt/data-formats'
 
 const SERIALIZER = 'radix.spun_particle'
 
-export const JSONDecoder: JSONObjectDecoder = {
-	[SERIALIZER]: (input: SpunParticleBase) => ok(anySpunParticle(input)),
-}
+const { JSONDecoders, fromJSON } = JSONDecoding<SpunParticleT<any>>()(
+	objectDecoder(SERIALIZER, (input: SpunParticleBase) =>
+		ok(anySpunParticle(input)),
+	),
+)
 
 /* eslint-disable max-params */
 
@@ -74,7 +79,7 @@ export const anySpunParticle = (
  *
  * @param particle {P} A particle of typed type `P` to give a spin.
  * @param spin {Spin} The spun of the particle
- * @returns {SpunParticle<P>} a typed SpunParticle with a specified spin.
+ * @returns {SpunParticleT<P>} a typed SpunParticle with a specified spin.
  * @template P a specific type of particle, that **is a** `ParticleBase`
  */
 export const spunParticle = <P extends ParticleBase>(
@@ -82,7 +87,7 @@ export const spunParticle = <P extends ParticleBase>(
 		spin: Spin
 		particle: P
 	}>,
-): SpunParticle<P> => {
+): SpunParticleT<P> => {
 	const anySpun = anySpunParticle(input)
 
 	return {
@@ -141,23 +146,23 @@ export const downParticle = <P extends ParticleBase>(
  * Creates a typed SpunParticle with Spin.UP.
  *
  * @param particle {P} A particle of typed type `P` to give the spin UP.
- * @returns {SpunParticle<P>} a typed SpunParticle with a spin UP.
+ * @returns {SpunParticleT<P>} a typed SpunParticle with a spin UP.
  * @template P a specific type of particle, that **is a** `ParticleBase`
  */
 export const spunUpParticle = <P extends ParticleBase>(
 	particle: P,
-): SpunParticle<P> => upParticle(particle).toSpunParticle()
+): SpunParticleT<P> => upParticle(particle).toSpunParticle()
 
 /**
  * Creates a typed SpunParticle with Spin.DOWN.
  *
  * @param particle {P} A particle of typed type `P` to give the spin DOWN.
- * @returns {SpunParticle<P>} a typed SpunParticle with a spin DOWN.
+ * @returns {SpunParticleT<P>} a typed SpunParticle with a spin DOWN.
  * @template P a specific type of particle, that **is a** `ParticleBase`
  */
 export const spunDownParticle = <P extends ParticleBase>(
 	particle: P,
-): SpunParticle<P> => downParticle(particle).toSpunParticle()
+): SpunParticleT<P> => downParticle(particle).toSpunParticle()
 
 /**
  * Creates an AnyUpParticle (type-erased UpParticle) with the at compile time known spin UP.
@@ -210,7 +215,7 @@ export const asAnyDownParticle = (
 }
 
 export const asUpParticle = <P extends ParticleBase>(
-	spunParticle: SpunParticle<P>,
+	spunParticle: SpunParticleT<P>,
 ): Result<UpParticle<P>, Error> => {
 	if (spunParticle.spin !== Spin.UP) {
 		return err(new Error('Particle does not have spin UP.'))
@@ -219,7 +224,7 @@ export const asUpParticle = <P extends ParticleBase>(
 }
 
 export const asDownParticle = <P extends ParticleBase>(
-	spunParticle: SpunParticle<P>,
+	spunParticle: SpunParticleT<P>,
 ): Result<DownParticle<P>, Error> => {
 	if (spunParticle.spin !== Spin.DOWN) {
 		return err(new Error('Particle does not have spin DOWN.'))
@@ -245,4 +250,10 @@ export const isAnySpunParticle = (
 		inspection.equals !== undefined &&
 		inspection.downedAsAny() !== undefined
 	)
+}
+
+export const SpunParticle = {
+	fromJSON,
+	JSONDecoders,
+	SERIALIZER,
 }

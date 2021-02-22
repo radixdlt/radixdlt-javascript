@@ -1,4 +1,3 @@
-import { atom, ATOM_SERIALIZER, AtomJSONDecoder } from '../src/atom'
 import { atomIdentifier } from '../src/atomIdentifier'
 import {
 	exactlyContainParticles,
@@ -10,7 +9,6 @@ import {
 } from './helpers/particles'
 import { UInt256 } from '@radixdlt/uint256'
 import {
-	Atom,
 	SignatureID,
 	Signatures,
 	TokenPermission,
@@ -22,20 +20,15 @@ import { particleGroup } from '../src/particleGroup'
 import { particleGroups } from '../src/particleGroups'
 import { RadixParticleType } from '../src/particles/meta/radixParticleTypes'
 import { spunParticle } from '../src/particles/spunParticle'
-import { transferrableTokensParticle } from '../src/particles/transferrableTokensParticle'
 import { addressFromBase58String } from '@radixdlt/crypto'
-import { resourceIdentifierFromAddressAndName } from '../src/resourceIdentifier'
-import {
-	amountFromUnsafe,
-	amountInSmallestDenomination,
-	Denomination,
-	nonce,
-} from '@radixdlt/primitives'
+import { Amount, Denomination, nonce } from '@radixdlt/primitives'
 import {
 	tokenPermissionsAll,
 	makeTokenPermissions,
 } from '../src/tokenPermissions'
-import { fromJSONDefault } from '@radixdlt/data-formats'
+import { Atom } from '../src/_index'
+import { ResourceIdentifier } from '../src/resourceIdentifier'
+import { TransferrableTokensParticle } from '../src/particles/_index'
 
 const mockedAtomIdentifier = atomIdentifier(
 	'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
@@ -43,7 +36,7 @@ const mockedAtomIdentifier = atomIdentifier(
 
 describe('atom', () => {
 	it('can be create empty', () => {
-		const atom_ = atom({})
+		const atom_ = Atom.create({})
 		expect(atom_).toBeDefined()
 		expect(atom_.signatures).toBeDefined()
 		expect(atom_.message).toBeUndefined()
@@ -52,7 +45,7 @@ describe('atom', () => {
 	})
 
 	it('can query anySpunParticles by spin=DOWN and by type=ResourceIdentifierParticle OR TransferrableTokensParticle since an atom itself is SpunParticles', () => {
-		const atom_ = atom({
+		const atom_ = Atom.create({
 			particleGroups: particleGroups([particleGroup(spunParticles_)]),
 		})
 
@@ -76,7 +69,7 @@ describe('atom', () => {
 	})
 
 	it('can contain a message', () => {
-		const atom_ = atom({
+		const atom_ = Atom.create({
 			message: 'Hello',
 		})
 
@@ -98,7 +91,7 @@ describe('atom', () => {
 			[signatureID]: signature,
 		}
 
-		const atom_ = atom({
+		const atom_ = Atom.create({
 			signatures: signatures,
 		})
 
@@ -118,7 +111,7 @@ describe('atom', () => {
 		const address = addressFromBase58String(
 			'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
 		)._unsafeUnwrap()
-		const rri = resourceIdentifierFromAddressAndName({
+		const rri = ResourceIdentifier.fromAddressAndName({
 			address,
 			name: 'FOOBAR',
 		})
@@ -127,10 +120,10 @@ describe('atom', () => {
 			[TokenTransition.MINT]: TokenPermission.TOKEN_OWNER_ONLY,
 		})
 
-		const amount = amountFromUnsafe(6, Denomination.Atto)._unsafeUnwrap()
-		const granularity = amountInSmallestDenomination(UInt256.valueOf(3))
+		const amount = Amount.fromUnsafe(6, Denomination.Atto)._unsafeUnwrap()
+		const granularity = Amount.inSmallestDenomination(UInt256.valueOf(3))
 		const nonce_ = nonce(12345678910)
-		const ttp = transferrableTokensParticle({
+		const ttp = TransferrableTokensParticle.create({
 			address,
 			resourceIdentifier: rri,
 			amount,
@@ -146,7 +139,7 @@ describe('atom', () => {
 			}),
 		])
 
-		const atom_ = atom({
+		const atom_ = Atom.create({
 			particleGroups: particleGroups([particleGroup_]),
 		})
 
@@ -159,23 +152,21 @@ describe('atom', () => {
 		})
 
 		it('should be able to JSON encode', () => {
-			const result = atom_.toJSON()
+			const result = atom_.toJSON()._unsafeUnwrap()
 			const expected = {
-				serializer: ATOM_SERIALIZER,
-				particleGroups: [particleGroup_.toJSON()],
+				serializer: Atom.SERIALIZER,
+				particleGroups: [particleGroup_.toJSON()._unsafeUnwrap()],
 			}
 			expect(JSON.stringify(result)).toEqual(JSON.stringify(expected))
 		})
 
 		it('should be able to JSON decode', () => {
-			const fromJSON = fromJSONDefault()(AtomJSONDecoder)
-
 			const json = {
-				serializer: ATOM_SERIALIZER,
+				serializer: Atom.SERIALIZER,
 			}
 
-			const result = fromJSON<Atom>(json)._unsafeUnwrap()
-			const expected = atom({})
+			const result = Atom.fromJSON(json)._unsafeUnwrap()
+			const expected = Atom.create({})
 
 			expect(JSON.stringify(result)).toEqual(JSON.stringify(expected))
 		})

@@ -1,13 +1,5 @@
 import { addressFromBase58String } from '@radixdlt/crypto'
-import { fromJSONDefault } from '@radixdlt/data-formats'
-import { RRIParticleJSONDecoder } from '../src/particles/resourceIdentifierParticle'
-import {
-	JSON_TAG,
-	resourceIdentifierFromAddressAndName,
-	resourceIdentifierFromString,
-	RRIJSONDecoder,
-} from '../src/resourceIdentifier'
-import { ResourceIdentifier } from '../src/_types'
+import { ResourceIdentifier } from '../src/_index'
 
 describe('ResourceIdentifier (RRI)', () => {
 	it('can be created from address+name AND from id-string', () => {
@@ -15,7 +7,7 @@ describe('ResourceIdentifier (RRI)', () => {
 			'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
 		)._unsafeUnwrap()
 		const name = 'FOOBAR'
-		const rri = resourceIdentifierFromAddressAndName({
+		const rri = ResourceIdentifier.fromAddressAndName({
 			address: address,
 			name: name,
 		})
@@ -25,7 +17,7 @@ describe('ResourceIdentifier (RRI)', () => {
 
 		expect(rri.toString()).toBe(rriString)
 
-		const rriFromString = resourceIdentifierFromString(
+		const rriFromString = ResourceIdentifier.fromString(
 			rriString,
 		)._unsafeUnwrap()
 
@@ -33,11 +25,11 @@ describe('ResourceIdentifier (RRI)', () => {
 	})
 
 	it('should consider two RRIs with same address and name letters but different case as inequal', () => {
-		const rriLowercase = resourceIdentifierFromString(
+		const rriLowercase = ResourceIdentifier.fromString(
 			'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/case',
 		)._unsafeUnwrap()
 
-		const rriUppercase = resourceIdentifierFromString(
+		const rriUppercase = ResourceIdentifier.fromString(
 			'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/CASE',
 		)._unsafeUnwrap()
 
@@ -45,7 +37,7 @@ describe('ResourceIdentifier (RRI)', () => {
 	})
 
 	it('should be able to DSON encode', () => {
-		const rri = resourceIdentifierFromString(
+		const rri = ResourceIdentifier.fromString(
 			'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR',
 		)._unsafeUnwrap()
 		const dson = rri.toDSON()._unsafeUnwrap()
@@ -56,12 +48,12 @@ describe('ResourceIdentifier (RRI)', () => {
 	})
 
 	it('should be able to JSON encode', () => {
-		const rri = resourceIdentifierFromString(
+		const rri = ResourceIdentifier.fromString(
 			'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR',
 		)._unsafeUnwrap()
 
-		const json = rri.toJSON()
-		const expected = `${JSON_TAG}/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR`
+		const json = rri.toJSON()._unsafeUnwrap()
+		const expected = `${ResourceIdentifier.JSON_TAG}/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR`
 
 		expect(json).toEqual(expected)
 	})

@@ -1,6 +1,6 @@
 import { DSONKeyValues, SerializableKeyValues } from '@radixdlt/data-formats'
 import {
-	Amount,
+	AmountT,
 	Granularity,
 	granularityDefault,
 	Nonce,
@@ -12,7 +12,7 @@ import {
 	tokenPermissionsAll,
 } from '../../tokenPermissions'
 import {
-	ResourceIdentifier,
+	ResourceIdentifierT,
 	TokenPermission,
 	TokenPermissions,
 	TokenTransition,
@@ -21,8 +21,8 @@ import { TokenParticle } from '../_types'
 import { withParticleEquals } from './particle'
 
 export type TokenParticleInput = Readonly<{
-	amount: Amount
-	resourceIdentifier: ResourceIdentifier
+	amount: AmountT
+	resourceIdentifier: ResourceIdentifierT
 	granularity?: Granularity
 	permissions?: Readonly<{ [key in TokenTransition]: TokenPermission }>
 	nonce?: Nonce
@@ -37,7 +37,7 @@ const withNonce = (
 
 const withAmount = (
 	input: TokenParticleInput,
-): TokenParticleInput & { amount: Amount } => ({
+): TokenParticleInput & { amount: AmountT } => ({
 	...input,
 	amount: input.amount,
 })

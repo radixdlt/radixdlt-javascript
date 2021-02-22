@@ -7,34 +7,34 @@ import {
 	ParticleBase,
 	Spin,
 	spunDownParticle,
-	SpunParticle,
 	spunUpParticle,
 } from '@radixdlt/atom'
-import { Amount, amountInSmallestDenomination } from '@radixdlt/primitives'
+import { Amount, AmountT } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import { v4 as uuidv4 } from 'uuid'
 import { exactlyContainParticles } from '../../atom/test/helpers/particles'
 import { two, nine, one, ten } from '@radixdlt/primitives/src/amount'
 import { ok } from 'neverthrow'
+import { SpunParticleT } from '@radixdlt/atom/src/particles/_types'
 
 describe('fungibleParticleTransitioner', () => {
-	const eleven = amountInSmallestDenomination(UInt256.valueOf(11))
+	const eleven = Amount.inSmallestDenomination(UInt256.valueOf(11))
 
 	type TestParticle = ParticleBase & {
-		amount: Amount
+		amount: AmountT
 		id: string
 		isChangeReturnedToSender: boolean
 	}
 
 	const testParticle = (
-		amount: number | Amount,
+		amount: number | AmountT,
 		id?: string,
 		isChangeReturnedToSender?: boolean,
 	): TestParticle => {
 		const id_ = id ?? uuidv4()
 		const amount_ =
 			typeof amount === 'number'
-				? amountInSmallestDenomination(UInt256.valueOf(amount))
+				? Amount.inSmallestDenomination(UInt256.valueOf(amount))
 				: amount
 		return <TestParticle>{
 			amount: amount_,
@@ -73,7 +73,7 @@ describe('fungibleParticleTransitioner', () => {
 		).toBe(true)
 	})
 
-	type SpunTestParticle = SpunParticle<TestParticle>
+	type SpunTestParticle = SpunParticleT<TestParticle>
 	const upTP = (tp: TestParticle): SpunTestParticle => spunUpParticle(tp)
 	const downTP = (tp: TestParticle): SpunTestParticle => spunDownParticle(tp)
 

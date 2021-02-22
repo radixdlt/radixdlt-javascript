@@ -1,27 +1,29 @@
-import { ResourceIdentifier } from '../_types'
+import { ResourceIdentifierT } from '../_types'
 import { nonce } from '@radixdlt/primitives'
 import { isRadixParticle, RadixParticleType } from './meta/radixParticleTypes'
 import {
 	DSONEncoding,
+	JSONDecoding,
 	JSONEncoding,
-	JSONObjectDecoder,
+	objectDecoder,
 	SerializableKeyValues,
 } from '@radixdlt/data-formats'
-import { ParticleBase, ResourceIdentifierParticle } from './_types'
+import { ParticleBase, ResourceIdentifierParticleT } from './_types'
 import { ok } from 'neverthrow'
+import { ResourceIdentifier } from '../resourceIdentifier'
 
 const radixParticleType = RadixParticleType.RESOURCE_IDENTIFIER
 
-export const RRI_SERIALIZER = 'radix.particles.rri'
+const SERIALIZER = 'radix.particles.rri'
 
-export const RRIParticleJSONDecoder: JSONObjectDecoder = {
-	[RRI_SERIALIZER]: (input: ResourceIdentifier) =>
-		ok(resourceIdentifierParticle(input)),
-}
-
-export const resourceIdentifierParticle = (
-	resourceIdentifier: ResourceIdentifier,
-): ResourceIdentifierParticle => {
+const { JSONDecoders, fromJSON } = JSONDecoding(ResourceIdentifier)(
+	objectDecoder(SERIALIZER, (input: ResourceIdentifierT) =>
+		ok(create(input)),
+	),
+)
+const create = (
+	resourceIdentifier: ResourceIdentifierT,
+): ResourceIdentifierParticleT => {
 	const alwaysZeroNonce = nonce(0)
 
 	const serializeKeyValues: SerializableKeyValues = {
@@ -30,8 +32,8 @@ export const resourceIdentifierParticle = (
 	}
 
 	return {
-		...JSONEncoding(RRI_SERIALIZER)(serializeKeyValues),
-		...DSONEncoding(RRI_SERIALIZER)(serializeKeyValues),
+		...JSONEncoding(SERIALIZER)(serializeKeyValues),
+		...DSONEncoding(SERIALIZER)(serializeKeyValues),
 
 		radixParticleType,
 		alwaysZeroNonce,
@@ -50,7 +52,14 @@ export const resourceIdentifierParticle = (
 
 export const isResourceIdentifierParticle = (
 	something: unknown,
-): something is ResourceIdentifierParticle => {
+): something is ResourceIdentifierParticleT => {
 	if (!isRadixParticle(something)) return false
 	return something.radixParticleType === radixParticleType
+}
+
+export const ResourceIdentifierParticle = {
+	create,
+	SERIALIZER,
+	JSONDecoders,
+	fromJSON,
 }

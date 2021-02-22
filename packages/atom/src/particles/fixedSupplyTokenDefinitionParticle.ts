@@ -1,4 +1,4 @@
-import { Amount, granularityDefault } from '@radixdlt/primitives'
+import { AmountT, granularityDefault } from '@radixdlt/primitives'
 import { Result, err } from 'neverthrow'
 import { RadixParticleType } from './meta/radixParticleTypes'
 import {
@@ -18,7 +18,7 @@ const radixParticleType = RadixParticleType.FIXED_SUPPLY_TOKEN_DEFINITION
 export const fixedSupplyTokenDefinitionParticle = (
 	input: TokenDefinitionParticleInput &
 		Readonly<{
-			supply: Amount
+			supply: AmountT
 		}>,
 ): Result<FixedSupplyTokenDefinitionParticle, Error> => {
 	const fixedTokenSupply = input.supply

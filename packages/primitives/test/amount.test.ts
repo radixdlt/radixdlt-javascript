@@ -1,8 +1,7 @@
-import { fromJSONDefault } from '@radixdlt/data-formats'
 import { UInt256 } from '@radixdlt/uint256'
+import { AmountT } from '../dist/_types'
 import {
-	amountFromUInt256,
-	amountInSmallestDenomination,
+	Amount,
 	eight,
 	eleven,
 	fifteen,
@@ -16,16 +15,12 @@ import {
 	six,
 	ten,
 	thirteen,
-	JSON_TAG,
-	AmountJSONDecoder,
 	three,
 	twelve,
 	two,
 	zero,
 } from '../src/amount'
 import {
-	Amount,
-	amountFromUnsafe,
 	AmountInputUnsafe,
 	Denomination,
 	DenominationOutputFormat,
@@ -33,8 +28,8 @@ import {
 	isUInt256,
 	maxAmount,
 } from '../src/_index'
-const makeAmount = (unsafe: AmountInputUnsafe): Amount =>
-	amountFromUnsafe(unsafe, Denomination.Atto)._unsafeUnwrap()
+const makeAmount = (unsafe: AmountInputUnsafe): AmountT =>
+	Amount.fromUnsafe(unsafe, Denomination.Atto)._unsafeUnwrap()
 
 describe('Amount', () => {
 	it('have correct values and equal itself', () => {
@@ -60,15 +55,15 @@ describe('Amount', () => {
 			expect(amount.equals(amount)).toBe(true)
 			expect(
 				amount.equals(
-					amountInSmallestDenomination(UInt256.valueOf(index)),
+					Amount.inSmallestDenomination(UInt256.valueOf(index)),
 				),
 			).toBe(true)
 		})
 	})
 
 	it('should consider same numbers expressed in different denomination as equal', () => {
-		const amount = amountFromUnsafe(42)._unsafeUnwrap()
-		const amountFromAtto = amountFromUnsafe(
+		const amount = Amount.fromUnsafe(42)._unsafeUnwrap()
+		const amountFromAtto = Amount.fromUnsafe(
 			'42' + '0'.repeat(18),
 			Denomination.Atto,
 		)._unsafeUnwrap()
@@ -76,11 +71,11 @@ describe('Amount', () => {
 	})
 
 	it('should consider large magnitude of tiny denomination less than small magnitude of large denomination', () => {
-		const small = amountFromUnsafe(
+		const small = Amount.fromUnsafe(
 			1_000_000,
 			Denomination.Atto,
 		)._unsafeUnwrap()
-		const large = amountFromUnsafe(10, Denomination.Whole)._unsafeUnwrap()
+		const large = Amount.fromUnsafe(10, Denomination.Whole)._unsafeUnwrap()
 
 		expect(small.equals(large)).toBe(false)
 		expect(small.lessThan(large)).toBe(true)
@@ -94,7 +89,7 @@ describe('Amount', () => {
 	})
 
 	it('can perform addition', () => {
-		const add = (lhs: Amount, rhs: Amount): Amount =>
+		const add = (lhs: AmountT, rhs: AmountT): AmountT =>
 			lhs.adding(rhs)._unsafeUnwrap()
 
 		const sumOneAndTwo = add(one, two)
@@ -109,7 +104,7 @@ describe('Amount', () => {
 	})
 
 	it('can perform subtraction', () => {
-		const sub = (lhs: Amount, rhs: Amount): Amount =>
+		const sub = (lhs: AmountT, rhs: AmountT): AmountT =>
 			lhs.subtracting(rhs)._unsafeUnwrap()
 
 		const fiveMinusThree = sub(five, three)
@@ -122,7 +117,7 @@ describe('Amount', () => {
 	})
 
 	it('should be able to do multiplication', () => {
-		const mul = (lhs: Amount, rhs: Amount): Amount =>
+		const mul = (lhs: AmountT, rhs: AmountT): AmountT =>
 			lhs.multiplied(rhs)._unsafeUnwrap()
 
 		const fiveTimesThree = mul(five, three)
@@ -138,12 +133,12 @@ describe('Amount', () => {
 	})
 
 	it('can check for multiple with granularity', () => {
-		const granularity: Granularity = amountFromUInt256({
+		const granularity: Granularity = Amount.fromUInt256({
 			magnitude: UInt256.valueOf(1),
 			denomination: Denomination.Atto,
 		})._unsafeUnwrap()
 
-		const supply = amountFromUInt256({
+		const supply = Amount.fromUInt256({
 			magnitude: UInt256.valueOf(10),
 			denomination: Denomination.Atto,
 		})._unsafeUnwrap()
@@ -153,7 +148,7 @@ describe('Amount', () => {
 	})
 
 	it('should be able to DSON encode amount in denomination whole', () => {
-		const amount = amountFromUInt256({
+		const amount = Amount.fromUInt256({
 			magnitude: UInt256.valueOf(6),
 			denomination: Denomination.Whole,
 		})._unsafeUnwrap()
@@ -166,7 +161,7 @@ describe('Amount', () => {
 	})
 
 	it('should be able to DSON encode amount in denomination atto', () => {
-		const amount = amountFromUInt256({
+		const amount = Amount.fromUInt256({
 			magnitude: UInt256.valueOf(7),
 			denomination: Denomination.Atto,
 		})._unsafeUnwrap()
@@ -179,13 +174,13 @@ describe('Amount', () => {
 	})
 
 	it('should be able to JSON encode', () => {
-		const amount = amountFromUInt256({
+		const amount = Amount.fromUInt256({
 			magnitude: UInt256.valueOf(7),
 			denomination: Denomination.Whole,
 		})._unsafeUnwrap()
 
-		const expected = `${JSON_TAG}7000000000000000000`
-		const json = amount.toJSON()
+		const expected = `${Amount.JSON_TAG}7000000000000000000`
+		const json = amount.toJSON()._unsafeUnwrap()
 
 		expect(json).toBe(expected)
 	})
@@ -196,7 +191,7 @@ describe('Amount', () => {
 
 		const result = fromJSON<Amount>(`${JSON_TAG}7000000000000000000`)
 
-		const expected = amountFromUInt256({
+		const expected = Amount.fromUInt256({
 			magnitude: UInt256.valueOf(7),
 			denomination: Denomination.Whole,
 		})._unsafeUnwrap()
@@ -223,7 +218,7 @@ describe('Amount', () => {
 			denomination: Denomination,
 			expected: string,
 		): void => {
-			const amount = amountFromUnsafe(
+			const amount = Amount.fromUnsafe(
 				magnitude,
 				denomination,
 			)._unsafeUnwrap()

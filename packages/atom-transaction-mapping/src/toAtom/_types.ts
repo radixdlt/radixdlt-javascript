@@ -1,19 +1,15 @@
 import { UserAction, UserActionType } from '@radixdlt/actions'
-import {
-	AnySpunParticle,
-	AnyUpParticle,
-	ParticleBase,
-	ParticleGroup,
-} from '@radixdlt/atom'
-import { Address } from '@radixdlt/crypto'
+import { AnySpunParticle, AnyUpParticle, ParticleBase } from '@radixdlt/atom'
 import { Result } from 'neverthrow'
-import { Amount } from '@radixdlt/primitives'
+import { AddressT } from '@radixdlt/crypto/src/_types'
+import { ParticleGroupT } from '@radixdlt/atom/src/_types'
+import { AmountT } from '@radixdlt/primitives/src/_types'
 
 export type FungibleParticleTransitioner<From extends ParticleBase> = Readonly<{
 	transition: (
 		input: Readonly<{
 			currentParticles: From[]
-			totalAmountToTransfer: Amount
+			totalAmountToTransfer: AmountT
 		}>,
 	) => Result<AnySpunParticle[], Error>
 }>
@@ -26,15 +22,15 @@ export type ActionToParticleGroupsMapper<
 		input: Readonly<{
 			action: UserAction
 			upParticles: AnyUpParticle[]
-			addressOfActiveAccount: Address
+			addressOfActiveAccount: AddressT
 		}>,
-	) => Result<ParticleGroup[], Error>
+	) => Result<ParticleGroupT[], Error>
 }>
 
 export type MapperInput = Readonly<{
 	action: UserAction
 	upParticles: AnyUpParticle[]
-	addressOfActiveAccount: Address
+	addressOfActiveAccount: AddressT
 }>
 
 export type TokenTransferActionToParticleGroupsMapper = ActionToParticleGroupsMapper<UserActionType.TOKEN_TRANSFER>

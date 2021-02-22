@@ -6,14 +6,21 @@ import {
 	withTokenParticleEquals,
 } from './meta/tokenParticle'
 import {
+	Decoder,
 	DSONCodable,
 	DSONEncoding,
+	JSONDecodablePrimitive,
+	JSONDecoding,
 	JSONEncodable,
 	JSONEncoding,
 	JSONObjectDecoder,
+	objectDecoder,
 } from '@radixdlt/data-formats'
-import { TokenParticle, UnallocatedTokensParticle } from './_types'
+import { TokenParticle, UnallocatedTokensParticleT } from './_types'
 import { ok } from 'neverthrow'
+import { Address } from '@radixdlt/crypto'
+import { Amount } from '@radixdlt/primitives'
+import { ResourceIdentifier } from '../resourceIdentifier'
 
 const radixParticleType = RadixParticleType.UNALLOCATED_TOKENS
 const SERIALIZER = 'radix.particles.unallocated_tokens'
@@ -24,14 +31,19 @@ const JSON = (input: TokenParticle): JSONEncodable =>
 const DSON = (input: TokenParticle): DSONCodable =>
 	DSONEncoding(SERIALIZER)({ ...tokenSerializationKeyValues(input) })
 
-export const UTPJSONDecoder: JSONObjectDecoder = {
-	[SERIALIZER]: (input: TokenParticleInput) =>
+const { fromJSON, JSONDecoders } = JSONDecoding<UnallocatedTokensParticleT>(
+	Address,
+	Amount,
+	ResourceIdentifier,
+)(
+	objectDecoder(SERIALIZER, (input: TokenParticleInput) =>
 		ok(unallocatedTokensParticle(input)),
-}
+	),
+)
 
 export const unallocatedTokensParticle = (
 	input: TokenParticleInput,
-): UnallocatedTokensParticle => {
+): UnallocatedTokensParticleT => {
 	const props = {
 		...tokenParticleProps(input),
 		radixParticleType: radixParticleType,
@@ -49,7 +61,13 @@ export const unallocatedTokensParticle = (
 
 export const isUnallocatedTokensParticle = (
 	something: unknown,
-): something is UnallocatedTokensParticle => {
+): something is UnallocatedTokensParticleT => {
 	if (!isRadixParticle(something)) return false
 	return something.radixParticleType === radixParticleType
+}
+
+export const UnallocatedTokensParticle = {
+	fromJSON,
+	JSONDecoders,
+	SERIALIZER,
 }

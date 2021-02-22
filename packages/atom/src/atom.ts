@@ -1,20 +1,24 @@
 import {
-	Atom,
+	AtomT,
 	AtomIdentifier,
-	ParticleGroup,
+	ParticleGroupT,
 	ParticleGroups,
 	Signatures,
 } from './_types'
 import { atomIdentifier } from './atomIdentifier'
 import { particleGroups } from './particleGroups'
 import {
+	Decoder,
 	DSONCodable,
 	DSONEncoding,
+	JSONDecoding,
 	JSONEncodable,
 	JSONEncoding,
 	JSONObjectDecoder,
+	objectDecoder,
 } from '@radixdlt/data-formats'
 import { ok } from 'neverthrow'
+import { ParticleGroup } from './particleGroup'
 
 const isSigned = (signatures: Signatures): boolean => {
 	return Object.keys(signatures).length >= 1
@@ -25,7 +29,7 @@ const mockedAtomIdentifier = atomIdentifier(
 	'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
 )._unsafeUnwrap()
 
-export const ATOM_SERIALIZER = 'radix.atom'
+const SERIALIZER = 'radix.atom'
 
 type Input = Readonly<{
 	particleGroups?: ParticleGroups
@@ -35,27 +39,27 @@ type Input = Readonly<{
 
 const DSON = (
 	input: Readonly<{
-		particleGroups: ParticleGroup[]
+		particleGroups: ParticleGroupT[]
 	}>,
 ): DSONCodable =>
-	DSONEncoding(ATOM_SERIALIZER)({
+	DSONEncoding(SERIALIZER)({
 		particleGroups: input.particleGroups,
 	})
 
 const JSON = (
 	input: Readonly<{
-		particleGroups: ParticleGroup[]
+		particleGroups: ParticleGroupT[]
 	}>,
 ): JSONEncodable =>
-	JSONEncoding(ATOM_SERIALIZER)({
+	JSONEncoding(SERIALIZER)({
 		particleGroups: input.particleGroups,
 	})
 
-export const AtomJSONDecoder: JSONObjectDecoder = {
-	[ATOM_SERIALIZER]: (input: Input) => ok(atom(input)),
-}
+const { JSONDecoders, fromJSON } = JSONDecoding(ParticleGroup)(
+	objectDecoder(SERIALIZER, (input: Input) => ok(create(input))),
+)
 
-export const atom = (input: Input): Atom => {
+const create = (input: Input): AtomT => {
 	const signatures: Signatures = input.signatures ?? {}
 	const particleGroups_: ParticleGroups =
 		input.particleGroups ?? particleGroups([])
@@ -75,4 +79,11 @@ export const atom = (input: Input): Atom => {
 		isSigned: () => isSigned(signatures),
 		...particleGroups_,
 	}
+}
+
+export const Atom = {
+	SERIALIZER,
+	JSONDecoders,
+	fromJSON,
+	create,
 }

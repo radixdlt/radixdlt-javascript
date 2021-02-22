@@ -1,4 +1,4 @@
-import { Address, Signature } from '@radixdlt/crypto'
+import { AddressT, Signature } from '@radixdlt/crypto'
 import { DSONCodable, JSONEncodable } from '@radixdlt/data-formats'
 import { SpunParticleQueryable, SpunParticles } from './particles/_types'
 
@@ -8,13 +8,13 @@ import { SpunParticleQueryable, SpunParticles } from './particles/_types'
  * On format: `/:address/:name`, e.g.
  * `"/JH1P8f3znbyrDj8F4RWpix7hRkgxqHjdW2fNnKpR3v6ufXnknor/XRD"`
  */
-export type ResourceIdentifier = JSONEncodable &
+export type ResourceIdentifierT = JSONEncodable &
 	DSONCodable &
 	Readonly<{
-		address: Address
+		address: AddressT
 		name: string
 		toString: () => string
-		equals: (other: ResourceIdentifier) => boolean
+		equals: (other: ResourceIdentifierT) => boolean
 	}>
 
 /**
@@ -50,7 +50,7 @@ export type TokenPermissions = JSONEncodable &
 		equals: (other: TokenPermissions) => boolean
 	}>
 
-export type ParticleGroup = JSONEncodable &
+export type ParticleGroupT = JSONEncodable &
 	DSONCodable &
 	SpunParticleQueryable &
 	Readonly<{
@@ -60,7 +60,7 @@ export type ParticleGroup = JSONEncodable &
 export type ParticleGroups = DSONCodable &
 	SpunParticleQueryable &
 	Readonly<{
-		groups: ParticleGroup[]
+		groups: ParticleGroupT[]
 	}>
 
 // TODO change this when we have DSON encoding in place. Should be hash of dson truncated.
@@ -69,7 +69,7 @@ export type PublicKeyID = string
 export type SignatureID = PublicKeyID
 export type Signatures = Readonly<{ [key in SignatureID]: Signature }>
 
-export type Atom = JSONEncodable &
+export type AtomT = JSONEncodable &
 	DSONCodable &
 	SpunParticleQueryable &
 	Readonly<{

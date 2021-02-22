@@ -1,5 +1,5 @@
 import {
-	Amount,
+	AmountT,
 	AmountStringFormatting,
 	Denomination,
 	minAmountDenomination,
@@ -16,24 +16,28 @@ import {
 	uint256Max,
 } from './uint256-extensions'
 import {
+	Decoder,
 	DSONObjectEncoding,
+	JSONDecoding,
 	JSONEncoding,
 	JSONObjectDecoder,
 	JSONPrimitiveDecoder,
+	primitiveDecoder,
 	serializerNotNeeded,
 } from '@radixdlt/data-formats'
 import { denominations, formatDenomination } from './denomination'
 import { Byte } from '@radixdlt/util'
 
-export const CBOR_BYTESTRING_PREFIX: Byte = 5
-export const JSON_TAG = ':u20:'
+const CBOR_BYTESTRING_PREFIX: Byte = 5
+const JSON_TAG = ':u20:'
 
-export const AmountJSONDecoder: JSONPrimitiveDecoder = {
-	[JSON_TAG]: (data: string): Result<Amount, Error> =>
-		ok(amountInSmallestDenomination(new UInt256(data))),
-}
+const { JSONDecoders, fromJSON } = JSONDecoding()(
+	primitiveDecoder(JSON_TAG, (data: string) =>
+		ok(inSmallestDenomination(new UInt256(data))),
+	),
+)
 
-export const min = (lhs: Amount, rhs: Amount): Amount =>
+export const min = (lhs: AmountT, rhs: AmountT): AmountT =>
 	lhs.lessThanOrEquals(rhs) ? lhs : rhs
 
 const toString = (
@@ -67,12 +71,12 @@ const toString = (
 		.trim()
 }
 
-export const amountInSmallestDenomination = (magnitude: UInt256): Amount => {
+const inSmallestDenomination = (magnitude: UInt256): AmountT => {
 	/* eslint-disable max-params */
 	const doArithmetic = (
-		other: Amount,
+		other: AmountT,
 		operation: (a: BN, b: BN) => BN,
-	): Result<Amount, Error> => {
+	): Result<AmountT, Error> => {
 		const selfBN = bnFromUInt256(magnitude)
 		const otherBN = bnFromUInt256(other.magnitude)
 		const arithmeticResult = operation(selfBN, otherBN)
@@ -81,7 +85,7 @@ export const amountInSmallestDenomination = (magnitude: UInt256): Amount => {
 				magnitude: foo,
 				denomination: Denomination.Atto,
 			}))
-			.andThen(amountFromUInt256)
+			.andThen(fromUInt256)
 	}
 
 	const buffer = bnFromUInt256(magnitude).toBuffer('be', 32)
@@ -95,7 +99,7 @@ export const amountInSmallestDenomination = (magnitude: UInt256): Amount => {
 			buffer,
 		}),
 		magnitude: magnitude,
-		isMultipleOf: (other: Amount) =>
+		isMultipleOf: (other: AmountT) =>
 			magnitude.mod(other.magnitude, false).eq(UInt256.valueOf(0)),
 		toString: (formatting?: AmountStringFormatting) =>
 			toString({
@@ -103,17 +107,17 @@ export const amountInSmallestDenomination = (magnitude: UInt256): Amount => {
 				denomination: Denomination.Atto,
 				...formatting,
 			}),
-		equals: (other: Amount) => magnitude.eq(other.magnitude),
-		greaterThan: (other: Amount) => magnitude.gt(other.magnitude),
-		lessThan: (other: Amount) => magnitude.lt(other.magnitude),
-		greaterThanOrEquals: (other: Amount) => magnitude.gte(other.magnitude),
-		lessThanOrEquals: (other: Amount) => magnitude.lte(other.magnitude),
-		adding: (other: Amount): Result<Amount, Error> =>
+		equals: (other: AmountT) => magnitude.eq(other.magnitude),
+		greaterThan: (other: AmountT) => magnitude.gt(other.magnitude),
+		lessThan: (other: AmountT) => magnitude.lt(other.magnitude),
+		greaterThanOrEquals: (other: AmountT) => magnitude.gte(other.magnitude),
+		lessThanOrEquals: (other: AmountT) => magnitude.lte(other.magnitude),
+		adding: (other: AmountT): Result<AmountT, Error> =>
 			doArithmetic(other, addBN),
-		subtracting: (other: Amount): Result<Amount, Error> =>
+		subtracting: (other: AmountT): Result<AmountT, Error> =>
 			doArithmetic(other, subBN),
 
-		multiplied: (by: Amount): Result<Amount, Error> =>
+		multiplied: (by: AmountT): Result<AmountT, Error> =>
 			doArithmetic(by, mulBN),
 	}
 }
@@ -185,15 +189,15 @@ const denominationConversionOfMagnitude = (
 
 export type AmountInputUnsafe = UInt256InputUnsafe
 
-export const amountFromUnsafe = (
-	input: Amount | AmountInputUnsafe,
+const fromUnsafe = (
+	input: AmountT | AmountInputUnsafe,
 	denomination: Denomination = Denomination.Whole,
-): Result<Amount, Error> => {
+): Result<AmountT, Error> => {
 	return isAmount(input)
 		? ok(input)
 		: isUnsafeInputForUInt256(input)
 		? uint256FromUnsafe(input).andThen((magnitude) =>
-				amountFromUInt256({
+				fromUInt256({
 					magnitude,
 					denomination,
 				}),
@@ -205,21 +209,23 @@ const addBN = (a: BN, b: BN): BN => a.add(b)
 const subBN = (a: BN, b: BN): BN => a.sub(b)
 const mulBN = (a: BN, b: BN): BN => a.mul(b)
 
-export const amountFromUInt256 = (
+const fromUInt256 = (
 	input: Readonly<{
 		magnitude: UInt256
 		denomination: Denomination
 	}>,
-): Result<Amount, Error> => {
+): Result<AmountT, Error> => {
 	return expressMagnitudeInSmallestDenomination(input).map(
-		amountInSmallestDenomination,
+		inSmallestDenomination,
 	)
 }
 /* eslint-enable max-params */
 
 // eslint-disable-next-line complexity
-export const isAmount = (something: Amount | unknown): something is Amount => {
-	const inspection = something as Amount
+export const isAmount = (
+	something: AmountT | unknown,
+): something is AmountT => {
+	const inspection = something as AmountT
 	return (
 		inspection.magnitude !== undefined &&
 		inspection.isMultipleOf !== undefined &&
@@ -229,8 +235,8 @@ export const isAmount = (something: Amount | unknown): something is Amount => {
 	)
 }
 
-const makeAmount = (amount: number): Amount =>
-	amountInSmallestDenomination(UInt256.valueOf(amount))
+const makeAmount = (amount: number): AmountT =>
+	inSmallestDenomination(UInt256.valueOf(amount))
 
 export const zero = makeAmount(0)
 export const one = makeAmount(1)
@@ -249,7 +255,16 @@ export const thirteen = makeAmount(13)
 export const fourteen = makeAmount(14)
 export const fifteen = makeAmount(15)
 
-export const maxAmount = amountFromUInt256({
+export const maxAmount = fromUInt256({
 	magnitude: uint256Max,
 	denomination: Denomination.Atto,
 })._unsafeUnwrap()
+
+export const Amount = {
+	JSON_TAG,
+	JSONDecoders,
+	fromJSON,
+	inSmallestDenomination,
+	fromUnsafe,
+	fromUInt256,
+}

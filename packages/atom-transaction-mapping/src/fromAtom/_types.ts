@@ -1,23 +1,18 @@
-import {
-	AnyUpParticle,
-	Atom,
-	ResourceIdentifier,
-	TokenBase,
-	TokenDefinitionBase,
-} from '@radixdlt/atom'
-import { Address } from '@radixdlt/crypto'
-import { Amount } from '@radixdlt/primitives'
+import { AnyUpParticle, TokenBase, TokenDefinitionBase } from '@radixdlt/atom'
+import { AtomT, ResourceIdentifierT } from '@radixdlt/atom/src/_types'
+import { AddressT } from '@radixdlt/crypto'
+import { AmountT } from '@radixdlt/primitives'
 import { Result } from 'neverthrow'
 import { Observable } from 'rxjs'
 
 export type TokenDefinition = TokenDefinitionBase &
 	Readonly<{
 		/// For MutableSupplyTokens the `supply` fields needs to be calculated by reducing state.
-		supply?: Amount
+		supply?: AmountT
 	}>
 
 export type TokenAmount = Readonly<{
-	amount: Amount
+	amount: AmountT
 	token: TokenBase | TokenDefinition
 }>
 
@@ -31,13 +26,13 @@ export type ExecutedUserAction = Readonly<{
 
 export type TokenTransfer = ExecutedUserAction &
 	Readonly<{
-		from: Address
-		to: Address
+		from: AddressT
+		to: AddressT
 		tokenAmount: TokenAmount
 	}>
 
 export type TokenBalance = Readonly<{
-	owner: Address
+	owner: AddressT
 	tokenAmount: TokenAmount
 }>
 
@@ -51,19 +46,19 @@ export type ApplicationState = Readonly<{
 
 export type TokenBalancesForOneAccount = ApplicationState &
 	Readonly<{
-		balances: Map<ResourceIdentifier, TokenBalance>
-		owner: Address
+		balances: Map<ResourceIdentifierT, TokenBalance>
+		owner: AddressT
 		size: number
 		balanceOf: (
-			resourceIdentifier: ResourceIdentifier,
+			resourceIdentifier: ResourceIdentifierT,
 		) => TokenBalance | undefined
 	}>
 
 export type TokenBalancesPerAccount = ApplicationState &
 	Readonly<{
-		balances: Map<Address, TokenBalancesForOneAccount>
+		balances: Map<AddressT, TokenBalancesForOneAccount>
 		size: number
-		balancesFor: (owner: Address) => TokenBalancesForOneAccount
+		balancesFor: (owner: AddressT) => TokenBalancesForOneAccount
 	}>
 
 export type ParticleReducer<S extends ApplicationState> = Readonly<{
@@ -87,8 +82,8 @@ export type TokenBalancesPerAccountReducer = ParticleReducer<TokenBalancesPerAcc
 	}>
 
 export type AtomToActionMapperInput = Readonly<{
-	atom: Atom
-	addressOfActiveAccount: Address
+	atom: AtomT
+	addressOfActiveAccount: AddressT
 }>
 
 export type AtomToExecutedActionsMapper<

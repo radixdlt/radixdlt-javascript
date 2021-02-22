@@ -1,5 +1,5 @@
 import { combine, err, ok, Result } from 'neverthrow'
-import { Address } from '@radixdlt/crypto'
+import { AddressT } from '@radixdlt/crypto'
 import { Granularity } from '@radixdlt/primitives'
 import { ParticleBase, TokenDefinitionParticleBase } from './_types'
 import { granularityDefault } from '@radixdlt/primitives'
@@ -14,7 +14,7 @@ import {
 	OutputMode,
 } from '@radixdlt/data-formats'
 import { isRadixParticle, RadixParticleType } from './meta/_index'
-import { resourceIdentifierFromAddressAndName } from '../resourceIdentifier'
+import { ResourceIdentifier } from '../resourceIdentifier'
 
 export type URLInput = string | URL
 
@@ -114,7 +114,7 @@ const notUndefinedOrCrash = <T>(value: T | undefined): T => {
 export type TokenDefinitionParticleInput = Readonly<{
 	symbol: string
 	name: string
-	address: Address
+	address: AddressT
 	description?: string
 	granularity?: Granularity
 	url?: URLInput
@@ -193,7 +193,7 @@ export const baseTokenDefinitionParticle = (
 				name: notUndefinedOrCrash(resultList[1]),
 				description: resultList[2],
 				granularity: input.granularity ?? granularityDefault,
-				resourceIdentifier: resourceIdentifierFromAddressAndName({
+				resourceIdentifier: ResourceIdentifier.fromAddressAndName({
 					address: input.address,
 					name: notUndefinedOrCrash(resultList[0]),
 				}),
