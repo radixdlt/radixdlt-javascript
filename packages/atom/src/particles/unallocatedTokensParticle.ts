@@ -21,11 +21,14 @@ import { ResourceIdentifier } from '../resourceIdentifier'
 const radixParticleType = RadixParticleType.UNALLOCATED_TOKENS
 const SERIALIZER = 'radix.particles.unallocated_tokens'
 
-const JSON = (input: TokenParticle): JSONEncodable =>
-	JSONEncoding(SERIALIZER)({ ...tokenSerializationKeyValues(input) })
+const serialization = (input: TokenParticle): JSONEncodable & DSONCodable => {
+	const keyValues = tokenSerializationKeyValues(input)
 
-const DSON = (input: TokenParticle): DSONCodable =>
-	DSONEncoding(SERIALIZER)({ ...tokenSerializationKeyValues(input) })
+	return {
+		...JSONEncoding(SERIALIZER)({ ...keyValues }),
+		...DSONEncoding(SERIALIZER)({ ...keyValues })
+	}
+}
 
 const { fromJSON, JSONDecoders } = JSONDecoding<UnallocatedTokensParticleT>(
 	Amount,
@@ -45,8 +48,7 @@ export const unallocatedTokensParticle = (
 	}
 
 	return {
-		...JSON(props),
-		...DSON(props),
+		...serialization(props),
 
 		...withTokenParticleEquals()(props),
 
