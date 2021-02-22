@@ -8,13 +8,11 @@ import {
 import { atomIdentifier } from './atomIdentifier'
 import { particleGroups } from './particleGroups'
 import {
-	Decoder,
 	DSONCodable,
 	DSONEncoding,
 	JSONDecoding,
 	JSONEncodable,
 	JSONEncoding,
-	JSONObjectDecoder,
 	objectDecoder,
 } from '@radixdlt/data-formats'
 import { ok } from 'neverthrow'
@@ -37,23 +35,20 @@ type Input = Readonly<{
 	message?: string
 }>
 
-const DSON = (
+const serialization = (
 	input: Readonly<{
 		particleGroups: ParticleGroupT[]
 	}>,
-): DSONCodable =>
-	DSONEncoding(SERIALIZER)({
-		particleGroups: input.particleGroups,
-	})
+): DSONCodable & JSONEncodable => {
+	const keyValues = {
+		particleGroups: input.particleGroups
+	}
 
-const JSON = (
-	input: Readonly<{
-		particleGroups: ParticleGroupT[]
-	}>,
-): JSONEncodable =>
-	JSONEncoding(SERIALIZER)({
-		particleGroups: input.particleGroups,
-	})
+	return {
+		...DSONEncoding(SERIALIZER)(keyValues),
+		...JSONEncoding(SERIALIZER)(keyValues)
+	}
+}
 
 const { JSONDecoders, fromJSON } = JSONDecoding(ParticleGroup)(
 	objectDecoder(SERIALIZER, (input: Input) => ok(create(input))),
@@ -65,10 +60,7 @@ const create = (input: Input): AtomT => {
 		input.particleGroups ?? particleGroups([])
 
 	return {
-		...JSON({
-			particleGroups: particleGroups_.groups,
-		}),
-		...DSON({
+		...serialization({
 			particleGroups: particleGroups_.groups,
 		}),
 
