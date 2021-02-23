@@ -19,7 +19,7 @@ import { Atom } from '../src/atom'
 import { TransferrableTokensParticle } from '../src/particles/transferrableTokensParticle'
 import { ResourceIdentifier } from '../src/resourceIdentifier'
 import { particleGroups } from '../src/particleGroups'
-import { particleGroup } from '../src/particleGroup'
+import { ParticleGroup } from '../src/particleGroup'
 import { signatureFromHexStrings } from './helpers/utility'
 import { Spin } from '../src/particles/_types'
 import { RadixParticleType } from '../src/particles/meta/radixParticleTypes'
@@ -43,13 +43,15 @@ describe('atom', () => {
 	})
 
 	it('can query anySpunParticles by spin=DOWN and by type=ResourceIdentifierParticle OR TransferrableTokensParticle since an atom itself is SpunParticles', () => {
-		const atom = Atom.create({
-			particleGroups: particleGroups([particleGroup(spunParticles_)]),
+		const atom_ = Atom.create({
+			particleGroups: particleGroups([
+				ParticleGroup.create(spunParticles_),
+			]),
 		})
 
 		expect(
 			exactlyContainParticles({
-				actual: atom.anySpunParticlesOfTypeWithSpin({
+				actual: atom_.anySpunParticlesOfTypeWithSpin({
 					spin: Spin.DOWN,
 					particleTypes: [
 						RadixParticleType.RESOURCE_IDENTIFIER,
@@ -130,7 +132,7 @@ describe('atom', () => {
 			nonce: nonce_,
 		})._unsafeUnwrap()
 
-		const particleGroup_ = particleGroup([
+		const particleGroup_ = ParticleGroup.create([
 			spunParticle({
 				spin: Spin.UP,
 				particle: ttp,

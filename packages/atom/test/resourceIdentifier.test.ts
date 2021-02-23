@@ -58,17 +58,14 @@ describe('ResourceIdentifier (RRI)', () => {
 		expect(json).toEqual(expected)
 	})
 
-	/*
 	it('should be able to JSON decode', () => {
-		const fromJSON = fromJSONDefault(RRIJSONDecoder)()
+		const raw = `${ResourceIdentifier.JSON_TAG}/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR`
 
-		const raw = `${JSON_TAG}/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR`
-
-		const result = fromJSON<ResourceIdentifier>(raw)
-		const expected = resourceIdentifierFromString(
+		const result = ResourceIdentifier.fromJSON(raw)._unsafeUnwrap()
+		const expected = ResourceIdentifier.fromString(
 			'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR',
 		)._unsafeUnwrap()
 
-		expect(JSON.stringify(result)).toEqual(JSON.stringify(expected))
-	})*/
+		expect(result.equals(expected)).toEqual(true)
+	})
 })

@@ -35,11 +35,11 @@ const JSON = (
 
 const { JSONDecoders, fromJSON } = JSONDecoding(SpunParticle)(
 	objectDecoder(SERIALIZER, (input: SpunParticles | AnySpunParticle[]) =>
-		ok(particleGroup(input)),
+		ok(create(input)),
 	),
 )
 
-export const particleGroup = (
+export const create = (
 	spunParticles: SpunParticles | AnySpunParticle[],
 ): ParticleGroupT => {
 	const spunParticles_: SpunParticles = isSpunParticles(spunParticles)
@@ -55,6 +55,7 @@ export const particleGroup = (
 }
 
 export const ParticleGroup = {
+	create,
 	fromJSON,
 	JSONDecoders,
 	SERIALIZER,

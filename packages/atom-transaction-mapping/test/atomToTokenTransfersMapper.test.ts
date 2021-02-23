@@ -6,8 +6,8 @@ import {
 	spunParticle,
 	spunUpParticle,
 	TokenDefinitionParticleBase,
-	particleGroup,
 	Atom,
+	ParticleGroup,
 } from '@radixdlt/atom'
 import {
 	TransferTokensAction,
@@ -30,7 +30,7 @@ import {
 	syncMapAtomToTokenTransfers as mapAtomToTokenTransfers,
 	pgToTokenTransfer,
 } from '../src/fromAtom/atomToTokenTransfersMapper'
-import { Address, AddressT } from '@radixdlt/crypto'
+import { AddressT } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
 import { TokenTransfer } from '../src/fromAtom/_types'
 import { unallocatedTokensParticleFromUnsafe } from '../../atom/test/helpers/utility'
@@ -247,7 +247,7 @@ describe('AtomToTokenTransfersMapper', () => {
 	const makeUpTTP = upTTP.bind(null, aliceCoin)
 	const makeDownTTP = downTTP.bind(null, aliceCoin)
 	it('should fail with a PG containing 3 participants', () => {
-		const weirdParticleGroup = particleGroup([
+		const weirdParticleGroup = ParticleGroup.create([
 			makeUpTTP(alice, five),
 			makeDownTTP(alice, one),
 			makeUpTTP(bob, one),
@@ -269,7 +269,7 @@ describe('AtomToTokenTransfersMapper', () => {
 	})
 
 	it('should fail with a PG containing down TTPs from multiple addresses', () => {
-		const weirdParticleGroup = particleGroup([
+		const weirdParticleGroup = ParticleGroup.create([
 			makeDownTTP(alice, one),
 			makeDownTTP(bob, two),
 		])
@@ -284,7 +284,7 @@ describe('AtomToTokenTransfersMapper', () => {
 	})
 
 	it('should fail with a PG containing an UnallocatedTokenParticle', () => {
-		const burnActionParticleGroup = particleGroup([
+		const burnActionParticleGroup = ParticleGroup.create([
 			makeUpTTP(alice, three),
 			makeDownTTP(alice, three),
 			makeUnallocatedTokenParticleWithSpin(

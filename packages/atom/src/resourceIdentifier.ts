@@ -3,11 +3,9 @@ import { ResourceIdentifierT } from './_types'
 import { err, ok, Result } from 'neverthrow'
 import { addressFromBase58String } from '@radixdlt/crypto'
 import {
-	Decoder,
 	DSONObjectEncoding,
 	JSONDecoding,
 	JSONEncoding,
-	JSONPrimitiveDecoder,
 	primitiveDecoder,
 	serializerNotNeeded,
 } from '@radixdlt/data-formats'
