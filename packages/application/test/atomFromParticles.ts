@@ -1,6 +1,6 @@
 import {
 	AnySpunParticle,
-	particleGroup,
+	ParticleGroup,
 	particleGroups,
 	Signatures,
 	SpunParticles,
@@ -41,5 +41,5 @@ export const atomWithSpunParticles = (
 ): AtomT =>
 	atomWithParticleGroup({
 		...input,
-		particleGroup: particleGroup(input.spunParticles),
+		particleGroup: ParticleGroup.create(input.spunParticles),
 	})

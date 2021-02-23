@@ -22,7 +22,7 @@ import { addressFromBase58String } from '@radixdlt/crypto'
 import { makeTokenPermissions } from '../src/tokenPermissions'
 import {
 	Atom,
-	particleGroup,
+	ParticleGroup,
 	particleGroups,
 	ResourceIdentifier,
 	TransferrableTokensParticle,
@@ -45,7 +45,7 @@ describe('atom', () => {
 
 	it('can query anySpunParticles by spin=DOWN and by type=ResourceIdentifierParticle OR TransferrableTokensParticle since an atom itself is SpunParticles', () => {
 		const atom_ = Atom.create({
-			particleGroups: particleGroups([particleGroup(spunParticles_)]),
+			particleGroups: particleGroups([ParticleGroup.create(spunParticles_)]),
 		})
 
 		expect(
@@ -131,7 +131,7 @@ describe('atom', () => {
 			nonce: nonce_,
 		})._unsafeUnwrap()
 
-		const particleGroup_ = particleGroup([
+		const particleGroup_ = ParticleGroup.create([
 			spunParticle({
 				spin: Spin.UP,
 				particle: ttp,

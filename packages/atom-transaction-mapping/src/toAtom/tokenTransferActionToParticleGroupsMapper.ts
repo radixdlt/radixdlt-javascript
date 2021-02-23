@@ -4,12 +4,11 @@ import {
 	TokenTransferActionToParticleGroupsMapper,
 } from './_types'
 import {
+	ParticleGroup,
 	spunParticles,
 	UpParticle,
-	ParticleGroup,
-	particleGroup,
 } from '@radixdlt/atom'
-import { Address, AddressT } from '@radixdlt/crypto'
+import { AddressT } from '@radixdlt/crypto'
 import { combine, Result } from 'neverthrow'
 import { makeTransitioner } from './fungibleParticleTransitioner'
 import {
@@ -63,7 +62,7 @@ const particleGroupsFromTransferTokensAction = (
 			totalAmountToTransfer: transferAction.amount,
 		})
 		.map((spp) => spunParticles(spp))
-		.map((sps) => [particleGroup(sps)])
+		.map((sps) => [ParticleGroup.create(sps)])
 }
 
 export const tokenTransferActionToParticleGroupsMapper = (): TokenTransferActionToParticleGroupsMapper => {

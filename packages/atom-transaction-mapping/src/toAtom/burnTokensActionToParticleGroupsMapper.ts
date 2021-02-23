@@ -1,16 +1,13 @@
 import { BurnTokensAction, UserActionType } from '@radixdlt/actions'
 import {
 	isMutableTokenDefinitionParticle,
-	particleGroup,
 	ParticleGroup,
 	spunParticles,
 	TokenDefinitionParticleBase,
-	TransferrableTokensParticle,
 	unallocatedTokensParticle,
-	UnallocatedTokensParticle,
 	UpParticle,
 } from '@radixdlt/atom'
-import { Address, AddressT } from '@radixdlt/crypto'
+import { AddressT } from '@radixdlt/crypto'
 import { err, Result, ok, combine } from 'neverthrow'
 import { BurnTokensActionToParticleGroupsMapper, MapperInput } from './_types'
 import { makeTransitioner } from './fungibleParticleTransitioner'
@@ -72,7 +69,7 @@ const particleGroupsFromBurnTokensAction = (
 			totalAmountToTransfer: burnAction.amount,
 		})
 		.map((spp) => spunParticles(spp))
-		.map((sps) => [particleGroup(sps)])
+		.map((sps) => [ParticleGroup.create(sps)])
 }
 
 const tokenDefinitionValidation = (input: {
