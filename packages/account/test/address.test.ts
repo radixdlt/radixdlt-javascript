@@ -1,18 +1,18 @@
-import { privateKeyFromScalar, generatePrivateKey } from '@radixdlt/crypto'
+import { UInt256 } from '@radixdlt/uint256'
+import {
+	addressFromPublicKeyAndMagic,
+	addressFromBase58String,
+	AddressT,
+	isAddress,
+	Address,
+} from '../src/_index'
 
 import { magicFromNumber } from '@radixdlt/primitives'
-import { UInt256 } from '@radixdlt/uint256'
 import { OutputMode } from '@radixdlt/data-formats'
-import { Address } from '../src/_types'
-import {
-	addressFromBase58String,
-	addressFromPublicKeyAndMagic,
-	isAddress,
-	JSON_TAG,
-} from '../src/address'
+import { generatePrivateKey, privateKeyFromScalar } from '@radixdlt/crypto'
 
 // TODO CODE DUPLICATION remove to separate test package...
-export const toAddress = (b58: string): Address =>
+export const toAddress = (b58: string): AddressT =>
 	addressFromBase58String(b58)._unsafeUnwrap()
 
 describe('Address', () => {
@@ -61,7 +61,7 @@ describe('Address', () => {
 	})
 
 	it('should consider the same address to be equal itself', () => {
-		const makeAddress = (): Address =>
+		const makeAddress = (): AddressT =>
 			toAddress('9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT')
 		expect(makeAddress().equals(makeAddress())).toBe(true)
 	})
@@ -169,7 +169,7 @@ describe('Address', () => {
 			'9SAU2m7yis9iE5u2L44poZ6rYf5JiTAN6GtiRnsBk6JnXoMoAdks',
 		)
 
-		const castOfCharacters: Address[] = [
+		const castOfCharacters: AddressT[] = [
 			alice,
 			bob,
 			carol,
@@ -208,8 +208,18 @@ describe('Address', () => {
 	it('should be able to JSON encode', () => {
 		const raw = '9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT'
 		const address = toAddress(raw)
-		const json = address.toJSON()
+		const json = address.toJSON()._unsafeUnwrap()
 		if (!json) fail('Should have json')
-		expect(json.toString()).toBe(`${JSON_TAG}${raw}`)
+		expect(json.toString()).toBe(`${Address.JSON_TAG}${raw}`)
+	})
+
+	it('should be able to JSON decode', () => {
+		const raw = '9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT'
+		const expected = toAddress(raw)
+
+		const decoded = Address.fromJSON(
+			`${Address.JSON_TAG}9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT`,
+		)._unsafeUnwrap()
+		expect(decoded.equals(expected)).toBe(true)
 	})
 })

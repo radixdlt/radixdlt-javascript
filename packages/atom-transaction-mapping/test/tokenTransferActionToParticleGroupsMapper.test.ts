@@ -5,7 +5,6 @@ import {
 	TokenParticle,
 	TokenDefinitionParticleBase,
 } from '@radixdlt/atom'
-import { amountInSmallestDenomination } from '@radixdlt/primitives'
 import {
 	testMapperReturns___Unknown_Token___error_when_no_token_definition_particle,
 	testMapperReturns___Insufficient_Balance___error_when_no_transferrable_tokens_particles,
@@ -22,20 +21,21 @@ import {
 	TestVector,
 	mutableSupplyTokenDefinitionParticleAllCanMutate,
 } from './consumeTokensActionToParticleGroupsMapperBase'
-import { Address } from '@radixdlt/account'
 import { UInt256 } from '@radixdlt/uint256'
+import { Amount } from '@radixdlt/primitives'
+import { AddressT } from '@radixdlt/account'
 
 describe('TokenTransferActionToParticleGroupsMapper', () => {
 	const mapper = tokenTransferActionToParticleGroupsMapper()
 
 	const makeTransferAction = (
 		amount: number = 1337,
-		actor?: Address,
+		actor?: AddressT,
 	): TransferTokensAction => {
 		return transferTokensAction({
 			to: bob,
 			from: actor ?? alice,
-			amount: amountInSmallestDenomination(UInt256.valueOf(amount)),
+			amount: Amount.inSmallestDenomination(UInt256.valueOf(amount)),
 			resourceIdentifier: rri,
 		})
 	}

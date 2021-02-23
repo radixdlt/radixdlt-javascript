@@ -9,13 +9,13 @@ import {
 import { Observable } from 'rxjs'
 import { BIP32 } from './bip32/_types'
 
-export type Address = JSONEncodable &
+export type AddressT = JSONEncodable &
 	DSONCodable &
 	Readonly<{
 		publicKey: PublicKey
 		magicByte: Byte
 		toString: () => string
-		equals: (other: Address) => boolean
+		equals: (other: AddressT) => boolean
 	}>
 
 export type AccountIdFromBIP32Path = Readonly<{

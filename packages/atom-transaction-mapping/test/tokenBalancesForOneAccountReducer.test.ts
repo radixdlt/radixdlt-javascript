@@ -1,16 +1,13 @@
-import { Address } from '@radixdlt/account'
 import {
 	AnyUpParticle,
 	ResourceIdentifier,
-	resourceIdentifierFromAddressAndName,
+	ResourceIdentifierT,
 	TransferrableTokensParticle,
-	transferrableTokensParticle,
+	TransferrableTokensParticleT,
 	upParticle,
 } from '@radixdlt/atom'
 import { toAddress } from '@radixdlt/atom/test/helpers/utility'
 import {
-	Amount,
-	amountInSmallestDenomination,
 	eight,
 	five,
 	Granularity,
@@ -20,10 +17,14 @@ import {
 	three,
 	seven,
 	two,
+	AmountT,
+	Amount,
 } from '@radixdlt/primitives'
 import { tokenBalancesForOneAccountReducer } from '../src/fromAtom/tokenBalancesForOneAccountReducer'
 
 import { UInt256 } from '@radixdlt/uint256'
+
+import { AddressT } from '@radixdlt/account'
 
 describe('TokenBalancesForOneAccountReducer', () => {
 	const alice = toAddress(
@@ -38,32 +39,32 @@ describe('TokenBalancesForOneAccountReducer', () => {
 		'9S8PWQF9smUics1sZEo7CrYgKgCkcopvt9HfWJMTrtPyV2rg7RAG',
 	)
 
-	const aliceCoin = resourceIdentifierFromAddressAndName({
+	const aliceCoin = ResourceIdentifier.fromAddressAndName({
 		address: alice,
 		name: 'ALICE',
 	})
 
-	const stellaCoin = resourceIdentifierFromAddressAndName({
+	const stellaCoin = ResourceIdentifier.fromAddressAndName({
 		address: stella,
 		name: 'STELLA',
 	})
 
-	type AmountLike = number | Amount
-	const makeAmount = (amount: AmountLike): Amount =>
+	type AmountLike = number | AmountT
+	const makeAmount = (amount: AmountLike): AmountT =>
 		isAmount(amount)
 			? amount
-			: amountInSmallestDenomination(UInt256.valueOf(amount))
+			: Amount.inSmallestDenomination(UInt256.valueOf(amount))
 
 	const granularity: Granularity = one
 
 	type MakeTTPInput = Readonly<{
-		resourceIdentifier?: ResourceIdentifier
-		owner?: Address
+		resourceIdentifier?: ResourceIdentifierT
+		owner?: AddressT
 		amount: AmountLike
 	}>
 
-	const makeTTP = (input: MakeTTPInput): TransferrableTokensParticle =>
-		transferrableTokensParticle({
+	const makeTTP = (input: MakeTTPInput): TransferrableTokensParticleT =>
+		TransferrableTokensParticle.create({
 			amount: makeAmount(input.amount),
 			granularity,
 			resourceIdentifier: input.resourceIdentifier ?? aliceCoin,

@@ -1,19 +1,20 @@
-import { resourceIdentifierFromAddressAndName } from '@radixdlt/atom'
 import { addressFromBase58String } from '@radixdlt/account'
-import { amountFromUnsafe, Denomination, zero } from '@radixdlt/primitives'
+import { Denomination, zero } from '@radixdlt/primitives'
 import { BurnTokensActionInput } from '../src/_types'
 import { burnTokensAction } from '../src/burnTokensAction'
+import { Amount } from '@radixdlt/primitives/src/amount'
+import { ResourceIdentifier } from '@radixdlt/atom'
 
 describe('BurnTokensAction', () => {
 	const alice = addressFromBase58String(
 		'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
 	)._unsafeUnwrap()
 
-	const rri = resourceIdentifierFromAddressAndName({
+	const rri = ResourceIdentifier.fromAddressAndName({
 		address: alice,
 		name: 'FOOBAR',
 	})
-	const amount = amountFromUnsafe(6, Denomination.Atto)._unsafeUnwrap()
+	const amount = Amount.fromUnsafe(6, Denomination.Atto)._unsafeUnwrap()
 
 	const input = <BurnTokensActionInput>{
 		burner: alice,

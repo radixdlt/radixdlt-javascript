@@ -3,21 +3,22 @@ import {
 	asUpParticle,
 	Spin,
 	spunParticles,
-	transferrableTokensParticle,
+	TransferrableTokensParticleT,
 	TransferrableTokensParticle,
 	UpParticle,
 } from '@radixdlt/atom'
-import { Address } from '@radixdlt/account'
+import { AddressT } from '@radixdlt/account'
+import { AmountT } from '@radixdlt/primitives'
 import { Result } from 'neverthrow'
-import { Amount } from '@radixdlt/primitives'
 
 export const transferrableTokensParticleFromOther = (
-	address: Address,
-	amount: Amount,
-	from: TransferrableTokensParticle,
-): Result<TransferrableTokensParticle, Error> =>
-	transferrableTokensParticle({
+	address: AddressT,
+	amount: AmountT,
+	from: TransferrableTokensParticleT,
+): Result<TransferrableTokensParticleT, Error> =>
+	TransferrableTokensParticle.create({
 		...from,
+		permissions: from.permissions.permissions,
 		amount,
 		address,
 		nonce: undefined, // IMPORTANT to not reuse nonce.
@@ -26,9 +27,9 @@ export const transferrableTokensParticleFromOther = (
 export const collectUpParticles = (
 	input: Readonly<{
 		upParticles: AnyUpParticle[]
-		addressOfActiveAccount: Address
+		addressOfActiveAccount: AddressT
 	}>,
-): Result<UpParticle<TransferrableTokensParticle>, Error>[] => {
+): Result<UpParticle<TransferrableTokensParticleT>, Error>[] => {
 	return spunParticles(input.upParticles)
 		.transferrableTokensParticles(Spin.UP)
 		.filter((sp) =>

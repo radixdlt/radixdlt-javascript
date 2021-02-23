@@ -1,9 +1,9 @@
 import {
 	AnyUpParticle,
 	isTransferrableTokensParticle,
-	TransferrableTokensParticle,
+	TransferrableTokensParticleT,
 } from '@radixdlt/atom'
-import { Address } from '@radixdlt/account'
+import { AddressT } from '@radixdlt/account'
 import { mapEquals } from '@radixdlt/util'
 import { ok, Result } from 'neverthrow'
 import { makeParticleReducer } from './particleReducer'
@@ -21,17 +21,17 @@ import {
 } from './_types'
 
 export const tokenBalancesPerAccount = (
-	balances: Map<Address, TokenBalancesForOneAccount>,
+	balances: Map<AddressT, TokenBalancesForOneAccount>,
 ): TokenBalancesPerAccount => ({
 	stateType: ApplicationStateType.TOKEN_BALANCES_PER_ACCOUNT,
 	balances: balances,
 	size: balances.size,
-	balancesFor: (owner: Address): TokenBalancesForOneAccount =>
+	balancesFor: (owner: AddressT): TokenBalancesForOneAccount =>
 		balances.get(owner) ?? emptyTokenBalancesForOneAccount(owner),
 })
 
 const tokenBalancesPerAccountFromParticle = (
-	particle: TransferrableTokensParticle,
+	particle: TransferrableTokensParticleT,
 ): TokenBalancesPerAccount => {
 	const tokenBalancesForOneAccount_ = tokenBalancesForOneAccountFromParticle(
 		particle,

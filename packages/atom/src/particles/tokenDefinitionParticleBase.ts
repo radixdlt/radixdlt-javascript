@@ -1,5 +1,5 @@
 import { combine, err, ok, Result } from 'neverthrow'
-import { Address } from '@radixdlt/account'
+import { AddressT } from '@radixdlt/account'
 import { Granularity } from '@radixdlt/primitives'
 import { ParticleBase, TokenDefinitionParticleBase } from './_types'
 import { granularityDefault } from '@radixdlt/primitives'
@@ -9,11 +9,12 @@ import {
 	DSONCodable,
 	DSONEncoding,
 	DSONKeyValues,
-	DSONPrimitive,
+	JSONEncoding,
 	OutputMode,
+	SerializableKeyValues,
 } from '@radixdlt/data-formats'
 import { isRadixParticle, RadixParticleType } from './meta/_index'
-import { resourceIdentifierFromAddressAndName } from '../resourceIdentifier'
+import { ResourceIdentifier } from '../resourceIdentifier'
 
 export type URLInput = string | URL
 
@@ -22,10 +23,8 @@ export const validateURLInput = (
 ): Result<string | undefined, Error> => {
 	if (urlInput === undefined) return ok(undefined)
 	if (typeof urlInput === 'string') {
-		// eslint-disable-next-line functional/no-try-statement
 		try {
-			// eslint-disable-next-line
-			const __validated_working_url_that_is_discarded = new URL(urlInput)
+			new URL(urlInput)
 			return ok(urlInput)
 		} catch {
 			return err(
@@ -37,9 +36,8 @@ export const validateURLInput = (
 	}
 }
 
-export const onlyUppercasedAlphanumerics = (input: string): boolean => {
-	return new RegExp('^[A-Z0-9]+$').test(input)
-}
+export const onlyUppercasedAlphanumerics = (input: string): boolean =>
+	new RegExp('^[A-Z0-9]+$').test(input)
 
 export const RADIX_TOKEN_NAME_MIN_LENGTH = 2
 export const RADIX_TOKEN_NAME_MAX_LENGTH = 64
@@ -113,7 +111,7 @@ const notUndefinedOrCrash = <T>(value: T | undefined): T => {
 export type TokenDefinitionParticleInput = Readonly<{
 	symbol: string
 	name: string
-	address: Address
+	address: AddressT
 	description?: string
 	granularity?: Granularity
 	url?: URLInput
@@ -135,7 +133,7 @@ export const keyValueIfPrimitivePresent = (
 	if (!definedOrNonNull(input.value)) return undefined
 	const indeed: DSONKeyValues = {
 		[input.key]: {
-			value: DSONPrimitive(input.value),
+			value: input.value,
 			outputMode: input.outputMode ?? OutputMode.ALL,
 		},
 	}
@@ -144,14 +142,14 @@ export const keyValueIfPrimitivePresent = (
 }
 
 export const encodableKeyValuesPresent = (
-	maybes: DSONKeyValues,
-): DSONKeyValues =>
+	maybes: SerializableKeyValues,
+): SerializableKeyValues =>
 	Object.keys(maybes)
 		.filter((key) => definedOrNonNull(maybes[key]))
 		.reduce((result, key) => {
 			result[key] = maybes[key]
 			return result
-		}, {} as DSONKeyValues)
+		}, {} as SerializableKeyValues)
 
 export const dsonEncodingMarker: DSONCodable = {
 	encoding: (outputMode: OutputMode): CBOREncodableObject => {
@@ -166,7 +164,7 @@ export const dsonEncodingMarker: DSONCodable = {
 export const baseTokenDefinitionParticle = (
 	input: TokenDefinitionParticleInput &
 		Readonly<{
-			specificEncodableKeyValues: DSONKeyValues
+			specificEncodableKeyValues: SerializableKeyValues
 			serializer: string
 			radixParticleType: RadixParticleType
 			makeEquals: (
@@ -192,7 +190,7 @@ export const baseTokenDefinitionParticle = (
 				name: notUndefinedOrCrash(resultList[1]),
 				description: resultList[2],
 				granularity: input.granularity ?? granularityDefault,
-				resourceIdentifier: resourceIdentifierFromAddressAndName({
+				resourceIdentifier: ResourceIdentifier.fromAddressAndName({
 					address: input.address,
 					name: notUndefinedOrCrash(resultList[0]),
 				}),
@@ -207,30 +205,35 @@ export const baseTokenDefinitionParticle = (
 				...dsonEncodingMarker,
 			}
 
-			const thisBase = {
-				...thisBaseBase,
-				...DSONEncoding(input.serializer)({
-					...input.specificEncodableKeyValues,
+			const keyValues = {
+				...input.specificEncodableKeyValues,
 
-					...encodableKeyValuesPresent({
-						rri: thisBaseBase.resourceIdentifier,
-						granularity: thisBaseBase.granularity,
-						name: DSONPrimitive(thisBaseBase.name),
+				...encodableKeyValuesPresent({
+					rri: thisBaseBase.resourceIdentifier,
+					granularity: thisBaseBase.granularity,
+					name: thisBaseBase.name,
 
-						...keyValueIfPrimitivePresent({
-							key: 'iconUrl',
-							value: thisBaseBase.iconURL,
-						}),
-						...keyValueIfPrimitivePresent({
-							key: 'url',
-							value: thisBaseBase.url,
-						}),
-						...keyValueIfPrimitivePresent({
-							key: 'description',
-							value: thisBaseBase.description,
-						}),
+					...keyValueIfPrimitivePresent({
+						key: 'iconUrl',
+						value: thisBaseBase.iconURL,
+					}),
+					...keyValueIfPrimitivePresent({
+						key: 'url',
+						value: thisBaseBase.url,
+					}),
+					...keyValueIfPrimitivePresent({
+						key: 'description',
+						value: thisBaseBase.description,
 					}),
 				}),
+			}
+
+			const thisBase = {
+				...thisBaseBase,
+
+				...JSONEncoding(input.serializer)(keyValues),
+
+				...DSONEncoding(input.serializer)(keyValues),
 			}
 
 			return {

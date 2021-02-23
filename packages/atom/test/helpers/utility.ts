@@ -2,45 +2,45 @@ import {
 	Address,
 	addressFromBase58String,
 	addressFromUnsafe,
+	AddressT,
 } from '@radixdlt/account'
-import { Signature } from '@radixdlt/crypto'
-import { ResourceIdentifier, TokenPermissions } from '../../src/_types'
+import { ResourceIdentifierT, TokenPermissions } from '../../src/_types'
 import {
-	Amount,
-	amountFromUnsafe,
+	AmountT,
 	AmountInputUnsafe,
 	Granularity,
+	Amount,
 } from '@radixdlt/primitives'
 import { combine, Result } from 'neverthrow'
-import { resourceIdentifierFromUnsafe } from '../../src/resourceIdentifier'
 import {
-	transferrableTokensParticle,
+	TransferrableTokensParticle,
 	TransferrableTokensParticleInput,
 } from '../../src/particles/transferrableTokensParticle'
 
 import { unallocatedTokensParticle } from '../../src/particles/unallocatedTokensParticle'
 import { UInt256 } from '@radixdlt/uint256'
 import {
-	TransferrableTokensParticle,
-	UnallocatedTokensParticle,
+	TransferrableTokensParticleT,
+	UnallocatedTokensParticleT,
 } from '../../src/particles/_types'
 import { TokenParticleInput } from '../../src/particles/meta/tokenParticle'
+import { ResourceIdentifier } from '../../src/resourceIdentifier'
 
 export const transferrableTokensParticleFromUnsafe = (
 	input: Readonly<{
-		address: Address | string
-		resourceIdentifier: ResourceIdentifier | string
+		address: AddressT | string
+		resourceIdentifier: ResourceIdentifierT | string
 		granularity: Granularity | AmountInputUnsafe
-		amount: Amount | AmountInputUnsafe
+		amount: AmountT | AmountInputUnsafe
 		permissions?: TokenPermissions
 	}>,
-): Result<TransferrableTokensParticle, Error> => {
+): Result<TransferrableTokensParticleT, Error> => {
 	const address = addressFromUnsafe(input.address)
-	const resourceIdentifier = resourceIdentifierFromUnsafe(
+	const resourceIdentifier = ResourceIdentifier.fromUnsafe(
 		input.resourceIdentifier,
 	)
-	const granularity = amountFromUnsafe(input.granularity)
-	const amount = amountFromUnsafe(input.amount)
+	const granularity = Amount.fromUnsafe(input.granularity)
+	const amount = Amount.fromUnsafe(input.amount)
 
 	return combine([address, resourceIdentifier, granularity, amount])
 		.map(
@@ -50,25 +50,27 @@ export const transferrableTokensParticleFromUnsafe = (
 					resourceIdentifier: resultList[1],
 					granularity: resultList[2],
 					amount: resultList[3],
-					permissions: input.permissions,
+					permissions: input.permissions
+						? input.permissions.permissions
+						: undefined,
 				},
 		)
-		.andThen(transferrableTokensParticle)
+		.andThen(TransferrableTokensParticle.create)
 }
 
 export const unallocatedTokensParticleFromUnsafe = (
 	input: Readonly<{
-		resourceIdentifier: ResourceIdentifier | string
+		resourceIdentifier: ResourceIdentifierT | string
 		granularity: Granularity | AmountInputUnsafe
-		amount: Amount | AmountInputUnsafe
+		amount: AmountT | AmountInputUnsafe
 		permissions?: TokenPermissions
 	}>,
-): Result<UnallocatedTokensParticle, Error> => {
-	const resourceIdentifier = resourceIdentifierFromUnsafe(
+): Result<UnallocatedTokensParticleT, Error> => {
+	const resourceIdentifier = ResourceIdentifier.fromUnsafe(
 		input.resourceIdentifier,
 	)
-	const granularity = amountFromUnsafe(input.granularity)
-	const amount = amountFromUnsafe(input.amount)
+	const granularity = Amount.fromUnsafe(input.granularity)
+	const amount = Amount.fromUnsafe(input.amount)
 
 	return combine([resourceIdentifier, granularity, amount])
 		.map(
@@ -77,7 +79,9 @@ export const unallocatedTokensParticleFromUnsafe = (
 					resourceIdentifier: resultList[0],
 					granularity: resultList[1],
 					amount: resultList[2],
-					permissions: input.permissions,
+					permissions: input.permissions
+						? input.permissions.permissions
+						: undefined,
 				},
 		)
 		.map(unallocatedTokensParticle)
@@ -98,5 +102,5 @@ export const signatureFromHexStrings = (input: {
 }
 
 // TODO CODE DUPLICATION remove to separate test package...
-export const toAddress = (b58: string): Address =>
+export const toAddress = (b58: string): AddressT =>
 	addressFromBase58String(b58)._unsafeUnwrap()

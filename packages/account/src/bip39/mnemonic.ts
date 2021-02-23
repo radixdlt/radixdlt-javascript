@@ -1,26 +1,26 @@
-import { err, Result } from "neverthrow";
-import { MnemomicT } from "./_types";
+import { err, Result } from 'neverthrow'
+import { MnemomicT } from './_types'
 import { mnemonicToEntropy, wordlists } from 'bip39'
 import HDNode = require('hdkey')
 
 export enum Language {
-    ENGLISH,
-    
+	ENGLISH,
 }
 
 const fromPhrase = (phrase: string): Result<MnemomicT, Error> => {
-    // if (!validateMnemonic(phrase)) return err(new Error('Invalid mnemonic phrase'))
-    try {
-        const entropy = mnemonicToEntropy(phrase, wordlists)
-    } catch (e) {
-
-    }
+	throw new Error('impl me')
+	// if (!validateMnemonic(phrase)) return err(new Error('Invalid mnemonic phrase'))
+	// try {
+	//     const entropy = mnemonicToEntropy(phrase, wordlists)
+	// } catch (e) {
+	//
+	// }
 }
 
-
-const fromWords = (words: string[]): Result<MnemomicT, Error> => fromPhrase(words.join(' '))
+const fromWords = (words: string[]): Result<MnemomicT, Error> =>
+	fromPhrase(words.join(' '))
 
 export const Mnemomic = {
-    fromPhrase,
-    fromWords,
+	fromPhrase,
+	fromWords,
 }

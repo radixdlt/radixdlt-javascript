@@ -1,19 +1,15 @@
 import { toAddress } from '../../account/test/address.test'
 import {
 	anyUpParticle,
-	atom,
-	fixedSupplyTokenDefinitionParticle,
 	particleGroups,
-	ResourceIdentifier,
 	Spin,
-	SpunParticle,
 	spunParticle,
 	spunUpParticle,
 	TokenDefinitionParticleBase,
+	Atom,
+	ParticleGroup,
+	FixedSupplyTokenDefinitionParticle,
 	TransferrableTokensParticle,
-	transferrableTokensParticle,
-	particleGroup,
-	UnallocatedTokensParticle,
 } from '@radixdlt/atom'
 import {
 	TransferTokensAction,
@@ -22,7 +18,7 @@ import {
 } from '@radixdlt/actions'
 import {
 	Amount,
-	amountInSmallestDenomination,
+	AmountT,
 	five,
 	Granularity,
 	isAmount,
@@ -36,10 +32,16 @@ import {
 	syncMapAtomToTokenTransfers as mapAtomToTokenTransfers,
 	pgToTokenTransfer,
 } from '../src/fromAtom/atomToTokenTransfersMapper'
-import { Address } from '@radixdlt/account'
 import { UInt256 } from '@radixdlt/uint256'
 import { TokenTransfer } from '../src/fromAtom/_types'
 import { unallocatedTokensParticleFromUnsafe } from '../../atom/test/helpers/utility'
+import { ResourceIdentifierT } from '@radixdlt/atom/src/_types'
+import {
+	SpunParticleT,
+	TransferrableTokensParticleT,
+	UnallocatedTokensParticleT,
+} from '@radixdlt/atom/src/particles/_types'
+import { AddressT } from '@radixdlt/account'
 
 describe('AtomToTokenTransfersMapper', () => {
 	const alice = toAddress(
@@ -53,7 +55,7 @@ describe('AtomToTokenTransfersMapper', () => {
 	)
 
 	const granularity: Granularity = one
-	const fixedSupplyTokenDefinitionParticle_ = fixedSupplyTokenDefinitionParticle(
+	const fixedSupplyTokenDefinitionParticle_ = FixedSupplyTokenDefinitionParticle.create(
 		{
 			granularity,
 			supply: maxAmount,
@@ -64,20 +66,20 @@ describe('AtomToTokenTransfersMapper', () => {
 	)._unsafeUnwrap()
 	const aliceCoin = fixedSupplyTokenDefinitionParticle_.resourceIdentifier
 
-	type AmountLike = number | Amount
-	const makeAmount = (amount: AmountLike): Amount =>
+	type AmountLike = number | AmountT
+	const makeAmount = (amount: AmountLike): AmountT =>
 		isAmount(amount)
 			? amount
-			: amountInSmallestDenomination(UInt256.valueOf(amount))
+			: Amount.inSmallestDenomination(UInt256.valueOf(amount))
 
 	const makeTTPWithSpin = (
 		spin: Spin,
-		resourceIdentifier: ResourceIdentifier,
-		owner: Address,
+		resourceIdentifier: ResourceIdentifierT,
+		owner: AddressT,
 		amount: AmountLike,
-	): SpunParticle<TransferrableTokensParticle> => {
+	): SpunParticleT<TransferrableTokensParticleT> => {
 		return spunParticle({
-			particle: transferrableTokensParticle({
+			particle: TransferrableTokensParticle.create({
 				amount: makeAmount(amount),
 				granularity,
 				resourceIdentifier: resourceIdentifier,
@@ -89,9 +91,9 @@ describe('AtomToTokenTransfersMapper', () => {
 
 	const makeUnallocatedTokenParticleWithSpin = (
 		spin: Spin,
-		resourceIdentifier: ResourceIdentifier,
+		resourceIdentifier: ResourceIdentifierT,
 		amount: AmountLike,
-	): SpunParticle<UnallocatedTokensParticle> => {
+	): SpunParticleT<UnallocatedTokensParticleT> => {
 		return spunParticle({
 			particle: unallocatedTokensParticleFromUnsafe({
 				amount: makeAmount(amount),
@@ -111,8 +113,8 @@ describe('AtomToTokenTransfersMapper', () => {
 	>
 	const makeTransferWithRRI = (
 		input: TransferTokensActionInputIsh & { amount: AmountLike },
-	): ((_: ResourceIdentifier) => TransferTokensAction) => (
-		rri: ResourceIdentifier,
+	): ((_: ResourceIdentifierT) => TransferTokensAction) => (
+		rri: ResourceIdentifierT,
 	): TransferTokensAction =>
 		transferTokensAction({
 			...input,
@@ -122,9 +124,9 @@ describe('AtomToTokenTransfersMapper', () => {
 
 	const expectSuccess = <T extends TokenDefinitionParticleBase>(
 		tokenDefinitionParticle: T,
-		makeTransfer: (rri: ResourceIdentifier) => TransferTokensAction,
+		makeTransfer: (rri: ResourceIdentifierT) => TransferTokensAction,
 		consumablesFromAmounts: AmountLike[],
-		filterTokenTransfersForAcccount: Address,
+		filterTokenTransfersForAcccount: AddressT,
 		validateTransfers: (tokenTransfers: TokenTransfer[]) => void,
 	): void => {
 		const resourceID = tokenDefinitionParticle.resourceIdentifier
@@ -135,7 +137,7 @@ describe('AtomToTokenTransfersMapper', () => {
 
 		const upTTPs = consumablesFromAmounts
 			.map(upTTP.bind(null, resourceID, actor))
-			.map((sp: SpunParticle<TransferrableTokensParticle>) =>
+			.map((sp: SpunParticleT<TransferrableTokensParticleT>) =>
 				sp.eraseToAny(),
 			)
 
@@ -154,7 +156,7 @@ describe('AtomToTokenTransfersMapper', () => {
 			._unsafeUnwrap()
 
 		const particleGroups_ = particleGroups(groups)
-		const atom_ = atom({ particleGroups: particleGroups_ })
+		const atom_ = Atom.create({ particleGroups: particleGroups_ })
 
 		const tokenTransfers = mapAtomToTokenTransfers({
 			atom: atom_,
@@ -164,10 +166,10 @@ describe('AtomToTokenTransfersMapper', () => {
 	}
 
 	const validateSingleTransfer = (
-		expectedSender: Address,
-		expectedRecipient: Address,
-		expectedAmount: Amount,
-		expectedResourceIdentifer: ResourceIdentifier,
+		expectedSender: AddressT,
+		expectedRecipient: AddressT,
+		expectedAmount: AmountT,
+		expectedResourceIdentifer: ResourceIdentifierT,
 	): ((_: TokenTransfer[]) => void) => (transfers: TokenTransfer[]): void => {
 		expect(transfers.length).toBe(1)
 		const tokenTransfer = transfers[0]
@@ -244,7 +246,7 @@ describe('AtomToTokenTransfersMapper', () => {
 	const makeUpTTP = upTTP.bind(null, aliceCoin)
 	const makeDownTTP = downTTP.bind(null, aliceCoin)
 	it('should fail with a PG containing 3 participants', () => {
-		const weirdParticleGroup = particleGroup([
+		const weirdParticleGroup = ParticleGroup.create([
 			makeUpTTP(alice, five),
 			makeDownTTP(alice, one),
 			makeUpTTP(bob, one),
@@ -266,7 +268,7 @@ describe('AtomToTokenTransfersMapper', () => {
 	})
 
 	it('should fail with a PG containing down TTPs from multiple addresses', () => {
-		const weirdParticleGroup = particleGroup([
+		const weirdParticleGroup = ParticleGroup.create([
 			makeDownTTP(alice, one),
 			makeDownTTP(bob, two),
 		])
@@ -281,7 +283,7 @@ describe('AtomToTokenTransfersMapper', () => {
 	})
 
 	it('should fail with a PG containing an UnallocatedTokenParticle', () => {
-		const burnActionParticleGroup = particleGroup([
+		const burnActionParticleGroup = ParticleGroup.create([
 			makeUpTTP(alice, three),
 			makeDownTTP(alice, three),
 			makeUnallocatedTokenParticleWithSpin(
@@ -304,17 +306,17 @@ describe('AtomToTokenTransfersMapper', () => {
 	})
 })
 
-const expectAddressesEqual = (lhs: Address, rhs: Address): void => {
+const expectAddressesEqual = (lhs: AddressT, rhs: AddressT): void => {
 	expect(lhs.toString()).toBe(rhs.toString())
 }
 
-const expectAmountsEqual = (lhs: Amount, rhs: Amount): void => {
+const expectAmountsEqual = (lhs: AmountT, rhs: AmountT): void => {
 	expect(lhs.toString()).toBe(rhs.toString())
 }
 
 const expectResourceIdentifiersEqual = (
-	lhs: ResourceIdentifier,
-	rhs: ResourceIdentifier,
+	lhs: ResourceIdentifierT,
+	rhs: ResourceIdentifierT,
 ): void => {
 	expect(lhs.toString()).toBe(rhs.toString())
 }

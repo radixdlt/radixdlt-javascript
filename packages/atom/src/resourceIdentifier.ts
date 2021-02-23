@@ -1,23 +1,35 @@
-import { Address, addressFromBase58String } from '@radixdlt/account'
-import { ResourceIdentifier } from './_types'
+import { ResourceIdentifierT } from './_types'
 import { err, ok, Result } from 'neverthrow'
-import { DSONObjectEncoding } from '@radixdlt/data-formats'
+import { addressFromBase58String, AddressT } from '@radixdlt/account'
+import {
+	DSONObjectEncoding,
+	JSONDecoding,
+	JSONEncoding,
+	primitiveDecoder,
+	serializerNotNeeded,
+} from '@radixdlt/data-formats'
 import { Byte } from '@radixdlt/util'
 
 const separator = '/'
 
 const CBOR_BYTESTRING_PREFIX: Byte = 6
+const JSON_TAG = ':rri:'
 
-export const resourceIdentifierFromAddressAndName = (input: {
-	address: Address
+const { JSONDecoders, fromJSON } = JSONDecoding<ResourceIdentifierT>()(
+	primitiveDecoder(JSON_TAG, (identifier: string) => fromString(identifier)),
+)
+
+const fromAddressAndName = (input: {
+	address: AddressT
 	name: string
-}): ResourceIdentifier => {
+}): ResourceIdentifierT => {
 	const address = input.address
 	const name = input.name
 
 	const identifier = ['', address.toString(), name].join(separator)
 
 	return {
+		...JSONEncoding(serializerNotNeeded)(() => `${JSON_TAG}${identifier}`),
 		...DSONObjectEncoding({
 			prefix: CBOR_BYTESTRING_PREFIX,
 			buffer: Buffer.from(identifier),
@@ -29,9 +41,9 @@ export const resourceIdentifierFromAddressAndName = (input: {
 	}
 }
 
-export const resourceIdentifierFromString = (
+const fromString = (
 	identifierString: string,
-): Result<ResourceIdentifier, Error> => {
+): Result<ResourceIdentifierT, Error> => {
 	const components = identifierString.split(separator)
 	if (components.length !== 3) return err(new Error('Invalid RRI string'))
 	if (components[0].length !== 0) return err(new Error('Expected leading /'))
@@ -39,7 +51,10 @@ export const resourceIdentifierFromString = (
 	if (name.length === 0) return err(new Error('Expected non empty name'))
 
 	return addressFromBase58String(components[1]).map(
-		(address: Address): ResourceIdentifier => ({
+		(address): ResourceIdentifierT => ({
+			...JSONEncoding(serializerNotNeeded)(
+				() => `${JSON_TAG}${identifierString}`,
+			),
 			...DSONObjectEncoding({
 				prefix: CBOR_BYTESTRING_PREFIX,
 				buffer: Buffer.from(identifierString),
@@ -54,9 +69,9 @@ export const resourceIdentifierFromString = (
 }
 
 export const isResourceIdentifier = (
-	something: ResourceIdentifier | unknown,
-): something is ResourceIdentifier => {
-	const inspection = something as ResourceIdentifier
+	something: ResourceIdentifierT | unknown,
+): something is ResourceIdentifierT => {
+	const inspection = something as ResourceIdentifierT
 	return (
 		inspection.address !== undefined &&
 		inspection.name !== undefined &&
@@ -65,10 +80,17 @@ export const isResourceIdentifier = (
 	)
 }
 
-export const resourceIdentifierFromUnsafe = (
-	input: ResourceIdentifier | string,
-): Result<ResourceIdentifier, Error> => {
-	return isResourceIdentifier(input)
-		? ok(input)
-		: resourceIdentifierFromString(input)
+const fromUnsafe = (
+	input: ResourceIdentifierT | string,
+): Result<ResourceIdentifierT, Error> => {
+	return isResourceIdentifier(input) ? ok(input) : fromString(input)
+}
+
+export const ResourceIdentifier = {
+	JSON_TAG,
+	JSONDecoders,
+	fromJSON,
+	fromAddressAndName,
+	fromUnsafe,
+	fromString,
 }

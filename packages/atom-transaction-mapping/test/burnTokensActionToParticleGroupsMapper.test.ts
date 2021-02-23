@@ -5,12 +5,11 @@ import {
 } from '@radixdlt/actions'
 import {
 	isTransferrableTokensParticle,
-	MutableSupplyTokenDefinitionParticle,
+	MutableSupplyTokenDefinitionParticleT,
 	TokenDefinitionParticleBase,
 	TokenParticle,
 	upParticle,
 } from '@radixdlt/atom'
-import { amountInSmallestDenomination } from '@radixdlt/primitives'
 import {
 	testMapperReturns___Unknown_Token___error_when_no_token_definition_particle,
 	testMapperReturns___Insufficient_Balance___error_when_no_transferrable_tokens_particles,
@@ -30,10 +29,11 @@ import {
 	mutableSupplyTokenDefinitionParticleOnlyAliceCanMutate,
 } from './consumeTokensActionToParticleGroupsMapperBase'
 import { RadixParticleType } from '@radixdlt/atom/src/particles/meta/radixParticleTypes'
-import { Address } from '@radixdlt/account'
+import { AddressT } from '@radixdlt/account'
 import { isUnallocatedTokensParticle } from '@radixdlt/atom/src/particles/unallocatedTokensParticle'
 import { UInt256 } from '@radixdlt/uint256'
 import { burnTokensActionToParticleGroupsMapper } from '../src/toAtom/burnTokensActionToParticleGroupsMapper'
+import { Amount } from '@radixdlt/primitives'
 
 const testMapperReturns___Can_Only_Burn_Mutable_Tokens___error_when_trying_to_burn_FixedSupplyTokenDefinition = <
 	T extends TokenDefinitionParticleBase
@@ -76,7 +76,7 @@ const testMapperReturns___NotPermissionToBurn___error_when_trying_to_burn_Mutabl
 		const mapper = testVector.mapper
 		const action = testVector.makeAction(4, bob)
 		expect(mapper.actionType).toBe(UserActionType.BURN_TOKENS)
-		const tokenDefParticle = testVector.tokenDefinitionParticle as MutableSupplyTokenDefinitionParticle
+		const tokenDefParticle = testVector.tokenDefinitionParticle as MutableSupplyTokenDefinitionParticleT
 		expect(
 			tokenDefParticle.radixParticleType ===
 				RadixParticleType.MUTABLE_SUPPLY_TOKEN_DEFINITION,
@@ -124,11 +124,11 @@ describe('BurnTokensActionToParticleGroupsMapper', () => {
 
 	const makeBurnAction = (
 		amount: number = 1337,
-		actor?: Address,
+		actor?: AddressT,
 	): BurnTokensAction => {
 		return burnTokensAction({
 			burner: actor ?? alice,
-			amount: amountInSmallestDenomination(UInt256.valueOf(amount)),
+			amount: Amount.inSmallestDenomination(UInt256.valueOf(amount)),
 			resourceIdentifier: rri,
 		})
 	}

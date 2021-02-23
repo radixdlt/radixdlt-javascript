@@ -3,21 +3,21 @@ import {
 	AnyUpParticle,
 	RadixParticle,
 	Spin,
-	SpunParticle,
+	SpunParticleT,
 	SpunParticleBase,
 	SpunParticleQueryable,
 	TokenDefinitionParticleBase,
-	UnallocatedTokensParticle,
+	UnallocatedTokensParticleT,
 } from './_types'
 import { isRadixParticle, RadixParticleType } from './meta/radixParticleTypes'
 import { anySpunParticle, anyUpParticle, spunParticle } from './spunParticle'
-import { ResourceIdentifier } from '../_types'
+import { ResourceIdentifierT } from '../_types'
 
 const spunParticlesOfTypeWithSpin = <P extends RadixParticle>(query: {
 	unique: AnySpunParticle[]
 	particleType: RadixParticleType
 	spin?: Spin
-}): SpunParticle<P>[] => {
+}): SpunParticleT<P>[] => {
 	const spinFilter = (sp: SpunParticleBase): boolean => {
 		if (!query.spin) return true
 		return sp.spin === query.spin
@@ -43,7 +43,7 @@ const spunParticlesOfTypeWithSpin = <P extends RadixParticle>(query: {
 const tokenDefinitionParticleMatchingIdentifier = (
 	query: Readonly<{
 		unique: AnySpunParticle[]
-		resourceIdentifier: ResourceIdentifier
+		resourceIdentifier: ResourceIdentifierT
 	}>,
 ): TokenDefinitionParticleBase | undefined => {
 	const firstTokenDefinitionParticleOfType = (
@@ -138,19 +138,19 @@ export const spunParticlesQueryable = (
 				anyUpParticle(sp.particle),
 			),
 		transferrableTokensParticles: (spin?: Spin) =>
-			spunParticlesOfTypeWithSpin<UnallocatedTokensParticle>({
+			spunParticlesOfTypeWithSpin<UnallocatedTokensParticleT>({
 				spin,
 				unique,
 				particleType: RadixParticleType.TRANSFERRABLE_TOKENS,
 			}),
 		unallocatedTokensParticles: (spin?: Spin) =>
-			spunParticlesOfTypeWithSpin<UnallocatedTokensParticle>({
+			spunParticlesOfTypeWithSpin<UnallocatedTokensParticleT>({
 				spin,
 				unique,
 				particleType: RadixParticleType.UNALLOCATED_TOKENS,
 			}),
 		tokenDefinitionParticleMatchingIdentifier: (
-			resourceIdentifier: ResourceIdentifier,
+			resourceIdentifier: ResourceIdentifierT,
 		) =>
 			tokenDefinitionParticleMatchingIdentifier({
 				resourceIdentifier,

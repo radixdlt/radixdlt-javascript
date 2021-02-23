@@ -1,21 +1,14 @@
-import { generatePrivateKey } from '@radixdlt/crypto'
 import {
 	addressFromBase58String,
 	addressFromPublicKeyAndMagicByte,
 } from '@radixdlt/account'
-import { OutputMode } from '@radixdlt/data-formats'
-import {
-	amountFromUnsafe,
-	amountInSmallestDenomination,
-	Denomination,
-	nonce,
-	one,
-	zero,
-} from '@radixdlt/primitives'
+import { generatePrivateKey } from '@radixdlt/crypto'
+import { JSONDecodableObject, OutputMode } from '@radixdlt/data-formats'
+import { Amount, Denomination, nonce, one, zero } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
-import { resourceIdentifierFromAddressAndName } from '../src/resourceIdentifier'
+import { TransferrableTokensParticle } from '../src/particles/transferrableTokensParticle'
+import { ResourceIdentifier } from '../src/resourceIdentifier'
 import { tokenPermissionsAll } from '../src/tokenPermissions'
-import { transferrableTokensParticle } from '../src/particles/transferrableTokensParticle'
 import { transferrableTokensParticleFromUnsafe } from './helpers/utility'
 
 describe('transferrableTokensParticle', () => {
@@ -26,13 +19,13 @@ describe('transferrableTokensParticle', () => {
 			publicKey: publicKey,
 			magicByte: 1,
 		})
-		const granularity = amountInSmallestDenomination(UInt256.valueOf(1))
-		const amount = amountFromUnsafe(1, Denomination.Atto)._unsafeUnwrap()
-		const rri = resourceIdentifierFromAddressAndName({
+		const granularity = Amount.inSmallestDenomination(UInt256.valueOf(1))
+		const amount = Amount.fromUnsafe(1, Denomination.Atto)._unsafeUnwrap()
+		const rri = ResourceIdentifier.fromAddressAndName({
 			address,
 			name: 'FOOBAR',
 		})
-		const ttpResult = transferrableTokensParticle({
+		const ttpResult = TransferrableTokensParticle.create({
 			address,
 			resourceIdentifier: rri,
 			granularity: granularity,
@@ -53,15 +46,15 @@ describe('transferrableTokensParticle', () => {
 			publicKey: publicKey,
 			magicByte: 1,
 		})
-		const granularityOfThree = amountInSmallestDenomination(
+		const granularityOfThree = Amount.inSmallestDenomination(
 			UInt256.valueOf(3),
 		)
-		const amount = amountFromUnsafe(2, Denomination.Atto)._unsafeUnwrap()
-		const rri = resourceIdentifierFromAddressAndName({
+		const amount = Amount.fromUnsafe(2, Denomination.Atto)._unsafeUnwrap()
+		const rri = ResourceIdentifier.fromAddressAndName({
 			address,
 			name: 'FOOBAR',
 		})
-		const ttpResult = transferrableTokensParticle({
+		const ttpResult = TransferrableTokensParticle.create({
 			address,
 			resourceIdentifier: rri,
 			granularity: granularityOfThree,
@@ -142,29 +135,66 @@ describe('transferrableTokensParticle', () => {
 		expect(ttp.amount.equals(zero)).toBe(true)
 	})
 
-	it('should be able to DSON encode', () => {
+	describe('serialization', () => {
 		const address = addressFromBase58String(
 			'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
 		)._unsafeUnwrap()
-		const rri = resourceIdentifierFromAddressAndName({
+		const rri = ResourceIdentifier.fromAddressAndName({
 			address,
 			name: 'FOOBAR',
 		})
 		const permissions = tokenPermissionsAll
-		const amount = amountFromUnsafe(6, Denomination.Atto)._unsafeUnwrap()
-		const granularity = amountInSmallestDenomination(UInt256.valueOf(3))
+		const amount = Amount.fromUnsafe(6, Denomination.Atto)._unsafeUnwrap()
+		const granularity = Amount.inSmallestDenomination(UInt256.valueOf(3))
 		const nonce_ = nonce(1337)
-		const ttp = transferrableTokensParticle({
+		const ttp = TransferrableTokensParticle.create({
 			address,
 			resourceIdentifier: rri,
 			amount: amount,
 			granularity: granularity,
-			permissions: permissions,
+			permissions: permissions.permissions,
 			nonce: nonce_,
 		})._unsafeUnwrap()
-		const dson = ttp.toDSON(OutputMode.ALL)._unsafeUnwrap()
-		const expected =
-			'bf6761646472657373582704390279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798b1186a1e66616d6f756e7458210500000000000000000000000000000000000000000000000000000000000000066b6772616e756c61726974795821050000000000000000000000000000000000000000000000000000000000000003656e6f6e63651905396b7065726d697373696f6e73bf646275726e63616c6c646d696e7463616c6cff6a73657269616c697a6572782472616469782e7061727469636c65732e7472616e736665727261626c655f746f6b656e737818746f6b656e446566696e6974696f6e5265666572656e6365583d062f3953386b684c485a6136467379476f36333478516f3951774c67534847705848485737363444356d50594263726e665a563652542f464f4f424152ff'
-		expect(dson.toString('hex')).toBe(expected)
+
+		it('should be able to DSON encode', () => {
+			const dson = ttp.toDSON(OutputMode.ALL)._unsafeUnwrap()
+			const expected =
+				'bf6761646472657373582704390279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798b1186a1e66616d6f756e7458210500000000000000000000000000000000000000000000000000000000000000066b6772616e756c61726974795821050000000000000000000000000000000000000000000000000000000000000003656e6f6e63651905396b7065726d697373696f6e73bf646275726e63616c6c646d696e7463616c6cff6a73657269616c697a6572782472616469782e7061727469636c65732e7472616e736665727261626c655f746f6b656e737818746f6b656e446566696e6974696f6e5265666572656e6365583d062f3953386b684c485a6136467379476f36333478516f3951774c67534847705848485737363444356d50594263726e665a563652542f464f4f424152ff'
+			expect(dson.toString('hex')).toBe(expected)
+		})
+
+		it('should be able to JSON encode', () => {
+			const json = ttp.toJSON()._unsafeUnwrap()
+
+			const expected = {
+				serializer: TransferrableTokensParticle.SERIALIZER,
+				tokenDefinitionReference: rri.toJSON()._unsafeUnwrap(),
+				granularity: granularity.toJSON()._unsafeUnwrap(),
+				permissions: permissions.toJSON()._unsafeUnwrap(),
+				nonce: nonce_.toJSON()._unsafeUnwrap(),
+				amount: amount.toJSON()._unsafeUnwrap(),
+				address: address.toJSON()._unsafeUnwrap(),
+			}
+
+			expect(json).toEqual(expected)
+		})
+
+		it('should be able to JSON decode', () => {
+			const json: JSONDecodableObject = {
+				serializer: TransferrableTokensParticle.SERIALIZER,
+				resourceIdentifier: rri.toJSON()._unsafeUnwrap(),
+				granularity: granularity.toJSON()._unsafeUnwrap(),
+				permissions: permissions.toJSON()._unsafeUnwrap(),
+				nonce: nonce_.toJSON()._unsafeUnwrap(),
+				amount: amount.toJSON()._unsafeUnwrap(),
+				address: address.toJSON()._unsafeUnwrap(),
+			}
+
+			const result = TransferrableTokensParticle.fromJSON(
+				json,
+			)._unsafeUnwrap()
+
+			expect(ttp.equals(result)).toBe(true)
+		})
 	})
 })
