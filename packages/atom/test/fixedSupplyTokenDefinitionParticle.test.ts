@@ -68,14 +68,14 @@ describe('fixedSupplyTokenDefinitionParticle', () => {
 				const fixedSupplyTokenDefinitionParticle_ = FixedSupplyTokenDefinitionParticle.create(
 					input,
 				)._unsafeUnwrap()
-	
+
 				const expected =
 					'bf6b6465736372697074696f6e6e4265737420636f696e20657665726b6772616e756c61726974795821050000000000000000000000000000000000000000000000000de0b6b3a76400006769636f6e55726c781b68747470733a2f2f666f6f6261722e636f6d2f69636f6e2e706e67646e616d656b466f6f62617220436f696e637272695845062f3953386b684c485a6136467379476f36333478516f3951774c67534847705848485737363444356d50594263726e665a563652542f41424344303132333435363738396a73657269616c697a6572782d72616469782e7061727469636c65732e66697865645f737570706c795f746f6b656e5f646566696e6974696f6e66737570706c795821050000000000000000000000000000000000000000000000008ac7230489e800006375726c7268747470733a2f2f666f6f6261722e636f6dff'
-	
+
 				const dson = fixedSupplyTokenDefinitionParticle_
 					.toDSON()
 					._unsafeUnwrap()
-	
+
 				expect(dson.toString('hex')).toBe(expected)
 			})
 		})
@@ -85,20 +85,21 @@ describe('fixedSupplyTokenDefinitionParticle', () => {
 				input,
 			)._unsafeUnwrap()
 
-			const json = fixedSupplyTokenDefinitionParticle_.toJSON()._unsafeUnwrap()
+			const json = fixedSupplyTokenDefinitionParticle_
+				.toJSON()
+				._unsafeUnwrap()
 
 			const expected = {
 				serializer: FixedSupplyTokenDefinitionParticle.SERIALIZER,
-				symbol: ':str:ABCD0123456789',
 				name: ':str:Foobar Coin',
 				description: ':str:Best coin ever',
-				address: address.toJSON()._unsafeUnwrap(),
 				granularity: granularityDefault.toJSON()._unsafeUnwrap(),
 				supply: supply.toJSON()._unsafeUnwrap(),
 				url: ':str:https://foobar.com',
-				iconURL: ':str:https://foobar.com/icon.png',
+				rri: `:rri:/${address.toString()}/ABCD0123456789`,
+				iconUrl: ':str:https://foobar.com/icon.png',
 			}
-			
+
 			expect(json).toEqual(expected)
 		})
 
@@ -123,10 +124,9 @@ describe('fixedSupplyTokenDefinitionParticle', () => {
 				json,
 			)._unsafeUnwrap()
 
-			expect(fixedSupplyTokenDefinitionParticle_.equals(result)).toBe(true)
+			expect(fixedSupplyTokenDefinitionParticle_.equals(result)).toBe(
+				true,
+			)
 		})
 	})
-
-
-
 })

@@ -19,18 +19,23 @@ const radixParticleType = RadixParticleType.FIXED_SUPPLY_TOKEN_DEFINITION
 
 const SERIALIZER = 'radix.particles.fixed_supply_token_definition'
 
-const { JSONDecoders, fromJSON } = JSONDecoding<FixedSupplyTokenDefinitionParticleT>(
+const {
+	JSONDecoders,
+	fromJSON,
+} = JSONDecoding<FixedSupplyTokenDefinitionParticleT>(
 	ResourceIdentifier,
 	Address,
-	Amount
+	Amount,
 )(
 	objectDecoder(
 		SERIALIZER,
-		(input: TokenDefinitionParticleInput &
-			Readonly<{
-				supply: AmountT
-			}>) => create(input)
-	)
+		(
+			input: TokenDefinitionParticleInput &
+				Readonly<{
+					supply: AmountT
+				}>,
+		) => create(input),
+	),
 )
 
 // eslint-disable-next-line max-lines-per-function
@@ -103,5 +108,5 @@ export const FixedSupplyTokenDefinitionParticle = {
 	SERIALIZER,
 	fromJSON,
 	JSONDecoders,
-	create
+	create,
 }

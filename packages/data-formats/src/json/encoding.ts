@@ -1,4 +1,6 @@
 import { err, ok, Result } from 'neverthrow'
+import { mapObjIndexed } from 'ramda'
+import { OutputMode } from '../dson'
 import { isEmpty } from './util'
 import {
 	JSONDecodablePrimitive,
@@ -7,6 +9,9 @@ import {
 	JSONKeyValues,
 	Tag,
 } from './_types'
+
+const hasOutputMode = (data: Record<string, unknown>): data is { value: any, outputMode: OutputMode } =>
+	(data as { value: any, outputMode: OutputMode }).outputMode ? true : false
 
 export const toJSON = (
 	data: JSONEncodablePrimitive | JSONEncodable | JSONKeyValues,
@@ -22,15 +27,19 @@ export const toJSON = (
 		case 'string':
 			return `${Tag.STRING}${data}`
 		case 'object': {
-			return Object.keys(data).reduce((result: any, key) => {
-				if (typeof data.toJSON === 'function') {
-					const result = data.toJSON()
-					if (result.isOk()) {
-						return result.value
-					}
-					throw result.error
+			if (typeof data.toJSON === 'function') {
+				const result = data.toJSON()
+				if (result.isOk()) {
+					return result.value
 				}
+				throw result.error
+			}
 
+			if(hasOutputMode(data)) {
+				return toJSON(data.value)
+			}
+
+			return Object.keys(data).reduce((result: any, key) => {
 				const json = toJSON(
 					(data as { [key: string]: JSONEncodablePrimitive })[key],
 				)

@@ -26,7 +26,7 @@ const serialization = (input: TokenParticle): JSONEncodable & DSONCodable => {
 
 	return {
 		...JSONEncoding(SERIALIZER)({ ...keyValues }),
-		...DSONEncoding(SERIALIZER)({ ...keyValues })
+		...DSONEncoding(SERIALIZER)({ ...keyValues }),
 	}
 }
 

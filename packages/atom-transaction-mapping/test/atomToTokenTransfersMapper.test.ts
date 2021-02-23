@@ -40,7 +40,10 @@ import {
 	TransferrableTokensParticleT,
 	UnallocatedTokensParticleT,
 } from '@radixdlt/atom/src/particles/_types'
-import { FixedSupplyTokenDefinitionParticle, TransferrableTokensParticle } from '@radixdlt/atom/src/_index'
+import {
+	FixedSupplyTokenDefinitionParticle,
+	TransferrableTokensParticle,
+} from '@radixdlt/atom/src/_index'
 
 describe('AtomToTokenTransfersMapper', () => {
 	const alice = toAddress(

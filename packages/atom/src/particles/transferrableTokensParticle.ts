@@ -37,12 +37,12 @@ const serialization = (
 ): JSONEncodable & DSONCodable => {
 	const keyValues = {
 		...tokenSerializationKeyValues(input),
-		address: input.address
+		address: input.address,
 	}
 
 	return {
 		...JSONEncoding(SERIALIZER)(keyValues),
-		...DSONEncoding(SERIALIZER)(keyValues)	
+		...DSONEncoding(SERIALIZER)(keyValues),
 	}
 }
 

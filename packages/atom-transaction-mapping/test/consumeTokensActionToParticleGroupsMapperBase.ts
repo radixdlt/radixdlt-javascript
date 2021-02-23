@@ -63,10 +63,12 @@ const tokenDefInput = <TokenDefinitionParticleInput>{
 	granularity: one,
 }
 
-export const fixedSupTokDefParticle = FixedSupplyTokenDefinitionParticle.create({
-	...tokenDefInput,
-	supply: maxAmount,
-})._unsafeUnwrap()
+export const fixedSupTokDefParticle = FixedSupplyTokenDefinitionParticle.create(
+	{
+		...tokenDefInput,
+		supply: maxAmount,
+	},
+)._unsafeUnwrap()
 
 export const mutableSupplyTokenDefinitionParticleAllCanMutate = MutableSupplyTokenDefinitionParticle.create(
 	{

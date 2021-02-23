@@ -41,12 +41,12 @@ const serialization = (
 	}>,
 ): DSONCodable & JSONEncodable => {
 	const keyValues = {
-		particleGroups: input.particleGroups
+		particleGroups: input.particleGroups,
 	}
 
 	return {
 		...DSONEncoding(SERIALIZER)(keyValues),
-		...JSONEncoding(SERIALIZER)(keyValues)
+		...JSONEncoding(SERIALIZER)(keyValues),
 	}
 }
 

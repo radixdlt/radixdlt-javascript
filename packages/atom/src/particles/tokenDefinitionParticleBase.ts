@@ -37,7 +37,8 @@ export const validateURLInput = (
 	}
 }
 
-export const onlyUppercasedAlphanumerics = (input: string): boolean => new RegExp('^[A-Z0-9]+$').test(input)
+export const onlyUppercasedAlphanumerics = (input: string): boolean =>
+	new RegExp('^[A-Z0-9]+$').test(input)
 
 export const RADIX_TOKEN_NAME_MIN_LENGTH = 2
 export const RADIX_TOKEN_NAME_MAX_LENGTH = 64

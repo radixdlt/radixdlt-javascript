@@ -20,16 +20,19 @@ const radixParticleType = RadixParticleType.MUTABLE_SUPPLY_TOKEN_DEFINITION
 
 const SERIALIZER = 'radix.particles.mutable_supply_token_definition'
 
-const { JSONDecoders, fromJSON } = JSONDecoding<MutableSupplyTokenDefinitionParticleT>(
-	ResourceIdentifier
-)(
+const {
+	JSONDecoders,
+	fromJSON,
+} = JSONDecoding<MutableSupplyTokenDefinitionParticleT>(ResourceIdentifier)(
 	objectDecoder(
 		SERIALIZER,
-		(input: TokenDefinitionParticleInput &
-			Readonly<{
-				permissions?: TokenPermissions
-			}>) => create(input)
-	)
+		(
+			input: TokenDefinitionParticleInput &
+				Readonly<{
+					permissions?: TokenPermissions
+				}>,
+		) => create(input),
+	),
 )
 
 const validateTokenPermissions = (
@@ -101,5 +104,5 @@ export const isMutableTokenDefinitionParticle = (
 export const MutableSupplyTokenDefinitionParticle = {
 	create,
 	JSONDecoders,
-	fromJSON
+	fromJSON,
 }
