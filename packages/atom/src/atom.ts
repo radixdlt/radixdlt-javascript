@@ -50,7 +50,7 @@ const serialization = (
 	}
 }
 
-const { JSONDecoders, fromJSON } = JSONDecoding(ParticleGroup)(
+const { JSONDecoders, fromJSON } = JSONDecoding<AtomT>(ParticleGroup)(
 	objectDecoder(SERIALIZER, (input: Input) => ok(create(input))),
 )
 

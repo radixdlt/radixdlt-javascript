@@ -31,7 +31,7 @@ import { Byte } from '@radixdlt/util'
 const CBOR_BYTESTRING_PREFIX: Byte = 5
 const JSON_TAG = ':u20:'
 
-const { JSONDecoders, fromJSON } = JSONDecoding()(
+const { JSONDecoders, fromJSON } = JSONDecoding<AmountT>()(
 	primitiveDecoder(JSON_TAG, (data: string) =>
 		ok(inSmallestDenomination(new UInt256(data))),
 	),
