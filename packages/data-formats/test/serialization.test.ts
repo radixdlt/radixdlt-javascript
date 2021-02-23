@@ -444,5 +444,16 @@ describe('JSON', () => {
 
 			expect(JSON.stringify(decoded)).toEqual(JSON.stringify(expected))
 		})
+
+		it('should fail to decode with an unknown decoder', () => {
+			const { fromJSON } = JSONDecoding()()
+
+			const json = {
+				a: ':tst:abc',
+			}
+
+			const decoded = fromJSON(json)
+			expect(decoded.isErr()).toBe(true)
+		})
 	})
 })

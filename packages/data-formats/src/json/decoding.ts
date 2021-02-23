@@ -98,7 +98,7 @@ const fromJSONRecursive = (...primitiveDecoders: JSONPrimitiveDecoder[]) => (
 			}
 		}
 
-		return json
+		return mapObjIndexed(item => fromJSON(item), json)
 	}
 
 	const handleString = (json: string): string | JSONEncodable => {
