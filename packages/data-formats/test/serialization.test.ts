@@ -381,7 +381,7 @@ describe('JSON', () => {
 		})
 
 		it('should fail to encode with an internal error', () => {
-			const failsToEncode = () => {	
+			const failsToEncode = () => {
 				return {
 					toJSON: () => err(Error('boom')),
 				}
