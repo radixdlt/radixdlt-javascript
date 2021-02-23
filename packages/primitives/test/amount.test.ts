@@ -185,9 +185,10 @@ describe('Amount', () => {
 		expect(json).toBe(expected)
 	})
 
-	
 	it('should be able to JSON decode', () => {
-		const result = Amount.fromJSON(`${Amount.JSON_TAG}7000000000000000000`)._unsafeUnwrap()
+		const result = Amount.fromJSON(
+			`${Amount.JSON_TAG}7000000000000000000`,
+		)._unsafeUnwrap()
 
 		const expected = Amount.fromUInt256({
 			magnitude: UInt256.valueOf(7),

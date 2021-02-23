@@ -45,7 +45,9 @@ describe('atom', () => {
 
 	it('can query anySpunParticles by spin=DOWN and by type=ResourceIdentifierParticle OR TransferrableTokensParticle since an atom itself is SpunParticles', () => {
 		const atom_ = Atom.create({
-			particleGroups: particleGroups([ParticleGroup.create(spunParticles_)]),
+			particleGroups: particleGroups([
+				ParticleGroup.create(spunParticles_),
+			]),
 		})
 
 		expect(
