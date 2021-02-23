@@ -1,33 +1,32 @@
 import {
 	AnySpunParticle,
-	atom,
-	Atom,
-	particleGroup,
 	ParticleGroup,
 	particleGroups,
 	Signatures,
 	SpunParticles,
 } from '@radixdlt/atom'
+import { Atom } from '@radixdlt/atom/src/atom'
+import { AtomT, ParticleGroupT } from '@radixdlt/atom/src/_types'
 
 export const atomWithParticleGroups = (
 	input: Readonly<{
-		particleGroups: ParticleGroup[]
+		particleGroups: ParticleGroupT[]
 		signatures?: Signatures
 		message?: string
 	}>,
-): Atom =>
-	atom({
+): AtomT =>
+	Atom.create({
 		...input,
 		particleGroups: particleGroups(input.particleGroups),
 	})
 
 export const atomWithParticleGroup = (
 	input: Readonly<{
-		particleGroup: ParticleGroup
+		particleGroup: ParticleGroupT
 		signatures?: Signatures
 		message?: string
 	}>,
-): Atom =>
+): AtomT =>
 	atomWithParticleGroups({
 		...input,
 		particleGroups: [input.particleGroup],
@@ -39,8 +38,8 @@ export const atomWithSpunParticles = (
 		signatures?: Signatures
 		message?: string
 	}>,
-): Atom =>
+): AtomT =>
 	atomWithParticleGroup({
 		...input,
-		particleGroup: particleGroup(input.spunParticles),
+		particleGroup: ParticleGroup.create(input.spunParticles),
 	})

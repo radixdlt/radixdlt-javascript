@@ -65,11 +65,11 @@ export type KeyPair = Readonly<{
 	privateKey: PrivateKey
 }>
 
-export type Address = JSONEncodable &
+export type AddressT = JSONEncodable &
 	DSONCodable &
 	Readonly<{
 		publicKey: PublicKey
 		magicByte: Byte
 		toString: () => string
-		equals: (other: Address) => boolean
+		equals: (other: AddressT) => boolean
 	}>

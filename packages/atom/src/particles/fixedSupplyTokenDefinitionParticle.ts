@@ -1,5 +1,8 @@
-import { Amount, granularityDefault } from '@radixdlt/primitives'
+import { Address } from '@radixdlt/crypto'
+import { JSONDecoding, objectDecoder } from '@radixdlt/data-formats'
+import { Amount, AmountT, granularityDefault } from '@radixdlt/primitives'
 import { Result, err } from 'neverthrow'
+import { ResourceIdentifier } from '../resourceIdentifier'
 import { RadixParticleType } from './meta/radixParticleTypes'
 import {
 	baseTokenDefinitionParticle,
@@ -7,20 +10,41 @@ import {
 	TokenDefinitionParticleInput,
 } from './tokenDefinitionParticleBase'
 import {
-	FixedSupplyTokenDefinitionParticle,
+	FixedSupplyTokenDefinitionParticleT,
 	ParticleBase,
 	TokenDefinitionParticleBase,
 } from './_types'
 
 const radixParticleType = RadixParticleType.FIXED_SUPPLY_TOKEN_DEFINITION
 
+const SERIALIZER = 'radix.particles.fixed_supply_token_definition'
+
+const {
+	JSONDecoders,
+	fromJSON,
+} = JSONDecoding<FixedSupplyTokenDefinitionParticleT>(
+	ResourceIdentifier,
+	Address,
+	Amount,
+)(
+	objectDecoder(
+		SERIALIZER,
+		(
+			input: TokenDefinitionParticleInput &
+				Readonly<{
+					supply: AmountT
+				}>,
+		) => create(input),
+	),
+)
+
 // eslint-disable-next-line max-lines-per-function
-export const fixedSupplyTokenDefinitionParticle = (
+const create = (
 	input: TokenDefinitionParticleInput &
 		Readonly<{
-			supply: Amount
+			supply: AmountT
 		}>,
-): Result<FixedSupplyTokenDefinitionParticle, Error> => {
+): Result<FixedSupplyTokenDefinitionParticleT, Error> => {
 	const fixedTokenSupply = input.supply
 	const granularity = input.granularity ?? granularityDefault
 
@@ -35,7 +59,7 @@ export const fixedSupplyTokenDefinitionParticle = (
 	return baseTokenDefinitionParticle({
 		...input,
 		granularity: granularity,
-		serializer: 'radix.particles.fixed_supply_token_definition',
+		serializer: SERIALIZER,
 		radixParticleType: RadixParticleType.FIXED_SUPPLY_TOKEN_DEFINITION,
 		specificEncodableKeyValues: {
 			supply: fixedTokenSupply,
@@ -66,7 +90,7 @@ export const fixedSupplyTokenDefinitionParticle = (
 	}).map(
 		(
 			base: TokenDefinitionParticleBase,
-		): FixedSupplyTokenDefinitionParticle => ({
+		): FixedSupplyTokenDefinitionParticleT => ({
 			...base,
 			fixedTokenSupply: fixedTokenSupply,
 		}),
@@ -75,7 +99,14 @@ export const fixedSupplyTokenDefinitionParticle = (
 
 export const isFixedTokenDefinitionParticle = (
 	something: unknown,
-): something is FixedSupplyTokenDefinitionParticle => {
+): something is FixedSupplyTokenDefinitionParticleT => {
 	if (!isTokenDefinitionParticleBase(something)) return false
 	return something.radixParticleType === radixParticleType
+}
+
+export const FixedSupplyTokenDefinitionParticle = {
+	SERIALIZER,
+	fromJSON,
+	JSONDecoders,
+	create,
 }

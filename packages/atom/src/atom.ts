@@ -1,13 +1,23 @@
 import {
-	Atom,
+	AtomT,
 	AtomIdentifier,
-	ParticleGroup,
 	ParticleGroups,
 	Signatures,
+	ParticleGroupT,
 } from './_types'
 import { atomIdentifier } from './atomIdentifier'
 import { particleGroups } from './particleGroups'
-import { DSONCodable, DSONEncoding } from '@radixdlt/data-formats'
+import {
+	DSONCodable,
+	DSONEncoding,
+	JSONDecoding,
+	JSONEncodable,
+	JSONEncoding,
+	objectDecoder,
+} from '@radixdlt/data-formats'
+import { ok } from 'neverthrow'
+import { equalsDSONHash } from './euid'
+import { ParticleGroup } from './particleGroup'
 
 const isSigned = (signatures: Signatures): boolean => {
 	return Object.keys(signatures).length >= 1
@@ -20,36 +30,62 @@ const mockedAtomIdentifier = atomIdentifier(
 
 const SERIALIZER = 'radix.atom'
 
-const DSON = (
-	input: Readonly<{
-		particleGroups: ParticleGroup[]
-	}>,
-): DSONCodable =>
-	DSONEncoding(SERIALIZER)({
-		particleGroups: input.particleGroups,
-	})
+type Input = Readonly<{
+	particleGroups?: ParticleGroups
+	signatures?: Signatures
+	message?: string
+}>
 
-export const atom = (
+// TODO make signature and message DSONCodable and add them here
+const serialization = (
 	input: Readonly<{
-		particleGroups?: ParticleGroups
-		signatures?: Signatures
-		message?: string
+		particleGroups: ParticleGroupT[]
 	}>,
-): Atom => {
+): DSONCodable & JSONEncodable => {
+	const keyValues = {
+		particleGroups: input.particleGroups,
+	}
+
+	return {
+		...DSONEncoding(SERIALIZER)(keyValues),
+		...JSONEncoding(SERIALIZER)(keyValues),
+	}
+}
+
+const { JSONDecoders, fromJSON } = JSONDecoding<AtomT>(ParticleGroup)(
+	objectDecoder(SERIALIZER, (input: Input) => ok(create(input))),
+)
+
+const create = (input: Input): AtomT => {
 	const signatures: Signatures = input.signatures ?? {}
 	const particleGroups_: ParticleGroups =
 		input.particleGroups ?? particleGroups([])
 
-	return {
-		...DSON({
+	const atomExcludingEquals = {
+		...serialization({
 			particleGroups: particleGroups_.groups,
 		}),
-
 		particleGroups: particleGroups_,
 		signatures: signatures,
 		message: input.message,
+		equals: (_other: AtomT): boolean => {
+			throw new Error('implemented below')
+		},
 		identifier: (): AtomIdentifier => mockedAtomIdentifier,
 		isSigned: () => isSigned(signatures),
-		...particleGroups_,
+		...particleGroups_, // makes AtomT `SpunParticleQueryable`
 	}
+
+	return {
+		...atomExcludingEquals,
+		equals: (other: AtomT): boolean =>
+			equalsDSONHash(atomExcludingEquals, other),
+	}
+}
+
+export const Atom = {
+	SERIALIZER,
+	JSONDecoders,
+	fromJSON,
+	create,
 }

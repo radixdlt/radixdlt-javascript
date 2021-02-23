@@ -1,9 +1,4 @@
-import {
-	ParticleGroup,
-	Spin,
-	TransferrableTokensParticle,
-	TokenBase,
-} from '@radixdlt/atom'
+import { Spin, TokenBase } from '@radixdlt/atom'
 import {
 	AtomToActionMapperInput,
 	AtomToTokenTransfersMapper,
@@ -13,25 +8,29 @@ import {
 import { Observable, from } from 'rxjs'
 import { err, Result, ok } from 'neverthrow'
 import { executedTokenTransfer } from './tokenTransfer'
-import { Address } from '@radixdlt/crypto/'
-import { Amount } from '@radixdlt/primitives'
+import {
+	ParticleGroupT,
+	TransferrableTokensParticleT,
+} from '@radixdlt/atom/src/_index'
+import { AddressT } from '@radixdlt/crypto'
+import { AmountT } from '@radixdlt/primitives'
 
 const uniqueAddressCountTTPs = (
-	particles: TransferrableTokensParticle[],
+	particles: TransferrableTokensParticleT[],
 ): number => {
 	return new Set(particles.map((ttp) => ttp.address)).size
 }
 
 type SenderTokenAndPG = Readonly<{
-	particleGroup: ParticleGroup
-	from: Address
+	particleGroup: ParticleGroupT
+	from: AddressT
 	tokenDefinition: TokenBase
 }>
 
 const getSenderAndToken = (
-	particleGroup: ParticleGroup,
+	particleGroup: ParticleGroupT,
 ): Result<SenderTokenAndPG, Error> => {
-	const downedTTPsFromSender: TransferrableTokensParticle[] = particleGroup
+	const downedTTPsFromSender: TransferrableTokensParticleT[] = particleGroup
 		.transferrableTokensParticles(Spin.DOWN)
 		.map((sp) => sp.particle)
 
@@ -69,15 +68,15 @@ const validateNotIsTransferNotBurn = (
 		  )
 		: ok(input)
 
-type ToAndAmount = Readonly<{ to: Address; amount: Amount }>
+type ToAndAmount = Readonly<{ to: AddressT; amount: AmountT }>
 
 const getRecipient = (
 	input: SenderTokenAndPG,
-): Result<{ to: Address; upTTPs: TransferrableTokensParticle[] }, Error> => {
+): Result<{ to: AddressT; upTTPs: TransferrableTokensParticleT[] }, Error> => {
 	const sender = input.from
 	const particleGroup = input.particleGroup
 
-	const upTTPs: TransferrableTokensParticle[] = particleGroup
+	const upTTPs: TransferrableTokensParticleT[] = particleGroup
 		.transferrableTokensParticles(Spin.UP)
 		.map((sp) => sp.particle)
 
@@ -114,7 +113,7 @@ const getRecipientAndAmount = (
 	})
 
 export const pgToTokenTransfer = (
-	particleGroup: ParticleGroup,
+	particleGroup: ParticleGroupT,
 ): Result<TokenTransfer, Error> =>
 	getSenderAndToken(particleGroup)
 		.andThen(validateNotIsTransferNotBurn)

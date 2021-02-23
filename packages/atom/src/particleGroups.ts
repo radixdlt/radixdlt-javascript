@@ -1,8 +1,8 @@
-import { ParticleGroup, ParticleGroups } from './_types'
+import { ParticleGroupT, ParticleGroups } from './_types'
 import { AnySpunParticle } from './particles/_types'
 import { spunParticlesQueryable } from './particles/spunParticleQueryable'
 
-export const particleGroups = (groups: ParticleGroup[]): ParticleGroups => {
+export const particleGroups = (groups: ParticleGroupT[]): ParticleGroups => {
 	const particleMatrix: AnySpunParticle[][] = groups.map(
 		(g) => g.spunParticles.spunParticles,
 	)

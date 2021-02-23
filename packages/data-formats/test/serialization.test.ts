@@ -1,3 +1,4 @@
+import { err, ok } from 'neverthrow'
 import {
 	DSONPrimitive,
 	DSONEncodableMap,
@@ -6,12 +7,16 @@ import {
 } from '../src/dson'
 
 import {
-	fromJSONDefault,
 	JSONPrimitiveDecoder,
 	JSONObjectDecoder,
 	JSONEncoding,
 	toJSON,
+	JSONDecoding,
+	primitiveDecoder,
+	objectDecoder,
 } from '../src/json'
+
+import { serializerNotNeeded } from '../src/util'
 
 const examples: Array<{
 	name: string
@@ -242,9 +247,9 @@ describe('DSON encoding', () => {
 	it('should encode a complex object', (done) => {
 		const particle = DSONEncodableMap({
 			particle: DSONEncodableMap({}),
-			serializer: DSONPrimitive('radix.spun_particle'),
+			serializer: 'radix.spun_particle',
 			spin: DSONPrimitive(1),
-			version: DSONPrimitive(100),
+			version: 100,
 		})
 
 		const particleGroups = [
@@ -281,14 +286,14 @@ describe('DSON encoding', () => {
 	it('should only include key values with the specified output mode', (done) => {
 		const nestedProps: DSONKeyValues = {
 			a2: {
-				value: DSONPrimitive(3),
+				value: 3,
 				outputMode: OutputMode.HASH,
 			},
 		}
 
 		const serializationProps: DSONKeyValues = {
 			a: {
-				value: DSONPrimitive(1),
+				value: 1,
 				outputMode: OutputMode.API,
 			},
 			b: DSONEncodableMap(nestedProps),
@@ -306,8 +311,43 @@ describe('DSON encoding', () => {
 })
 
 describe('JSON', () => {
+	const serializer = 'test.object'
+	const serializer2 = 'test.object2'
+
+	const encodablePrimitive = (value: string) => ({
+		value,
+		...JSONEncoding(serializerNotNeeded)(() => `:tst:${value}`),
+	})
+
+	const encodableNestedComplex = (input: { prop1: number }) => {
+		const jsonKeyValues = {
+			prop1: input.prop1,
+			prop2: encodablePrimitive('xyz'),
+		}
+
+		return {
+			...JSONEncoding(serializer2)(jsonKeyValues),
+		}
+	}
+
+	const encodableComplex = (input: {
+		prop1: string
+		prop2: string
+		prop3: any
+	}) => {
+		const jsonKeyValues = {
+			prop1: input.prop1,
+			prop2: encodablePrimitive(input.prop2),
+			prop3: input.prop3,
+		}
+
+		return {
+			...JSONEncoding(serializer)(jsonKeyValues),
+		}
+	}
+
 	describe('encoding', () => {
-		it('should encode JSON primitives', () => {
+		it('should encode primitives', () => {
 			examples
 				.filter((example) => example.json)
 				.forEach((example) =>
@@ -315,58 +355,51 @@ describe('JSON', () => {
 				)
 		})
 
-		it('should encode a JSON object', () => {
-			const encodablePrimitive = () => {
-				const value = 'xyz'
+		it('should encode an object', () => {
+			const encoded = encodableComplex({
+				prop1: 'a',
+				prop2: 'xyz',
+				prop3: encodableNestedComplex({
+					prop1: 0,
+				}),
+			})
+				.toJSON()
+				._unsafeUnwrap()
 
-				return {
-					value,
-					...JSONEncoding(undefined)(() => `:tst:${value}`),
-				}
-			}
-
-			const encodableNestedComplex = () => {
-				const jsonKeyValues = {
-					prop: 0,
-					prop2: encodablePrimitive(),
-				}
-
-				return {
-					...JSONEncoding('test.object2')(jsonKeyValues),
-				}
-			}
-
-			const encodableComplex = () => {
-				const jsonKeyValues = {
-					prop: 'a',
-					prop2: encodablePrimitive(),
-					prop3: encodableNestedComplex(),
-				}
-
-				return {
-					...JSONEncoding('test.object')(jsonKeyValues),
-				}
-			}
-
-			const encoded = encodableComplex().toJSON()
 			const expected = {
 				serializer: 'test.object',
-				prop: ':str:a',
+				prop1: ':str:a',
 				prop2: ':tst:xyz',
 				prop3: {
 					serializer: 'test.object2',
-					prop: 0,
+					prop1: 0,
 					prop2: ':tst:xyz',
 				},
 			}
 
 			expect(encoded).toEqual(expected)
 		})
+
+		it('should fail to encode with an internal error', () => {
+			const failsToEncode = () => {
+				return {
+					toJSON: () => err(Error('boom')),
+				}
+			}
+
+			const encoded = encodableComplex({
+				prop1: 'a',
+				prop2: 'xyz',
+				prop3: failsToEncode(),
+			}).toJSON()
+
+			expect(encoded.isErr()).toBe(true)
+		})
 	})
 
 	describe('decoding', () => {
 		it('should decode JSON primitives', () => {
-			const fromJSON = fromJSONDefault()()
+			const { fromJSON } = JSONDecoding()()
 			examples
 				.filter((example) => example.json)
 				.filter((example) =>
@@ -375,94 +408,84 @@ describe('JSON', () => {
 					),
 				)
 				.forEach((example) =>
-					expect(fromJSON(example.json)).toEqual(example.native),
+					expect(fromJSON(example.json)._unsafeUnwrap()).toEqual(
+						example.native,
+					),
 				)
 		})
 
 		it('should decode a JSON object', () => {
-			const serializer = 'test.object'
-			const serializer2 = 'test.object2'
-
-			const testObject = <
-				T extends {
-					a: string
-					b: string
-					nested: { c: string }
-				}
-			>(
-				input: T,
-			) => ({
-				a: input.a,
-				b: input.b,
-				nested: input.nested,
-			})
-
-			const nestedTestObject = (input: {
-				c: string
-				test: { value: string }
-			}) => ({
-				c: input.c,
-				test: input.test,
-			})
-
 			const primitiveDecoders: JSONPrimitiveDecoder[] = [
-				{
-					[':tst:']: (data: string) => ({
-						value: data,
-					}),
-				},
+				primitiveDecoder(':tst:', (data: string) =>
+					ok(encodablePrimitive(data)),
+				),
 			]
 
 			const objectDecoders: JSONObjectDecoder[] = [
-				{
-					[serializer]: (input: {
-						a: string
-						b: string
-						nested: { c: string }
-					}) => ({
-						...testObject(input),
-					}),
-				},
+				objectDecoder(
+					serializer,
+					(input: { prop1: string; prop2: string; prop3: any }) =>
+						ok(encodableComplex(input)),
+				),
 
-				{
-					[serializer2]: (input: {
-						c: string
-						test: { value: string }
-					}) => ({
-						...nestedTestObject(input),
-					}),
-				},
+				objectDecoder(serializer2, (input: { prop1: number }) =>
+					ok(encodableNestedComplex(input)),
+				),
 			]
 
-			const fromJSON = fromJSONDefault(...primitiveDecoders)(
+			const { fromJSON } = JSONDecoding()(
 				...objectDecoders,
+				...primitiveDecoders,
 			)
 
 			const json = {
 				serializer,
-				a: ':str:a',
-				b: ':str:b',
-				nested: {
+				prop1: ':str:a',
+				prop2: ':str:xyz',
+				prop3: {
 					serializer: serializer2,
-					c: ':str:c',
-					test: ':tst:xyz',
+					prop1: 0,
 				},
+			}
+
+			const decoded = fromJSON(json)._unsafeUnwrap()
+
+			const expected = encodableComplex({
+				prop1: 'a',
+				prop2: 'xyz',
+				prop3: encodableNestedComplex({
+					prop1: 0,
+				}),
+			})
+
+			expect(JSON.stringify(decoded)).toEqual(JSON.stringify(expected))
+		})
+
+		it('should fail to decode with an unknown decoder', () => {
+			const { fromJSON } = JSONDecoding()()
+
+			const json = {
+				a: ':tst:abc',
+			}
+
+			const decoded = fromJSON(json)
+			expect(decoded.isErr()).toBe(true)
+		})
+
+		it('should fail to decode with an internal error', () => {
+			const objectDecoders: JSONObjectDecoder[] = [
+				objectDecoder(serializer, () => err(Error('boom'))),
+			]
+
+			const { fromJSON } = JSONDecoding()(...objectDecoders)
+
+			const json = {
+				serializer,
 			}
 
 			const decoded = fromJSON(json)
 
-			const expected = {
-				a: 'a',
-				b: 'b',
-				nested: {
-					c: 'c',
-					test: {
-						value: 'xyz',
-					},
-				},
-			}
-
-			expect(decoded).toEqual(expected)
+			expect(decoded.isErr()).toEqual(true)
 		})
 	})
 })

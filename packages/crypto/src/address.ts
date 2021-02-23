@@ -1,23 +1,31 @@
-import { Address, PublicKey } from './_types'
+import { AddressT, PublicKey } from './_types'
 import { publicKeyFromBytes } from './publicKey'
 import { radixHash } from './algorithms'
 import { Magic } from '@radixdlt/primitives'
 import { Byte, byteToBuffer, firstByteFromBuffer } from '@radixdlt/util'
 import { Result, ok, err } from 'neverthrow'
 import { base58Encode, base58Decode } from './wrap/baseConversion'
-import { DSONObjectEncoding, JSONEncoding } from '@radixdlt/data-formats'
+import {
+	Decoder,
+	DSONObjectEncoding,
+	JSONDecodablePrimitive,
+	JSONDecoding,
+	JSONEncoding,
+	JSONPrimitiveDecoder,
+	primitiveDecoder,
+	serializerNotNeeded,
+} from '@radixdlt/data-formats'
 
 const checksumByteCount = 4
-
-export const CBOR_BYTESTRING_PREFIX: Byte = 4
-export const JSON_TAG = ':adr:'
+const CBOR_BYTESTRING_PREFIX: Byte = 4
+const JSON_TAG = ':adr:'
 
 export const addressFromPublicKeyAndMagic = (
 	input: Readonly<{
 		publicKey: PublicKey
 		magic: Magic
 	}>,
-): Address =>
+): AddressT =>
 	addressFromPublicKeyAndMagicByte({
 		publicKey: input.publicKey,
 		magicByte: input.magic.byte,
@@ -28,13 +36,13 @@ export const addressFromPublicKeyAndMagicByte = (
 		publicKey: PublicKey
 		magicByte: Byte
 	}>,
-): Address => {
+): AddressT => {
 	const buffer = calculateAndAppendChecksumFromPubKeyAndMagic(input)
 
 	const toString = (): string => base58Encode(buffer)
 
 	return {
-		...JSONEncoding(undefined)(() => `${JSON_TAG}${toString()}`),
+		...JSONEncoding(serializerNotNeeded)(() => `${JSON_TAG}${toString()}`),
 		...DSONObjectEncoding({
 			prefix: CBOR_BYTESTRING_PREFIX,
 			buffer,
@@ -50,9 +58,9 @@ export const addressFromPublicKeyAndMagicByte = (
 
 export const addressFromBase58String = (
 	b58String: string,
-): Result<Address, Error> => base58Decode(b58String).andThen(addressFromBuffer)
+): Result<AddressT, Error> => base58Decode(b58String).andThen(addressFromBuffer)
 
-const addressFromBuffer = (buffer: Buffer): Result<Address, Error> => {
+const addressFromBuffer = (buffer: Buffer): Result<AddressT, Error> => {
 	const publicKeyCompressedByteCount = 33
 	const magicByteCount = 1
 	const addressByteCount =
@@ -85,11 +93,13 @@ const addressFromBuffer = (buffer: Buffer): Result<Address, Error> => {
 	).andThen((publicKey: PublicKey) =>
 		ok({
 			...DSONObjectEncoding({ prefix: CBOR_BYTESTRING_PREFIX, buffer }),
-			...JSONEncoding(undefined)(() => `${JSON_TAG}${toString()}`),
+			...JSONEncoding(serializerNotNeeded)(
+				() => `${JSON_TAG}${toString()}`,
+			),
 			publicKey,
 			magicByte,
 			toString,
-			equals: (other: Address) =>
+			equals: (other: AddressT) =>
 				magicByte === other.magicByte &&
 				publicKey.equals(other.publicKey),
 		}),
@@ -124,9 +134,9 @@ const calculateAndAppendChecksum = (buffer: Buffer): Buffer => {
 }
 
 export const isAddress = (
-	something: Address | unknown,
-): something is Address => {
-	const inspection = something as Address
+	something: AddressT | unknown,
+): something is AddressT => {
+	const inspection = something as AddressT
 	return (
 		inspection.magicByte !== undefined &&
 		inspection.publicKey !== undefined &&
@@ -136,11 +146,20 @@ export const isAddress = (
 }
 
 export const addressFromUnsafe = (
-	input: Address | string,
-): Result<Address, Error> => {
+	input: AddressT | string,
+): Result<AddressT, Error> => {
 	return isAddress(input)
 		? ok(input)
 		: typeof input === 'string'
 		? addressFromBase58String(input)
 		: err(new Error('bad type'))
+}
+
+export const Address = {
+	JSON_TAG,
+	...JSONDecoding<AddressT>()(
+		primitiveDecoder(JSON_TAG, (input: string) =>
+			addressFromBase58String(input),
+		),
+	),
 }

@@ -1,8 +1,5 @@
 import { spunParticles } from '../../src/particles/spunParticles'
 import { downParticle, upParticle } from '../../src/particles/spunParticle'
-import { resourceIdentifierFromString } from '../../src/resourceIdentifier'
-import { resourceIdentifierParticle } from '../../src/particles/resourceIdentifierParticle'
-import { ResourceIdentifier } from '../../src/_types'
 
 import {
 	transferrableTokensParticleFromUnsafe,
@@ -10,13 +7,16 @@ import {
 } from './utility'
 import {
 	AnySpunParticle,
-	TransferrableTokensParticle,
-	UnallocatedTokensParticle,
+	TransferrableTokensParticleT,
+	UnallocatedTokensParticleT,
 } from '../../src/particles/_types'
+import { ResourceIdentifierT } from '../../src/_types'
+import { ResourceIdentifier } from '../../src/resourceIdentifier'
+import { ResourceIdentifierParticle } from '../../src/particles/resourceIdentifierParticle'
 
 export const makeUATParticle = (
-	resourceIdentifier: ResourceIdentifier,
-): UnallocatedTokensParticle =>
+	resourceIdentifier: ResourceIdentifierT,
+): UnallocatedTokensParticleT =>
 	unallocatedTokensParticleFromUnsafe({
 		resourceIdentifier: resourceIdentifier,
 		granularity: 3,
@@ -24,8 +24,8 @@ export const makeUATParticle = (
 	})._unsafeUnwrap()
 
 export const makeTTParticle = (
-	resourceIdentifier: ResourceIdentifier,
-): TransferrableTokensParticle =>
+	resourceIdentifier: ResourceIdentifierT,
+): TransferrableTokensParticleT =>
 	transferrableTokensParticleFromUnsafe({
 		address: '9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
 		resourceIdentifier: resourceIdentifier,
@@ -33,16 +33,16 @@ export const makeTTParticle = (
 		amount: 9,
 	})._unsafeUnwrap()
 
-export const rri0 = resourceIdentifierFromString(
+export const rri0 = ResourceIdentifier.fromString(
 	'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOO',
 )._unsafeUnwrap()
 
-export const rri1 = resourceIdentifierFromString(
+export const rri1 = ResourceIdentifier.fromString(
 	'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/BAR',
 )._unsafeUnwrap()
 
-export const rriParticle0 = resourceIdentifierParticle(rri0)
-export const rriParticle1 = resourceIdentifierParticle(rri1)
+export const rriParticle0 = ResourceIdentifierParticle.create(rri0)
+export const rriParticle1 = ResourceIdentifierParticle.create(rri1)
 export const uatParticle0 = makeUATParticle(rri0)
 export const uatParticle1 = makeUATParticle(rri1)
 export const ttParticle0 = makeTTParticle(rri0)

@@ -1,9 +1,9 @@
 import { addressFromBase58String } from '@radixdlt/crypto'
-import { resourceIdentifierFromAddressAndName } from '@radixdlt/atom'
-import { amountFromUnsafe, Denomination } from '@radixdlt/primitives'
 import { transferTokensAction } from '../src/transferTokensAction'
 import { TransferTokensActionInput } from '../src/_types'
-import { zero } from '@radixdlt/primitives/src/amount'
+import { Amount, zero } from '@radixdlt/primitives/src/amount'
+import { ResourceIdentifier } from '@radixdlt/atom/src/_index'
+import { Denomination } from '@radixdlt/primitives'
 
 describe('TransferTokensActions', () => {
 	const alice = addressFromBase58String(
@@ -14,11 +14,11 @@ describe('TransferTokensActions', () => {
 		'9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
 	)._unsafeUnwrap()
 
-	const resourceIdentifier = resourceIdentifierFromAddressAndName({
+	const resourceIdentifier = ResourceIdentifier.fromAddressAndName({
 		address: alice,
 		name: 'FOOBAR',
 	})
-	const amount = amountFromUnsafe(6, Denomination.Atto)._unsafeUnwrap()
+	const amount = Amount.fromUnsafe(6, Denomination.Atto)._unsafeUnwrap()
 
 	const message = "Hey Bob! Here's some money for our lunch earlier."
 

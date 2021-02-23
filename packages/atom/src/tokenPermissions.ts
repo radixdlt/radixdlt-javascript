@@ -6,7 +6,12 @@ import {
 } from './_types'
 
 import { objectEquals } from '@radixdlt/util'
-import { DSONEncoding } from '@radixdlt/data-formats'
+import {
+	DSONEncoding,
+	JSONEncoding,
+	serializerNotNeeded,
+	Tag,
+} from '@radixdlt/data-formats'
 
 export const makeTokenPermissions = (
 	permissions: Readonly<{ [key in TokenTransition]: TokenPermission }>,
@@ -34,7 +39,7 @@ export const makeTokenPermissions = (
 		if (permission) {
 			return permission
 		}
-		// eslint-disable-next-line functional/no-throw-statement
+
 		throw new Error(
 			`Incorrect implementation - expected value for REQUIRED permission with key: ${transition.valueOf()}, but got none`,
 		)
@@ -44,7 +49,12 @@ export const makeTokenPermissions = (
 	const burnPermission = valueOfRequiredPermission(TokenTransition.BURN)
 
 	return {
-		...DSONEncoding(undefined)(() => permissions),
+		...JSONEncoding(serializerNotNeeded)(() => ({
+			[TokenTransition.BURN]: `${Tag.STRING}${permissions.burn}`,
+			[TokenTransition.MINT]: `${Tag.STRING}${permissions.mint}`,
+		})),
+
+		...DSONEncoding(serializerNotNeeded)(() => permissions),
 
 		permissions,
 		mintPermission,

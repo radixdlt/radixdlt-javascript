@@ -4,10 +4,10 @@ import {
 	spunParticles,
 	TokenDefinitionParticleBase,
 } from '@radixdlt/atom'
-import { Address } from '@radixdlt/crypto'
 import { err, ok, Result } from 'neverthrow'
 import { MapperInput } from './_types'
 import { ValidationWitness } from '@radixdlt/util'
+import { AddressT } from '@radixdlt/crypto/src/_types'
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */
 export const validate = (
@@ -22,7 +22,7 @@ export const validate = (
 export const validateUserActionSender = <
 	T extends Readonly<{
 		action: UserAction
-		addressOfActiveAccount: Address
+		addressOfActiveAccount: AddressT
 	}>
 >(
 	input: T,
@@ -38,7 +38,7 @@ export const validateConsumeTokensAction = (
 	validateTokenDefinition?: (
 		input: Readonly<{
 			tokenDefinitionParticle: TokenDefinitionParticleBase
-			burner: Address
+			burner: AddressT
 		}>,
 	) => Result<ValidationWitness, Error>,
 ) => <

@@ -1,13 +1,14 @@
-import { Address } from '@radixdlt/crypto'
-import { DSONCodable } from '@radixdlt/data-formats'
-import { Amount, Granularity, Nonce } from '@radixdlt/primitives'
+import { AddressT } from '@radixdlt/crypto'
+import { DSONCodable, JSONEncodable } from '@radixdlt/data-formats'
+import { AmountT, Granularity, Nonce } from '@radixdlt/primitives'
 import { Result } from 'neverthrow'
-import { ResourceIdentifier, TokenPermissions } from '../_types'
+import { ResourceIdentifierT, TokenPermissions } from '../_types'
 import { RadixParticleType } from './meta/radixParticleTypes'
 
-export type ParticleBase = DSONCodable & {
-	equals: (other: ParticleBase) => boolean
-}
+export type ParticleBase = JSONEncodable &
+	DSONCodable & {
+		equals: (other: ParticleBase) => boolean
+	}
 
 export type RadixParticle = ParticleBase &
 	Readonly<{
@@ -16,32 +17,32 @@ export type RadixParticle = ParticleBase &
 
 export type TokenBase = Readonly<{
 	granularity: Granularity
-	resourceIdentifier: ResourceIdentifier
+	resourceIdentifier: ResourceIdentifierT
 }>
 
 export type TokenParticle = TokenBase &
 	RadixParticle &
 	Readonly<{
 		permissions: TokenPermissions
-		amount: Amount
+		amount: AmountT
 		nonce: Nonce
 	}>
 
-export type TransferrableTokensParticle = RadixParticle &
+export type TransferrableTokensParticleT = RadixParticle &
 	TokenParticle &
 	TransferrableTokensParticleProps
 
 export type TransferrableTokensParticleProps = Readonly<{
-	address: Address
+	address: AddressT
 }>
 
-export type UnallocatedTokensParticle = RadixParticle & TokenParticle
+export type UnallocatedTokensParticleT = RadixParticle & TokenParticle
 
-export type ResourceIdentifierParticle = RadixParticle &
+export type ResourceIdentifierParticleT = RadixParticle &
 	Readonly<{
 		radixParticleType: RadixParticleType
 		alwaysZeroNonce: Nonce
-		resourceIdentifier: ResourceIdentifier
+		resourceIdentifier: ResourceIdentifierT
 	}>
 
 export type TokenDefinitionBase = TokenBase &
@@ -54,12 +55,12 @@ export type TokenDefinitionBase = TokenBase &
 
 export type TokenDefinitionParticleBase = TokenDefinitionBase & RadixParticle
 
-export type FixedSupplyTokenDefinitionParticle = TokenDefinitionParticleBase &
+export type FixedSupplyTokenDefinitionParticleT = TokenDefinitionParticleBase &
 	Readonly<{
-		fixedTokenSupply: Amount
+		fixedTokenSupply: AmountT
 	}>
 
-export type MutableSupplyTokenDefinitionParticle = TokenDefinitionParticleBase &
+export type MutableSupplyTokenDefinitionParticleT = TokenDefinitionParticleBase &
 	Readonly<{
 		permissions: TokenPermissions
 	}>
@@ -75,32 +76,33 @@ export type SpunParticleBase = Readonly<{
 	particle: ParticleBase
 }>
 
-export type AnySpunParticle = DSONCodable &
+export type AnySpunParticle = JSONEncodable &
+	DSONCodable &
 	SpunParticleBase &
 	Readonly<{
 		downedAsAny: () => Result<AnyDownParticle, Error>
 		equals: (other: SpunParticleBase) => boolean
 	}>
 
-export type SpunParticle<P extends ParticleBase> = AnySpunParticle &
+export type SpunParticleT<P extends ParticleBase> = AnySpunParticle &
 	Readonly<{
 		particle: P
 		eraseToAny: () => AnySpunParticle
 		downed: () => Result<DownParticle<P>, Error>
 	}>
 
-export type UpParticle<P extends ParticleBase> = SpunParticle<P> &
+export type UpParticle<P extends ParticleBase> = SpunParticleT<P> &
 	Readonly<{
 		spin: Spin.UP
-		toSpunParticle: () => SpunParticle<P>
+		toSpunParticle: () => SpunParticleT<P>
 		eraseToAnyUp: () => AnyUpParticle
 	}>
 
-export type DownParticle<P extends ParticleBase> = SpunParticle<P> &
+export type DownParticle<P extends ParticleBase> = SpunParticleT<P> &
 	Readonly<{
 		spin: Spin.DOWN
 		particle: P
-		toSpunParticle: () => SpunParticle<P>
+		toSpunParticle: () => SpunParticleT<P>
 		eraseToAnyDown: () => AnyDownParticle
 	}>
 
@@ -126,14 +128,14 @@ export type SpunParticleQueryable = Readonly<{
 
 	transferrableTokensParticles: (
 		spin?: Spin,
-	) => SpunParticle<TransferrableTokensParticle>[]
+	) => SpunParticleT<TransferrableTokensParticleT>[]
 
 	unallocatedTokensParticles: (
 		spin?: Spin,
-	) => SpunParticle<UnallocatedTokensParticle>[]
+	) => SpunParticleT<UnallocatedTokensParticleT>[]
 
 	tokenDefinitionParticleMatchingIdentifier: (
-		resourceIdentifier: ResourceIdentifier,
+		resourceIdentifier: ResourceIdentifierT,
 	) => TokenDefinitionParticleBase | undefined
 }>
 

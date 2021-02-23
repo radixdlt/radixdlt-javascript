@@ -1,12 +1,12 @@
 import {
 	AnyUpParticle,
-	Atom,
+	AtomT,
 	RadixParticleType,
 	spunParticles,
 } from '@radixdlt/atom'
 import {
 	Amount,
-	amountFromUInt256,
+	AmountT,
 	Denomination,
 	maxAmount,
 	zero,
@@ -17,10 +17,10 @@ import { UInt256 } from '@radixdlt/uint256'
 
 export const feeForAtom = (
 	input: Readonly<{
-		atom: Atom
+		atom: AtomT
 		feeTable?: TokenFeeTable
 	}>,
-): Result<Amount, Error> => {
+): Result<AmountT, Error> => {
 	const feeTable = input.feeTable ?? tokenFeeTable
 	const atom = input.atom
 	const atomDsonResult = atom.toDSON()
@@ -28,14 +28,14 @@ export const feeForAtom = (
 	const atomByteCount = atomDsonResult.value.length
 
 	/* eslint-disable */
-	let fee: Amount = zero
+	let fee: AmountT = zero
 	for (const feeEntry of feeTable.feeEntries) {
 		const sumResult = feeEntry
 			.feeFor({
 				upParticles: atom.upParticles(),
 				atomByteCount,
 			})
-			.andThen((feeThisEntry: Amount) => fee.adding(feeThisEntry))
+			.andThen((feeThisEntry: AmountT) => fee.adding(feeThisEntry))
 		if (sumResult.isErr()) return err(sumResult.error)
 		fee = sumResult.value
 	}
@@ -44,8 +44,8 @@ export const feeForAtom = (
 	return ok(fee.lessThan(minFee) ? minFee : fee)
 }
 
-export const milliRads = (mXRD: number): Amount =>
-	amountFromUInt256({
+export const milliRads = (mXRD: number): AmountT =>
+	Amount.fromUInt256({
 		magnitude: UInt256.valueOf(mXRD),
 		denomination: Denomination.Milli,
 	}).unwrapOr(maxAmount) // will cause overflow so error propagated.
@@ -77,7 +77,7 @@ const perBytesFeeEntry = (
 				upParticles: AnyUpParticle[]
 				atomByteCount: number
 			}>,
-		): Result<Amount, Error> => {
+		): Result<AmountT, Error> => {
 			const atomByteCount = input.atomByteCount
 			if (!atomByteCount || !Number.isInteger(atomByteCount)) {
 				return err(new Error(`atomByteCount be a defined number.`))
@@ -89,7 +89,7 @@ const perBytesFeeEntry = (
 
 			const numberOfBytesExceedingThreshold = atomByteCount - threshold
 
-			return amountFromUInt256({
+			return Amount.fromUInt256({
 				magnitude: UInt256.valueOf(
 					numberOfBytesExceedingThreshold * feeMagnitude,
 				),
@@ -121,7 +121,7 @@ const perParticleFeeEntry = (
 				upParticles: AnyUpParticle[]
 				atomByteCount: number
 			}>,
-		): Result<Amount, Error> => {
+		): Result<AmountT, Error> => {
 			const particleCount = spunParticles(
 				input.upParticles,
 			).anySpunParticlesOfTypeWithSpin({ particleTypes: [particleType] })
@@ -134,7 +134,7 @@ const perParticleFeeEntry = (
 			const particleCountExceedingThreshold =
 				particleCount - particleCountThreshold
 
-			return amountFromUInt256({
+			return Amount.fromUInt256({
 				magnitude: UInt256.valueOf(
 					particleCountExceedingThreshold * feeMagnitude,
 				),

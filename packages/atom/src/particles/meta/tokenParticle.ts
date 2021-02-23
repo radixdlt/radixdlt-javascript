@@ -1,22 +1,30 @@
-import { DSONKeyValues } from '@radixdlt/data-formats'
+import { DSONKeyValues, SerializableKeyValues } from '@radixdlt/data-formats'
 import {
-	Amount,
+	AmountT,
 	Granularity,
 	granularityDefault,
 	Nonce,
 	randomNonce,
 } from '@radixdlt/primitives'
 import { pipe } from '@radixdlt/util'
-import { tokenPermissionsAll } from '../../tokenPermissions'
-import { ResourceIdentifier, TokenPermissions } from '../../_types'
+import {
+	makeTokenPermissions,
+	tokenPermissionsAll,
+} from '../../tokenPermissions'
+import {
+	ResourceIdentifierT,
+	TokenPermission,
+	TokenPermissions,
+	TokenTransition,
+} from '../../_types'
 import { TokenParticle } from '../_types'
 import { withParticleEquals } from './particle'
 
 export type TokenParticleInput = Readonly<{
-	amount: Amount
-	resourceIdentifier: ResourceIdentifier
+	amount: AmountT
+	resourceIdentifier: ResourceIdentifierT
 	granularity?: Granularity
-	permissions?: TokenPermissions
+	permissions?: Readonly<{ [key in TokenTransition]: TokenPermission }>
 	nonce?: Nonce
 }>
 
@@ -29,16 +37,20 @@ const withNonce = (
 
 const withAmount = (
 	input: TokenParticleInput,
-): TokenParticleInput & { amount: Amount } => ({
+): TokenParticleInput & { amount: AmountT } => ({
 	...input,
 	amount: input.amount,
 })
 
 const withPermissions = (
 	input: TokenParticleInput,
-): TokenParticleInput & { permissions: TokenPermissions } => ({
+): Omit<TokenParticleInput, 'permissions'> & {
+	permissions: TokenPermissions
+} => ({
 	...input,
-	permissions: input.permissions ?? tokenPermissionsAll,
+	permissions: input.permissions
+		? makeTokenPermissions(input.permissions)
+		: tokenPermissionsAll,
 })
 
 const withGranularity = (
@@ -48,7 +60,9 @@ const withGranularity = (
 	granularity: input.granularity ?? granularityDefault,
 })
 
-export const tokenDSONKeyValues = (input: TokenParticle): DSONKeyValues => ({
+export const tokenSerializationKeyValues = (
+	input: TokenParticle,
+): SerializableKeyValues => ({
 	tokenDefinitionReference: input.resourceIdentifier,
 	granularity: input.granularity,
 	permissions: input.permissions,

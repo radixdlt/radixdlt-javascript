@@ -1,5 +1,5 @@
-import { Address, Signature } from '@radixdlt/crypto'
-import { DSONCodable } from '@radixdlt/data-formats'
+import { AddressT, Signature } from '@radixdlt/crypto'
+import { DSONCodable, JSONEncodable } from '@radixdlt/data-formats'
 import { SpunParticleQueryable, SpunParticles } from './particles/_types'
 
 /**
@@ -8,12 +8,13 @@ import { SpunParticleQueryable, SpunParticles } from './particles/_types'
  * On format: `/:address/:name`, e.g.
  * `"/JH1P8f3znbyrDj8F4RWpix7hRkgxqHjdW2fNnKpR3v6ufXnknor/XRD"`
  */
-export type ResourceIdentifier = DSONCodable &
+export type ResourceIdentifierT = JSONEncodable &
+	DSONCodable &
 	Readonly<{
-		address: Address
+		address: AddressT
 		name: string
 		toString: () => string
-		equals: (other: ResourceIdentifier) => boolean
+		equals: (other: ResourceIdentifierT) => boolean
 	}>
 
 /**
@@ -39,7 +40,8 @@ export enum TokenTransition {
 	BURN = 'burn',
 }
 
-export type TokenPermissions = DSONCodable &
+export type TokenPermissions = JSONEncodable &
+	DSONCodable &
 	Readonly<{
 		permissions: Readonly<{ [key in TokenTransition]: TokenPermission }>
 		canBeMinted: (isOwnerOfToken: IsOwnerOfToken) => boolean
@@ -48,7 +50,8 @@ export type TokenPermissions = DSONCodable &
 		equals: (other: TokenPermissions) => boolean
 	}>
 
-export type ParticleGroup = DSONCodable &
+export type ParticleGroupT = JSONEncodable &
+	DSONCodable &
 	SpunParticleQueryable &
 	Readonly<{
 		spunParticles: SpunParticles
@@ -57,7 +60,7 @@ export type ParticleGroup = DSONCodable &
 export type ParticleGroups = DSONCodable &
 	SpunParticleQueryable &
 	Readonly<{
-		groups: ParticleGroup[]
+		groups: ParticleGroupT[]
 	}>
 
 // TODO change this when we have DSON encoding in place. Should be hash of dson truncated.
@@ -66,12 +69,14 @@ export type PublicKeyID = string
 export type SignatureID = PublicKeyID
 export type Signatures = Readonly<{ [key in SignatureID]: Signature }>
 
-export type Atom = DSONCodable &
+export type AtomT = JSONEncodable &
+	DSONCodable &
 	SpunParticleQueryable &
 	Readonly<{
 		particleGroups: ParticleGroups // can be empty
 		signatures: Signatures // can be empty
 		message?: string
+		equals: (other: AtomT) => boolean
 		identifier: () => AtomIdentifier
 		isSigned: () => boolean
 	}>
