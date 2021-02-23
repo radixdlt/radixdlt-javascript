@@ -9,24 +9,23 @@ import {
 } from './helpers/particles'
 import { UInt256 } from '@radixdlt/uint256'
 import {
+	AtomT,
 	SignatureID,
 	Signatures,
 	TokenPermission,
 	TokenTransition,
 } from '../src/_types'
+import { Atom } from '../src/atom'
+import { TransferrableTokensParticle } from '../src/particles/transferrableTokensParticle'
+import { ResourceIdentifier } from '../src/resourceIdentifier'
+import { particleGroups } from '../src/particleGroups'
+import { particleGroup } from '../src/particleGroup'
 import { signatureFromHexStrings } from './helpers/utility'
 import { Spin } from '../src/particles/_types'
 import { RadixParticleType } from '../src/particles/meta/radixParticleTypes'
 import { spunParticle } from '../src/particles/spunParticle'
 import { addressFromBase58String } from '@radixdlt/crypto'
 import { makeTokenPermissions } from '../src/tokenPermissions'
-import {
-	Atom,
-	particleGroup,
-	particleGroups,
-	ResourceIdentifier,
-	TransferrableTokensParticle,
-} from '../dist/_index'
 import { Amount, Denomination, nonce } from '@radixdlt/primitives'
 
 const mockedAtomIdentifier = atomIdentifier(
@@ -44,13 +43,13 @@ describe('atom', () => {
 	})
 
 	it('can query anySpunParticles by spin=DOWN and by type=ResourceIdentifierParticle OR TransferrableTokensParticle since an atom itself is SpunParticles', () => {
-		const atom_ = Atom.create({
+		const atom = Atom.create({
 			particleGroups: particleGroups([particleGroup(spunParticles_)]),
 		})
 
 		expect(
 			exactlyContainParticles({
-				actual: atom_.anySpunParticlesOfTypeWithSpin({
+				actual: atom.anySpunParticlesOfTypeWithSpin({
 					spin: Spin.DOWN,
 					particleTypes: [
 						RadixParticleType.RESOURCE_IDENTIFIER,
@@ -90,13 +89,13 @@ describe('atom', () => {
 			[signatureID]: signature,
 		}
 
-		const atom_ = Atom.create({
+		const atom = Atom.create({
 			signatures: signatures,
 		})
 
-		expect(atom_).toBeDefined()
-		expect(atom_.isSigned()).toBe(true)
-		const queriedSignature = atom_.signatures[signatureID]
+		expect(atom).toBeDefined()
+		expect(atom.isSigned()).toBe(true)
+		const queriedSignature = atom.signatures[signatureID]
 		if (queriedSignature !== undefined) {
 			expect(queriedSignature.equals(signature))
 		} else {
@@ -138,12 +137,12 @@ describe('atom', () => {
 			}),
 		])
 
-		const atom_ = Atom.create({
+		const atom = Atom.create({
 			particleGroups: particleGroups([particleGroup_]),
 		})
 
 		it('should be able to DSON encode', () => {
-			const expected = atom_.toDSON()._unsafeUnwrap().toString('hex')
+			const expected = atom.toDSON()._unsafeUnwrap().toString('hex')
 
 			expect(expected).toEqual(
 				'bf6e7061727469636c6547726f75707381bf697061727469636c657381bf687061727469636c65bf6761646472657373582704390279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798b1186a1e66616d6f756e7458210500000000000000000000000000000000000000000000000000000000000000066b6772616e756c61726974795821050000000000000000000000000000000000000000000000000000000000000003656e6f6e63651b00000002dfdc1c3e6b7065726d697373696f6e73bf646275726e63616c6c646d696e7470746f6b656e5f6f776e65725f6f6e6c79ff6a73657269616c697a6572782472616469782e7061727469636c65732e7472616e736665727261626c655f746f6b656e737818746f6b656e446566696e6974696f6e5265666572656e6365583d062f3953386b684c485a6136467379476f36333478516f3951774c67534847705848485737363444356d50594263726e665a563652542f464f4f424152ff6a73657269616c697a65727372616469782e7370756e5f7061727469636c65647370696e01ff6a73657269616c697a65727472616469782e7061727469636c655f67726f7570ff6a73657269616c697a65726a72616469782e61746f6dff',
@@ -151,7 +150,7 @@ describe('atom', () => {
 		})
 
 		it('should be able to JSON encode', () => {
-			const result = atom_.toJSON()._unsafeUnwrap()
+			const result = atom.toJSON()._unsafeUnwrap()
 			const expected = {
 				serializer: Atom.SERIALIZER,
 				particleGroups: [particleGroup_.toJSON()._unsafeUnwrap()],
@@ -164,10 +163,10 @@ describe('atom', () => {
 				serializer: Atom.SERIALIZER,
 			}
 
-			const result = Atom.fromJSON(json)._unsafeUnwrap()
+			const actual = Atom.fromJSON(json)._unsafeUnwrap() as AtomT
 			const expected = Atom.create({})
 
-			expect(JSON.stringify(result)).toEqual(JSON.stringify(expected))
+			expect(actual.equals(expected)).toBe(true)
 		})
 	})
 })
