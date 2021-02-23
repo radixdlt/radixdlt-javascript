@@ -1,9 +1,9 @@
 import {
 	AtomT,
 	AtomIdentifier,
-	ParticleGroupT,
 	ParticleGroups,
 	Signatures,
+	ParticleGroupT,
 } from './_types'
 import { atomIdentifier } from './atomIdentifier'
 import { particleGroups } from './particleGroups'
@@ -16,6 +16,7 @@ import {
 	objectDecoder,
 } from '@radixdlt/data-formats'
 import { ok } from 'neverthrow'
+import { equalsDSONHash } from './euid'
 import { ParticleGroup } from './particleGroup'
 
 const isSigned = (signatures: Signatures): boolean => {
@@ -35,6 +36,7 @@ type Input = Readonly<{
 	message?: string
 }>
 
+// TODO make signature and message DSONCodable and add them here
 const serialization = (
 	input: Readonly<{
 		particleGroups: ParticleGroupT[]
@@ -59,17 +61,25 @@ const create = (input: Input): AtomT => {
 	const particleGroups_: ParticleGroups =
 		input.particleGroups ?? particleGroups([])
 
-	return {
+	const atomExcludingEquals = {
 		...serialization({
 			particleGroups: particleGroups_.groups,
 		}),
-
 		particleGroups: particleGroups_,
 		signatures: signatures,
 		message: input.message,
+		equals: (_other: AtomT): boolean => {
+			throw new Error('implemented below')
+		},
 		identifier: (): AtomIdentifier => mockedAtomIdentifier,
 		isSigned: () => isSigned(signatures),
-		...particleGroups_,
+		...particleGroups_, // makes AtomT `SpunParticleQueryable`
+	}
+
+	return {
+		...atomExcludingEquals,
+		equals: (other: AtomT): boolean =>
+			equalsDSONHash(atomExcludingEquals, other),
 	}
 }
 

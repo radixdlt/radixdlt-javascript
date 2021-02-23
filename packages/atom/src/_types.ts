@@ -76,6 +76,7 @@ export type AtomT = JSONEncodable &
 		particleGroups: ParticleGroups // can be empty
 		signatures: Signatures // can be empty
 		message?: string
+		equals: (other: AtomT) => boolean
 		identifier: () => AtomIdentifier
 		isSigned: () => boolean
 	}>
