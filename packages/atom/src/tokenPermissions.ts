@@ -51,7 +51,7 @@ export const makeTokenPermissions = (
 	return {
 		...JSONEncoding(serializerNotNeeded)(() => ({
 			[TokenTransition.BURN]: `${Tag.STRING}${permissions.burn}`,
-			[TokenTransition.MINT]: `${Tag.STRING}${permissions.mint}`
+			[TokenTransition.MINT]: `${Tag.STRING}${permissions.mint}`,
 		})),
 
 		...DSONEncoding(serializerNotNeeded)(() => permissions),

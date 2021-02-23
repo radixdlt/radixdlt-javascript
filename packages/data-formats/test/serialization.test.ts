@@ -347,7 +347,7 @@ describe('JSON', () => {
 	}
 
 	describe('encoding', () => {
-		it('should encode JSON primitives', () => {
+		it('should encode primitives', () => {
 			examples
 				.filter((example) => example.json)
 				.forEach((example) =>
@@ -355,7 +355,7 @@ describe('JSON', () => {
 				)
 		})
 
-		it('should encode a JSON object', () => {
+		it('should encode an object', () => {
 			const encoded = encodableComplex({
 				prop1: 'a',
 				prop2: 'xyz',
@@ -378,6 +378,22 @@ describe('JSON', () => {
 			}
 
 			expect(encoded).toEqual(expected)
+		})
+
+		it('should fail to encode with an internal error', () => {
+			const failsToEncode = () => {	
+				return {
+					toJSON: () => err(Error('boom')),
+				}
+			}
+
+			const encoded = encodableComplex({
+				prop1: 'a',
+				prop2: 'xyz',
+				prop3: failsToEncode(),
+			}).toJSON()
+
+			expect(encoded.isErr()).toBe(true)
 		})
 	})
 
@@ -458,17 +474,13 @@ describe('JSON', () => {
 
 		it('should fail to decode with an internal error', () => {
 			const objectDecoders: JSONObjectDecoder[] = [
-				objectDecoder(serializer, () =>
-					err(Error('boom')),
-				),
+				objectDecoder(serializer, () => err(Error('boom'))),
 			]
 
-			const { fromJSON } = JSONDecoding()(
-				...objectDecoders,
-			)
+			const { fromJSON } = JSONDecoding()(...objectDecoders)
 
 			const json = {
-				serializer
+				serializer,
 			}
 
 			const decoded = fromJSON(json)
