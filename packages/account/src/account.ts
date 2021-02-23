@@ -8,7 +8,7 @@ import {
 import { mergeMap, map } from 'rxjs/operators'
 import { Observable, of, from } from 'rxjs'
 import { toObservable, toObservableFromResult } from './resultAsync_observable'
-import { AccountID, AccountT, HardwareWallet } from './_types'
+import { AccountT, HardwareWallet } from './_types'
 import { BIP32 } from './bip32/_types'
 import { accountIdFromBIP32Path, accountIdFromPublicKey } from './accountId'
 import { mnemonicToSeed } from 'bip39'
