@@ -1,4 +1,4 @@
-import { ok } from 'neverthrow'
+import { err, ok } from 'neverthrow'
 import {
 	DSONPrimitive,
 	DSONEncodableMap,
@@ -454,6 +454,26 @@ describe('JSON', () => {
 
 			const decoded = fromJSON(json)
 			expect(decoded.isErr()).toBe(true)
+		})
+
+		it('should fail to decode with an internal error', () => {
+			const objectDecoders: JSONObjectDecoder[] = [
+				objectDecoder(serializer, () =>
+					err(Error('boom')),
+				),
+			]
+
+			const { fromJSON } = JSONDecoding()(
+				...objectDecoders,
+			)
+
+			const json = {
+				serializer
+			}
+
+			const decoded = fromJSON(json)
+
+			expect(decoded.isErr()).toEqual(true)
 		})
 	})
 })
