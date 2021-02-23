@@ -73,14 +73,14 @@ export const fixedSupTokDefParticle = FixedSupplyTokenDefinitionParticle.create(
 export const mutableSupplyTokenDefinitionParticleAllCanMutate = MutableSupplyTokenDefinitionParticle.create(
 	{
 		...tokenDefInput,
-		permissions: tokenPermissionsAll,
+		permissions: tokenPermissionsAll.permissions,
 	},
 )._unsafeUnwrap()
 
 export const mutableSupplyTokenDefinitionParticleOnlyAliceCanMutate = MutableSupplyTokenDefinitionParticle.create(
 	{
 		...tokenDefInput,
-		permissions: tokenOwnerOnly,
+		permissions: tokenOwnerOnly.permissions,
 	},
 )._unsafeUnwrap()
 

@@ -1,8 +1,10 @@
 import {
+	MutableSupplyTokenDefinitionParticle,
 	ParticleBase,
 	spunUpParticle,
 	TokenDefinitionParticleInput,
 	tokenPermissionsAll,
+	TransferrableTokensParticle,
 } from '@radixdlt/atom'
 import { toAddress } from '../../atom/test/helpers/utility'
 import {
@@ -19,10 +21,8 @@ import {
 	AtomT,
 	FixedSupplyTokenDefinitionParticle,
 	FixedSupplyTokenDefinitionParticleT,
-	MutableSupplyTokenDefinitionParticle,
 	MutableSupplyTokenDefinitionParticleT,
 	ResourceIdentifier,
-	TransferrableTokensParticle,
 	TransferrableTokensParticleT,
 } from '@radixdlt/atom/src/_index'
 import { Amount } from '@radixdlt/primitives/src/amount'
@@ -83,7 +83,7 @@ describe('TokenFees', () => {
 	): MutableSupplyTokenDefinitionParticleT =>
 		MutableSupplyTokenDefinitionParticle.create({
 			...makeTokenDefInput(symbolNumSuffix),
-			permissions: tokenPermissionsAll,
+			permissions: tokenPermissionsAll.permissions,
 		})._unsafeUnwrap()
 
 	const atomWithParticleCountOf = <P extends ParticleBase>(

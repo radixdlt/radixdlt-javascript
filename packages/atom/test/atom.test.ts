@@ -16,19 +16,18 @@ import {
 } from '../src/_types'
 import { signatureFromHexStrings } from './helpers/utility'
 import { Spin } from '../src/particles/_types'
-import { particleGroup } from '../src/particleGroup'
-import { particleGroups } from '../src/particleGroups'
 import { RadixParticleType } from '../src/particles/meta/radixParticleTypes'
 import { spunParticle } from '../src/particles/spunParticle'
 import { addressFromBase58String } from '@radixdlt/crypto'
-import { Amount, Denomination, nonce } from '@radixdlt/primitives'
+import { makeTokenPermissions } from '../src/tokenPermissions'
 import {
-	tokenPermissionsAll,
-	makeTokenPermissions,
-} from '../src/tokenPermissions'
-import { Atom } from '../src/_index'
-import { ResourceIdentifier } from '../src/resourceIdentifier'
-import { TransferrableTokensParticle } from '../src/particles/_index'
+	Atom,
+	particleGroup,
+	particleGroups,
+	ResourceIdentifier,
+	TransferrableTokensParticle,
+} from '../dist/_index'
+import { Amount, Denomination, nonce } from '@radixdlt/primitives'
 
 const mockedAtomIdentifier = atomIdentifier(
 	'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',

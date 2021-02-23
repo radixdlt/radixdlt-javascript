@@ -10,8 +10,10 @@ import {
 	Tag,
 } from './_types'
 
-const hasOutputMode = (data: Record<string, unknown>): data is { value: any, outputMode: OutputMode } =>
-	(data as { value: any, outputMode: OutputMode }).outputMode ? true : false
+const hasOutputMode = (
+	data: Record<string, unknown>,
+): data is { value: any; outputMode: OutputMode } =>
+	(data as { value: any; outputMode: OutputMode }).outputMode ? true : false
 
 export const toJSON = (
 	data: JSONEncodablePrimitive | JSONEncodable | JSONKeyValues,
@@ -35,7 +37,7 @@ export const toJSON = (
 				throw result.error
 			}
 
-			if(hasOutputMode(data)) {
+			if (hasOutputMode(data)) {
 				return toJSON(data.value)
 			}
 
