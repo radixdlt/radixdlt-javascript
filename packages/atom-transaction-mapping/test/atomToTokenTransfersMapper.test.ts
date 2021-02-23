@@ -1,11 +1,8 @@
 import { toAddress } from '../../crypto/test/address.test'
 import {
 	anyUpParticle,
-	fixedSupplyTokenDefinitionParticle,
 	particleGroups,
-	ResourceIdentifier,
 	Spin,
-	SpunParticle,
 	spunParticle,
 	spunUpParticle,
 	TokenDefinitionParticleBase,
@@ -43,7 +40,7 @@ import {
 	TransferrableTokensParticleT,
 	UnallocatedTokensParticleT,
 } from '@radixdlt/atom/src/particles/_types'
-import { TransferrableTokensParticle } from '@radixdlt/atom/src/_index'
+import { FixedSupplyTokenDefinitionParticle, TransferrableTokensParticle } from '@radixdlt/atom/src/_index'
 
 describe('AtomToTokenTransfersMapper', () => {
 	const alice = toAddress(
@@ -57,7 +54,7 @@ describe('AtomToTokenTransfersMapper', () => {
 	)
 
 	const granularity: Granularity = one
-	const fixedSupplyTokenDefinitionParticle_ = fixedSupplyTokenDefinitionParticle(
+	const fixedSupplyTokenDefinitionParticle_ = FixedSupplyTokenDefinitionParticle.create(
 		{
 			granularity,
 			supply: maxAmount,

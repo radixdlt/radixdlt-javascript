@@ -55,12 +55,12 @@ export type TokenDefinitionBase = TokenBase &
 
 export type TokenDefinitionParticleBase = TokenDefinitionBase & RadixParticle
 
-export type FixedSupplyTokenDefinitionParticle = TokenDefinitionParticleBase &
+export type FixedSupplyTokenDefinitionParticleT = TokenDefinitionParticleBase &
 	Readonly<{
 		fixedTokenSupply: AmountT
 	}>
 
-export type MutableSupplyTokenDefinitionParticle = TokenDefinitionParticleBase &
+export type MutableSupplyTokenDefinitionParticleT = TokenDefinitionParticleBase &
 	Readonly<{
 		permissions: TokenPermissions
 	}>

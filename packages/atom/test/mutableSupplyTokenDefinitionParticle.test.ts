@@ -1,9 +1,9 @@
 import { toAddress } from './helpers/utility'
 import { tokenOwnerOnly, tokenPermissionsAll } from '../src/tokenPermissions'
 import { granularityDefault } from '@radixdlt/primitives'
-import { mutableSupplyTokenDefinitionParticle } from '../src/particles/mutableSupplyTokenDefinitionParticle'
 import { RadixParticleType } from '../src/particles/meta/_index'
 import { doTestTokenDefintionParticle } from './helpers/tokenDefinitionParticleBaseTests'
+import { MutableSupplyTokenDefinitionParticle } from '../src/_index'
 
 describe('mutableSupplyTokenDefinitionParticle', () => {
 	const address = toAddress(
@@ -24,11 +24,11 @@ describe('mutableSupplyTokenDefinitionParticle', () => {
 	doTestTokenDefintionParticle(
 		input,
 		RadixParticleType.MUTABLE_SUPPLY_TOKEN_DEFINITION,
-		mutableSupplyTokenDefinitionParticle,
+		MutableSupplyTokenDefinitionParticle.create,
 	)
 
 	it('permissions equals the inputted permissions', () => {
-		const mutableSupplyTokenDefinitionParticle_ = mutableSupplyTokenDefinitionParticle(
+		const mutableSupplyTokenDefinitionParticle_ = MutableSupplyTokenDefinitionParticle.create(
 			input,
 		)._unsafeUnwrap()
 
@@ -41,7 +41,7 @@ describe('mutableSupplyTokenDefinitionParticle', () => {
 
 	describe('should be able to dson encode', () => {
 		it('should encode dson when all optional props are set', () => {
-			const mutableSupplyTokenDefinitionParticle_ = mutableSupplyTokenDefinitionParticle(
+			const mutableSupplyTokenDefinitionParticle_ = MutableSupplyTokenDefinitionParticle.create(
 				input,
 			)._unsafeUnwrap()
 

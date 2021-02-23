@@ -1,9 +1,4 @@
 import {
-	Atom,
-	FixedSupplyTokenDefinitionParticle,
-	fixedSupplyTokenDefinitionParticle,
-	MutableSupplyTokenDefinitionParticle,
-	mutableSupplyTokenDefinitionParticle,
 	ParticleBase,
 	spunUpParticle,
 	TokenDefinitionParticleInput,
@@ -22,6 +17,10 @@ import { feeForAtom, milliRads, minimumFee } from '../src/tokenFee'
 import { atomWithSpunParticles } from './atomFromParticles'
 import {
 	AtomT,
+	FixedSupplyTokenDefinitionParticle,
+	FixedSupplyTokenDefinitionParticleT,
+	MutableSupplyTokenDefinitionParticle,
+	MutableSupplyTokenDefinitionParticleT,
 	ResourceIdentifier,
 	TransferrableTokensParticle,
 	TransferrableTokensParticleT,
@@ -73,16 +72,16 @@ describe('TokenFees', () => {
 
 	const makeFSTDP = (
 		symbolNumSuffix: number,
-	): FixedSupplyTokenDefinitionParticle =>
-		fixedSupplyTokenDefinitionParticle({
+	): FixedSupplyTokenDefinitionParticleT =>
+		FixedSupplyTokenDefinitionParticle.create({
 			...makeTokenDefInput(symbolNumSuffix),
 			supply: Amount.fromUnsafe(21_000_000)._unsafeUnwrap(),
 		})._unsafeUnwrap()
 
 	const makeMSTDP = (
 		symbolNumSuffix: number,
-	): MutableSupplyTokenDefinitionParticle =>
-		mutableSupplyTokenDefinitionParticle({
+	): MutableSupplyTokenDefinitionParticleT =>
+		MutableSupplyTokenDefinitionParticle.create({
 			...makeTokenDefInput(symbolNumSuffix),
 			permissions: tokenPermissionsAll,
 		})._unsafeUnwrap()

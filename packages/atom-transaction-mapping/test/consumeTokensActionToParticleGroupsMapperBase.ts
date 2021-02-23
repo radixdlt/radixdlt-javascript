@@ -1,10 +1,8 @@
 /* eslint-disable */
 import { TokensActionBase } from '@radixdlt/actions'
-import { Address, AddressT } from '@radixdlt/crypto'
+import { AddressT } from '@radixdlt/crypto'
 import {
 	AnyUpParticle,
-	fixedSupplyTokenDefinitionParticle,
-	mutableSupplyTokenDefinitionParticle,
 	Spin,
 	TokenDefinitionParticleBase,
 	TokenDefinitionParticleInput,
@@ -21,6 +19,8 @@ import { toAddress } from '../../atom/test/helpers/utility'
 import { two, three, one, four, five } from '@radixdlt/primitives/src/amount'
 import { ActionToParticleGroupsMapper } from '../src/toAtom/_types'
 import {
+	FixedSupplyTokenDefinitionParticle,
+	MutableSupplyTokenDefinitionParticle,
 	ResourceIdentifier,
 	TransferrableTokensParticleT,
 } from '@radixdlt/atom/src/_index'
@@ -63,19 +63,19 @@ const tokenDefInput = <TokenDefinitionParticleInput>{
 	granularity: one,
 }
 
-export const fixedSupTokDefParticle = fixedSupplyTokenDefinitionParticle({
+export const fixedSupTokDefParticle = FixedSupplyTokenDefinitionParticle.create({
 	...tokenDefInput,
 	supply: maxAmount,
 })._unsafeUnwrap()
 
-export const mutableSupplyTokenDefinitionParticleAllCanMutate = mutableSupplyTokenDefinitionParticle(
+export const mutableSupplyTokenDefinitionParticleAllCanMutate = MutableSupplyTokenDefinitionParticle.create(
 	{
 		...tokenDefInput,
 		permissions: tokenPermissionsAll,
 	},
 )._unsafeUnwrap()
 
-export const mutableSupplyTokenDefinitionParticleOnlyAliceCanMutate = mutableSupplyTokenDefinitionParticle(
+export const mutableSupplyTokenDefinitionParticleOnlyAliceCanMutate = MutableSupplyTokenDefinitionParticle.create(
 	{
 		...tokenDefInput,
 		permissions: tokenOwnerOnly,

@@ -9,12 +9,28 @@ import {
 	TokenDefinitionParticleInput,
 } from './tokenDefinitionParticleBase'
 import {
-	MutableSupplyTokenDefinitionParticle,
+	MutableSupplyTokenDefinitionParticleT,
 	ParticleBase,
 	TokenDefinitionParticleBase,
 } from './_types'
+import { ResourceIdentifier } from '../resourceIdentifier'
+import { JSONDecoding, objectDecoder } from '@radixdlt/data-formats'
 
 const radixParticleType = RadixParticleType.MUTABLE_SUPPLY_TOKEN_DEFINITION
+
+const SERIALIZER = 'radix.particles.mutable_supply_token_definition'
+
+const { JSONDecoders, fromJSON } = JSONDecoding<MutableSupplyTokenDefinitionParticleT>(
+	ResourceIdentifier
+)(
+	objectDecoder(
+		SERIALIZER,
+		(input: TokenDefinitionParticleInput &
+			Readonly<{
+				permissions?: TokenPermissions
+			}>) => create(input)
+	)
+)
 
 const validateTokenPermissions = (
 	permissions: TokenPermissions,
@@ -25,18 +41,18 @@ const validateTokenPermissions = (
 		: err(new Error('Someone must have permission to mint.'))
 }
 
-export const mutableSupplyTokenDefinitionParticle = (
+const create = (
 	input: TokenDefinitionParticleInput &
 		Readonly<{
 			permissions?: TokenPermissions
 		}>,
-): Result<MutableSupplyTokenDefinitionParticle, Error> => {
+): Result<MutableSupplyTokenDefinitionParticleT, Error> => {
 	return validateTokenPermissions(
 		input.permissions ?? tokenOwnerOnly,
 	).andThen((permissions) => {
 		return baseTokenDefinitionParticle({
 			...input,
-			serializer: 'radix.particles.mutable_supply_token_definition',
+			serializer: SERIALIZER,
 			radixParticleType:
 				RadixParticleType.MUTABLE_SUPPLY_TOKEN_DEFINITION,
 
@@ -67,7 +83,7 @@ export const mutableSupplyTokenDefinitionParticle = (
 		}).map(
 			(
 				base: TokenDefinitionParticleBase,
-			): MutableSupplyTokenDefinitionParticle => ({
+			): MutableSupplyTokenDefinitionParticleT => ({
 				...base,
 				permissions: permissions,
 			}),
@@ -77,7 +93,13 @@ export const mutableSupplyTokenDefinitionParticle = (
 
 export const isMutableTokenDefinitionParticle = (
 	something: unknown,
-): something is MutableSupplyTokenDefinitionParticle => {
+): something is MutableSupplyTokenDefinitionParticleT => {
 	if (!isTokenDefinitionParticleBase(something)) return false
 	return something.radixParticleType === radixParticleType
+}
+
+export const MutableSupplyTokenDefinitionParticle = {
+	create,
+	JSONDecoders,
+	fromJSON
 }
