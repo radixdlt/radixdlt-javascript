@@ -10,6 +10,7 @@ import {
 	DSONEncoding,
 	JSONEncoding,
 	serializerNotNeeded,
+	Tag,
 } from '@radixdlt/data-formats'
 
 export const makeTokenPermissions = (
@@ -48,7 +49,10 @@ export const makeTokenPermissions = (
 	const burnPermission = valueOfRequiredPermission(TokenTransition.BURN)
 
 	return {
-		...JSONEncoding(serializerNotNeeded)(() => permissions),
+		...JSONEncoding(serializerNotNeeded)(() => ({
+			[TokenTransition.BURN]: `${Tag.STRING}${permissions.burn}`,
+			[TokenTransition.MINT]: `${Tag.STRING}${permissions.mint}`,
+		})),
 
 		...DSONEncoding(serializerNotNeeded)(() => permissions),
 

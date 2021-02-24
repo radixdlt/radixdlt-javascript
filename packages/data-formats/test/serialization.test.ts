@@ -1,4 +1,4 @@
-import { ok } from 'neverthrow'
+import { err, ok } from 'neverthrow'
 import {
 	DSONPrimitive,
 	DSONEncodableMap,
@@ -347,7 +347,7 @@ describe('JSON', () => {
 	}
 
 	describe('encoding', () => {
-		it('should encode JSON primitives', () => {
+		it('should encode primitives', () => {
 			examples
 				.filter((example) => example.json)
 				.forEach((example) =>
@@ -355,7 +355,7 @@ describe('JSON', () => {
 				)
 		})
 
-		it('should encode a JSON object', () => {
+		it('should encode an object', () => {
 			const encoded = encodableComplex({
 				prop1: 'a',
 				prop2: 'xyz',
@@ -378,6 +378,22 @@ describe('JSON', () => {
 			}
 
 			expect(encoded).toEqual(expected)
+		})
+
+		it('should fail to encode with an internal error', () => {
+			const failsToEncode = () => {
+				return {
+					toJSON: () => err(Error('boom')),
+				}
+			}
+
+			const encoded = encodableComplex({
+				prop1: 'a',
+				prop2: 'xyz',
+				prop3: failsToEncode(),
+			}).toJSON()
+
+			expect(encoded.isErr()).toBe(true)
 		})
 	})
 
@@ -443,6 +459,33 @@ describe('JSON', () => {
 			})
 
 			expect(JSON.stringify(decoded)).toEqual(JSON.stringify(expected))
+		})
+
+		it('should fail to decode with an unknown decoder', () => {
+			const { fromJSON } = JSONDecoding()()
+
+			const json = {
+				a: ':tst:abc',
+			}
+
+			const decoded = fromJSON(json)
+			expect(decoded.isErr()).toBe(true)
+		})
+
+		it('should fail to decode with an internal error', () => {
+			const objectDecoders: JSONObjectDecoder[] = [
+				objectDecoder(serializer, () => err(Error('boom'))),
+			]
+
+			const { fromJSON } = JSONDecoding()(...objectDecoders)
+
+			const json = {
+				serializer,
+			}
+
+			const decoded = fromJSON(json)
+
+			expect(decoded.isErr()).toEqual(true)
 		})
 	})
 })

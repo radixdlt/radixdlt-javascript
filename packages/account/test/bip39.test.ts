@@ -2,10 +2,10 @@ import {
 	entropyInBitsFromWordCount,
 	languagesSupportedByBIP39,
 	Mnemomic,
-	wordlistFromLanguage
-} from "../src/bip39/mnemonic";
-import { LanguageT } from "../src/bip39/_types";
-import { HDMasterSeed } from "../src/bip39/hdMasterSeed";
+	wordlistFromLanguage,
+} from '../src/bip39/mnemonic'
+import { LanguageT } from '../src/bip39/_types'
+import { HDMasterSeed } from '../src/bip39/hdMasterSeed'
 
 describe('bip39', () => {
 	it('can calculate entropy from word count', () => {
@@ -24,7 +24,7 @@ describe('bip39', () => {
 
 	it.only('should work with every BIP39 supported language', () => {
 		let wordFromLastWordlist = ''
-		languagesSupportedByBIP39.forEach(language => {
+		languagesSupportedByBIP39.forEach((language) => {
 			const wordList = wordlistFromLanguage(language)
 			expect(wordList).toBeDefined()
 			expect(wordList.length).toBe(2048)
