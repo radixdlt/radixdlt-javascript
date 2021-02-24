@@ -1,21 +1,22 @@
 import { privateKeyFromScalar, unsignedPlainText } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
-import { accountFromMnemonicAtHDPath } from '../src/account'
-import { bip44FromString } from '../src/_index'
-
-const mnemonic =
-	'equip will roof matter pink blind book anxiety banner elbow sun young'
+import { Account } from '../src/account'
+import { BIP44 } from '../src/_index'
+import { Mnemomic } from '../src/bip39/mnemonic'
+import { HDMasterSeed } from '../src/bip39/hdMasterSeed'
 
 describe('account', () => {
 	describe('hdPath account', () => {
 		it('works', async (done) => {
-			const hdPath = bip44FromString(`m/44'/536'/2'/1/3`)._unsafeUnwrap()
+			const mnemonic = Mnemomic.fromEnglishPhrase(
+				'equip will roof matter pink blind book anxiety banner elbow sun young',
+			)._unsafeUnwrap()
+			const hdMasterSeed = HDMasterSeed.from({ mnemonic })
+			const hdPath = BIP44.fromString(`m/44'/536'/2'/1/3`)._unsafeUnwrap()
 
-			const account = accountFromMnemonicAtHDPath({
-				mnemonic: {
-					phrase: mnemonic,
-				},
+			const account = Account.fromHDPathWithHDMasterSeed({
 				hdPath,
+				hdMasterSeed,
 			})
 
 			expect(account.accountId.accountIdString).toBe(hdPath.toString())

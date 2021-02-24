@@ -2,17 +2,17 @@ import { Int64 } from '@radixdlt/primitives'
 
 export type Int32 = number
 
-export type BIP32 = Readonly<{
-	pathComponents: BIP32PathComponent[]
+export type BIP32T = Readonly<{
+	pathComponents: BIP32PathComponentT[]
 	toString: () => string
 }>
 
-export type BIP32PathSimple = Readonly<{
+export type BIP32PathSimpleT = Readonly<{
 	index: Int64
 	isHardened: boolean
 }>
 
-export type BIP32PathComponent = BIP32PathSimple &
+export type BIP32PathComponentT = BIP32PathSimpleT &
 	Readonly<{
 		toString: () => string
 

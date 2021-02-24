@@ -1,5 +1,5 @@
 import { UInt256 } from '@radixdlt/uint256'
-import { AmountT } from '../dist/_types'
+import { AmountT } from '../src/_types'
 import {
 	Amount,
 	eight,

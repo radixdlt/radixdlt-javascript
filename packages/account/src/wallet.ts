@@ -1,13 +1,13 @@
 import { Observable, BehaviorSubject, ReplaySubject } from 'rxjs'
-import { accountFromPrivateKey } from './account'
-import { AccountID, Accounts, AccountT, Maybe, WalletT } from './_types'
+import { Account } from './account'
+import { AccountIdT, AccountsT, AccountT, Maybe, WalletT } from './_types'
 import { mergeMap, map } from 'rxjs/operators'
 import { PublicKey } from '@radixdlt/crypto'
-import { BIP32 } from './_index'
-import { accountId } from './accountId'
+import { BIP32T } from './_index'
+import { AccountId } from './accountId'
 
 // eslint-disable-next-line max-lines-per-function
-export const makeWallet = (
+const create = (
 	input: Readonly<{
 		accounts: Set<AccountT>
 	}>,
@@ -47,11 +47,11 @@ export const makeWallet = (
 
 	if (accounts.length > 0) changeAccount(accounts[0])
 
-	const observeAccounts = (): Observable<Accounts> =>
+	const observeAccounts = (): Observable<AccountsT> =>
 		accountsSubject.asObservable().pipe(
 			map((map: Map<string, AccountT>) => ({
-				get: (id: AccountID | PublicKey | BIP32): Maybe<AccountT> =>
-					map.get(accountId(id).accountIdString),
+				get: (id: AccountIdT | PublicKey | BIP32T): Maybe<AccountT> =>
+					map.get(AccountId.create(id).accountIdString),
 				all: Array.from(map.values()),
 			})),
 		)
@@ -60,10 +60,14 @@ export const makeWallet = (
 		changeAccount,
 		addAccount,
 		observeActiveAccount,
-		addAccountByPrivateKey: (pk) => addAccount(accountFromPrivateKey(pk)),
+		addAccountByPrivateKey: (pk) => addAccount(Account.fromPrivateKey(pk)),
 		observeAccounts,
 		derivePublicKey: () =>
 			observeActiveAccount().pipe(mergeMap((a) => a.derivePublicKey())),
 		sign: (m) => observeActiveAccount().pipe(mergeMap((a) => a.sign(m))),
 	}
+}
+
+export const Wallet = {
+	create,
 }

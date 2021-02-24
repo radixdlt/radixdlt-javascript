@@ -1,41 +1,21 @@
 import { err, ok, Result } from 'neverthrow'
-import { BIP32, BIP32PathComponent, Int32 } from './_types'
-import { fromValue } from 'long'
-import { Int64 } from '@radixdlt/primitives'
-
-export const INT32_MAX_VALUE = 2_147_483_647
-export const INT32_MIN_VALUE = -2_147_483_648
-
-export const validateIndexValue = (index: number): Result<Int32, Error> => {
-	if (!Number.isInteger(index))
-		return err(new Error('Fatal error, non integers not allowed'))
-	if (index > INT32_MAX_VALUE)
-		return err(
-			new Error(
-				'Index larger than Int32 max value, which is not allowed',
-			),
-		)
-	if (index < INT32_MIN_VALUE)
-		return err(
-			new Error(
-				'Index smaller than Int32 min value, which is not allowed',
-			),
-		)
-	return ok(index)
-}
+import { BIP32PathComponent } from './bip32PathComponent'
+import { BIP32T, BIP32PathComponentT, Int32 } from './_types'
 
 export const pathSeparator = '/'
 export const hardener = `'`
 
-export const bip32Unsafe = (pathComponents: BIP32PathComponent[]): BIP32 => ({
+export const unsafeCreate = (
+	pathComponents: BIP32PathComponentT[],
+): BIP32T => ({
 	pathComponents,
 	toString: (): string =>
 		pathComponents.map((pc) => pc.toString()).join(pathSeparator),
 })
 
-export const bip32 = (
-	pathComponents: BIP32PathComponent[],
-): Result<BIP32, Error> => {
+const create = (
+	pathComponents: BIP32PathComponentT[],
+): Result<BIP32T, Error> => {
 	/* eslint-disable functional/no-loop-statement, functional/no-let */
 	let lastLevel = pathComponents.length > 0 ? pathComponents[0].level - 1 : 0
 	for (const pathComponent of pathComponents) {
@@ -49,44 +29,26 @@ export const bip32 = (
 		lastLevel = level
 	}
 	/* eslint-enable functional/no-loop-statement, functional/no-let */
-	return ok(bip32Unsafe(pathComponents))
+	return ok(unsafeCreate(pathComponents))
 }
 
-export const bip32Component = (
-	input: Readonly<{
-		index: Int32
-		isHardened: boolean
-		level: number
-	}>,
-): BIP32PathComponent => {
-	if (!validateIndexValue(input.index).isOk()) {
-		throw new Error(
-			'Fatal error, expected an Int32 as input for index, but it is invalid.',
-		)
-	}
-
-	const hardenedIncrement: Int64 = fromValue(0x80000000)
-	const index: Int64 = fromValue(input.index)
-
-	return {
-		...input,
-		index: input.isHardened ? index.add(hardenedIncrement) : index,
-		toString: (): string =>
-			`${input.index}` + (input.isHardened ? `'` : ''),
-	}
-}
-
-export const bip32Simple = (
+const unsafeFromSimpleComponents = (
 	pathComponents: Readonly<{
 		index: Int32
 		isHardened: boolean
 	}>[],
-): BIP32 =>
-	bip32Unsafe(
+): BIP32T =>
+	unsafeCreate(
 		pathComponents.map((e, i) =>
-			bip32Component({
+			BIP32PathComponent.create({
 				...e,
 				level: i,
 			}),
 		),
 	)
+
+export const BIP32 = {
+	create,
+	unsafeCreate,
+	unsafeFromSimpleComponents,
+}

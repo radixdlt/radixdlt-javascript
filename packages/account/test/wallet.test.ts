@@ -1,16 +1,13 @@
 import { generatePrivateKey, PrivateKey } from '@radixdlt/crypto'
 import { EMPTY } from 'rxjs'
-import {
-	accountFromHDNodeAtHDPath,
-	accountFromPrivateKey,
-} from '../src/account'
-import { makeWallet } from '../src/wallet'
-import { bip44 } from '../src/_index'
 import { WalletT } from '../src/_types'
+import { Wallet } from '../src/wallet'
+import { Account } from '../src/account'
+import { BIP44 } from '../src/bip32/bip44/bip44'
 
 const walletByAddingAccountFromPrivateKey = (privateKey: PrivateKey): WalletT =>
-	makeWallet({
-		accounts: new Set([accountFromPrivateKey(privateKey)]),
+	Wallet.create({
+		accounts: new Set([Account.fromPrivateKey(privateKey)]),
 	})
 
 describe('wallet', () => {
@@ -27,7 +24,7 @@ describe('wallet', () => {
 	})
 
 	it('can be created empty', (done) => {
-		const wallet = makeWallet({ accounts: new Set() })
+		const wallet = Wallet.create({ accounts: new Set() })
 		wallet.observeAccounts().subscribe((result) => {
 			expect(result.all.length).toBe(0)
 			done()
@@ -49,10 +46,10 @@ describe('wallet', () => {
 		const pk1 = generatePrivateKey()
 		const pk2 = generatePrivateKey()
 
-		const wallet = makeWallet({
+		const wallet = Wallet.create({
 			accounts: new Set([
-				accountFromPrivateKey(pk1),
-				accountFromPrivateKey(pk2),
+				Account.fromPrivateKey(pk1),
+				Account.fromPrivateKey(pk2),
 			]),
 		})
 
@@ -65,7 +62,7 @@ describe('wallet', () => {
 	})
 
 	it('for empty wallets when adding an account the wallet automatically sets it as the active account after subscription', (done) => {
-		const wallet = makeWallet({ accounts: new Set() })
+		const wallet = Wallet.create({ accounts: new Set() })
 
 		wallet.observeActiveAccount().subscribe((active) => {
 			expect(active.accountId.accountIdString).toBe(
@@ -79,7 +76,7 @@ describe('wallet', () => {
 	})
 
 	it('for empty wallets when adding an account the wallet automatically sets it as the active account even before subscription', (done) => {
-		const wallet = makeWallet({ accounts: new Set() })
+		const wallet = Wallet.create({ accounts: new Set() })
 
 		const pk1 = generatePrivateKey()
 		wallet.addAccountByPrivateKey(pk1)
@@ -93,7 +90,7 @@ describe('wallet', () => {
 	})
 
 	it('can list all accounts that has been added', (done) => {
-		const wallet = makeWallet({ accounts: new Set() })
+		const wallet = Wallet.create({ accounts: new Set() })
 		const size = 3
 		Array.from({ length: size })
 			.map((_) => generatePrivateKey())
@@ -116,12 +113,12 @@ describe('wallet', () => {
 	})
 
 	it('can add hd accounts', (done) => {
-		const wallet = makeWallet({ accounts: new Set() })
-		const hdPath = bip44({ address: { index: 237 } })
+		const wallet = Wallet.create({ accounts: new Set() })
+		const hdPath = BIP44.create({ address: { index: 237 } })
 
-		const hdAccount = accountFromHDNodeAtHDPath({
-			hdNode: EMPTY,
+		const hdAccount = Account.fromHDPathWithHardwareWallet({
 			hdPath,
+			onHardwareWalletConnect: EMPTY,
 		})
 
 		wallet.addAccount(hdAccount)

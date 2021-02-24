@@ -1,15 +1,10 @@
 import { combine, err, Result } from 'neverthrow'
-import {
-	bip32Component,
-	bip32Unsafe,
-	hardener,
-	pathSeparator,
-	validateIndexValue,
-} from '../bip32'
-import { BIP32PathComponent, Int32 } from '../_types'
-import { BIP44, BIP44ChangeIndex } from './_types'
+import { BIP32, hardener, pathSeparator } from '../bip32'
+import { BIP32PathComponent, validateIndexValue } from '../bip32PathComponent'
 
-// export const RADIX_COIN_TYPE: Int64 = fromValue(536)
+import { BIP32PathComponentT, Int32 } from '../_types'
+import { BIP44T, BIP44ChangeIndex } from './_types'
+
 export const RADIX_COIN_TYPE = 536
 
 const bip44Component = (
@@ -19,9 +14,9 @@ const bip44Component = (
 		level: number
 		name: string
 	}>,
-): BIP32PathComponent => {
+): BIP32PathComponentT => {
 	return {
-		...bip32Component(input),
+		...BIP32PathComponent.create(input),
 		name: input.name,
 	}
 }
@@ -33,7 +28,7 @@ const bip44Purpose = bip44Component({
 	name: 'purpose',
 })
 
-const bip44CoinType = (index: Int32): BIP32PathComponent =>
+const bip44CoinType = (index: Int32): BIP32PathComponentT =>
 	bip44Component({
 		index: index,
 		isHardened: true,
@@ -41,7 +36,7 @@ const bip44CoinType = (index: Int32): BIP32PathComponent =>
 		name: 'coin type',
 	})
 
-const bip44Account = (index: Int32): BIP32PathComponent =>
+const bip44Account = (index: Int32): BIP32PathComponentT =>
 	bip44Component({
 		index: index,
 		isHardened: true,
@@ -49,7 +44,7 @@ const bip44Account = (index: Int32): BIP32PathComponent =>
 		name: 'account',
 	})
 
-const bip44Change = (index: BIP44ChangeIndex): BIP32PathComponent =>
+const bip44Change = (index: BIP44ChangeIndex): BIP32PathComponentT =>
 	bip44Component({
 		index: index as Int32,
 		isHardened: false,
@@ -57,7 +52,7 @@ const bip44Change = (index: BIP44ChangeIndex): BIP32PathComponent =>
 		name: 'change',
 	})
 
-export const bip44 = (
+const create = (
 	input: Readonly<{
 		coinType?: Int32 // defauts to `536'` (Radix)
 		account?: Int32 // defaults to `0'`
@@ -67,7 +62,7 @@ export const bip44 = (
 			isHardened?: boolean // defaults to true
 		}>
 	}>,
-): BIP44 => {
+): BIP44T => {
 	const purpose = bip44Purpose
 	const coinType = bip44CoinType(input.coinType ?? RADIX_COIN_TYPE)
 	const account = bip44Account(input.account ?? 0)
@@ -80,7 +75,7 @@ export const bip44 = (
 	})
 	const pathComponents = [purpose, coinType, account, change, addressIndex]
 
-	const bip32 = bip32Unsafe(pathComponents)
+	const bip32 = BIP32.unsafeCreate(pathComponents)
 	return {
 		...bip32,
 		purpose,
@@ -93,7 +88,7 @@ export const bip44 = (
 	}
 }
 
-export const bip44FromString = (path: string): Result<BIP44, Error> => {
+const fromString = (path: string): Result<BIP44T, Error> => {
 	const paths = path.split(pathSeparator)
 	if (paths.length !== 6)
 		return err(new Error('Incorrect number of components in path'))
@@ -134,7 +129,7 @@ export const bip44FromString = (path: string): Result<BIP44, Error> => {
 		validateIndexValue(account),
 		validateIndexValue(addressIndex),
 	]).map((resultList) =>
-		bip44({
+		create({
 			coinType: resultList[0],
 			account: resultList[1],
 			change: change as BIP44ChangeIndex,
@@ -144,4 +139,9 @@ export const bip44FromString = (path: string): Result<BIP44, Error> => {
 			},
 		}),
 	)
+}
+
+export const BIP44 = {
+	create,
+	fromString,
 }

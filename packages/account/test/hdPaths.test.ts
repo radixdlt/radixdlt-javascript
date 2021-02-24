@@ -1,10 +1,10 @@
-import { bip32Simple } from '../src/bip32/bip32'
-import { bip44FromString, bip44 } from '../src/_index'
+import { BIP32 } from '../src/bip32/bip32'
+import { BIP44 } from '../src/bip32/bip44/bip44'
 
 describe('HD paths', () => {
 	describe('BIP32', () => {
 		it('can be created', () => {
-			const bip32Path = bip32Simple([
+			const bip32Path = BIP32.unsafeFromSimpleComponents([
 				{ index: 12, isHardened: true },
 				{ index: 23, isHardened: false },
 				{ index: 34, isHardened: true },
@@ -19,13 +19,13 @@ describe('HD paths', () => {
 
 	describe('BIP44', () => {
 		it('can create one for radix', () => {
-			const hdPath = bip44({ address: { index: 1337 } })
+			const hdPath = BIP44.create({ address: { index: 1337 } })
 			expect(hdPath.toString()).toBe(`m/44'/536'/0'/0/1337'`)
 		})
 
 		it('can be created from a string', () => {
 			const path = `m/44'/536'/0'/1/0`
-			const bip44Path = bip44FromString(path)._unsafeUnwrap()
+			const bip44Path = BIP44.fromString(path)._unsafeUnwrap()
 			expect(bip44Path.toString()).toBe(path)
 
 			// Check 'purpose' component

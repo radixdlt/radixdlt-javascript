@@ -7,7 +7,7 @@ import {
 	UnsignedMessage,
 } from '@radixdlt/crypto'
 import { Observable } from 'rxjs'
-import { BIP32 } from './bip32/_types'
+import { BIP32T } from './bip32/_types'
 
 export type AddressT = JSONEncodable &
 	DSONCodable &
@@ -27,7 +27,7 @@ export type AccountIdFromPublicKey = Readonly<{
 	type: 'AccountIdFromPublicKey'
 	accountIdString: string
 }>
-export type AccountID = AccountIdFromBIP32Path | AccountIdFromPublicKey
+export type AccountIdT = AccountIdFromBIP32Path | AccountIdFromPublicKey
 
 export type PublicKeyDeriving = Readonly<{
 	derivePublicKey: () => Observable<PublicKey>
@@ -40,23 +40,23 @@ export type Signing = Readonly<{
 export type AccountT = PublicKeyDeriving &
 	Signing &
 	Readonly<{
-		accountId: AccountID
+		accountId: AccountIdT
 	}>
 
 export type HardwareWallet = Readonly<{
-	derivePublicKey: (hdPath: BIP32) => Observable<PublicKey>
+	derivePublicKey: (hdPath: BIP32T) => Observable<PublicKey>
 	sign: (
 		input: Readonly<{
 			unsignedMessage: UnsignedMessage
-			hdPath: BIP32
+			hdPath: BIP32T
 		}>,
 	) => Observable<Signature>
 }>
 
 export type Maybe<T> = T | undefined
 
-export type Accounts = Readonly<{
-	get: (id: AccountID | PublicKey | BIP32) => Maybe<AccountT>
+export type AccountsT = Readonly<{
+	get: (id: AccountIdT | PublicKey | BIP32T) => Maybe<AccountT>
 	all: AccountT[]
 }>
 
@@ -67,5 +67,5 @@ export type WalletT = PublicKeyDeriving &
 		addAccount: (newAccount: AccountT) => void
 		addAccountByPrivateKey: (privateKey: PrivateKey) => void
 		observeActiveAccount: () => Observable<AccountT>
-		observeAccounts: () => Observable<Accounts>
+		observeAccounts: () => Observable<AccountsT>
 	}>

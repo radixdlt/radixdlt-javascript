@@ -1,12 +1,12 @@
-import { BIP32, BIP32PathComponent } from '../_types'
+import { BIP32T, BIP32PathComponentT } from '../_types'
 
-export type BIP44 = BIP32 &
+export type BIP44T = BIP32T &
 	Readonly<{
-		purpose: BIP32PathComponent
-		coinType: BIP32PathComponent
-		account: BIP32PathComponent
-		change: BIP32PathComponent
-		addressIndex: BIP32PathComponent
+		purpose: BIP32PathComponentT
+		coinType: BIP32PathComponentT
+		account: BIP32PathComponentT
+		change: BIP32PathComponentT
+		addressIndex: BIP32PathComponentT
 	}>
 
 export type BIP44ChangeIndex = 0 | 1

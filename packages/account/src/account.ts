@@ -1,25 +1,23 @@
 import {
 	PrivateKey,
-	privateKeyFromBuffer,
 	PublicKey,
 	Signature,
 	UnsignedMessage,
 } from '@radixdlt/crypto'
-import { mergeMap, map } from 'rxjs/operators'
-import { Observable, of, from } from 'rxjs'
-import { toObservable, toObservableFromResult } from './resultAsync_observable'
+import { mergeMap } from 'rxjs/operators'
+import { Observable, of } from 'rxjs'
+import { toObservable } from './resultAsync_observable'
 import { AccountT, HardwareWallet } from './_types'
-import { BIP32 } from './bip32/_types'
-import { accountIdFromBIP32Path, accountIdFromPublicKey } from './accountId'
-import { mnemonicToSeed } from 'bip39'
-import HDNode = require('hdkey')
+import { BIP32T } from './bip32/_types'
+import { AccountId } from './accountId'
+import { HDMasterSeedT, HDNodeT } from './bip39/_types'
 
-export const accountFromPrivateKey = (privateKey: PrivateKey): AccountT => {
+const fromPrivateKey = (privateKey: PrivateKey): AccountT => {
 	const publicKey: PublicKey = privateKey.publicKey()
 	const sign = (m: UnsignedMessage): Observable<Signature> =>
 		toObservable(privateKey.sign(m))
 
-	const accountId = accountIdFromPublicKey(publicKey)
+	const accountId = AccountId.create(publicKey)
 
 	return {
 		sign: sign,
@@ -28,13 +26,13 @@ export const accountFromPrivateKey = (privateKey: PrivateKey): AccountT => {
 	}
 }
 
-export const hwAccountFromHDPath = (
+const fromHDPathWithHardwareWallet = (
 	input: Readonly<{
-		hdPath: BIP32
+		hdPath: BIP32T
 		onHardwareWalletConnect: Observable<HardwareWallet>
 	}>,
 ): AccountT => {
-	const accountId = accountIdFromBIP32Path(input.hdPath)
+	const accountId = AccountId.create(input.hdPath)
 
 	const hwObs = input.onHardwareWalletConnect
 
@@ -55,44 +53,21 @@ export const hwAccountFromHDPath = (
 	}
 }
 
-export const accountFromMnemonicAtHDPath = (
+const fromHDPathWithHDMasterSeed = (
 	input: Readonly<{
-		mnemonic: Readonly<{
-			phrase: string
-			password?: string
-		}>
-		hdPath: BIP32
+		hdPath: BIP32T
+		hdMasterSeed: HDMasterSeedT
 	}>,
 ): AccountT => {
-	const hdNode$ = from(
-		mnemonicToSeed(input.mnemonic.phrase, input.mnemonic.password),
-	).pipe(map((seed) => HDNode.fromMasterSeed(seed)))
-	return accountFromHDNodeAtHDPath({
-		hdNode: hdNode$,
-		hdPath: input.hdPath,
-	})
+	const hdNodeAtPath = input.hdMasterSeed.masterNode().derive(input.hdPath)
+	return {
+		...fromPrivateKey(hdNodeAtPath.privateKey),
+		accountId: AccountId.create(input.hdPath),
+	}
 }
 
-export const accountFromHDNodeAtHDPath = (
-	input: Readonly<{
-		hdNode: Observable<HDNode>
-		hdPath: BIP32
-	}>,
-): AccountT => {
-	const hdNode$ = input.hdNode.pipe(
-		map((n) => n.derive(input.hdPath.toString())),
-	)
-
-	const privateKey$ = hdNode$.pipe(
-		mergeMap((k: HDNode) =>
-			toObservableFromResult(privateKeyFromBuffer(k.privateKey)),
-		),
-	)
-
-	return {
-		accountId: accountIdFromBIP32Path(input.hdPath),
-		sign: (m) =>
-			privateKey$.pipe(mergeMap((pk) => toObservable(pk.sign(m)))),
-		derivePublicKey: () => privateKey$.pipe(map((pk) => pk.publicKey())),
-	}
+export const Account = {
+	fromPrivateKey,
+	fromHDPathWithHardwareWallet,
+	fromHDPathWithHDMasterSeed,
 }

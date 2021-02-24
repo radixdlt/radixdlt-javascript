@@ -4,7 +4,7 @@ import { granularityDefault } from '@radixdlt/primitives'
 import { RadixParticleType } from '../src/particles/meta/_index'
 import { doTestTokenDefintionParticle } from './helpers/tokenDefinitionParticleBaseTests'
 import { JSONDecodableObject } from '@radixdlt/data-formats'
-import { MutableSupplyTokenDefinitionParticle } from '../dist/_index'
+import { MutableSupplyTokenDefinitionParticle } from '../src/particles/mutableSupplyTokenDefinitionParticle'
 
 describe('mutableSupplyTokenDefinitionParticle', () => {
 	const address = toAddress(
