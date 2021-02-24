@@ -2,6 +2,7 @@ import {
 	entropyInBitsFromWordCount,
 	languagesSupportedByBIP39,
 	Mnemomic,
+	mnemonicStrengthSupportedByBIP39,
 	wordlistFromLanguage,
 } from '../src/bip39/mnemonic'
 import { LanguageT } from '../src/bip39/_types'
@@ -20,6 +21,17 @@ describe('bip39', () => {
 		doTest(18, 192)
 		doTest(21, 224)
 		doTest(24, 256)
+	})
+
+	it('should be able to generate a mnemonic with every BIP39 supported language for every strength', () => {
+		languagesSupportedByBIP39.forEach((language) => {
+			mnemonicStrengthSupportedByBIP39.forEach((strength) => {
+				const mnemonic = Mnemomic.generateNew({ strength, language })
+				expect(mnemonic.language).toBe(language)
+				expect(mnemonic.strength).toBe(strength)
+				expect(mnemonic.toString().length).toBeGreaterThan(20)
+			})
+		})
 	})
 
 	it('should work with every BIP39 supported language', () => {
