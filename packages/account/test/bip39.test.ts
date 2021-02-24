@@ -22,7 +22,7 @@ describe('bip39', () => {
 		doTest(24, 256)
 	})
 
-	it.only('should work with every BIP39 supported language', () => {
+	it('should work with every BIP39 supported language', () => {
 		let wordFromLastWordlist = ''
 		languagesSupportedByBIP39.forEach((language) => {
 			const wordList = wordlistFromLanguage(language)
@@ -36,7 +36,7 @@ describe('bip39', () => {
 
 	it('should work with Trezor test vectors', () => {
 		languages.forEach((vectors, language) => {
-			vectors.forEach((vector, vectorIndex) => {
+			vectors.forEach((vector) => {
 				const phrase = vector.mnemonic
 				const mnemonic = Mnemomic.fromPhraseInLanguage({
 					phrase,
