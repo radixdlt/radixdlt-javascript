@@ -7,9 +7,13 @@ import { privateKeyFromBuffer } from '@radixdlt/crypto'
 const hdNodeFromHDNodeThirdParty = (
 	hdNodeThirdParty: HDNodeThirdParty,
 ): HDNodeT => {
-	const privateKey = privateKeyFromBuffer(
-		hdNodeThirdParty.privateKey,
-	)._unsafeUnwrap()
+	const privateKeyResult = privateKeyFromBuffer(hdNodeThirdParty.privateKey)
+	if (privateKeyResult.isErr())
+		throw new Error(
+			`Incorrect implementation, failed to get private key from HDNode, third party lib 'hdkey' might be buggy?`,
+		)
+	const privateKey = privateKeyResult.value
+
 	return {
 		privateKey,
 		publicKey: privateKey.publicKey(),
