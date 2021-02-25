@@ -22,7 +22,7 @@ export type AccountIdFromBIP32Path = Readonly<{
 	type: 'AccountIdFromBIP32Path'
 	accountIdString: string
 }>
-/// Case of private key present => can directly derive public key => hashit, used as accountId
+
 export type AccountIdFromPublicKey = Readonly<{
 	type: 'AccountIdFromPublicKey'
 	accountIdString: string
