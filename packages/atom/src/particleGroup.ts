@@ -2,11 +2,9 @@ import { ParticleGroupT } from './_types'
 import { AnySpunParticle, SpunParticles } from './particles/_types'
 import { spunParticlesQueryable } from './particles/spunParticleQueryable'
 import {
-	Decoder,
 	JSONDecoding,
 	JSONEncodable,
 	JSONEncoding,
-	JSONObjectDecoder,
 	objectDecoder,
 } from '@radixdlt/data-formats'
 import { ok } from 'neverthrow'

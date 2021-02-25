@@ -3,7 +3,6 @@ import { mnemonicToSeedSync } from 'bip39'
 import HDNodeThirdParty = require('hdkey')
 import { BIP32T } from '../bip32/_types'
 import { privateKeyFromBuffer } from '@radixdlt/crypto'
-import { wordlistFromLanguage } from './mnemonic'
 
 const hdNodeFromHDNodeThirdParty = (
 	hdNodeThirdParty: HDNodeThirdParty,

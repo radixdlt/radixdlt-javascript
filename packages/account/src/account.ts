@@ -10,7 +10,7 @@ import { toObservable } from './resultAsync_observable'
 import { AccountT, HardwareWallet } from './_types'
 import { BIP32T } from './bip32/_types'
 import { AccountId } from './accountId'
-import { HDMasterSeedT, HDNodeT } from './bip39/_types'
+import { HDMasterSeedT } from './bip39/_types'
 
 const fromPrivateKey = (privateKey: PrivateKey): AccountT => {
 	const publicKey: PublicKey = privateKey.publicKey()
