@@ -43,7 +43,12 @@ export type AccountT = PublicKeyDeriving &
 		accountId: AccountIdT
 	}>
 
-export type HardwareWallet = Readonly<{
+/// A simple "interface" like type that this `account` package recognizes.
+/// The `hardware-wallet` package will mark its type being this type +
+/// additional decoration. We want the `hardware-wallet` package to be
+/// dependent on this package, not the other way around, thus we need
+/// some kind of simple "interface" like type here.
+export type HardwareWalletSimpleT = Readonly<{
 	derivePublicKey: (hdPath: BIP32T) => Observable<PublicKey>
 	sign: (
 		input: Readonly<{

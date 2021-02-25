@@ -7,7 +7,7 @@ import {
 import { mergeMap } from 'rxjs/operators'
 import { Observable, of } from 'rxjs'
 import { toObservable } from './resultAsync_observable'
-import { AccountT, HardwareWallet } from './_types'
+import { AccountT, HardwareWalletSimpleT } from './_types'
 import { BIP32T } from './bip32/_types'
 import { AccountId } from './accountId'
 import { HDMasterSeedT } from './bip39/_types'
@@ -29,24 +29,24 @@ const fromPrivateKey = (privateKey: PrivateKey): AccountT => {
 const fromHDPathWithHardwareWallet = (
 	input: Readonly<{
 		hdPath: BIP32T
-		onHardwareWalletConnect: Observable<HardwareWallet>
+		onHardwareWalletConnect: Observable<HardwareWalletSimpleT>
 	}>,
 ): AccountT => {
 	const accountId = AccountId.create(input.hdPath)
 
-	const hwObs = input.onHardwareWalletConnect
+	const hardwareWallet$ = input.onHardwareWalletConnect
 
 	return {
+		accountId,
 		sign: (unsignedMessage: UnsignedMessage): Observable<Signature> =>
-			hwObs.pipe(
-				mergeMap((hw: HardwareWallet) =>
+			hardwareWallet$.pipe(
+				mergeMap((hw: HardwareWalletSimpleT) =>
 					hw.sign({ unsignedMessage, hdPath: input.hdPath }),
 				),
 			),
-		accountId: accountId,
 		derivePublicKey: (): Observable<PublicKey> =>
-			hwObs.pipe(
-				mergeMap((hw: HardwareWallet) =>
+			hardwareWallet$.pipe(
+				mergeMap((hw: HardwareWalletSimpleT) =>
 					hw.derivePublicKey(input.hdPath),
 				),
 			),
