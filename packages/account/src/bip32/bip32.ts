@@ -63,7 +63,7 @@ const fromString = (path: string): Result<BIP32T, Error> => {
 		index,
 		value,
 	}))) {
-		const pathComponentResult = BIP32PathComponent.fromString(value, index)
+		const pathComponentResult = BIP32PathComponent.fromString(value, index + 1)
 		if (pathComponentResult.isErr()) return err(pathComponentResult.error)
 		pathComponents.push(pathComponentResult.value)
 	}

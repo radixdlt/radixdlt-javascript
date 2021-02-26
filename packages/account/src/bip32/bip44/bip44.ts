@@ -1,4 +1,5 @@
 import { Int64 } from '@radixdlt/primitives'
+import Long = require('long')
 import { combine, err, ok, Result } from 'neverthrow'
 import { BIP32, hardener, pathSeparator } from '../bip32'
 import { BIP32PathComponent, validateIndexValue } from '../bip32PathComponent'
@@ -106,15 +107,14 @@ const validateBIP44Component = (
 		if (component.name !== expected.name) return err(new Error('Wrong name'))
 	}
 	if (expected.index) {
-		if (component.index !== expected.index) {
+		if (Long.fromValue(component.index).neq(expected.index)) {
+			console.log(`🧩 ☢️ WRONG index, expected: ${expected.index!.toString(10)}, but got: ${component.index.toString(10)}, for component: ${component.name!}}`)
 			return err(new Error('Wrong index'))
 		}
 	}
 	return ok(component)
 }
 
-const irrelevant: Int32 = 0
-const irrelevant2: BIP44ChangeIndex = 0
 const validateBIP44Purpose = validateBIP44Component.bind(null, bip44Purpose)
 const validateBIP44CoinType = validateBIP44Component.bind(
 	null,
@@ -134,7 +134,7 @@ const fromString = (path: string): Result<BIP44T, Error> => {
 		(bip32: BIP32T): Result<BIP44T, Error> => {
 			const components = bip32.pathComponents
 			console.log(
-				`🚀 parsed BIP32 path, trying to upgrade to BIP44...`
+				`🚀 parsed BIP32 path, trying to upgrade to BIP44...components: ${JSON.stringify(components, null, 4)}`
 			)
 			if (components.length !== 5)
 				return err(
