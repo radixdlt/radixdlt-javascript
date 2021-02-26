@@ -86,7 +86,6 @@ const create = (
 		change,
 		addressIndex,
 		pathComponents,
-		toString: () => `m${pathSeparator}` + bip32.toString(),
 	}
 }
 
@@ -97,18 +96,18 @@ const validateBIP44Component = (
 		level: number
 		name?: string
 	}>,
-	component: BIP32PathComponentT
+	component: BIP32PathComponentT,
 ): Result<BIP32PathComponentT, Error> => {
 	if (component.level !== expected.level)
 		return err(new Error('Wrong level in BIP44 path'))
 	if (component.isHardened !== expected.isHardened)
 		return err(new Error('Wrong hardened value'))
 	if (expected.name) {
-		if (component.name !== expected.name) return err(new Error('Wrong name'))
+		if (component.name !== expected.name)
+			return err(new Error('Wrong name'))
 	}
 	if (expected.index) {
 		if (Long.fromValue(component.index).neq(expected.index)) {
-			console.log(`🧩 ☢️ WRONG index, expected: ${expected.index!.toString(10)}, but got: ${component.index.toString(10)}, for component: ${component.name!}}`)
 			return err(new Error('Wrong index'))
 		}
 	}
@@ -116,26 +115,23 @@ const validateBIP44Component = (
 }
 
 const validateBIP44Purpose = validateBIP44Component.bind(null, bip44Purpose)
-const validateBIP44CoinType = validateBIP44Component.bind(
-	null,
-	{ ...bip44CoinType(0), index: undefined },
-)
-const validateBIP44Account = validateBIP44Component.bind(
-	null,
-	{ ...bip44Account(0), index: undefined },
-)
-const validateBIP44Change = validateBIP44Component.bind(
-	null,
-	{ ...bip44Change(0), index: undefined },
-)
+const validateBIP44CoinType = validateBIP44Component.bind(null, {
+	...bip44CoinType(0),
+	index: undefined,
+})
+const validateBIP44Account = validateBIP44Component.bind(null, {
+	...bip44Account(0),
+	index: undefined,
+})
+const validateBIP44Change = validateBIP44Component.bind(null, {
+	...bip44Change(0),
+	index: undefined,
+})
 
 const fromString = (path: string): Result<BIP44T, Error> => {
 	return BIP32.fromString(path).andThen(
 		(bip32: BIP32T): Result<BIP44T, Error> => {
 			const components = bip32.pathComponents
-			console.log(
-				`🚀 parsed BIP32 path, trying to upgrade to BIP44...components: ${JSON.stringify(components, null, 4)}`
-			)
 			if (components.length !== 5)
 				return err(
 					new Error(
@@ -161,7 +157,6 @@ const fromString = (path: string): Result<BIP44T, Error> => {
 					change: bip44Components[3],
 					addressIndex: bip44Components[4],
 					pathComponents: bip44Components,
-					toString: () => `m${pathSeparator}` + bip32.toString(),
 				}),
 			)
 		},

@@ -6,7 +6,7 @@ describe('BIP44', () => {
 		expect(hdPath.toString()).toBe(`m/44'/536'/0'/0/1337'`)
 	})
 
-	fit('bip44 can be created from a string', () => {
+	it('bip44 can be created from a string', () => {
 		const path = `m/44'/536'/0'/1/0`
 		const bip44Path = BIP44.fromString(path)._unsafeUnwrap()
 		expect(bip44Path.toString()).toBe(path)

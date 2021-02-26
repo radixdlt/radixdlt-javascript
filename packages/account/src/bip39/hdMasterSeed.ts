@@ -54,9 +54,6 @@ export const HDMasterSeed = {
 const fromExtendedPrivateKey = (xpriv: string): Result<HDNodeT, Error> => {
 	try {
 		const hdKey = HDNodeThirdParty.fromJSON({ xpriv, xpub: 'not used' })
-		console.log(
-			`🔮 hdkey.xpriv: ${hdKey.toJSON().xpriv}, passed in: ${xpriv}`,
-		)
 		return ok(hdNodeFromHDNodeThirdParty(hdKey))
 	} catch {
 		return err(

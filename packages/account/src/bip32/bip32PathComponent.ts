@@ -9,7 +9,6 @@ export const INT32_MIN_VALUE = -2_147_483_648
 
 export const validateIndexValue = (index: number): Result<Int32, Error> => {
 	if (!Number.isInteger(index)) {
-		console.log(`🧩 🚨 index: ${index}`)
 		return err(new Error('Fatal error, non integers not allowed'))
 	}
 
@@ -37,13 +36,6 @@ const create = (
 ): BIP32PathComponentT => {
 	const validation = validateIndexValue(input.index)
 	if (validation.isErr()) {
-		console.log(
-			`☢️ 🎲 error: ${validation.error.message}, input: ${JSON.stringify(
-				input,
-				null,
-				4,
-			)}`,
-		)
 		throw new Error(
 			'Fatal error, expected an Int32 as input for index, but it is invalid.',
 		)

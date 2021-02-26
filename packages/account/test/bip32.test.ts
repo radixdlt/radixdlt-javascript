@@ -192,15 +192,11 @@ describe('BIP32', () => {
 
 	it('bip32 test vectors', () => {
 		bip32Vectors.forEach((vector) => {
-			console.log(`🚀 ${vector.name}`)
 			const masterSeed = HDMasterSeed.fromSeed(
 				Buffer.from(vector.seed, 'hex'),
 			)
 			const masterNode = masterSeed.masterNode()
 			vector.derivations.forEach((vectorDerivation, index) => {
-				console.log(
-					`🔮 derivation: ${index}, path: ${vectorDerivation.path}`,
-				)
 				const path = BIP32.fromString(
 					vectorDerivation.path,
 				)._unsafeUnwrap()
@@ -209,7 +205,6 @@ describe('BIP32', () => {
 				expect(extendedKeys.xpriv).toBe(vectorDerivation.xprv)
 				expect(extendedKeys.xpub).toBe(vectorDerivation.xpub)
 			})
-			console.log(`🚀 ${vector.name} FINISHED ☑️`)
 		})
 	})
 
