@@ -1,8 +1,9 @@
-import { combine, err, Result } from 'neverthrow'
+import { Int64 } from '@radixdlt/primitives'
+import { combine, err, ok, Result } from 'neverthrow'
 import { BIP32, hardener, pathSeparator } from '../bip32'
 import { BIP32PathComponent, validateIndexValue } from '../bip32PathComponent'
 
-import { BIP32PathComponentT, Int32 } from '../_types'
+import { BIP32PathComponentT, BIP32T, Int32 } from '../_types'
 import { BIP44T, BIP44ChangeIndex } from './_types'
 
 export const RADIX_COIN_TYPE = 536
@@ -88,56 +89,82 @@ const create = (
 	}
 }
 
+const validateBIP44Component = (
+	expected: Readonly<{
+		index?: Int64
+		isHardened: boolean
+		level: number
+		name?: string
+	}>,
+	component: BIP32PathComponentT
+): Result<BIP32PathComponentT, Error> => {
+	if (component.level !== expected.level)
+		return err(new Error('Wrong level in BIP44 path'))
+	if (component.isHardened !== expected.isHardened)
+		return err(new Error('Wrong hardened value'))
+	if (expected.name) {
+		if (component.name !== expected.name) return err(new Error('Wrong name'))
+	}
+	if (expected.index) {
+		if (component.index !== expected.index) {
+			return err(new Error('Wrong index'))
+		}
+	}
+	return ok(component)
+}
+
+const irrelevant: Int32 = 0
+const irrelevant2: BIP44ChangeIndex = 0
+const validateBIP44Purpose = validateBIP44Component.bind(null, bip44Purpose)
+const validateBIP44CoinType = validateBIP44Component.bind(
+	null,
+	{ ...bip44CoinType(0), index: undefined },
+)
+const validateBIP44Account = validateBIP44Component.bind(
+	null,
+	{ ...bip44Account(0), index: undefined },
+)
+const validateBIP44Change = validateBIP44Component.bind(
+	null,
+	{ ...bip44Change(0), index: undefined },
+)
+
 const fromString = (path: string): Result<BIP44T, Error> => {
-	const paths = path.split(pathSeparator)
-	if (paths.length !== 6)
-		return err(new Error('Incorrect number of components in path'))
-	if (!(paths[0] === 'M' || paths[0] === 'm'))
-		return err(new Error(`Expeced first component to be either "m" or "M"`))
-	if (paths[1] !== `44'`)
-		return err(new Error(`Expected second component to be "44'"`))
-	if (!paths[2].endsWith(hardener))
-		return err(
-			new Error(
-				`Expected third component (coin type) to be hardened (end with ${hardener})`,
-			),
-		)
-	if (!paths[3].endsWith(hardener))
-		return err(
-			new Error(
-				`Expected fourth component (acocunt) to be hardened (end with ${hardener})`,
-			),
-		)
-	if (!(paths[4] === '0' || paths[4] === '1'))
-		return err(
-			new Error(
-				`Expeced fifth component to be either "0" or "1" (not be hardened)`,
-			),
-		)
+	return BIP32.fromString(path).andThen(
+		(bip32: BIP32T): Result<BIP44T, Error> => {
+			const components = bip32.pathComponents
+			console.log(
+				`🚀 parsed BIP32 path, trying to upgrade to BIP44...`
+			)
+			if (components.length !== 5)
+				return err(
+					new Error(
+						`We require BIP44 to have five components: purpose / cointype / account / change / address`,
+					),
+				)
 
-	const coinType = parseInt(paths[2].split(hardener)[0])
-	const account = parseInt(paths[3].split(hardener)[0])
-	const change = parseInt(paths[4])
-
-	const addressIndexParts = paths[5].split(hardener)
-	const hardenAddress =
-		addressIndexParts.length === 2 && addressIndexParts[1] === hardener
-	const addressIndex = parseInt(addressIndexParts[0])
-
-	return combine([
-		validateIndexValue(coinType),
-		validateIndexValue(account),
-		validateIndexValue(addressIndex),
-	]).map((resultList) =>
-		create({
-			coinType: resultList[0],
-			account: resultList[1],
-			change: change as BIP44ChangeIndex,
-			address: {
-				index: resultList[2],
-				isHardened: hardenAddress,
-			},
-		}),
+			return combine([
+				validateBIP44Purpose({ ...components[0], name: 'purpose' }),
+				validateBIP44CoinType({ ...components[1], name: 'coin type' }),
+				validateBIP44Account({ ...components[2], name: 'account' }),
+				validateBIP44Change({ ...components[3], name: 'change' }),
+				ok({ ...components[4], name: 'address index' }) as Result<
+					BIP32PathComponentT,
+					Error
+				>,
+			]).map(
+				(bip44Components: BIP32PathComponentT[]): BIP44T => ({
+					...bip32,
+					purpose: bip44Components[0],
+					coinType: bip44Components[1],
+					account: bip44Components[2],
+					change: bip44Components[3],
+					addressIndex: bip44Components[4],
+					pathComponents: bip44Components,
+					toString: () => `m${pathSeparator}` + bip32.toString(),
+				}),
+			)
+		},
 	)
 }
 
