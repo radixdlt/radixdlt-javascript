@@ -1,8 +1,8 @@
 import { Int64 } from '@radixdlt/primitives'
 import Long = require('long')
 import { combine, err, ok, Result } from 'neverthrow'
-import { BIP32, hardener, pathSeparator } from '../bip32'
-import { BIP32PathComponent, validateIndexValue } from '../bip32PathComponent'
+import { BIP32 } from '../bip32'
+import { BIP32PathComponent } from '../bip32PathComponent'
 
 import { BIP32PathComponentT, BIP32T, Int32 } from '../_types'
 import { BIP44T, BIP44ChangeIndex } from './_types'
