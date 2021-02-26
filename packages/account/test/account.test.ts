@@ -11,7 +11,7 @@ describe('account', () => {
 			const mnemonic = Mnemomic.fromEnglishPhrase(
 				'equip will roof matter pink blind book anxiety banner elbow sun young',
 			)._unsafeUnwrap()
-			const hdMasterSeed = HDMasterSeed.from({ mnemonic })
+			const hdMasterSeed = HDMasterSeed.fromMnemonic({ mnemonic })
 			const hdPath = BIP44.fromString(`m/44'/536'/2'/1/3`)._unsafeUnwrap()
 
 			const account = Account.fromHDPathWithHDMasterSeed({

@@ -40,6 +40,7 @@
   },
   "devDependencies": {
     "@types/hdkey": "^0.7.1",
-    "@types/long": "^4.0.1"
+    "@types/long": "^4.0.1",
+    "ethereum-public-key-to-address": "^0.0.5"
   }
 }

@@ -10,6 +10,8 @@ export const unsafeCreate = (
 ): BIP32T => ({
 	pathComponents,
 	toString: (): string =>
+		'm' +
+		pathSeparator +
 		pathComponents.map((pc) => pc.toString()).join(pathSeparator),
 })
 
@@ -32,6 +34,41 @@ const create = (
 	return ok(unsafeCreate(pathComponents))
 }
 
+const fromString = (path: string): Result<BIP32T, Error> => {
+	let bip32Path = path.trim()
+	if (bip32Path === '' || bip32Path === 'm' || bip32Path === pathSeparator) {
+		return ok({
+			pathComponents: [],
+			toString: (): string => 'm',
+		})
+	}
+
+	if (bip32Path.startsWith('M/') || bip32Path.startsWith('m/')) {
+		bip32Path = bip32Path.slice(2)
+		if (bip32Path.length === 0) {
+			return err(new Error(`Must start with just 'm/' or 'M/'`))
+		}
+	}
+	if (bip32Path.length === 0) {
+		return err(new Error('Must not be empty'))
+	}
+
+	if (bip32Path.includes('//')) {
+		return err(new Error(`Must not contain '//'`))
+	}
+
+	const components = bip32Path.split(pathSeparator)
+	const pathComponents: BIP32PathComponentT[] = []
+	for (const { index, value } of components.map((value, index) => ({
+		index,
+		value,
+	}))) {
+		const pathComponentResult = BIP32PathComponent.fromString(value, index)
+		if (pathComponentResult.isErr()) return err(pathComponentResult.error)
+		pathComponents.push(pathComponentResult.value)
+	}
+	return create(pathComponents)
+}
 const unsafeFromSimpleComponents = (
 	pathComponents: Readonly<{
 		index: Int32
@@ -50,5 +87,6 @@ const unsafeFromSimpleComponents = (
 export const BIP32 = {
 	create,
 	unsafeCreate,
+	fromString,
 	unsafeFromSimpleComponents,
 }

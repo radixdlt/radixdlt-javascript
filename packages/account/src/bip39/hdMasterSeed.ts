@@ -3,6 +3,7 @@ import { mnemonicToSeedSync } from 'bip39'
 import HDNodeThirdParty = require('hdkey')
 import { BIP32T } from '../bip32/_types'
 import { privateKeyFromBuffer } from '@radixdlt/crypto'
+import { Result, err, ok } from 'neverthrow'
 
 const hdNodeFromHDNodeThirdParty = (
 	hdNodeThirdParty: HDNodeThirdParty,
@@ -26,23 +27,44 @@ const hdNodeFromHDNodeThirdParty = (
 	}
 }
 
-const from = (
+const fromMnemonic = (
 	input: Readonly<{
 		mnemonic: MnemomicT
 		passphrase?: string
 	}>,
 ): HDMasterSeedT => {
 	const seed = mnemonicToSeedSync(input.mnemonic.phrase, input.passphrase)
+	return fromSeed(seed)
+}
 
+const fromSeed = (seed: Buffer): HDMasterSeedT => {
 	const hdNodeMaster = HDNodeThirdParty.fromMasterSeed(seed)
 
 	return {
-		entropy: input.mnemonic.entropy,
 		seed,
 		masterNode: (): HDNodeT => hdNodeFromHDNodeThirdParty(hdNodeMaster),
 	}
 }
 
 export const HDMasterSeed = {
-	from,
+	fromMnemonic,
+	fromSeed,
+}
+
+const fromExtendedPrivateKey = (xpriv: string): Result<HDNodeT, Error> => {
+	try {
+		const hdKey = HDNodeThirdParty.fromJSON({ xpriv, xpub: 'not used' })
+		console.log(
+			`🔮 hdkey.xpriv: ${hdKey.toJSON().xpriv}, passed in: ${xpriv}`,
+		)
+		return ok(hdNodeFromHDNodeThirdParty(hdKey))
+	} catch {
+		return err(
+			new Error('Failed to create HDNode from extended private key'),
+		)
+	}
+}
+
+export const HDNode = {
+	fromExtendedPrivateKey,
 }

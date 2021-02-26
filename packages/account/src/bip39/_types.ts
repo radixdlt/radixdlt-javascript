@@ -15,7 +15,6 @@ export type HDNodeT = Readonly<{
 }>
 
 export type HDMasterSeedT = Readonly<{
-	entropy: Buffer
 	seed: Buffer
 	masterNode: () => HDNodeT
 }>

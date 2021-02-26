@@ -57,13 +57,12 @@ describe('bip39', () => {
 				expect(mnemonic.language).toBe(language)
 				expect(mnemonic.phrase).toBe(vector.mnemonic)
 
-				const hdMasterSeed = HDMasterSeed.from({
+				expect(mnemonic.entropy.toString('hex')).toBe(vector.entropy)
+
+				const hdMasterSeed = HDMasterSeed.fromMnemonic({
 					mnemonic,
 					passphrase: vector.passphrase,
 				})
-				expect(hdMasterSeed.entropy.toString('hex')).toBe(
-					vector.entropy,
-				)
 				expect(hdMasterSeed.seed.toString('hex')).toBe(vector.seed)
 
 				const hdMasterNode = hdMasterSeed.masterNode()
