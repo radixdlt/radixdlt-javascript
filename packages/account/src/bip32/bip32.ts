@@ -1,6 +1,7 @@
-import { err, ok, Result } from 'neverthrow'
+import { combine, err, ok, Result } from 'neverthrow'
 import { BIP32PathComponent } from './bip32PathComponent'
 import { BIP32T, BIP32PathComponentT, Int32 } from './_types'
+import { ValidationWitness } from '@radixdlt/util'
 
 export const pathSeparator = '/'
 export const hardener = `'`
@@ -15,24 +16,24 @@ export const unsafeCreate = (
 		pathComponents.map((pc) => pc.toString()).join(pathSeparator),
 })
 
-const create = (
+const validateLevels = (
 	pathComponents: BIP32PathComponentT[],
-): Result<BIP32T, Error> => {
-	/* eslint-disable functional/no-loop-statement, functional/no-let */
-	let lastLevel = pathComponents.length > 0 ? pathComponents[0].level - 1 : 0
-	for (const pathComponent of pathComponents) {
-		const level = pathComponent.level
-		if (level !== lastLevel + 1)
-			return err(
-				new Error(
-					'Expected components with strictly increasing level with an increment of one.',
-				),
-			)
-		lastLevel = level
-	}
-	/* eslint-enable functional/no-loop-statement, functional/no-let */
-	return ok(unsafeCreate(pathComponents))
-}
+): Result<ValidationWitness, Error> =>
+	combine(
+		pathComponents.map<Result<ValidationWitness, Error>>(
+			(component, i, components) =>
+				component.level !== (i > 0 ? components[i - 1].level + 1 : 1)
+					? err(
+							new Error(
+								`Expected components with strictly increasing level with an increment of one.`,
+							),
+					  )
+					: ok({ witness: 'component valid' }),
+		),
+	).andThen((_a) => ok({ witness: 'all components valid' }))
+
+const create = (pathComponents: BIP32PathComponentT[]): Result<BIP32T, Error> =>
+	validateLevels(pathComponents).map(() => unsafeCreate(pathComponents))
 
 const fromString = (path: string): Result<BIP32T, Error> => {
 	let bip32Path = path.trim()
