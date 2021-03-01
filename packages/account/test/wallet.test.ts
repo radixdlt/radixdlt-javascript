@@ -17,7 +17,7 @@ describe('wallet', () => {
 		const wallet = walletByAddingAccountFromPrivateKey(pk1)
 		wallet.observeAccounts().subscribe((result) => {
 			expect(result.all.length).toBe(1)
-			const a0 = result.get(pk1.publicKey())!
+			const a0 = result.get(pk1.publicKey()).getOrThrow()
 			expect(a0!.accountId.accountIdString).toBe(publicKey.toString())
 			done()
 		})
@@ -72,15 +72,16 @@ describe('wallet', () => {
 		})
 
 		const pk1 = generatePrivateKey()
-		wallet.addAccountByPrivateKey(pk1)
+		const addResult = wallet.addAccountByPrivateKey(pk1)
+		expect(addResult.isOk()).toBe(true)
 	})
 
 	it('for empty wallets when adding an account the wallet automatically sets it as the active account even before subscription', (done) => {
 		const wallet = Wallet.create({ accounts: [] })
 
 		const pk1 = generatePrivateKey()
-		wallet.addAccountByPrivateKey(pk1)
-
+		const addResult = wallet.addAccountByPrivateKey(pk1)
+		expect(addResult.isOk()).toBe(true)
 		wallet.observeActiveAccount().subscribe((active) => {
 			expect(active.accountId.accountIdString).toBe(
 				pk1.publicKey().toString(),
@@ -105,7 +106,15 @@ describe('wallet', () => {
 	it('prevents adding of same account twice', (done) => {
 		const pk1 = generatePrivateKey()
 		const wallet = walletByAddingAccountFromPrivateKey(pk1)
-		wallet.addAccountByPrivateKey(pk1)
+		const addResult = wallet.addAccountByPrivateKey(pk1)
+
+		addResult.match(
+			() => {
+				throw Error('expected error, but got none')
+			},
+			(e) => expect(e.message).toBe(`Account already added in wallet.`),
+		)
+
 		wallet.observeAccounts().subscribe((result) => {
 			expect(result.all.length).toBe(1)
 			done()
@@ -121,7 +130,8 @@ describe('wallet', () => {
 			onHardwareWalletConnect: EMPTY,
 		})
 
-		wallet.addAccount(hdAccount)
+		const addResult = wallet.addAccount(hdAccount)
+		expect(addResult.isOk()).toBe(true)
 
 		wallet.observeActiveAccount().subscribe((active) => {
 			expect(active.accountId.accountIdString).toBe(

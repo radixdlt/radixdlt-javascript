@@ -1,10 +1,13 @@
 import { Observable, BehaviorSubject, ReplaySubject } from 'rxjs'
 import { Account } from './account'
-import { AccountIdT, AccountsT, AccountT, Maybe, WalletT } from './_types'
+import { AccountIdT, AccountsT, AccountT, WalletT } from './_types'
 import { mergeMap, map } from 'rxjs/operators'
 import { PublicKey } from '@radixdlt/crypto'
 import { BIP32T } from './_index'
 import { AccountId } from './accountId'
+import { Option } from 'prelude-ts'
+import { ValidationWitness } from '@radixdlt/util'
+import { Result, err, ok } from 'neverthrow'
 
 // eslint-disable-next-line max-lines-per-function
 const create = (
@@ -18,13 +21,13 @@ const create = (
 		new Map(),
 	)
 
-	const addAccount = (newAccount: AccountT): void => {
+	const addAccountOnDuplicatesSkip = (newAccount: AccountT): void => {
 		const accountsMap = accountsSubject.getValue()
-		const wasEmpty = accountsMap.size === 0
 		if (accountsMap.has(newAccount.accountId.accountIdString)) {
 			// Skip and don't falsly notify 'accountsSubject' about new account, since it is not new.
 			return
 		}
+		const wasEmpty = accountsMap.size === 0
 		accountsMap.set(newAccount.accountId.accountIdString, newAccount)
 		accountsSubject.next(accountsMap)
 		if (wasEmpty) {
@@ -32,25 +35,45 @@ const create = (
 		}
 	}
 
-	input.accounts.forEach(addAccount)
+	input.accounts.forEach(addAccountOnDuplicatesSkip)
+	const addAccount = (
+		newAccount: AccountT,
+	): Result<ValidationWitness, Error> => {
+		const accountsMap = accountsSubject.getValue()
+		if (accountsMap.has(newAccount.accountId.accountIdString)) {
+			return err(new Error('Account already added in wallet.'))
+		}
+		addAccountOnDuplicatesSkip(newAccount)
+		return ok({ witness: 'Account added' })
+	}
 
-	const changeAccount = (to: AccountT): void => {
+	const changeToUnsafe = (to: AccountT): void => {
 		if (!accountsSubject.getValue().has(to.accountId.accountIdString)) {
-			addAccount(to)
+			throw new Error('Account not found')
 		}
 		activeAccountSubject.next(to)
+	}
+
+	const changeAccount = (to: AccountT): Result<ValidationWitness, Error> => {
+		if (!accountsSubject.getValue().has(to.accountId.accountIdString)) {
+			return err(
+				new Error('Unknown account, did you mean to add it first?'),
+			)
+		}
+		changeToUnsafe(to)
+		return ok({ witness: 'Changed to account' })
 	}
 
 	const observeActiveAccount = (): Observable<AccountT> =>
 		activeAccountSubject.asObservable()
 
-	if (input.accounts.length > 0) changeAccount(input.accounts[0])
+	if (input.accounts.length > 0) changeToUnsafe(input.accounts[0])
 
 	const observeAccounts = (): Observable<AccountsT> =>
 		accountsSubject.asObservable().pipe(
 			map((map: Map<string, AccountT>) => ({
-				get: (id: AccountIdT | PublicKey | BIP32T): Maybe<AccountT> =>
-					map.get(AccountId.create(id).accountIdString),
+				get: (id: AccountIdT | PublicKey | BIP32T): Option<AccountT> =>
+					Option.of(map.get(AccountId.create(id).accountIdString)),
 				all: Array.from(map.values()),
 			})),
 		)

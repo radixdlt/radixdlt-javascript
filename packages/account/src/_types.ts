@@ -1,5 +1,5 @@
 import { DSONCodable, JSONEncodable } from '@radixdlt/data-formats'
-import { Byte } from '@radixdlt/util'
+import { Byte, ValidationWitness } from '@radixdlt/util'
 import {
 	PrivateKey,
 	PublicKey,
@@ -8,6 +8,8 @@ import {
 } from '@radixdlt/crypto'
 import { Observable } from 'rxjs'
 import { BIP32T } from './bip32/_types'
+import { Option } from 'prelude-ts'
+import { Result } from 'neverthrow'
 
 export type AddressT = JSONEncodable &
 	DSONCodable &
@@ -58,19 +60,19 @@ export type HardwareWalletSimpleT = Readonly<{
 	) => Observable<Signature>
 }>
 
-export type Maybe<T> = T | undefined
-
 export type AccountsT = Readonly<{
-	get: (id: AccountIdT | PublicKey | BIP32T) => Maybe<AccountT>
+	get: (id: AccountIdT | PublicKey | BIP32T) => Option<AccountT>
 	all: AccountT[]
 }>
 
 export type WalletT = PublicKeyDeriving &
 	Signing &
 	Readonly<{
-		changeAccount: (to: AccountT) => void
-		addAccount: (newAccount: AccountT) => void
-		addAccountByPrivateKey: (privateKey: PrivateKey) => void
+		changeAccount: (to: AccountT) => Result<ValidationWitness, Error>
+		addAccount: (newAccount: AccountT) => Result<ValidationWitness, Error>
+		addAccountByPrivateKey: (
+			privateKey: PrivateKey,
+		) => Result<ValidationWitness, Error>
 		observeActiveAccount: () => Observable<AccountT>
 		observeAccounts: () => Observable<AccountsT>
 	}>
