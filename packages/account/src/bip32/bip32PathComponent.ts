@@ -7,25 +7,14 @@ import { hardener, pathSeparator } from './bip32'
 export const INT32_MAX_VALUE = 2_147_483_647
 export const INT32_MIN_VALUE = -2_147_483_648
 
-export const validateIndexValue = (index: number): Result<Int32, Error> => {
-	if (!Number.isInteger(index)) {
-		return err(new Error('Fatal error, non integers not allowed'))
-	}
-
-	if (index > INT32_MAX_VALUE)
-		return err(
-			new Error(
-				'Index larger than Int32 max value, which is not allowed',
-			),
-		)
-	if (index < INT32_MIN_VALUE)
-		return err(
-			new Error(
-				'Index smaller than Int32 min value, which is not allowed',
-			),
-		)
-	return ok(index)
-}
+export const validateIndexValue = (index: number): Result<Int32, Error> =>
+	!Number.isInteger(index)
+		? err(new Error('Fatal error, non integers not allowed.'))
+		: index > INT32_MAX_VALUE
+		? err(new Error('Index larger than Int32 max value.'))
+		: index < INT32_MIN_VALUE
+		? err(new Error('Index smaller than Int32 min value.'))
+		: ok(index)
 
 const create = (
 	input: Readonly<{
