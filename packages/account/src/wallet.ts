@@ -9,10 +9,9 @@ import { AccountId } from './accountId'
 // eslint-disable-next-line max-lines-per-function
 const create = (
 	input: Readonly<{
-		accounts: Set<AccountT>
+		accounts: AccountT[]
 	}>,
 ): WalletT => {
-	const accounts = Array.from(input.accounts)
 	const activeAccountSubject = new ReplaySubject<AccountT>()
 
 	const accountsSubject = new BehaviorSubject<Map<string, AccountT>>(
@@ -33,7 +32,7 @@ const create = (
 		}
 	}
 
-	accounts.forEach(addAccount)
+	input.accounts.forEach(addAccount)
 
 	const changeAccount = (to: AccountT): void => {
 		if (!accountsSubject.getValue().has(to.accountId.accountIdString)) {
@@ -45,7 +44,7 @@ const create = (
 	const observeActiveAccount = (): Observable<AccountT> =>
 		activeAccountSubject.asObservable()
 
-	if (accounts.length > 0) changeAccount(accounts[0])
+	if (input.accounts.length > 0) changeAccount(input.accounts[0])
 
 	const observeAccounts = (): Observable<AccountsT> =>
 		accountsSubject.asObservable().pipe(

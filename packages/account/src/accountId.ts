@@ -43,11 +43,12 @@ const fromPublicKey = (publicKey: PublicKey): AccountIdT => ({
 	accountIdString: publicKey.toString(),
 })
 
-const create = (id: AccountIdT | PublicKey | BIP32T): AccountIdT => {
-	if (isAccountID(id)) return id
-	if (isPublicKey(id)) return fromPublicKey(id as PublicKey)
-	return fromBIP32Path(id as BIP32T)
-}
+const create = (id: AccountIdT | PublicKey | BIP32T): AccountIdT =>
+	isAccountID(id)
+		? id
+		: isPublicKey(id)
+		? fromPublicKey(id as PublicKey)
+		: fromBIP32Path(id as BIP32T)
 
 export const AccountId = {
 	create,

@@ -7,7 +7,7 @@ import { BIP44 } from '../src/bip32/bip44/bip44'
 
 const walletByAddingAccountFromPrivateKey = (privateKey: PrivateKey): WalletT =>
 	Wallet.create({
-		accounts: new Set([Account.fromPrivateKey(privateKey)]),
+		accounts: [Account.fromPrivateKey(privateKey)],
 	})
 
 describe('wallet', () => {
@@ -24,7 +24,7 @@ describe('wallet', () => {
 	})
 
 	it('can be created empty', (done) => {
-		const wallet = Wallet.create({ accounts: new Set() })
+		const wallet = Wallet.create({ accounts: [] })
 		wallet.observeAccounts().subscribe((result) => {
 			expect(result.all.length).toBe(0)
 			done()
@@ -47,10 +47,10 @@ describe('wallet', () => {
 		const pk2 = generatePrivateKey()
 
 		const wallet = Wallet.create({
-			accounts: new Set([
+			accounts: [
 				Account.fromPrivateKey(pk1),
 				Account.fromPrivateKey(pk2),
-			]),
+			],
 		})
 
 		wallet.observeActiveAccount().subscribe((active) => {
@@ -62,7 +62,7 @@ describe('wallet', () => {
 	})
 
 	it('for empty wallets when adding an account the wallet automatically sets it as the active account after subscription', (done) => {
-		const wallet = Wallet.create({ accounts: new Set() })
+		const wallet = Wallet.create({ accounts: [] })
 
 		wallet.observeActiveAccount().subscribe((active) => {
 			expect(active.accountId.accountIdString).toBe(
@@ -76,7 +76,7 @@ describe('wallet', () => {
 	})
 
 	it('for empty wallets when adding an account the wallet automatically sets it as the active account even before subscription', (done) => {
-		const wallet = Wallet.create({ accounts: new Set() })
+		const wallet = Wallet.create({ accounts: [] })
 
 		const pk1 = generatePrivateKey()
 		wallet.addAccountByPrivateKey(pk1)
@@ -90,7 +90,7 @@ describe('wallet', () => {
 	})
 
 	it('can list all accounts that has been added', (done) => {
-		const wallet = Wallet.create({ accounts: new Set() })
+		const wallet = Wallet.create({ accounts: [] })
 		const size = 3
 		Array.from({ length: size })
 			.map((_) => generatePrivateKey())
@@ -113,7 +113,7 @@ describe('wallet', () => {
 	})
 
 	it('can add hd accounts', (done) => {
-		const wallet = Wallet.create({ accounts: new Set() })
+		const wallet = Wallet.create({ accounts: [] })
 		const hdPath = BIP44.create({ address: { index: 237 } })
 
 		const hdAccount = Account.fromHDPathWithHardwareWallet({
