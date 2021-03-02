@@ -78,15 +78,15 @@ const unsafeFromSimpleComponents = (
 		index: Int32
 		isHardened: boolean
 	}>[],
-): BIP32T =>
-	unsafeCreate(
+): Result<BIP32T, Error> =>
+	combine(
 		pathComponents.map((e, i) =>
 			BIP32PathComponent.create({
 				...e,
 				level: i,
 			}),
 		),
-	)
+	).map(unsafeCreate)
 
 export const BIP32 = {
 	create,

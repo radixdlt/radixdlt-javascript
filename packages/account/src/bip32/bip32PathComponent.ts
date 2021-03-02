@@ -7,7 +7,7 @@ import { hardener, pathSeparator } from './bip32'
 export const INT32_MAX_VALUE = 2_147_483_647
 export const INT32_MIN_VALUE = -2_147_483_648
 
-export const validateIndexValue = (index: number): Result<Int32, Error> =>
+export const validateIndexValue = (index: Int32): Result<Int32, Error> =>
 	!Number.isInteger(index)
 		? err(new Error('Fatal error, non integers not allowed.'))
 		: index > INT32_MAX_VALUE
@@ -22,23 +22,18 @@ const create = (
 		isHardened: boolean
 		level: number
 	}>,
-): BIP32PathComponentT => {
-	const validation = validateIndexValue(input.index)
-	if (validation.isErr()) {
-		throw new Error(
-			'Fatal error, expected an Int32 as input for index, but it is invalid.',
-		)
-	}
+): Result<BIP32PathComponentT, Error> => {
+	return validateIndexValue(input.index).map((indexNonHardened: Int32) => {
+		const hardenedIncrement: Int64 = fromValue(0x80000000)
+		const index: Int64 = fromValue(indexNonHardened)
 
-	const hardenedIncrement: Int64 = fromValue(0x80000000)
-	const index: Int64 = fromValue(input.index)
-
-	return {
-		...input,
-		index: input.isHardened ? index.add(hardenedIncrement) : index,
-		toString: (): string =>
-			`${input.index}` + (input.isHardened ? `'` : ''),
-	}
+		return {
+			...input,
+			index: input.isHardened ? index.add(hardenedIncrement) : index,
+			toString: (): string =>
+				`${input.index}` + (input.isHardened ? `'` : ''),
+		}
+	})
 }
 
 const fromString = (

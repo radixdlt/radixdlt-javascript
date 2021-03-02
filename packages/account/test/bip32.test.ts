@@ -171,7 +171,7 @@ describe('BIP32', () => {
 			{ index: 23, isHardened: false },
 			{ index: 34, isHardened: true },
 			{ index: 45, isHardened: false },
-		])
+		])._unsafeUnwrap()
 		bip32Path.pathComponents.forEach((pc, index) => {
 			expect(pc.level).toBe(index)
 		})

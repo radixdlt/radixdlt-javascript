@@ -17,8 +17,14 @@ const bip44Component = (
 		name: string
 	}>,
 ): BIP32PathComponentT => {
+	const componentResult = BIP32PathComponent.create(input)
+	if (componentResult.isErr()) {
+		throw new Error(
+			'Incorrect implementation, should always be able to create BIP44 component. Please check values used.',
+		)
+	}
 	return {
-		...BIP32PathComponent.create(input),
+		...componentResult.value,
 		name: input.name,
 	}
 }
