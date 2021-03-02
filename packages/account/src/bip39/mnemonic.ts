@@ -35,13 +35,20 @@ export const mnemonicStrengthSupportedByBIP39: StrengthT[] = [
 
 const separator = ' '
 
-export const strengthFromWordCount = (wordCount: number): StrengthT => {
-	if (wordCount === 24) return StrengthT.WORD_COUNT_24
-	if (wordCount === 21) return StrengthT.WORD_COUNT_21
-	if (wordCount === 18) return StrengthT.WORD_COUNT_18
-	if (wordCount === 15) return StrengthT.WORD_COUNT_15
-	if (wordCount === 12) return StrengthT.WORD_COUNT_12
-	throw new Error(`Unsupported wordcount ${wordCount}`)
+export const strengthFromWordCount = (
+	wordCount: number,
+): Result<StrengthT, Error> => {
+	return wordCount === 24
+		? ok(StrengthT.WORD_COUNT_24)
+		: wordCount === 21
+		? ok(StrengthT.WORD_COUNT_21)
+		: wordCount === 18
+		? ok(StrengthT.WORD_COUNT_18)
+		: wordCount === 15
+		? ok(StrengthT.WORD_COUNT_15)
+		: wordCount === 12
+		? ok(StrengthT.WORD_COUNT_12)
+		: err(Error(`Unsupported wordcount ${wordCount}`))
 }
 
 export const entropyInBitsFromWordCount = (wordCount: number): number => {
@@ -49,9 +56,8 @@ export const entropyInBitsFromWordCount = (wordCount: number): number => {
 	return (wordCount / checksumBitsPerWord) * 32
 }
 
-export const byteCountFromEntropyStrength = (strenght: StrengthT): number => {
-	return strenght.valueOf() / 8
-}
+export const byteCountFromEntropyStrength = (strenght: StrengthT): number =>
+	strenght.valueOf() / 8
 
 const generateNew = (
 	input: Readonly<{
@@ -95,21 +101,22 @@ const fromPhraseInLanguage = (
 ): Result<MnemomicT, Error> => {
 	const wordlist = wordlistFromLanguage(input.language)
 	const phrase = input.phrase
+
+	let entropy: Buffer
 	try {
-		const entropy = Buffer.from(mnemonicToEntropy(phrase, wordlist), 'hex')
-		const words = phrase.normalize('NFKD').split(separator)
-		const strength = strengthFromWordCount(words.length)
-		return ok({
-			words,
-			entropy,
-			strength,
-			phrase,
-			language: input.language,
-			toString: () => phrase,
-		})
+		entropy = Buffer.from(mnemonicToEntropy(phrase, wordlist), 'hex')
 	} catch (e) {
 		return err(e)
 	}
+	const words = phrase.normalize('NFKD').split(separator)
+	return strengthFromWordCount(words.length).map((strength) => ({
+		words,
+		entropy,
+		strength,
+		phrase,
+		language: input.language,
+		toString: () => phrase,
+	}))
 }
 
 const fromWordsInLanguage = (
