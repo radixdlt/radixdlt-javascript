@@ -94,5 +94,5 @@ export const BIP32 = {
 	fromString,
 	unsafeFromSimpleComponents,
 	hardener,
-	pathSeparator
+	pathSeparator,
 }
