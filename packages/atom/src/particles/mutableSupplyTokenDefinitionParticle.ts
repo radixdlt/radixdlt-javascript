@@ -15,7 +15,7 @@ import {
 } from './_types'
 import { ResourceIdentifier } from '../resourceIdentifier'
 import { JSONDecoding, objectDecoder } from '@radixdlt/data-formats'
-import { Address } from '@radixdlt/crypto'
+import { Address } from '@radixdlt/account'
 import { Amount } from '@radixdlt/primitives'
 import { makeTokenPermissions } from '../_index'
 

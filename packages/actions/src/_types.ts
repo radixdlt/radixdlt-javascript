@@ -1,4 +1,4 @@
-import { AddressT } from '@radixdlt/crypto'
+import { AddressT } from '@radixdlt/account'
 import { AmountT } from '@radixdlt/primitives'
 import { ResourceIdentifierT } from '@radixdlt/atom'
 

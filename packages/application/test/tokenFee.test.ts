@@ -15,7 +15,8 @@ import {
 	one,
 } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
-import { feeForAtom, milliRads, minimumFee } from '../src/tokenFee'
+import { feeForAtom, minimumFee } from '../src/tokenFee'
+import { milliRads } from '../src/tokenFee'
 import { atomWithSpunParticles } from './atomFromParticles'
 import {
 	AtomT,

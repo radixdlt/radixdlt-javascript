@@ -24,7 +24,7 @@ import { signatureFromHexStrings } from './helpers/utility'
 import { Spin } from '../src/particles/_types'
 import { RadixParticleType } from '../src/particles/meta/radixParticleTypes'
 import { spunParticle } from '../src/particles/spunParticle'
-import { addressFromBase58String } from '@radixdlt/crypto'
+import { addressFromBase58String } from '@radixdlt/account'
 import { makeTokenPermissions } from '../src/tokenPermissions'
 import { Amount, Denomination, nonce } from '@radixdlt/primitives'
 

@@ -12,7 +12,7 @@ import {
 	ParticleGroupT,
 	TransferrableTokensParticleT,
 } from '@radixdlt/atom/src/_index'
-import { AddressT } from '@radixdlt/crypto'
+import { AddressT } from '@radixdlt/account'
 import { AmountT } from '@radixdlt/primitives'
 
 const uniqueAddressCountTTPs = (

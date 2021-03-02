@@ -5,7 +5,7 @@
     "test"
   ],
   "references": [
-    {"path": "../crypto"},
+    {"path": "../account"},
     {"path": "../atom"},
     {"path": "../primitives"}
   ]

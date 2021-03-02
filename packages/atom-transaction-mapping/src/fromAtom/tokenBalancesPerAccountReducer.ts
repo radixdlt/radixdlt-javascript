@@ -1,6 +1,9 @@
-import { AnyUpParticle, isTransferrableTokensParticle } from '@radixdlt/atom'
-import { TransferrableTokensParticleT } from '@radixdlt/atom/src/_index'
-import { AddressT } from '@radixdlt/crypto/src/_types'
+import {
+	AnyUpParticle,
+	isTransferrableTokensParticle,
+	TransferrableTokensParticleT,
+} from '@radixdlt/atom'
+import { AddressT } from '@radixdlt/account'
 import { mapEquals } from '@radixdlt/util'
 import { ok, Result } from 'neverthrow'
 import { makeParticleReducer } from './particleReducer'

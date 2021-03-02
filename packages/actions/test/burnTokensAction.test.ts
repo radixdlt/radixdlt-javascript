@@ -1,9 +1,9 @@
-import { addressFromBase58String } from '@radixdlt/crypto'
+import { addressFromBase58String } from '@radixdlt/account'
 import { Denomination, zero } from '@radixdlt/primitives'
 import { BurnTokensActionInput } from '../src/_types'
 import { burnTokensAction } from '../src/burnTokensAction'
-import { ResourceIdentifier } from '@radixdlt/atom/src/_index'
 import { Amount } from '@radixdlt/primitives/src/amount'
+import { ResourceIdentifier } from '@radixdlt/atom'
 
 describe('BurnTokensAction', () => {
 	const alice = addressFromBase58String(

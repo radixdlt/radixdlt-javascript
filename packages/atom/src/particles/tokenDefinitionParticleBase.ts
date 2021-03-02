@@ -1,5 +1,5 @@
 import { combine, err, ok, Result } from 'neverthrow'
-import { AddressT } from '@radixdlt/crypto'
+import { AddressT } from '@radixdlt/account'
 import { Granularity } from '@radixdlt/primitives'
 import { ParticleBase, TokenDefinitionParticleBase } from './_types'
 import { granularityDefault } from '@radixdlt/primitives'
@@ -9,7 +9,6 @@ import {
 	DSONCodable,
 	DSONEncoding,
 	DSONKeyValues,
-	JSONDecoding,
 	JSONEncoding,
 	OutputMode,
 	SerializableKeyValues,

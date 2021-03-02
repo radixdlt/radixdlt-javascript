@@ -1,5 +1,3 @@
-import { DSONCodable, JSONEncodable } from '@radixdlt/data-formats'
-import { Byte } from '@radixdlt/util'
 import { UInt256 } from '@radixdlt/uint256'
 
 import { ResultAsync } from 'neverthrow'
@@ -40,6 +38,7 @@ export type ECPointOnCurve = Readonly<{
 
 export type PublicKey = Readonly<{
 	asData: (input: { readonly compressed: boolean }) => Buffer
+	toString: (compressed?: boolean) => string
 	isValidSignature: (
 		input: Readonly<{
 			signature: Signature
@@ -50,26 +49,14 @@ export type PublicKey = Readonly<{
 	equals: (other: PublicKey) => boolean
 }>
 
-export type PublicKeyProvider = Readonly<{
-	derivePublicKey: () => ResultAsync<PublicKey, Error>
-}>
-
 export type PrivateKey = Signer &
-	PublicKeyProvider & {
+	Readonly<{
 		scalar: UInt256
+		publicKey: () => PublicKey
 		toString: () => string
-	}
+	}>
 
 export type KeyPair = Readonly<{
 	publicKey: PublicKey
 	privateKey: PrivateKey
 }>
-
-export type AddressT = JSONEncodable &
-	DSONCodable &
-	Readonly<{
-		publicKey: PublicKey
-		magicByte: Byte
-		toString: () => string
-		equals: (other: AddressT) => boolean
-	}>

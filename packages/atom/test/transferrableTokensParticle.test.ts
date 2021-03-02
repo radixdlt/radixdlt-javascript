@@ -1,8 +1,8 @@
 import {
 	addressFromBase58String,
 	addressFromPublicKeyAndMagicByte,
-	generatePrivateKey,
-} from '@radixdlt/crypto'
+} from '@radixdlt/account'
+import { generatePrivateKey } from '@radixdlt/crypto'
 import { JSONDecodableObject, OutputMode } from '@radixdlt/data-formats'
 import { Amount, Denomination, nonce, one, zero } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
@@ -12,10 +12,9 @@ import { tokenPermissionsAll } from '../src/tokenPermissions'
 import { transferrableTokensParticleFromUnsafe } from './helpers/utility'
 
 describe('transferrableTokensParticle', () => {
-	it('can be safely created from safe type', async () => {
+	it('can be safely created from safe type', () => {
 		const privateKey = generatePrivateKey()
-		const publicKeyResult = await privateKey.derivePublicKey()
-		const publicKey = publicKeyResult._unsafeUnwrap()
+		const publicKey = privateKey.publicKey()
 		const address = addressFromPublicKeyAndMagicByte({
 			publicKey: publicKey,
 			magicByte: 1,
@@ -40,10 +39,9 @@ describe('transferrableTokensParticle', () => {
 		expect(tokenPermissions.canBeMinted(() => false)).toBe(true)
 	})
 
-	it('cannot be created from an amount not being a multiple of granularity', async () => {
+	it('cannot be created from an amount not being a multiple of granularity', () => {
 		const privateKey = generatePrivateKey()
-		const publicKeyResult = await privateKey.derivePublicKey()
-		const publicKey = publicKeyResult._unsafeUnwrap()
+		const publicKey = privateKey.publicKey()
 		const address = addressFromPublicKeyAndMagicByte({
 			publicKey: publicKey,
 			magicByte: 1,

@@ -1,9 +1,9 @@
-import { addressFromBase58String } from '@radixdlt/crypto'
+import { addressFromBase58String } from '@radixdlt/account'
+import { Denomination } from '@radixdlt/primitives'
 import { transferTokensAction } from '../src/transferTokensAction'
 import { TransferTokensActionInput } from '../src/_types'
 import { Amount, zero } from '@radixdlt/primitives/src/amount'
-import { ResourceIdentifier } from '@radixdlt/atom/src/_index'
-import { Denomination } from '@radixdlt/primitives'
+import { ResourceIdentifier } from '@radixdlt/atom'
 
 describe('TransferTokensActions', () => {
 	const alice = addressFromBase58String(

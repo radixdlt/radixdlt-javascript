@@ -1,5 +1,5 @@
 import { err, ok, Result } from 'neverthrow'
-import { flatten, mapObjIndexed, __ } from 'ramda'
+import { flatten, mapObjIndexed } from 'ramda'
 import {
 	Decoder,
 	FromJSONOutput,

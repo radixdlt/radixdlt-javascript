@@ -22,8 +22,8 @@ import {
 	mutableSupplyTokenDefinitionParticleAllCanMutate,
 } from './consumeTokensActionToParticleGroupsMapperBase'
 import { UInt256 } from '@radixdlt/uint256'
-import { AddressT } from '@radixdlt/crypto/src/_types'
 import { Amount } from '@radixdlt/primitives'
+import { AddressT } from '@radixdlt/account'
 
 describe('TokenTransferActionToParticleGroupsMapper', () => {
 	const mapper = tokenTransferActionToParticleGroupsMapper()

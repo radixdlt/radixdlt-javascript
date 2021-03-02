@@ -5,6 +5,7 @@ import {
 } from '@radixdlt/actions'
 import {
 	isTransferrableTokensParticle,
+	MutableSupplyTokenDefinitionParticleT,
 	TokenDefinitionParticleBase,
 	TokenParticle,
 	upParticle,
@@ -28,12 +29,11 @@ import {
 	mutableSupplyTokenDefinitionParticleOnlyAliceCanMutate,
 } from './consumeTokensActionToParticleGroupsMapperBase'
 import { RadixParticleType } from '@radixdlt/atom/src/particles/meta/radixParticleTypes'
-import { Address, AddressT } from '@radixdlt/crypto'
+import { AddressT } from '@radixdlt/account'
 import { isUnallocatedTokensParticle } from '@radixdlt/atom/src/particles/unallocatedTokensParticle'
 import { UInt256 } from '@radixdlt/uint256'
 import { burnTokensActionToParticleGroupsMapper } from '../src/toAtom/burnTokensActionToParticleGroupsMapper'
 import { Amount } from '@radixdlt/primitives'
-import { MutableSupplyTokenDefinitionParticleT } from '@radixdlt/atom/src/_index'
 
 const testMapperReturns___Can_Only_Burn_Mutable_Tokens___error_when_trying_to_burn_FixedSupplyTokenDefinition = <
 	T extends TokenDefinitionParticleBase

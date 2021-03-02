@@ -9,6 +9,6 @@
     {"path": "../actions"},
     {"path": "../util"},
     {"path": "../primitives"},
-    {"path": "../crypto"}
+    {"path": "../account"}
   ]
 }

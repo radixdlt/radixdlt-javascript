@@ -1,4 +1,4 @@
-import { AddressT } from '@radixdlt/crypto'
+import { AddressT } from '@radixdlt/account'
 import {
 	AnyUpParticle,
 	ResourceIdentifier,

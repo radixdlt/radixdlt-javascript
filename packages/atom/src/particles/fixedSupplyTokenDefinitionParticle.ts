@@ -1,4 +1,4 @@
-import { Address } from '@radixdlt/crypto'
+import { Address } from '@radixdlt/account'
 import { JSONDecoding, objectDecoder } from '@radixdlt/data-formats'
 import { Amount, AmountT, granularityDefault } from '@radixdlt/primitives'
 import { Result, err } from 'neverthrow'

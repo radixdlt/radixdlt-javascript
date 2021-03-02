@@ -1,7 +1,6 @@
-import { AddressT } from '@radixdlt/crypto'
 import { ResourceIdentifierT } from './_types'
 import { err, ok, Result } from 'neverthrow'
-import { addressFromBase58String } from '@radixdlt/crypto'
+import { addressFromBase58String, AddressT } from '@radixdlt/account'
 import {
 	DSONObjectEncoding,
 	JSONDecoding,
