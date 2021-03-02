@@ -3,8 +3,8 @@ import { BIP32PathComponent } from './bip32PathComponent'
 import { BIP32T, BIP32PathComponentT, Int32 } from './_types'
 import { ValidationWitness } from '@radixdlt/util'
 
-export const pathSeparator = '/'
-export const hardener = `'`
+const pathSeparator = '/'
+const hardener = `'`
 
 export const unsafeCreate = (
 	pathComponents: BIP32PathComponentT[],
@@ -93,4 +93,6 @@ export const BIP32 = {
 	unsafeCreate,
 	fromString,
 	unsafeFromSimpleComponents,
+	hardener,
+	pathSeparator
 }

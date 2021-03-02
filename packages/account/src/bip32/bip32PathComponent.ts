@@ -2,7 +2,7 @@ import { err, ok, Result } from 'neverthrow'
 import { BIP32PathComponentT, Int32 } from './_types'
 import { fromValue } from 'long'
 import { Int64 } from '@radixdlt/primitives'
-import { hardener, pathSeparator } from './bip32'
+import { BIP32 } from './bip32'
 
 export const INT32_MAX_VALUE = 2_147_483_647
 export const INT32_MIN_VALUE = -2_147_483_648
@@ -40,14 +40,14 @@ const fromString = (
 	componentString: string,
 	level: number,
 ): Result<BIP32PathComponentT, Error> => {
-	if (componentString.includes(pathSeparator)) {
+	if (componentString.includes(BIP32.pathSeparator)) {
 		return err(new Error('Path component contains separator'))
 	}
 	let component = componentString
 	let isHardened = false
-	if (component.endsWith(hardener)) {
+	if (component.endsWith(BIP32.hardener)) {
 		isHardened = true
-		component = component.replace(hardener, '')
+		component = component.replace(BIP32.hardener, '')
 	}
 
 	let parsedInt = undefined
