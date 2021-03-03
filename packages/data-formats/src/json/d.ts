@@ -1,25 +1,12 @@
 import { err, ok, Result } from "neverthrow"
 import { mapObjIndexed, pipe } from "ramda"
+import { isObject, isString, flattenNestedResults, isArray, isBoolean, isNumber } from '@radixdlt/util'
 
-const isT = <T>(validate: (value: unknown) => boolean) => (value: unknown): value is T => validate(value)
-
-const isString = isT<string>(value => typeof value === 'string')
-
-const isObject = isT<Record<string, unknown>>(value => typeof value === 'object' && !Array.isArray(value) && !isResult(value))
-
-const isArray = isT<Array<unknown>>(value => Array.isArray(value))
-
-const isBoolean = isT<boolean>(value => typeof value === 'boolean')
-
-const isNumber = isT<number>(value => typeof value === 'number')
-
-const isResult = isT<Result<unknown, Error>>(value => (value as any)._unsafeUnwrap ? true : false)
-
-type Decoder = (value: unknown, decodingContext: DecodingFn, key: string) => Result<unknown, Error>
+type Decoder = (value: unknown, decodingContext: DecodingFn, key?: string) => Result<unknown, Error>
 
 type DecodingFn = <T>(json: T) => Result<unknown, Error>
 
-const decoder = <T>(algorithm: (value: unknown, decodingContext: DecodingFn, key: string) => Result<T, Error>): Decoder => (value: unknown, decodingContext: DecodingFn, key: string) => algorithm(value, decodingContext, key)
+const decoder = <T>(algorithm: (value: unknown, decodingContext: DecodingFn, key?: string) => Result<T, Error>): Decoder => (value: unknown, decodingContext: DecodingFn, key?: string) => algorithm(value, decodingContext, key)
 
 export const tagDecoder = (tag: string) => <T>(algorithm: (value: string) => Result<T, Error>) => decoder<T>(
     value =>
@@ -58,51 +45,7 @@ const applyDecoders = (decoders: Decoder[], value: unknown, decodingContext: Dec
 
 const defaultDecoders = [stringTagDecoder]
 
-const flattenNestedResults = (json: unknown): Result<unknown, Error[]> => {
-    let errors: Error[] = [] 
-
-    const unpackResult = (item: unknown) => {
-        if (isResult(item)) {
-            if(item.isOk()) {
-                const value = item.value
-                return isObject(value) ? flattenNestedResults(value) : value
-            }
-            errors.push(item.error)
-        }
-        return item
-    }
-   
-    const flattened = 
-        isResult(json)
-            ? json.isErr()
-                ? unpackResult(json)
-                : flattenNestedResults(json.value)
-        : isObject(json) 
-            ? mapObjIndexed(
-                    item => unpackResult(item),
-                    json
-                )
-        : isString(json)
-            ? unpackResult(json)
-        : isArray(json) 
-            ? json.map(item => unpackResult(item))
-        : isBoolean(json)
-            ? unpackResult(json)
-        : isNumber(json)
-            ? unpackResult(json)
-        : err(Error('Failed to flatten result from decoding. Unknown type.'))
-    
-    return errors.length > 0 
-        ? err(errors)
-        : isResult(flattened)
-            ? flattened.isOk()
-                ? flattened
-                : err([flattened.error]) as any
-            : ok(flattened)
-        
-}
-
-export const JSONDecode = (...decoders: Decoder[]) => <T>(json: T): any => {
+export const JSONDecode = (...decoders: Decoder[]) => (json: unknown): Result<unknown, Error[]> => {
     const decode = JSONDecodeUnflattened(...defaultDecoders, ...decoders)
 
     return pipe(
@@ -113,7 +56,7 @@ export const JSONDecode = (...decoders: Decoder[]) => <T>(json: T): any => {
     )
 }
 
-export const JSONDecodeUnflattened = (...decoders: Decoder[]) => (json: unknown): any => 
+export const JSONDecodeUnflattened = (...decoders: Decoder[]) => (json: unknown): Result<unknown, Error> => 
     isObject(json) 
         ? ok(mapObjIndexed(
             (value, key) => applyDecoders(decoders, value, JSONDecodeUnflattened(...decoders), key), 
