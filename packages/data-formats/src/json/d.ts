@@ -5,7 +5,7 @@ const isT = <T>(validate: (value: unknown) => boolean) => (value: unknown): valu
 
 const isString = isT<string>(value => typeof value === 'string')
 
-const isObject = isT<Record<string, unknown>>(value => typeof value === 'object' && !Array.isArray(value))
+const isObject = isT<Record<string, unknown>>(value => typeof value === 'object' && !Array.isArray(value) && !isResult(value))
 
 const isArray = isT<Array<unknown>>(value => Array.isArray(value))
 
@@ -65,10 +65,15 @@ const flattenNestedResults = (json: unknown): Result<unknown, Error[]> => {
             }
             errors.push(item.error)
         }
+        return item
     }
    
     const flattened = 
-        isObject(json) 
+        isResult(json)
+            ? json.isErr()
+                ? unpackResult(json)
+                : flattenNestedResults(json.value)
+        : isObject(json) 
             ? mapObjIndexed(
                     item => unpackResult(item),
                     json
@@ -86,25 +91,25 @@ const flattenNestedResults = (json: unknown): Result<unknown, Error[]> => {
     return errors.length > 0 ? err(errors) : ok(flattened)
 }
 
+export const JSONDecode = (...decoders: Decoder[]) => <T>(json: T): any => flattenNestedResults(
+    JSONDecodeUnflattened(...decoders)(json)
+)
 
-export const JSONDecode = (...decoders: Decoder[]) => <T>(json: T): any => 
-    pipe(
-        (json: T) => 
-            isObject(json) 
-                ? ok(mapObjIndexed(
-                    (value, key) => applyDecoders(decoders, key, value, JSONDecode(...decoders)), 
-                    json
-                ))
-            : isString(json)
-                ? applyDecoders(decoders, '', json, JSONDecode(...decoders))
-            : isArray(json)
-                ? json.map(item => JSONDecode(...decoders)(item))
-            : isBoolean(json)
-                ? json
-            : isNumber(json)
-                ? json
-            : err(Error('JSON decoding failed. Unknown data type.')),
-        flattenNestedResults
-    )(json)
-   
+
+export const JSONDecodeUnflattened = (...decoders: Decoder[]) => <T>(json: T): any => 
+    isObject(json) 
+        ? ok(mapObjIndexed(
+            (value, key) => applyDecoders(decoders, key, value, JSONDecodeUnflattened(...decoders)), 
+            json
+        ))
+    : isString(json)
+        ? ok(applyDecoders(decoders, '', json, JSONDecodeUnflattened(...decoders)))
+    : isArray(json)
+        ? ok(json.map(item => JSONDecodeUnflattened(...decoders)(item)))
+    : isBoolean(json)
+        ? ok(json)
+    : isNumber(json)
+        ? ok(json)
+    : err(Error('JSON decoding failed. Unknown data type.'))
+
 
