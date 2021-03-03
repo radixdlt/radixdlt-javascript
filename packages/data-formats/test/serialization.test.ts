@@ -15,6 +15,7 @@ import {
 	primitiveDecoder,
 	objectDecoder,
 } from '../src/json'
+import { JSONDecode, serializerDecode, tagDecode } from '../src/json/d'
 
 import { serializerNotNeeded } from '../src/util'
 
@@ -399,7 +400,7 @@ describe('JSON', () => {
 
 	describe('decoding', () => {
 		it('should decode JSON primitives', () => {
-			const { fromJSON } = JSONDecoding()()
+			const d = JSONDecode()
 			examples
 				.filter((example) => example.json)
 				.filter((example) =>
@@ -408,7 +409,7 @@ describe('JSON', () => {
 					),
 				)
 				.forEach((example) =>
-					expect(fromJSON(example.json)._unsafeUnwrap()).toEqual(
+					expect(d(example.json)._unsafeUnwrap()).toEqual(
 						example.native,
 					),
 				)
@@ -433,10 +434,19 @@ describe('JSON', () => {
 				),
 			]
 
-			const { fromJSON } = JSONDecoding()(
-				...objectDecoders,
-				...primitiveDecoders,
+			const tstTagDecoder = tagDecode(':tst:')((data: string) => ok(encodablePrimitive(data)))
+
+			const objDecoder1 = serializerDecode(serializer)(
+				(input: { prop1: string; prop2: string; prop3: any }) =>
+					ok(encodableComplex(input))
 			)
+
+			const objDecoder2 = serializerDecode(serializer2)(
+				(input: { prop1: number }) =>
+					ok(encodableNestedComplex(input))
+			)
+
+			const fromJSON = JSONDecode(tstTagDecoder, objDecoder1, objDecoder2)
 
 			const json = {
 				serializer,
