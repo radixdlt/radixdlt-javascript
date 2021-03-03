@@ -43,13 +43,13 @@ export const serializerDecoder = (serializer: string) => <T>(algorithm: (value: 
 
 export const stringTagDecoder = tagDecoder(':str:')(value => ok(value))
 
-const applyDecoders = (decoders: Decoder[], value: unknown, decodingContext: <T>(json: T) => Result<unknown, Error>, key?: string) => {
+const applyDecoders = (decoders: Decoder[], value: unknown, decodingContext: DecodingFn, key?: string) => {
     const results = decoders.map(decoder => decoder(value, decodingContext, key)).filter(result => result.isOk())
 
-    if(results.length > 1) throw Error(
+    if(results.length > 1) return err(Error(
         `JSON decoding failed. Several decoders were valid for key/value pair. 
         This can lead to unexpected behavior.`
-    )
+    ))
 
     return results[0] && results[0].isOk()
         ? results[0].value
@@ -103,7 +103,7 @@ const flattenNestedResults = (json: unknown): Result<unknown, Error[]> => {
 }
 
 export const JSONDecode = (...decoders: Decoder[]) => <T>(json: T): any => {
-    const decode = JSONDecodeUnflattened(stringTagDecoder, ...decoders)
+    const decode = JSONDecodeUnflattened(...defaultDecoders, ...decoders)
 
     return pipe(
         decode,
