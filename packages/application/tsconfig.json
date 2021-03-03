@@ -11,6 +11,7 @@
     {"path": "../crypto"},
     {"path": "../atom"},
     {"path": "../primitives"},
-    {"path": "../atom-transaction-mapping"}
+    {"path": "../atom-transaction-mapping"},
+    {"path": "../actions"},
   ]
 }

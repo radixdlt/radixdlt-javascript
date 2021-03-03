@@ -34,6 +34,7 @@
     "@radixdlt/crypto": "^0.0.0",
     "@radixdlt/atom": "^0.0.0",
     "@radixdlt/atom-transaction-mapping": "^0.0.0",
-    "@radixdlt/data-formats": "^0.0.0"
+    "@radixdlt/data-formats": "^0.0.0",
+    "@radixdlt/actions": "^0.0.0"
   }
 }
