@@ -15,7 +15,7 @@ import {
 	primitiveDecoder,
 	objectDecoder,
 } from '../src/json'
-import { JSONDecode, serializerDecode, tagDecode } from '../src/json/d'
+import { JSONDecode, serializerDecoder, tagDecoder } from '../src/json/d'
 
 import { serializerNotNeeded } from '../src/util'
 
@@ -434,14 +434,14 @@ describe('JSON', () => {
 				),
 			]
 
-			const tstTagDecoder = tagDecode(':tst:')((data: string) => ok(encodablePrimitive(data)))
+			const tstTagDecoder = tagDecoder(':tst:')((data: string) => ok(encodablePrimitive(data)))
 
-			const objDecoder1 = serializerDecode(serializer)(
+			const objDecoder1 = serializerDecoder(serializer)(
 				(input: { prop1: string; prop2: string; prop3: any }) =>
 					ok(encodableComplex(input))
 			)
 
-			const objDecoder2 = serializerDecode(serializer2)(
+			const objDecoder2 = serializerDecoder(serializer2)(
 				(input: { prop1: number }) =>
 					ok(encodableNestedComplex(input))
 			)

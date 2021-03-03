@@ -19,9 +19,9 @@ type Decoder = (key: string, value: unknown, decodingContext: DecodingFn) => Res
 
 type DecodingFn = <T>(json: T) => Result<unknown, Error>
 
-const decode = <T>(algorithm: (key: string, value: unknown, decodingContext: DecodingFn) => Result<T, Error>): Decoder => (key: string, value: unknown, decodingContext: DecodingFn) => algorithm(key, value, decodingContext)
+const decoder = <T>(algorithm: (key: string, value: unknown, decodingContext: DecodingFn) => Result<T, Error>): Decoder => (key: string, value: unknown, decodingContext: DecodingFn) => algorithm(key, value, decodingContext)
 
-export const tagDecode = (tag: string) => <T>(algorithm: (value: string) => Result<T, Error>) => decode<T>(
+export const tagDecoder = (tag: string) => <T>(algorithm: (value: string) => Result<T, Error>) => decoder<T>(
     (_, value) =>
         !isString(value)
             ? err(Error('Tag decoding failed. Value was not a string.'))
@@ -30,7 +30,7 @@ export const tagDecode = (tag: string) => <T>(algorithm: (value: string) => Resu
         : algorithm(value.split(':')[2])
 )
 
-export const serializerDecode = (serializer: string) => <T>(algorithm: (value: T) => Result<unknown, Error>) => decode(
+export const serializerDecoder = (serializer: string) => <T>(algorithm: (value: T) => Result<unknown, Error>) => decoder(
     (_, value, decodingContext) =>
         !isObject(value)
             ? err(Error('Serializer decoding failed. Value was not an object.'))
@@ -41,7 +41,7 @@ export const serializerDecode = (serializer: string) => <T>(algorithm: (value: T
         : decodingContext(value).map(value => algorithm(value as T)).andThen(value => value).mapErr(err => err)
 )
 
-export const stringTagDecode = tagDecode(':str:')(value => ok(value))
+export const stringTagDecoder = tagDecoder(':str:')(value => ok(value))
 
 const applyDecoders = (decoders: Decoder[], key: string, value: unknown, decodingContext: <T>(json: T) => Result<unknown, Error>) => {
     const results = decoders.map(decoder => decoder(key, value, decodingContext)).filter(result => result.isOk())
@@ -102,16 +102,12 @@ const flattenNestedResults = (json: unknown): Result<unknown, Error[]> => {
 
 export const JSONDecode = (...decoders: Decoder[]) => <T>(json: T): any => flattenNestedResults(
     JSONDecodeUnflattened(
-        stringTagDecode, ...decoders
-    )(
-        {
-            a: json
-        }
-    )
+        stringTagDecoder, ...decoders
+    )(applyDecoders(decoders, '_', json, JSONDecodeUnflattened(stringTagDecoder, ...decoders)))
 )
 
 
-export const JSONDecodeUnflattened = (...decoders: Decoder[]) => <T>(json: T): any => 
+export const JSONDecodeUnflattened = (...decoders: Decoder[]) => (json: unknown): any => 
     isObject(json) 
         ? ok(mapObjIndexed(
             (value, key) => applyDecoders(decoders, key, value, JSONDecodeUnflattened(...decoders)), 
