@@ -1,5 +1,5 @@
 import { err, ok, Result } from "neverthrow"
-import { mapObjIndexed } from "ramda"
+import { mapObjIndexed, pipe } from "ramda"
 
 const isT = <T>(validate: (value: unknown) => boolean) => (value: unknown): value is T => validate(value)
 
@@ -15,14 +15,14 @@ const isNumber = isT<number>(value => typeof value === 'number')
 
 const isResult = isT<Result<unknown, Error>>(value => (value as any)._unsafeUnwrap ? true : false)
 
-type Decoder = (key: string, value: unknown, decodingContext: DecodingFn) => Result<unknown, Error>
+type Decoder = (value: unknown, decodingContext: DecodingFn, key: string) => Result<unknown, Error>
 
 type DecodingFn = <T>(json: T) => Result<unknown, Error>
 
-const decoder = <T>(algorithm: (key: string, value: unknown, decodingContext: DecodingFn) => Result<T, Error>): Decoder => (key: string, value: unknown, decodingContext: DecodingFn) => algorithm(key, value, decodingContext)
+const decoder = <T>(algorithm: (value: unknown, decodingContext: DecodingFn, key: string) => Result<T, Error>): Decoder => (value: unknown, decodingContext: DecodingFn, key: string) => algorithm(value, decodingContext, key)
 
 export const tagDecoder = (tag: string) => <T>(algorithm: (value: string) => Result<T, Error>) => decoder<T>(
-    (_, value) =>
+    value =>
         !isString(value)
             ? err(Error('Tag decoding failed. Value was not a string.'))
         : !(`:${value.split(':')[1]}:` === tag)
@@ -31,7 +31,7 @@ export const tagDecoder = (tag: string) => <T>(algorithm: (value: string) => Res
 )
 
 export const serializerDecoder = (serializer: string) => <T>(algorithm: (value: T) => Result<unknown, Error>) => decoder(
-    (_, value, decodingContext) =>
+    (value, decodingContext) =>
         !isObject(value)
             ? err(Error('Serializer decoding failed. Value was not an object.'))
         : !value['serializer']
@@ -43,8 +43,8 @@ export const serializerDecoder = (serializer: string) => <T>(algorithm: (value: 
 
 export const stringTagDecoder = tagDecoder(':str:')(value => ok(value))
 
-const applyDecoders = (decoders: Decoder[], key: string, value: unknown, decodingContext: <T>(json: T) => Result<unknown, Error>) => {
-    const results = decoders.map(decoder => decoder(key, value, decodingContext)).filter(result => result.isOk())
+const applyDecoders = (decoders: Decoder[], value: unknown, decodingContext: <T>(json: T) => Result<unknown, Error>, key?: string) => {
+    const results = decoders.map(decoder => decoder(value, decodingContext, key)).filter(result => result.isOk())
 
     if(results.length > 1) throw Error(
         `JSON decoding failed. Several decoders were valid for key/value pair. 
@@ -55,6 +55,8 @@ const applyDecoders = (decoders: Decoder[], key: string, value: unknown, decodin
         ? results[0].value
         : value
 }
+
+const defaultDecoders = [stringTagDecoder]
 
 const flattenNestedResults = (json: unknown): Result<unknown, Error[]> => {
     let errors: Error[] = [] 
@@ -100,21 +102,25 @@ const flattenNestedResults = (json: unknown): Result<unknown, Error[]> => {
         
 }
 
-export const JSONDecode = (...decoders: Decoder[]) => <T>(json: T): any => flattenNestedResults(
-    JSONDecodeUnflattened(
-        stringTagDecoder, ...decoders
-    )(applyDecoders(decoders, '_', json, JSONDecodeUnflattened(stringTagDecoder, ...decoders)))
-)
+export const JSONDecode = (...decoders: Decoder[]) => <T>(json: T): any => {
+    const decode = JSONDecodeUnflattened(stringTagDecoder, ...decoders)
 
+    return pipe(
+        decode,
+        flattenNestedResults
+    )(
+        applyDecoders(decoders, json, decode)
+    )
+}
 
 export const JSONDecodeUnflattened = (...decoders: Decoder[]) => (json: unknown): any => 
     isObject(json) 
         ? ok(mapObjIndexed(
-            (value, key) => applyDecoders(decoders, key, value, JSONDecodeUnflattened(...decoders)), 
+            (value, key) => applyDecoders(decoders, value, JSONDecodeUnflattened(...decoders), key), 
             json
         ))
     : isString(json)
-        ? ok(applyDecoders(decoders, 'null', json, JSONDecodeUnflattened(...decoders)))
+        ? ok(applyDecoders(decoders, json, JSONDecodeUnflattened(...decoders)))
     : isArray(json)
         ? ok(json.map(item => JSONDecodeUnflattened(...decoders)(item)))
     : isBoolean(json)
