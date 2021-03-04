@@ -8,7 +8,6 @@ import {
 	JSONDecoding,
 	JSONEncodable,
 	JSONEncoding,
-	objectDecoder,
 } from '@radixdlt/data-formats'
 import {
 	tokenSerializationKeyValues,

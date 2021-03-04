@@ -5,6 +5,7 @@ import { Result, ok, err } from 'neverthrow'
 import {
 	DSONObjectEncoding,
 	JSONDecode,
+	JSONDecoding,
 	JSONEncoding,
 	serializerNotNeeded,
 	tagDecoder,
@@ -156,11 +157,11 @@ export const addressFromUnsafe = (
 		: err(new Error('bad type'))
 }
 
-const fromJSON = JSONDecode<AddressT>(
+const decoding = JSONDecoding()(
 	tagDecoder(JSON_TAG)((input: string) => addressFromBase58String(input))
 )
 
 export const Address = {
 	JSON_TAG,
-	fromJSON
+	...decoding
 }

@@ -19,8 +19,8 @@ import {
 	DSONObjectEncoding,
 	JSONDecoding,
 	JSONEncoding,
-	primitiveDecoder,
 	serializerNotNeeded,
+	tagDecoder,
 } from '@radixdlt/data-formats'
 import { denominations, formatDenomination } from './denomination'
 import { Byte } from '@radixdlt/util'
@@ -28,8 +28,8 @@ import { Byte } from '@radixdlt/util'
 const CBOR_BYTESTRING_PREFIX: Byte = 5
 const JSON_TAG = ':u20:'
 
-const { JSONDecoders, fromJSON } = JSONDecoding<AmountT>()(
-	primitiveDecoder(JSON_TAG, (data: string) =>
+const jsonDecoding = JSONDecoding<AmountT>()(
+	tagDecoder(JSON_TAG)((data: string) =>
 		ok(inSmallestDenomination(new UInt256(data))),
 	),
 )
@@ -259,8 +259,7 @@ export const maxAmount = fromUInt256({
 
 export const Amount = {
 	JSON_TAG,
-	JSONDecoders,
-	fromJSON,
+	...jsonDecoding,
 	inSmallestDenomination,
 	fromUnsafe,
 	fromUInt256,

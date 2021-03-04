@@ -452,11 +452,19 @@ describe('JSON', () => {
 
 		it('should fail to decode with an internal error', () => {
 			const objectDecoder = serializerDecoder(serializer)(() => err(Error('boom')))
+			const objectDecoder2 = serializerDecoder(serializer2)(() => err(Error('boom2')))
+			const tstTagDecoder = tagDecoder(':tst:')(() => err(Error('boom3')))
 			
-			const { fromJSON } = JSONDecoding()(objectDecoder)
+			const { fromJSON } = JSONDecoding()(objectDecoder, objectDecoder2)
 
 			const json = {
-				serializer,
+				a: {
+					serializer2
+				},
+				b: {
+					serializer
+				},
+				c: ':tst:xyz'
 			}
 
 			const decoded = fromJSON(json)
