@@ -6,15 +6,22 @@ export const flattenNestedResults = (json: Result<unknown, Error | Error[]>): Re
     let errors: (Error | Error[])[] = [] 
 
     const flattened = json.map(
-        value => 
-            isObject(value)
-            ? mapObjIndexed(
-                objValue => 
-                    isResult(objValue)
-                    ? flattenNestedResults(objValue)
-                    : objValue,
-                value)
-            : value
+        value => {
+            if(!isObject(value)) return value
+            for(const item in value) {
+                const objValue = value[item]
+
+                if(isResult(objValue)) {
+                    const res = flattenNestedResults(objValue)
+                    if(res.isErr()) {
+                        errors.push(res.error)
+                    } else {
+                        value[item] = res.value
+                    }
+                }
+            }
+            return value
+        }
     ).mapErr(err => {
         errors.push(err)
         return errors.flat()

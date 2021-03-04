@@ -1,6 +1,6 @@
 import { err, ok, Result } from "neverthrow"
 import { flatten, mapObjIndexed, pipe } from "ramda"
-import { isObject, isString, flattenNestedResults, isArray, isBoolean, isNumber } from '@radixdlt/util'
+import { isObject, isString, flattenNestedResults, isArray, isBoolean, isNumber, isResult } from '@radixdlt/util'
 import { JSONDecodable, DecodingFn, Decoder, SERIALIZER } from './_types'
 
 const decoder = <T>(algorithm: (value: unknown, decodingContext: DecodingFn, key?: string) => Result<T, Error> | undefined): Decoder => (value: unknown, decodingContext: DecodingFn, key?: string) => algorithm(value, decodingContext, key)
@@ -18,7 +18,7 @@ export const serializerDecoder = (serializer: string) => <T>(algorithm: (value: 
         ? decodingContext(value)
             .map(value => algorithm(value as T))
             .andThen(value => value as any)
-            .mapErr(err => err[0])
+            .mapErr(err => err as any)
         : undefined
 )
 
@@ -32,8 +32,8 @@ const applyDecoders = (decoders: Decoder[], value: unknown, decodingContext: Dec
         This can lead to unexpected behavior.`
     ))
 
-    return results[0] && results[0].isOk()
-        ? results[0].value
+    return results[0]
+        ? results[0]
         : value
 }
 
@@ -64,6 +64,10 @@ export const JSONDecodeUnflattened = (...decoders: Decoder[]) => (json: unknown)
         ? ok(json)
     : isNumber(json)
         ? ok(json)
+    : isResult(json)
+        ? json.isOk()
+            ? JSONDecodeUnflattened(...decoders)(json.value)
+            : err([json.error])
     : err([Error('JSON decoding failed. Unknown data type.')])
 
 
