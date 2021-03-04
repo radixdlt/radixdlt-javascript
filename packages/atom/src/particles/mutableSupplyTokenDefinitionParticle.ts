@@ -14,7 +14,7 @@ import {
 	TokenDefinitionParticleBase,
 } from './_types'
 import { ResourceIdentifier } from '../resourceIdentifier'
-import { JSONDecoding, objectDecoder } from '@radixdlt/data-formats'
+import { JSONDecoding, serializerDecoder } from '@radixdlt/data-formats'
 import { Address } from '@radixdlt/account'
 import { Amount } from '@radixdlt/primitives'
 import { makeTokenPermissions } from '../_index'
@@ -23,17 +23,15 @@ const radixParticleType = RadixParticleType.MUTABLE_SUPPLY_TOKEN_DEFINITION
 
 const SERIALIZER = 'radix.particles.mutable_supply_token_definition'
 
-const {
-	JSONDecoders,
-	fromJSON,
-} = JSONDecoding<MutableSupplyTokenDefinitionParticleT>(
+const jsonDecoding = JSONDecoding<MutableSupplyTokenDefinitionParticleT>(
 	ResourceIdentifier,
 	Address,
 	Amount,
 )(
-	objectDecoder(
-		SERIALIZER,
-		(
+	serializerDecoder(
+		SERIALIZER
+	)
+		((
 			input: TokenDefinitionParticleInput &
 				Readonly<{
 					permissions?: Readonly<
@@ -120,6 +118,5 @@ export const isMutableTokenDefinitionParticle = (
 export const MutableSupplyTokenDefinitionParticle = {
 	SERIALIZER,
 	create,
-	JSONDecoders,
-	fromJSON,
+	...jsonDecoding
 }

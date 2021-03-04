@@ -40,7 +40,7 @@ export type FromJSONOutput =
 	| FromJSONOutput[]
 
 export type JSONDecodable = {
-	fromJSON: (json: unknown) => Result<unknown, Error>
+	fromJSON: (json: unknown) => Result<unknown, Error[]>
 	JSONDecoders: Decoder[]
 }
 

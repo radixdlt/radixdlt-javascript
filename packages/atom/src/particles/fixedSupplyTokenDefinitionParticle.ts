@@ -1,5 +1,5 @@
 import { Address } from '@radixdlt/account'
-import { JSONDecoding, objectDecoder } from '@radixdlt/data-formats'
+import { JSONDecoding, serializerDecoder } from '@radixdlt/data-formats'
 import { Amount, AmountT, granularityDefault } from '@radixdlt/primitives'
 import { Result, err } from 'neverthrow'
 import { ResourceIdentifier } from '../resourceIdentifier'
@@ -19,17 +19,14 @@ const radixParticleType = RadixParticleType.FIXED_SUPPLY_TOKEN_DEFINITION
 
 const SERIALIZER = 'radix.particles.fixed_supply_token_definition'
 
-const {
-	JSONDecoders,
-	fromJSON,
-} = JSONDecoding<FixedSupplyTokenDefinitionParticleT>(
+const jsonDecoding = JSONDecoding<FixedSupplyTokenDefinitionParticleT>(
 	ResourceIdentifier,
 	Address,
 	Amount,
 )(
-	objectDecoder(
-		SERIALIZER,
-		(
+	serializerDecoder(
+		SERIALIZER
+	)((
 			input: TokenDefinitionParticleInput &
 				Readonly<{
 					supply: AmountT
@@ -106,7 +103,6 @@ export const isFixedTokenDefinitionParticle = (
 
 export const FixedSupplyTokenDefinitionParticle = {
 	SERIALIZER,
-	fromJSON,
-	JSONDecoders,
+	...jsonDecoding,
 	create,
 }

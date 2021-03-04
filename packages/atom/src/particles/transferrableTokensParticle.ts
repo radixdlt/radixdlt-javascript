@@ -8,6 +8,7 @@ import {
 	JSONDecoding,
 	JSONEncodable,
 	JSONEncoding,
+	serializerDecoder,
 } from '@radixdlt/data-formats'
 import {
 	tokenSerializationKeyValues,
@@ -45,14 +46,14 @@ const serialization = (
 	}
 }
 
-const { JSONDecoders, fromJSON } = JSONDecoding<TransferrableTokensParticleT>(
+const jsonDecoding = JSONDecoding<TransferrableTokensParticleT>(
 	Address,
 	Amount,
 	ResourceIdentifier,
 )(
-	objectDecoder(SERIALIZER, (input: TransferrableTokensParticleInput) =>
+	serializerDecoder(SERIALIZER)((input: TransferrableTokensParticleInput) =>
 		create(input),
-	),
+	)
 )
 
 const create = (
@@ -89,7 +90,6 @@ export const isTransferrableTokensParticle = (
 
 export const TransferrableTokensParticle = {
 	SERIALIZER,
-	fromJSON,
-	JSONDecoders,
+	...jsonDecoding,
 	create,
 }

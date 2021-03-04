@@ -13,7 +13,7 @@ import {
 	JSONDecoding,
 	JSONEncodable,
 	JSONEncoding,
-	objectDecoder,
+	serializerDecoder,
 } from '@radixdlt/data-formats'
 import { ok } from 'neverthrow'
 import { equalsDSONHash } from './euid'
@@ -52,8 +52,8 @@ const serialization = (
 	}
 }
 
-const { JSONDecoders, fromJSON } = JSONDecoding<AtomT>(ParticleGroup)(
-	objectDecoder(SERIALIZER, (input: Input) => ok(create(input))),
+const jsonDecoding = JSONDecoding<AtomT>(ParticleGroup)(
+	serializerDecoder(SERIALIZER)((input: Input) => ok(create(input))),
 )
 
 const create = (input: Input): AtomT => {
@@ -85,7 +85,6 @@ const create = (input: Input): AtomT => {
 
 export const Atom = {
 	SERIALIZER,
-	JSONDecoders,
-	fromJSON,
+	...jsonDecoding,
 	create,
 }

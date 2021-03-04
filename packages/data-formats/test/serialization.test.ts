@@ -455,11 +455,11 @@ describe('JSON', () => {
 			const objectDecoder2 = serializerDecoder(serializer2)(() => err(Error('boom2')))
 			const tstTagDecoder = tagDecoder(':tst:')(() => err(Error('boom3')))
 			
-			const { fromJSON } = JSONDecoding()(objectDecoder, objectDecoder2)
+			const { fromJSON } = JSONDecoding()(objectDecoder, objectDecoder2, tstTagDecoder)
 
 			const json = {
 				a: {
-					serializer2
+					serializer: serializer2
 				},
 				b: {
 					serializer
@@ -470,6 +470,7 @@ describe('JSON', () => {
 			const decoded = fromJSON(json)
 
 			expect(decoded.isErr()).toEqual(true)
+			expect((decoded as any).error.length).toEqual(3)
 		})
 	})
 })

@@ -5,8 +5,8 @@ import {
 	DSONEncoding,
 	JSONDecoding,
 	JSONEncoding,
-	objectDecoder,
 	SerializableKeyValues,
+	serializerDecoder,
 } from '@radixdlt/data-formats'
 import { ParticleBase, ResourceIdentifierParticleT } from './_types'
 import { ok } from 'neverthrow'
@@ -16,8 +16,8 @@ const radixParticleType = RadixParticleType.RESOURCE_IDENTIFIER
 
 const SERIALIZER = 'radix.particles.rri'
 
-const { JSONDecoders, fromJSON } = JSONDecoding(ResourceIdentifier)(
-	objectDecoder(SERIALIZER, (input: ResourceIdentifierT) =>
+const jsonDecoding = JSONDecoding(ResourceIdentifier)(
+	serializerDecoder(SERIALIZER)((input: ResourceIdentifierT) =>
 		ok(create(input)),
 	),
 )
@@ -60,6 +60,5 @@ export const isResourceIdentifierParticle = (
 export const ResourceIdentifierParticle = {
 	create,
 	SERIALIZER,
-	JSONDecoders,
-	fromJSON,
+	...jsonDecoding
 }

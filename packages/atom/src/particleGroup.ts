@@ -5,7 +5,7 @@ import {
 	JSONDecoding,
 	JSONEncodable,
 	JSONEncoding,
-	objectDecoder,
+	serializerDecoder,
 } from '@radixdlt/data-formats'
 import { ok } from 'neverthrow'
 import {
@@ -31,8 +31,8 @@ const JSON = (
 			: spunParticles,
 	})
 
-const { JSONDecoders, fromJSON } = JSONDecoding(SpunParticle)(
-	objectDecoder(SERIALIZER, (input: SpunParticles | AnySpunParticle[]) =>
+const jsonDecoding = JSONDecoding(SpunParticle)(
+	serializerDecoder(SERIALIZER)((input: SpunParticles | AnySpunParticle[]) =>
 		ok(create(input)),
 	),
 )
@@ -54,7 +54,6 @@ export const create = (
 
 export const ParticleGroup = {
 	create,
-	fromJSON,
-	JSONDecoders,
+	...jsonDecoding,
 	SERIALIZER,
 }

@@ -18,13 +18,13 @@ import {
 	DSONPrimitive,
 	JSONDecoding,
 	JSONEncoding,
-	objectDecoder,
+	serializerDecoder,
 } from '@radixdlt/data-formats'
 
 const SERIALIZER = 'radix.spun_particle'
 
-const { JSONDecoders, fromJSON } = JSONDecoding<SpunParticleT<any>>()(
-	objectDecoder(SERIALIZER, (input: SpunParticleBase) =>
+const jsonDecoding = JSONDecoding<SpunParticleT<any>>()(
+	serializerDecoder(SERIALIZER)((input: SpunParticleBase) =>
 		ok(anySpunParticle(input)),
 	),
 )
@@ -251,7 +251,6 @@ export const isAnySpunParticle = (
 }
 
 export const SpunParticle = {
-	fromJSON,
-	JSONDecoders,
+	...jsonDecoding,
 	SERIALIZER,
 }

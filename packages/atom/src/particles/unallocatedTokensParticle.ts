@@ -11,7 +11,7 @@ import {
 	JSONDecoding,
 	JSONEncodable,
 	JSONEncoding,
-	objectDecoder,
+	serializerDecoder,
 } from '@radixdlt/data-formats'
 import { TokenParticle, UnallocatedTokensParticleT } from './_types'
 import { ok } from 'neverthrow'
@@ -30,11 +30,11 @@ const serialization = (input: TokenParticle): JSONEncodable & DSONCodable => {
 	}
 }
 
-const { fromJSON, JSONDecoders } = JSONDecoding<UnallocatedTokensParticleT>(
+const jsonDecoding = JSONDecoding<UnallocatedTokensParticleT>(
 	Amount,
 	ResourceIdentifier,
 )(
-	objectDecoder(SERIALIZER, (input: TokenParticleInput) =>
+	serializerDecoder(SERIALIZER)((input: TokenParticleInput) =>
 		ok(unallocatedTokensParticle(input)),
 	),
 )
@@ -64,7 +64,6 @@ export const isUnallocatedTokensParticle = (
 }
 
 export const UnallocatedTokensParticle = {
-	fromJSON,
-	JSONDecoders,
+	...jsonDecoding,
 	SERIALIZER,
 }
