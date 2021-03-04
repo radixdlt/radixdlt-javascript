@@ -4,10 +4,10 @@ import { Byte, byteToBuffer, firstByteFromBuffer } from '@radixdlt/util'
 import { Result, ok, err } from 'neverthrow'
 import {
 	DSONObjectEncoding,
-	JSONDecoding,
+	JSONDecode,
 	JSONEncoding,
-	primitiveDecoder,
 	serializerNotNeeded,
+	tagDecoder,
 } from '@radixdlt/data-formats'
 import {
 	base58Decode,
@@ -156,11 +156,11 @@ export const addressFromUnsafe = (
 		: err(new Error('bad type'))
 }
 
+const fromJSON = JSONDecode<AddressT>(
+	tagDecoder(JSON_TAG)((input: string) => addressFromBase58String(input))
+)
+
 export const Address = {
 	JSON_TAG,
-	...JSONDecoding<AddressT>()(
-		primitiveDecoder(JSON_TAG, (input: string) =>
-			addressFromBase58String(input),
-		),
-	),
+	fromJSON
 }

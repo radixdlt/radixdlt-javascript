@@ -1,31 +1,14 @@
 import { Result } from 'neverthrow'
 
-export enum Tag {
-	STRING = ':str:',
-}
-
-export enum Decoder {
-	PRIMITIVE,
-	OBJECT,
-}
-
 export const SERIALIZER = 'serializer'
 
-export type JSONPrimitiveDecoder = {
-	decoder: {
-		[tag: string]: (data: string) => Result<string | JSONEncodable, Error>
-	}
-	type: Decoder.PRIMITIVE
+export enum Tag {
+	STRING = ':str:'
 }
 
-export type JSONObjectDecoder = {
-	decoder: {
-		[serializer: string]: (
-			input: Record<string, unknown>,
-		) => Result<JSONEncodable, Error>
-	}
-	type: Decoder.OBJECT
-}
+export type Decoder = (value: unknown, decodingContext: DecodingFn, key?: string) => Result<unknown, Error>
+
+export type DecodingFn = <T>(json: T) => Result<unknown, Error>
 
 export type JSONKeyValues = {
 	[key: string]: JSONEncodablePrimitive | JSONEncodable | JSONEncodable[]
@@ -57,8 +40,8 @@ export type FromJSONOutput =
 	| FromJSONOutput[]
 
 export type JSONDecodable = {
-	fromJSON: (json: JSONDecodableObject) => Result<any, Error>
-	JSONDecoders: (JSONObjectDecoder | JSONPrimitiveDecoder)[]
+	fromJSON: (json: unknown) => Result<unknown, Error>
+	JSONDecoders: Decoder[]
 }
 
 export type JSONEncodable = {
