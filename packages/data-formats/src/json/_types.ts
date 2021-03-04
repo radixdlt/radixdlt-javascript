@@ -6,9 +6,9 @@ export enum Tag {
 	STRING = ':str:'
 }
 
-export type Decoder = (value: unknown, decodingContext: DecodingFn, key?: string) => Result<unknown, Error>
+export type Decoder = (value: unknown, decodingContext: DecodingFn, key?: string) => Result<unknown, Error> | undefined
 
-export type DecodingFn = <T>(json: T) => Result<unknown, Error>
+export type DecodingFn = <T>(json: T) => Result<unknown, Error[]>
 
 export type JSONKeyValues = {
 	[key: string]: JSONEncodablePrimitive | JSONEncodable | JSONEncodable[]
