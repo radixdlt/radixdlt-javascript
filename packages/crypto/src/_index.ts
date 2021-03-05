@@ -1,4 +1,5 @@
 export * from './ecies/_index'
+export * from './keystore/_index'
 export * from './key-derivation-functions/_index'
 export * from './key-exchange/_index'
 export * from './symmetric-encryption/_index'

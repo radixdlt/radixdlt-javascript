@@ -9,7 +9,8 @@ import {
 import { Observable } from 'rxjs'
 import { BIP32T } from './bip32/_types'
 import { Option } from 'prelude-ts'
-import { Result } from 'neverthrow'
+import { Result, ResultAsync } from 'neverthrow'
+import { HDMasterSeedT } from './_index'
 
 export type AddressT = JSONEncodable &
 	DSONCodable &
@@ -63,6 +64,10 @@ export type HardwareWalletSimpleT = Readonly<{
 export type AccountsT = Readonly<{
 	get: (id: AccountIdT | PublicKey | BIP32T) => Option<AccountT>
 	all: AccountT[]
+}>
+
+export type MasterSeedProviderT = Readonly<{
+	decrypt: (password: string) => ResultAsync<HDMasterSeedT, Error>
 }>
 
 export type WalletT = PublicKeyDeriving &

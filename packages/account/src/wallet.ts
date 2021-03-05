@@ -9,10 +9,11 @@ import { Option } from 'prelude-ts'
 import { ValidationWitness } from '@radixdlt/util'
 import { Result, err, ok } from 'neverthrow'
 
-// eslint-disable-next-line max-lines-per-function
+
+
 const create = (
 	input: Readonly<{
-		accounts: AccountT[]
+		encryptedHDMasterSeedT: ()
 	}>,
 ): WalletT => {
 	const activeAccountSubject = new ReplaySubject<AccountT>()
