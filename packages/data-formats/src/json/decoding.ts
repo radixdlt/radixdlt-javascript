@@ -56,15 +56,16 @@ const applyDecoders = (
 		.map((decoder) => decoder(unwrappedValue, key))
 		.filter((result) => result !== undefined)
 
-    return results.length > 1 
-            ? err(
-                Error(
-                    `JSON decoding failed. Several decoders were valid for key/value pair. 
+	return results.length > 1
+		? err(
+				Error(
+					`JSON decoding failed. Several decoders were valid for key/value pair. 
                     This can lead to unexpected behavior.`,
-                ))
-        : results[0] 
-            ? results[0]
-        : ok(unwrappedValue)
+				),
+		  )
+		: results[0]
+		? results[0]
+		: ok(unwrappedValue)
 }
 
 const defaultDecoders = [stringTagDecoder]
