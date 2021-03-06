@@ -433,7 +433,7 @@ describe('JSON', () => {
 				prop2: ':str:xyz',
 				prop3: {
 					serializer: serializer2,
-					prop1: 0,
+					prop1: 0
 				},
 			}
 

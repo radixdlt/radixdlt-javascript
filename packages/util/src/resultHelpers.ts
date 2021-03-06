@@ -1,8 +1,7 @@
 import { err, Result } from "neverthrow"
 import { isObject, isResult } from "./typeGuards"
-import { mapObjIndexed } from 'ramda'
 
-export const flattenNestedResults = (json: Result<unknown, Error | Error[]>): Result<unknown, Error[]> => {
+export const flattenResultsObject = (json: Result<unknown, Error | Error[]>): Result<unknown, Error[]> => {
     let errors: (Error | Error[])[] = [] 
 
     const flattened = json.map(
@@ -11,8 +10,8 @@ export const flattenNestedResults = (json: Result<unknown, Error | Error[]>): Re
             for(const item in value) {
                 const objValue = value[item]
 
-                if(isResult(objValue)) {
-                    const res = flattenNestedResults(objValue)
+                if(objValue && isResult(objValue)) {
+                    const res = flattenResultsObject(objValue)
                     if(res.isErr()) {
                         errors.push(res.error)
                     } else {
