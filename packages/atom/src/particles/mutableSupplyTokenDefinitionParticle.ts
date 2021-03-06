@@ -28,10 +28,8 @@ const jsonDecoding = JSONDecoding<MutableSupplyTokenDefinitionParticleT>(
 	Address,
 	Amount,
 )(
-	serializerDecoder(
-		SERIALIZER
-	)
-		((
+	serializerDecoder(SERIALIZER)(
+		(
 			input: TokenDefinitionParticleInput &
 				Readonly<{
 					permissions?: Readonly<
@@ -118,5 +116,5 @@ export const isMutableTokenDefinitionParticle = (
 export const MutableSupplyTokenDefinitionParticle = {
 	SERIALIZER,
 	create,
-	...jsonDecoding
+	...jsonDecoding,
 }

@@ -158,10 +158,10 @@ export const addressFromUnsafe = (
 }
 
 const decoding = JSONDecoding()(
-	tagDecoder(JSON_TAG)((input: string) => addressFromBase58String(input))
+	tagDecoder(JSON_TAG)((input: string) => addressFromBase58String(input)),
 )
 
 export const Address = {
 	JSON_TAG,
-	...decoding
+	...decoding,
 }

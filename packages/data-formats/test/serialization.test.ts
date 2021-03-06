@@ -6,12 +6,7 @@ import {
 	OutputMode,
 } from '../src/dson'
 
-import {
-	JSONEncoding,
-	toJSON,
-	JSONDecoding,
-	Decoder,
-} from '../src/json'
+import { JSONEncoding, toJSON, JSONDecoding, Decoder } from '../src/json'
 import { serializerDecoder, tagDecoder } from '../src/json/decoding'
 
 import { serializerNotNeeded } from '../src/util'
@@ -413,19 +408,25 @@ describe('JSON', () => {
 		})
 
 		it('should decode a JSON object', () => {
-			const tstTagDecoder = tagDecoder(':tst:')((data: string) => ok(encodablePrimitive(data)))
-
-			const objDecoder1 = serializerDecoder(serializer)(
-				(input: { prop1: string; prop2: string; prop3: any }) =>
-					ok(encodableComplex(input))
+			const tstTagDecoder = tagDecoder(':tst:')((data: string) =>
+				ok(encodablePrimitive(data)),
 			)
 
-			const objDecoder2 = serializerDecoder(serializer2)(
-				(input: { prop1: number }) =>
-					ok(encodableNestedComplex(input))
+			const objDecoder1 = serializerDecoder(
+				serializer,
+			)((input: { prop1: string; prop2: string; prop3: any }) =>
+				ok(encodableComplex(input)),
 			)
 
-			const { fromJSON } = JSONDecoding()(tstTagDecoder, objDecoder1, objDecoder2)
+			const objDecoder2 = serializerDecoder(
+				serializer2,
+			)((input: { prop1: number }) => ok(encodableNestedComplex(input)))
+
+			const { fromJSON } = JSONDecoding()(
+				tstTagDecoder,
+				objDecoder1,
+				objDecoder2,
+			)
 
 			const json = {
 				serializer,
@@ -433,7 +434,7 @@ describe('JSON', () => {
 				prop2: ':str:xyz',
 				prop3: {
 					serializer: serializer2,
-					prop1: 0
+					prop1: 0,
 				},
 			}
 
@@ -451,20 +452,28 @@ describe('JSON', () => {
 		})
 
 		it('should fail to decode with an internal error', () => {
-			const objectDecoder = serializerDecoder(serializer)(() => err(Error('boom')))
-			const objectDecoder2 = serializerDecoder(serializer2)(() => err(Error('boom2')))
+			const objectDecoder = serializerDecoder(serializer)(() =>
+				err(Error('boom')),
+			)
+			const objectDecoder2 = serializerDecoder(serializer2)(() =>
+				err(Error('boom2')),
+			)
 			const tstTagDecoder = tagDecoder(':tst:')(() => err(Error('boom3')))
-			
-			const { fromJSON } = JSONDecoding()(objectDecoder, objectDecoder2, tstTagDecoder)
+
+			const { fromJSON } = JSONDecoding()(
+				objectDecoder,
+				objectDecoder2,
+				tstTagDecoder,
+			)
 
 			const json = {
 				a: {
-					serializer: serializer2
+					serializer: serializer2,
 				},
 				b: {
-					serializer
+					serializer,
 				},
-				c: ':tst:xyz'
+				c: ':tst:xyz',
 			}
 
 			const decoded = fromJSON(json)

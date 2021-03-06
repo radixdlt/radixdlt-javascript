@@ -3,10 +3,13 @@ import { Result } from 'neverthrow'
 export const SERIALIZER = 'serializer'
 
 export enum Tag {
-	STRING = ':str:'
+	STRING = ':str:',
 }
 
-export type Decoder = (value: unknown, key?: string) => Result<unknown, Error> | undefined
+export type Decoder = (
+	value: unknown,
+	key?: string,
+) => Result<unknown, Error> | undefined
 
 export type DecodingFn = <T>(json: T) => Result<unknown, Error[]>
 

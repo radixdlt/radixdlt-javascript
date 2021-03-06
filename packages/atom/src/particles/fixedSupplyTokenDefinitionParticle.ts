@@ -24,9 +24,8 @@ const jsonDecoding = JSONDecoding<FixedSupplyTokenDefinitionParticleT>(
 	Address,
 	Amount,
 )(
-	serializerDecoder(
-		SERIALIZER
-	)((
+	serializerDecoder(SERIALIZER)(
+		(
 			input: TokenDefinitionParticleInput &
 				Readonly<{
 					supply: AmountT

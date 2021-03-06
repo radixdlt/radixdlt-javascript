@@ -60,5 +60,5 @@ export const isResourceIdentifierParticle = (
 export const ResourceIdentifierParticle = {
 	create,
 	SERIALIZER,
-	...jsonDecoding
+	...jsonDecoding,
 }

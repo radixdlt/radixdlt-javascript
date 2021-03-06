@@ -53,7 +53,7 @@ const jsonDecoding = JSONDecoding<TransferrableTokensParticleT>(
 )(
 	serializerDecoder(SERIALIZER)((input: TransferrableTokensParticleInput) =>
 		create(input),
-	)
+	),
 )
 
 const create = (
