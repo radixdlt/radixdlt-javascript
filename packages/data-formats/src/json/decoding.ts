@@ -98,14 +98,10 @@ export const JSONDecodeUnflattened = (...decoders: Decoder[]) => (
 					),
 				),
 		  )
-		: isString(json)
+		: isString(json) || isBoolean(json) || isNumber(json)
 		? applyDecoders(decoders, json).mapErr((err) => [err])
 		: isArray(json)
 		? ok(json.map((item) => JSONDecodeUnflattened(...decoders)(item)))
-		: isBoolean(json)
-		? ok(json)
-		: isNumber(json)
-		? ok(json)
 		: err([Error('JSON decoding failed. Unknown data type.')])
 
 export const JSONDecoding = <T>(...dependencies: JSONDecodable[]) => (
