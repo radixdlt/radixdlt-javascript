@@ -4,7 +4,6 @@ import { Byte, byteToBuffer, firstByteFromBuffer } from '@radixdlt/util'
 import { Result, ok, err } from 'neverthrow'
 import {
 	DSONObjectEncoding,
-	JSONDecode,
 	JSONDecoding,
 	JSONEncoding,
 	serializerNotNeeded,

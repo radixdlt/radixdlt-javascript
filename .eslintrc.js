@@ -57,6 +57,7 @@ module.exports = {
 		'functional/no-loop-statement': 'off',
 		'no-param-reassign': 'error',
 		'functional/no-try-statement': 'off',
+		'jsdoc/require-returns': 'off',
 
 		// ESLint-Plugin-JSDoc RULES
 		'jsdoc/check-param-names': 'off',

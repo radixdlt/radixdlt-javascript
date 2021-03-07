@@ -42,8 +42,8 @@ export type FromJSONOutput =
 	| JSONEncodableObject
 	| FromJSONOutput[]
 
-export type JSONDecodable = {
-	fromJSON: (json: unknown) => Result<unknown, Error[]>
+export type JSONDecodable<T> = {
+	fromJSON: (json: unknown) => Result<T, Error[]>
 	JSONDecoders: Decoder[]
 }
 
