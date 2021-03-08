@@ -4,7 +4,7 @@ import {
 	TokenTransferActionToParticleGroupsMapper,
 } from './_types'
 import { ParticleGroup, spunParticles, UpParticle } from '@radixdlt/atom'
-import { AddressT } from '@radixdlt/crypto'
+import { AddressT } from '@radixdlt/account'
 import { combine, Result } from 'neverthrow'
 import { makeTransitioner } from './fungibleParticleTransitioner'
 import {

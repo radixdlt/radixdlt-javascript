@@ -1,4 +1,11 @@
-import { AnyUpParticle, upParticle } from '@radixdlt/atom'
+import {
+	AnyUpParticle,
+	ResourceIdentifier,
+	ResourceIdentifierT,
+	TransferrableTokensParticle,
+	TransferrableTokensParticleT,
+	upParticle,
+} from '@radixdlt/atom'
 import { toAddress } from '@radixdlt/atom/test/helpers/utility'
 import {
 	eight,
@@ -16,13 +23,8 @@ import {
 import { tokenBalancesForOneAccountReducer } from '../src/fromAtom/tokenBalancesForOneAccountReducer'
 
 import { UInt256 } from '@radixdlt/uint256'
-import {
-	ResourceIdentifier,
-	ResourceIdentifierT,
-	TransferrableTokensParticle,
-	TransferrableTokensParticleT,
-} from '@radixdlt/atom/src/_index'
-import { AddressT } from '@radixdlt/crypto'
+
+import { AddressT } from '@radixdlt/account'
 
 describe('TokenBalancesForOneAccountReducer', () => {
 	const alice = toAddress(

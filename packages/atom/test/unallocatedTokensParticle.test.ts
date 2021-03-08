@@ -1,8 +1,8 @@
+import { generatePrivateKey } from '@radixdlt/crypto'
 import {
 	addressFromBase58String,
 	addressFromPublicKeyAndMagicByte,
-	generatePrivateKey,
-} from '@radixdlt/crypto'
+} from '@radixdlt/account'
 import { UInt256 } from '@radixdlt/uint256'
 import {
 	UnallocatedTokensParticle,
@@ -16,10 +16,9 @@ import { ResourceIdentifier } from '../src/_index'
 import { nonce } from '@radixdlt/primitives/src/nonce'
 
 describe('unallocatedTokensParticle', () => {
-	it('can be safely created from safe type', async () => {
+	it('can be safely created from safe type', () => {
 		const privateKey = generatePrivateKey()
-		const publicKeyResult = await privateKey.derivePublicKey()
-		const publicKey = publicKeyResult._unsafeUnwrap()
+		const publicKey = privateKey.publicKey()
 		const address = addressFromPublicKeyAndMagicByte({
 			publicKey: publicKey,
 			magicByte: 1,

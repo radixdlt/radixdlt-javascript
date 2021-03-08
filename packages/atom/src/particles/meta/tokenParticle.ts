@@ -1,4 +1,4 @@
-import { DSONKeyValues, SerializableKeyValues } from '@radixdlt/data-formats'
+import { SerializableKeyValues } from '@radixdlt/data-formats'
 import {
 	AmountT,
 	Granularity,

@@ -17,7 +17,7 @@ describe('ECIES', () => {
 				Array(byteCount).fill('ab').join(''),
 		}
 
-		const bob = generateKeyPair(unsafeTestRandom)._unsafeUnwrap()
+		const bob = generateKeyPair(unsafeTestRandom)
 		const message = 'Hello Radix'
 
 		const encryptedMessage = unsafeEncrypt({
@@ -33,8 +33,8 @@ describe('ECIES', () => {
 
 	it('can decrypt message', () => {
 		const bob = keyPair(
-			privateKeyFromScalar(UInt256.valueOf(1)),
-		)._unsafeUnwrap()
+			privateKeyFromScalar(UInt256.valueOf(1))._unsafeUnwrap(),
+		)
 		const encryptedMsgBuffer = Buffer.from(
 			'51358bd242d0436b738dad123ebf1d8b2103ca9978dbb11cb9764e0bcae41504b4521f0290ac0f33fa659528549d9ce84d230000003096dc6785ea0dec1ac1ae15374e327635115407f9ae268aad8b4b6ebae1afefbc83c5792de6fc3550d3e0383918d182e87876c9c0e3b5ca0c960fd95b4bd18421ead2aaf472012e7cfbfd7b314cbae588',
 			'hex',
@@ -49,7 +49,7 @@ describe('ECIES', () => {
 	})
 
 	it('should be able to encrypt and then decrypt', () => {
-		const bob = generateKeyPair()._unsafeUnwrap()
+		const bob = generateKeyPair()
 		const message = 'top secret stuff'
 		const encrypted = unsafeEncrypt({
 			message: Buffer.from(message),
@@ -65,8 +65,8 @@ describe('ECIES', () => {
 	})
 
 	it('should be possible for sender and recipient to decrypt encrypted message using Cyon ECIES', () => {
-		const alice = generateKeyPair()._unsafeUnwrap()
-		const bob = generateKeyPair()._unsafeUnwrap()
+		const alice = generateKeyPair()
+		const bob = generateKeyPair()
 		const message = 'top secret stuff'
 
 		const encrypted = unsafeCyonEncrypt({

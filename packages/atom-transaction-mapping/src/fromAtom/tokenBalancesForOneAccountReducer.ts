@@ -4,14 +4,17 @@ import {
 	TokenBalancesForOneAccountReducer,
 	TokenBalancesForOneAccount,
 } from './_types'
-import { AnyUpParticle, TokenBase } from '@radixdlt/atom'
+import {
+	AnyUpParticle,
+	TokenBase,
+	TransferrableTokensParticleT,
+} from '@radixdlt/atom'
 import { isTransferrableTokensParticle } from '@radixdlt/atom'
 import { err, ok, Result } from 'neverthrow'
 import { mapEquals } from '@radixdlt/util'
 import { makeParticleReducer } from './particleReducer'
-import { AddressT } from '@radixdlt/crypto/src/_types'
 import { ResourceIdentifierT } from '@radixdlt/atom/src/_types'
-import { TransferrableTokensParticleT } from '@radixdlt/atom/src/_index'
+import { AddressT } from '@radixdlt/account'
 
 export const tokenBalancesForOneAccount = (
 	input: Readonly<{

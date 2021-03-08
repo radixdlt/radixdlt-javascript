@@ -1,7 +1,7 @@
 import { UserAction, UserActionType } from '@radixdlt/actions'
 import { AnySpunParticle, AnyUpParticle, ParticleBase } from '@radixdlt/atom'
 import { Result } from 'neverthrow'
-import { AddressT } from '@radixdlt/crypto/src/_types'
+import { AddressT } from '@radixdlt/account'
 import { ParticleGroupT } from '@radixdlt/atom/src/_types'
 import { AmountT } from '@radixdlt/primitives/src/_types'
 

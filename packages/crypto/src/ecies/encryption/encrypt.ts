@@ -32,12 +32,9 @@ export const eciesEncrypt = (
 		)
 
 	// 1️⃣ Select (generate) an ephemeral elliptic curve key pair `(k,􏰊 R)`
-	const ephemeralKeyPairResult = generateKeyPair(
+	const ephemeralKeyPair = generateKeyPair(
 		input.secureRandom ?? secureRandomGenerator,
 	)
-	if (ephemeralKeyPairResult.isErr())
-		return err(new Error('Failed to generate ephemeral keys'))
-	const ephemeralKeyPair = ephemeralKeyPairResult.value
 	// Ephemeral public key `R = kG = (Rx, Ry)`
 	const k = ephemeralKeyPair.privateKey
 	const R = ephemeralKeyPair.publicKey

@@ -1,8 +1,11 @@
 /* eslint-disable */
 import { TokensActionBase } from '@radixdlt/actions'
-import { AddressT } from '@radixdlt/crypto'
+import { AddressT } from '@radixdlt/account'
 import {
 	AnyUpParticle,
+	FixedSupplyTokenDefinitionParticle,
+	MutableSupplyTokenDefinitionParticle,
+	ResourceIdentifier,
 	Spin,
 	TokenDefinitionParticleBase,
 	TokenDefinitionParticleInput,
@@ -10,6 +13,7 @@ import {
 	TokenParticle,
 	tokenPermissionsAll,
 	TransferrableTokensParticle,
+	TransferrableTokensParticleT,
 	upParticle,
 	UpParticle,
 } from '@radixdlt/atom'
@@ -18,12 +22,6 @@ import { UInt256 } from '@radixdlt/uint256'
 import { toAddress } from '../../atom/test/helpers/utility'
 import { two, three, one, four, five } from '@radixdlt/primitives/src/amount'
 import { ActionToParticleGroupsMapper } from '../src/toAtom/_types'
-import {
-	FixedSupplyTokenDefinitionParticle,
-	MutableSupplyTokenDefinitionParticle,
-	ResourceIdentifier,
-	TransferrableTokensParticleT,
-} from '@radixdlt/atom/src/_index'
 
 export type TestCaseReturn = ReturnType<typeof it>
 

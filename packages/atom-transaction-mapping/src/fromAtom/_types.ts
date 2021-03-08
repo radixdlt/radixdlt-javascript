@@ -1,6 +1,6 @@
 import { AnyUpParticle, TokenBase, TokenDefinitionBase } from '@radixdlt/atom'
 import { AtomT, ResourceIdentifierT } from '@radixdlt/atom/src/_types'
-import { AddressT } from '@radixdlt/crypto'
+import { AddressT } from '@radixdlt/account'
 import { AmountT } from '@radixdlt/primitives'
 import { Result } from 'neverthrow'
 import { Observable } from 'rxjs'

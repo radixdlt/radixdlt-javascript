@@ -1,16 +1,15 @@
+import { UInt256 } from '@radixdlt/uint256'
 import {
 	addressFromPublicKeyAndMagic,
 	addressFromBase58String,
-	privateKeyFromScalar,
 	AddressT,
 	isAddress,
-	generatePrivateKey,
 	Address,
 } from '../src/_index'
 
 import { magicFromNumber } from '@radixdlt/primitives'
-import { UInt256 } from '@radixdlt/uint256'
 import { OutputMode } from '@radixdlt/data-formats'
+import { generatePrivateKey, privateKeyFromScalar } from '@radixdlt/crypto'
 
 // TODO CODE DUPLICATION remove to separate test package...
 export const toAddress = (b58: string): AddressT =>
@@ -19,7 +18,7 @@ export const toAddress = (b58: string): AddressT =>
 describe('Address', () => {
 	it('can generate new', async () => {
 		const privateKey = generatePrivateKey()
-		const publicKey = (await privateKey.derivePublicKey())._unsafeUnwrap()
+		const publicKey = privateKey.publicKey()
 		const magic = magicFromNumber(1337)
 
 		const address = addressFromPublicKeyAndMagic({
@@ -31,8 +30,10 @@ describe('Address', () => {
 	})
 
 	it('can be created from a publicKey and radix magix', async () => {
-		const privateKey = privateKeyFromScalar(UInt256.valueOf(1))
-		const publicKey = (await privateKey.derivePublicKey())._unsafeUnwrap()
+		const privateKey = privateKeyFromScalar(
+			UInt256.valueOf(1),
+		)._unsafeUnwrap()
+		const publicKey = privateKey.publicKey()
 		const magic = magicFromNumber(1337)
 
 		const address = addressFromPublicKeyAndMagic({

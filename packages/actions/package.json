@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@radixdlt/atom": "^0.0.0",
-    "@radixdlt/crypto": "^0.0.0",
+    "@radixdlt/account": "^0.0.0",
     "@radixdlt/primitives": "^0.0.0",
     "@types/uuid": "^8.3.0",
     "neverthrow": "^4.0.1",

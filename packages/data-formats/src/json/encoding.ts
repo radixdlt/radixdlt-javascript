@@ -1,5 +1,4 @@
-import { err, ok, Result } from 'neverthrow'
-import { mapObjIndexed } from 'ramda'
+import { err, ok } from 'neverthrow'
 import { OutputMode } from '../dson'
 import { isEmpty } from './util'
 import {

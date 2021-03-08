@@ -1,4 +1,4 @@
-import { toAddress } from '../../crypto/test/address.test'
+import { toAddress } from '../../account/test/address.test'
 import {
 	anyUpParticle,
 	particleGroups,
@@ -8,6 +8,8 @@ import {
 	TokenDefinitionParticleBase,
 	Atom,
 	ParticleGroup,
+	FixedSupplyTokenDefinitionParticle,
+	TransferrableTokensParticle,
 } from '@radixdlt/atom'
 import {
 	TransferTokensAction,
@@ -30,7 +32,6 @@ import {
 	syncMapAtomToTokenTransfers as mapAtomToTokenTransfers,
 	pgToTokenTransfer,
 } from '../src/fromAtom/atomToTokenTransfersMapper'
-import { AddressT } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
 import { TokenTransfer } from '../src/fromAtom/_types'
 import { unallocatedTokensParticleFromUnsafe } from '../../atom/test/helpers/utility'
@@ -40,10 +41,7 @@ import {
 	TransferrableTokensParticleT,
 	UnallocatedTokensParticleT,
 } from '@radixdlt/atom/src/particles/_types'
-import {
-	FixedSupplyTokenDefinitionParticle,
-	TransferrableTokensParticle,
-} from '@radixdlt/atom/src/_index'
+import { AddressT } from '@radixdlt/account'
 
 describe('AtomToTokenTransfersMapper', () => {
 	const alice = toAddress(
@@ -139,8 +137,9 @@ describe('AtomToTokenTransfersMapper', () => {
 
 		const upTTPs = consumablesFromAmounts
 			.map(upTTP.bind(null, resourceID, actor))
-			// @ts-ignore
-			.map((sp) => sp.eraseToAny())
+			.map((sp: SpunParticleT<TransferrableTokensParticleT>) =>
+				sp.eraseToAny(),
+			)
 
 		const upParticles = [
 			spunUpParticle(tokenDefinitionParticle).eraseToAny(),

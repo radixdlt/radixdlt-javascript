@@ -1,5 +1,5 @@
 import { TokenDefinitionBase, TokenBase } from '@radixdlt/atom'
-import { AddressT } from '@radixdlt/crypto/src/_types'
+import { AddressT } from '@radixdlt/account'
 import { AmountT } from '@radixdlt/primitives/src/_types'
 import { ExecutedUserActionType, TokenTransfer } from './_types'
 

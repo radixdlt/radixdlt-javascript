@@ -3,13 +3,11 @@ import {
 	asUpParticle,
 	Spin,
 	spunParticles,
+	TransferrableTokensParticleT,
+	TransferrableTokensParticle,
 	UpParticle,
 } from '@radixdlt/atom'
-import {
-	TransferrableTokensParticle,
-	TransferrableTokensParticleT,
-} from '@radixdlt/atom/src/_index'
-import { AddressT } from '@radixdlt/crypto'
+import { AddressT } from '@radixdlt/account'
 import { AmountT } from '@radixdlt/primitives'
 import { Result } from 'neverthrow'
 

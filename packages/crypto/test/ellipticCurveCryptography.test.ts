@@ -10,7 +10,10 @@ import {
 } from '../src/_index'
 
 import { UInt256 } from '@radixdlt/uint256'
-import { publicKeyFromPrivateKey } from '../src/wrap/publicKeyWrapped'
+import {
+	publicKeyFromPrivateKey,
+	publicKeyFromPrivateKeyScalar,
+} from '../src/wrap/publicKeyWrapped'
 import { pointOnCurve } from '../src/wrap/ecPointOnCurve'
 
 // TODO CODE DUPLICATION! Move to shared testing only package.
@@ -44,7 +47,9 @@ describe('elliptic curve cryptography', () => {
 	})
 
 	it('should be able to sign messages', async () => {
-		const privateKey = privateKeyFromScalar(UInt256.valueOf(1))
+		const privateKey = privateKeyFromScalar(
+			UInt256.valueOf(1),
+		)._unsafeUnwrap()
 
 		const messageToSign = unsignedPlainText({
 			plainText: 'Satoshi Nakamoto',
@@ -66,11 +71,12 @@ describe('elliptic curve cryptography', () => {
 		)
 	})
 
-	it('should be able to derive publicKey from privateKey', async () => {
-		const privateKey = privateKeyFromScalar(UInt256.valueOf(1))
+	it('should be able to derive publicKey from privateKey', () => {
+		const privateKey = privateKeyFromScalar(
+			UInt256.valueOf(1),
+		)._unsafeUnwrap()
 
-		const publicKeyResult = await privateKey.derivePublicKey()
-		const publicKey = publicKeyResult._unsafeUnwrap()
+		const publicKey = privateKey.publicKey()
 
 		const compressedPubKey = publicKey
 			.asData({ compressed: true })
@@ -140,14 +146,14 @@ describe('elliptic curve cryptography', () => {
 		const g = Secp256k1.generator
 		const one = UInt256.valueOf(1)
 		expect(g.multiply(one).equals(g)).toBe(true)
-		const pubKey = publicKeyFromPrivateKey({
-			privateKey: one,
-		})._unsafeUnwrap()
+		const pubKey = publicKeyFromPrivateKeyScalar({
+			scalar: one,
+		})
 		expect(pubKey.decodeToPointOnCurve().equals(g)).toBe(true)
 	})
 
 	it('can do EC multiplication', () => {
-		const keyPair = generateKeyPair()._unsafeUnwrap()
+		const keyPair = generateKeyPair()
 		const publicKey = keyPair.publicKey
 		const privateKey = keyPair.privateKey
 		const pubKeyPoint = publicKey.decodeToPointOnCurve()

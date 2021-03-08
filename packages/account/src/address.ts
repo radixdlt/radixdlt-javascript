@@ -1,20 +1,21 @@
-import { AddressT, PublicKey } from './_types'
-import { publicKeyFromBytes } from './publicKey'
-import { radixHash } from './algorithms'
+import { AddressT } from './_types'
 import { Magic } from '@radixdlt/primitives'
 import { Byte, byteToBuffer, firstByteFromBuffer } from '@radixdlt/util'
 import { Result, ok, err } from 'neverthrow'
-import { base58Encode, base58Decode } from './wrap/baseConversion'
 import {
-	Decoder,
 	DSONObjectEncoding,
-	JSONDecodablePrimitive,
 	JSONDecoding,
 	JSONEncoding,
-	JSONPrimitiveDecoder,
 	primitiveDecoder,
 	serializerNotNeeded,
 } from '@radixdlt/data-formats'
+import {
+	base58Decode,
+	base58Encode,
+	PublicKey,
+	publicKeyFromBytes,
+	radixHash,
+} from '@radixdlt/crypto'
 
 const checksumByteCount = 4
 const CBOR_BYTESTRING_PREFIX: Byte = 4

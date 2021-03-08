@@ -14,12 +14,10 @@ import { isSpin } from './meta/spin'
 
 import { err, ok, Result } from 'neverthrow'
 import {
-	Decoder,
 	DSONEncoding,
 	DSONPrimitive,
 	JSONDecoding,
 	JSONEncoding,
-	JSONObjectDecoder,
 	objectDecoder,
 } from '@radixdlt/data-formats'
 

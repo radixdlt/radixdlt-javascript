@@ -1,4 +1,4 @@
-import { addressFromBase58String } from '@radixdlt/crypto'
+import { addressFromBase58String } from '@radixdlt/account'
 import { ResourceIdentifier } from '../src/_index'
 
 describe('ResourceIdentifier (RRI)', () => {
