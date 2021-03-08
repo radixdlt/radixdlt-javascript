@@ -81,8 +81,8 @@ This git repository is a so called "monorepo" using [`yarn` *workspaces*](https:
 
 # API outline
 
-## ☣️ WORK IN PROGRESS ☣️
-This is NOT YET PEER REVIEWED very very very much work in progress. Will change! But should give some kind of clue as to how to interact with this library.
+## NOT FINAL
+⚠️ This API is not at all final, regard it as a first rough draft, but it should give some kind of clue as to how to interact with this library.
 
 ## Wallet
 
@@ -148,7 +148,7 @@ const radix = Radix.create({
 // that is prefixed to all our addresses. We use RxJS since we want
 // "streams" of events, when user changes active account in wallet
 // this observable stream will emit the new address for the new account.
-const address$: Observable<Address> = radix.observeMyAddress()
+const address$: Observable<Address> = radix.observeActiveAddress()
 // 💡 Trailing `$` for `Observable` variables (3️⃣)
 
 const subs = new Subscription()
@@ -159,13 +159,13 @@ address$
 
 // '🙋🏽‍♀️ My address is: 9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT'
 
-radix.wallet.deriveNext()
+radix.wallet.deriveNext({ alsoSwitchTo: true })
 // '🙋🏽‍♀️ My address is: 9S8PWQF9smUics1sZEo7CrYgKgCkcopvt9HfWJMTrtPyV2rg7RAG'
 
-radix.wallet.deriveNext()
+radix.wallet.deriveNext({ alsoSwitchTo: true })
 // '🙋🏽‍♀️ My address is: 9SAihkYQDBKvHfhvwEw4QBfx1rpjvta2TvmWibyXixVzX2JHHHWf'
 
-radix.wallet.changeAccount(to: AccountIndex.FIRST)
+radix.wallet.changeAccount(AccountIndex.FIRST)
 // '🙋🏽‍♀️ My address is: 9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT'
 ```
 
@@ -177,6 +177,9 @@ In the code snippet above we called `radix.wallet.deriveNext()` twice, including
 
 ```typescript
 const accounts$: Observable<Accounts> = radix.observeAccounts()
+
+// 💡 we would also have `observeActiveAccount()` but the `observeActiveAddress` is probably
+// most convenient for UI stuff.
 
 accounts$
 	.subscribe((aList) => console.log('📕 my accounts: ${aList.toString()}'))
