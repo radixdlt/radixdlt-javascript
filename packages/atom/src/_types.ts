@@ -41,6 +41,8 @@ export enum TokenTransition {
 	BURN = 'burn',
 }
 
+export const SERIALIZER_KEY = 'serializer'
+
 export type TokenPermissions = JSONEncodable &
 	DSONCodable &
 	Readonly<{

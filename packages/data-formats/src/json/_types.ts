@@ -4,28 +4,12 @@ export enum Tag {
 	STRING = ':str:',
 }
 
-export enum Decoder {
-	PRIMITIVE,
-	OBJECT,
-}
+export type Decoder = (
+	value: unknown,
+	key?: string,
+) => Result<unknown, Error> | undefined
 
-export const SERIALIZER = 'serializer'
-
-export type JSONPrimitiveDecoder = {
-	decoder: {
-		[tag: string]: (data: string) => Result<string | JSONEncodable, Error>
-	}
-	type: Decoder.PRIMITIVE
-}
-
-export type JSONObjectDecoder = {
-	decoder: {
-		[serializer: string]: (
-			input: Record<string, unknown>,
-		) => Result<JSONEncodable, Error>
-	}
-	type: Decoder.OBJECT
-}
+export type DecodingFn = <T>(json: T) => Result<unknown, Error[]>
 
 export type JSONKeyValues = {
 	[key: string]: JSONEncodablePrimitive | JSONEncodable | JSONEncodable[]
@@ -56,9 +40,9 @@ export type FromJSONOutput =
 	| JSONEncodableObject
 	| FromJSONOutput[]
 
-export type JSONDecodable = {
-	fromJSON: (json: JSONDecodableObject) => Result<any, Error>
-	JSONDecoders: (JSONObjectDecoder | JSONPrimitiveDecoder)[]
+export type JSONDecodable<T> = {
+	fromJSON: (json: unknown) => Result<T, Error[]>
+	JSONDecoders: Decoder[]
 }
 
 export type JSONEncodable = {

@@ -16,18 +16,22 @@ import { err, ok, Result } from 'neverthrow'
 import {
 	DSONEncoding,
 	DSONPrimitive,
-	JSONDecoding,
 	JSONEncoding,
-	objectDecoder,
+	taggedObjectDecoder,
 } from '@radixdlt/data-formats'
+import { SERIALIZER_KEY } from '../_types'
+import { JSONDecoding } from '../utils'
 
 const SERIALIZER = 'radix.spun_particle'
 
-const { JSONDecoders, fromJSON } = JSONDecoding<SpunParticleT<any>>()(
-	objectDecoder(SERIALIZER, (input: SpunParticleBase) =>
-		ok(anySpunParticle(input)),
-	),
-)
+const JSONDecoder = taggedObjectDecoder(
+	SERIALIZER,
+	SERIALIZER_KEY,
+)((input: SpunParticleBase) => ok(anySpunParticle(input)))
+
+const jsonDecoding = JSONDecoding.withDecoders(JSONDecoder).create<
+	SpunParticleT<any>
+>()
 
 /* eslint-disable max-params */
 
@@ -251,7 +255,6 @@ export const isAnySpunParticle = (
 }
 
 export const SpunParticle = {
-	fromJSON,
-	JSONDecoders,
+	...jsonDecoding,
 	SERIALIZER,
 }

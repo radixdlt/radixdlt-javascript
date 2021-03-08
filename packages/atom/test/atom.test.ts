@@ -165,7 +165,7 @@ describe('atom', () => {
 				serializer: Atom.SERIALIZER,
 			}
 
-			const actual = Atom.fromJSON(json)._unsafeUnwrap() as AtomT
+			const actual = Atom.fromJSON(json)._unsafeUnwrap()
 			const expected = Atom.create({})
 
 			expect(actual.equals(expected)).toBe(true)

@@ -6,15 +6,8 @@ import {
 	OutputMode,
 } from '../src/dson'
 
-import {
-	JSONPrimitiveDecoder,
-	JSONObjectDecoder,
-	JSONEncoding,
-	toJSON,
-	JSONDecoding,
-	primitiveDecoder,
-	objectDecoder,
-} from '../src/json'
+import { JSONEncoding, toJSON, JSONDecoding, Decoder } from '../src/json'
+import { taggedObjectDecoder, taggedStringDecoder } from '../src/json/decoding'
 
 import { serializerNotNeeded } from '../src/util'
 
@@ -399,7 +392,7 @@ describe('JSON', () => {
 
 	describe('decoding', () => {
 		it('should decode JSON primitives', () => {
-			const { fromJSON } = JSONDecoding()()
+			const { fromJSON } = JSONDecoding.create()
 			examples
 				.filter((example) => example.json)
 				.filter((example) =>
@@ -415,28 +408,32 @@ describe('JSON', () => {
 		})
 
 		it('should decode a JSON object', () => {
-			const primitiveDecoders: JSONPrimitiveDecoder[] = [
-				primitiveDecoder(':tst:', (data: string) =>
-					ok(encodablePrimitive(data)),
-				),
-			]
-
-			const objectDecoders: JSONObjectDecoder[] = [
-				objectDecoder(
-					serializer,
-					(input: { prop1: string; prop2: string; prop3: any }) =>
-						ok(encodableComplex(input)),
-				),
-
-				objectDecoder(serializer2, (input: { prop1: number }) =>
-					ok(encodableNestedComplex(input)),
-				),
-			]
-
-			const { fromJSON } = JSONDecoding()(
-				...objectDecoders,
-				...primitiveDecoders,
+			const tstTagDecoder = taggedStringDecoder(':tst:')((data: string) =>
+				ok(encodablePrimitive(data)),
 			)
+
+			const strTagDecoder = taggedStringDecoder(':str:')((data: string) =>
+				ok(data),
+			)
+
+			const objDecoder1 = taggedObjectDecoder(
+				serializer,
+				'serializer',
+			)((input: { prop1: string; prop2: string; prop3: any }) =>
+				ok(encodableComplex(input)),
+			)
+
+			const objDecoder2 = taggedObjectDecoder(
+				serializer2,
+				'serializer',
+			)((input: { prop1: number }) => ok(encodableNestedComplex(input)))
+
+			const { fromJSON } = JSONDecoding.withDecoders(
+				strTagDecoder,
+				tstTagDecoder,
+				objDecoder1,
+				objDecoder2,
+			).create()
 
 			const json = {
 				serializer,
@@ -461,31 +458,39 @@ describe('JSON', () => {
 			expect(JSON.stringify(decoded)).toEqual(JSON.stringify(expected))
 		})
 
-		it('should fail to decode with an unknown decoder', () => {
-			const { fromJSON } = JSONDecoding()()
-
-			const json = {
-				a: ':tst:abc',
-			}
-
-			const decoded = fromJSON(json)
-			expect(decoded.isErr()).toBe(true)
-		})
-
 		it('should fail to decode with an internal error', () => {
-			const objectDecoders: JSONObjectDecoder[] = [
-				objectDecoder(serializer, () => err(Error('boom'))),
-			]
+			const objectDecoder = taggedObjectDecoder(
+				serializer,
+				'serializer',
+			)(() => err(Error('boom')))
+			const objectDecoder2 = taggedObjectDecoder(
+				serializer2,
+				'serializer',
+			)(() => err(Error('boom2')))
+			const tstTagDecoder = taggedStringDecoder(':tst:')(() =>
+				err(Error('boom3')),
+			)
 
-			const { fromJSON } = JSONDecoding()(...objectDecoders)
+			const { fromJSON } = JSONDecoding.withDecoders(
+				objectDecoder,
+				objectDecoder2,
+				tstTagDecoder,
+			).create()
 
 			const json = {
-				serializer,
+				a: {
+					serializer: serializer2,
+				},
+				b: {
+					serializer,
+				},
+				c: ':tst:xyz',
 			}
 
 			const decoded = fromJSON(json)
 
 			expect(decoded.isErr()).toEqual(true)
+			expect((decoded as any).error.length).toEqual(3)
 		})
 	})
 })

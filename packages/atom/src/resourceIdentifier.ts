@@ -5,8 +5,8 @@ import {
 	DSONObjectEncoding,
 	JSONDecoding,
 	JSONEncoding,
-	primitiveDecoder,
 	serializerNotNeeded,
+	taggedStringDecoder,
 } from '@radixdlt/data-formats'
 import { Byte } from '@radixdlt/util'
 
@@ -15,9 +15,11 @@ const separator = '/'
 const CBOR_BYTESTRING_PREFIX: Byte = 6
 const JSON_TAG = ':rri:'
 
-const { JSONDecoders, fromJSON } = JSONDecoding<ResourceIdentifierT>()(
-	primitiveDecoder(JSON_TAG, (identifier: string) => fromString(identifier)),
-)
+const jsonDecoding = JSONDecoding.withDecoders(
+	taggedStringDecoder(JSON_TAG)((identifier: string) =>
+		fromString(identifier),
+	),
+).create<ResourceIdentifierT>()
 
 const fromAddressAndName = (input: {
 	address: AddressT
@@ -88,8 +90,7 @@ const fromUnsafe = (
 
 export const ResourceIdentifier = {
 	JSON_TAG,
-	JSONDecoders,
-	fromJSON,
+	...jsonDecoding,
 	fromAddressAndName,
 	fromUnsafe,
 	fromString,

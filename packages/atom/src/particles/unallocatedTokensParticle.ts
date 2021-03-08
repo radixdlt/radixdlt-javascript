@@ -8,15 +8,16 @@ import {
 import {
 	DSONCodable,
 	DSONEncoding,
-	JSONDecoding,
 	JSONEncodable,
 	JSONEncoding,
-	objectDecoder,
+	taggedObjectDecoder,
 } from '@radixdlt/data-formats'
 import { TokenParticle, UnallocatedTokensParticleT } from './_types'
 import { ok } from 'neverthrow'
 import { Amount } from '@radixdlt/primitives'
 import { ResourceIdentifier } from '../resourceIdentifier'
+import { SERIALIZER_KEY } from '../_types'
+import { JSONDecoding } from '../utils'
 
 const radixParticleType = RadixParticleType.UNALLOCATED_TOKENS
 const SERIALIZER = 'radix.particles.unallocated_tokens'
@@ -30,14 +31,14 @@ const serialization = (input: TokenParticle): JSONEncodable & DSONCodable => {
 	}
 }
 
-const { fromJSON, JSONDecoders } = JSONDecoding<UnallocatedTokensParticleT>(
-	Amount,
-	ResourceIdentifier,
-)(
-	objectDecoder(SERIALIZER, (input: TokenParticleInput) =>
-		ok(unallocatedTokensParticle(input)),
-	),
-)
+const JSONDecoder = taggedObjectDecoder(
+	SERIALIZER,
+	SERIALIZER_KEY,
+)((input: TokenParticleInput) => ok(unallocatedTokensParticle(input)))
+
+const jsonDecoding = JSONDecoding.withDependencies(Amount, ResourceIdentifier)
+	.withDecoders(JSONDecoder)
+	.create<UnallocatedTokensParticleT>()
 
 export const unallocatedTokensParticle = (
 	input: TokenParticleInput,
@@ -64,7 +65,6 @@ export const isUnallocatedTokensParticle = (
 }
 
 export const UnallocatedTokensParticle = {
-	fromJSON,
-	JSONDecoders,
+	...jsonDecoding,
 	SERIALIZER,
 }
