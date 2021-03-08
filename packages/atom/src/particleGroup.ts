@@ -1,11 +1,11 @@
-import { ParticleGroupT } from './_types'
+import { ParticleGroupT, SERIALIZER_KEY } from './_types'
 import { AnySpunParticle, SpunParticles } from './particles/_types'
 import { spunParticlesQueryable } from './particles/spunParticleQueryable'
 import {
 	JSONDecoding,
 	JSONEncodable,
 	JSONEncoding,
-	serializerDecoder,
+	taggedObjectDecoder,
 } from '@radixdlt/data-formats'
 import { ok } from 'neverthrow'
 import {
@@ -31,11 +31,14 @@ const JSON = (
 			: spunParticles,
 	})
 
-const jsonDecoding = JSONDecoding(SpunParticle)(
-	serializerDecoder(SERIALIZER)((input: SpunParticles | AnySpunParticle[]) =>
-		ok(create(input)),
-	),
-)
+const jsonDecoding = JSONDecoding.withDependencies(SpunParticle)
+	.withDecoders(
+		taggedObjectDecoder(
+			SERIALIZER,
+			SERIALIZER_KEY,
+		)((input: SpunParticles | AnySpunParticle[]) => ok(create(input))),
+	)
+	.create<ParticleGroupT>()
 
 export const create = (
 	spunParticles: SpunParticles | AnySpunParticle[],

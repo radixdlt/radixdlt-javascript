@@ -6,42 +6,49 @@
 
 #### Examples
 
-Without dependencies, using provided stringTagDecoder:
+Without dependencies, using provided taggedStringDecoder:
 
-```
-import { JSONDecoding, stringTagDecoder } from '@radixdlt/data-formats`
+```typescript
+import { JSONDecoding, taggedStringDecoder } from '@radixdlt/data-formats'
 
-const { fromJSON } = JSONDecoding()(stringTagDecoder)
+const strTagDecoder = taggedStringDecoder(':str:')((value) => ok(value))
+
+const { fromJSON } = JSONDecoding.withDecoders(strTagDecoder).create()
 
 fromJSON(':str:xyz') // Ok('xyz')
 ```
 
 An object with dependencies:
 
-```
-import { JSONDecoding, stringTagDecoder, tagDecoder } from '@radixdlt/data-formats`
+```typescript
+import { JSONDecoding, taggedStringDecoder } from '@radixdlt/data-formats'
 import { ok } from 'neverthrow'
 
+const strTagDecoder = taggedStringDecoder(':str:')((value) => ok(value))
+
 const Object1 = {
-    ...JSONDecoding()(stringTagDecoder)
+    ...JSONDecoding.withDecoders(strTagDecoder).create()
 }
 
-const testTagDecoder = tagDecoder(':tst:')(value => ok(value)))
+const tstTagDecoder = taggedStringDecoder(':tst:')((value) => ok(value))
 
-const { fromJSON } = JSONDecoding(Object1)(testTagDecoder)
+const { fromJSON } = JSONDecoding
+	.withDependencies(Object1)
+	.withDecoders(testTagDecoder)
+	.create()
 
 fromJSON({
     a: ':str:foo',
-    b: ':tst:bar`
+    b: ':tst:bar'
 }) // ok({ a: 'foo', b: 'bar' })
 ```
 
-JSON decoding takes an object and applies `decoder`s to each key-value pair. `serializerDecoder` and `tagDecoder` are provided, but you can easily define a new decoder. Here is how `tagDecoder` is defined:
+JSON decoding takes an object and applies `decoder`s to each key-value pair. `taggedObjectDecoder` and `taggedStringDecoder` are provided, but you can easily define a new decoder. Here is how `taggedStringDecoder` is defined:
 
-```
+```typescript
 import { decoder } from '@radixdlt/data-formats'
 
-const tagDecoder = (tag: string) => <T>(
+export const taggedStringDecoder = (tag: string) => <T>(
 	algorithm: (value: string) => Result<T, Error>,
 ): Decoder =>
 	decoder<T>((value) =>

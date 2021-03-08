@@ -1,4 +1,4 @@
-import { TokenPermission, TokenTransition } from '../_types'
+import { SERIALIZER_KEY, TokenPermission, TokenTransition } from '../_types'
 import { Result, err, ok } from 'neverthrow'
 import { RadixParticleType } from './meta/radixParticleTypes'
 
@@ -14,31 +14,37 @@ import {
 	TokenDefinitionParticleBase,
 } from './_types'
 import { ResourceIdentifier } from '../resourceIdentifier'
-import { JSONDecoding, serializerDecoder } from '@radixdlt/data-formats'
+import { taggedObjectDecoder } from '@radixdlt/data-formats'
 import { Address } from '@radixdlt/account'
 import { Amount } from '@radixdlt/primitives'
 import { makeTokenPermissions } from '../_index'
+import { JSONDecoding } from '../utils'
 
 const radixParticleType = RadixParticleType.MUTABLE_SUPPLY_TOKEN_DEFINITION
 
 const SERIALIZER = 'radix.particles.mutable_supply_token_definition'
 
-const jsonDecoding = JSONDecoding<MutableSupplyTokenDefinitionParticleT>(
+const JSONDecoder = taggedObjectDecoder(
+	SERIALIZER,
+	SERIALIZER_KEY,
+)(
+	(
+		input: TokenDefinitionParticleInput &
+			Readonly<{
+				permissions?: Readonly<
+					{ [key in TokenTransition]: TokenPermission }
+				>
+			}>,
+	) => create(input),
+)
+
+const jsonDecoding = JSONDecoding.withDependencies(
 	ResourceIdentifier,
 	Address,
 	Amount,
-)(
-	serializerDecoder(SERIALIZER)(
-		(
-			input: TokenDefinitionParticleInput &
-				Readonly<{
-					permissions?: Readonly<
-						{ [key in TokenTransition]: TokenPermission }
-					>
-				}>,
-		) => create(input),
-	),
 )
+	.withDecoders(JSONDecoder)
+	.create<MutableSupplyTokenDefinitionParticleT>()
 
 const validateTokenPermissions = (
 	permissions: Readonly<{ [key in TokenTransition]: TokenPermission }>,

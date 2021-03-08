@@ -20,7 +20,7 @@ import {
 	JSONDecoding,
 	JSONEncoding,
 	serializerNotNeeded,
-	tagDecoder,
+	taggedStringDecoder,
 } from '@radixdlt/data-formats'
 import { denominations, formatDenomination } from './denomination'
 import { Byte } from '@radixdlt/util'
@@ -28,11 +28,11 @@ import { Byte } from '@radixdlt/util'
 const CBOR_BYTESTRING_PREFIX: Byte = 5
 const JSON_TAG = ':u20:'
 
-const jsonDecoding = JSONDecoding<AmountT>()(
-	tagDecoder(JSON_TAG)((data: string) =>
-		ok(inSmallestDenomination(new UInt256(data))),
-	),
+const JSONDecoder = taggedStringDecoder(JSON_TAG)((data: string) =>
+	ok(inSmallestDenomination(new UInt256(data))),
 )
+
+const jsonDecoding = JSONDecoding.withDecoders(JSONDecoder).create<AmountT>()
 
 export const min = (lhs: AmountT, rhs: AmountT): AmountT =>
 	lhs.lessThanOrEquals(rhs) ? lhs : rhs

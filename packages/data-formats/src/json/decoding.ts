@@ -9,7 +9,7 @@ import {
 	isNumber,
 	isResult,
 } from '@radixdlt/util'
-import { JSONDecodable, Decoder, SERIALIZER } from './_types'
+import { JSONDecodable, Decoder } from './_types'
 
 /**
  * Creates a new decoder. A decoder defines a way to transform a key-value pair through a
@@ -26,7 +26,7 @@ export const decoder = <T>(
  * The decoder will look for a matching tag, and run the provided algorithm
  * on the string following the tag.
  */
-export const tagDecoder = (tag: string) => <T>(
+export const taggedStringDecoder = (tag: string) => <T>(
 	algorithm: (value: string) => Result<T, Error>,
 ): Decoder =>
 	decoder<T>((value) =>
@@ -36,21 +36,19 @@ export const tagDecoder = (tag: string) => <T>(
 	)
 
 /**
- * Creates a decoder for decoding an object with a `serializer` prop.
+ * Creates a decoder for decoding an object with a `key` prop.
  *
- * If the object has a `serializer` prop with a value matching the provided
+ * If the object has a `key` prop with a value (tag) matching the provided
  * string, it will run the algorithm on the object.
  */
-export const serializerDecoder = (serializer: string) => <T>(
+export const taggedObjectDecoder = (tag: string, key: string) => <T>(
 	algorithm: (value: T) => Result<unknown, Error>,
 ): Decoder =>
 	decoder((value) =>
-		isObject(value) && value[SERIALIZER] && value[SERIALIZER] === serializer
+		isObject(value) && value[key] && value[key] === tag
 			? algorithm(value as T)
 			: undefined,
 	)
-
-export const stringTagDecoder = tagDecoder(':str:')((value) => ok(value))
 
 const applyDecoders = (
 	decoders: Decoder[],
@@ -85,12 +83,10 @@ const applyDecoders = (
 		: ok(unwrappedValue)
 }
 
-const defaultDecoders = [stringTagDecoder]
-
 const JSONDecode = <T>(...decoders: Decoder[]) => (
 	json: unknown,
 ): Result<T, Error[]> => {
-	const decode = JSONDecodeUnflattened(...defaultDecoders, ...decoders)
+	const decode = JSONDecodeUnflattened(...decoders)
 
 	return pipe(
 		applyDecoders.bind(null, decoders),
@@ -126,7 +122,7 @@ const JSONDecodeUnflattened = (...decoders: Decoder[]) => (
 		: err([Error('JSON decoding failed. Unknown data type.')])
 
 /**
- * Public method for adding JSON decoding to a decodable entity.
+ * Adds JSON decoding to a decodable entity.
  *
  * @param dependencies JSON decodables that the resulting entity depends on.
  * This is needed to register all the necessary decoders from the dependencies (see exported "decoder" method).
@@ -134,15 +130,26 @@ const JSONDecodeUnflattened = (...decoders: Decoder[]) => (
  * @param decoders Decoders needed to perform the decoding.
  * @returns A JSONDecodable entity of type T.
  */
-export const JSONDecoding = <T>(...dependencies: JSONDecodable<unknown>[]) => (
-	...decoders: Decoder[]
-): JSONDecodable<T> => {
-	const decoders_ = [
-		...flatten(dependencies.map((dep) => dep.JSONDecoders)),
-		...decoders,
-	]
+const withDecoding = <T>(decoders: Decoder[]): JSONDecodable<T> => ({
+	JSONDecoders: decoders,
+	fromJSON: JSONDecode<T>(...decoders),
+})
+
+const withDecoders = (...decoders: Decoder[]) => ({
+	create: <T>() => withDecoding<T>(decoders),
+})
+
+const withDependencies = (...dependencies: JSONDecodable<unknown>[]) => {
+	const decoders = [...flatten(dependencies.map((dep) => dep.JSONDecoders))]
+
 	return {
-		JSONDecoders: decoders_,
-		fromJSON: JSONDecode<T>(...decoders_),
+		create: <T>() => withDecoding<T>(decoders),
+		withDecoders: withDecoders.bind(null, ...decoders),
 	}
+}
+
+export const JSONDecoding = {
+	withDependencies,
+	withDecoders,
+	create: <T>() => withDecoding<T>([]),
 }

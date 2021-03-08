@@ -4,20 +4,21 @@ import {
 	ParticleGroups,
 	Signatures,
 	ParticleGroupT,
+	SERIALIZER_KEY,
 } from './_types'
 import { atomIdentifier } from './atomIdentifier'
 import { particleGroups } from './particleGroups'
 import {
 	DSONCodable,
 	DSONEncoding,
-	JSONDecoding,
 	JSONEncodable,
 	JSONEncoding,
-	serializerDecoder,
+	taggedObjectDecoder,
 } from '@radixdlt/data-formats'
 import { ok } from 'neverthrow'
 import { equalsDSONHash } from './euid'
 import { ParticleGroup } from './particleGroup'
+import { JSONDecoding } from './utils'
 
 const isSigned = (signatures: Signatures): boolean => {
 	return Object.keys(signatures).length >= 1
@@ -52,9 +53,14 @@ const serialization = (
 	}
 }
 
-const jsonDecoding = JSONDecoding<AtomT>(ParticleGroup)(
-	serializerDecoder(SERIALIZER)((input: Input) => ok(create(input))),
-)
+const JSONDecoder = taggedObjectDecoder(
+	SERIALIZER,
+	SERIALIZER_KEY,
+)((input: Input) => ok(create(input)))
+
+const jsonDecoding = JSONDecoding.withDependencies(ParticleGroup)
+	.withDecoders(JSONDecoder)
+	.create<AtomT>()
 
 const create = (input: Input): AtomT => {
 	const signatures: Signatures = input.signatures ?? {}

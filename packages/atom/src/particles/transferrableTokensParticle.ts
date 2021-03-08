@@ -5,10 +5,9 @@ import { isRadixParticle, RadixParticleType } from './meta/radixParticleTypes'
 import {
 	DSONCodable,
 	DSONEncoding,
-	JSONDecoding,
 	JSONEncodable,
 	JSONEncoding,
-	serializerDecoder,
+	taggedObjectDecoder,
 } from '@radixdlt/data-formats'
 import {
 	tokenSerializationKeyValues,
@@ -23,6 +22,8 @@ import {
 } from './_types'
 import { Amount } from '@radixdlt/primitives'
 import { ResourceIdentifier } from '../resourceIdentifier'
+import { SERIALIZER_KEY } from '../_types'
+import { JSONDecoding } from '../utils'
 
 export type TransferrableTokensParticleInput = TokenParticleInput &
 	Readonly<{
@@ -46,15 +47,18 @@ const serialization = (
 	}
 }
 
-const jsonDecoding = JSONDecoding<TransferrableTokensParticleT>(
+const JSONDecoder = taggedObjectDecoder(
+	SERIALIZER,
+	SERIALIZER_KEY,
+)((input: TransferrableTokensParticleInput) => create(input))
+
+const jsonDecoding = JSONDecoding.withDependencies(
 	Address,
 	Amount,
 	ResourceIdentifier,
-)(
-	serializerDecoder(SERIALIZER)((input: TransferrableTokensParticleInput) =>
-		create(input),
-	),
 )
+	.withDecoders(JSONDecoder)
+	.create<TransferrableTokensParticleT>()
 
 const create = (
 	input: TransferrableTokensParticleInput,

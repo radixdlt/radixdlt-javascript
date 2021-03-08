@@ -1,7 +1,5 @@
 import { Result } from 'neverthrow'
 
-export const SERIALIZER = 'serializer'
-
 export enum Tag {
 	STRING = ':str:',
 }

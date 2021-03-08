@@ -1,8 +1,9 @@
 import { Address } from '@radixdlt/account'
-import { JSONDecoding, serializerDecoder } from '@radixdlt/data-formats'
+import { taggedObjectDecoder } from '@radixdlt/data-formats'
 import { Amount, AmountT, granularityDefault } from '@radixdlt/primitives'
 import { Result, err } from 'neverthrow'
 import { ResourceIdentifier } from '../resourceIdentifier'
+import { SERIALIZER_KEY } from '../_types'
 import { RadixParticleType } from './meta/radixParticleTypes'
 import {
 	baseTokenDefinitionParticle,
@@ -14,25 +15,26 @@ import {
 	ParticleBase,
 	TokenDefinitionParticleBase,
 } from './_types'
+import { JSONDecoding } from '../utils'
 
 const radixParticleType = RadixParticleType.FIXED_SUPPLY_TOKEN_DEFINITION
 
 const SERIALIZER = 'radix.particles.fixed_supply_token_definition'
 
-const jsonDecoding = JSONDecoding<FixedSupplyTokenDefinitionParticleT>(
+const JSONDecoder = taggedObjectDecoder(
+	SERIALIZER,
+	SERIALIZER_KEY,
+)((input: TokenDefinitionParticleInput & Readonly<{ supply: AmountT }>) =>
+	create(input),
+)
+
+const jsonDecoding = JSONDecoding.withDependencies(
 	ResourceIdentifier,
 	Address,
 	Amount,
-)(
-	serializerDecoder(SERIALIZER)(
-		(
-			input: TokenDefinitionParticleInput &
-				Readonly<{
-					supply: AmountT
-				}>,
-		) => create(input),
-	),
 )
+	.withDecoders(JSONDecoder)
+	.create<FixedSupplyTokenDefinitionParticleT>()
 
 // eslint-disable-next-line max-lines-per-function
 const create = (
