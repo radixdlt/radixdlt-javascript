@@ -15,6 +15,7 @@ export enum Endpoint {
 
 export type TokenBalancesInput = [address: string]
 
+// placeholder
 export type TokenBalancesResponse = {
     owner: string,
     tokenBalances: [

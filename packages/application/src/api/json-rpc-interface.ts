@@ -13,6 +13,7 @@ const handleExecutedTransactionsResponse = (response: unknown) => {
     return fromJSON(response)
 }
 
+// placeholder
 const handleTokenBalancesResponse = (response: unknown) => ok(response as TokenBalancesResponse)
 
 export const getAPI = (
