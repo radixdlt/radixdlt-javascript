@@ -1,2 +1,2 @@
 export * from './_types'
-export * from './api-interface'
+export * from './open-rpc-client'

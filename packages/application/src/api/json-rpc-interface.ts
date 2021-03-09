@@ -1,25 +1,24 @@
-import { JSONDecoding, Decoder } from "@radixdlt/data-formats"
+import { JSONDecoding } from "@radixdlt/data-formats"
 import { callAPI } from "./utils"
 import { Endpoint, ExecutedTransactionsInput, ExecutedTransactionsResponse, TokenBalancesInput, TokenBalancesResponse } from "./_types"
-import { isArray } from '@radixdlt/util'
+import { actionDecoder, tokenFeeDecoder } from "./decoders"
+import { ok } from "neverthrow"
 
-const actionsDecoder: Decoder = (value, key) => 
-    key === 'actions' && isArray(value)
-    ? value.map(action => )
-    : undefined
-
-const handleTokenBalanceResponse = (response: Record<string, unknown>) => {
-
-
-    JSONDecoding.withDecoders(
-
-    )
+const handleExecutedTransactionsResponse = (response: unknown) => {
+    const { fromJSON } = JSONDecoding.withDecoders(
+        actionDecoder,
+        tokenFeeDecoder
+    ).create<ExecutedTransactionsResponse>()
+    
+    return fromJSON(response)
 }
 
+const handleTokenBalancesResponse = (response: unknown) => ok(response as TokenBalancesResponse)
+
 export const getAPI = (
-    call: (endpoint: Endpoint, ...params: unknown[]) => Promise<any>, handleResponse: (response: unknown) => any
+    call: (endpoint: Endpoint, ...params: unknown[]) => Promise<any>
 ) =>
     ({
-        tokenBalances: callAPI<TokenBalancesInput, TokenBalancesResponse>(Endpoint.TOKEN_BALANCES)(call, handleResponse),
-        executedTransactions: callAPI<ExecutedTransactionsInput, ExecutedTransactionsResponse>(Endpoint.EXECUTED_TXS)(call, handleResponse),
+        tokenBalances: callAPI<TokenBalancesInput, TokenBalancesResponse>(Endpoint.TOKEN_BALANCES)(call, handleTokenBalancesResponse as any),
+        executedTransactions: callAPI<ExecutedTransactionsInput, ExecutedTransactionsResponse>(Endpoint.EXECUTED_TXS)(call, handleExecutedTransactionsResponse),
     })

@@ -11,7 +11,7 @@
   "author": "Alexander Cyon <alex.cyon@gmail.com>",
   "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/networking#readme",
   "license": "Apache-2.0",
-  "main": "dist/_index.js",
+  "main": "dist/index.js",
   "publishConfig": {
     "access": "public"
   },

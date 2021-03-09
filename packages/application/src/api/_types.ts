@@ -40,3 +40,14 @@ export type ExecutedTransactionsResponse = [
         actions: UserAction[]
     }
 ]
+
+
+// Should come from a shared schema ?
+export enum ActionType { 
+    TOKEN_TRANSFER = "tokenTransfer"
+}
+
+// Same as above
+export type encodedUserAction = {
+    type: ActionType
+}
