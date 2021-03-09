@@ -160,7 +160,7 @@ const JSONDecoder = taggedStringDecoder(JSON_TAG)((input: string) =>
 	addressFromBase58String(input),
 )
 
-const decoding = JSONDecoding.withDecoders(JSONDecoder).create()
+const decoding = JSONDecoding.withDecoders(JSONDecoder).create<AddressT>()
 
 export const Address = {
 	JSON_TAG,
