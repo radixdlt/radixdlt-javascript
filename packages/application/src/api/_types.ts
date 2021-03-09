@@ -1,4 +1,5 @@
 import { UserAction } from '@radixdlt/actions'
+import { UInt256 } from '@radixdlt/uint256'
 
 export enum Endpoint {
     GET_UNIVERSE = 'Universe.getUniverse',
@@ -30,7 +31,7 @@ export type ExecutedTransactionsResponse = [
     {
         atomId: string,
         sentAt: Date,
-        fee: number,//UInt256,
+        fee: UInt256,
         cursor: string,
         message?: {
             msg: string,
