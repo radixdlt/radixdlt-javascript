@@ -15,7 +15,7 @@ export type KeystoreCryptoT =  Readonly<{
 }>
 
 export type KeystoreT = Readonly<{
-	address: string
+	memo?: string
 	crypto: KeystoreCryptoT,
 	id: string
 	version: number
