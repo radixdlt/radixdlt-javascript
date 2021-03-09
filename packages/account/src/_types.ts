@@ -67,7 +67,7 @@ export type AccountsT = Readonly<{
 }>
 
 export type MasterSeedProviderT = Readonly<{
-	decrypt: (password: string) => ResultAsync<HDMasterSeedT, Error>
+	decrypt: (password: string) => Observable<HDMasterSeedT>
 }>
 
 export type WalletT = PublicKeyDeriving &

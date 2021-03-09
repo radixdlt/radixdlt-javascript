@@ -1,33 +1,32 @@
 export type ScryptParams = Readonly<{
-
- 	// "N", CPU/memory cost parameter, must be power of 2.
-    costParameterN: number
-    costParameterC: number
+	// "N", CPU/memory cost parameter, must be power of 2.
+	costParameterN: number
+	costParameterC: number
 
 	// "r", blocksize
-    blockSize: number
+	blockSize: number
 
-    // "p"
-    parallelizationParameter: number
+	// "p"
+	parallelizationParameter: number
 
-    // "dklen"
-    lengthOfDerivedKey: number
+	// "dklen"
+	lengthOfDerivedKey: number
 
-    salt: string
+	salt: string
 }>
 
 export type KeystoreT = Readonly<{
 	address: string
-  	crypto: Readonly<{
-    	cipher: string
-    	cipherparams: Readonly<{
-      		iv: string;
-   		}>
-    	ciphertext: string
-    	kdf: 'scrypt'
-    	kdfparams: ScryptParams
-    	mac: string
-  	}>
-  	id: string;
-  	version: number
+	crypto: Readonly<{
+		cipher: string
+		cipherparams: Readonly<{
+			iv: string
+		}>
+		ciphertext: string
+		kdf: 'scrypt'
+		kdfparams: ScryptParams
+		mac: string
+	}>
+	id: string
+	version: number
 }>
