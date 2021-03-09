@@ -57,11 +57,15 @@ module.exports = {
 		'functional/no-loop-statement': 'off',
 		'no-param-reassign': 'error',
 		'functional/no-try-statement': 'off',
+		'jsdoc/require-returns': 'off',
 
 		// ESLint-Plugin-JSDoc RULES
 		'jsdoc/check-param-names': 'off',
 		'jsdoc/require-param-type': 'off',
 		'jsdoc/require-param': 'off',
+		'@typescript-eslint/explicit-function-return-type': 'off',
+		'jsdoc/require-returns-type': 'off',
+		'@typescript-eslint/explicit-module-boundary-types': 'off',
 
 		'functional/no-expression-statement': 'off',
 		'functional/no-conditional-statement': 'off', // we like switch statements
