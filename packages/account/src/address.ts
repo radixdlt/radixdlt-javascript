@@ -6,8 +6,8 @@ import {
 	DSONObjectEncoding,
 	JSONDecoding,
 	JSONEncoding,
-	primitiveDecoder,
 	serializerNotNeeded,
+	taggedStringDecoder,
 } from '@radixdlt/data-formats'
 import {
 	base58Decode,
@@ -156,11 +156,13 @@ export const addressFromUnsafe = (
 		: err(new Error('bad type'))
 }
 
+const JSONDecoder = taggedStringDecoder(JSON_TAG)((input: string) =>
+	addressFromBase58String(input),
+)
+
+const decoding = JSONDecoding.withDecoders(JSONDecoder).create<AddressT>()
+
 export const Address = {
 	JSON_TAG,
-	...JSONDecoding<AddressT>()(
-		primitiveDecoder(JSON_TAG, (input: string) =>
-			addressFromBase58String(input),
-		),
-	),
+	...decoding,
 }

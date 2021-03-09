@@ -1,147 +1,155 @@
 import { err, ok, Result } from 'neverthrow'
-import { flatten, mapObjIndexed } from 'ramda'
+import { flatten, mapObjIndexed, pipe } from 'ramda'
 import {
-	Decoder,
-	FromJSONOutput,
-	JSONDecodable,
-	JSONDecodableObject,
-	JSONDecodablePrimitive,
-	JSONEncodable,
-	JSONEncodableObject,
-	JSONObjectDecoder,
-	JSONPrimitiveDecoder,
-	SERIALIZER,
-	Tag,
-} from './_types'
+	isObject,
+	isString,
+	flattenResultsObject,
+	isArray,
+	isBoolean,
+	isNumber,
+	isResult,
+} from '@radixdlt/util'
+import { JSONDecodable, Decoder } from './_types'
 
-export const primitiveDecoder = (
-	tag: string,
-	decoder: (data: string) => Result<string | JSONEncodable, Error>,
-): JSONPrimitiveDecoder => ({
-	decoder: {
-		[tag]: decoder,
-	},
-	type: Decoder.PRIMITIVE,
-})
+/**
+ * Creates a new decoder. A decoder defines a way to transform a key-value pair through a
+ * supplied algorithm.
+ */
+export const decoder = <T>(
+	algorithm: (value: unknown, key?: string) => Result<T, Error> | undefined,
+): Decoder => (value: unknown, key?: string) => algorithm(value, key)
 
-export const objectDecoder = (
-	serializer: string,
-	decoder: (input: any) => Result<JSONEncodable, Error>,
-): JSONObjectDecoder => ({
-	decoder: {
-		[serializer]: decoder,
-	},
-	type: Decoder.OBJECT,
-})
+/**
+ * Creates a decoder for decoding a string with a "tag", e.g `:tag:string`,
+ * where the tag is in the format `:<tag>:` and is the first part of the string.
+ *
+ * The decoder will look for a matching tag, and run the provided algorithm
+ * on the string following the tag.
+ */
+export const taggedStringDecoder = (tag: string) => <T>(
+	algorithm: (value: string) => Result<T, Error>,
+): Decoder =>
+	decoder<T>((value) =>
+		isString(value) && `:${value.split(':')[1]}:` === tag
+			? algorithm(value.slice(tag.length))
+			: undefined,
+	)
 
-const defaultPrimitiveDecoders: JSONPrimitiveDecoder[] = [
-	primitiveDecoder(Tag.STRING, (data: string) => ok(data)),
-]
+/**
+ * Creates a decoder for decoding an object with a `key` prop.
+ *
+ * If the object has a `key` prop with a value (tag) matching the provided
+ * string, it will run the algorithm on the object.
+ */
+export const taggedObjectDecoder = (tag: string, key: string) => <T>(
+	algorithm: (value: T) => Result<unknown, Error>,
+): Decoder =>
+	decoder((value) =>
+		isObject(value) && value[key] && value[key] === tag
+			? algorithm(value as T)
+			: undefined,
+	)
 
-export const extractTag = (str: string): string => `:${str.split(':')[1]}:`
+const applyDecoders = (
+	decoders: Decoder[],
+	value: unknown,
+	key?: string,
+): Result<unknown, Error> => {
+	let unwrappedValue: unknown
 
-const fromJSONBasic = (
-	...decoders: (JSONPrimitiveDecoder | JSONObjectDecoder)[]
-) => <T>() => (json: JSONDecodablePrimitive): Result<T, Error> => {
-	try {
-		return ok(
-			fromJSONRecursive(
-				...(decoders.filter(
-					(decoder) => decoder.type === Decoder.PRIMITIVE,
-				) as JSONPrimitiveDecoder[]),
-			)(
-				...(decoders.filter(
-					(decoder) => decoder.type === Decoder.OBJECT,
-				) as JSONObjectDecoder[]),
-			)(json) as any,
-		)
-	} catch (e) {
-		return err(e)
+	if (isResult(value)) {
+		if (value.isOk()) {
+			unwrappedValue = value.value
+		} else {
+			return value
+		}
+	} else {
+		unwrappedValue = value
 	}
-}
 
-const fromJSONRecursive = (...primitiveDecoders: JSONPrimitiveDecoder[]) => (
-	...objectDecoders: JSONObjectDecoder[]
-) => (json: JSONDecodablePrimitive): FromJSONOutput => {
-	const fromJSON = fromJSONRecursive(...primitiveDecoders)(...objectDecoders)
+	const results = decoders
+		.map((decoder) => decoder(unwrappedValue, key))
+		.filter((result) => result !== undefined)
 
-	const handleArray = (arr: JSONDecodablePrimitive[]): FromJSONOutput[] =>
-		arr.map((item) => fromJSON(item))
-
-	const handleObject = (
-		json: JSONDecodableObject,
-	): JSONEncodableObject | JSONEncodable => {
-		if (json[SERIALIZER]) {
-			const decoder = objectDecoders.find(
-				(decoder) => decoder.decoder[json[SERIALIZER] as string],
-			)
-
-			if (!decoder)
-				throw Error(
-					`Missing object decoder for serializer ${
-						json[SERIALIZER] as string
-					}`,
-				)
-
-			const result = decoder.decoder[json[SERIALIZER] as string](
-				mapObjIndexed(
-					(value, key) =>
-						key === SERIALIZER ? key : fromJSON(value),
-					json,
+	return results.length > 1
+		? err(
+				Error(
+					`JSON decoding failed. Several decoders were valid for key/value pair. 
+                    This can lead to unexpected behavior.`,
 				),
-			)
-
-			if (result.isOk()) {
-				return result.value
-			} else {
-				throw result.error
-			}
-		}
-
-		return mapObjIndexed((item) => fromJSON(item), json)
-	}
-
-	const handleString = (json: string): string | JSONEncodable => {
-		const tag = extractTag(json)
-
-		const decoder = primitiveDecoders.find(
-			(decoder) => decoder.decoder[tag],
-		)
-
-		if (decoder) {
-			const result = decoder.decoder[tag](json.slice(5))
-			if (result.isOk()) return result.value
-			throw result.error
-		}
-		throw Error(`No matching primitive decoding for string "${json}"`)
-	}
-
-	return Array.isArray(json)
-		? handleArray(json)
-		: typeof json === 'object'
-		? handleObject(json)
-		: typeof json === 'string'
-		? handleString(json)
-		: json
+		  )
+		: results[0]
+		? results[0]
+		: ok(unwrappedValue)
 }
 
-const fromJSONDefault = fromJSONBasic.bind(
-	null,
-	...(defaultPrimitiveDecoders as (
-		| JSONPrimitiveDecoder
-		| JSONObjectDecoder
-	)[]),
-)
+const JSONDecode = <T>(...decoders: Decoder[]) => (
+	json: unknown,
+): Result<T, Error[]> => {
+	const decode = JSONDecodeUnflattened(...decoders)
 
-export const JSONDecoding = <T>(...dependencies: JSONDecodable[]) => (
-	...decoders: (JSONObjectDecoder | JSONPrimitiveDecoder)[]
-) => {
-	const decoders_ = [
-		...flatten(dependencies.map((dep) => dep.JSONDecoders)),
-		...decoders,
-	]
+	return pipe(
+		applyDecoders.bind(null, decoders),
+		flattenResultsObject,
+	)(decode(json)) as Result<T, Error[]>
+}
+
+/**
+ * Main decoding logic. Uses the registered decoders and applies matching decoders to
+ * all key-value pairs in the supplied JSON.
+ */
+const JSONDecodeUnflattened = (...decoders: Decoder[]) => (
+	json: unknown,
+): Result<unknown, Error[]> =>
+	isObject(json)
+		? flattenResultsObject(
+				ok(
+					mapObjIndexed(
+						(value, key) =>
+							applyDecoders(
+								decoders,
+								JSONDecodeUnflattened(...decoders)(value),
+								key,
+							),
+						json,
+					),
+				),
+		  )
+		: isString(json) || isBoolean(json) || isNumber(json)
+		? applyDecoders(decoders, json).mapErr((err) => [err])
+		: isArray(json)
+		? ok(json.map((item) => JSONDecodeUnflattened(...decoders)(item)))
+		: err([Error('JSON decoding failed. Unknown data type.')])
+
+/**
+ * Adds JSON decoding to a decodable entity.
+ *
+ * @param dependencies JSON decodables that the resulting entity depends on.
+ * This is needed to register all the necessary decoders from the dependencies (see exported "decoder" method).
+ *
+ * @param decoders Decoders needed to perform the decoding.
+ * @returns A JSONDecodable entity of type T.
+ */
+const withDecoding = <T>(decoders: Decoder[]): JSONDecodable<T> => ({
+	JSONDecoders: decoders,
+	fromJSON: JSONDecode<T>(...decoders),
+})
+
+const withDecoders = (...decoders: Decoder[]) => ({
+	create: <T>() => withDecoding<T>(decoders),
+})
+
+const withDependencies = (...dependencies: JSONDecodable<unknown>[]) => {
+	const decoders = [...flatten(dependencies.map((dep) => dep.JSONDecoders))]
+
 	return {
-		JSONDecoders: decoders_,
-		fromJSON: fromJSONDefault(...decoders_)<T>(),
+		create: <T>() => withDecoding<T>(decoders),
+		withDecoders: withDecoders.bind(null, ...decoders),
 	}
+}
+
+export const JSONDecoding = {
+	withDependencies,
+	withDecoders,
+	create: <T>() => withDecoding<T>([]),
 }
