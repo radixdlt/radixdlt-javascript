@@ -1,13 +1,12 @@
-import { ScryptParamsT } from "../key-derivation-functions/_types"
+import { ScryptParamsT } from '../key-derivation-functions/_types'
 
-
-export type KeystoreCryptoCipherParamsT =  Readonly<{
+export type KeystoreCryptoCipherParamsT = Readonly<{
 	nonce: string
 }>
 
-export type KeystoreCryptoT =  Readonly<{
-	cipher: string,
-	cipherparams: KeystoreCryptoCipherParamsT,
+export type KeystoreCryptoT = Readonly<{
+	cipher: string
+	cipherparams: KeystoreCryptoCipherParamsT
 	ciphertext: string
 	kdf: string
 	kdfparams: ScryptParamsT
@@ -16,7 +15,7 @@ export type KeystoreCryptoT =  Readonly<{
 
 export type KeystoreT = Readonly<{
 	memo?: string
-	crypto: KeystoreCryptoT,
+	crypto: KeystoreCryptoT
 	id: string
 	version: number
 }>

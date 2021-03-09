@@ -9,9 +9,15 @@ const deriveKey = (
 		params: ScryptParamsT
 	}>,
 ): ResultAsync<Buffer, Error> => {
-	if (input.kdf !== 'scrypt') return errAsync(new Error('Wrong KDF, expected scrypt'))
+	if (input.kdf !== 'scrypt')
+		return errAsync(new Error('Wrong KDF, expected scrypt'))
 	const { params, password } = input
-	const { lengthOfDerivedKey, costParameterN, blockSize, parallelizationParameter } = params
+	const {
+		lengthOfDerivedKey,
+		costParameterN,
+		blockSize,
+		parallelizationParameter,
+	} = params
 	const salt = Buffer.from(params.salt, 'hex')
 
 	return ResultAsync.fromPromise(
@@ -41,9 +47,6 @@ const deriveKey = (
 	)
 }
 
-
-
-
 export const Scrypt = {
-	deriveKey
+	deriveKey,
 }

@@ -9,7 +9,6 @@ import { LanguageT, StrengthT } from '../src/bip39/_types'
 import { HDMasterSeed } from '../src/bip39/hdMasterSeed'
 
 describe('bip39', () => {
-
 	it('default strength is 12 words', () => {
 		const mnemonic = Mnemomic.generateNew({})
 		expect(mnemonic.strength).toBe(StrengthT.WORD_COUNT_12)

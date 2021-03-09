@@ -10,8 +10,6 @@ import { ValidationWitness } from '@radixdlt/util'
 import { Result, err, ok } from 'neverthrow'
 import { HDMasterSeedT } from './bip39/_types'
 
-
-
 const create = (hdMasterSeed: HDMasterSeedT): WalletT => {
 	return withAccounts({ accounts: [] })
 }
