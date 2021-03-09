@@ -6,7 +6,7 @@ import { Account } from '../src/account'
 import { BIP44 } from '../src/bip32/bip44/bip44'
 
 const walletByAddingAccountFromPrivateKey = (privateKey: PrivateKey): WalletT =>
-	Wallet.create({
+	Wallet.withAccounts({
 		accounts: [Account.fromPrivateKey(privateKey)],
 	})
 
@@ -24,7 +24,7 @@ describe('wallet', () => {
 	})
 
 	it('can be created empty', (done) => {
-		const wallet = Wallet.create({ accounts: [] })
+		const wallet = Wallet.withAccounts({ accounts: [] })
 		wallet.observeAccounts().subscribe((result) => {
 			expect(result.all.length).toBe(0)
 			done()
@@ -46,7 +46,7 @@ describe('wallet', () => {
 		const pk1 = generatePrivateKey()
 		const pk2 = generatePrivateKey()
 
-		const wallet = Wallet.create({
+		const wallet = Wallet.withAccounts({
 			accounts: [
 				Account.fromPrivateKey(pk1),
 				Account.fromPrivateKey(pk2),
@@ -62,7 +62,7 @@ describe('wallet', () => {
 	})
 
 	it('for empty wallets when adding an account the wallet automatically sets it as the active account after subscription', (done) => {
-		const wallet = Wallet.create({ accounts: [] })
+		const wallet = Wallet.withAccounts({ accounts: [] })
 
 		wallet.observeActiveAccount().subscribe((active) => {
 			expect(active.accountId.accountIdString).toBe(
@@ -77,7 +77,7 @@ describe('wallet', () => {
 	})
 
 	it('for empty wallets when adding an account the wallet automatically sets it as the active account even before subscription', (done) => {
-		const wallet = Wallet.create({ accounts: [] })
+		const wallet = Wallet.withAccounts({ accounts: [] })
 
 		const pk1 = generatePrivateKey()
 		const addResult = wallet.addAccountByPrivateKey(pk1)
@@ -91,7 +91,7 @@ describe('wallet', () => {
 	})
 
 	it('can list all accounts that has been added', (done) => {
-		const wallet = Wallet.create({ accounts: [] })
+		const wallet = Wallet.withAccounts({ accounts: [] })
 		const size = 3
 		Array.from({ length: size })
 			.map((_) => generatePrivateKey())
@@ -122,7 +122,7 @@ describe('wallet', () => {
 	})
 
 	it('can add hd accounts', (done) => {
-		const wallet = Wallet.create({ accounts: [] })
+		const wallet = Wallet.withAccounts({ accounts: [] })
 		const hdPath = BIP44.create({ address: { index: 237 } })
 
 		const hdAccount = Account.fromHDPathWithHardwareWallet({

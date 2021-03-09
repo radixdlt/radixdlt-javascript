@@ -1,15 +1,27 @@
 import { Result } from 'neverthrow'
+import { KeystoreT, Keystore } from '@radixdlt/crypto'
 import { Observable } from 'rxjs'
-import { HDMasterSeedT, MasterSeedProviderT } from './_types'
+import { MasterSeedProviderT } from './_types'
+import { HDMasterSeed, HDMasterSeedT } from './bip39/_index'
 
-const fromKeyStore = (
+const withKeyStore = (
 	keystore: KeystoreT,
-): Result<MasterSeedProviderT, Error> => {
+): MasterSeedProviderT => {
 	return {
-		decrypt: (password: string): Observable<HDMasterSeedT> => {},
+		decrypt: (password: string): Observable<HDMasterSeedT> => new Observable(subscriber => {
+				Keystore.decrypt({
+					keystore, 
+					password
+				})
+				.map(HDMasterSeed.fromSeed)
+				.match(
+					(hdMasterSeed) => { subscriber.next(hdMasterSeed); subscriber.complete() },
+					(err) => { subscriber.error(err) }
+				)
+		}),
 	}
 }
 
 export const MasterSeedProvider = {
-	fromKeyStore,
+	withKeyStore,
 }

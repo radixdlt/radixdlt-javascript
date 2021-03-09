@@ -1,27 +1,29 @@
 import { scrypt } from 'crypto'
-import { ResultAsync } from 'neverthrow'
-import { ScryptParams } from '../keystore/_types'
+import { ResultAsync, errAsync } from 'neverthrow'
+import { ScryptParamsT } from './_types'
 
-export const scryptKDF = (
+const deriveKey = (
 	input: Readonly<{
-		key: Buffer
-		kdf: 'scrypt'
-		params: ScryptParams
+		password: Buffer
+		kdf: string
+		params: ScryptParamsT
 	}>,
 ): ResultAsync<Buffer, Error> => {
-	const params = input.params
+	if (input.kdf !== 'scrypt') return errAsync(new Error('Wrong KDF, expected scrypt'))
+	const { params, password } = input
+	const { lengthOfDerivedKey, costParameterN, blockSize, parallelizationParameter } = params
 	const salt = Buffer.from(params.salt, 'hex')
 
 	return ResultAsync.fromPromise(
 		new Promise((resolve, reject) => {
 			scrypt(
-				input.key,
+				password,
 				salt,
-				params.lengthOfDerivedKey,
+				lengthOfDerivedKey,
 				{
-					N: params.costParameterN,
-					r: params.blockSize,
-					p: params.parallelizationParameter,
+					N: costParameterN,
+					r: blockSize,
+					p: parallelizationParameter,
 				},
 				(maybeError, key) => {
 					if (!maybeError && key) {
@@ -35,6 +37,13 @@ export const scryptKDF = (
 			)
 		}),
 		(error) =>
-			new Error(`Failed to decrypt data using scrypt, error: ${error}`),
+			new Error(`Failed to derive data using scrypt, error: ${error}`),
 	)
+}
+
+
+
+
+export const Scrypt = {
+	deriveKey
 }

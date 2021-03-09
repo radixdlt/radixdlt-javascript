@@ -61,12 +61,12 @@ export const byteCountFromEntropyStrength = (strenght: StrengthT): number =>
 
 const generateNew = (
 	input: Readonly<{
-		strength?: StrengthT // defaults to 24 words (256 bits)
+		strength?: StrengthT // defaults to 12 words (128 bits)
 		language?: LanguageT // defaults to English
 		secureRandom?: SecureRandom // defaults to default
 	}>,
 ): MnemomicT => {
-	const strength = input.strength ?? StrengthT.WORD_COUNT_24
+	const strength = input.strength ?? StrengthT.WORD_COUNT_12
 	const language = input.language ?? LanguageT.ENGLISH
 	const secureRandom = input.secureRandom ?? secureRandomGenerator
 	const entropyByteCount = byteCountFromEntropyStrength(strength)

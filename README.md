@@ -88,7 +88,7 @@ This git repository is a so called "monorepo" using [`yarn` *workspaces*](https:
 
 We have a `WalletT` type being a **hierchal deterministic wallet** (explained by [Ledger Acadamy](https://www.ledger.com/academy/crypto/what-are-hierarchical-deterministic-hd-wallets) and on [BitcoinWiki](https://en.bitcoinwiki.org/wiki/Deterministic_wallet#HD_Wallet_.E2.80.93_Hierarchical_Deterministic_Wallet)) capable of deriving all "account"s you will need. Accounts in quoutes since it is really just a keypair and a [BIP44 path](https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki) (recipie on how it was derived).
 
-The trailing _T_ in `WalletT` is a suffix we use for all `type`s (we don't use [TypeScript `class`es](https://www.typescriptlang.org/docs/handbook/classes.html) at all). We reserve the `Wallet` name as a "namespaces" for our types, providing static-like factory/constructor methods, e.g. `Wallet.create` (N.B. the **lack of** trailing _T_). This decision was taken since we believe you will more often _use the namespace_ `Wallet.create` than you have to _declare the type_ `WalletT`. 
+The trailing _T_ in `WalletT` is a suffix we use for all `type`s (we don't use [TypeScript `class`es](https://www.typescriptlang.org/docs/handbook/classes.html) at all). We reserve the `Wallet` name as a "namespaces" for our types, providing static-like factory/constructor methods, e.g. `Wallet.withAccounts` (N.B. the **lack of** trailing _T_). This decision was taken since we believe you will more often _use the namespace_ `Wallet.withAccounts` than you have to _declare the type_ `WalletT`. 
 
 Here follows the generation of a new mnemonic, derivation of HD master seed and encryption of it, yielding a keystore file, and the creation of wallet.
 
@@ -119,7 +119,7 @@ const keystore = Keystore.encryptingHDMasterSeed({
 
 // ⚠️ If user failed to back-up mnemonic and forgets `keystoreEncryptionPassword` she will NOT be able to recover her funds.
 
-const wallet = Wallet.create({ 
+const wallet = Wallet.withAccounts({ 
 	keystore: keystore,
 	// HD path (BIP44): `m/44'/536'/0'/0/0`
 	startAt: { // OPTIONAL, defaults to { index: 0, hardened: false }

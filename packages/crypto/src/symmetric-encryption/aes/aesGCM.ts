@@ -1,8 +1,9 @@
 import { createCipheriv, createDecipheriv } from 'crypto'
-import { DecryptionScheme, Decryptor } from '../_types'
+import { AES_GCM_SealedBoxT } from './_types'
+import { AES_GCM_SealedBox } from './aesGCMSealedBox'
 import { SharedInfo } from '../../ecies/_types'
 import { simpleDataIntoCryptInputCombiner } from './_index'
-import { combine, err, ok, Result, combine } from 'neverthrow'
+import { err, ok, Result, combine } from 'neverthrow'
 import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
 
 const tagLength = 16
@@ -11,42 +12,34 @@ const nonceLength = 12
 const AES_GMM_256_ALGORITHM = 'aes-256-gcm'
 
 export type AES_GCM_Input = Readonly<{
+	plaintext: Buffer
 	symmetricKey: Buffer
-	nonce: Buffer
-	authenticationTag: Buffer
 	additionalAuthenticationData?: Buffer
+	nonce?: Buffer
+	secureRandom?: SecureRandom
 }>
 
-export type SealedBoxT = Omit<AES_GCM_Input, 'additionalAuthenticationData'> &
-	Readonly<{
-		ephemeralPublicKey: Buffer
-	}>
+
 
 const _validateLength = (
-	input: Readonly<{
-		expectedLength: number
-		name: string
-		buffer: Buffer
-	}>,
+	expectedLength: number,
+	name: string,
+	buffer: Buffer
 ): Result<Buffer, Error> =>
-	input.buffer.length !== input.expectedLength
+	buffer.length !== expectedLength
 		? err(
 				new Error(
-					`Incorrect length of ${input.name}, expected: #${input.expectedLength} bytes, but got: #${input.buffer.length}.`,
+					`Incorrect length of ${name}, expected: #${expectedLength} bytes, but got: #${buffer.length}.`,
 				),
 		  )
-		: ok(input.buffer)
+		: ok(buffer)
 
 const validateNonce: (buffer: Buffer) => Result<Buffer, Error> = _validateLength.bind(null, nonceLength, 'nonce (IV)')
 const validateTag: (buffer: Buffer) => Result<Buffer, Error> = _validateLength.bind(null, tagLength, 'auth tag')
 
 const seal = (
-	input: Omit<AES_GCM_Input, 'nonce'> & {
-		plaintext: Buffer
-		secureRandom?: SecureRandom
-		nonce?: Buffer
-	},
-): Result<SealedBoxT, Error> => {
+	input: AES_GCM_Input,
+): Result<AES_GCM_SealedBoxT, Error> => {
 	const secureRandom = input.secureRandom ?? secureRandomGenerator
 	const nonce = input.nonce ?? Buffer.from(secureRandom.randomSecureBytes(nonceLength), 'hex')
 
@@ -60,38 +53,39 @@ const seal = (
 		const ciphertext = Buffer.concat([firstChunk, secondChunk])
 		const authTag = cipher.getAuthTag()
 
-		return {
-			
-		}
+		return AES_GCM_SealedBox.create({
+			ciphertext,
+			authTag,
+			nonce,
+		})
 	})
 }
 
 const open = (
-	input: Readonly<{
-		ciphertext: Buffer
-		input: AES_GCM_Input
-	}>,
+	input: AES_GCM_SealedBoxT & Readonly<{
+		symmetricKey: Buffer
+		additionalAuthenticationData?: Buffer
+	}>
 ): Result<Buffer, Error> => {
-	const sealedbox = input.input
-	const ciphertext = input.ciphertext
+	const { ciphertext, nonce, authTag, additionalAuthenticationData, symmetricKey } = input
 
 	return combine([
-		validateNonce(sealedbox.nonce),
-		validateTag(sealedbox.authenticationTag),
+		validateNonce(nonce),
+		validateTag(authTag),
 	]).map((resultList) => {
 		const nonce = resultList[0]
 		const authTag = resultList[1]
 
 		const decipher = createDecipheriv(
 			AES_GMM_256_ALGORITHM,
-			sealedbox.symmetricKey,
+			symmetricKey,
 			nonce,
 		)
 
 		decipher.setAuthTag(authTag)
 
-		if (sealedbox.additionalAuthenticationData) {
-			decipher.setAAD(sealedbox.additionalAuthenticationData)
+		if (additionalAuthenticationData) {
+			decipher.setAAD(additionalAuthenticationData)
 		}
 
 		const firstChunk = decipher.update(ciphertext)
@@ -105,4 +99,5 @@ export const AES_GCM = {
 	open,
 	tagLength,
 	nonceLength,
+	algorithm: AES_GMM_256_ALGORITHM
 }

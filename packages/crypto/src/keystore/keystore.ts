@@ -1,44 +1,88 @@
-import { ResultAsync } from 'neverthrow'
-import { KeystoreT, ScryptParams } from './_types'
+import { err, ResultAsync, errAsync, ok, Result } from 'neverthrow'
+import { KeystoreT, KeystoreCryptoT, KeystoreCryptoCipherParamsT } from './_types'
+import { createHmac } from 'crypto'
+import { AES_GCM } from '../symmetric-encryption/aes/aesGCM'
+import { AES_GCM_SealedBoxT } from '../symmetric-encryption/aes/_index'
+import { ScryptParams } from '../key-derivation-functions/scryptParams'
+import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
+import { ScryptParamsT } from '../key-derivation-functions/_types'
+import { Scrypt } from '../key-derivation-functions/_index'
 
-const decryptKeystore = (
-	keystore: KeystoreT,
-	password: string,
-): ResultAsync<Buffer, Error> => {
-	const ciphertext = Buffer.from(keystore.crypto.ciphertext, 'hex')
-	const iv = Buffer.from(keystore.crypto.cipherparams.iv, 'hex')
-	const kdfparams = keystore.crypto.kdfparams
+const minimumPasswordLength = 8
 
-	const derivedKeyRes = await getDerivedKey({
-		key: Buffer.from(password),
-		kdf: keystore.crypto.kdf,
-		params: kdfparams,
-	})
+const validatePassword = (password: string): Result<string, Error> => password.length >= minimumPasswordLength ? ok(password) : err(new Error('Password too short'))
 
-	return derivedKeyRes.andThen((derivedKey) => {
-		const hmac = createHmac('sha256', derivedKey)
-		hmac.update(
-			Buffer.concat([
-				derivedKey.slice(16, 32),
-				ciphertext,
-				iv,
-				Buffer.from(AES_ALGORITHM),
-			]),
-			'hex',
-		)
-		const mac = hmac.digest('hex')
 
-		if (
-			!bytes.isEqual(mac.toUpperCase(), keystore.crypto.mac.toUpperCase())
-		) {
-			return err(new Error('Failed to decrypt.'))
-		}
+const byEncrypting = (input: Readonly<{
+	address: string,
+	secret: Buffer
+	password: string
+	id?: string
+	kdf?: string
+	kdfParams?: ScryptParamsT,
+	secureRandom?: SecureRandom
+}>): ResultAsync<KeystoreT, Error> => {
+	const secureRandom = input.secureRandom ?? secureRandomGenerator
 
-		const cipher = new aes.ModeOfOperation.ctr(
-			derivedKey.slice(0, 16),
-			new aes.Counter(iv),
-		)
+	const kdf = input.kdf ?? 'scrypt'
+	const params = input.kdfParams ?? ScryptParams.create({ secureRandom })
+	const id = input.id ?? 'uuid'
 
-		return Buffer.from(cipher.decrypt(ciphertext)).toString('hex')
-	})
+	return validatePassword(input.password)
+		.map((p) => ({ kdf, params, password: Buffer.from(p) }))
+		.asyncAndThen((inp) => Scrypt.deriveKey(inp))
+		.map((derivedKey) => ({ plaintext: input.secret, symmetricKey: derivedKey, nonce: Buffer.from(params.salt, 'hex')}))
+		.andThen((inp) => AES_GCM.seal(inp))
+		.map((sealedBox) => {
+			const cipherText = sealedBox.ciphertext
+			const mac = sealedBox.authTag
+			return {
+				address: input.address,
+				crypto: {
+					cipher: AES_GCM.algorithm,
+					cipherparams: {
+						nonce: sealedBox.nonce.toString('hex'),
+					},
+					ciphertext: cipherText.toString('hex'),
+					kdf,
+					kdfparams: params,
+					mac: mac.toString('hex'),
+				},
+				id,
+				version: 1
+			}
+		})
+}
+
+
+
+const decrypt = (input: Readonly<{
+	keystore: KeystoreT
+	password: string
+}>): ResultAsync<Buffer, Error> => {
+	const { keystore, password } = input
+	const kdf = keystore.crypto.kdf
+	const encryptedPrivateKey = Buffer.from(keystore.crypto.ciphertext, 'hex')
+	const nonce = Buffer.from(keystore.crypto.cipherparams.nonce, 'hex')
+	const params = keystore.crypto.kdfparams
+
+	return validatePassword(password)
+	.map((p) => ({ kdf, params, password: Buffer.from(p) }))
+	.asyncAndThen((inp) => Scrypt.deriveKey(inp))
+	.map((derivedKey) => ({ 
+		symmetricKey: derivedKey, 
+		nonce: Buffer.from(params.salt, 'hex'),
+		authTag: Buffer.from(keystore.crypto.mac, 'hex'),
+		ciphertext: encryptedPrivateKey,
+	}))
+	.andThen((inp) => AES_GCM.open(inp))
+
+}
+
+
+export const Keystore = {
+	decrypt,
+	minimumPasswordLength,
+	validatePassword,
+	byEncrypting,
 }

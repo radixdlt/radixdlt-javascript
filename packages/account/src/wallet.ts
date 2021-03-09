@@ -8,12 +8,18 @@ import { AccountId } from './accountId'
 import { Option } from 'prelude-ts'
 import { ValidationWitness } from '@radixdlt/util'
 import { Result, err, ok } from 'neverthrow'
+import { HDMasterSeedT } from './bip39/_types'
 
 
 
-const create = (
+const create = (hdMasterSeed: HDMasterSeedT): WalletT => {
+	return withAccounts({ accounts: [] })
+}
+
+// eslint-disable-next-line max-lines-per-function
+const withAccounts = (
 	input: Readonly<{
-		encryptedHDMasterSeedT: ()
+		accounts: AccountT[]
 	}>,
 ): WalletT => {
 	const activeAccountSubject = new ReplaySubject<AccountT>()
@@ -92,5 +98,5 @@ const create = (
 }
 
 export const Wallet = {
-	create,
+	withAccounts,
 }

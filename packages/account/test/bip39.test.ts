@@ -5,10 +5,16 @@ import {
 	mnemonicStrengthSupportedByBIP39,
 	wordlistFromLanguage,
 } from '../src/bip39/mnemonic'
-import { LanguageT } from '../src/bip39/_types'
+import { LanguageT, StrengthT } from '../src/bip39/_types'
 import { HDMasterSeed } from '../src/bip39/hdMasterSeed'
 
 describe('bip39', () => {
+
+	it('default strength is 12 words', () => {
+		const mnemonic = Mnemomic.generateNew({})
+		expect(mnemonic.strength).toBe(StrengthT.WORD_COUNT_12)
+	})
+
 	it('can calculate entropy from word count', () => {
 		const doTest = (wc: number, expected: number) => {
 			const actual = entropyInBitsFromWordCount(wc)
