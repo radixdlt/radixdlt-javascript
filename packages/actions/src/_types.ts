@@ -26,7 +26,7 @@ export type TransferTokensAction = TokensActionBase &
 		message?: string
 	}>
 
-export type BurnTokensAction = TokensActionBase &
+export type BurnTokensActionT = TokensActionBase &
 	Readonly<{
 		actionType: UserActionType.BURN_TOKENS
 	}>

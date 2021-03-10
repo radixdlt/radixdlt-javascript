@@ -1,25 +1,30 @@
 import { JSONDecoding } from "@radixdlt/data-formats"
 import { callAPI } from "./utils"
-import { Endpoint, ExecutedTransactionsInput, ExecutedTransactionsResponse, TokenBalancesInput, TokenBalancesResponse } from "./_types"
+import { Endpoint, ExecutedTransactionsInput, ExecutedTransactionsResponse, TokenBalancesInput, TokenBalancesResponse, UniverseMagicInput, UniverseMagicResponse } from "./_types"
 import { actionDecoder, tokenFeeDecoder } from "./decoders"
-import { ok } from "neverthrow"
+import { ok, Result } from "neverthrow"
 
-const handleExecutedTransactionsResponse = (response: unknown) => {
-    const { fromJSON } = JSONDecoding.withDecoders(
+const handleUniverseMagicResponse = (response: unknown): Result<UniverseMagicResponse, Error[]> => ok(response as UniverseMagicResponse)
+
+const handleExecutedTransactionsResponse = (response: unknown) => 
+    JSONDecoding.withDecoders(
         actionDecoder,
         tokenFeeDecoder
     ).create<ExecutedTransactionsResponse>()
-    
-    return fromJSON(response)
-}
+    .fromJSON(response)
 
-// placeholder
-const handleTokenBalancesResponse = (response: unknown) => ok(response as TokenBalancesResponse)
+const handleTokenBalancesResponse = (response: unknown): Result<TokenBalancesResponse, Error[]> => ok(response as TokenBalancesResponse)
+
+const handleNativeTokenResponse = (response: unknown) => 
+    JSONDecoding.withDecoders(
+        
+    )
 
 export const getAPI = (
     call: (endpoint: Endpoint, ...params: unknown[]) => Promise<any>
 ) =>
     ({
-        tokenBalances: callAPI<TokenBalancesInput, TokenBalancesResponse>(Endpoint.TOKEN_BALANCES)(call, handleTokenBalancesResponse as any),
+        universeMagic: callAPI<UniverseMagicInput, UniverseMagicResponse>(Endpoint.UNIVERSE_MAGIC)(call, handleUniverseMagicResponse),
+        tokenBalances: callAPI<TokenBalancesInput, TokenBalancesResponse>(Endpoint.TOKEN_BALANCES)(call, handleTokenBalancesResponse),
         executedTransactions: callAPI<ExecutedTransactionsInput, ExecutedTransactionsResponse>(Endpoint.EXECUTED_TXS)(call, handleExecutedTransactionsResponse),
     })

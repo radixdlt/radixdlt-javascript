@@ -1,8 +1,11 @@
+import { Int32 } from '@radixdlt/account'
 import { UserAction } from '@radixdlt/actions'
 import { UInt256 } from '@radixdlt/uint256'
+import { ResourceIdentifierT, TokenPermissions } from 'packages/atom/src/_types'
+import { AmountT, Granularity } from 'packages/primitives/src/_types'
 
 export enum Endpoint {
-    GET_UNIVERSE = 'Universe.getUniverse',
+    UNIVERSE_MAGIC = 'universeMagic',
     TOKEN_BALANCES = 'tokenBalances',
     EXECUTED_TXS = 'executedTransactions',
     STAKES = 'stakes',
@@ -11,6 +14,12 @@ export enum Endpoint {
     NETWORK_TX_THROUGHPUT = 'networkTransactionThroughput',
     NETWORK_TX_DEMAND = 'networkTransactionDemand',
     VALIDATORS = 'validators'
+}
+
+export type UniverseMagicInput = []
+
+export type UniverseMagicResponse = {
+    magic: Int32 // validation here?
 }
 
 export type TokenBalancesInput = [address: string]
@@ -41,6 +50,22 @@ export type ExecutedTransactionsResponse = [
         actions: UserAction[]
     }
 ]
+
+export type NativeTokenInput = []
+
+export type NativeTokenResponse = {
+	name: string,
+    rri: ResourceIdentifierT,
+    symbol: string,
+	description?: string,
+	granularity: Granularity,
+    isSupplyMutable: boolean,
+    currentSupply: AmountT,
+    tokenInfoURL: URL,
+    iconURL: URL,
+    tokenPermission: TokenPermissions
+}
+
 
 
 // Should come from a shared schema ?
