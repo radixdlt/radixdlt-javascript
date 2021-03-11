@@ -5,6 +5,8 @@ export type Int32 = number
 export type BIP32T = Readonly<{
 	pathComponents: BIP32PathComponentT[]
 	toString: () => string
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	equals: (other: any) => boolean
 }>
 
 export type BIP32PathSimpleT = Readonly<{
@@ -22,4 +24,7 @@ export type BIP32PathComponentT = BIP32PathSimpleT &
 
 		// E.g. 'purpose', 'coinType' 'account', 'change', 'address_index'
 		name?: string
+
+		// For `0'` the value 0 is returned, even though it is hardened.
+		value: () => Int32
 	}>

@@ -1,18 +1,11 @@
-import { err, ResultAsync, errAsync, ok, Result } from 'neverthrow'
-import {
-	KeystoreT,
-	KeystoreCryptoT,
-	KeystoreCryptoCipherParamsT,
-} from './_types'
-import { createHmac } from 'crypto'
+import { err, ResultAsync, ok, Result } from 'neverthrow'
+import { KeystoreT } from './_types'
 import { AES_GCM } from '../symmetric-encryption/aes/aesGCM'
-import { AES_GCM_SealedBoxT } from '../symmetric-encryption/aes/_index'
 import { ScryptParams } from '../key-derivation-functions/scryptParams'
 import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
 import { ScryptParamsT } from '../key-derivation-functions/_types'
 import { Scrypt } from '../key-derivation-functions/_index'
 import { v4 as uuidv4 } from 'uuid'
-import { nonce } from 'packages/primitives/src/nonce'
 
 const minimumPasswordLength = 8
 

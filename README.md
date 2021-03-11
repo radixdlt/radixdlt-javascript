@@ -118,10 +118,28 @@ const keystore = Keystore.encryptingHDMasterSeed({
 })
 
 // ⚠️ If user failed to back-up mnemonic and forgets `keystoreEncryptionPassword` she will NOT be able to recover her funds.
-
 const wallet = Wallet.create({ 
 	keystore: keystore,
 	// HD path (BIP44): `m/44'/536'/0'/0/0`
+	startAt: { // OPTIONAL, defaults to { index: 0, hardened: false }
+		addressIndex: 0,
+		hardened: false,
+	}
+})
+```
+
+### Open wallet (app start)
+```typescript
+
+// Each time GUI wallet starts
+const keystore = loadKeystoreFromLocalDisk('keystore.json')
+
+// Ask user for encryption password in GUI
+const keystoreEncryptionPassword = ...
+
+const wallet = Wallet.decrypt({
+	keystore: keystore,
+    password: keystoreEncryptionPassword
 	startAt: { // OPTIONAL, defaults to { index: 0, hardened: false }
 		addressIndex: 0,
 		hardened: false,
@@ -165,11 +183,33 @@ radix.wallet.deriveNext({ alsoSwitchTo: true })
 radix.wallet.deriveNext({ alsoSwitchTo: true })
 // '🙋🏽‍♀️ My address is: 9SAihkYQDBKvHfhvwEw4QBfx1rpjvta2TvmWibyXixVzX2JHHHWf'
 
-radix.wallet.changeAccount(AccountIndex.FIRST)
+radix.wallet.switchAccount({ to: AccountIndexPosition.FIRST })
 // '🙋🏽‍♀️ My address is: 9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT'
 ```
 
 3️⃣ The notation of using trailing `$` for `Observable` variables is documented by [Cycle.js](https://cycle.js.org/) and [Angular](https://angular.io/guide/rx-library#naming-conventions-for-observables)
+
+### Account switching
+Alternatives to the `switchAccount` call on the last line in the code block above:
+
+```typescript
+// SAME AS
+radix.wallet.switchAccount({ to: 0 })
+// SAME AS
+const theAccountAtIndex0: AccountT = ... // you will have access to this from UI wallet, the list of the accounts, see `Observe Accounts` section below.
+radix.wallet.switchAccount({ to: theAccountAtIndex0 })
+```
+
+Now it might not be clear why you would wanna use `{ to: AccountIndexPosition.FIRST }` instead of `{ to: 0}`, but the enum `AccountIndexPosition` also contains the case `LAST`, which is convenient. Compare:
+
+```typescript
+// Instead of
+const numberOfAccounts = ... // you will have access to this from UI wallet, the list of the accounts, see `Observe Accounts` section below.
+radix.wallet.switchAccount({ to: numberOfAccounts - 1 })
+
+// You can simply call:
+radix.wallet.switchAccount({ to: AccountIndexPosition.LAST })
+```
 
 ## Observe Accounts
 

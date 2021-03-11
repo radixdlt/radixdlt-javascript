@@ -4,14 +4,16 @@ import { Observable } from 'rxjs'
 import { MasterSeedProviderT } from './_types'
 import { HDMasterSeed, HDMasterSeedT } from './bip39/_index'
 
-const withKeyStore = (keystore: KeystoreT): MasterSeedProviderT => {
+const withKeyStore = (
+	input: Readonly<{
+		keystore: KeystoreT
+		password: string
+	}>,
+): MasterSeedProviderT => {
 	return {
-		decrypt: (password: string): Observable<HDMasterSeedT> =>
+		masterSeed: (): Observable<HDMasterSeedT> =>
 			new Observable((subscriber) => {
-				Keystore.decrypt({
-					keystore,
-					password,
-				})
+				Keystore.decrypt(input)
 					.map(HDMasterSeed.fromSeed)
 					.match(
 						(hdMasterSeed) => {
