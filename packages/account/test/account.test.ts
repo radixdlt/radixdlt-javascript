@@ -1,9 +1,9 @@
 import { privateKeyFromScalar, unsignedPlainText } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
 import { Account } from '../src/account'
-import { BIP44 } from '../src/_index'
 import { Mnemomic } from '../src/bip39/mnemonic'
 import { HDMasterSeed } from '../src/bip39/hdMasterSeed'
+import { HDPathRadix } from '../src/bip32/bip44/bip44'
 
 describe('account', () => {
 	describe('hdPath account', () => {
@@ -12,14 +12,16 @@ describe('account', () => {
 				'equip will roof matter pink blind book anxiety banner elbow sun young',
 			)._unsafeUnwrap()
 			const hdMasterSeed = HDMasterSeed.fromMnemonic({ mnemonic })
-			const hdPath = BIP44.fromString(`m/44'/536'/2'/1/3`)._unsafeUnwrap()
+			const hdPath = HDPathRadix.fromString(
+				`m/44'/536'/2'/1/3`,
+			)._unsafeUnwrap()
 
 			const account = Account.fromHDPathWithHDMasterSeed({
 				hdPath,
 				hdMasterSeed,
 			})
 
-			expect(account.accountId.accountIdString).toBe(hdPath.toString())
+			expect(account.hdPath.equals(hdPath)).toBe(true)
 
 			// Expected keys are known from Leger app development.
 			const matchingPrivateKey = privateKeyFromScalar(

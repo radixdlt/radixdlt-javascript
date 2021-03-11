@@ -42,8 +42,7 @@ const deriveKey = (
 				},
 			)
 		}),
-		(error) =>
-			new Error(`Failed to derive data using scrypt, error: ${error}`),
+		() => new Error(`Failed to derive data using scrypt`),
 	)
 }
 

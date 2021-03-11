@@ -5,7 +5,7 @@ describe('keystore', () => {
 	it('should be able to decrypt recently encrypted', async () => {
 		const secret = 'my super secret phrase'
 		const password = secureRandomGenerator.randomSecureBytes(20)
-		const keystoreResult = await Keystore.byEncrypting({
+		const keystoreResult = await Keystore.encryptSecret({
 			secret: Buffer.from(secret),
 			password,
 		})

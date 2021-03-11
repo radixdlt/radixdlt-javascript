@@ -1,8 +1,5 @@
 import { createCipheriv, createDecipheriv } from 'crypto'
 import { AES_GCM_SealedBoxT } from './_types'
-import { AES_GCM_SealedBox } from './aesGCMSealedBox'
-import { SharedInfo } from '../../ecies/_types'
-import { simpleDataIntoCryptInputCombiner } from './_index'
 import { err, ok, Result, combine } from 'neverthrow'
 import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
 
@@ -63,11 +60,11 @@ const seal = (input: AES_GCM_Input): Result<AES_GCM_SealedBoxT, Error> => {
 		const ciphertext = Buffer.concat([firstChunk, secondChunk])
 		const authTag = cipher.getAuthTag()
 
-		return AES_GCM_SealedBox.create({
+		return {
 			ciphertext,
 			authTag,
 			nonce,
-		})
+		}
 	})
 }
 

@@ -28,6 +28,7 @@ export type AccountT = PublicKeyDeriving &
 	Signing &
 	Readonly<{
 		hdPath: HDPathRadixT
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		equals: (other: any) => boolean
 	}>
 

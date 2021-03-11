@@ -9,7 +9,11 @@ import {
 	WalletT,
 } from './_types'
 import { mergeMap, map, tap, distinctUntilChanged } from 'rxjs/operators'
-import { PublicKey, Signature, UnsignedMessage } from '@radixdlt/crypto'
+import {
+	PublicKey,
+	Signature,
+	UnsignedMessage,
+} from '@radixdlt/crypto'
 import { Option } from 'prelude-ts'
 import { HDPathRadix, HDPathRadixT } from './bip32/_index'
 import { isAccount } from './account'
@@ -25,12 +29,11 @@ const create = (
 ): WalletT => {
 	const hdMasterSeed = input.masterSeedProvider.masterSeed()
 
-	const activeAccountSubject = new ReplaySubject<AccountT>()
+	const activeAccountSubject = new ReplaySubject<AccountT>(1)
 
 	const accountsSubject = new BehaviorSubject<Map<HDPathRadixT, AccountT>>(
 		new Map(),
 	)
-
 	const numberOfAccounts = (): number => accountsSubject.getValue().size
 
 	const _deriveWithPath = (
@@ -76,15 +79,15 @@ const create = (
 			isHardened?: boolean // defaults to true
 			alsoSwitchTo?: boolean // defaults to false
 		}>,
-	): Observable<AccountT> =>
-		_deriveAtIndex({
+	): Observable<AccountT> => {
+		return _deriveAtIndex({
 			addressIndex: {
 				index: numberOfAccounts(),
 				isHardened: input?.isHardened ?? true,
 			},
 			alsoSwitchTo: input?.alsoSwitchTo,
 		})
-
+	}
 	const switchAccount = (
 		input: Readonly<{ to: AccountT | TargetAccountIndexT }>,
 	): Observable<AccountT> => {
@@ -115,12 +118,16 @@ const create = (
 		}
 	}
 
+	// Start by deriving first index!
+	const initialAccount$ = deriveNext({ alsoSwitchTo: true })
+	const subscription = initialAccount$.subscribe()
+
 	const observeActiveAccount = (): Observable<AccountT> =>
 		activeAccountSubject
 			.asObservable()
-			.pipe(
-				distinctUntilChanged((a: AccountT, b: AccountT) => a.equals(b)),
-			)
+			// .pipe(
+			// 	distinctUntilChanged((a: AccountT, b: AccountT) => a.equals(b)),
+			// )
 
 	const observeAccounts = (): Observable<AccountsT> =>
 		accountsSubject.asObservable().pipe(
@@ -136,9 +143,6 @@ const create = (
 				arraysEqual(a.all, b.all),
 			),
 		)
-
-	// Start by deriving first index!
-	deriveNext()
 
 	return {
 		deriveNext,

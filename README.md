@@ -95,36 +95,23 @@ Here follows the generation of a new mnemonic, derivation of HD master seed and 
 ```typescript
 import { Mnemonic, Strength, Language } from '@radixdlt/account'
 
-const mnemonic = Mnemomic.generateNew({ 
-	strength: Strength.WORD_COUNT_24, // OPTIONAL, defaults to 24 words
-	language: Language.ENGLISH // OPTIONAL, defaults to English 
-})
+const mnemonic = Mnemomic.generateNew()
 
-// This is NOT the application password (1️⃣)
-const bip39Passphrase = 'qwertyuiop'
-
-// ⚠️ Require user to backup mnemonic and passphrase. She will NEVER be able to re-view it.
+// ⚠️ Require user to backup mnemonic. She will NEVER be able to re-view it.
 const hdMasterSeed = HDMasterSeed.fromMnemonic({
 	mnemonic: mnemonic,
-	passphrase: bip39Passphrase // OPTIONAL
 })
 
 // This will be our "application password" (2️⃣)
 const keystoreEncryptionPassword = 'my super strong randomly generated probably over 50 chars long encryption password'
 
-const keystore = Keystore.encryptingHDMasterSeed({
-	hdMasterSeed: hdMasterSeed,
-	password: keystoreEncryptionPassword  // REQUIRED
-})
-
-// ⚠️ If user failed to back-up mnemonic and forgets `keystoreEncryptionPassword` she will NOT be able to recover her funds.
-const wallet = Wallet.create({ 
-	keystore: keystore,
-	// HD path (BIP44): `m/44'/536'/0'/0/0`
-	startAt: { // OPTIONAL, defaults to { index: 0, hardened: false }
-		addressIndex: 0,
-		hardened: false,
-	}
+const wallet = await Keystore.encryptSecret({
+	secret: masterSeed.seed,
+	password
+}).map((keystore) => {
+	// Save 'keystore' as .json file on disc
+	const masterSeedProvider = MasterSeedProvider.withKeyStore({ keystore, password })
+	return Wallet.create({ masterSeedProvider })
 })
 ```
 

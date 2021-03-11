@@ -51,4 +51,16 @@ describe('BIP44', () => {
 		doTestBIP44Path(BIP44.fromString(path)._unsafeUnwrap())
 		doTestBIP44Path(HDPathRadix.fromString(path)._unsafeUnwrap())
 	})
+
+	it('should not be able to specify wrong coin type for radix path', () => {
+		HDPathRadix.fromString(`m/44'/123'/0'/1/0`).match(
+			() => {
+				throw Error('expected error, but got none')
+			},
+			(f) =>
+				expect(f.message).toBe(
+					'Incorrect coin type, expected Radix coin type: 536, but got: 123',
+				),
+		)
+	})
 })

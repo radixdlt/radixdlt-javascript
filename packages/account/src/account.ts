@@ -8,7 +8,6 @@ import { mergeMap } from 'rxjs/operators'
 import { Observable, of } from 'rxjs'
 import { toObservable } from './resultAsync_observable'
 import { AccountT, HardwareWalletSimpleT } from './_types'
-import { BIP32T } from './bip32/_types'
 import { HDMasterSeedT } from './bip39/_types'
 import { HDPathRadixT } from './bip32/bip44/_types'
 
