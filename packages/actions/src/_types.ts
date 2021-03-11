@@ -19,7 +19,7 @@ export type TokensActionBase = UserAction &
 		resourceIdentifier: ResourceIdentifierT
 	}>
 
-export type TransferTokensAction = TokensActionBase &
+export type TransferTokensActionT = TokensActionBase &
 	Readonly<{
 		actionType: UserActionType.TOKEN_TRANSFER
 		recipient: AddressT

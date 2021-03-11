@@ -256,5 +256,6 @@ export const isAnySpunParticle = (
 
 export const SpunParticle = {
 	...jsonDecoding,
+	JSONDecoder,
 	SERIALIZER,
 }

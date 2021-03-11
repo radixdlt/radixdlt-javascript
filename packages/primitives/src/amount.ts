@@ -260,6 +260,7 @@ export const maxAmount = fromUInt256({
 export const Amount = {
 	JSON_TAG,
 	...jsonDecoding,
+	JSONDecoder,
 	inSmallestDenomination,
 	fromUnsafe,
 	fromUInt256,

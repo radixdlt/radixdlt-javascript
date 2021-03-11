@@ -1,30 +1,26 @@
-import { JSONDecoding } from "@radixdlt/data-formats"
 import { callAPI } from "./utils"
-import { Endpoint, ExecutedTransactionsInput, ExecutedTransactionsResponse, TokenBalancesInput, TokenBalancesResponse, UniverseMagicInput, UniverseMagicResponse } from "./_types"
-import { actionDecoder, tokenFeeDecoder } from "./decoders"
-import { ok, Result } from "neverthrow"
+import { Endpoint, ExecutedTransactions, NativeToken, TokenBalances, UniverseMagic } from "./_types"
+import { RadixJSONDecoding } from "./serialization"
 
-const handleUniverseMagicResponse = (response: unknown): Result<UniverseMagicResponse, Error[]> => ok(response as UniverseMagicResponse)
-
-const handleExecutedTransactionsResponse = (response: unknown) => 
-    JSONDecoding.withDecoders(
-        actionDecoder,
-        tokenFeeDecoder
-    ).create<ExecutedTransactionsResponse>()
-    .fromJSON(response)
-
-const handleTokenBalancesResponse = (response: unknown): Result<TokenBalancesResponse, Error[]> => ok(response as TokenBalancesResponse)
-
-const handleNativeTokenResponse = (response: unknown) => 
-    JSONDecoding.withDecoders(
-        
-    )
+const setupAPICall = (
+    call: (endpoint: Endpoint, ...params: unknown[]) => Promise<any>
+) => <I extends unknown[], R>(
+    endpoint: Endpoint
+) => callAPI<I, R>(endpoint)(
+    call,
+    RadixJSONDecoding<R>()
+)
 
 export const getAPI = (
     call: (endpoint: Endpoint, ...params: unknown[]) => Promise<any>
-) =>
-    ({
-        universeMagic: callAPI<UniverseMagicInput, UniverseMagicResponse>(Endpoint.UNIVERSE_MAGIC)(call, handleUniverseMagicResponse),
-        tokenBalances: callAPI<TokenBalancesInput, TokenBalancesResponse>(Endpoint.TOKEN_BALANCES)(call, handleTokenBalancesResponse),
-        executedTransactions: callAPI<ExecutedTransactionsInput, ExecutedTransactionsResponse>(Endpoint.EXECUTED_TXS)(call, handleExecutedTransactionsResponse),
-    })
+) => {
+    const setupAPIEndpoint = setupAPICall(call)
+
+    return {
+        universeMagic: setupAPIEndpoint<UniverseMagic.Input, UniverseMagic.Response>(Endpoint.UNIVERSE_MAGIC),
+        tokenBalances: setupAPIEndpoint<TokenBalances.Input, TokenBalances.Response>(Endpoint.TOKEN_BALANCES),
+        executedTransactions: setupAPIEndpoint<ExecutedTransactions.Input, ExecutedTransactions.Response>(Endpoint.EXECUTED_TXS),
+        nativeToken: setupAPIEndpoint<NativeToken.Input, NativeToken.Response>(Endpoint.NATIVE_TOKEN),
+        
+    }
+}

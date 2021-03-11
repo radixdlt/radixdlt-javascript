@@ -1,13 +1,20 @@
-import { AtomIdentifier } from './_types'
+import { AtomIdentifierT } from './_types'
 import { err, ok, Result } from 'neverthrow'
-import { Byte } from '@radixdlt/util'
-import { DSONObjectEncoding } from '@radixdlt/data-formats'
+import { Byte, isString } from '@radixdlt/util'
+import { decoder, DSONObjectEncoding } from '@radixdlt/data-formats'
 
 const CBOR_BYTESTRING_PREFIX: Byte = 6
 
-export const atomIdentifier = (
+const JSONDecoder = decoder<AtomIdentifierT>(
+	(value, key) => 
+		key === 'atomIdentifier' && isString(value)
+		? create(value)
+		: undefined
+)
+
+const create = (
 	bytes: Buffer | string,
-): Result<AtomIdentifier, Error> => {
+): Result<AtomIdentifierT, Error> => {
 	const buffer = typeof bytes === 'string' ? Buffer.from(bytes, 'hex') : bytes
 	const length = 32
 	if (buffer.length !== length) {
@@ -24,6 +31,11 @@ export const atomIdentifier = (
 			buffer,
 		}),
 		toString: () => asString,
-		equals: (other: AtomIdentifier) => other.toString() === asString,
+		equals: (other: AtomIdentifierT) => other.toString() === asString,
 	})
+}
+
+export const AtomIdentifier = {
+	create,
+	JSONDecoder
 }

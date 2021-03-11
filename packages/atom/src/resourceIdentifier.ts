@@ -15,10 +15,12 @@ const separator = '/'
 const CBOR_BYTESTRING_PREFIX: Byte = 6
 const JSON_TAG = ':rri:'
 
+const JSONDecoder = taggedStringDecoder(JSON_TAG)((identifier: string) =>
+	fromString(identifier),
+)
+
 const jsonDecoding = JSONDecoding.withDecoders(
-	taggedStringDecoder(JSON_TAG)((identifier: string) =>
-		fromString(identifier),
-	),
+	JSONDecoder
 ).create<ResourceIdentifierT>()
 
 const fromAddressAndName = (input: {
@@ -90,6 +92,7 @@ const fromUnsafe = (
 
 export const ResourceIdentifier = {
 	JSON_TAG,
+	JSONDecoder,
 	...jsonDecoding,
 	fromAddressAndName,
 	fromUnsafe,

@@ -1,12 +1,12 @@
 import {
 	AtomT,
-	AtomIdentifier,
+	AtomIdentifierT,
 	ParticleGroups,
 	Signatures,
 	ParticleGroupT,
 	SERIALIZER_KEY,
 } from './_types'
-import { atomIdentifier } from './atomIdentifier'
+import { AtomIdentifier } from './atomIdentifier'
 import { particleGroups } from './particleGroups'
 import {
 	DSONCodable,
@@ -25,7 +25,7 @@ const isSigned = (signatures: Signatures): boolean => {
 }
 
 // TODO implemented when we have DSON encoding of Atom.
-const mockedAtomIdentifier = atomIdentifier(
+const mockedAtomIdentifier = AtomIdentifier.create(
 	'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
 )._unsafeUnwrap()
 
@@ -78,7 +78,7 @@ const create = (input: Input): AtomT => {
 		equals: (_other: AtomT): boolean => {
 			throw new Error('implemented below')
 		},
-		identifier: (): AtomIdentifier => mockedAtomIdentifier,
+		identifier: (): AtomIdentifierT => mockedAtomIdentifier,
 		isSigned: () => isSigned(signatures),
 		...particleGroups_, // makes AtomT `SpunParticleQueryable`
 	}
@@ -94,4 +94,5 @@ export const Atom = {
 	SERIALIZER,
 	...jsonDecoding,
 	create,
+	JSONDecoder
 }

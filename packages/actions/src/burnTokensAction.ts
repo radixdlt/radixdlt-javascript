@@ -11,9 +11,9 @@ import { Address } from 'packages/account/src/address'
 import { isObject } from '@radixdlt/util'
 import { ok } from 'neverthrow'
 
-const JSONDecoder: Decoder = (value, key) =>
+const JSONDecoder: Decoder = value =>
 	isObject(value) && value['actionType'] === UserActionType.BURN_TOKENS
-	? ok(create(value))
+	? ok(create(value as BurnTokensActionInput))
 	: undefined
 
 const decoding = JSONDecoding
@@ -22,7 +22,10 @@ const decoding = JSONDecoding
 		Amount,
 		Address,
 	)
-	.withDecoders()
+	.withDecoders(
+		JSONDecoder
+	)
+	.create()
 
 export const create = (
 	input: BurnTokensActionInput,
@@ -40,5 +43,6 @@ export const create = (
 
 export const BurnTokensAction = {
 	create,
-
+	...decoding,
+	JSONDecoder
 }

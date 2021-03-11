@@ -164,5 +164,6 @@ const decoding = JSONDecoding.withDecoders(JSONDecoder).create<AddressT>()
 
 export const Address = {
 	JSON_TAG,
+	JSONDecoder,
 	...decoding,
 }
