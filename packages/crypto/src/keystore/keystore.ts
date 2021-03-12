@@ -1,13 +1,10 @@
 import { err, ResultAsync, ok, Result } from 'neverthrow'
-import { KeystoreCryptoT, KeystoreT } from './_types'
+import { KeystoreT } from './_types'
 import { AES_GCM } from '../symmetric-encryption/aes/aesGCM'
-import { ScryptParams } from '../key-derivation-functions/scryptParams'
 import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
 import { ScryptParamsT } from '../key-derivation-functions/_types'
-import { Scrypt } from '../key-derivation-functions/_index'
+import { Scrypt, ScryptParams } from '../key-derivation-functions/scrypt'
 import { v4 as uuidv4 } from 'uuid'
-import { FileHandle, readFile } from 'fs/promises'
-import { PathLike } from 'fs'
 
 const minimumPasswordLength = 8
 
