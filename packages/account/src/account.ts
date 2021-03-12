@@ -8,36 +8,44 @@ import { mergeMap } from 'rxjs/operators'
 import { Observable, of } from 'rxjs'
 import { toObservable } from './resultAsync_observable'
 import { AccountT, HardwareWalletSimpleT } from './_types'
-import { BIP32T } from './bip32/_types'
-import { AccountId } from './accountId'
 import { HDMasterSeedT } from './bip39/_types'
+import { HDPathRadixT } from './bip32/bip44/_types'
 
-const fromPrivateKey = (privateKey: PrivateKey): AccountT => {
+const fromPrivateKey = (
+	privateKey: PrivateKey,
+	hdPath: HDPathRadixT,
+): AccountT => {
 	const publicKey: PublicKey = privateKey.publicKey()
 	const sign = (m: UnsignedMessage): Observable<Signature> =>
 		toObservable(privateKey.sign(m))
 
-	const accountId = AccountId.create(publicKey)
-
 	return {
 		sign: sign,
-		accountId: accountId,
+		hdPath,
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		equals: (other: any): boolean => {
+			if (!isAccount(other)) return false
+			return other.hdPath.equals(hdPath)
+		},
 		derivePublicKey: () => of(publicKey),
 	}
 }
 
 const fromHDPathWithHardwareWallet = (
 	input: Readonly<{
-		hdPath: BIP32T
+		hdPath: HDPathRadixT
 		onHardwareWalletConnect: Observable<HardwareWalletSimpleT>
 	}>,
 ): AccountT => {
-	const accountId = AccountId.create(input.hdPath)
-
 	const hardwareWallet$ = input.onHardwareWalletConnect
 
 	return {
-		accountId,
+		hdPath: input.hdPath,
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		equals: (other: any): boolean => {
+			if (!isAccount(other)) return false
+			return other.hdPath.equals(input.hdPath)
+		},
 		sign: (unsignedMessage: UnsignedMessage): Observable<Signature> =>
 			hardwareWallet$.pipe(
 				mergeMap((hw: HardwareWalletSimpleT) =>
@@ -55,19 +63,24 @@ const fromHDPathWithHardwareWallet = (
 
 const fromHDPathWithHDMasterSeed = (
 	input: Readonly<{
-		hdPath: BIP32T
+		hdPath: HDPathRadixT
 		hdMasterSeed: HDMasterSeedT
 	}>,
 ): AccountT => {
 	const hdNodeAtPath = input.hdMasterSeed.masterNode().derive(input.hdPath)
-	return {
-		...fromPrivateKey(hdNodeAtPath.privateKey),
-		accountId: AccountId.create(input.hdPath),
-	}
+	return fromPrivateKey(hdNodeAtPath.privateKey, input.hdPath)
+}
+
+export const isAccount = (something: unknown): something is AccountT => {
+	const inspection = something as AccountT
+	return (
+		inspection.hdPath !== undefined &&
+		inspection.derivePublicKey !== undefined &&
+		inspection.sign !== undefined
+	)
 }
 
 export const Account = {
-	fromPrivateKey,
 	fromHDPathWithHardwareWallet,
 	fromHDPathWithHDMasterSeed,
 }

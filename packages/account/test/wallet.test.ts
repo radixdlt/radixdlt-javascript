@@ -1,143 +1,130 @@
-import { generatePrivateKey, PrivateKey } from '@radixdlt/crypto'
-import { EMPTY } from 'rxjs'
+import { Keystore } from '@radixdlt/crypto'
+import { Observable, of } from 'rxjs'
 import { WalletT } from '../src/_types'
 import { Wallet } from '../src/wallet'
-import { Account } from '../src/account'
-import { BIP44 } from '../src/bip32/bip44/bip44'
+import { Mnemomic } from '../src/bip39/mnemonic'
+import { HDMasterSeed } from '../src/bip39/hdMasterSeed'
+import { HDMasterSeedT } from '../src/bip39/_types'
+import { AccountT, MasterSeedProviderT } from '../dist/_types'
+import { MasterSeedProvider } from '../dist/hdMasterNodeProvider'
+import {
+	share,
+	skipUntil,
+	skipWhile,
+	take,
+	takeLast,
+	toArray,
+} from 'rxjs/operators'
+import { Int32 } from '../dist/bip32/_types'
 
-const walletByAddingAccountFromPrivateKey = (privateKey: PrivateKey): WalletT =>
-	Wallet.create({
-		accounts: [Account.fromPrivateKey(privateKey)],
+const createWallet = (): WalletT => {
+	const mnemonic = Mnemomic.generateNew()
+	const masterSeed: HDMasterSeedT = HDMasterSeed.fromMnemonic({ mnemonic })
+	const masterSeedProvider: MasterSeedProviderT = {
+		masterSeed: (): Observable<HDMasterSeedT> =>
+			of(masterSeed).pipe(share()),
+	}
+	return Wallet.create({ masterSeedProvider })
+}
+
+describe('HD Wallet', () => {
+	it('can be created via keystore', async (done) => {
+		const mnemonic = Mnemomic.generateNew()
+		const masterSeed: HDMasterSeedT = HDMasterSeed.fromMnemonic({
+			mnemonic,
+		})
+		const password = 'super secret password'
+		const keystoreResult = await Keystore.encryptSecret({
+			secret: masterSeed.seed,
+			password,
+		}).map((keystore) => {
+			// Save 'keystore' as .json file on disc
+			const masterSeedProvider = MasterSeedProvider.withKeyStore({
+				keystore,
+				password,
+			})
+			return Wallet.create({ masterSeedProvider })
+		})
+
+		keystoreResult.match(
+			(wallet) => {
+				expect(wallet).toBeDefined()
+				done()
+			},
+			(e) => done(e),
+		)
 	})
 
-describe('wallet', () => {
 	it('can observe accounts', (done) => {
-		const pk1 = generatePrivateKey()
-		const publicKey = pk1.publicKey()
-		const wallet = walletByAddingAccountFromPrivateKey(pk1)
+		const wallet = createWallet()
 		wallet.observeAccounts().subscribe((result) => {
 			expect(result.all.length).toBe(1)
-			const a0 = result.get(pk1.publicKey()).getOrThrow()
-			expect(a0!.accountId.accountIdString).toBe(publicKey.toString())
-			done()
-		})
-	})
-
-	it('can be created empty', (done) => {
-		const wallet = Wallet.create({ accounts: [] })
-		wallet.observeAccounts().subscribe((result) => {
-			expect(result.all.length).toBe(0)
 			done()
 		})
 	})
 
 	it('can observe active account', (done) => {
-		const pk1 = generatePrivateKey()
-		const publicKey = pk1.publicKey()
-		const wallet = walletByAddingAccountFromPrivateKey(pk1)
+		const wallet = createWallet()
 
 		wallet.observeActiveAccount().subscribe((active) => {
-			expect(active.accountId.accountIdString).toBe(publicKey.toString())
+			expect(active.hdPath.addressIndex.value()).toBe(0)
 			done()
 		})
 	})
 
-	it('when created with multiple accounts, the first one gets selected', (done) => {
-		const pk1 = generatePrivateKey()
-		const pk2 = generatePrivateKey()
-
-		const wallet = Wallet.create({
-			accounts: [
-				Account.fromPrivateKey(pk1),
-				Account.fromPrivateKey(pk2),
-			],
-		})
+	it('should derive next but not switch to it by default', (done) => {
+		const wallet = createWallet()
+		wallet.deriveNext()
 
 		wallet.observeActiveAccount().subscribe((active) => {
-			expect(active.accountId.accountIdString).toBe(
-				pk1.publicKey().toString(),
-			)
+			expect(active.hdPath.addressIndex.value()).toBe(0)
 			done()
 		})
 	})
 
-	it('for empty wallets when adding an account the wallet automatically sets it as the active account after subscription', (done) => {
-		const wallet = Wallet.create({ accounts: [] })
+	it('should derive next and switch to it if specified', async (done) => {
+		const wallet = createWallet()
+		wallet.deriveNext({ alsoSwitchTo: true })
 
-		wallet.observeActiveAccount().subscribe((active) => {
-			expect(active.accountId.accountIdString).toBe(
-				pk1.publicKey().toString(),
-			)
-			done()
-		})
-
-		const pk1 = generatePrivateKey()
-		const addResult = wallet.addAccountByPrivateKey(pk1)
-		expect(addResult.isOk()).toBe(true)
-	})
-
-	it('for empty wallets when adding an account the wallet automatically sets it as the active account even before subscription', (done) => {
-		const wallet = Wallet.create({ accounts: [] })
-
-		const pk1 = generatePrivateKey()
-		const addResult = wallet.addAccountByPrivateKey(pk1)
-		expect(addResult.isOk()).toBe(true)
-		wallet.observeActiveAccount().subscribe((active) => {
-			expect(active.accountId.accountIdString).toBe(
-				pk1.publicKey().toString(),
-			)
-			done()
+		wallet.observeActiveAccount().subscribe({
+			next: (active) => {
+				expect(active.hdPath.addressIndex.value()).toBe(1)
+				done()
+			},
+			error: (e) => done(e),
 		})
 	})
 
 	it('can list all accounts that has been added', (done) => {
-		const wallet = Wallet.create({ accounts: [] })
-		const size = 3
-		Array.from({ length: size })
-			.map((_) => generatePrivateKey())
-			.forEach(wallet.addAccountByPrivateKey)
+		const wallet = createWallet()
+		wallet.deriveNext()
+		wallet.deriveNext()
 
 		wallet.observeAccounts().subscribe((result) => {
-			expect(result.all.length).toBe(size)
+			expect(result.all.length).toBe(3)
 			done()
 		})
 	})
 
-	it('prevents adding of same account twice', (done) => {
-		const pk1 = generatePrivateKey()
-		const wallet = walletByAddingAccountFromPrivateKey(pk1)
-		const addResult = wallet.addAccountByPrivateKey(pk1)
+	it('can switch account by number', (done) => {
+		const wallet = createWallet()
 
-		addResult.match(
-			() => {
-				throw Error('expected error, but got none')
-			},
-			(e) => expect(e.message).toBe(`Account already added in wallet.`),
-		)
+		const expectedAccountAddressIndices = [0, 1, 0]
 
-		wallet.observeAccounts().subscribe((result) => {
-			expect(result.all.length).toBe(1)
-			done()
-		})
-	})
+		wallet
+			.observeActiveAccount()
+			.pipe(take(expectedAccountAddressIndices.length), toArray())
+			.subscribe({
+				next: (accountList) => {
+					expect(
+						accountList.map((a) => a.hdPath.addressIndex.value()),
+					).toStrictEqual(expectedAccountAddressIndices)
+					done()
+				},
+				error: (e) => done(e),
+			})
 
-	it('can add hd accounts', (done) => {
-		const wallet = Wallet.create({ accounts: [] })
-		const hdPath = BIP44.create({ address: { index: 237 } })
-
-		const hdAccount = Account.fromHDPathWithHardwareWallet({
-			hdPath,
-			onHardwareWalletConnect: EMPTY,
-		})
-
-		const addResult = wallet.addAccount(hdAccount)
-		expect(addResult.isOk()).toBe(true)
-
-		wallet.observeActiveAccount().subscribe((active) => {
-			expect(active.accountId.accountIdString).toBe(
-				`m/44'/536'/0'/0/237'`,
-			)
-			done()
-		})
+		wallet.deriveNext({ alsoSwitchTo: true })
+		wallet.switchAccount({ to: 0 })
 	})
 })

@@ -1,92 +1,177 @@
-import { Observable, BehaviorSubject, ReplaySubject } from 'rxjs'
+import {
+	Observable,
+	BehaviorSubject,
+	ReplaySubject,
+	of,
+	Subscription,
+} from 'rxjs'
 import { Account } from './account'
-import { AccountIdT, AccountsT, AccountT, WalletT } from './_types'
-import { mergeMap, map } from 'rxjs/operators'
-import { PublicKey } from '@radixdlt/crypto'
-import { BIP32T } from './_index'
-import { AccountId } from './accountId'
+import {
+	AccountIndexPosition,
+	AccountsT,
+	AccountT,
+	MasterSeedProviderT,
+	TargetAccountIndexT,
+	WalletT,
+} from './_types'
+import {
+	mergeMap,
+	map,
+	tap,
+	distinctUntilChanged,
+	share,
+	shareReplay,
+} from 'rxjs/operators'
+import { PublicKey, Signature, UnsignedMessage } from '@radixdlt/crypto'
 import { Option } from 'prelude-ts'
-import { ValidationWitness } from '@radixdlt/util'
-import { Result, err, ok } from 'neverthrow'
+import { HDPathRadix, HDPathRadixT } from './bip32/_index'
+import { isAccount } from './account'
+import { throwError } from 'rxjs'
+import { Int32 } from './bip32/_types'
+import { arraysEqual } from '@radixdlt/util'
 
 // eslint-disable-next-line max-lines-per-function
 const create = (
 	input: Readonly<{
-		accounts: AccountT[]
+		masterSeedProvider: MasterSeedProviderT
 	}>,
 ): WalletT => {
-	const activeAccountSubject = new ReplaySubject<AccountT>()
+	const subs = new Subscription()
+	const hdMasterSeed = input.masterSeedProvider
+		.masterSeed()
+		.pipe(shareReplay(1))
+	hdMasterSeed.subscribe().add(subs)
 
-	const accountsSubject = new BehaviorSubject<Map<string, AccountT>>(
+	const activeAccountSubject = new ReplaySubject<AccountT>(1)
+
+	const accountsSubject = new BehaviorSubject<Map<HDPathRadixT, AccountT>>(
 		new Map(),
 	)
+	const numberOfAccounts = (): number => accountsSubject.getValue().size
 
-	const addAccountOnDuplicatesSkip = (newAccount: AccountT): void => {
-		const accountsMap = accountsSubject.getValue()
-		if (accountsMap.has(newAccount.accountId.accountIdString)) {
-			// Skip and don't falsly notify 'accountsSubject' about new account, since it is not new.
-			return
-		}
-		const wasEmpty = accountsMap.size === 0
-		accountsMap.set(newAccount.accountId.accountIdString, newAccount)
-		accountsSubject.next(accountsMap)
-		if (wasEmpty) {
-			activeAccountSubject.next(newAccount)
-		}
+	// A HOT observable
+	const _deriveWithPath = (
+		input: Readonly<{
+			hdPath: HDPathRadixT
+			alsoSwitchTo?: boolean // defaults to false
+		}>,
+	): Observable<AccountT> => {
+		const newAccount$ = hdMasterSeed.pipe(
+			map((seed) => ({ hdMasterSeed: seed, hdPath: input.hdPath })),
+			map(Account.fromHDPathWithHDMasterSeed),
+			tap({
+				next: (account) => {
+					const accounts = accountsSubject.getValue()
+					accounts.set(account.hdPath, account)
+					accountsSubject.next(accounts)
+
+					if (input.alsoSwitchTo === true) {
+						activeAccountSubject.next(account)
+					}
+				},
+			}),
+			share(),
+		)
+		newAccount$.subscribe().add(subs)
+		return newAccount$
 	}
 
-	input.accounts.forEach(addAccountOnDuplicatesSkip)
-	const addAccount = (
-		newAccount: AccountT,
-	): Result<ValidationWitness, Error> => {
-		const accountsMap = accountsSubject.getValue()
-		if (accountsMap.has(newAccount.accountId.accountIdString)) {
-			return err(new Error('Account already added in wallet.'))
-		}
-		addAccountOnDuplicatesSkip(newAccount)
-		return ok({ witness: 'Account added' })
-	}
+	const _deriveAtIndex = (
+		input: Readonly<{
+			addressIndex: Readonly<{
+				index: Int32
+				isHardened?: boolean // defaults to true
+			}>
+			alsoSwitchTo?: boolean // defaults to false
+		}>,
+	): Observable<AccountT> =>
+		_deriveWithPath({
+			hdPath: HDPathRadix.create({
+				address: input.addressIndex,
+			}),
+			alsoSwitchTo: input.alsoSwitchTo,
+		})
 
-	const changeToUnsafe = (to: AccountT): void => {
-		if (!accountsSubject.getValue().has(to.accountId.accountIdString)) {
-			throw new Error('Account not found')
-		}
-		activeAccountSubject.next(to)
+	const deriveNext = (
+		input?: Readonly<{
+			isHardened?: boolean // defaults to true
+			alsoSwitchTo?: boolean // defaults to false
+		}>,
+	): Observable<AccountT> => {
+		return _deriveAtIndex({
+			addressIndex: {
+				index: numberOfAccounts(),
+				isHardened: input?.isHardened ?? true,
+			},
+			alsoSwitchTo: input?.alsoSwitchTo,
+		})
 	}
-
-	const changeAccount = (to: AccountT): Result<ValidationWitness, Error> => {
-		if (!accountsSubject.getValue().has(to.accountId.accountIdString)) {
-			return err(
-				new Error('Unknown account, did you mean to add it first?'),
+	const switchAccount = (
+		input: Readonly<{ to: AccountT | TargetAccountIndexT }>,
+	): Observable<AccountT> => {
+		const targetAccountInput = input.to
+		if (isAccount(targetAccountInput)) {
+			activeAccountSubject.next(targetAccountInput)
+			return of(targetAccountInput)
+		} else if (typeof targetAccountInput === 'number') {
+			const unsorted = accountsSubject.getValue()
+			const sortedKeys = [...unsorted.keys()].sort((a, b) =>
+				Math.min(a.addressIndex.value(), b.addressIndex.value()),
 			)
+			const firstAccount = unsorted.get(sortedKeys[0])
+			if (!firstAccount) {
+				return throwError(() => new Error('No accounts...'))
+			}
+			return switchAccount({ to: firstAccount })
+		} else {
+			const accountIndexPosition = targetAccountInput as AccountIndexPosition
+			switch (accountIndexPosition) {
+				case AccountIndexPosition.FIRST: {
+					return switchAccount({ to: 0 })
+				}
+				case AccountIndexPosition.LAST: {
+					return switchAccount({ to: numberOfAccounts() - 1 })
+				}
+			}
 		}
-		changeToUnsafe(to)
-		return ok({ witness: 'Changed to account' })
 	}
+
+	// Start by deriving first index (0).
+	deriveNext({ alsoSwitchTo: true })
 
 	const observeActiveAccount = (): Observable<AccountT> =>
-		activeAccountSubject.asObservable()
-
-	if (input.accounts.length > 0) changeToUnsafe(input.accounts[0])
+		activeAccountSubject
+			.asObservable()
+			.pipe(
+				distinctUntilChanged((a: AccountT, b: AccountT) => a.equals(b)),
+			)
 
 	const observeAccounts = (): Observable<AccountsT> =>
 		accountsSubject.asObservable().pipe(
-			map((map: Map<string, AccountT>) => ({
-				get: (id: AccountIdT | PublicKey | BIP32T): Option<AccountT> =>
-					Option.of(map.get(AccountId.create(id).accountIdString)),
-				all: Array.from(map.values()),
-			})),
+			map(
+				(map): AccountsT => ({
+					get: (hdPath: HDPathRadixT): Option<AccountT> =>
+						Option.of(map.get(hdPath)),
+					all: Array.from(map.values()),
+				}),
+			),
+			distinctUntilChanged((a: AccountsT, b: AccountsT): boolean =>
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-call
+				arraysEqual(a.all, b.all),
+			),
 		)
 
 	return {
-		changeAccount,
-		addAccount,
+		deriveNext,
+		switchAccount,
 		observeActiveAccount,
-		addAccountByPrivateKey: (pk) => addAccount(Account.fromPrivateKey(pk)),
 		observeAccounts,
-		derivePublicKey: () =>
+		derivePublicKey: (): Observable<PublicKey> =>
 			observeActiveAccount().pipe(mergeMap((a) => a.derivePublicKey())),
-		sign: (m) => observeActiveAccount().pipe(mergeMap((a) => a.sign(m))),
+		sign: (unsignedMessage: UnsignedMessage): Observable<Signature> =>
+			observeActiveAccount().pipe(
+				mergeMap((a) => a.sign(unsignedMessage)),
+			),
 	}
 }
 

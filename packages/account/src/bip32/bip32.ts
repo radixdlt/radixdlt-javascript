@@ -6,15 +6,30 @@ import { ValidationWitness } from '@radixdlt/util'
 const pathSeparator = '/'
 const hardener = `'`
 
-export const unsafeCreate = (
-	pathComponents: BIP32PathComponentT[],
-): BIP32T => ({
-	pathComponents,
-	toString: (): string =>
+const isBIP32 = (something: unknown): something is BIP32T => {
+	const inspection = something as BIP32T
+	return (
+		inspection.pathComponents !== undefined &&
+		inspection.toString !== undefined
+	)
+}
+
+export const unsafeCreate = (pathComponents: BIP32PathComponentT[]): BIP32T => {
+	const toString = (): string =>
 		'm' +
 		pathSeparator +
-		pathComponents.map((pc) => pc.toString()).join(pathSeparator),
-})
+		pathComponents.map((pc) => pc.toString()).join(pathSeparator)
+
+	return {
+		pathComponents,
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		equals: (other: any): boolean => {
+			if (!isBIP32(other)) return false
+			return other.toString() === toString()
+		},
+		toString,
+	}
+}
 
 const validateLevels = (
 	pathComponents: BIP32PathComponentT[],
@@ -40,6 +55,11 @@ const fromString = (path: string): Result<BIP32T, Error> => {
 	if (bip32Path === '' || bip32Path === 'm' || bip32Path === pathSeparator) {
 		return ok({
 			pathComponents: [],
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			equals: (other: any): boolean => {
+				if (!isBIP32(other)) return false
+				return other.toString() === 'm'
+			},
 			toString: (): string => 'm',
 		})
 	}

@@ -95,43 +95,61 @@ Here follows the generation of a new mnemonic, derivation of HD master seed and 
 ```typescript
 import { Mnemonic, Strength, Language } from '@radixdlt/account'
 
-const mnemonic = Mnemomic.generateNew({ 
-	strength: Strength.WORD_COUNT_24, // OPTIONAL, defaults to 24 words
-	language: Language.ENGLISH // OPTIONAL, defaults to English 
-})
+const mnemonic = Mnemomic.generateNew()
 
-// This is NOT the application password (1️⃣)
-const bip39Passphrase = 'qwertyuiop'
-
-// ⚠️ Require user to backup mnemonic and passphrase. She will NEVER be able to re-view it.
+// ⚠️ Require user to backup mnemonic. She will NEVER be able to re-view it.
 const hdMasterSeed = HDMasterSeed.fromMnemonic({
 	mnemonic: mnemonic,
-	passphrase: bip39Passphrase // OPTIONAL
 })
 
 // This will be our "application password" (2️⃣)
 const keystoreEncryptionPassword = 'my super strong randomly generated probably over 50 chars long encryption password'
 
-const keystore = Keystore.encryptingHDMasterSeed({
-	hdMasterSeed: hdMasterSeed,
-	password: keystoreEncryptionPassword  // REQUIRED
+// `walletCreationResult` has type `ResultAsync<WalletT, Error>`
+// `ResultAsync`: github.com/supermacro/neverthrow (3️⃣)
+const walletCreationResult = await Keystore.encryptSecret({
+	secret: masterSeed.seed,
+	password
+}).map((keystore) => {
+	// Save 'keystore' as .json file on disc
+	const masterSeedProvider = MasterSeedProvider.withKeyStore({ keystore, password })
+	return Wallet.create({ masterSeedProvider })
 })
 
-// ⚠️ If user failed to back-up mnemonic and forgets `keystoreEncryptionPassword` she will NOT be able to recover her funds.
+if (walletCreationResult.isOK()) {
+	// do something with 'wallet'
+} else {
+	console.log(`🤷‍♂️ Failed to create wallet: ${walletCreationResult.error}`)
+}
+```
 
-const wallet = Wallet.create({ 
-	keystore: keystore,
-	// HD path (BIP44): `m/44'/536'/0'/0/0`
-	startAt: { // OPTIONAL, defaults to { index: 0, hardened: false }
-		addressIndex: 0,
-		hardened: false,
-	}
-})
+### Open wallet (app start)
+```typescript
+
+// Each time GUI wallet starts
+
+// Ask user for encryption password in GUI
+const keystoreEncryptionPassword = ...
+
+// `walletFromKeystoreResult` has type `ResultAsync<WalletT, Error>`
+const walletFromKeystoreResult = await Keystore.fromFile('keystore.json')
+    .andThen((keystore) => Wallet.fromKeystore({
+	    keystore,
+	    password: keystoreEncryptionPassword
+    })
+
+if (walletFromKeystoreResult.isOK()) {
+	// do something with 'wallet'
+} else {
+	console.log(`🤷‍♂️ Failed to create wallet from keystore: ${walletCreationResult.error}`)
+}
 ```
 
 1️⃣: The `bip39Passphrase` provides an additional "word" (not a necessarily a word) to the Mnemonic words for more info please read [this section in BIP-39 doc](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki#from-mnemonic-to-seed).
 
 2️⃣ The `keystoreEncryptionPassword` will be needed everytime the user re-opens the wallet app after having terminated it. It's used to _decrypt_ the encrypted `hdMasterSeed`. Remember, the keystore is just a JSON file containing an encrypted ciphertext, and metadata about the encrypted used to derive said cihpertext. The ciphertext itself is the BIP39 "seed", not the entropy/mnemonic itself. The raw entropy and the mnemonic words/phrase is the very same thing! The mnemonic is just a easy-to-remember-mapping from bits to words! The seed, however, is a hashing of the entropy, so we can _**N E V E R**_ recover the mnemonic(=entropy) from the seed. Storing the seed (encrypted, of course!) should be consider just very slightly more safe then storing the entropy. But if attacker gets access of the seed, it is game over anyway, because the seed can be used to recover every singly account the user has.
+
+3️⃣ Read more about [`Result` / `ResultAsync`](https://github.com/supermacro/neverthrow)
 
 ## Observe address
 
@@ -149,7 +167,7 @@ const radix = Radix.create({
 // "streams" of events, when user changes active account in wallet
 // this observable stream will emit the new address for the new account.
 const address$: Observable<Address> = radix.observeActiveAddress()
-// 💡 Trailing `$` for `Observable` variables (3️⃣)
+// 💡 Trailing `$` for `Observable` variables (4️⃣)
 
 const subs = new Subscription()
 
@@ -165,11 +183,33 @@ radix.wallet.deriveNext({ alsoSwitchTo: true })
 radix.wallet.deriveNext({ alsoSwitchTo: true })
 // '🙋🏽‍♀️ My address is: 9SAihkYQDBKvHfhvwEw4QBfx1rpjvta2TvmWibyXixVzX2JHHHWf'
 
-radix.wallet.changeAccount(AccountIndex.FIRST)
+radix.wallet.switchAccount({ to: AccountIndexPosition.FIRST })
 // '🙋🏽‍♀️ My address is: 9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT'
 ```
 
-3️⃣ The notation of using trailing `$` for `Observable` variables is documented by [Cycle.js](https://cycle.js.org/) and [Angular](https://angular.io/guide/rx-library#naming-conventions-for-observables)
+4️⃣ The notation of using trailing `$` for `Observable` variables is documented by [Cycle.js](https://cycle.js.org/) and [Angular](https://angular.io/guide/rx-library#naming-conventions-for-observables)
+
+### Account switching
+Alternatives to the `switchAccount` call on the last line in the code block above:
+
+```typescript
+// SAME AS
+radix.wallet.switchAccount({ to: 0 })
+// SAME AS
+const theAccountAtIndex0: AccountT = ... // you will have access to this from UI wallet, the list of the accounts, see `Observe Accounts` section below.
+radix.wallet.switchAccount({ to: theAccountAtIndex0 })
+```
+
+Now it might not be clear why you would wanna use `{ to: AccountIndexPosition.FIRST }` instead of `{ to: 0}`, but the enum `AccountIndexPosition` also contains the case `LAST`, which is convenient. Compare:
+
+```typescript
+// Instead of
+const numberOfAccounts = ... // you will have access to this from UI wallet, the list of the accounts, see `Observe Accounts` section below.
+radix.wallet.switchAccount({ to: numberOfAccounts - 1 })
+
+// You can simply call:
+radix.wallet.switchAccount({ to: AccountIndexPosition.LAST })
+```
 
 ## Observe Accounts
 
