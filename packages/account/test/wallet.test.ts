@@ -7,14 +7,22 @@ import { HDMasterSeed } from '../src/bip39/hdMasterSeed'
 import { HDMasterSeedT } from '../src/bip39/_types'
 import { AccountT, MasterSeedProviderT } from '../dist/_types'
 import { MasterSeedProvider } from '../dist/hdMasterNodeProvider'
-import { share, skipUntil, skipWhile, take, takeLast, toArray } from "rxjs/operators";
+import {
+	share,
+	skipUntil,
+	skipWhile,
+	take,
+	takeLast,
+	toArray,
+} from 'rxjs/operators'
 import { Int32 } from '../dist/bip32/_types'
 
 const createWallet = (): WalletT => {
 	const mnemonic = Mnemomic.generateNew()
 	const masterSeed: HDMasterSeedT = HDMasterSeed.fromMnemonic({ mnemonic })
 	const masterSeedProvider: MasterSeedProviderT = {
-		masterSeed: (): Observable<HDMasterSeedT> => of(masterSeed).pipe(share()),
+		masterSeed: (): Observable<HDMasterSeedT> =>
+			of(masterSeed).pipe(share()),
 	}
 	return Wallet.create({ masterSeedProvider })
 }
