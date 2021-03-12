@@ -1,7 +1,7 @@
 import { scrypt } from 'crypto'
 import { ResultAsync, errAsync } from 'neverthrow'
 import { ScryptParamsT } from './_types'
-import { SecureRandom, secureRandomGenerator } from "@radixdlt/util";
+import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
 
 const deriveKey = (
 	input: Readonly<{

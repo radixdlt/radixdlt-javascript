@@ -9,11 +9,7 @@ import {
 	WalletT,
 } from './_types'
 import { mergeMap, map, tap, distinctUntilChanged } from 'rxjs/operators'
-import {
-	PublicKey,
-	Signature,
-	UnsignedMessage,
-} from '@radixdlt/crypto'
+import { PublicKey, Signature, UnsignedMessage } from '@radixdlt/crypto'
 import { Option } from 'prelude-ts'
 import { HDPathRadix, HDPathRadixT } from './bip32/_index'
 import { isAccount } from './account'
@@ -123,11 +119,10 @@ const create = (
 	const subscription = initialAccount$.subscribe()
 
 	const observeActiveAccount = (): Observable<AccountT> =>
-		activeAccountSubject
-			.asObservable()
-			// .pipe(
-			// 	distinctUntilChanged((a: AccountT, b: AccountT) => a.equals(b)),
-			// )
+		activeAccountSubject.asObservable()
+	// .pipe(
+	// 	distinctUntilChanged((a: AccountT, b: AccountT) => a.equals(b)),
+	// )
 
 	const observeAccounts = (): Observable<AccountsT> =>
 		accountsSubject.asObservable().pipe(

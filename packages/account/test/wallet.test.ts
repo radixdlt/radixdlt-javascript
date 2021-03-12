@@ -1,14 +1,14 @@
-import { Keystore } from "@radixdlt/crypto";
+import { Keystore } from '@radixdlt/crypto'
 import { Observable, of } from 'rxjs'
 import { WalletT } from '../src/_types'
 import { Wallet } from '../src/wallet'
 import { Mnemomic } from '../src/bip39/mnemonic'
 import { HDMasterSeed } from '../src/bip39/hdMasterSeed'
 import { HDMasterSeedT } from '../src/bip39/_types'
-import { AccountT, MasterSeedProviderT } from "../dist/_types";
-import { MasterSeedProvider } from "../dist/hdMasterNodeProvider";
-import { skipUntil, skipWhile, take, takeLast, toArray } from "rxjs/operators";
-import { Int32 } from "../dist/bip32/_types";
+import { AccountT, MasterSeedProviderT } from '../dist/_types'
+import { MasterSeedProvider } from '../dist/hdMasterNodeProvider'
+import { skipUntil, skipWhile, take, takeLast, toArray } from 'rxjs/operators'
+import { Int32 } from '../dist/bip32/_types'
 
 const createWallet = (): WalletT => {
 	const mnemonic = Mnemomic.generateNew()
@@ -20,17 +20,21 @@ const createWallet = (): WalletT => {
 }
 
 describe('HD Wallet', () => {
-
 	it('can be created via keystore', async (done) => {
 		const mnemonic = Mnemomic.generateNew()
-		const masterSeed: HDMasterSeedT = HDMasterSeed.fromMnemonic({ mnemonic })
+		const masterSeed: HDMasterSeedT = HDMasterSeed.fromMnemonic({
+			mnemonic,
+		})
 		const password = 'super secret password'
 		const keystoreResult = await Keystore.encryptSecret({
 			secret: masterSeed.seed,
-			password
+			password,
 		}).map((keystore) => {
 			// Save 'keystore' as .json file on disc
-			const masterSeedProvider = MasterSeedProvider.withKeyStore({ keystore, password })
+			const masterSeedProvider = MasterSeedProvider.withKeyStore({
+				keystore,
+				password,
+			})
 			return Wallet.create({ masterSeedProvider })
 		})
 
@@ -79,7 +83,7 @@ describe('HD Wallet', () => {
 				expect(active.hdPath.addressIndex.value()).toBe(1)
 				done()
 			},
-			error: (e) => done(e)
+			error: (e) => done(e),
 		})
 	})
 
@@ -99,19 +103,20 @@ describe('HD Wallet', () => {
 
 		const expectedAccountAddressIndices = [0, 1, 0]
 
-		wallet.observeActiveAccount().pipe(
-			take(expectedAccountAddressIndices.length),
-			toArray()
-		).subscribe({
-			next: (accountList) => {
-				expect(accountList.map(a => a.hdPath.addressIndex.value())).toStrictEqual(expectedAccountAddressIndices)
-				done()
-			},
-			error: (e) => done(e)
-		})
+		wallet
+			.observeActiveAccount()
+			.pipe(take(expectedAccountAddressIndices.length), toArray())
+			.subscribe({
+				next: (accountList) => {
+					expect(
+						accountList.map((a) => a.hdPath.addressIndex.value()),
+					).toStrictEqual(expectedAccountAddressIndices)
+					done()
+				},
+				error: (e) => done(e),
+			})
 
 		wallet.deriveNext({ alsoSwitchTo: true }).subscribe()
 		wallet.switchAccount({ to: 0 }).subscribe()
-
 	})
 })
