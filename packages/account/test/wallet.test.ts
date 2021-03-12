@@ -7,14 +7,14 @@ import { HDMasterSeed } from '../src/bip39/hdMasterSeed'
 import { HDMasterSeedT } from '../src/bip39/_types'
 import { AccountT, MasterSeedProviderT } from '../dist/_types'
 import { MasterSeedProvider } from '../dist/hdMasterNodeProvider'
-import { skipUntil, skipWhile, take, takeLast, toArray } from 'rxjs/operators'
+import { share, skipUntil, skipWhile, take, takeLast, toArray } from "rxjs/operators";
 import { Int32 } from '../dist/bip32/_types'
 
 const createWallet = (): WalletT => {
 	const mnemonic = Mnemomic.generateNew()
 	const masterSeed: HDMasterSeedT = HDMasterSeed.fromMnemonic({ mnemonic })
 	const masterSeedProvider: MasterSeedProviderT = {
-		masterSeed: (): Observable<HDMasterSeedT> => of(masterSeed),
+		masterSeed: (): Observable<HDMasterSeedT> => of(masterSeed).pipe(share()),
 	}
 	return Wallet.create({ masterSeedProvider })
 }
@@ -66,7 +66,7 @@ describe('HD Wallet', () => {
 
 	it('should derive next but not switch to it by default', (done) => {
 		const wallet = createWallet()
-		wallet.deriveNext().subscribe()
+		wallet.deriveNext()
 
 		wallet.observeActiveAccount().subscribe((active) => {
 			expect(active.hdPath.addressIndex.value()).toBe(0)
@@ -76,7 +76,7 @@ describe('HD Wallet', () => {
 
 	it('should derive next and switch to it if specified', async (done) => {
 		const wallet = createWallet()
-		wallet.deriveNext({ alsoSwitchTo: true }).subscribe()
+		wallet.deriveNext({ alsoSwitchTo: true })
 
 		wallet.observeActiveAccount().subscribe({
 			next: (active) => {
@@ -89,8 +89,8 @@ describe('HD Wallet', () => {
 
 	it('can list all accounts that has been added', (done) => {
 		const wallet = createWallet()
-		wallet.deriveNext().subscribe()
-		wallet.deriveNext().subscribe()
+		wallet.deriveNext()
+		wallet.deriveNext()
 
 		wallet.observeAccounts().subscribe((result) => {
 			expect(result.all.length).toBe(3)
@@ -116,7 +116,7 @@ describe('HD Wallet', () => {
 				error: (e) => done(e),
 			})
 
-		wallet.deriveNext({ alsoSwitchTo: true }).subscribe()
-		wallet.switchAccount({ to: 0 }).subscribe()
+		wallet.deriveNext({ alsoSwitchTo: true })
+		wallet.switchAccount({ to: 0 })
 	})
 })

@@ -1,4 +1,10 @@
-import { Observable, BehaviorSubject, ReplaySubject, of } from 'rxjs'
+import {
+	Observable,
+	BehaviorSubject,
+	ReplaySubject,
+	of,
+	Subscription,
+} from 'rxjs'
 import { Account } from './account'
 import {
 	AccountIndexPosition,
@@ -8,7 +14,14 @@ import {
 	TargetAccountIndexT,
 	WalletT,
 } from './_types'
-import { mergeMap, map, tap, distinctUntilChanged } from 'rxjs/operators'
+import {
+	mergeMap,
+	map,
+	tap,
+	distinctUntilChanged,
+	share,
+	shareReplay,
+} from 'rxjs/operators'
 import { PublicKey, Signature, UnsignedMessage } from '@radixdlt/crypto'
 import { Option } from 'prelude-ts'
 import { HDPathRadix, HDPathRadixT } from './bip32/_index'
@@ -23,7 +36,11 @@ const create = (
 		masterSeedProvider: MasterSeedProviderT
 	}>,
 ): WalletT => {
-	const hdMasterSeed = input.masterSeedProvider.masterSeed()
+	const subs = new Subscription()
+	const hdMasterSeed = input.masterSeedProvider
+		.masterSeed()
+		.pipe(shareReplay(1))
+	hdMasterSeed.subscribe().add(subs)
 
 	const activeAccountSubject = new ReplaySubject<AccountT>(1)
 
@@ -32,13 +49,14 @@ const create = (
 	)
 	const numberOfAccounts = (): number => accountsSubject.getValue().size
 
+	// A HOT observable
 	const _deriveWithPath = (
 		input: Readonly<{
 			hdPath: HDPathRadixT
 			alsoSwitchTo?: boolean // defaults to false
 		}>,
-	): Observable<AccountT> =>
-		hdMasterSeed.pipe(
+	): Observable<AccountT> => {
+		const newAccount$ = hdMasterSeed.pipe(
 			map((seed) => ({ hdMasterSeed: seed, hdPath: input.hdPath })),
 			map(Account.fromHDPathWithHDMasterSeed),
 			tap({
@@ -52,7 +70,11 @@ const create = (
 					}
 				},
 			}),
+			share(),
 		)
+		newAccount$.subscribe().add(subs)
+		return newAccount$
+	}
 
 	const _deriveAtIndex = (
 		input: Readonly<{
@@ -114,15 +136,15 @@ const create = (
 		}
 	}
 
-	// Start by deriving first index!
-	const initialAccount$ = deriveNext({ alsoSwitchTo: true })
-	const subscription = initialAccount$.subscribe()
+	// Start by deriving first index (0).
+	deriveNext({ alsoSwitchTo: true })
 
 	const observeActiveAccount = (): Observable<AccountT> =>
-		activeAccountSubject.asObservable()
-	// .pipe(
-	// 	distinctUntilChanged((a: AccountT, b: AccountT) => a.equals(b)),
-	// )
+		activeAccountSubject
+			.asObservable()
+			.pipe(
+				distinctUntilChanged((a: AccountT, b: AccountT) => a.equals(b)),
+			)
 
 	const observeAccounts = (): Observable<AccountsT> =>
 		accountsSubject.asObservable().pipe(
