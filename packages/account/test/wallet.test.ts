@@ -4,11 +4,8 @@ import { Mnemomic } from '../src/bip39/mnemonic'
 import { HDMasterSeed } from '../src/bip39/hdMasterSeed'
 import { HDMasterSeedT } from '../src/bip39/_types'
 import { unlinkSync } from 'fs'
-import {
-	take,
-	toArray,
-} from 'rxjs/operators'
-import { Keystore, PublicKey } from "@radixdlt/crypto";
+import { take, toArray } from 'rxjs/operators'
+import { Keystore, PublicKey } from '@radixdlt/crypto'
 
 const createWallet = (): WalletT => {
 	const mnemonic = Mnemomic.generateNew()
@@ -18,7 +15,6 @@ const createWallet = (): WalletT => {
 import { combineLatest } from 'rxjs'
 
 describe('HD Wallet', () => {
-
 	it('can be created via keystore', async (done) => {
 		const mnemonic = Mnemomic.generateNew()
 
@@ -29,16 +25,27 @@ describe('HD Wallet', () => {
 			mnemonic,
 			password,
 			saveKeystoreAtPath: keystorePath,
-		}).andThen((wallet1) => Keystore.fromFileAtPath(keystorePath)
-			.andThen((keystore) => Wallet.fromKeystore({ keystore, password }))
-			.map((wallet2) => ({ wallet1, wallet2 }))
-		).match(
-			(wallets) => {
-				const { wallet1, wallet2 } = wallets
-				const wallet1Account1PublicKey$ = wallet1.deriveNext().derivePublicKey()
-				const wallet2Account1PublicKey$ = wallet2.deriveNext().derivePublicKey()
-				combineLatest(wallet1Account1PublicKey$, wallet2Account1PublicKey$)
-					.subscribe({
+		})
+			.andThen((wallet1) =>
+				Keystore.fromFileAtPath(keystorePath)
+					.andThen((keystore) =>
+						Wallet.fromKeystore({ keystore, password }),
+					)
+					.map((wallet2) => ({ wallet1, wallet2 })),
+			)
+			.match(
+				(wallets) => {
+					const { wallet1, wallet2 } = wallets
+					const wallet1Account1PublicKey$ = wallet1
+						.deriveNext()
+						.derivePublicKey()
+					const wallet2Account1PublicKey$ = wallet2
+						.deriveNext()
+						.derivePublicKey()
+					combineLatest(
+						wallet1Account1PublicKey$,
+						wallet2Account1PublicKey$,
+					).subscribe({
 						next: (keys: PublicKey[]) => {
 							expect(keys.length).toBe(2)
 							const a = keys[0]
@@ -46,13 +53,12 @@ describe('HD Wallet', () => {
 							expect(a.equals(b)).toBe(true)
 							done()
 						},
-						error: (e) => done(e)
+						error: (e) => done(e),
 					})
-
-			},
-			(e) => done(e)
-		).finally(() => unlinkSync(keystorePath))
-
+				},
+				(e) => done(e),
+			)
+			.finally(() => unlinkSync(keystorePath))
 	})
 
 	it('can observe accounts', (done) => {

@@ -130,9 +130,13 @@ const saveToFileAtPath = (
 	const json = JSON.stringify(keystore, null, '\t')
 	return ResultAsync.fromPromise(
 		writeFile(filePath, json),
-		(e) =>
+		(unknownError: unknown) =>
 			new Error(
-				`Failed to save keystore at path ${filePath.toString()}, error: ${e}`,
+				`Failed to save keystore at path ${filePath.toString()}, error: ${JSON.stringify(
+					unknownError,
+					null,
+					4,
+				)}`,
 			),
 	).map(() => ({
 		witness: `Keystore saved at path: ${filePath.toString()}`,
