@@ -6,6 +6,7 @@ import { BIP32T } from './bip32/_types'
 import { Option } from 'prelude-ts'
 import { HDMasterSeedT } from './_index'
 import { HDPathRadixT } from './bip32/_index'
+import { Magic } from '@radixdlt/primitives'
 
 export type AddressT = JSONEncodable &
 	DSONCodable &
@@ -28,8 +29,7 @@ export type AccountT = PublicKeyDeriving &
 	Signing &
 	Readonly<{
 		hdPath: HDPathRadixT
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		equals: (other: any) => boolean
+		deriveAddress: () => Observable<AddressT>
 	}>
 
 /// A simple "interface" like type that this `account` package recognizes.
@@ -66,16 +66,18 @@ export type TargetAccountIndexT = number | AccountIndexPosition
 export type WalletT = PublicKeyDeriving &
 	Signing &
 	Readonly<{
+		// Call this once you can provide an observable providing magic.
+		provideMagic: (magic: Observable<Magic>) => void
 		deriveNext: (
 			input?: Readonly<{
 				isHardened?: boolean // defaults to true
 				alsoSwitchTo?: boolean // defaults to false
 			}>,
-		) => Observable<AccountT>
+		) => AccountT
 
 		switchAccount: (
 			input: Readonly<{ to: AccountT | TargetAccountIndexT }>,
-		) => Observable<AccountT>
+		) => AccountT
 
 		observeActiveAccount: () => Observable<AccountT>
 		observeAccounts: () => Observable<AccountsT>

@@ -1,10 +1,16 @@
 import { err, ResultAsync, ok, Result } from 'neverthrow'
-import { KeystoreT } from './_types'
+import { KeystoreCryptoT, KeystoreT } from './_types'
 import { AES_GCM } from '../symmetric-encryption/aes/aesGCM'
-import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
+import {
+	SecureRandom,
+	secureRandomGenerator,
+	ValidationWitness,
+} from '@radixdlt/util'
 import { ScryptParamsT } from '../key-derivation-functions/_types'
 import { Scrypt, ScryptParams } from '../key-derivation-functions/scrypt'
 import { v4 as uuidv4 } from 'uuid'
+import { PathLike } from 'fs'
+import { readFile, writeFile, FileHandle } from 'fs/promises'
 
 const minimumPasswordLength = 8
 
@@ -93,7 +99,84 @@ const decrypt = (
 		.andThen((inp) => AES_GCM.open(inp))
 }
 
+const fromBuffer = (keystoreBuffer: Buffer): Result<KeystoreT, Error> => {
+	try {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
+		const keystore = JSON.parse(keystoreBuffer.toString())
+		if (isKeystore(keystore)) return ok(keystore)
+		return err(new Error('Parse object, but is not a keystore'))
+	} catch {
+		return err(new Error('Failed to parse keystore from JSON data'))
+	}
+}
+
+const fromFileAtPath = (
+	filePath: PathLike | FileHandle,
+): ResultAsync<KeystoreT, Error> => {
+	const fileContents: ResultAsync<Buffer, Error> = ResultAsync.fromPromise(
+		readFile(filePath),
+		() => new Error(`Failed to derive data using scrypt`),
+	)
+	return fileContents.andThen(fromBuffer)
+}
+
+const saveToFileAtPath = (
+	input: Readonly<{
+		keystore: KeystoreT
+		filePath: PathLike | FileHandle
+	}>,
+): ResultAsync<ValidationWitness, Error> => {
+	const { filePath, keystore } = input
+	const json = JSON.stringify(keystore, null, '\t')
+	return ResultAsync.fromPromise(
+		writeFile(filePath, json),
+		(e) =>
+			new Error(
+				`Failed to save keystore at path ${filePath.toString()}, error: ${e}`,
+			),
+	).map(() => ({
+		witness: `Keystore saved at path: ${filePath.toString()}`,
+	}))
+}
+
+const isScryptParams = (something: unknown): something is ScryptParamsT => {
+	const inspection = something as ScryptParamsT
+	return (
+		inspection.blockSize !== undefined &&
+		inspection.costParameterC !== undefined &&
+		inspection.costParameterN !== undefined &&
+		inspection.lengthOfDerivedKey !== undefined &&
+		inspection.parallelizationParameter !== undefined &&
+		inspection.salt !== undefined
+	)
+}
+
+const isKeystoreCrypto = (something: unknown): something is KeystoreCryptoT => {
+	const inspection = something as KeystoreCryptoT
+	return (
+		inspection.cipher !== undefined &&
+		inspection.cipherparams !== undefined &&
+		inspection.ciphertext !== undefined &&
+		inspection.kdf !== undefined &&
+		inspection.kdfparams !== undefined &&
+		isScryptParams(inspection.kdfparams)
+	)
+}
+
+const isKeystore = (something: unknown): something is KeystoreT => {
+	const inspection = something as KeystoreT
+	return (
+		inspection.crypto !== undefined &&
+		isKeystoreCrypto(inspection.crypto) &&
+		inspection.id !== undefined &&
+		inspection.version !== undefined
+	)
+}
+
 export const Keystore = {
+	saveToFileAtPath,
+	fromBuffer,
+	fromFileAtPath,
 	decrypt,
 	minimumPasswordLength,
 	validatePassword,

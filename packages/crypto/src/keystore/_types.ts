@@ -1,4 +1,8 @@
 import { ScryptParamsT } from '../key-derivation-functions/_types'
+import { PathLike } from 'fs'
+import { FileHandle } from 'fs/promises'
+import { ResultAsync } from 'neverthrow'
+import { ValidationWitness } from '@radixdlt/util'
 
 export type KeystoreCryptoCipherParamsT = Readonly<{
 	nonce: string

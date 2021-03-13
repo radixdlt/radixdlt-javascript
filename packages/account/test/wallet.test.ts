@@ -1,58 +1,58 @@
-import { Keystore } from '@radixdlt/crypto'
-import { Observable, of } from 'rxjs'
 import { WalletT } from '../src/_types'
 import { Wallet } from '../src/wallet'
 import { Mnemomic } from '../src/bip39/mnemonic'
 import { HDMasterSeed } from '../src/bip39/hdMasterSeed'
 import { HDMasterSeedT } from '../src/bip39/_types'
-import { AccountT, MasterSeedProviderT } from '../dist/_types'
-import { MasterSeedProvider } from '../dist/hdMasterNodeProvider'
+import { unlinkSync } from 'fs'
 import {
-	share,
-	skipUntil,
-	skipWhile,
 	take,
-	takeLast,
 	toArray,
 } from 'rxjs/operators'
-import { Int32 } from '../dist/bip32/_types'
+import { Keystore, PublicKey } from "@radixdlt/crypto";
 
 const createWallet = (): WalletT => {
 	const mnemonic = Mnemomic.generateNew()
 	const masterSeed: HDMasterSeedT = HDMasterSeed.fromMnemonic({ mnemonic })
-	const masterSeedProvider: MasterSeedProviderT = {
-		masterSeed: (): Observable<HDMasterSeedT> =>
-			of(masterSeed).pipe(share()),
-	}
-	return Wallet.create({ masterSeedProvider })
+	return Wallet.create({ masterSeed })
 }
+import { combineLatest } from 'rxjs'
 
 describe('HD Wallet', () => {
+
 	it('can be created via keystore', async (done) => {
 		const mnemonic = Mnemomic.generateNew()
-		const masterSeed: HDMasterSeedT = HDMasterSeed.fromMnemonic({
-			mnemonic,
-		})
-		const password = 'super secret password'
-		const keystoreResult = await Keystore.encryptSecret({
-			secret: masterSeed.seed,
-			password,
-		}).map((keystore) => {
-			// Save 'keystore' as .json file on disc
-			const masterSeedProvider = MasterSeedProvider.withKeyStore({
-				keystore,
-				password,
-			})
-			return Wallet.create({ masterSeedProvider })
-		})
 
-		keystoreResult.match(
-			(wallet) => {
-				expect(wallet).toBeDefined()
-				done()
+		const password = 'super secret password'
+		const keystorePath = './keystoreFromTest.json'
+
+		Wallet.byEncryptingSeedOfMnemonic({
+			mnemonic,
+			password,
+			saveKeystoreAtPath: keystorePath,
+		}).andThen((wallet1) => Keystore.fromFileAtPath(keystorePath)
+			.andThen((keystore) => Wallet.fromKeystore({ keystore, password }))
+			.map((wallet2) => ({ wallet1, wallet2 }))
+		).match(
+			(wallets) => {
+				const { wallet1, wallet2 } = wallets
+				const wallet1Account1PublicKey$ = wallet1.deriveNext().derivePublicKey()
+				const wallet2Account1PublicKey$ = wallet2.deriveNext().derivePublicKey()
+				combineLatest(wallet1Account1PublicKey$, wallet2Account1PublicKey$)
+					.subscribe({
+						next: (keys: PublicKey[]) => {
+							expect(keys.length).toBe(2)
+							const a = keys[0]
+							const b = keys[1]
+							expect(a.equals(b)).toBe(true)
+							done()
+						},
+						error: (e) => done(e)
+					})
+
 			},
-			(e) => done(e),
-		)
+			(e) => done(e)
+		).finally(() => unlinkSync(keystorePath))
+
 	})
 
 	it('can observe accounts', (done) => {

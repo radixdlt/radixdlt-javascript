@@ -2,45 +2,49 @@ import {
 	Observable,
 	BehaviorSubject,
 	ReplaySubject,
-	of,
 	Subscription,
+	Subject,
 } from 'rxjs'
 import { Account } from './account'
 import {
 	AccountIndexPosition,
 	AccountsT,
 	AccountT,
-	MasterSeedProviderT,
 	TargetAccountIndexT,
 	WalletT,
 } from './_types'
+import { mergeMap, map, distinctUntilChanged } from 'rxjs/operators'
 import {
-	mergeMap,
-	map,
-	tap,
-	distinctUntilChanged,
-	share,
-	shareReplay,
-} from 'rxjs/operators'
-import { PublicKey, Signature, UnsignedMessage } from '@radixdlt/crypto'
+	Keystore,
+	KeystoreT,
+	PublicKey,
+	Signature,
+	UnsignedMessage,
+} from '@radixdlt/crypto'
 import { Option } from 'prelude-ts'
 import { HDPathRadix, HDPathRadixT } from './bip32/_index'
 import { isAccount } from './account'
-import { throwError } from 'rxjs'
 import { Int32 } from './bip32/_types'
 import { arraysEqual } from '@radixdlt/util'
+import { HDMasterSeedT, HDNodeT, MnemomicT } from './bip39/_types'
+import { Magic } from '@radixdlt/primitives'
+import { Address } from './address'
+import { ResultAsync } from 'neverthrow'
+import { HDMasterSeed } from './bip39/hdMasterSeed'
+import { PathLike } from 'fs'
+import { FileHandle } from 'fs/promises'
 
 // eslint-disable-next-line max-lines-per-function
 const create = (
 	input: Readonly<{
-		masterSeedProvider: MasterSeedProviderT
+		masterSeed: HDMasterSeedT
 	}>,
 ): WalletT => {
+	// Even locally in memory we don't save the `masterSeed`, we just save
+	// a reference to the derivation function.
+	const hdNodeDeriverWithBip32Path = input.masterSeed.masterNode().derive
+
 	const subs = new Subscription()
-	const hdMasterSeed = input.masterSeedProvider
-		.masterSeed()
-		.pipe(shareReplay(1))
-	hdMasterSeed.subscribe().add(subs)
 
 	const activeAccountSubject = new ReplaySubject<AccountT>(1)
 
@@ -49,31 +53,38 @@ const create = (
 	)
 	const numberOfAccounts = (): number => accountsSubject.getValue().size
 
-	// A HOT observable
+	const universeMagicSubject = new Subject<Magic>()
+
+	const provideMagic = (magic: Observable<Magic>): void => {
+		magic.subscribe(universeMagicSubject).add(subs)
+	}
+
 	const _deriveWithPath = (
 		input: Readonly<{
 			hdPath: HDPathRadixT
 			alsoSwitchTo?: boolean // defaults to false
 		}>,
-	): Observable<AccountT> => {
-		const newAccount$ = hdMasterSeed.pipe(
-			map((seed) => ({ hdMasterSeed: seed, hdPath: input.hdPath })),
-			map(Account.fromHDPathWithHDMasterSeed),
-			tap({
-				next: (account) => {
-					const accounts = accountsSubject.getValue()
-					accounts.set(account.hdPath, account)
-					accountsSubject.next(accounts)
+	): AccountT => {
+		const newAccount = Account.byDerivingNodeAtPath({
+			hdPath: input.hdPath,
+			deriveNodeAtPath: () => hdNodeDeriverWithBip32Path(input.hdPath),
+			addressFromPublicKey: (publicKey: PublicKey) =>
+				universeMagicSubject
+					.asObservable()
+					.pipe(
+						map((magic) =>
+							Address.fromPublicKeyAndMagic({ publicKey, magic }),
+						),
+					),
+		})
+		const accounts = accountsSubject.getValue()
+		accounts.set(newAccount.hdPath, newAccount)
+		accountsSubject.next(accounts)
 
-					if (input.alsoSwitchTo === true) {
-						activeAccountSubject.next(account)
-					}
-				},
-			}),
-			share(),
-		)
-		newAccount$.subscribe().add(subs)
-		return newAccount$
+		if (input.alsoSwitchTo === true) {
+			activeAccountSubject.next(newAccount)
+		}
+		return newAccount
 	}
 
 	const _deriveAtIndex = (
@@ -84,7 +95,7 @@ const create = (
 			}>
 			alsoSwitchTo?: boolean // defaults to false
 		}>,
-	): Observable<AccountT> =>
+	): AccountT =>
 		_deriveWithPath({
 			hdPath: HDPathRadix.create({
 				address: input.addressIndex,
@@ -97,22 +108,22 @@ const create = (
 			isHardened?: boolean // defaults to true
 			alsoSwitchTo?: boolean // defaults to false
 		}>,
-	): Observable<AccountT> => {
-		return _deriveAtIndex({
+	): AccountT =>
+		_deriveAtIndex({
 			addressIndex: {
 				index: numberOfAccounts(),
 				isHardened: input?.isHardened ?? true,
 			},
 			alsoSwitchTo: input?.alsoSwitchTo,
 		})
-	}
+
 	const switchAccount = (
 		input: Readonly<{ to: AccountT | TargetAccountIndexT }>,
-	): Observable<AccountT> => {
+	): AccountT => {
 		const targetAccountInput = input.to
 		if (isAccount(targetAccountInput)) {
 			activeAccountSubject.next(targetAccountInput)
-			return of(targetAccountInput)
+			return targetAccountInput
 		} else if (typeof targetAccountInput === 'number') {
 			const unsorted = accountsSubject.getValue()
 			const sortedKeys = [...unsorted.keys()].sort((a, b) =>
@@ -120,7 +131,7 @@ const create = (
 			)
 			const firstAccount = unsorted.get(sortedKeys[0])
 			if (!firstAccount) {
-				return throwError(() => new Error('No accounts...'))
+				throw new Error('No accounts...')
 			}
 			return switchAccount({ to: firstAccount })
 		} else {
@@ -143,7 +154,9 @@ const create = (
 		activeAccountSubject
 			.asObservable()
 			.pipe(
-				distinctUntilChanged((a: AccountT, b: AccountT) => a.equals(b)),
+				distinctUntilChanged((a: AccountT, b: AccountT) =>
+					a.hdPath.equals(b.hdPath),
+				),
 			)
 
 	const observeAccounts = (): Observable<AccountsT> =>
@@ -162,6 +175,7 @@ const create = (
 		)
 
 	return {
+		provideMagic,
 		deriveNext,
 		switchAccount,
 		observeActiveAccount,
@@ -175,6 +189,43 @@ const create = (
 	}
 }
 
+const fromKeystore = (
+	input: Readonly<{
+		keystore: KeystoreT
+		password: string
+	}>,
+): ResultAsync<WalletT, Error> =>
+	Keystore.decrypt(input)
+		.map(HDMasterSeed.fromSeed)
+		.map((m) => ({ masterSeed: m }))
+		.map(create)
+
+const byEncryptingSeedOfMnemonic = (
+	input: Readonly<{
+		mnemonic: MnemomicT
+		password: string
+		saveKeystoreAtPath: PathLike | FileHandle
+	}>,
+): ResultAsync<WalletT, Error> => {
+	const { mnemonic, password, saveKeystoreAtPath } = input
+	const masterSeed = HDMasterSeed.fromMnemonic({ mnemonic })
+
+	return Keystore.encryptSecret({
+		secret: masterSeed.seed,
+		password,
+	})
+		.andThen((keystore: KeystoreT) =>
+			Keystore.saveToFileAtPath({
+				keystore,
+				filePath: saveKeystoreAtPath,
+			}).map((_) => keystore),
+		)
+		.map((keystore) => ({ keystore, password }))
+		.andThen(Wallet.fromKeystore)
+}
+
 export const Wallet = {
 	create,
+	fromKeystore,
+	byEncryptingSeedOfMnemonic,
 }
