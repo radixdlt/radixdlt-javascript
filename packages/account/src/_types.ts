@@ -80,5 +80,6 @@ export type WalletT = PublicKeyDeriving &
 		) => AccountT
 
 		observeActiveAccount: () => Observable<AccountT>
+		observeActiveAddress: () => Observable<AddressT>
 		observeAccounts: () => Observable<AccountsT>
 	}>

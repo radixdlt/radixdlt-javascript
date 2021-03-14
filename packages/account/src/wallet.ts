@@ -10,6 +10,7 @@ import {
 	AccountIndexPosition,
 	AccountsT,
 	AccountT,
+	AddressT,
 	TargetAccountIndexT,
 	WalletT,
 } from './_types'
@@ -150,42 +151,43 @@ const create = (
 	// Start by deriving first index (0).
 	deriveNext({ alsoSwitchTo: true })
 
-	const observeActiveAccount = (): Observable<AccountT> =>
-		activeAccountSubject
-			.asObservable()
-			.pipe(
-				distinctUntilChanged((a: AccountT, b: AccountT) =>
-					a.hdPath.equals(b.hdPath),
-				),
-			)
-
-	const observeAccounts = (): Observable<AccountsT> =>
-		accountsSubject.asObservable().pipe(
-			map(
-				(map): AccountsT => ({
-					get: (hdPath: HDPathRadixT): Option<AccountT> =>
-						Option.of(map.get(hdPath)),
-					all: Array.from(map.values()),
-				}),
-			),
-			distinctUntilChanged((a: AccountsT, b: AccountsT): boolean =>
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-call
-				arraysEqual(a.all, b.all),
+	const activeAccount$ = activeAccountSubject
+		.asObservable()
+		.pipe(
+			distinctUntilChanged((a: AccountT, b: AccountT) =>
+				a.hdPath.equals(b.hdPath),
 			),
 		)
+
+	const accounts$ = accountsSubject.asObservable().pipe(
+		map(
+			(map): AccountsT => ({
+				get: (hdPath: HDPathRadixT): Option<AccountT> =>
+					Option.of(map.get(hdPath)),
+				all: Array.from(map.values()),
+			}),
+		),
+		distinctUntilChanged((a: AccountsT, b: AccountsT): boolean =>
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-call
+			arraysEqual(a.all, b.all),
+		),
+	)
+
+	const activeAddress$ = activeAccount$.pipe(
+		mergeMap((activeAccount) => activeAccount.deriveAddress()),
+	)
 
 	return {
 		provideMagic,
 		deriveNext,
 		switchAccount,
-		observeActiveAccount,
-		observeAccounts,
+		observeAccounts: (): Observable<AccountsT> => accounts$,
+		observeActiveAccount: (): Observable<AccountT> => activeAccount$,
+		observeActiveAddress: (): Observable<AddressT> => activeAddress$,
 		derivePublicKey: (): Observable<PublicKey> =>
-			observeActiveAccount().pipe(mergeMap((a) => a.derivePublicKey())),
+			activeAccount$.pipe(mergeMap((a) => a.derivePublicKey())),
 		sign: (unsignedMessage: UnsignedMessage): Observable<Signature> =>
-			observeActiveAccount().pipe(
-				mergeMap((a) => a.sign(unsignedMessage)),
-			),
+			activeAccount$.pipe(mergeMap((a) => a.sign(unsignedMessage))),
 	}
 }
 

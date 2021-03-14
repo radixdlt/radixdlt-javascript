@@ -195,8 +195,8 @@ const radix = Radix.create({
 // that is prefixed to all our addresses. We use RxJS since we want
 // "streams" of events, when user changes active account in wallet
 // this observable stream will emit the new address for the new account.
-const address$: Observable<Address> = radix.observeActiveAddress()
-// 💡 Trailing `$` for `Observable` variables (4️⃣)
+const address$: Observable<AddressT> = radix.observeActiveAddress()
+// 💡 Trailing `$` for `Observable` variables (3️⃣)
 
 const subs = new Subscription()
 
@@ -216,7 +216,7 @@ radix.wallet.switchAccount({ to: AccountIndexPosition.FIRST })
 // '🙋🏽‍♀️ My address is: 9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT'
 ```
 
-4️⃣ The notation of using trailing `$` for `Observable` variables is documented by [Cycle.js](https://cycle.js.org/) and [Angular](https://angular.io/guide/rx-library#naming-conventions-for-observables)
+3️⃣ The notation of using trailing `$` for `Observable` variables is documented by [Cycle.js](https://cycle.js.org/) and [Angular](https://angular.io/guide/rx-library#naming-conventions-for-observables)
 
 ### Account switching
 Alternatives to the `switchAccount` call on the last line in the code block above:
