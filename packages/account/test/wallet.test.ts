@@ -1,6 +1,6 @@
 import { WalletT } from '../src/_types'
 import { Wallet } from '../src/wallet'
-import { Mnemomic } from '../src/bip39/mnemonic'
+import { Mnemonic } from '../src/bip39/mnemonic'
 import { HDMasterSeed } from '../src/bip39/hdMasterSeed'
 import { HDMasterSeedT } from '../src/bip39/_types'
 import { unlinkSync } from 'fs'
@@ -8,15 +8,43 @@ import { take, toArray } from 'rxjs/operators'
 import { Keystore, PublicKey } from '@radixdlt/crypto'
 
 const createWallet = (): WalletT => {
-	const mnemonic = Mnemomic.generateNew()
+	const mnemonic = Mnemonic.generateNew()
 	const masterSeed: HDMasterSeedT = HDMasterSeed.fromMnemonic({ mnemonic })
 	return Wallet.create({ masterSeed })
 }
 import { combineLatest } from 'rxjs'
 
+const expectWalletsEqual = (
+	wallets: { wallet1: WalletT, wallet2: WalletT },
+	done: jest.DoneCallback,
+): void => {
+
+	const { wallet1, wallet2 } = wallets
+	const wallet1Account1PublicKey$ = wallet1
+		.deriveNext()
+		.derivePublicKey()
+	const wallet2Account1PublicKey$ = wallet2
+		.deriveNext()
+		.derivePublicKey()
+	combineLatest(
+		wallet1Account1PublicKey$,
+		wallet2Account1PublicKey$,
+	).subscribe({
+		next: (keys: PublicKey[]) => {
+			expect(keys.length).toBe(2)
+			const a = keys[0]
+			const b = keys[1]
+			expect(a.equals(b)).toBe(true)
+			done()
+		},
+		error: (e) => done(e),
+	})
+
+}
+
 describe('HD Wallet', () => {
 	it('can be created via keystore', async (done) => {
-		const mnemonic = Mnemomic.generateNew()
+		const mnemonic = Mnemonic.generateNew()
 
 		const password = 'super secret password'
 		const keystorePath = './keystoreFromTest.json'
@@ -35,30 +63,31 @@ describe('HD Wallet', () => {
 			)
 			.match(
 				(wallets) => {
-					const { wallet1, wallet2 } = wallets
-					const wallet1Account1PublicKey$ = wallet1
-						.deriveNext()
-						.derivePublicKey()
-					const wallet2Account1PublicKey$ = wallet2
-						.deriveNext()
-						.derivePublicKey()
-					combineLatest(
-						wallet1Account1PublicKey$,
-						wallet2Account1PublicKey$,
-					).subscribe({
-						next: (keys: PublicKey[]) => {
-							expect(keys.length).toBe(2)
-							const a = keys[0]
-							const b = keys[1]
-							expect(a.equals(b)).toBe(true)
-							done()
-						},
-						error: (e) => done(e),
-					})
+					expectWalletsEqual(wallets, done)
 				},
 				(e) => done(e),
 			)
 			.finally(() => unlinkSync(keystorePath))
+	})
+
+	it(`can create a wallet then load it from path later`, async (done) => {
+		const mnemonic = Mnemonic.generateNew()
+
+		const password = 'super secret password'
+		const keystorePath = './keystoreFromTest.json'
+
+		Wallet.byEncryptingSeedOfMnemonic({password, saveKeystoreAtPath: keystorePath, mnemonic })
+			.andThen((createdWallet) =>
+				Wallet.fromKeystoreAtPath({ keystorePath, password }).map((loadedWallet) => ({
+					wallet1: createdWallet,
+					wallet2: loadedWallet
+				}))
+			)
+			.match(
+				(wallets) => expectWalletsEqual(wallets, done),
+				(e) => done(e)
+			).finally(() => unlinkSync(keystorePath))
+
 	})
 
 	it('can observe accounts', (done) => {

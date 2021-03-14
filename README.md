@@ -90,67 +90,96 @@ We have a `WalletT` type being a **hierchal deterministic wallet** (explained by
 
 The trailing _T_ in `WalletT` is a suffix we use for all `type`s (we don't use [TypeScript `class`es](https://www.typescriptlang.org/docs/handbook/classes.html) at all). We reserve the `Wallet` name as a "namespaces" for our types, providing static-like factory/constructor methods, e.g. `Wallet.create` (N.B. the **lack of** trailing _T_). This decision was taken since we believe you will more often _use the namespace_ `Wallet.create` than you have to _declare the type_ `WalletT`. 
 
-Here follows the generation of a new mnemonic, derivation of HD master seed and encryption of it, yielding a keystore file, and the creation of wallet.
+Here follows the generation of a new mnemonic and the creation of a wallet, via the saving of a keystore.
+
+### Simple wallet creation
+
+This outlines the most convenient wallet creation flow using `byEncryptingSeedOfMnemonic`.
 
 ```typescript
 import { Mnemonic, Strength, Language } from '@radixdlt/account'
 
-const mnemonic = Mnemomic.generateNew()
+// ⚠️ Require user to backup mnemonic. 
+// She will NEVER be able to re-view it.
+const mnemonic = Mnemonic.generateNew()
 
-// ⚠️ Require user to backup mnemonic. She will NEVER be able to re-view it.
-const hdMasterSeed = HDMasterSeed.fromMnemonic({
-	mnemonic: mnemonic,
+// This will be our "application password" (1️⃣)
+// User choses this, however, please tell her to use 1Password to GENERATE a
+// unique and strong encryption password. This password should be unique and strong.
+// Urge user to backup this password.
+const keystoreEncryptionPassword = confirmPasswordTextField.value() // or similar
+
+// Path to where location where the keystore.json file will be saved.
+const keystorePath = '~/some/path/keystore.json'
+
+// `walletResult` has type `ResultAsync<WalletT, Error>`
+// `ResultAsync`: github.com/supermacro/neverthrow (2️⃣)
+const walletResult = await Wallet.byEncryptingSeedOfMnemonic({
+	mnemonic,
+	password: keystoreEncryptionPassword,
+	saveKeystoreAtPath: keystorePath,
 })
 
-// This will be our "application password" (2️⃣)
-const keystoreEncryptionPassword = 'my super strong randomly generated probably over 50 chars long encryption password'
-
-// `walletCreationResult` has type `ResultAsync<WalletT, Error>`
-// `ResultAsync`: github.com/supermacro/neverthrow (3️⃣)
-const walletCreationResult = await Keystore.encryptSecret({
-	secret: masterSeed.seed,
-	password
-}).map((keystore) => {
-	// Save 'keystore' as .json file on disc
-	const masterSeedProvider = MasterSeedProvider.withKeyStore({ keystore, password })
-	return Wallet.create({ masterSeedProvider })
-})
-
-if (walletCreationResult.isOK()) {
-	// do something with 'wallet'
+if (walletResult.isErr()) {
+	console.log(`🤷‍♂️ Failed to create wallet: ${walletResult.error}`)
 } else {
-	console.log(`🤷‍♂️ Failed to create wallet: ${walletCreationResult.error}`)
+	const wallet = walletResult.value
+	// do something with 'wallet'
+}
+```
+
+1️⃣: The `keystoreEncryptionPassword` will be needed everytime the user re-opens the wallet app after having terminated it. It's used to _decrypt_ the encrypted `hdMasterSeed`. Remember, the keystore is just a JSON file containing an encrypted ciphertext, and metadata about the encrypted used to derive said cihpertext. The ciphertext itself is the BIP39 "seed", not the entropy/mnemonic itself. The raw entropy and the mnemonic words/phrase is the very same thing! The mnemonic is just a easy-to-remember-mapping from bits to words! The seed, however, is a hashing of the entropy, so we can _**N E V E R**_ recover the mnemonic(=entropy) from the seed. Storing the seed (encrypted, of course!) should be consider just very slightly more safe then storing the entropy. But if attacker gets access of the seed, it is game over anyway, because the seed can be used to recover every singly account the user has.
+
+2️⃣ Read more about [`Result` / `ResultAsync`](https://github.com/supermacro/neverthrow)
+
+
+### Alternative wallet creation
+Alternatively you can use a flow you have a bit more control. This is basically exactly what `Wallet.byEncryptingSeedOfMnemonic` above does. 
+
+```typescript
+const mnemonic = Mnemonic.generateNew()
+// ⚠️ Require user backup mnemonic first!
+const masterSeed = HDMasterSeed.fromMnemonic({ mnemonic })
+
+// Tell user to backup encryption password.
+const keystoreEncryptionPassword = confirmPasswordTextField.value() // or similar
+// Path to where location where the keystore.json file will be saved.
+const keystorePath = '~/some/path/keystore.json'
+const walletResult = await Keystore.encryptSecret({
+	secret: masterSeed.seed,
+	password,
+})
+	.map((keystore) => ({ keystore, filePath: keystorePath }))
+	.andThen(Keystore.saveToFileAtPath)
+	.map((keystore) => ({ keystore, password: keystoreEncryptionPassword }))
+	.andThen(Wallet.fromKeystore)
+
+if (walletResult.isErr()) {
+	console.log(`🤷‍♂️ Failed to create wallet: ${walletResult.error}`)
+} else {
+	const wallet = walletResult.value
+	// do something with 'wallet'
 }
 ```
 
 ### Open wallet (app start)
 ```typescript
+// Path to where location where the keystore.json file will be saved.
+const keystorePath = '~/some/path/keystore.json'
+// Each time GUI wallet starts ask user for encryption password in GUI
+const keystoreEncryptionPassword = passwordTextField.value() // or similar
+const walletResult = await Wallet.fromKeystoreAtPath({
+    keystorePath,
+    password: keystoreEncryptionPassword
+})
 
-// Each time GUI wallet starts
-
-// Ask user for encryption password in GUI
-const keystoreEncryptionPassword = ...
-
-// `walletFromKeystoreResult` has type `ResultAsync<WalletT, Error>`
-const walletFromKeystoreResult = await Keystore.fromFile('keystore.json')
-    .andThen((keystore) => Wallet.fromKeystore({
-	    keystore,
-	    password: keystoreEncryptionPassword
-    })
-
-if (walletFromKeystoreResult.isOK()) {
-	// do something with 'wallet'
+if (walletResult.isErr()) {
+    console.log(`🤷‍♂️ Failed to create wallet: ${walletResult.error}`)
 } else {
-	console.log(`🤷‍♂️ Failed to create wallet from keystore: ${walletCreationResult.error}`)
+    const wallet = walletResult.value
+    // do something with 'wallet'
 }
 ```
-
-1️⃣: The `bip39Passphrase` provides an additional "word" (not a necessarily a word) to the Mnemonic words for more info please read [this section in BIP-39 doc](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki#from-mnemonic-to-seed).
-
-2️⃣ The `keystoreEncryptionPassword` will be needed everytime the user re-opens the wallet app after having terminated it. It's used to _decrypt_ the encrypted `hdMasterSeed`. Remember, the keystore is just a JSON file containing an encrypted ciphertext, and metadata about the encrypted used to derive said cihpertext. The ciphertext itself is the BIP39 "seed", not the entropy/mnemonic itself. The raw entropy and the mnemonic words/phrase is the very same thing! The mnemonic is just a easy-to-remember-mapping from bits to words! The seed, however, is a hashing of the entropy, so we can _**N E V E R**_ recover the mnemonic(=entropy) from the seed. Storing the seed (encrypted, of course!) should be consider just very slightly more safe then storing the entropy. But if attacker gets access of the seed, it is game over anyway, because the seed can be used to recover every singly account the user has.
-
-3️⃣ Read more about [`Result` / `ResultAsync`](https://github.com/supermacro/neverthrow)
-
 ## Observe address
 
 ```typescript

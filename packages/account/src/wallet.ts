@@ -207,25 +207,34 @@ const byEncryptingSeedOfMnemonic = (
 		saveKeystoreAtPath: PathLike | FileHandle
 	}>,
 ): ResultAsync<WalletT, Error> => {
-	const { mnemonic, password, saveKeystoreAtPath } = input
+	const { mnemonic, password, saveKeystoreAtPath: filePath } = input
 	const masterSeed = HDMasterSeed.fromMnemonic({ mnemonic })
 
 	return Keystore.encryptSecret({
 		secret: masterSeed.seed,
 		password,
 	})
-		.andThen((keystore: KeystoreT) =>
-			Keystore.saveToFileAtPath({
-				keystore,
-				filePath: saveKeystoreAtPath,
-			}).map((_) => keystore),
-		)
+		.map((keystore) => ({ keystore, filePath }))
+		.andThen(Keystore.saveToFileAtPath)
 		.map((keystore) => ({ keystore, password }))
+		.andThen(Wallet.fromKeystore)
+}
+
+const fromKeystoreAtPath = (
+	input: Readonly<{
+		keystorePath: PathLike | FileHandle
+		password: string
+	}>,
+): ResultAsync<WalletT, Error> => {
+	const { keystorePath: filePath, password } = input
+	return Keystore.fromFileAtPath(filePath)
+		.map((k) => ({ keystore: k, password }))
 		.andThen(Wallet.fromKeystore)
 }
 
 export const Wallet = {
 	create,
 	fromKeystore,
+	fromKeystoreAtPath,
 	byEncryptingSeedOfMnemonic,
 }

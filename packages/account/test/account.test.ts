@@ -5,7 +5,7 @@ import {
 } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
 import { Account } from '../src/account'
-import { Mnemomic } from '../src/bip39/mnemonic'
+import { Mnemonic } from '../src/bip39/mnemonic'
 import { HDMasterSeed } from '../src/bip39/hdMasterSeed'
 import { HDPathRadix } from '../src/bip32/bip44/bip44'
 import { Observable, of } from 'rxjs'
@@ -22,7 +22,7 @@ const addressFromPublicKey = (publicKey: PublicKey): Observable<AddressT> =>
 
 describe('account', () => {
 	it('works', async (done) => {
-		const mnemonic = Mnemomic.fromEnglishPhrase(
+		const mnemonic = Mnemonic.fromEnglishPhrase(
 			'equip will roof matter pink blind book anxiety banner elbow sun young',
 		)._unsafeUnwrap()
 		const hdMasterSeed = HDMasterSeed.fromMnemonic({ mnemonic })

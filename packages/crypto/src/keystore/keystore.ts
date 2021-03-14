@@ -125,7 +125,7 @@ const saveToFileAtPath = (
 		keystore: KeystoreT
 		filePath: PathLike | FileHandle
 	}>,
-): ResultAsync<ValidationWitness, Error> => {
+): ResultAsync<KeystoreT, Error> => {
 	const { filePath, keystore } = input
 	const json = JSON.stringify(keystore, null, '\t')
 	return ResultAsync.fromPromise(
@@ -138,9 +138,7 @@ const saveToFileAtPath = (
 					4,
 				)}`,
 			),
-	).map(() => ({
-		witness: `Keystore saved at path: ${filePath.toString()}`,
-	}))
+	).map(() => keystore)
 }
 
 const isScryptParams = (something: unknown): something is ScryptParamsT => {

@@ -1,7 +1,7 @@
 import {
 	entropyInBitsFromWordCount,
 	languagesSupportedByBIP39,
-	Mnemomic,
+	Mnemonic,
 	mnemonicStrengthSupportedByBIP39,
 	wordlistFromLanguage,
 } from '../src/bip39/mnemonic'
@@ -10,7 +10,7 @@ import { HDMasterSeed } from '../src/bip39/hdMasterSeed'
 
 describe('bip39', () => {
 	it('default strength is 12 words', () => {
-		const mnemonic = Mnemomic.generateNew()
+		const mnemonic = Mnemonic.generateNew()
 		expect(mnemonic.strength).toBe(StrengthT.WORD_COUNT_12)
 	})
 
@@ -31,7 +31,7 @@ describe('bip39', () => {
 	it('should be able to generate a mnemonic with every BIP39 supported language for every strength', () => {
 		languagesSupportedByBIP39.forEach((language) => {
 			mnemonicStrengthSupportedByBIP39.forEach((strength) => {
-				const mnemonic = Mnemomic.generateNew({ strength, language })
+				const mnemonic = Mnemonic.generateNew({ strength, language })
 				expect(mnemonic.language).toBe(language)
 				expect(mnemonic.strength).toBe(strength)
 				expect(mnemonic.toString().length).toBeGreaterThan(20)
@@ -55,7 +55,7 @@ describe('bip39', () => {
 		languages.forEach((vectors, language) => {
 			vectors.forEach((vector) => {
 				const phrase = vector.mnemonic
-				const mnemonic = Mnemomic.fromPhraseInLanguage({
+				const mnemonic = Mnemonic.fromPhraseInLanguage({
 					phrase,
 					language,
 				})._unsafeUnwrap()
