@@ -15,17 +15,12 @@ const createWallet = (): WalletT => {
 import { combineLatest } from 'rxjs'
 
 const expectWalletsEqual = (
-	wallets: { wallet1: WalletT, wallet2: WalletT },
+	wallets: { wallet1: WalletT; wallet2: WalletT },
 	done: jest.DoneCallback,
 ): void => {
-
 	const { wallet1, wallet2 } = wallets
-	const wallet1Account1PublicKey$ = wallet1
-		.deriveNext()
-		.derivePublicKey()
-	const wallet2Account1PublicKey$ = wallet2
-		.deriveNext()
-		.derivePublicKey()
+	const wallet1Account1PublicKey$ = wallet1.deriveNext().derivePublicKey()
+	const wallet2Account1PublicKey$ = wallet2.deriveNext().derivePublicKey()
 	combineLatest(
 		wallet1Account1PublicKey$,
 		wallet2Account1PublicKey$,
@@ -39,7 +34,6 @@ const expectWalletsEqual = (
 		},
 		error: (e) => done(e),
 	})
-
 }
 
 describe('HD Wallet', () => {
@@ -76,18 +70,24 @@ describe('HD Wallet', () => {
 		const password = 'super secret password'
 		const keystorePath = './keystoreFromTest.json'
 
-		Wallet.byEncryptingSeedOfMnemonic({password, saveKeystoreAtPath: keystorePath, mnemonic })
+		Wallet.byEncryptingSeedOfMnemonic({
+			password,
+			saveKeystoreAtPath: keystorePath,
+			mnemonic,
+		})
 			.andThen((createdWallet) =>
-				Wallet.fromKeystoreAtPath({ keystorePath, password }).map((loadedWallet) => ({
-					wallet1: createdWallet,
-					wallet2: loadedWallet
-				}))
+				Wallet.fromKeystoreAtPath({ keystorePath, password }).map(
+					(loadedWallet) => ({
+						wallet1: createdWallet,
+						wallet2: loadedWallet,
+					}),
+				),
 			)
 			.match(
 				(wallets) => expectWalletsEqual(wallets, done),
-				(e) => done(e)
-			).finally(() => unlinkSync(keystorePath))
-
+				(e) => done(e),
+			)
+			.finally(() => unlinkSync(keystorePath))
 	})
 
 	it('can observe accounts', (done) => {

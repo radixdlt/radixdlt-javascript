@@ -1,11 +1,7 @@
 import { err, ResultAsync, ok, Result } from 'neverthrow'
 import { KeystoreCryptoT, KeystoreT } from './_types'
 import { AES_GCM } from '../symmetric-encryption/aes/aesGCM'
-import {
-	SecureRandom,
-	secureRandomGenerator,
-	ValidationWitness,
-} from '@radixdlt/util'
+import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
 import { ScryptParamsT } from '../key-derivation-functions/_types'
 import { Scrypt, ScryptParams } from '../key-derivation-functions/scrypt'
 import { v4 as uuidv4 } from 'uuid'
