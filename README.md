@@ -82,7 +82,7 @@ This git repository is a so called "monorepo" using [`yarn` *workspaces*](https:
 # API outline
 
 ## NOT FINAL
-⚠️ This API is not at all final, regard it as a first rough draft, but it should give some kind of clue as to how to interact with this library.
+⚠️ This API is not at all final. It will be changed, but it should give some kind of clue as to how to interact with this library.
 
 ## Wallet
 
@@ -90,86 +90,170 @@ We have a `WalletT` type being a **hierchal deterministic wallet** (explained by
 
 The trailing _T_ in `WalletT` is a suffix we use for all `type`s (we don't use [TypeScript `class`es](https://www.typescriptlang.org/docs/handbook/classes.html) at all). We reserve the `Wallet` name as a "namespaces" for our types, providing static-like factory/constructor methods, e.g. `Wallet.create` (N.B. the **lack of** trailing _T_). This decision was taken since we believe you will more often _use the namespace_ `Wallet.create` than you have to _declare the type_ `WalletT`. 
 
-Here follows the generation of a new mnemonic, derivation of HD master seed and encryption of it, yielding a keystore file, and the creation of wallet.
+Here follows the generation of a new mnemonic and the creation of a wallet, via the saving of a keystore.
+
+### Simple wallet creation
+
+This outlines the most convenient wallet creation flow using `byEncryptingSeedOfMnemonic`.
 
 ```typescript
 import { Mnemonic, Strength, Language } from '@radixdlt/account'
 
-const mnemonic = Mnemomic.generateNew()
+// ⚠️ Require user to backup mnemonic. 
+// She will NEVER be able to re-view it.
+const mnemonic = Mnemonic.generateNew()
 
-// ⚠️ Require user to backup mnemonic. She will NEVER be able to re-view it.
-const hdMasterSeed = HDMasterSeed.fromMnemonic({
-	mnemonic: mnemonic,
+// This will be our "application password" (1️⃣)
+// User choses this, however, please tell her to use 1Password to GENERATE a
+// unique and strong encryption password. This password should be unique and strong.
+// Urge user to backup this password.
+const keystoreEncryptionPassword = confirmPasswordTextField.value() // or similar
+
+// Path to where location where the keystore.json file will be saved.
+const keystorePath = '~/some/path/keystore.json'
+
+// `walletResult` has type `ResultAsync<WalletT, Error>`
+// `ResultAsync`: github.com/supermacro/neverthrow (2️⃣)
+const walletResult = await Wallet.byEncryptingSeedOfMnemonic({
+	mnemonic,
+	password: keystoreEncryptionPassword,
+	saveKeystoreAtPath: keystorePath,
 })
 
-// This will be our "application password" (2️⃣)
-const keystoreEncryptionPassword = 'my super strong randomly generated probably over 50 chars long encryption password'
-
-// `walletCreationResult` has type `ResultAsync<WalletT, Error>`
-// `ResultAsync`: github.com/supermacro/neverthrow (3️⃣)
-const walletCreationResult = await Keystore.encryptSecret({
-	secret: masterSeed.seed,
-	password
-}).map((keystore) => {
-	// Save 'keystore' as .json file on disc
-	const masterSeedProvider = MasterSeedProvider.withKeyStore({ keystore, password })
-	return Wallet.create({ masterSeedProvider })
-})
-
-if (walletCreationResult.isOK()) {
-	// do something with 'wallet'
+if (walletResult.isErr()) {
+	console.log(`🤷‍♂️ Failed to create wallet: ${walletResult.error}`)
 } else {
-	console.log(`🤷‍♂️ Failed to create wallet: ${walletCreationResult.error}`)
+	const wallet = walletResult.value
+	// do something with 'wallet'
+}
+```
+
+1️⃣: The `keystoreEncryptionPassword` will be needed everytime the user re-opens the wallet app after having terminated it. It's used to _decrypt_ the encrypted `hdMasterSeed`. Remember, the keystore is just a JSON file containing an encrypted ciphertext, and metadata about the encrypted used to derive said cihpertext. The ciphertext itself is the BIP39 "seed", not the entropy/mnemonic itself. The raw entropy and the mnemonic words/phrase is the very same thing! The mnemonic is just a easy-to-remember-mapping from bits to words! The seed, however, is a hashing of the entropy, so we can _**N E V E R**_ recover the mnemonic(=entropy) from the seed. Storing the seed (encrypted, of course!) should be consider just very slightly more safe then storing the entropy. But if attacker gets access of the seed, it is game over anyway, because the seed can be used to recover every singly account the user has.
+
+2️⃣ Read more about [`Result` / `ResultAsync`](https://github.com/supermacro/neverthrow)
+
+
+### Alternative wallet creation
+Alternatively you can use a flow you have a bit more control. This is basically exactly what `Wallet.byEncryptingSeedOfMnemonic` above does. 
+
+```typescript
+const mnemonic = Mnemonic.generateNew()
+// ⚠️ Require user backup mnemonic first!
+const masterSeed = HDMasterSeed.fromMnemonic({ mnemonic })
+
+// Tell user to backup encryption password.
+const keystoreEncryptionPassword = confirmPasswordTextField.value() // or similar
+// Path to where location where the keystore.json file will be saved.
+const keystorePath = '~/some/path/keystore.json'
+const walletResult = await Keystore.encryptSecret({
+	secret: masterSeed.seed,
+	password,
+})
+	.map((keystore) => ({ keystore, filePath: keystorePath }))
+	.andThen(Keystore.saveToFileAtPath)
+	.map((keystore) => ({ keystore, password: keystoreEncryptionPassword }))
+	.andThen(Wallet.fromKeystore)
+
+if (walletResult.isErr()) {
+	console.log(`🤷‍♂️ Failed to create wallet: ${walletResult.error}`)
+} else {
+	const wallet = walletResult.value
+	// do something with 'wallet'
 }
 ```
 
 ### Open wallet (app start)
 ```typescript
+// Path to where location where the keystore.json file will be saved.
+const keystorePath = '~/some/path/keystore.json'
+// Each time GUI wallet starts ask user for encryption password in GUI
+const keystoreEncryptionPassword = passwordTextField.value() // or similar
+const walletResult = await Wallet.fromKeystoreAtPath({
+    keystorePath,
+    password: keystoreEncryptionPassword
+})
 
-// Each time GUI wallet starts
-
-// Ask user for encryption password in GUI
-const keystoreEncryptionPassword = ...
-
-// `walletFromKeystoreResult` has type `ResultAsync<WalletT, Error>`
-const walletFromKeystoreResult = await Keystore.fromFile('keystore.json')
-    .andThen((keystore) => Wallet.fromKeystore({
-	    keystore,
-	    password: keystoreEncryptionPassword
-    })
-
-if (walletFromKeystoreResult.isOK()) {
-	// do something with 'wallet'
+if (walletResult.isErr()) {
+    console.log(`🤷‍♂️ Failed to create wallet: ${walletResult.error}`)
 } else {
-	console.log(`🤷‍♂️ Failed to create wallet from keystore: ${walletCreationResult.error}`)
+    const wallet = walletResult.value
+    // do something with 'wallet'
 }
 ```
 
-1️⃣: The `bip39Passphrase` provides an additional "word" (not a necessarily a word) to the Mnemonic words for more info please read [this section in BIP-39 doc](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki#from-mnemonic-to-seed).
-
-2️⃣ The `keystoreEncryptionPassword` will be needed everytime the user re-opens the wallet app after having terminated it. It's used to _decrypt_ the encrypted `hdMasterSeed`. Remember, the keystore is just a JSON file containing an encrypted ciphertext, and metadata about the encrypted used to derive said cihpertext. The ciphertext itself is the BIP39 "seed", not the entropy/mnemonic itself. The raw entropy and the mnemonic words/phrase is the very same thing! The mnemonic is just a easy-to-remember-mapping from bits to words! The seed, however, is a hashing of the entropy, so we can _**N E V E R**_ recover the mnemonic(=entropy) from the seed. Storing the seed (encrypted, of course!) should be consider just very slightly more safe then storing the entropy. But if attacker gets access of the seed, it is game over anyway, because the seed can be used to recover every singly account the user has.
-
-3️⃣ Read more about [`Result` / `ResultAsync`](https://github.com/supermacro/neverthrow)
-
-## Observe address
+## Observe account
 
 ```typescript
-import { Subscription } from 'rxjs'
 
-const radix = Radix.create({
-	wallet: wallet, // OPTIONAL, can be added later
-	node: "https://radixdlt.api.com" // OPTIONAL, can be added later
+// RxJS subscription collection to store our subscriptions in
+const subs = new Subscription()
+
+wallet.observeActiveAccount()
+    .subscribe((account) => { 
+    	console.log(`🛂 Active account - hdPath: "${account.hdPath.toString()}"`)
+    })
+	.add(subs)
+
+// `🛂 Active account - hdPath: "m/44'/536'/0'/0/0'"`
+```
+
+### What's an `AccountT`?
+
+An account - having type `AccountT` - has this declaration:
+
+```typescript
+type AccountT = {
+    hdPath: HDPathRadixT
+    derivePublicKey: () => Observable<PublicKey>
+    sign: (unsignedMessage: UnsignedMessage) => Observable<Signature>
+    deriveAddress: () => Observable<AddressT>
+}
+```
+
+The `hdPath` is the hierchal deterministic derivation path that was used to derive this account. The first account will have HD Path: `"m/44'/536'/0'/0/0'"`. The second: `"m/44'/536'/0'/0/1'"` etc. This can be used as an identifier and you can enable the users to provide a mapping between the HD path and a friendly name.
+
+Further we see that the account can `sign` data, but more about that later. 
+
+An account can also derive a public key. Note that this is done asynchrounous, resulting in a function `() => Observable<PublicKey>`. This might strike you as an odd inconvenience but it makes very much sense from an API design point of view. The reason for this is that we would like the API to be identical between `AccountT`s derived using the HDMasterSeed in your local `keystore.json` and `AccountT`s derived using a hardware wallet, e.g. `Ledger Nano S` (or X). The hardware wallet flow is async because the hardware device must derive the public key on and send it back to the host machine (Desktop wallet app, via this library) possibly with a manual confirmation step in between.
+
+> 🧩 You never instantiate/create an account yourself, you always derive it from a `WalletT`.
+
+Lastly we see that we can derive an `AddressT` from an account, we will talk about that in the next section.
+ 
+## Observe address
+
+A Radix address is the base58 encoding of two pieces of information: 
+`UniverseMagicByte || PublicKey` plus some checksum bytes. The `UniverseMagicByte` or just `Magic` is an integer uniquely identifying the network. Which will have different values for e.g. our betanet and mainnet.
+
+> 🧩 Thus we must know the universe magic before we can derive any Radix addresses from a public key.
+
+It is safest to fetch the universe magic from a Radix Node in the network, via the Radix Core API (the lower level JSON-PRC API that this TypeScript library consumes).
+
+The reason why you should not create an instance of `AccountT` yourself, but rather always derive it from `WalletT` is that the `deriveAddress()` observable will never emit any value! In fact
+ the `deriveAddress()` called on an account derived from a wallet will never emit any value either - **not until you provide the `wallet` with `magic`**.
+
+```typescript
+const magicProvider$: Observable<Magic> = ...
+
+// 💡 The crucial call `provideMagic` !
+wallet.provideMagic(magicProvider$)
+```
+ 
+Do we have any magic provider by default? Yes using the API method `getMagic`, but for now the only thing you need to remoember is basically:
+> 🧩 `deriveAddress` on accounts will never emit any value until you have provided `wallet` with magic.
+
+For this reason it is most convenient to use our `Radix` type instead, and do:
+
+```typescript
+const node: Observable<Node> = Node.trusted('https://radixdlt.api.com')
+
+const radix = Radix.create({ 
+   wallet: wallet,
+   node: node
 })
 
-// Address retrival is async, since we must make network request to
-// node API and ask for a network identifier called "universe magic",
-// that is prefixed to all our addresses. We use RxJS since we want
-// "streams" of events, when user changes active account in wallet
-// this observable stream will emit the new address for the new account.
-const address$: Observable<Address> = radix.observeActiveAddress()
-// 💡 Trailing `$` for `Observable` variables (4️⃣)
-
-const subs = new Subscription()
+const address$: Observable<AddressT> = radix.observeActiveAddress()
+// 💡 Trailing `$` for `Observable` variables (3️⃣)
 
 address$
 	.subscribe((address) => console.log(`🙋🏽‍♀️ My address is: ${address.toString()}`))
@@ -187,7 +271,9 @@ radix.wallet.switchAccount({ to: AccountIndexPosition.FIRST })
 // '🙋🏽‍♀️ My address is: 9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT'
 ```
 
-4️⃣ The notation of using trailing `$` for `Observable` variables is documented by [Cycle.js](https://cycle.js.org/) and [Angular](https://angular.io/guide/rx-library#naming-conventions-for-observables)
+3️⃣ The notation of using trailing `$` for `Observable` variables is documented by [Cycle.js](https://cycle.js.org/) and [Angular](https://angular.io/guide/rx-library#naming-conventions-for-observables)
+
+The `address$: Observable<AddressT>` above emits values since we use the `radix` API, which under the hood performs the necessary calls to the Radix Core API and retreivese the necessary universe magic needed to derive addresses for each account.
 
 ### Account switching
 Alternatives to the `switchAccount` call on the last line in the code block above:
@@ -211,7 +297,7 @@ radix.wallet.switchAccount({ to: numberOfAccounts - 1 })
 radix.wallet.switchAccount({ to: AccountIndexPosition.LAST })
 ```
 
-## Observe Accounts
+## Observe Accounts (list)
 
 In the code snippet above we called `radix.wallet.deriveNext()` twice, including the initial account we should now be able to list (print with `console.log`) our three accounts.
 

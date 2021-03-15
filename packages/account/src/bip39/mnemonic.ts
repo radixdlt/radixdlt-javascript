@@ -142,7 +142,7 @@ const fromEnglishWords = (words: string[]): Result<MnemomicT, Error> =>
 		language: LanguageT.ENGLISH,
 	})
 
-export const Mnemomic = {
+export const Mnemonic = {
 	generateNew,
 	fromPhraseInLanguage,
 	fromWordsInLanguage,
