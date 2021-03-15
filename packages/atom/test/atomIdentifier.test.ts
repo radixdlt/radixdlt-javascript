@@ -1,22 +1,22 @@
-import { atomIdentifier } from '../src/atomIdentifier'
+import { AtomIdentifier } from '../src/atomIdentifier'
 
 describe('AtomIdentifier', () => {
 	it('can check for equality', () => {
-		const a0 = atomIdentifier(buffer0)._unsafeUnwrap()
-		const b0 = atomIdentifier(buffer0)._unsafeUnwrap()
-		const a1 = atomIdentifier(buffer1)._unsafeUnwrap()
+		const a0 = AtomIdentifier.create(buffer0)._unsafeUnwrap()
+		const b0 = AtomIdentifier.create(buffer0)._unsafeUnwrap()
+		const a1 = AtomIdentifier.create(buffer1)._unsafeUnwrap()
 
 		expect(a0.equals(b0)).toBe(true)
 		expect(a0.equals(a1)).toBe(false)
 	})
 
 	it('can be converted to string', () => {
-		const aid = atomIdentifier(buffer0)._unsafeUnwrap()
+		const aid = AtomIdentifier.create(buffer0)._unsafeUnwrap()
 		expect(aid.toString()).toBe(deadbeefString)
 	})
 
 	it('can be created from hex string', () => {
-		const aid = atomIdentifier(deadbeefString)._unsafeUnwrap()
+		const aid = AtomIdentifier.create(deadbeefString)._unsafeUnwrap()
 		expect(aid.toString()).toBe(deadbeefString)
 	})
 

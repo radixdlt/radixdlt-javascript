@@ -20,8 +20,7 @@
     "url": "git+https://github.com/radixdlt/radixdlt-javascript.git"
   },
   "scripts": {
-    "test": "echo \"Error: run tests from root\" && exit 1",
-    "server": "open-rpc-mock-server -d ./test/rpc-spec.json"
+    "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "bugs": {
     "url": "https://github.com/radixdlt/radixdlt-javascript/issues"
@@ -30,7 +29,6 @@
     "node": ">=15.5.0 <16"
   },
   "dependencies": {
-    "@open-rpc/client-js": "^1.6.2",
-    "@open-rpc/mock-server": "^1.7.2"
+    "@open-rpc/client-js": "^1.6.2"
   }
 }

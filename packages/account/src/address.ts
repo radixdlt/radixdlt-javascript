@@ -21,18 +21,18 @@ const checksumByteCount = 4
 const CBOR_BYTESTRING_PREFIX: Byte = 4
 const JSON_TAG = ':adr:'
 
-export const addressFromPublicKeyAndMagic = (
+const fromPublicKeyAndMagic = (
 	input: Readonly<{
 		publicKey: PublicKey
 		magic: Magic
 	}>,
 ): AddressT =>
-	addressFromPublicKeyAndMagicByte({
+	fromPublicKeyAndMagicByte({
 		publicKey: input.publicKey,
 		magicByte: input.magic.byte,
 	})
 
-export const addressFromPublicKeyAndMagicByte = (
+const fromPublicKeyAndMagicByte = (
 	input: Readonly<{
 		publicKey: PublicKey
 		magicByte: Byte
@@ -57,7 +57,7 @@ export const addressFromPublicKeyAndMagicByte = (
 	}
 }
 
-export const addressFromBase58String = (
+const fromBase58String = (
 	b58String: string,
 ): Result<AddressT, Error> => base58Decode(b58String).andThen(addressFromBuffer)
 
@@ -134,7 +134,7 @@ const calculateAndAppendChecksum = (buffer: Buffer): Buffer => {
 	return Buffer.concat([buffer, checksumFirstFourBytes])
 }
 
-export const isAddress = (
+const isAddress = (
 	something: AddressT | unknown,
 ): something is AddressT => {
 	const inspection = something as AddressT
@@ -146,18 +146,18 @@ export const isAddress = (
 	)
 }
 
-export const addressFromUnsafe = (
+const fromUnsafe = (
 	input: AddressT | string,
 ): Result<AddressT, Error> => {
 	return isAddress(input)
 		? ok(input)
 		: typeof input === 'string'
-		? addressFromBase58String(input)
+		? fromBase58String(input)
 		: err(new Error('bad type'))
 }
 
 const JSONDecoder = taggedStringDecoder(JSON_TAG)((input: string) =>
-	addressFromBase58String(input),
+	fromBase58String(input),
 )
 
 const decoding = JSONDecoding.withDecoders(JSONDecoder).create<AddressT>()
@@ -166,4 +166,9 @@ export const Address = {
 	JSON_TAG,
 	JSONDecoder,
 	...decoding,
+	fromUnsafe,
+	isAddress,
+	fromBase58String,
+	fromPublicKeyAndMagicByte,
+	fromPublicKeyAndMagic
 }

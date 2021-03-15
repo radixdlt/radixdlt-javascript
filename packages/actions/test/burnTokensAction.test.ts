@@ -1,7 +1,7 @@
 import { addressFromBase58String } from '@radixdlt/account'
 import { Denomination, zero } from '@radixdlt/primitives'
 import { BurnTokensActionInput } from '../src/_types'
-import { burnTokensAction } from '../src/burnTokensAction'
+import { BurnTokensAction } from '../src/burnTokensAction'
 import { Amount } from '@radixdlt/primitives/src/amount'
 import { ResourceIdentifier } from '@radixdlt/atom'
 
@@ -23,12 +23,12 @@ describe('BurnTokensAction', () => {
 	}
 
 	it('should be possible to burn 0 tokens', () => {
-		const burnAction = burnTokensAction({ ...input, amount: zero })
+		const burnAction = BurnTokensAction.create({ ...input, amount: zero })
 		expect(burnAction.amount.equals(zero)).toBe(true)
 	})
 
 	it(`should have a 'sender' equal to 'input.burner'.`, () => {
-		const burnTokens = burnTokensAction({
+		const burnTokens = BurnTokensAction.create({
 			...input,
 			burner: alice,
 		})
@@ -36,18 +36,18 @@ describe('BurnTokensAction', () => {
 	})
 
 	it(`should have an 'amount' equal to 'input.amount'.`, () => {
-		const burnTokens = burnTokensAction(input)
+		const burnTokens = BurnTokensAction.create(input)
 		expect(burnTokens.amount.equals(amount)).toBe(true)
 	})
 
 	it('should generate a UUID if none is provided.', () => {
-		const burnTokens = burnTokensAction(input)
+		const burnTokens = BurnTokensAction.create(input)
 		expect(burnTokens.uuid).toBeTruthy()
 	})
 
 	it('should be able to specify a UUID.', () => {
 		const uuid = 'randomly generated string'
-		const burnTokens = burnTokensAction({ ...input, uuid })
+		const burnTokens = BurnTokensAction.create({ ...input, uuid })
 		expect(burnTokens.uuid).toBe(uuid)
 	})
 })

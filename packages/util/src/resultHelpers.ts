@@ -1,6 +1,22 @@
 import { err, Result } from 'neverthrow'
 import { isObject, isResult } from './typeGuards'
 
+const unwrap = (maybeResult: unknown, errors: (Error | Error[])[]): unknown => {
+	if (isResult(maybeResult)) {
+		if(maybeResult.isOk()) {
+			const value = maybeResult.value
+			if(isResult(value)) {
+				return unwrap(value, errors)
+			}
+			return value
+		} else {
+			errors.push(maybeResult.error)
+			return maybeResult
+		}
+	}
+	return maybeResult
+} 
+
 export const flattenResultsObject = (
 	json: Result<unknown, Error | Error[]>,
 ): Result<unknown, Error[]> => {
@@ -14,11 +30,7 @@ export const flattenResultsObject = (
 
 				if (objValue && isResult(objValue)) {
 					const res = flattenResultsObject(objValue)
-					if (res.isErr()) {
-						errors.push(res.error)
-					} else {
-						value[item] = res.value
-					}
+					value[item] = unwrap(res, errors)
 				}
 			}
 			return value

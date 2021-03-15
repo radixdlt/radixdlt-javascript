@@ -1,6 +1,6 @@
 import { ResourceIdentifierT } from './_types'
 import { err, ok, Result } from 'neverthrow'
-import { addressFromBase58String, AddressT } from '@radixdlt/account'
+import { Address, AddressT } from '@radixdlt/account'
 import {
 	DSONObjectEncoding,
 	JSONDecoding,
@@ -54,7 +54,7 @@ const fromString = (
 	const name = components[2]
 	if (name.length === 0) return err(new Error('Expected non empty name'))
 
-	return addressFromBase58String(components[1]).map(
+	return Address.fromBase58String(components[1]).map(
 		(address): ResourceIdentifierT => ({
 			...JSONEncoding(serializerNotNeeded)(
 				() => `${JSON_TAG}${identifierString}`,

@@ -5,9 +5,9 @@ import {
 } from './_types'
 import { v4 as uuidv4 } from 'uuid'
 import { Decoder, JSONDecoding } from '@radixdlt/data-formats'
-import { ResourceIdentifier } from 'packages/atom/src/resourceIdentifier'
-import { Amount } from 'packages/primitives/src/amount'
-import { Address } from 'packages/account/src/address'
+import { ResourceIdentifier } from '@radixdlt/atom'
+import { Amount } from '@radixdlt/primitives'
+import { Address } from '@radixdlt/account'
 import { isObject } from '@radixdlt/util'
 import { ok } from 'neverthrow'
 
@@ -27,7 +27,7 @@ const decoding = JSONDecoding
 	)
 	.create()
 
-export const create = (
+const create = (
 	input: BurnTokensActionInput,
 ): BurnTokensActionT => {
 	const uuid = input.uuid ?? uuidv4()

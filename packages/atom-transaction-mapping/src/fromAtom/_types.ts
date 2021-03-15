@@ -40,6 +40,7 @@ export enum ApplicationStateType {
 	TOKEN_BALANCES_FOR_ONE_ACCOUNT = 'TokenBalancesForOneAccount',
 	TOKEN_BALANCES_PER_ACCOUNT = 'TokenBalancesPerAccount',
 }
+
 export type ApplicationState = Readonly<{
 	stateType: ApplicationStateType
 }>

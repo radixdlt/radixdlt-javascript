@@ -1,4 +1,4 @@
-import { TransferTokensAction, UserActionType } from '@radixdlt/actions'
+import { UserActionType } from '@radixdlt/actions'
 import {
 	MapperInput,
 	TokenTransferActionToParticleGroupsMapper,
@@ -21,10 +21,11 @@ import {
 	ParticleGroupT,
 	TransferrableTokensParticleT,
 } from '@radixdlt/atom/src/_index'
+import { TransferTokensActionT } from '@radixdlt/actions/src/_types'
 
 const particleGroupsFromTransferTokensAction = (
 	input: Readonly<{
-		transferTokensAction: TransferTokensAction
+		transferTokensAction: TransferTokensActionT
 		upParticles: UpParticle<TransferrableTokensParticleT>[]
 		addressOfActiveAccount: AddressT
 	}>,
@@ -76,7 +77,7 @@ export const tokenTransferActionToParticleGroupsMapper = (): TokenTransferAction
 				.andThen((res) => combine(collectUpParticles(res)))
 				.andThen((upParticles) =>
 					particleGroupsFromTransferTokensAction({
-						transferTokensAction: input.action as TransferTokensAction,
+						transferTokensAction: input.action as TransferTokensActionT,
 						upParticles: upParticles,
 						addressOfActiveAccount: input.addressOfActiveAccount,
 					}),

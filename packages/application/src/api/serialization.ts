@@ -1,18 +1,12 @@
 import { Address } from "@radixdlt/account"
-import { Decoder, JSONDecoding } from "@radixdlt/data-formats"
+import { decoder, JSONDecoding } from "@radixdlt/data-formats"
 import { Amount } from "@radixdlt/primitives"
-import { ok } from "neverthrow"
-import { BurnTokensAction } from "packages/actions/src/burnTokensAction"
-import { TransferTokensAction } from "packages/actions/src/transferTokensAction"
-import { Atom } from "packages/atom/src/atom"
-import { AtomIdentifier } from "packages/atom/src/atomIdentifier"
-import { FixedSupplyTokenDefinitionParticle } from "packages/atom/src/particles/fixedSupplyTokenDefinitionParticle"
-import { MutableSupplyTokenDefinitionParticle } from "packages/atom/src/particles/mutableSupplyTokenDefinitionParticle"
-import { SpunParticle } from "packages/atom/src/particles/spunParticle"
-import { TransferrableTokensParticle } from "packages/atom/src/particles/transferrableTokensParticle"
-import { UnallocatedTokensParticle } from "packages/atom/src/particles/unallocatedTokensParticle"
-import { ResourceIdentifier } from "packages/atom/src/resourceIdentifier"
+import { BurnTokensAction, TransferTokensAction } from "@radixdlt/actions"
+import { ResourceIdentifier, TransferrableTokensParticle, UnallocatedTokensParticle, FixedSupplyTokenDefinitionParticle, MutableSupplyTokenDefinitionParticle, Atom, SpunParticle, AtomIdentifier } from "@radixdlt/atom"
 import { TokenFee } from "../tokenFee"
+import { UInt256 } from '@radixdlt/uint256'
+import { ok } from "neverthrow"
+
 
 export const RadixJSONDecoding = <T>() => JSONDecoding
     .withDecoders(
@@ -28,6 +22,6 @@ export const RadixJSONDecoding = <T>() => JSONDecoding
         ResourceIdentifier.JSONDecoder,
         SpunParticle.JSONDecoder,
         TokenFee.JSONDecoder,
-        AtomIdentifier.JSONDecoder
+        AtomIdentifier.JSONDecoder,
     )
     .create<T>().fromJSON

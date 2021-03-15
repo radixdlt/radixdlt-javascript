@@ -17,7 +17,7 @@ import { UInt256 } from '@radixdlt/uint256'
 import { decoder, Decoder } from '@radixdlt/data-formats'
 
 const JSONDecoder: Decoder = decoder((value, key) => 
-    key === 'fee' && typeof value === 'number'
+    key === 'fee' && typeof value === 'string'
     ? ok(new UInt256(value))
     : undefined
 )
@@ -34,7 +34,6 @@ const forAtom = (
 	if (atomDsonResult.isErr()) return err(atomDsonResult.error)
 	const atomByteCount = atomDsonResult.value.length
 
-	/* eslint-disable */
 	let fee: AmountT = zero
 	for (const feeEntry of feeTable.feeEntries) {
 		const sumResult = feeEntry
@@ -46,7 +45,7 @@ const forAtom = (
 		if (sumResult.isErr()) return err(sumResult.error)
 		fee = sumResult.value
 	}
-	/* eslint-enable */
+	
 	const minFee = feeTable.minimumFee
 	return ok(fee.lessThan(minFee) ? minFee : fee)
 }
@@ -182,5 +181,6 @@ export const TokenFee = {
 	table,
 	milliRads,
 	forAtom,
-	JSONDecoder
+	JSONDecoder,
+	minimumFee
 }

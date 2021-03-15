@@ -1,9 +1,9 @@
-import { addressFromBase58String } from '@radixdlt/account'
+import { Address } from '@radixdlt/account'
 import { ResourceIdentifier } from '../src/_index'
 
 describe('ResourceIdentifier (RRI)', () => {
 	it('can be created from address+name AND from id-string', () => {
-		const address = addressFromBase58String(
+		const address = Address.fromBase58String(
 			'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
 		)._unsafeUnwrap()
 		const name = 'FOOBAR'

@@ -1,8 +1,8 @@
 import { AddressT, Int32 } from '@radixdlt/account'
-import { UserAction } from '@radixdlt/actions'
+import { BurnTokensActionT, TransferTokensActionT, UserAction } from '@radixdlt/actions'
 import { UInt256 } from '@radixdlt/uint256'
-import { AtomIdentifierT, ResourceIdentifierT, TokenPermissions } from 'packages/atom/src/_types'
-import { AmountT, Granularity } from 'packages/primitives/src/_types'
+import { AtomIdentifierT, ResourceIdentifierT, TokenPermissions } from '@radixdlt/atom'
+import { AmountT, Granularity } from '@radixdlt/primitives'
 
 export enum Endpoint {
     UNIVERSE_MAGIC = 'radix.universeMagic',
@@ -15,22 +15,26 @@ export enum Endpoint {
     NETWORK_TX_DEMAND = 'radix.networkTransactionDemand',
     VALIDATORS = 'radix.validators',
     NATIVE_TOKEN = 'radix.nativeToken',
-    TOKEN_FEE_FOR_TX = 'radix.tokenFeeForTransaction'
+    TOKEN_FEE_FOR_TX = 'radix.tokenFeeForTransaction',
+    GET_ATOM_FOR_TX = 'radix.getAtomForTransaction',
+    SUBMIT_SIGNED_ATOM = 'radix.submitSignedAtom'
 }
 
 type TransactionStatus = 'PENDING' | 'CONFIRMED' | 'FAILED'
+
+type Action = TransferTokensActionT | BurnTokensActionT
 
 type Transaction = {
     message: {
         msg: string,
         encryptionScheme: string
     },
-    actions: UserAction[]
+    actions: Action[]
 }
 
 export namespace UniverseMagic {
     export type Input = []
-    
+
     export type Response = {
         magic: Int32 // validation here?
     }
@@ -38,40 +42,40 @@ export namespace UniverseMagic {
 
 export namespace TokenBalances {
     export type Input = [address: string]
-    
-    // placeholder
-    export type Response = {
-        owner: string,
-        tokenBalances: [
-            {
-                token: string,
-                amount: string
-            }
-        ]
 
+    export type Response = {
+        owner: AddressT,
+        tokenBalances: {
+            amount: AmountT,
+            token: ResourceIdentifierT
+        }[]
     }
 }
 
 export namespace ExecutedTransactions {
+ 
     export type Input = [address: string, size: number]
-    
-    export type Response = [
-        {
-            atomId: string,
-            sentAt: Date,
-            fee: UInt256,
-            cursor: string,
-            message?: {
-                msg: string,
-                encryptionScheme: string
-            },
-            actions: UserAction[]
-        }
-    ]
+
+    export type Response = {
+        cursor: string,
+        transactions: [
+            {
+                atomId: string,
+                sentAt: Date,
+                fee: AmountT,
+                message?: {
+                    msg: string,
+                    encryptionScheme: string
+                },
+                actions: Action[]
+            }
+        ]
+    }
 }
+
 export namespace NativeToken {
     export type Input = []
-    
+
     export type Response = {
         name: string,
         rri: ResourceIdentifierT,
@@ -136,6 +140,14 @@ export namespace NetworkTransactionDemand {
 }
 
 export namespace Validators {
+    // TODO
+}
+
+export namespace GetAtomForTransaction {
+    // TODO
+}
+
+export namespace SubmitSignedAtom {
     // TODO
 }
 

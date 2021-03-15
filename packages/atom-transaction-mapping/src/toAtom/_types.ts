@@ -20,7 +20,7 @@ export type ActionToParticleGroupsMapper<
 	actionType: T
 	particleGroupsFromAction: (
 		input: Readonly<{
-			action: UserAction
+			action: UserAction<unknown>
 			upParticles: AnyUpParticle[]
 			addressOfActiveAccount: AddressT
 		}>,
@@ -28,7 +28,7 @@ export type ActionToParticleGroupsMapper<
 }>
 
 export type MapperInput = Readonly<{
-	action: UserAction
+	action: UserAction<unknown>
 	upParticles: AnyUpParticle[]
 	addressOfActiveAccount: AddressT
 }>

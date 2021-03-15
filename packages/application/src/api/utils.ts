@@ -1,4 +1,4 @@
-import { Endpoint } from "./_types"
+import { Endpoint } from "./json-rpc/_types"
 import { pipe, andThen } from 'ramda'
 import { Result } from "neverthrow"
 
