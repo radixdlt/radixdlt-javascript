@@ -1,8 +1,8 @@
 
-import { ExecutedTransactions, TokenBalances, UniverseMagic } from '../src/api/json-rpc/_types'
+import { ExecutedTransactions, NativeToken, TokenBalances, UniverseMagic } from '../src/api/json-rpc/_types'
 import { nodeAPI } from '../src/api/api'
 import { Address } from '@radixdlt/account'
-import { ResourceIdentifier } from '@radixdlt/atom'
+import { makeTokenPermissions, ResourceIdentifier, TokenPermission } from '@radixdlt/atom'
 import { Amount } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import { BurnTokensAction, TransferTokensAction, UserActionType } from '@radixdlt/actions'
@@ -31,11 +31,11 @@ describe('networking', () => {
 
 	describe('json-rpc', () => {
 		it('should be able to get universe magic', async () => {
-			mockClientReturnValue = {
+			mockClientReturnValue = <UniverseMagic.Response>{
 				magic: 1000
 			}
 
-			const expected: UniverseMagic.Response = {
+			const expected: UniverseMagic.DecodedResponse = {
 				magic: 1000
 			}
 
@@ -55,7 +55,7 @@ describe('networking', () => {
 				}]
 			}
 
-			const expected: TokenBalances.Response = {
+			const expected: TokenBalances.DecodedResponse = {
 				owner: Address.fromBase58String(address)._unsafeUnwrap(),
 				tokenBalances: [
 					{
@@ -73,7 +73,7 @@ describe('networking', () => {
 		})
 
 		it('should be able to get executed transactions', async () => {
-			mockClientReturnValue = {
+			mockClientReturnValue = <ExecutedTransactions.Response>{
 				cursor: 'deadbeef',
 				transactions: [
 					{
@@ -99,7 +99,7 @@ describe('networking', () => {
 				]
 			}
 
-			const expected: ExecutedTransactions.Response = {
+			const expected: ExecutedTransactions.DecodedResponse = {
 				cursor: 'deadbeef',
 				transactions: [
 					{
@@ -158,6 +158,56 @@ describe('networking', () => {
 			expect(result.transactions[0].actions[1].sender.equals(
 				expected.transactions[0].actions[1].sender
 			))
+		})
+
+		const name = 'Radix'
+		const rri = tokenRRI
+		const symbol = 'XRD'
+		const description = 'Cool token'
+		const granularity = '1'
+		const isSupplyMutable = false
+		const currentSupply = '100'
+		const tokenInfoURL = 'http://info.com'
+		const iconURL = 'http://icon.com'
+
+		it('should be able to get native token', async () => {
+			mockClientReturnValue = <NativeToken.Response>{
+				name,
+				rri,
+				symbol,
+				description,
+				granularity,
+				isSupplyMutable,
+				currentSupply,
+				tokenInfoURL,
+				iconURL,
+				tokenPermission: {
+					mint: TokenPermission.ALL,
+					burn: TokenPermission.ALL
+				}
+			}
+
+			const expected: NativeToken.DecodedResponse = {
+				name,
+				rri: ResourceIdentifier.fromString(tokenRRI)._unsafeUnwrap(),
+				symbol,
+				description,
+				granularity: Amount.inSmallestDenomination(new UInt256(granularity)),
+				isSupplyMutable,
+				currentSupply: Amount.inSmallestDenomination(new UInt256(currentSupply)),
+				tokenInfoURL: new URL(tokenInfoURL),
+				iconURL: new URL(iconURL),
+				tokenPermission: makeTokenPermissions({
+					mint: TokenPermission.ALL,
+					burn: TokenPermission.ALL
+				})
+			}
+
+			const result = (await clientl(''))._unsafeUnwrap()
+
+			expect(result.owner.equals(expected.owner)).toBe(true)
+			expect(result.tokenBalances[0].amount.equals(expected.tokenBalances[0].amount)).toBe(true)
+			expect(result.tokenBalances[0].token.equals(expected.tokenBalances[0].token)).toBe(true)
 		})
 	})
 })

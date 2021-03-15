@@ -20,10 +20,10 @@ export const getAPI = (
     const setupAPIResponse = setupAPICall(call)
 
     return {
-        universeMagic: setupAPIResponse<UniverseMagic.Input, UniverseMagic.Response>(handleUniverseMagicResponse)(Endpoint.UNIVERSE_MAGIC),
-        tokenBalances: setupAPIResponse<TokenBalances.Input, TokenBalances.Response>(handleTokenBalancesResponse)(Endpoint.TOKEN_BALANCES),
-        executedTransactions: setupAPIResponse<ExecutedTransactions.Input, ExecutedTransactions.Response>(handleExecutedTransactionsResponse)(Endpoint.EXECUTED_TXS),
-        //nativeToken: setupAPIResponse<NativeToken.Input, NativeToken.Response>(Endpoint.NATIVE_TOKEN),
+        universeMagic: setupAPIResponse<UniverseMagic.Input, UniverseMagic.DecodedResponse>(handleUniverseMagicResponse)(Endpoint.UNIVERSE_MAGIC),
+        tokenBalances: setupAPIResponse<TokenBalances.Input, TokenBalances.DecodedResponse>(handleTokenBalancesResponse)(Endpoint.TOKEN_BALANCES),
+        executedTransactions: setupAPIResponse<ExecutedTransactions.Input, ExecutedTransactions.DecodedResponse>(handleExecutedTransactionsResponse)(Endpoint.EXECUTED_TXS),
+        nativeToken: setupAPIResponse<NativeToken.Input, NativeToken.Response>(handle)(Endpoint.NATIVE_TOKEN),
         //tokenFeeForTransaction: setupAPIResponse<TokenFeeForTransaction.Input, TokenFeeForTransaction.Response>(Endpoint.TOKEN_FEE_FOR_TX),
         //stakes: setupAPIResponse<Stakes.Input, Stakes.Response>(Endpoint.STAKES),
         //transactionStatus: setupAPIResponse<TransactionStatus.Input, TransactionStatus.Response>(Endpoint.TX_STATUS),

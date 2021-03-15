@@ -4,8 +4,9 @@ import { UInt256 } from '@radixdlt/uint256'
 import { Amount } from "@radixdlt/primitives"
 import { ExecutedTransactions, TokenBalances, UniverseMagic } from "./_types"
 import { Address } from "@radixdlt/account"
-import { ResourceIdentifier } from "@radixdlt/atom"
+import { makeTokenPermissions, ResourceIdentifier, TokenPermission } from "@radixdlt/atom"
 import { BurnTokensAction, TransferTokensAction } from "@radixdlt/actions"
+import { isObject } from "packages/util/src/typeGuards"
 
 const amountDecoder = (...keys: string[]) => decoder((value, key) =>
     key !== undefined && keys.includes(key) && typeof value === 'string'
@@ -31,6 +32,18 @@ const RRIDecoder = (...keys: string[]) => decoder((value, key) =>
         : undefined
 )
 
+const URLDecoder = (...keys: string[]) => decoder((value, key) =>
+    key !== undefined && keys.includes(key) && typeof value === 'string'
+        ? ok(new URL(value))
+        : undefined
+)
+
+const tokenPermissionsDecoder = (...keys: string[]) => decoder((value, key) =>
+    key !== undefined && keys.includes(key) && isObject(value)
+        ? ok(makeTokenPermissions(value as Readonly<{ mint: TokenPermission; burn: TokenPermission; }>))
+        : undefined
+)
+
 export const handleExecutedTransactionsResponse =
     JSONDecoding.withDecoders(
         amountDecoder('amount', 'fee'),
@@ -39,16 +52,24 @@ export const handleExecutedTransactionsResponse =
         RRIDecoder('resourceIdentifier'),
         TransferTokensAction.JSONDecoder,
         BurnTokensAction.JSONDecoder
-    ).create<ExecutedTransactions.Response>()
+    ).create<ExecutedTransactions.DecodedResponse>()
         .fromJSON
 
 export const handleUniverseMagicResponse =
-    JSONDecoding.withDecoders().create<UniverseMagic.Response>().fromJSON
+    JSONDecoding.withDecoders().create<UniverseMagic.DecodedResponse>().fromJSON
 
 export const handleTokenBalancesResponse =
     JSONDecoding.withDecoders(
         addressDecoder('owner'),
         RRIDecoder('token'),
         amountDecoder('amount')
-    ).create<TokenBalances.Response>()
+    ).create<TokenBalances.DecodedResponse>()
         .fromJSON
+
+export const handleNativeTokenResponse =
+    JSONDecoding.withDecoders(
+        RRIDecoder('rri'),
+        amountDecoder('granularity', 'currentSupply'),
+        URLDecoder('tokenInfoURL', 'iconURL'),
+        tokenPermissionsDecoder('tokenPermission')
+    )

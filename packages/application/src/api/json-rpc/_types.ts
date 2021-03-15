@@ -1,7 +1,6 @@
 import { AddressT, Int32 } from '@radixdlt/account'
-import { BurnTokensActionT, TransferTokensActionT, UserAction } from '@radixdlt/actions'
-import { UInt256 } from '@radixdlt/uint256'
-import { AtomIdentifierT, ResourceIdentifierT, TokenPermissions } from '@radixdlt/atom'
+import { BurnTokensActionT, TransferTokensActionT, UserActionType } from '@radixdlt/actions'
+import { AtomIdentifierT, ResourceIdentifierT, TokenPermissions, TokenPermission } from '@radixdlt/atom'
 import { AmountT, Granularity } from '@radixdlt/primitives'
 
 export enum Endpoint {
@@ -36,6 +35,10 @@ export namespace UniverseMagic {
     export type Input = []
 
     export type Response = {
+        magic: Int32
+    }
+
+    export type DecodedResponse = {
         magic: Int32 // validation here?
     }
 }
@@ -44,19 +47,60 @@ export namespace TokenBalances {
     export type Input = [address: string]
 
     export type Response = {
+        owner: string,
+        tokenBalances: [
+            {
+                token: string
+                amount: string,
+            }
+        ]
+    }
+
+    export type DecodedResponse = {
         owner: AddressT,
-        tokenBalances: {
-            amount: AmountT,
-            token: ResourceIdentifierT
-        }[]
+        tokenBalances: [
+            {
+                token: ResourceIdentifierT
+                amount: AmountT,
+            }
+        ]
     }
 }
 
 export namespace ExecutedTransactions {
- 
+    type RawTransferAction = {
+        type: UserActionType,
+        from: string,
+        to: string,
+        amount: string,
+        resourceIdentifier: string
+    }
+
+    type RawBurnAction = {
+        type: UserActionType,
+        burner: string,
+        amount: string,
+        resourceIdentifier: string
+    }
+
     export type Input = [address: string, size: number]
 
     export type Response = {
+        cursor: string,
+        transactions:
+        {
+            atomId: string,
+            sentAt: string,
+            fee: string,
+            message?: {
+                msg: string,
+                encryptionScheme: string
+            },
+            actions: (RawTransferAction | RawBurnAction)[]
+        }[]
+    }
+
+    export type DecodedResponse = {
         cursor: string,
         transactions: [
             {
@@ -78,10 +122,26 @@ export namespace NativeToken {
 
     export type Response = {
         name: string,
+        rri: string,
+        symbol: string,
+        description?: string,
+        granularity: string,
+        isSupplyMutable: boolean,
+        currentSupply: string,
+        tokenInfoURL: string,
+        iconURL: string,
+        tokenPermission: {
+            burn: TokenPermission,
+            mint: TokenPermission
+        }
+    }
+
+    export type DecodedResponse = {
+        name: string,
         rri: ResourceIdentifierT,
         symbol: string,
         description?: string,
-        granularity: Granularity,
+        granularity: AmountT,
         isSupplyMutable: boolean,
         currentSupply: AmountT,
         tokenInfoURL: URL,
@@ -94,6 +154,10 @@ export namespace TokenFeeForTransaction {
     export type Input = [transaction: Transaction]
 
     export type Response = {
+        tokenFee: string
+    }
+
+    export type DecodedResponse = {
         tokenFee: AmountT
     }
 }
@@ -102,6 +166,13 @@ export namespace Stakes {
     export type Input = [address: string]
 
     export type Response = [
+        {
+            validator: string,
+            amount: string
+        }
+    ]
+
+    export type DecodedResponse = [
         {
             validator: AddressT,
             amount: AmountT
@@ -117,6 +188,12 @@ export namespace TransactionStatus {
     export type Input = [atomIdentifier: string]
 
     export type Response = {
+        atomIdentifier: string,
+        status: TransactionStatus,
+        failure?: string
+    }
+
+    export type DecodedResponse = {
         atomIdentifier: AtomIdentifierT,
         status: TransactionStatus,
         failure?: string
@@ -129,12 +206,20 @@ export namespace NetworkTransactionThroughput {
     export type Response = {
         tps: number
     }
+
+    export type DecodedResponse = {
+        tps: number
+    }
 }
 
 export namespace NetworkTransactionDemand {
     export type Input = []
 
     export type Response = {
+        tps: number
+    }
+
+    export type DecodedResponse = {
         tps: number
     }
 }
