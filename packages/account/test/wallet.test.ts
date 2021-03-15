@@ -104,6 +104,7 @@ describe('HD Wallet', () => {
 
 		wallet.observeActiveAccount().subscribe((active) => {
 			expect(active.hdPath.addressIndex.value()).toBe(0)
+			expect(active.hdPath.toString()).toBe(`m/44'/536'/0'/0/0'`)
 			done()
 		})
 	})
