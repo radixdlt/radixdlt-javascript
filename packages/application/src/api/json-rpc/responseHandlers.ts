@@ -5,7 +5,7 @@ import { Amount } from "@radixdlt/primitives"
 import { ExecutedTransactions, TokenBalances, UniverseMagic } from "./_types"
 import { Address } from "@radixdlt/account"
 import { ResourceIdentifier } from "@radixdlt/atom"
-import { TransferTokensAction } from "@radixdlt/actions"
+import { BurnTokensAction, TransferTokensAction } from "@radixdlt/actions"
 
 const amountDecoder = (...keys: string[]) => decoder((value, key) =>
     key !== undefined && keys.includes(key) && typeof value === 'string'
@@ -35,9 +35,10 @@ export const handleExecutedTransactionsResponse =
     JSONDecoding.withDecoders(
         amountDecoder('amount', 'fee'),
         dateDecoder('sentAt'),
-        addressDecoder('from', 'to'),
+        addressDecoder('from', 'to', 'burner'),
         RRIDecoder('resourceIdentifier'),
-        TransferTokensAction.JSONDecoder
+        TransferTokensAction.JSONDecoder,
+        BurnTokensAction.JSONDecoder
     ).create<ExecutedTransactions.Response>()
         .fromJSON
 

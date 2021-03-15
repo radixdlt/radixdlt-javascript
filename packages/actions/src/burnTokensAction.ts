@@ -12,7 +12,7 @@ import { isObject } from '@radixdlt/util'
 import { ok } from 'neverthrow'
 
 const JSONDecoder: Decoder = value =>
-	isObject(value) && value['actionType'] === UserActionType.BURN_TOKENS
+	isObject(value) && value['type'] === UserActionType.BURN_TOKENS
 	? ok(create(value as BurnTokensActionInput))
 	: undefined
 

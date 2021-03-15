@@ -5,7 +5,7 @@ import { Address } from '@radixdlt/account'
 import { ResourceIdentifier } from '@radixdlt/atom'
 import { Amount } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
-import { TransferTokensAction, UserActionType } from '@radixdlt/actions'
+import { BurnTokensAction, TransferTokensAction, UserActionType } from '@radixdlt/actions'
 
 let mockClientReturnValue: any
 
@@ -73,7 +73,6 @@ describe('networking', () => {
 		})
 
 		it('should be able to get executed transactions', async () => {
-
 			mockClientReturnValue = {
 				cursor: 'deadbeef',
 				transactions: [
@@ -86,6 +85,12 @@ describe('networking', () => {
 								type: UserActionType.TOKEN_TRANSFER,
 								from: address,
 								to: address,
+								amount: '100',
+								resourceIdentifier: tokenRRI
+							},
+							{
+								type: UserActionType.BURN_TOKENS,
+								burner: address,
 								amount: '100',
 								resourceIdentifier: tokenRRI
 							}
@@ -107,6 +112,12 @@ describe('networking', () => {
 								from: Address.fromBase58String(address)._unsafeUnwrap(),
 								to: Address.fromBase58String(address)._unsafeUnwrap(),
 								resourceIdentifier: ResourceIdentifier.fromString(tokenRRI)._unsafeUnwrap()
+							}),
+
+							BurnTokensAction.create({
+								amount: Amount.inSmallestDenomination(new UInt256(100)),
+								resourceIdentifier: ResourceIdentifier.fromString(tokenRRI)._unsafeUnwrap(),
+								burner: Address.fromBase58String(address)._unsafeUnwrap(),
 							})
 						]
 					}
@@ -137,6 +148,16 @@ describe('networking', () => {
 				expected.transactions[0].fee
 			)).toEqual(true)
 			expect(result.transactions[0].sentAt.valueOf()).toEqual(expected.transactions[0].sentAt.valueOf())
+
+			expect(result.transactions[0].actions[1].amount.equals(
+				expected.transactions[0].actions[1].amount
+			))
+			expect(result.transactions[0].actions[1].resourceIdentifier.equals(
+				expected.transactions[0].actions[1].resourceIdentifier
+			))
+			expect(result.transactions[0].actions[1].sender.equals(
+				expected.transactions[0].actions[1].sender
+			))
 		})
 	})
 })
