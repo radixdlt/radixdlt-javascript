@@ -1,5 +1,4 @@
 import { AnyUpParticle } from '@radixdlt/atom'
-import { AmountT } from '@radixdlt/primitives'
 import { Result, ResultAsync } from 'neverthrow'
 import {
 	ExecutedTransactions,
@@ -14,6 +13,9 @@ import {
 	TransactionStatus,
 	UniverseMagic,
 } from './api/json-rpc/_types'
+import { AmountT, Magic } from '@radixdlt/primitives'
+import { Observable } from 'rxjs'
+import { AccountsT, AccountT, AddressT, WalletT } from '@radixdlt/account'
 
 export type FeeEntry = Readonly<{
 	feeFor: (
@@ -74,3 +76,40 @@ export type NodeAPI = {
 		...input: SubmitSignedAtom.Input
 	) => ResultAsync<SubmitSignedAtom.DecodedResponse, Error[]>
 }
+export type NodeT = Readonly<{
+	url: URL
+}>
+
+export type Token = 'TokenDefinition'
+export type TokenBalances = 'TokenBalancesForOneAccount'
+
+export type RadixCoreAPI = {
+	node: NodeT
+	magic: () => Observable<Magic>
+	nativeToken: () => Observable<Token>
+	tokenBalances: (address: AddressT) => Observable<TokenBalances>
+}
+
+export type RadixT = Readonly<{
+	// Input
+
+	// Primiarily useful for testing.
+	_withAPI: (radixCoreAPI$: Observable<RadixCoreAPI>) => void
+
+	withAPIAtNode: (node$: Observable<NodeT>) => void
+	withWallet: (wallet: WalletT) => void
+
+	// Observe Input
+	observeWallet: () => Observable<WalletT>
+	observeNode: () => Observable<NodeT>
+
+	// Wallet APIs
+	observeActiveAddress: () => Observable<AddressT>
+	observeActiveAccount: () => Observable<AccountT>
+	observeAccounts: () => Observable<AccountsT>
+
+	// API
+	nativeToken: () => Observable<Token>
+	tokenBalancesOfActiveAccount: () => Observable<TokenBalances>
+	// TODO impl all...
+}>

@@ -1,19 +1,27 @@
-import { WalletT } from '../src/_types'
+import { WalletT, AddressT } from '../src/_types'
 import { Wallet } from '../src/wallet'
 import { Mnemonic } from '../src/bip39/mnemonic'
 import { HDMasterSeed } from '../src/bip39/hdMasterSeed'
 import { HDMasterSeedT } from '../src/bip39/_types'
 import { unlinkSync } from 'fs'
-import { take, toArray } from 'rxjs/operators'
+import { map, take, toArray } from 'rxjs/operators'
 import { Keystore, PublicKey } from '@radixdlt/crypto'
+import { combineLatest, of, Subject } from 'rxjs'
+import { Magic, magicFromNumber } from '@radixdlt/primitives'
 
 const createWallet = (): WalletT => {
 	const mnemonic = Mnemonic.generateNew()
 	const masterSeed: HDMasterSeedT = HDMasterSeed.fromMnemonic({ mnemonic })
 	return Wallet.create({ masterSeed })
 }
-import { combineLatest, of, Subject } from 'rxjs'
-import { Magic, magicFromNumber } from '@radixdlt/primitives'
+
+
+const createSpecificWallet = (): WalletT => {
+	const masterSeed = HDMasterSeed.fromSeed(
+		Buffer.from('deadbeef'.repeat(8), 'hex'),
+	)
+	return Wallet.create({ masterSeed })
+}
 
 const expectWalletsEqual = (
 	wallets: { wallet1: WalletT; wallet2: WalletT },
@@ -123,13 +131,22 @@ describe('HD Wallet', () => {
 		const wallet = createWallet()
 		wallet.deriveNext({ alsoSwitchTo: true })
 
-		wallet.observeActiveAccount().subscribe({
-			next: (active) => {
-				expect(active.hdPath.addressIndex.value()).toBe(1)
-				done()
-			},
-			error: (e) => done(e),
-		})
+		const expectedValues = [0, 1] // we start at 0 by default, then switch to 1
+
+		wallet
+			.observeActiveAccount()
+			.pipe(
+				map((a) => a.hdPath.addressIndex.value()),
+				take(2),
+				toArray(),
+			)
+			.subscribe({
+				next: (values) => {
+					expect(values).toStrictEqual(expectedValues)
+					done()
+				},
+				error: (e) => done(e),
+			})
 	})
 
 	it('can list all accounts that has been added', (done) => {
@@ -169,11 +186,41 @@ describe('HD Wallet', () => {
 		const wallet = createWallet()
 		const magicSubject = new Subject<Magic>()
 		wallet.provideMagic(magicSubject.asObservable())
+
+		wallet.provideMagic(of(magicFromNumber(123))) // number must be < 256
+
 		const magic = magicFromNumber(123)
 		wallet.observeActiveAddress().subscribe((address) => {
 			expect(address.magicByte).toBe(magic.byte)
 			done()
 		})
 		magicSubject.next(magic)
+	})
+
+	it('can change magic', async (done) => {
+		const wallet = createSpecificWallet()
+
+		const m1 = magicFromNumber(1)
+		const m2 = magicFromNumber(2)
+
+		const expectedValues = [m1, m2].map((m) => m.byte)
+
+		wallet.provideMagic(of(m1))
+		wallet.provideMagic(of(m2))
+
+		wallet
+			.observeActiveAddress()
+			.pipe(
+				map((a: AddressT) => a.magicByte),
+				take(2),
+				toArray(),
+			)
+			.subscribe(
+				(magic) => {
+					expect(magic).toStrictEqual(expectedValues)
+					done()
+				},
+				(error) => done(error),
+			)
 	})
 })
