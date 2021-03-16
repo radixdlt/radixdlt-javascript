@@ -1,6 +1,6 @@
 {
   "name": "@radixdlt/networking",
-  "version": "1.0.0-alpha.0",
+  "version": "1.0.1-alpha.0",
   "description": "Sending and fetching of Atoms over some transportation protocol, e.g. websockets and/or HTTP",
   "keywords": [
     "AtomPuller",
