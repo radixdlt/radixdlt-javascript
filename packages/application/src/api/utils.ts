@@ -10,4 +10,6 @@ export const callAPI = <Params extends unknown[], DecodedResponse>(
 		response: unknown,
 	) => Result<DecodedResponse, Error[] | Error>,
 ) => (...params: Params) =>
-	pipe(call, andThen(handleResponse))(endpoint, params)
+	// ignore typecheck here because typings in Ramda pipe can't handle the spread operator.
+	// @ts-ignore
+	pipe(call, andThen(handleResponse))(endpoint, ...params)

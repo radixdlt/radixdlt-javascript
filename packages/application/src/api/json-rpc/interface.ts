@@ -29,13 +29,13 @@ import {
 } from './responseHandlers'
 
 const setupAPICall = (
-	call: (endpoint: Endpoint, ...params: unknown[]) => Promise<any>,
+	call: (endpoint: Endpoint, ...params: unknown[]) => Promise<unknown>,
 ) => <I extends unknown[], R>(
 	handleResponse: (response: unknown) => Result<R, Error[] | Error>,
 ) => (endpoint: Endpoint) => callAPI<I, R>(endpoint)(call, handleResponse)
 
 export const getAPI = (
-	call: (endpoint: Endpoint, ...params: unknown[]) => Promise<any>,
+	call: (endpoint: Endpoint, ...params: unknown[]) => Promise<unknown>,
 ) => {
 	const setupAPIResponse = setupAPICall(call)
 
@@ -88,7 +88,7 @@ export const getAPI = (
 			GetAtomForTransaction.Input,
 			GetAtomForTransaction.DecodedResponse
 		>(handleGetAtomForTxResponse)(Endpoint.GET_ATOM_FOR_TX),
-        
+
 		submitSignedAtom: setupAPIResponse<
 			SubmitSignedAtom.Input,
 			SubmitSignedAtom.DecodedResponse
