@@ -13,8 +13,8 @@ import {
 } from '@radixdlt/atom'
 import {
 	TransferTokensAction,
-	transferTokensAction,
 	TransferTokensActionInput,
+	TransferTokensActionT,
 } from '@radixdlt/actions'
 import {
 	Amount,
@@ -113,10 +113,10 @@ describe('AtomToTokenTransfersMapper', () => {
 	>
 	const makeTransferWithRRI = (
 		input: TransferTokensActionInputIsh & { amount: AmountLike },
-	): ((_: ResourceIdentifierT) => TransferTokensAction) => (
+	): ((_: ResourceIdentifierT) => TransferTokensActionT) => (
 		rri: ResourceIdentifierT,
-	): TransferTokensAction =>
-		transferTokensAction({
+	): TransferTokensActionT =>
+		TransferTokensAction.create({
 			...input,
 			amount: makeAmount(input.amount),
 			resourceIdentifier: rri,
@@ -124,13 +124,13 @@ describe('AtomToTokenTransfersMapper', () => {
 
 	const expectSuccess = <T extends TokenDefinitionParticleBase>(
 		tokenDefinitionParticle: T,
-		makeTransfer: (rri: ResourceIdentifierT) => TransferTokensAction,
+		makeTransfer: (rri: ResourceIdentifierT) => TransferTokensActionT,
 		consumablesFromAmounts: AmountLike[],
 		filterTokenTransfersForAcccount: AddressT,
 		validateTransfers: (tokenTransfers: TokenTransfer[]) => void,
 	): void => {
 		const resourceID = tokenDefinitionParticle.resourceIdentifier
-		const transferAction: TransferTokensAction = makeTransfer(resourceID)
+		const transferAction: TransferTokensActionT = makeTransfer(resourceID)
 		const actor = transferAction.sender
 
 		const transferToPGsMapper = tokenTransferActionToParticleGroupsMapper()

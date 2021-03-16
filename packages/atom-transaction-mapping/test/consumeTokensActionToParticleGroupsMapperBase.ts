@@ -27,7 +27,7 @@ export type TestCaseReturn = ReturnType<typeof it>
 
 export type TestVector<T extends TokenDefinitionParticleBase> = Readonly<{
 	mapper: ActionToParticleGroupsMapper
-	makeAction: (amount: number, actor?: AddressT) => TokensActionBase
+	makeAction: (amount: number, actor?: AddressT) => TokensActionBase<unknown>
 	tokenDefinitionParticle: T
 }>
 

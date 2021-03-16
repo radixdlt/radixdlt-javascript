@@ -1,6 +1,5 @@
 import {
-	addressFromBase58String,
-	addressFromPublicKeyAndMagicByte,
+	Address
 } from '@radixdlt/account'
 import { generatePrivateKey } from '@radixdlt/crypto'
 import { JSONDecodableObject, OutputMode } from '@radixdlt/data-formats'
@@ -15,7 +14,7 @@ describe('transferrableTokensParticle', () => {
 	it('can be safely created from safe type', () => {
 		const privateKey = generatePrivateKey()
 		const publicKey = privateKey.publicKey()
-		const address = addressFromPublicKeyAndMagicByte({
+		const address = Address.fromPublicKeyAndMagicByte({
 			publicKey: publicKey,
 			magicByte: 1,
 		})
@@ -42,7 +41,7 @@ describe('transferrableTokensParticle', () => {
 	it('cannot be created from an amount not being a multiple of granularity', () => {
 		const privateKey = generatePrivateKey()
 		const publicKey = privateKey.publicKey()
-		const address = addressFromPublicKeyAndMagicByte({
+		const address = Address.fromPublicKeyAndMagicByte({
 			publicKey: publicKey,
 			magicByte: 1,
 		})
@@ -136,7 +135,7 @@ describe('transferrableTokensParticle', () => {
 	})
 
 	describe('serialization', () => {
-		const address = addressFromBase58String(
+		const address = Address.fromBase58String(
 			'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
 		)._unsafeUnwrap()
 		const rri = ResourceIdentifier.fromAddressAndName({

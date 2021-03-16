@@ -1,4 +1,4 @@
-import { atomIdentifier } from '../src/atomIdentifier'
+import { AtomIdentifier } from '../src/atomIdentifier'
 import {
 	exactlyContainParticles,
 	spunParticles_,
@@ -9,7 +9,6 @@ import {
 } from './helpers/particles'
 import { UInt256 } from '@radixdlt/uint256'
 import {
-	AtomT,
 	SignatureID,
 	Signatures,
 	TokenPermission,
@@ -24,11 +23,11 @@ import { signatureFromHexStrings } from './helpers/utility'
 import { Spin } from '../src/particles/_types'
 import { RadixParticleType } from '../src/particles/meta/radixParticleTypes'
 import { spunParticle } from '../src/particles/spunParticle'
-import { addressFromBase58String } from '@radixdlt/account'
+import { Address } from '@radixdlt/account'
 import { makeTokenPermissions } from '../src/tokenPermissions'
 import { Amount, Denomination, nonce } from '@radixdlt/primitives'
 
-const mockedAtomIdentifier = atomIdentifier(
+const mockedAtomIdentifier = AtomIdentifier.create(
 	'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
 )._unsafeUnwrap()
 
@@ -108,7 +107,7 @@ describe('atom', () => {
 	})
 
 	describe('serialization', () => {
-		const address = addressFromBase58String(
+		const address = Address.fromBase58String(
 			'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
 		)._unsafeUnwrap()
 		const rri = ResourceIdentifier.fromAddressAndName({

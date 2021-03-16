@@ -1,4 +1,4 @@
-import { addressFromBase58String } from '@radixdlt/account'
+import { Address } from '@radixdlt/account'
 import { Denomination, zero } from '@radixdlt/primitives'
 import { BurnTokensActionInput } from '../src/_types'
 import { BurnTokensAction } from '../src/burnTokensAction'
@@ -6,7 +6,7 @@ import { Amount } from '@radixdlt/primitives/src/amount'
 import { ResourceIdentifier } from '@radixdlt/atom'
 
 describe('BurnTokensAction', () => {
-	const alice = addressFromBase58String(
+	const alice = Address.fromBase58String(
 		'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
 	)._unsafeUnwrap()
 

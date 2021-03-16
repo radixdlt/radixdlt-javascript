@@ -1,6 +1,6 @@
 import {
-	burnTokensAction,
 	BurnTokensAction,
+	BurnTokensActionT,
 	UserActionType,
 } from '@radixdlt/actions'
 import {
@@ -125,8 +125,8 @@ describe('BurnTokensActionToParticleGroupsMapper', () => {
 	const makeBurnAction = (
 		amount: number = 1337,
 		actor?: AddressT,
-	): BurnTokensAction => {
-		return burnTokensAction({
+	): BurnTokensActionT => {
+		return BurnTokensAction.create({
 			burner: actor ?? alice,
 			amount: Amount.inSmallestDenomination(UInt256.valueOf(amount)),
 			resourceIdentifier: rri,

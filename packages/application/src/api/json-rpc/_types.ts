@@ -1,7 +1,7 @@
 import { AddressT, Int32 } from '@radixdlt/account'
 import { BurnTokensActionT, TransferTokensActionT, UserActionType } from '@radixdlt/actions'
 import { AtomIdentifierT, ResourceIdentifierT, TokenPermissions, TokenPermission } from '@radixdlt/atom'
-import { AmountT, Granularity } from '@radixdlt/primitives'
+import { AmountT } from '@radixdlt/primitives'
 
 export enum Endpoint {
     UNIVERSE_MAGIC = 'radix.universeMagic',
