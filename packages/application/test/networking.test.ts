@@ -203,11 +203,17 @@ describe('networking', () => {
 				})
 			}
 
-			const result = (await clientl(''))._unsafeUnwrap()
+			const result = (await client.nativeToken())._unsafeUnwrap()
 
-			expect(result.owner.equals(expected.owner)).toBe(true)
-			expect(result.tokenBalances[0].amount.equals(expected.tokenBalances[0].amount)).toBe(true)
-			expect(result.tokenBalances[0].token.equals(expected.tokenBalances[0].token)).toBe(true)
+			expect(result.currentSupply.equals(expected.currentSupply)).toBe(true)
+			expect(result.description).toEqual(expected.description)
+			expect(result.granularity.equals(expected.granularity)).toBe(true)
+			expect(result.iconURL.toString()).toEqual(expected.iconURL.toString())
+			expect(result.tokenInfoURL.toString()).toEqual(expected.tokenInfoURL.toString())
+			expect(result.isSupplyMutable).toEqual(expected.isSupplyMutable)
+			expect(result.name).toEqual(expected.name)
+			expect(result.rri.equals(expected.rri)).toBe(true)
+			expect(result.tokenPermission.equals(expected.tokenPermission))
 		})
 	})
 })

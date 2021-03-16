@@ -1,7 +1,7 @@
 import { callAPI } from "../utils"
 import { Endpoint, ExecutedTransactions, NativeToken, TokenBalances, UniverseMagic, TokenFeeForTransaction, Stakes, TransactionStatus, NetworkTransactionDemand, NetworkTransactionThroughput } from "./_types"
 import { Result } from "neverthrow"
-import { handleExecutedTransactionsResponse, handleTokenBalancesResponse, handleUniverseMagicResponse } from './responseHandlers'
+import { handleExecutedTransactionsResponse, handleNativeTokenResponse, handleTokenBalancesResponse, handleUniverseMagicResponse } from './responseHandlers'
 
 const setupAPICall = (
     call: (endpoint: Endpoint, ...params: unknown[]) => Promise<any>,
@@ -23,7 +23,7 @@ export const getAPI = (
         universeMagic: setupAPIResponse<UniverseMagic.Input, UniverseMagic.DecodedResponse>(handleUniverseMagicResponse)(Endpoint.UNIVERSE_MAGIC),
         tokenBalances: setupAPIResponse<TokenBalances.Input, TokenBalances.DecodedResponse>(handleTokenBalancesResponse)(Endpoint.TOKEN_BALANCES),
         executedTransactions: setupAPIResponse<ExecutedTransactions.Input, ExecutedTransactions.DecodedResponse>(handleExecutedTransactionsResponse)(Endpoint.EXECUTED_TXS),
-        nativeToken: setupAPIResponse<NativeToken.Input, NativeToken.Response>(handle)(Endpoint.NATIVE_TOKEN),
+        nativeToken: setupAPIResponse<NativeToken.Input, NativeToken.DecodedResponse>(handleNativeTokenResponse)(Endpoint.NATIVE_TOKEN),
         //tokenFeeForTransaction: setupAPIResponse<TokenFeeForTransaction.Input, TokenFeeForTransaction.Response>(Endpoint.TOKEN_FEE_FOR_TX),
         //stakes: setupAPIResponse<Stakes.Input, Stakes.Response>(Endpoint.STAKES),
         //transactionStatus: setupAPIResponse<TransactionStatus.Input, TransactionStatus.Response>(Endpoint.TX_STATUS),

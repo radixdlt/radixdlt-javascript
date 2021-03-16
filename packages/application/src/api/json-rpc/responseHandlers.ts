@@ -2,11 +2,11 @@ import { decoder, JSONDecoding } from "@radixdlt/data-formats"
 import { ok } from "neverthrow"
 import { UInt256 } from '@radixdlt/uint256'
 import { Amount } from "@radixdlt/primitives"
-import { ExecutedTransactions, TokenBalances, UniverseMagic } from "./_types"
+import { ExecutedTransactions, NativeToken, TokenBalances, UniverseMagic } from "./_types"
 import { Address } from "@radixdlt/account"
 import { makeTokenPermissions, ResourceIdentifier, TokenPermission } from "@radixdlt/atom"
 import { BurnTokensAction, TransferTokensAction } from "@radixdlt/actions"
-import { isObject } from "packages/util/src/typeGuards"
+import { isObject } from "@radixdlt/util"
 
 const amountDecoder = (...keys: string[]) => decoder((value, key) =>
     key !== undefined && keys.includes(key) && typeof value === 'string'
@@ -72,4 +72,5 @@ export const handleNativeTokenResponse =
         amountDecoder('granularity', 'currentSupply'),
         URLDecoder('tokenInfoURL', 'iconURL'),
         tokenPermissionsDecoder('tokenPermission')
-    )
+    ).create<NativeToken.DecodedResponse>()
+    .fromJSON
