@@ -1,15 +1,12 @@
 import { DSONCodable, JSONEncodable } from '@radixdlt/data-formats'
-import { Byte, ValidationWitness } from '@radixdlt/util'
-import {
-	PrivateKey,
-	PublicKey,
-	Signature,
-	UnsignedMessage,
-} from '@radixdlt/crypto'
+import { Byte } from '@radixdlt/util'
+import { PublicKey, Signature, UnsignedMessage } from '@radixdlt/crypto'
 import { Observable } from 'rxjs'
 import { BIP32T } from './bip32/_types'
 import { Option } from 'prelude-ts'
-import { Result } from 'neverthrow'
+import { HDMasterSeedT } from './_index'
+import { HDPathRadixT } from './bip32/_index'
+import { Magic } from '@radixdlt/primitives'
 
 export type AddressT = JSONEncodable &
 	DSONCodable &
@@ -19,17 +16,6 @@ export type AddressT = JSONEncodable &
 		toString: () => string
 		equals: (other: AddressT) => boolean
 	}>
-
-export type AccountIdFromBIP32Path = Readonly<{
-	type: 'AccountIdFromBIP32Path'
-	accountIdString: string
-}>
-
-export type AccountIdFromPublicKey = Readonly<{
-	type: 'AccountIdFromPublicKey'
-	accountIdString: string
-}>
-export type AccountIdT = AccountIdFromBIP32Path | AccountIdFromPublicKey
 
 export type PublicKeyDeriving = Readonly<{
 	derivePublicKey: () => Observable<PublicKey>
@@ -42,7 +28,8 @@ export type Signing = Readonly<{
 export type AccountT = PublicKeyDeriving &
 	Signing &
 	Readonly<{
-		accountId: AccountIdT
+		hdPath: HDPathRadixT
+		deriveAddress: () => Observable<AddressT>
 	}>
 
 /// A simple "interface" like type that this `account` package recognizes.
@@ -61,18 +48,38 @@ export type HardwareWalletSimpleT = Readonly<{
 }>
 
 export type AccountsT = Readonly<{
-	get: (id: AccountIdT | PublicKey | BIP32T) => Option<AccountT>
+	get: (hdPath: HDPathRadixT) => Option<AccountT>
 	all: AccountT[]
 }>
+
+export type MasterSeedProviderT = Readonly<{
+	masterSeed: () => Observable<HDMasterSeedT>
+}>
+
+export enum AccountIndexPosition {
+	FIRST,
+	LAST, // last known/derived
+}
+
+export type TargetAccountIndexT = number | AccountIndexPosition
 
 export type WalletT = PublicKeyDeriving &
 	Signing &
 	Readonly<{
-		changeAccount: (to: AccountT) => Result<ValidationWitness, Error>
-		addAccount: (newAccount: AccountT) => Result<ValidationWitness, Error>
-		addAccountByPrivateKey: (
-			privateKey: PrivateKey,
-		) => Result<ValidationWitness, Error>
+		// Call this once you can provide an observable providing magic.
+		provideMagic: (magic: Observable<Magic>) => void
+		deriveNext: (
+			input?: Readonly<{
+				isHardened?: boolean // defaults to true
+				alsoSwitchTo?: boolean // defaults to false
+			}>,
+		) => AccountT
+
+		switchAccount: (
+			input: Readonly<{ to: AccountT | TargetAccountIndexT }>,
+		) => AccountT
+
 		observeActiveAccount: () => Observable<AccountT>
+		observeActiveAddress: () => Observable<AddressT>
 		observeAccounts: () => Observable<AccountsT>
 	}>

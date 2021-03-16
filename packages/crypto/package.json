@@ -1,6 +1,6 @@
 {
   "name": "@radixdlt/crypto",
-  "version": "0.0.0",
+  "version": "1.0.0-alpha.0",
   "description": "Cryptographic primitives such as digests (hashing) and Elliptic Curve Cryptography (ECC) methods such as key generation, signing and verify.",
   "keywords": [
     "Crypto",
@@ -35,15 +35,17 @@
     "node": ">=15.5.0 <16"
   },
   "dependencies": {
-    "@radixdlt/primitives": "^0.0.0",
+    "@radixdlt/data-formats": "^1.0.0-alpha.0",
+    "@radixdlt/primitives": "^1.0.0-alpha.0",
     "@radixdlt/uint256": "^1.1.0",
-    "@radixdlt/util": "^0.0.0",
-    "@radixdlt/data-formats": "^0.0.0",
+    "@radixdlt/util": "^1.0.0-alpha.0",
     "base-x": "^3.0.8",
     "elliptic": "^6.5.3",
-    "neverthrow": "^4.0.1"
+    "neverthrow": "^4.0.1",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@types/elliptic": "^6.4.12"
+    "@types/elliptic": "^6.4.12",
+    "@types/uuid": "^8.3.0"
   }
 }

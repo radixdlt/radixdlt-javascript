@@ -69,10 +69,7 @@
     "test": "cross-env TEST_ENV=unit jest -c jest.config.js --rootDir=.",
     "release": "yarn bootstrap && yarn bundle && lerna publish --exact",
     "format": "prettier --write '**/*.{ts,tsx,js}' --config .prettierrc",
-    "sanity": "yarn format && yarn lint && yarn build && yarn test",
-    "postinstall": "husky install",
-    "prepublishOnly": "pinst --disable",
-    "postpublish": "pinst --enable"
+    "sanity": "yarn format && yarn lint && yarn build && yarn test"
   },
   "workspaces": [
     "packages/*"

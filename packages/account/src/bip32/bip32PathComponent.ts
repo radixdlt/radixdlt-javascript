@@ -1,5 +1,5 @@
 import { err, ok, Result } from 'neverthrow'
-import { BIP32PathComponentT, Int32 } from './_types'
+import { BIP32PathComponentT, BIP32PathSimpleT, Int32 } from './_types'
 import { fromValue } from 'long'
 import { Int64 } from '@radixdlt/primitives'
 import { BIP32 } from './bip32'
@@ -16,6 +16,24 @@ export const validateIndexValue = (index: Int32): Result<Int32, Error> =>
 		? err(new Error('Index smaller than Int32 min value.'))
 		: ok(index)
 
+const hardenedIncrement: Int64 = fromValue(0x80000000)
+
+export const valueFrom = (pathComponent: BIP32PathSimpleT): Int32 => {
+	const { index, isHardened } = pathComponent
+	if (index.greaterThanOrEqual(hardenedIncrement) && !isHardened)
+		throw new Error(
+			'Incorrect values passed, index is hardened, but you believed it to not be.',
+		)
+	if (index.lessThan(hardenedIncrement) && isHardened)
+		throw new Error(
+			'Incorrect values passed, index is not hardened, but you believed it to be.',
+		)
+	return (isHardened
+		? index.subtract(hardenedIncrement)
+		: index
+	).low.valueOf()
+}
+
 const create = (
 	input: Readonly<{
 		index: Int32
@@ -24,16 +42,23 @@ const create = (
 	}>,
 ): Result<BIP32PathComponentT, Error> => {
 	return validateIndexValue(input.index).map((indexNonHardened: Int32) => {
-		const hardenedIncrement: Int64 = fromValue(0x80000000)
 		const index: Int64 = fromValue(indexNonHardened)
 
 		return {
 			...input,
 			index: input.isHardened ? index.add(hardenedIncrement) : index,
+			value: () => input.index,
 			toString: (): string =>
 				`${input.index}` + (input.isHardened ? `'` : ''),
 		}
 	})
+}
+
+export const isBIP32PathSimpleT = (
+	something: unknown,
+): something is BIP32PathSimpleT => {
+	const inspection = something as BIP32PathSimpleT
+	return inspection.index !== undefined && inspection.isHardened !== undefined
 }
 
 const fromString = (
@@ -61,12 +86,12 @@ const fromString = (
 	}
 
 	return validateIndexValue(parsedInt).map((parsedIndex) => {
-		const hardenedIncrement: Int64 = fromValue(0x80000000)
 		const index: Int64 = fromValue(parsedIndex)
 
 		return {
 			level,
 			isHardened,
+			value: () => parsedIndex,
 			index: isHardened ? index.add(hardenedIncrement) : index,
 			toString: (): string => `${parsedIndex}` + (isHardened ? `'` : ''),
 		}

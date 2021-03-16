@@ -7,67 +7,108 @@ import {
 import { mergeMap } from 'rxjs/operators'
 import { Observable, of } from 'rxjs'
 import { toObservable } from './resultAsync_observable'
-import { AccountT, HardwareWalletSimpleT } from './_types'
-import { BIP32T } from './bip32/_types'
-import { AccountId } from './accountId'
-import { HDMasterSeedT } from './bip39/_types'
+import { AccountT, AddressT, HardwareWalletSimpleT } from './_types'
+import { HDMasterSeedT, HDNodeT } from './bip39/_types'
+import { HDPathRadixT } from './bip32/bip44/_types'
 
-const fromPrivateKey = (privateKey: PrivateKey): AccountT => {
+const fromPrivateKey = (
+	input: Readonly<{
+		privateKey: PrivateKey
+		hdPath: HDPathRadixT
+		addressFromPublicKey: (publicKey: PublicKey) => Observable<AddressT>
+	}>,
+): AccountT => {
+	const { privateKey, hdPath, addressFromPublicKey } = input
 	const publicKey: PublicKey = privateKey.publicKey()
 	const sign = (m: UnsignedMessage): Observable<Signature> =>
 		toObservable(privateKey.sign(m))
 
-	const accountId = AccountId.create(publicKey)
-
 	return {
 		sign: sign,
-		accountId: accountId,
+		hdPath,
 		derivePublicKey: () => of(publicKey),
+		deriveAddress: () => addressFromPublicKey(publicKey),
 	}
 }
 
 const fromHDPathWithHardwareWallet = (
 	input: Readonly<{
-		hdPath: BIP32T
+		hdPath: HDPathRadixT
+		addressFromPublicKey: (publicKey: PublicKey) => Observable<AddressT>
 		onHardwareWalletConnect: Observable<HardwareWalletSimpleT>
 	}>,
 ): AccountT => {
-	const accountId = AccountId.create(input.hdPath)
-
 	const hardwareWallet$ = input.onHardwareWalletConnect
 
+	const derivePublicKey = (): Observable<PublicKey> =>
+		hardwareWallet$.pipe(
+			mergeMap((hw: HardwareWalletSimpleT) =>
+				hw.derivePublicKey(input.hdPath),
+			),
+		)
+
 	return {
-		accountId,
+		hdPath: input.hdPath,
 		sign: (unsignedMessage: UnsignedMessage): Observable<Signature> =>
 			hardwareWallet$.pipe(
 				mergeMap((hw: HardwareWalletSimpleT) =>
 					hw.sign({ unsignedMessage, hdPath: input.hdPath }),
 				),
 			),
-		derivePublicKey: (): Observable<PublicKey> =>
-			hardwareWallet$.pipe(
-				mergeMap((hw: HardwareWalletSimpleT) =>
-					hw.derivePublicKey(input.hdPath),
-				),
+		derivePublicKey,
+		deriveAddress: () =>
+			derivePublicKey().pipe(
+				mergeMap((pubKey) => input.addressFromPublicKey(pubKey)),
 			),
 	}
 }
 
+const byDerivingNodeAtPath = (
+	input: Readonly<{
+		hdPath: HDPathRadixT
+		deriveNodeAtPath: () => HDNodeT
+		addressFromPublicKey: (publicKey: PublicKey) => Observable<AddressT>
+	}>,
+): AccountT =>
+	fromPrivateKey({
+		...input,
+		privateKey: input.deriveNodeAtPath().privateKey,
+	})
+
+const fromHDPathWithHDMasterNode = (
+	input: Readonly<{
+		hdPath: HDPathRadixT
+		addressFromPublicKey: (publicKey: PublicKey) => Observable<AddressT>
+		hdMasterNode: HDNodeT
+	}>,
+): AccountT => {
+	const hdNodeAtPath = input.hdMasterNode.derive(input.hdPath)
+	return fromPrivateKey({ ...input, privateKey: hdNodeAtPath.privateKey })
+}
+
 const fromHDPathWithHDMasterSeed = (
 	input: Readonly<{
-		hdPath: BIP32T
+		hdPath: HDPathRadixT
+		addressFromPublicKey: (publicKey: PublicKey) => Observable<AddressT>
 		hdMasterSeed: HDMasterSeedT
 	}>,
 ): AccountT => {
-	const hdNodeAtPath = input.hdMasterSeed.masterNode().derive(input.hdPath)
-	return {
-		...fromPrivateKey(hdNodeAtPath.privateKey),
-		accountId: AccountId.create(input.hdPath),
-	}
+	const hdMasterNode = input.hdMasterSeed.masterNode()
+	return fromHDPathWithHDMasterNode({ ...input, hdMasterNode })
+}
+
+export const isAccount = (something: unknown): something is AccountT => {
+	const inspection = something as AccountT
+	return (
+		inspection.hdPath !== undefined &&
+		inspection.derivePublicKey !== undefined &&
+		inspection.sign !== undefined
+	)
 }
 
 export const Account = {
-	fromPrivateKey,
+	byDerivingNodeAtPath,
 	fromHDPathWithHardwareWallet,
+	fromHDPathWithHDMasterNode,
 	fromHDPathWithHDMasterSeed,
 }

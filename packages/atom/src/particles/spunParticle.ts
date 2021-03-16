@@ -30,6 +30,7 @@ const JSONDecoder = taggedObjectDecoder(
 )((input: SpunParticleBase) => ok(anySpunParticle(input)))
 
 const jsonDecoding = JSONDecoding.withDecoders(JSONDecoder).create<
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	SpunParticleT<any>
 >()
 

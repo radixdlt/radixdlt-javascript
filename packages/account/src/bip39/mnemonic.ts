@@ -60,15 +60,15 @@ export const byteCountFromEntropyStrength = (strenght: StrengthT): number =>
 	strenght.valueOf() / 8
 
 const generateNew = (
-	input: Readonly<{
-		strength?: StrengthT // defaults to 24 words (256 bits)
+	input?: Readonly<{
+		strength?: StrengthT // defaults to 12 words (128 bits)
 		language?: LanguageT // defaults to English
 		secureRandom?: SecureRandom // defaults to default
 	}>,
 ): MnemomicT => {
-	const strength = input.strength ?? StrengthT.WORD_COUNT_24
-	const language = input.language ?? LanguageT.ENGLISH
-	const secureRandom = input.secureRandom ?? secureRandomGenerator
+	const strength = input?.strength ?? StrengthT.WORD_COUNT_12
+	const language = input?.language ?? LanguageT.ENGLISH
+	const secureRandom = input?.secureRandom ?? secureRandomGenerator
 	const entropyByteCount = byteCountFromEntropyStrength(strength)
 	const entropy = Buffer.from(
 		secureRandom.randomSecureBytes(entropyByteCount),
@@ -142,7 +142,7 @@ const fromEnglishWords = (words: string[]): Result<MnemomicT, Error> =>
 		language: LanguageT.ENGLISH,
 	})
 
-export const Mnemomic = {
+export const Mnemonic = {
 	generateNew,
 	fromPhraseInLanguage,
 	fromWordsInLanguage,

@@ -2,12 +2,12 @@ import { Int64 } from '@radixdlt/primitives'
 import Long = require('long')
 import { combine, err, ok, Result } from 'neverthrow'
 import { BIP32 } from '../bip32'
-import { BIP32PathComponent } from '../bip32PathComponent'
+import { BIP32PathComponent, valueFrom } from '../bip32PathComponent'
 
 import { BIP32PathComponentT, BIP32T, Int32 } from '../_types'
-import { BIP44T, BIP44ChangeIndex } from './_types'
+import { BIP44T, BIP44ChangeIndex, HDPathRadixT } from './_types'
 
-export const RADIX_COIN_TYPE = 536
+export const RADIX_COIN_TYPE: Int32 = 536
 
 const bip44Component = (
 	input: Readonly<{
@@ -29,7 +29,7 @@ const bip44Component = (
 	}
 }
 
-const bip44Purpose = bip44Component({
+export const bip44Purpose = bip44Component({
 	index: 44,
 	isHardened: true,
 	level: 1,
@@ -94,6 +94,17 @@ const create = (
 		pathComponents,
 	}
 }
+
+const createRadixPath = (
+	input: Readonly<{
+		account?: Int32 // defaults to `0'`
+		change?: BIP44ChangeIndex // defaults to `0`
+		address: Readonly<{
+			index: Int32
+			isHardened?: boolean // defaults to true
+		}>
+	}>,
+): HDPathRadixT => create(input) as HDPathRadixT
 
 const validateBIP44Component = (
 	expected: Readonly<{
@@ -169,7 +180,24 @@ const fromString = (path: string): Result<BIP44T, Error> => {
 	)
 }
 
+const radixPathFromString = (path: string): Result<HDPathRadixT, Error> =>
+	fromString(path).andThen((bip44) => {
+		const coinType = valueFrom(bip44.coinType)
+		return coinType === RADIX_COIN_TYPE
+			? ok(bip44 as HDPathRadixT)
+			: err(
+					new Error(
+						`Incorrect coin type, expected Radix coin type: ${RADIX_COIN_TYPE}, but got: ${coinType}`,
+					),
+			  )
+	})
+
 export const BIP44 = {
 	create,
 	fromString,
+}
+
+export const HDPathRadix = {
+	create: createRadixPath,
+	fromString: radixPathFromString,
 }
