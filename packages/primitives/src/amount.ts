@@ -85,7 +85,7 @@ const inSmallestDenomination = (magnitude: UInt256): AmountT => {
 			.andThen(fromUInt256)
 	}
 
-	const buffer = bnFromUInt256(magnitude).toBuffer('be', 32)
+	const buffer = bnFromUInt256(magnitude).toArrayLike(Buffer, 'be', 32)
 
 	return {
 		...JSONEncoding(serializerNotNeeded)(
