@@ -229,7 +229,7 @@ export namespace Validators {
 }
 
 export namespace GetAtomForTransaction {
-    // TODO
+    
 }
 
 export namespace SubmitSignedAtom {

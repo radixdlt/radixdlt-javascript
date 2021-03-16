@@ -1,5 +1,5 @@
 
-import { ExecutedTransactions, NativeToken, Stakes, TokenBalances, TokenFeeForTransaction, TransactionStatus, UniverseMagic } from '../src/api/json-rpc/_types'
+import { ExecutedTransactions, NativeToken, NetworkTransactionDemand, NetworkTransactionThroughput, Stakes, TokenBalances, TokenFeeForTransaction, TransactionStatus, UniverseMagic } from '../src/api/json-rpc/_types'
 import { nodeAPI } from '../src/api/api'
 import { Address } from '@radixdlt/account'
 import { AtomIdentifier, makeTokenPermissions, ResourceIdentifier, TokenPermission } from '@radixdlt/atom'
@@ -254,15 +254,16 @@ describe('networking', () => {
 		it('should get transaction status', async () => {
 			const txStatus = 'CONFIRMED'
 			const failure = 'ouch'
+			const aid = 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef'
 
 			mockClientReturnValue = <TransactionStatus.Response>{
-				atomIdentifier: rri,
+				atomIdentifier: aid,
 				status: txStatus,
 				failure,
 			}
 
 			const expected: TransactionStatus.DecodedResponse = {
-				atomIdentifier: AtomIdentifier.create(rri)._unsafeUnwrap(),
+				atomIdentifier: AtomIdentifier.create(aid)._unsafeUnwrap(),
 				status: txStatus,
 				failure
 			}
@@ -273,6 +274,40 @@ describe('networking', () => {
 			expect(result.failure).toEqual(expected.failure)
 			expect(result.status).toEqual(expected.status)
 		})
+		
+		it('should get network transaction throughput', async () => {
+			const tps = 1
+
+			mockClientReturnValue = <NetworkTransactionThroughput.Response>{
+				tps
+			}
+
+			const expected: NetworkTransactionThroughput.DecodedResponse = {
+				tps
+			}
+
+			const result = (await client.networkTransactionThroughput())._unsafeUnwrap()
+
+			expect(result.tps).toEqual(expected.tps)
+		})
+
+		it('should get network transaction demand', async () => {
+			const tps = 1
+
+			mockClientReturnValue = <NetworkTransactionDemand.Response>{
+				tps
+			}
+
+			const expected: NetworkTransactionDemand.DecodedResponse = {
+				tps
+			}
+
+			const result = (await client.networkTransactionDemand())._unsafeUnwrap()
+
+			expect(result.tps).toEqual(expected.tps)
+		})
+
+		it('')
 	})
 })
 

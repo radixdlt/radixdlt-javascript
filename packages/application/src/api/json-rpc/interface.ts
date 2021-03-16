@@ -1,7 +1,7 @@
 import { callAPI } from "../utils"
 import { Endpoint, ExecutedTransactions, NativeToken, TokenBalances, UniverseMagic, TokenFeeForTransaction, Stakes, TransactionStatus, NetworkTransactionDemand, NetworkTransactionThroughput } from "./_types"
 import { Result } from "neverthrow"
-import { handleExecutedTransactionsResponse, handleNativeTokenResponse, handleStakesResponse, handleTokenBalancesResponse, handleTokenFeeForTxResponse, handleTransactionStatusResponse, handleUniverseMagicResponse } from './responseHandlers'
+import { handleExecutedTransactionsResponse, handleNativeTokenResponse, handleNetworkTxDemandResponse, handleNetworkTxThroughputResponse, handleStakesResponse, handleTokenBalancesResponse, handleTokenFeeForTxResponse, handleTransactionStatusResponse, handleUniverseMagicResponse } from './responseHandlers'
 
 const setupAPICall = (
     call: (endpoint: Endpoint, ...params: unknown[]) => Promise<any>,
@@ -27,7 +27,8 @@ export const getAPI = (
         tokenFeeForTransaction: setupAPIResponse<TokenFeeForTransaction.Input, TokenFeeForTransaction.DecodedResponse>(handleTokenFeeForTxResponse)(Endpoint.TOKEN_FEE_FOR_TX),
         stakes: setupAPIResponse<Stakes.Input, Stakes.DecodedResponse>(handleStakesResponse)(Endpoint.STAKES),
         transactionStatus: setupAPIResponse<TransactionStatus.Input, TransactionStatus.DecodedResponse>(handleTransactionStatusResponse)(Endpoint.TX_STATUS),
-        //networkTransactionThroughput: setupAPIResponse<NetworkTransactionThroughput.Input, NetworkTransactionThroughput.Response>(Endpoint.NETWORK_TX_THROUGHPUT),
-        //networkTransactionDemand: setupAPIResponse<NetworkTransactionDemand.Input, NetworkTransactionDemand.Response>(Endpoint.NETWORK_TX_DEMAND)
+        networkTransactionThroughput: setupAPIResponse<NetworkTransactionThroughput.Input, NetworkTransactionThroughput.DecodedResponse>(handleNetworkTxThroughputResponse)(Endpoint.NETWORK_TX_THROUGHPUT),
+        networkTransactionDemand: setupAPIResponse<NetworkTransactionDemand.Input, NetworkTransactionDemand.DecodedResponse>(handleNetworkTxDemandResponse)(Endpoint.NETWORK_TX_DEMAND),
+        
     }
 }
