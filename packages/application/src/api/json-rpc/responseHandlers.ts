@@ -2,7 +2,7 @@ import { decoder, JSONDecoding } from "@radixdlt/data-formats"
 import { ok } from "neverthrow"
 import { UInt256 } from '@radixdlt/uint256'
 import { Amount } from "@radixdlt/primitives"
-import { ExecutedTransactions, NativeToken, Stakes, TokenBalances, TokenFeeForTransaction, UniverseMagic, TransactionStatus, NetworkTransactionThroughput, NetworkTransactionDemand } from "./_types"
+import { ExecutedTransactions, NativeToken, Stakes, TokenBalances, TokenFeeForTransaction, UniverseMagic, TransactionStatus, NetworkTransactionThroughput, NetworkTransactionDemand, GetAtomForTransaction, SubmitSignedAtom } from "./_types"
 import { Address } from "@radixdlt/account"
 import { AtomIdentifier, makeTokenPermissions, ResourceIdentifier, TokenPermission } from "@radixdlt/atom"
 import { BurnTokensAction, TransferTokensAction } from "@radixdlt/actions"
@@ -105,3 +105,12 @@ export const handleNetworkTxThroughputResponse =
 
 export const handleNetworkTxDemandResponse =
     JSONDecoding.create<NetworkTransactionDemand.DecodedResponse>().fromJSON
+
+export const handleGetAtomForTxResponse =
+    JSONDecoding.create<GetAtomForTransaction.DecodedResponse>().fromJSON
+
+export const handleSubmitSignedAtomResponse =
+    JSONDecoding.withDecoders(
+        atomIdentifierDecoder('atomIdentifier')
+    ).create<SubmitSignedAtom.DecodedResponse>()
+    .fromJSON

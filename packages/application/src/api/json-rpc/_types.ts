@@ -19,8 +19,6 @@ export enum Endpoint {
     SUBMIT_SIGNED_ATOM = 'radix.submitSignedAtom'
 }
 
-type TransactionStatus = 'PENDING' | 'CONFIRMED' | 'FAILED'
-
 type Action = TransferTokensActionT | BurnTokensActionT
 
 type Transaction = {
@@ -185,17 +183,19 @@ export namespace Unstakes {
 }
 
 export namespace TransactionStatus {
+    export type Status = 'PENDING' | 'CONFIRMED' | 'FAILED'
+
     export type Input = [atomIdentifier: string]
 
     export type Response = {
         atomIdentifier: string,
-        status: TransactionStatus,
+        status: Status,
         failure?: string
     }
 
     export type DecodedResponse = {
         atomIdentifier: AtomIdentifierT,
-        status: TransactionStatus,
+        status: Status,
         failure?: string
     }
 }
@@ -207,9 +207,7 @@ export namespace NetworkTransactionThroughput {
         tps: number
     }
 
-    export type DecodedResponse = {
-        tps: number
-    }
+    export type DecodedResponse = Response
 }
 
 export namespace NetworkTransactionDemand {
@@ -219,9 +217,7 @@ export namespace NetworkTransactionDemand {
         tps: number
     }
 
-    export type DecodedResponse = {
-        tps: number
-    }
+    export type DecodedResponse = Response
 }
 
 export namespace Validators {
@@ -229,11 +225,32 @@ export namespace Validators {
 }
 
 export namespace GetAtomForTransaction {
-    
+    export type Failure = 'MALFORMED_TX' | 'INSUFFICIENT_FUNDS' | 'NOT_PERMITTED'
+
+    export type Input = [transaction: Transaction]
+
+    export type Response = {
+        atomCBOR: string,
+        failure?: Failure 
+    }
+
+    export type DecodedResponse = Response
 }
 
 export namespace SubmitSignedAtom {
-    // TODO
+    export type Failure = 'INVALID_PUB_KEY' | 'INVALID_SIGNATURE' | 'MALFORMED_ATOM_CBOR' | 'INSUFFICIENT_FUNDS'
+
+    export type Input = [atomCBOR: string, signerPublicKey: string, signature: { r: string, s: string }]
+
+    export type Response = {
+        atomIdentifier: string,
+        failure?: Failure
+    }
+
+    export type DecodedResponse = {
+        atomIdentifier: AtomIdentifierT,
+        failure?: Failure
+    }
 }
 
 

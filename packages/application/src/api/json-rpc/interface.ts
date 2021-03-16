@@ -1,7 +1,7 @@
 import { callAPI } from "../utils"
-import { Endpoint, ExecutedTransactions, NativeToken, TokenBalances, UniverseMagic, TokenFeeForTransaction, Stakes, TransactionStatus, NetworkTransactionDemand, NetworkTransactionThroughput } from "./_types"
+import { Endpoint, ExecutedTransactions, NativeToken, TokenBalances, UniverseMagic, TokenFeeForTransaction, Stakes, TransactionStatus, NetworkTransactionDemand, NetworkTransactionThroughput, GetAtomForTransaction, SubmitSignedAtom } from "./_types"
 import { Result } from "neverthrow"
-import { handleExecutedTransactionsResponse, handleNativeTokenResponse, handleNetworkTxDemandResponse, handleNetworkTxThroughputResponse, handleStakesResponse, handleTokenBalancesResponse, handleTokenFeeForTxResponse, handleTransactionStatusResponse, handleUniverseMagicResponse } from './responseHandlers'
+import { handleExecutedTransactionsResponse, handleGetAtomForTxResponse, handleNativeTokenResponse, handleNetworkTxDemandResponse, handleNetworkTxThroughputResponse, handleStakesResponse, handleSubmitSignedAtomResponse, handleTokenBalancesResponse, handleTokenFeeForTxResponse, handleTransactionStatusResponse, handleUniverseMagicResponse } from './responseHandlers'
 
 const setupAPICall = (
     call: (endpoint: Endpoint, ...params: unknown[]) => Promise<any>,
@@ -29,6 +29,7 @@ export const getAPI = (
         transactionStatus: setupAPIResponse<TransactionStatus.Input, TransactionStatus.DecodedResponse>(handleTransactionStatusResponse)(Endpoint.TX_STATUS),
         networkTransactionThroughput: setupAPIResponse<NetworkTransactionThroughput.Input, NetworkTransactionThroughput.DecodedResponse>(handleNetworkTxThroughputResponse)(Endpoint.NETWORK_TX_THROUGHPUT),
         networkTransactionDemand: setupAPIResponse<NetworkTransactionDemand.Input, NetworkTransactionDemand.DecodedResponse>(handleNetworkTxDemandResponse)(Endpoint.NETWORK_TX_DEMAND),
-        
+        getAtomForTransaction: setupAPIResponse<GetAtomForTransaction.Input, GetAtomForTransaction.DecodedResponse>(handleGetAtomForTxResponse)(Endpoint.GET_ATOM_FOR_TX),
+        submitSignedAtom: setupAPIResponse<SubmitSignedAtom.Input, SubmitSignedAtom.DecodedResponse>(handleSubmitSignedAtomResponse)(Endpoint.SUBMIT_SIGNED_ATOM)
     }
 }

@@ -1,5 +1,5 @@
 
-import { ExecutedTransactions, NativeToken, NetworkTransactionDemand, NetworkTransactionThroughput, Stakes, TokenBalances, TokenFeeForTransaction, TransactionStatus, UniverseMagic } from '../src/api/json-rpc/_types'
+import { SubmitSignedAtom, GetAtomForTransaction, ExecutedTransactions, NativeToken, NetworkTransactionDemand, NetworkTransactionThroughput, Stakes, TokenBalances, TokenFeeForTransaction, TransactionStatus, UniverseMagic } from '../src/api/json-rpc/_types'
 import { nodeAPI } from '../src/api/api'
 import { Address } from '@radixdlt/account'
 import { AtomIdentifier, makeTokenPermissions, ResourceIdentifier, TokenPermission } from '@radixdlt/atom'
@@ -28,9 +28,10 @@ describe('networking', () => {
 	const address = '9S81XtkW3H9XZrmnzWqYSuTFPhWXdRnnpL3XXk7h5XxAM6zMdH7k'
 	const tokenRRI = '/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR'
 	const date = '1995-12-17T03:24:00'
+	const aid = 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef'
 
 	describe('json-rpc', () => {
-		it('should be able to get universe magic', async () => {
+		it('should handle get universe magic response', async () => {
 			mockClientReturnValue = <UniverseMagic.Response>{
 				magic: 1000
 			}
@@ -44,7 +45,7 @@ describe('networking', () => {
 			expect(result).toMatchObject(expected)
 		})
 
-		it('should be able to get token balances', async () => {
+		it('should handle get token balances response', async () => {
 			const tokenAmount = '100'
 
 			mockClientReturnValue = {
@@ -72,7 +73,7 @@ describe('networking', () => {
 			expect(result.tokenBalances[0].token.equals(expected.tokenBalances[0].token)).toBe(true)
 		})
 
-		it('should be able to get executed transactions', async () => {
+		it('should handle get executed transactions response', async () => {
 			mockClientReturnValue = <ExecutedTransactions.Response>{
 				cursor: 'deadbeef',
 				transactions: [
@@ -170,7 +171,7 @@ describe('networking', () => {
 		const tokenInfoURL = 'http://info.com'
 		const iconURL = 'http://icon.com'
 
-		it('should be able to get native token', async () => {
+		it('should handle get native token response', async () => {
 			mockClientReturnValue = <NativeToken.Response>{
 				name,
 				rri,
@@ -216,7 +217,7 @@ describe('networking', () => {
 			expect(result.tokenPermission.equals(expected.tokenPermission))
 		})
 
-		it('should get token fee from transaction', async () => {
+		it('should handle get token fee from transaction response', async () => {
 			const fee = '100'
 
 			mockClientReturnValue = <TokenFeeForTransaction.Response>{
@@ -232,7 +233,7 @@ describe('networking', () => {
 			expect(result.tokenFee.equals(expected.tokenFee)).toBe(true)
 		})
 
-		it('should get stake information', async () => {
+		it('should handle get stake information response', async () => {
 			const amount = '100'
 
 			mockClientReturnValue = <Stakes.Response>[{
@@ -251,10 +252,9 @@ describe('networking', () => {
 			expect(result[0].validator.equals(expected[0].validator)).toBe(true)
 		})
 
-		it('should get transaction status', async () => {
-			const txStatus = 'CONFIRMED'
+		it('should handle get transaction status response', async () => {
+			const txStatus: TransactionStatus.Status = 'CONFIRMED'
 			const failure = 'ouch'
-			const aid = 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef'
 
 			mockClientReturnValue = <TransactionStatus.Response>{
 				atomIdentifier: aid,
@@ -275,39 +275,69 @@ describe('networking', () => {
 			expect(result.status).toEqual(expected.status)
 		})
 		
-		it('should get network transaction throughput', async () => {
+		it('should handle get network transaction throughput response', async () => {
 			const tps = 1
 
 			mockClientReturnValue = <NetworkTransactionThroughput.Response>{
 				tps
 			}
 
-			const expected: NetworkTransactionThroughput.DecodedResponse = {
-				tps
-			}
+			const expected: NetworkTransactionThroughput.DecodedResponse = mockClientReturnValue
 
 			const result = (await client.networkTransactionThroughput())._unsafeUnwrap()
 
 			expect(result.tps).toEqual(expected.tps)
 		})
 
-		it('should get network transaction demand', async () => {
+		it('should handle get network transaction demand response', async () => {
 			const tps = 1
 
 			mockClientReturnValue = <NetworkTransactionDemand.Response>{
 				tps
 			}
 
-			const expected: NetworkTransactionDemand.DecodedResponse = {
-				tps
-			}
+			const expected: NetworkTransactionDemand.DecodedResponse = mockClientReturnValue
 
 			const result = (await client.networkTransactionDemand())._unsafeUnwrap()
 
 			expect(result.tps).toEqual(expected.tps)
 		})
 
-		it('')
+		it('should handle get atom for transaction response', async () => {
+			const atomCBOR = '123'
+			const failure: GetAtomForTransaction.Failure = 'NOT_PERMITTED'
+
+			mockClientReturnValue = <GetAtomForTransaction.Response>{
+				atomCBOR,
+				failure
+			}
+
+			const expected: GetAtomForTransaction.DecodedResponse = mockClientReturnValue
+
+			const result = (await client.getAtomForTransaction({} as any))._unsafeUnwrap()
+
+			expect(result.atomCBOR).toEqual(expected.atomCBOR)
+			expect(result.failure).toEqual(expected.failure)
+		})
+
+		it('should handle submit signed atom response', async () => {
+			const failure: SubmitSignedAtom.Failure = 'INSUFFICIENT_FUNDS'
+
+			mockClientReturnValue = <SubmitSignedAtom.Response>{
+				atomIdentifier: aid,
+				failure
+			}
+
+			const expected: SubmitSignedAtom.DecodedResponse = {
+				atomIdentifier: AtomIdentifier.create(aid)._unsafeUnwrap(),
+				failure
+			}
+
+			const result = (await client.submitSignedAtom('', '', {} as any))._unsafeUnwrap()
+
+			expect(result.atomIdentifier.equals(expected.atomIdentifier)).toBe(true)
+			expect(result.failure).toEqual(expected.failure)
+		})
 	})
 })
 
