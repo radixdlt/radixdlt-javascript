@@ -1,7 +1,7 @@
 import { callAPI } from "../utils"
 import { Endpoint, ExecutedTransactions, NativeToken, TokenBalances, UniverseMagic, TokenFeeForTransaction, Stakes, TransactionStatus, NetworkTransactionDemand, NetworkTransactionThroughput } from "./_types"
 import { Result } from "neverthrow"
-import { handleExecutedTransactionsResponse, handleNativeTokenResponse, handleTokenBalancesResponse, handleUniverseMagicResponse } from './responseHandlers'
+import { handleExecutedTransactionsResponse, handleNativeTokenResponse, handleStakesResponse, handleTokenBalancesResponse, handleTokenFeeForTxResponse, handleTransactionStatusResponse, handleUniverseMagicResponse } from './responseHandlers'
 
 const setupAPICall = (
     call: (endpoint: Endpoint, ...params: unknown[]) => Promise<any>,
@@ -24,9 +24,9 @@ export const getAPI = (
         tokenBalances: setupAPIResponse<TokenBalances.Input, TokenBalances.DecodedResponse>(handleTokenBalancesResponse)(Endpoint.TOKEN_BALANCES),
         executedTransactions: setupAPIResponse<ExecutedTransactions.Input, ExecutedTransactions.DecodedResponse>(handleExecutedTransactionsResponse)(Endpoint.EXECUTED_TXS),
         nativeToken: setupAPIResponse<NativeToken.Input, NativeToken.DecodedResponse>(handleNativeTokenResponse)(Endpoint.NATIVE_TOKEN),
-        //tokenFeeForTransaction: setupAPIResponse<TokenFeeForTransaction.Input, TokenFeeForTransaction.Response>(Endpoint.TOKEN_FEE_FOR_TX),
-        //stakes: setupAPIResponse<Stakes.Input, Stakes.Response>(Endpoint.STAKES),
-        //transactionStatus: setupAPIResponse<TransactionStatus.Input, TransactionStatus.Response>(Endpoint.TX_STATUS),
+        tokenFeeForTransaction: setupAPIResponse<TokenFeeForTransaction.Input, TokenFeeForTransaction.DecodedResponse>(handleTokenFeeForTxResponse)(Endpoint.TOKEN_FEE_FOR_TX),
+        stakes: setupAPIResponse<Stakes.Input, Stakes.DecodedResponse>(handleStakesResponse)(Endpoint.STAKES),
+        transactionStatus: setupAPIResponse<TransactionStatus.Input, TransactionStatus.DecodedResponse>(handleTransactionStatusResponse)(Endpoint.TX_STATUS),
         //networkTransactionThroughput: setupAPIResponse<NetworkTransactionThroughput.Input, NetworkTransactionThroughput.Response>(Endpoint.NETWORK_TX_THROUGHPUT),
         //networkTransactionDemand: setupAPIResponse<NetworkTransactionDemand.Input, NetworkTransactionDemand.Response>(Endpoint.NETWORK_TX_DEMAND)
     }

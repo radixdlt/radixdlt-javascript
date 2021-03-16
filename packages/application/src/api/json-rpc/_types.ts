@@ -165,19 +165,19 @@ export namespace TokenFeeForTransaction {
 export namespace Stakes {
     export type Input = [address: string]
 
-    export type Response = [
+    export type Response = 
         {
             validator: string,
             amount: string
-        }
-    ]
+        }[]
+    
 
-    export type DecodedResponse = [
+    export type DecodedResponse = 
         {
             validator: AddressT,
             amount: AmountT
-        }
-    ]
+        }[]
+    
 }
 
 export namespace Unstakes {

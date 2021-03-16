@@ -1,5 +1,5 @@
 
-import { ExecutedTransactions, NativeToken, TokenBalances, UniverseMagic } from '../src/api/json-rpc/_types'
+import { ExecutedTransactions, NativeToken, Stakes, TokenBalances, TokenFeeForTransaction, UniverseMagic } from '../src/api/json-rpc/_types'
 import { nodeAPI } from '../src/api/api'
 import { Address } from '@radixdlt/account'
 import { makeTokenPermissions, ResourceIdentifier, TokenPermission } from '@radixdlt/atom'
@@ -214,6 +214,45 @@ describe('networking', () => {
 			expect(result.name).toEqual(expected.name)
 			expect(result.rri.equals(expected.rri)).toBe(true)
 			expect(result.tokenPermission.equals(expected.tokenPermission))
+		})
+
+		it('should get token fee from transaction', async () => {
+			const fee = '100'
+
+			mockClientReturnValue = <TokenFeeForTransaction.Response>{
+				tokenFee: fee
+			}
+
+			const expected: TokenFeeForTransaction.DecodedResponse = {
+				tokenFee: Amount.inSmallestDenomination(new UInt256(fee))
+			}
+
+			const result = (await client.tokenFeeForTransaction({} as any))._unsafeUnwrap()
+
+			expect(result.tokenFee.equals(expected.tokenFee)).toBe(true)
+		})
+
+		it('should get stake information', async () => {
+			const amount = '100'
+
+			mockClientReturnValue = <Stakes.Response>[{
+				validator: address,
+				amount
+			}]
+
+			const expected: Stakes.DecodedResponse = [{
+				validator: Address.fromBase58String(address)._unsafeUnwrap(),
+				amount: Amount.inSmallestDenomination(new UInt256(amount)),
+			}]
+
+			const result = (await client.stakes(''))._unsafeUnwrap()
+
+			expect(result[0].amount.equals(expected[0].amount)).toBe(true)
+			expect(result[0].validator.equals(expected[0].validator)).toBe(true)
+		})
+
+		it('should get transaction status', async () => {
+			
 		})
 	})
 })
