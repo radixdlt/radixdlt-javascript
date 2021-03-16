@@ -11,25 +11,20 @@ import { Address } from '@radixdlt/account'
 import { isObject } from '@radixdlt/util'
 import { ok } from 'neverthrow'
 
-const JSONDecoder: Decoder = value =>
+const JSONDecoder: Decoder = (value) =>
 	isObject(value) && value['type'] === UserActionType.BURN_TOKENS
-	? ok(create(value as BurnTokensActionInput))
-	: undefined
+		? ok(create(value as BurnTokensActionInput))
+		: undefined
 
-const decoding = JSONDecoding
-	.withDependencies(
-		ResourceIdentifier,
-		Amount,
-		Address,
-	)
-	.withDecoders(
-		JSONDecoder
-	)
+const decoding = JSONDecoding.withDependencies(
+	ResourceIdentifier,
+	Amount,
+	Address,
+)
+	.withDecoders(JSONDecoder)
 	.create()
 
-const create = (
-	input: BurnTokensActionInput,
-): BurnTokensActionT => {
+const create = (input: BurnTokensActionInput): BurnTokensActionT => {
 	const uuid = input.uuid ?? uuidv4()
 
 	return {
@@ -44,5 +39,5 @@ const create = (
 export const BurnTokensAction = {
 	create,
 	...decoding,
-	JSONDecoder
+	JSONDecoder,
 }

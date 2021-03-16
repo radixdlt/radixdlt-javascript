@@ -1,7 +1,4 @@
-import {
-	Address,
-	AddressT,
-} from '@radixdlt/account'
+import { Address, AddressT } from '@radixdlt/account'
 import { ResourceIdentifierT, TokenPermissions } from '../../src/_types'
 import {
 	AmountT,

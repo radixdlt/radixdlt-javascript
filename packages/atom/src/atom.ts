@@ -58,8 +58,7 @@ const JSONDecoder = taggedObjectDecoder(
 	SERIALIZER_KEY,
 )((input: Input) => ok(create(input)))
 
-const jsonDecoding = JSONDecoding
-	.withDependencies(ParticleGroup)
+const jsonDecoding = JSONDecoding.withDependencies(ParticleGroup)
 	.withDecoders(JSONDecoder)
 	.create<AtomT>()
 
@@ -94,5 +93,5 @@ export const Atom = {
 	SERIALIZER,
 	...jsonDecoding,
 	create,
-	JSONDecoder
+	JSONDecoder,
 }

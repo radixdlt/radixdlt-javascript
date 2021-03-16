@@ -12,8 +12,8 @@ const createWallet = (): WalletT => {
 	const masterSeed: HDMasterSeedT = HDMasterSeed.fromMnemonic({ mnemonic })
 	return Wallet.create({ masterSeed })
 }
-import { combineLatest, of, Subject } from "rxjs";
-import { Magic, magicFromNumber } from "@radixdlt/primitives";
+import { combineLatest, of, Subject } from 'rxjs'
+import { Magic, magicFromNumber } from '@radixdlt/primitives'
 
 const expectWalletsEqual = (
 	wallets: { wallet1: WalletT; wallet2: WalletT },
@@ -170,14 +170,10 @@ describe('HD Wallet', () => {
 		const magicSubject = new Subject<Magic>()
 		wallet.provideMagic(magicSubject.asObservable())
 		const magic = magicFromNumber(123)
-		wallet.observeActiveAddress().subscribe(
-			(address) => {
-				expect(address.magicByte).toBe(magic.byte)
-				done()
-			}
-		)
+		wallet.observeActiveAddress().subscribe((address) => {
+			expect(address.magicByte).toBe(magic.byte)
+			done()
+		})
 		magicSubject.next(magic)
-
 	})
-
 })

@@ -1,7 +1,5 @@
 import { generatePrivateKey } from '@radixdlt/crypto'
-import {
-	Address
-} from '@radixdlt/account'
+import { Address } from '@radixdlt/account'
 import { UInt256 } from '@radixdlt/uint256'
 import {
 	UnallocatedTokensParticle,

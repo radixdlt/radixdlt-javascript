@@ -20,7 +20,7 @@ const JSONDecoder = taggedStringDecoder(JSON_TAG)((identifier: string) =>
 )
 
 const jsonDecoding = JSONDecoding.withDecoders(
-	JSONDecoder
+	JSONDecoder,
 ).create<ResourceIdentifierT>()
 
 const fromAddressAndName = (input: {

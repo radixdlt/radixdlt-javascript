@@ -11,25 +11,20 @@ import { ResourceIdentifier } from '@radixdlt/atom'
 import { Amount } from '@radixdlt/primitives'
 import { Address } from '@radixdlt/account'
 
-const JSONDecoder: Decoder = value =>
+const JSONDecoder: Decoder = (value) =>
 	isObject(value) && value['type'] === UserActionType.TOKEN_TRANSFER
-	? ok(create(value as TransferTokensActionInput))
-	: undefined
+		? ok(create(value as TransferTokensActionInput))
+		: undefined
 
-const decoding = JSONDecoding
-	.withDependencies(
-		ResourceIdentifier,
-		Amount,
-		Address,
-	)
-	.withDecoders(
-		JSONDecoder
-	)
+const decoding = JSONDecoding.withDependencies(
+	ResourceIdentifier,
+	Amount,
+	Address,
+)
+	.withDecoders(JSONDecoder)
 	.create()
 
-const create = (
-	input: TransferTokensActionInput,
-): TransferTokensActionT => {
+const create = (input: TransferTokensActionInput): TransferTokensActionT => {
 	const uuid = input.uuid ?? uuidv4()
 
 	return {
@@ -46,5 +41,5 @@ const create = (
 export const TransferTokensAction = {
 	create,
 	...decoding,
-	JSONDecoder
+	JSONDecoder,
 }

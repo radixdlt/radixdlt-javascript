@@ -118,7 +118,14 @@ const JSONDecodeUnflattened = (...decoders: Decoder[]) => (
 		: isString(json) || isBoolean(json) || isNumber(json)
 		? applyDecoders(decoders, json).mapErr((err) => [err])
 		: isArray(json)
-		? combine((json.map((item) => applyDecoders(decoders, JSONDecodeUnflattened(...decoders)(item))))).mapErr(err => [err])
+		? combine(
+				json.map((item) =>
+					applyDecoders(
+						decoders,
+						JSONDecodeUnflattened(...decoders)(item),
+					),
+				),
+		  ).mapErr((err) => [err])
 		: err([Error('JSON decoding failed. Unknown data type.')])
 
 /**

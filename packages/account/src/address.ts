@@ -57,9 +57,8 @@ const fromPublicKeyAndMagicByte = (
 	}
 }
 
-const fromBase58String = (
-	b58String: string,
-): Result<AddressT, Error> => base58Decode(b58String).andThen(addressFromBuffer)
+const fromBase58String = (b58String: string): Result<AddressT, Error> =>
+	base58Decode(b58String).andThen(addressFromBuffer)
 
 const addressFromBuffer = (buffer: Buffer): Result<AddressT, Error> => {
 	const publicKeyCompressedByteCount = 33
@@ -134,9 +133,7 @@ const calculateAndAppendChecksum = (buffer: Buffer): Buffer => {
 	return Buffer.concat([buffer, checksumFirstFourBytes])
 }
 
-const isAddress = (
-	something: AddressT | unknown,
-): something is AddressT => {
+const isAddress = (something: AddressT | unknown): something is AddressT => {
 	const inspection = something as AddressT
 	return (
 		inspection.magicByte !== undefined &&
@@ -146,9 +143,7 @@ const isAddress = (
 	)
 }
 
-const fromUnsafe = (
-	input: AddressT | string,
-): Result<AddressT, Error> => {
+const fromUnsafe = (input: AddressT | string): Result<AddressT, Error> => {
 	return isAddress(input)
 		? ok(input)
 		: typeof input === 'string'
@@ -170,5 +165,5 @@ export const Address = {
 	isAddress,
 	fromBase58String,
 	fromPublicKeyAndMagicByte,
-	fromPublicKeyAndMagic
+	fromPublicKeyAndMagic,
 }

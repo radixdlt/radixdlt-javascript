@@ -1,6 +1,4 @@
-import {
-	Address
-} from '@radixdlt/account'
+import { Address } from '@radixdlt/account'
 import { generatePrivateKey } from '@radixdlt/crypto'
 import { JSONDecodableObject, OutputMode } from '@radixdlt/data-formats'
 import { Amount, Denomination, nonce, one, zero } from '@radixdlt/primitives'

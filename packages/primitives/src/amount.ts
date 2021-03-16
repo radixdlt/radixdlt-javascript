@@ -264,5 +264,5 @@ export const Amount = {
 	inSmallestDenomination,
 	fromUnsafe,
 	fromUInt256,
-	make
+	make,
 }

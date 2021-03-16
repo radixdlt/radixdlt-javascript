@@ -5,16 +5,11 @@ import { decoder, DSONObjectEncoding } from '@radixdlt/data-formats'
 
 const CBOR_BYTESTRING_PREFIX: Byte = 6
 
-const JSONDecoder = decoder<AtomIdentifierT>(
-	(value, key) => 
-		key === 'atomIdentifier' && isString(value)
-		? create(value)
-		: undefined
+const JSONDecoder = decoder<AtomIdentifierT>((value, key) =>
+	key === 'atomIdentifier' && isString(value) ? create(value) : undefined,
 )
 
-const create = (
-	bytes: Buffer | string,
-): Result<AtomIdentifierT, Error> => {
+const create = (bytes: Buffer | string): Result<AtomIdentifierT, Error> => {
 	const buffer = typeof bytes === 'string' ? Buffer.from(bytes, 'hex') : bytes
 	const length = 32
 	if (buffer.length !== length) {
@@ -37,5 +32,5 @@ const create = (
 
 export const AtomIdentifier = {
 	create,
-	JSONDecoder
+	JSONDecoder,
 }

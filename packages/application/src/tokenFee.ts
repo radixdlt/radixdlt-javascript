@@ -16,10 +16,10 @@ import { err, ok, Result } from 'neverthrow'
 import { UInt256 } from '@radixdlt/uint256'
 import { decoder, Decoder } from '@radixdlt/data-formats'
 
-const JSONDecoder: Decoder = decoder((value, key) => 
-    key === 'fee' && typeof value === 'string'
-    ? ok(new UInt256(value))
-    : undefined
+const JSONDecoder: Decoder = decoder((value, key) =>
+	key === 'fee' && typeof value === 'string'
+		? ok(new UInt256(value))
+		: undefined,
 )
 
 const forAtom = (
@@ -45,7 +45,7 @@ const forAtom = (
 		if (sumResult.isErr()) return err(sumResult.error)
 		fee = sumResult.value
 	}
-	
+
 	const minFee = feeTable.minimumFee
 	return ok(fee.lessThan(minFee) ? minFee : fee)
 }
@@ -182,5 +182,5 @@ export const TokenFee = {
 	milliRads,
 	forAtom,
 	JSONDecoder,
-	minimumFee
+	minimumFee,
 }

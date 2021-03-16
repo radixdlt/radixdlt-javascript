@@ -106,5 +106,5 @@ export const FixedSupplyTokenDefinitionParticle = {
 	SERIALIZER,
 	...jsonDecoding,
 	create,
-	JSONDecoder
+	JSONDecoder,
 }

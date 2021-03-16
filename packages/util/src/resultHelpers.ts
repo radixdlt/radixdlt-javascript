@@ -3,9 +3,9 @@ import { isObject, isResult } from './typeGuards'
 
 const unwrap = (maybeResult: unknown, errors: (Error | Error[])[]): unknown => {
 	if (isResult(maybeResult)) {
-		if(maybeResult.isOk()) {
+		if (maybeResult.isOk()) {
 			const value = maybeResult.value
-			if(isResult(value)) {
+			if (isResult(value)) {
 				return unwrap(value, errors)
 			}
 			return value
@@ -15,7 +15,7 @@ const unwrap = (maybeResult: unknown, errors: (Error | Error[])[]): unknown => {
 		}
 	}
 	return maybeResult
-} 
+}
 
 export const flattenResultsObject = (
 	json: Result<unknown, Error | Error[]>,
