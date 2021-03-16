@@ -1,8 +1,8 @@
 
-import { ExecutedTransactions, NativeToken, Stakes, TokenBalances, TokenFeeForTransaction, UniverseMagic } from '../src/api/json-rpc/_types'
+import { ExecutedTransactions, NativeToken, Stakes, TokenBalances, TokenFeeForTransaction, TransactionStatus, UniverseMagic } from '../src/api/json-rpc/_types'
 import { nodeAPI } from '../src/api/api'
 import { Address } from '@radixdlt/account'
-import { makeTokenPermissions, ResourceIdentifier, TokenPermission } from '@radixdlt/atom'
+import { AtomIdentifier, makeTokenPermissions, ResourceIdentifier, TokenPermission } from '@radixdlt/atom'
 import { Amount } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import { BurnTokensAction, TransferTokensAction, UserActionType } from '@radixdlt/actions'
@@ -252,7 +252,26 @@ describe('networking', () => {
 		})
 
 		it('should get transaction status', async () => {
-			
+			const txStatus = 'CONFIRMED'
+			const failure = 'ouch'
+
+			mockClientReturnValue = <TransactionStatus.Response>{
+				atomIdentifier: rri,
+				status: txStatus,
+				failure,
+			}
+
+			const expected: TransactionStatus.DecodedResponse = {
+				atomIdentifier: AtomIdentifier.create(rri)._unsafeUnwrap(),
+				status: txStatus,
+				failure
+			}
+
+			const result = (await client.transactionStatus(''))._unsafeUnwrap()
+
+			expect(result.atomIdentifier.equals(result.atomIdentifier)).toBe(true)
+			expect(result.failure).toEqual(expected.failure)
+			expect(result.status).toEqual(expected.status)
 		})
 	})
 })
