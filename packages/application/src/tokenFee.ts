@@ -14,20 +14,26 @@ import {
 import { FeeEntry, TokenFeeTable } from './_types'
 import { err, ok, Result } from 'neverthrow'
 import { UInt256 } from '@radixdlt/uint256'
+import { decoder, Decoder } from '@radixdlt/data-formats'
 
-export const feeForAtom = (
+const JSONDecoder: Decoder = decoder((value, key) =>
+	key === 'fee' && typeof value === 'string'
+		? ok(new UInt256(value))
+		: undefined,
+)
+
+const forAtom = (
 	input: Readonly<{
 		atom: AtomT
 		feeTable?: TokenFeeTable
 	}>,
 ): Result<AmountT, Error> => {
-	const feeTable = input.feeTable ?? tokenFeeTable
+	const feeTable = input.feeTable ?? table
 	const atom = input.atom
 	const atomDsonResult = atom.toDSON()
 	if (atomDsonResult.isErr()) return err(atomDsonResult.error)
 	const atomByteCount = atomDsonResult.value.length
 
-	/* eslint-disable */
 	let fee: AmountT = zero
 	for (const feeEntry of feeTable.feeEntries) {
 		const sumResult = feeEntry
@@ -39,12 +45,12 @@ export const feeForAtom = (
 		if (sumResult.isErr()) return err(sumResult.error)
 		fee = sumResult.value
 	}
-	/* eslint-enable */
+
 	const minFee = feeTable.minimumFee
 	return ok(fee.lessThan(minFee) ? minFee : fee)
 }
 
-export const milliRads = (mXRD: number): AmountT =>
+const milliRads = (mXRD: number): AmountT =>
 	Amount.fromUInt256({
 		magnitude: UInt256.valueOf(mXRD),
 		denomination: Denomination.Milli,
@@ -144,9 +150,9 @@ const perParticleFeeEntry = (
 	}
 }
 
-export const minimumFee = milliRads(40)
+const minimumFee = milliRads(40)
 
-export const tokenFeeTable: TokenFeeTable = {
+const table: TokenFeeTable = {
 	minimumFee,
 	feeEntries: [
 		perBytesFeeEntry({
@@ -169,4 +175,12 @@ export const tokenFeeTable: TokenFeeTable = {
 			inDenomination: Denomination.Milli,
 		}),
 	],
+}
+
+export const TokenFee = {
+	table,
+	milliRads,
+	forAtom,
+	JSONDecoder,
+	minimumFee,
 }

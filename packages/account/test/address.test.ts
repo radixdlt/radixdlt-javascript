@@ -1,11 +1,5 @@
 import { UInt256 } from '@radixdlt/uint256'
-import {
-	addressFromPublicKeyAndMagic,
-	addressFromBase58String,
-	AddressT,
-	isAddress,
-	Address,
-} from '../src/_index'
+import { AddressT, Address } from '../src/_index'
 
 import { magicFromNumber } from '@radixdlt/primitives'
 import { OutputMode } from '@radixdlt/data-formats'
@@ -13,7 +7,7 @@ import { generatePrivateKey, privateKeyFromScalar } from '@radixdlt/crypto'
 
 // TODO CODE DUPLICATION remove to separate test package...
 export const toAddress = (b58: string): AddressT =>
-	addressFromBase58String(b58)._unsafeUnwrap()
+	Address.fromBase58String(b58)._unsafeUnwrap()
 
 describe('Address', () => {
 	it('can generate new', async () => {
@@ -21,12 +15,12 @@ describe('Address', () => {
 		const publicKey = privateKey.publicKey()
 		const magic = magicFromNumber(1337)
 
-		const address = addressFromPublicKeyAndMagic({
+		const address = Address.fromPublicKeyAndMagic({
 			publicKey: publicKey,
 			magic: magic,
 		})
 
-		expect(isAddress(address)).toBe(true)
+		expect(Address.isAddress(address)).toBe(true)
 	})
 
 	it('can be created from a publicKey and radix magix', async () => {
@@ -36,18 +30,18 @@ describe('Address', () => {
 		const publicKey = privateKey.publicKey()
 		const magic = magicFromNumber(1337)
 
-		const address = addressFromPublicKeyAndMagic({
+		const address = Address.fromPublicKeyAndMagic({
 			publicKey: publicKey,
 			magic: magic,
 		})
 
-		expect(isAddress(address)).toBe(true)
+		expect(Address.isAddress(address)).toBe(true)
 
 		const expctedAddressBase58 =
 			'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT'
 		expect(address.toString()).toBe(expctedAddressBase58)
 
-		const addressFromString = addressFromBase58String(
+		const addressFromString = Address.fromBase58String(
 			expctedAddressBase58,
 		)._unsafeUnwrap()
 

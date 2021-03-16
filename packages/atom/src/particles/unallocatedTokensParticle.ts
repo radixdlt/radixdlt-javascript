@@ -66,5 +66,6 @@ export const isUnallocatedTokensParticle = (
 
 export const UnallocatedTokensParticle = {
 	...jsonDecoding,
+	JSONDecoder,
 	SERIALIZER,
 }

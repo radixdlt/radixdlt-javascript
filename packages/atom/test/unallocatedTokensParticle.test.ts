@@ -1,8 +1,5 @@
 import { generatePrivateKey } from '@radixdlt/crypto'
-import {
-	addressFromBase58String,
-	addressFromPublicKeyAndMagicByte,
-} from '@radixdlt/account'
+import { Address } from '@radixdlt/account'
 import { UInt256 } from '@radixdlt/uint256'
 import {
 	UnallocatedTokensParticle,
@@ -19,7 +16,7 @@ describe('unallocatedTokensParticle', () => {
 	it('can be safely created from safe type', () => {
 		const privateKey = generatePrivateKey()
 		const publicKey = privateKey.publicKey()
-		const address = addressFromPublicKeyAndMagicByte({
+		const address = Address.fromPublicKeyAndMagicByte({
 			publicKey: publicKey,
 			magicByte: 1,
 		})
@@ -92,7 +89,7 @@ describe('unallocatedTokensParticle', () => {
 	})
 
 	describe('serialization', () => {
-		const address = addressFromBase58String(
+		const address = Address.fromBase58String(
 			'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
 		)._unsafeUnwrap()
 		const resourceIdentifier = ResourceIdentifier.fromAddressAndName({

@@ -7,29 +7,25 @@ export enum UserActionType {
 	BURN_TOKENS = 'BurnTokens',
 }
 
-export type UserAction = Readonly<{
-	actionType: UserActionType
+export type UserAction<T> = Readonly<{
+	actionType: T
 	sender: AddressT
 	uuid: string
 }>
 
-export type TokensActionBase = UserAction &
+export type TokensActionBase<T> = UserAction<T> &
 	Readonly<{
 		amount: AmountT
 		resourceIdentifier: ResourceIdentifierT
 	}>
 
-export type TransferTokensAction = TokensActionBase &
+export type TransferTokensActionT = TokensActionBase<UserActionType.TOKEN_TRANSFER> &
 	Readonly<{
-		actionType: UserActionType.TOKEN_TRANSFER
 		recipient: AddressT
 		message?: string
 	}>
 
-export type BurnTokensAction = TokensActionBase &
-	Readonly<{
-		actionType: UserActionType.BURN_TOKENS
-	}>
+export type BurnTokensActionT = TokensActionBase<UserActionType.BURN_TOKENS>
 
 export type TokensActionBaseInput = Readonly<{
 	amount: AmountT

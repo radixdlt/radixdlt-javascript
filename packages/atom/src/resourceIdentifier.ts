@@ -1,6 +1,6 @@
 import { ResourceIdentifierT } from './_types'
 import { err, ok, Result } from 'neverthrow'
-import { addressFromBase58String, AddressT } from '@radixdlt/account'
+import { Address, AddressT } from '@radixdlt/account'
 import {
 	DSONObjectEncoding,
 	JSONDecoding,
@@ -15,10 +15,12 @@ const separator = '/'
 const CBOR_BYTESTRING_PREFIX: Byte = 6
 const JSON_TAG = ':rri:'
 
+const JSONDecoder = taggedStringDecoder(JSON_TAG)((identifier: string) =>
+	fromString(identifier),
+)
+
 const jsonDecoding = JSONDecoding.withDecoders(
-	taggedStringDecoder(JSON_TAG)((identifier: string) =>
-		fromString(identifier),
-	),
+	JSONDecoder,
 ).create<ResourceIdentifierT>()
 
 const fromAddressAndName = (input: {
@@ -52,7 +54,7 @@ const fromString = (
 	const name = components[2]
 	if (name.length === 0) return err(new Error('Expected non empty name'))
 
-	return addressFromBase58String(components[1]).map(
+	return Address.fromBase58String(components[1]).map(
 		(address): ResourceIdentifierT => ({
 			...JSONEncoding(serializerNotNeeded)(
 				() => `${JSON_TAG}${identifierString}`,
@@ -90,6 +92,7 @@ const fromUnsafe = (
 
 export const ResourceIdentifier = {
 	JSON_TAG,
+	JSONDecoder,
 	...jsonDecoding,
 	fromAddressAndName,
 	fromUnsafe,

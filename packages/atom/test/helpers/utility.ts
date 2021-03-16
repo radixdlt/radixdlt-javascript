@@ -1,8 +1,4 @@
-import {
-	addressFromBase58String,
-	addressFromUnsafe,
-	AddressT,
-} from '@radixdlt/account'
+import { Address, AddressT } from '@radixdlt/account'
 import { ResourceIdentifierT, TokenPermissions } from '../../src/_types'
 import {
 	AmountT,
@@ -35,7 +31,7 @@ export const transferrableTokensParticleFromUnsafe = (
 		permissions?: TokenPermissions
 	}>,
 ): Result<TransferrableTokensParticleT, Error> => {
-	const address = addressFromUnsafe(input.address)
+	const address = Address.fromUnsafe(input.address)
 	const resourceIdentifier = ResourceIdentifier.fromUnsafe(
 		input.resourceIdentifier,
 	)
@@ -103,4 +99,4 @@ export const signatureFromHexStrings = (input: {
 
 // TODO CODE DUPLICATION remove to separate test package...
 export const toAddress = (b58: string): AddressT =>
-	addressFromBase58String(b58)._unsafeUnwrap()
+	Address.fromBase58String(b58)._unsafeUnwrap()

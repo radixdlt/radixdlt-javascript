@@ -123,4 +123,5 @@ export const MutableSupplyTokenDefinitionParticle = {
 	SERIALIZER,
 	create,
 	...jsonDecoding,
+	JSONDecoder,
 }

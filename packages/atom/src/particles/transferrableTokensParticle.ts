@@ -95,5 +95,6 @@ export const isTransferrableTokensParticle = (
 export const TransferrableTokensParticle = {
 	SERIALIZER,
 	...jsonDecoding,
+	JSONDecoder,
 	create,
 }

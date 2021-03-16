@@ -15,8 +15,6 @@ import {
 	one,
 } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
-import { feeForAtom, minimumFee } from '../src/tokenFee'
-import { milliRads } from '../src/tokenFee'
 import { atomWithSpunParticles } from './atomFromParticles'
 import {
 	AtomT,
@@ -27,6 +25,7 @@ import {
 	TransferrableTokensParticleT,
 } from '@radixdlt/atom/src/_index'
 import { Amount } from '@radixdlt/primitives/src/amount'
+import { TokenFee } from '../src/tokenFee'
 
 const Range = function* (total = 0, step = 1, from = 0) {
 	for (let i = 0; i < total; yield from + i++ * step) {}
@@ -105,7 +104,7 @@ describe('TokenFees', () => {
 		assertAmount: (amt: AmountT) => void,
 	): void => {
 		const atom_ = atomWithTTPCountOf(ttpCount)
-		const fee = feeForAtom({ atom: atom_ })._unsafeUnwrap()
+		const fee = TokenFee.forAtom({ atom: atom_ })._unsafeUnwrap()
 		assertAmount(fee)
 	}
 
@@ -128,7 +127,7 @@ describe('TokenFees', () => {
 	): void => {
 		const atom_ = atomWithParticleCountOf(makeParticle, particleCount)
 
-		const fee = feeForAtom({ atom: atom_ })._unsafeUnwrap()
+		const fee = TokenFee.forAtom({ atom: atom_ })._unsafeUnwrap()
 
 		if (typeof expectedFee === 'number') {
 			const expected = isAmount(expectedFee)
@@ -148,20 +147,20 @@ describe('TokenFees', () => {
 	const testFSTDP = testFeeWithParticleCountOf.bind(null, makeFSTDP)
 
 	it('should be minimumFee for empty atom', () => {
-		testTTP(minimumFee, 0)
+		testTTP(TokenFee.minimumFee, 0)
 	})
 
 	it('should be minimumFee for 1 ttp', () => {
-		testTTP(minimumFee, 1)
+		testTTP(TokenFee.minimumFee, 1)
 	})
 
 	it('should be min for 8 ttp', () => {
-		testTTP(minimumFee, 8)
+		testTTP(TokenFee.minimumFee, 8)
 	})
 
 	it('should be over min fee for 9 ttp', () => {
 		testTTPAssert(9, (fee: AmountT) => {
-			expect(fee.greaterThan(minimumFee)).toBe(true)
+			expect(fee.greaterThan(TokenFee.minimumFee)).toBe(true)
 		})
 	})
 
@@ -179,7 +178,7 @@ describe('TokenFees', () => {
 
 	it('should be more than 15 for 15 FixedSupTokenDefPart due to size of atom', () => {
 		testFSTDP(15, (fee: AmountT) => {
-			expect(fee.greaterThan(milliRads(15_000)))
+			expect(fee.greaterThan(TokenFee.milliRads(15_000)))
 		})
 	})
 

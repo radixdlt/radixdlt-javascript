@@ -22,10 +22,10 @@ export type ResourceIdentifierT = JSONEncodable &
  * An Atom Identifier, made up of 256 bits of a hash.
  * The Atom ID is used so that Atoms can be located using just their hash id.
  */
-export type AtomIdentifier = DSONCodable &
+export type AtomIdentifierT = DSONCodable &
 	Readonly<{
 		toString: () => string
-		equals: (other: AtomIdentifier) => boolean
+		equals: (other: AtomIdentifierT) => boolean
 	}>
 
 export type IsOwnerOfToken = () => boolean
@@ -80,6 +80,6 @@ export type AtomT = JSONEncodable &
 		signatures: Signatures // can be empty
 		message?: string
 		equals: (other: AtomT) => boolean
-		identifier: () => AtomIdentifier
+		identifier: () => AtomIdentifierT
 		isSigned: () => boolean
 	}>

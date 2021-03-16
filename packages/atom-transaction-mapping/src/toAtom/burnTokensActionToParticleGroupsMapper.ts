@@ -1,4 +1,4 @@
-import { BurnTokensAction, UserActionType } from '@radixdlt/actions'
+import { UserActionType } from '@radixdlt/actions'
 import {
 	isMutableTokenDefinitionParticle,
 	ParticleGroup,
@@ -27,10 +27,11 @@ import {
 	TransferrableTokensParticleT,
 	UnallocatedTokensParticleT,
 } from '@radixdlt/atom/src/_index'
+import { BurnTokensActionT } from '@radixdlt/actions/src/_types'
 
 const particleGroupsFromBurnTokensAction = (
 	input: Readonly<{
-		burnTokensAction: BurnTokensAction
+		burnTokensAction: BurnTokensActionT
 		upParticles: UpParticle<TransferrableTokensParticleT>[]
 		addressOfActiveAccount: AddressT
 	}>,
@@ -104,7 +105,7 @@ export const burnTokensActionToParticleGroupsMapper = (): BurnTokensActionToPart
 				.andThen((res) => combine(collectUpParticles(res)))
 				.andThen((upParticles) =>
 					particleGroupsFromBurnTokensAction({
-						burnTokensAction: input.action as BurnTokensAction,
+						burnTokensAction: input.action as BurnTokensActionT,
 						upParticles: upParticles,
 						addressOfActiveAccount: input.addressOfActiveAccount,
 					}),

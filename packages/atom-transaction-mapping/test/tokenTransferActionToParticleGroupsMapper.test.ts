@@ -1,5 +1,5 @@
 import { tokenTransferActionToParticleGroupsMapper } from '../src/toAtom/tokenTransferActionToParticleGroupsMapper'
-import { TransferTokensAction, transferTokensAction } from '@radixdlt/actions'
+import { TransferTokensAction, TransferTokensActionT } from '@radixdlt/actions'
 import {
 	isTransferrableTokensParticle,
 	TokenParticle,
@@ -31,8 +31,8 @@ describe('TokenTransferActionToParticleGroupsMapper', () => {
 	const makeTransferAction = (
 		amount: number = 1337,
 		actor?: AddressT,
-	): TransferTokensAction => {
-		return transferTokensAction({
+	): TransferTokensActionT => {
+		return TransferTokensAction.create({
 			to: bob,
 			from: actor ?? alice,
 			amount: Amount.inSmallestDenomination(UInt256.valueOf(amount)),

@@ -21,7 +21,7 @@ export const validate = (
 
 export const validateUserActionSender = <
 	T extends Readonly<{
-		action: UserAction
+		action: UserAction<unknown>
 		addressOfActiveAccount: AddressT
 	}>
 >(
@@ -46,7 +46,7 @@ export const validateConsumeTokensAction = (
 		upParticles: AnyUpParticle[]
 		action: A
 	}>,
-	A extends TokensActionBase
+	A extends TokensActionBase<unknown>
 >(
 	input: T,
 ): Result<T, Error> => {
@@ -82,7 +82,7 @@ export const validateConsumeTokensAction = (
 
 export const validateUserActionType = (filterOnType: UserActionType) => <
 	T extends {
-		action: UserAction
+		action: UserAction<unknown>
 	}
 >(
 	input: T,

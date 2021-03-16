@@ -1,13 +1,30 @@
 import {
-	TransferTokensAction,
+	TransferTokensActionT,
 	TransferTokensActionInput,
 	UserActionType,
 } from './_types'
 import { v4 as uuidv4 } from 'uuid'
+import { Decoder, JSONDecoding } from '@radixdlt/data-formats'
+import { isObject } from '@radixdlt/util'
+import { ok } from 'neverthrow'
+import { ResourceIdentifier } from '@radixdlt/atom'
+import { Amount } from '@radixdlt/primitives'
+import { Address } from '@radixdlt/account'
 
-export const transferTokensAction = (
-	input: TransferTokensActionInput,
-): TransferTokensAction => {
+const JSONDecoder: Decoder = (value) =>
+	isObject(value) && value['type'] === UserActionType.TOKEN_TRANSFER
+		? ok(create(value as TransferTokensActionInput))
+		: undefined
+
+const decoding = JSONDecoding.withDependencies(
+	ResourceIdentifier,
+	Amount,
+	Address,
+)
+	.withDecoders(JSONDecoder)
+	.create()
+
+const create = (input: TransferTokensActionInput): TransferTokensActionT => {
 	const uuid = input.uuid ?? uuidv4()
 
 	return {
@@ -19,4 +36,10 @@ export const transferTokensAction = (
 		amount: input.amount,
 		uuid: uuid,
 	}
+}
+
+export const TransferTokensAction = {
+	create,
+	...decoding,
+	JSONDecoder,
 }

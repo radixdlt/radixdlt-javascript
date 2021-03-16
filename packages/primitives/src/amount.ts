@@ -232,25 +232,25 @@ export const isAmount = (
 	)
 }
 
-const makeAmount = (amount: number): AmountT =>
+const make = (amount: number): AmountT =>
 	inSmallestDenomination(UInt256.valueOf(amount))
 
-export const zero = makeAmount(0)
-export const one = makeAmount(1)
-export const two = makeAmount(2)
-export const three = makeAmount(3)
-export const four = makeAmount(4)
-export const five = makeAmount(5)
-export const six = makeAmount(6)
-export const seven = makeAmount(7)
-export const eight = makeAmount(8)
-export const nine = makeAmount(9)
-export const ten = makeAmount(10)
-export const eleven = makeAmount(11)
-export const twelve = makeAmount(12)
-export const thirteen = makeAmount(13)
-export const fourteen = makeAmount(14)
-export const fifteen = makeAmount(15)
+export const zero = make(0)
+export const one = make(1)
+export const two = make(2)
+export const three = make(3)
+export const four = make(4)
+export const five = make(5)
+export const six = make(6)
+export const seven = make(7)
+export const eight = make(8)
+export const nine = make(9)
+export const ten = make(10)
+export const eleven = make(11)
+export const twelve = make(12)
+export const thirteen = make(13)
+export const fourteen = make(14)
+export const fifteen = make(15)
 
 export const maxAmount = fromUInt256({
 	magnitude: uint256Max,
@@ -260,7 +260,9 @@ export const maxAmount = fromUInt256({
 export const Amount = {
 	JSON_TAG,
 	...jsonDecoding,
+	JSONDecoder,
 	inSmallestDenomination,
 	fromUnsafe,
 	fromUInt256,
+	make,
 }

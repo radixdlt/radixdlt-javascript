@@ -1,4 +1,4 @@
-import { err, ok, Result } from 'neverthrow'
+import { combine, err, ok, Result } from 'neverthrow'
 import { flatten, mapObjIndexed, pipe } from 'ramda'
 import {
 	isObject,
@@ -118,7 +118,14 @@ const JSONDecodeUnflattened = (...decoders: Decoder[]) => (
 		: isString(json) || isBoolean(json) || isNumber(json)
 		? applyDecoders(decoders, json).mapErr((err) => [err])
 		: isArray(json)
-		? ok(json.map((item) => JSONDecodeUnflattened(...decoders)(item)))
+		? combine(
+				json.map((item) =>
+					applyDecoders(
+						decoders,
+						JSONDecodeUnflattened(...decoders)(item),
+					),
+				),
+		  ).mapErr((err) => [err])
 		: err([Error('JSON decoding failed. Unknown data type.')])
 
 /**

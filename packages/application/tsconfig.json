@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "rootDir": "src",
-    "outDir": "dist"
+    "outDir": "dist",
   },
   "include": [
     "src"
@@ -11,6 +11,9 @@
     {"path": "../crypto"},
     {"path": "../atom"},
     {"path": "../primitives"},
-    {"path": "../atom-transaction-mapping"}
+    {"path": "../atom-transaction-mapping"},
+    {"path": "../actions"},
+    {"path": "../util"},
+    {"path": "../networking"},
   ]
 }
