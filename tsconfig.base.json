@@ -18,7 +18,7 @@
     "resolveJsonModule": true,
     "noUnusedLocals": false,
     "strict": true,
-    "target": "ESNext",
+    "target": "ES6",
     "skipLibCheck": true,
     "types": [
       "node",
