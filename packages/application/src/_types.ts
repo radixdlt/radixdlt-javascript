@@ -1,6 +1,6 @@
 import { AnyUpParticle } from '@radixdlt/atom'
 import { AmountT } from '@radixdlt/primitives'
-import { Result } from 'neverthrow'
+import { Result, ResultAsync } from 'neverthrow'
 import {
 	ExecutedTransactions,
 	GetAtomForTransaction,
@@ -32,35 +32,45 @@ export type TokenFeeTable = Readonly<{
 export type NodeAPI = {
 	universeMagic: (
 		...input: UniverseMagic.Input
-	) => Promise<Result<UniverseMagic.DecodedResponse, Error[]>>
+	) => ResultAsync<UniverseMagic.DecodedResponse, Error[]>
+
 	tokenBalances: (
 		...input: TokenBalances.Input
-	) => Promise<Result<TokenBalances.DecodedResponse, Error[]>>
+	) => ResultAsync<TokenBalances.DecodedResponse, Error[]>
+
 	executedTransactions: (
 		...input: ExecutedTransactions.Input
-	) => Promise<Result<ExecutedTransactions.DecodedResponse, Error[]>>
+	) => ResultAsync<ExecutedTransactions.DecodedResponse, Error[]>
+
 	nativeToken: (
 		...input: NativeToken.Input
-	) => Promise<Result<NativeToken.DecodedResponse, Error[]>>
+	) => ResultAsync<NativeToken.DecodedResponse, Error[]>
+
 	tokenFeeForTransaction: (
 		...input: TokenFeeForTransaction.Input
-	) => Promise<Result<TokenFeeForTransaction.DecodedResponse, Error[]>>
+	) => ResultAsync<TokenFeeForTransaction.DecodedResponse, Error[]>
+
 	stakes: (
 		...input: Stakes.Input
-	) => Promise<Result<Stakes.DecodedResponse, Error[]>>
+	) => ResultAsync<Stakes.DecodedResponse, Error[]>
+
 	transactionStatus: (
 		...input: TransactionStatus.Input
-	) => Promise<Result<TransactionStatus.DecodedResponse, Error[]>>
+	) => ResultAsync<TransactionStatus.DecodedResponse, Error[]>
+
 	networkTransactionThroughput: (
 		...input: NetworkTransactionThroughput.Input
-	) => Promise<Result<NetworkTransactionThroughput.DecodedResponse, Error[]>>
+	) => ResultAsync<NetworkTransactionThroughput.DecodedResponse, Error[]>
+
 	networkTransactionDemand: (
 		...input: NetworkTransactionDemand.Input
-	) => Promise<Result<NetworkTransactionDemand.DecodedResponse, Error[]>>
+	) => ResultAsync<NetworkTransactionDemand.DecodedResponse, Error[]>
+
 	getAtomForTransaction: (
 		...input: GetAtomForTransaction.Input
-	) => Promise<Result<GetAtomForTransaction.DecodedResponse, Error[]>>
+	) => ResultAsync<GetAtomForTransaction.DecodedResponse, Error[]>
+
 	submitSignedAtom: (
 		...input: SubmitSignedAtom.Input
-	) => Promise<Result<SubmitSignedAtom.DecodedResponse, Error[]>>
+	) => ResultAsync<SubmitSignedAtom.DecodedResponse, Error[]>
 }

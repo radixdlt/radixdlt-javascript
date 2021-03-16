@@ -27,7 +27,6 @@ import {
 	handleTransactionStatusResponse,
 	handleUniverseMagicResponse,
 } from './responseHandlers'
-import { NodeAPI } from '../../_types'
 
 const setupAPICall = (
 	call: (endpoint: Endpoint, ...params: unknown[]) => Promise<unknown>,

@@ -1,6 +1,6 @@
 import { Endpoint } from './json-rpc/_types'
 import { pipe, andThen } from 'ramda'
-import { Result } from 'neverthrow'
+import { Result, ResultAsync } from 'neverthrow'
 
 export const callAPI = <Params extends unknown[], DecodedResponse>(
 	endpoint: Endpoint,
@@ -8,6 +8,12 @@ export const callAPI = <Params extends unknown[], DecodedResponse>(
 	call: (endpoint: Endpoint, params: Params) => Promise<unknown>,
 	handleResponse: (response: unknown) => Result<DecodedResponse, Error[]>,
 ) => (...params: Params) =>
-	// ignore typecheck here because typings in Ramda pipe can't handle the spread operator.
-	// @ts-ignore
-	pipe(call, andThen(handleResponse))(endpoint, ...params)
+	pipe(
+		call,
+		andThen(handleResponse),
+		(value) =>
+			// ignore typecheck here because typings in Ramda pipe can't handle the spread operator.
+			// @ts-ignore
+			ResultAsync.fromPromise(value, (e: Error[]) => e).andThen((r) => r),
+		// @ts-ignore
+	)(endpoint, ...params)
