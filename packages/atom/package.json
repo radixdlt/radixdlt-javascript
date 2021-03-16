@@ -1,6 +1,6 @@
 {
   "name": "@radixdlt/atom",
-  "version": "1.0.3-alpha.0",
+  "version": "1.0.4-alpha.0",
   "description": "Container for CRUD instructions known as 'Particles' that are sent to the Radix decentralized ledger",
   "keywords": [
     "Atom",
@@ -29,9 +29,9 @@
     "node": ">=15.5.0 <16"
   },
   "dependencies": {
-    "@radixdlt/account": "^1.0.3-alpha.0",
+    "@radixdlt/account": "^1.0.4-alpha.0",
     "@radixdlt/data-formats": "^1.0.3-alpha.0",
-    "@radixdlt/primitives": "^1.0.3-alpha.0",
+    "@radixdlt/primitives": "^1.0.4-alpha.0",
     "neverthrow": "^4.0.1"
   },
   "gitHead": "ee833a68768aa7fba2636e413a03fc1801ca0817"
