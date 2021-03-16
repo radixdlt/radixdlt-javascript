@@ -1,6 +1,6 @@
 {
   "name": "@radixdlt/application",
-  "version": "1.0.0-alpha.0",
+  "version": "1.0.1-alpha.0",
   "description": "A JavaScript client library for interacting with the Radix Distributed Ledger.",
   "keywords": [
     "RadixApplicationClient",
@@ -29,11 +29,11 @@
     "node": ">=15.5.0 <16"
   },
   "dependencies": {
-    "@radixdlt/atom": "^1.0.0-alpha.0",
-    "@radixdlt/atom-transaction-mapping": "^1.0.0-alpha.0",
-    "@radixdlt/crypto": "^1.0.0-alpha.0",
-    "@radixdlt/data-formats": "^1.0.0-alpha.0",
-    "@radixdlt/primitives": "^1.0.0-alpha.0",
+    "@radixdlt/atom": "^1.0.1-alpha.0",
+    "@radixdlt/atom-transaction-mapping": "^1.0.1-alpha.0",
+    "@radixdlt/crypto": "^1.0.1-alpha.0",
+    "@radixdlt/data-formats": "^1.0.1-alpha.0",
+    "@radixdlt/primitives": "^1.0.1-alpha.0",
     "neverthrow": "^4.0.1"
   }
 }
