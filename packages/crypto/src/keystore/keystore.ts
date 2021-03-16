@@ -5,8 +5,7 @@ import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
 import { ScryptParamsT } from '../key-derivation-functions/_types'
 import { Scrypt, ScryptParams } from '../key-derivation-functions/scrypt'
 import { v4 as uuidv4 } from 'uuid'
-import { PathLike } from 'fs'
-import { readFile, writeFile, FileHandle } from 'fs/promises'
+import { PathLike, promises as fsPromises } from 'fs'
 
 const minimumPasswordLength = 8
 
@@ -107,10 +106,10 @@ const fromBuffer = (keystoreBuffer: Buffer): Result<KeystoreT, Error> => {
 }
 
 const fromFileAtPath = (
-	filePath: PathLike | FileHandle,
+	filePath: PathLike | fsPromises.FileHandle,
 ): ResultAsync<KeystoreT, Error> => {
 	const fileContents: ResultAsync<Buffer, Error> = ResultAsync.fromPromise(
-		readFile(filePath),
+		fsPromises.readFile(filePath),
 		() => new Error(`Failed to derive data using scrypt`),
 	)
 	return fileContents.andThen(fromBuffer)
@@ -119,13 +118,13 @@ const fromFileAtPath = (
 const saveToFileAtPath = (
 	input: Readonly<{
 		keystore: KeystoreT
-		filePath: PathLike | FileHandle
+		filePath: PathLike | fsPromises.FileHandle
 	}>,
 ): ResultAsync<KeystoreT, Error> => {
 	const { filePath, keystore } = input
 	const json = JSON.stringify(keystore, null, '\t')
 	return ResultAsync.fromPromise(
-		writeFile(filePath, json),
+		fsPromises.writeFile(filePath, json),
 		(unknownError: unknown) =>
 			new Error(
 				`Failed to save keystore at path ${filePath.toString()}, error: ${JSON.stringify(
