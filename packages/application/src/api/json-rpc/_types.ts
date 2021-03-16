@@ -46,7 +46,7 @@ export namespace UniverseMagic {
 	}
 
 	export type DecodedResponse = {
-		magic: Int32 // validation here?
+		magic: Int32
 	}
 }
 
