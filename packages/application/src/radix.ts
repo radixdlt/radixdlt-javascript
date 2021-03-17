@@ -74,7 +74,14 @@ const create = (): RadixT => {
 		return
 	}
 
-	const radix = {
+	let radix: RadixT = (undefined as unknown) as RadixT
+
+	const connect = (url: URL): RadixT => {
+		withNodeConnection(of({ url }))
+		return radix
+	}
+
+	radix = {
 		// we forward the full `RadixAPI`, but we also provide some convenience methods based on active account/address.
 		...api,
 
@@ -85,11 +92,7 @@ const create = (): RadixT => {
 		},
 
 		withNodeConnection,
-
-		connect: (url: URL): RadixT => {
-			withNodeConnection(of({ url }))
-			return (undefined as unknown) as RadixT
-		},
+		connect,
 
 		withWallet: (wallet: WalletT): void => {
 			// Important! We must provide wallet with `magic`,
@@ -110,19 +113,7 @@ const create = (): RadixT => {
 		tokenBalancesOfActiveAccount,
 	}
 
-	const decorateSelf = <I>(
-		fwd: (partialSelf: RadixT) => (input: I) => RadixT,
-	): ((input: I) => RadixT) => {
-		return (input: I): RadixT => {
-			fwd(radix)(input)
-			return radix
-		}
-	}
-
-	return {
-		...radix,
-		connect: decorateSelf((r) => r.connect),
-	}
+	return radix
 }
 
 export const Radix = {
