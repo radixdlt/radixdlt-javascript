@@ -1,4 +1,4 @@
-import { scrypt } from 'crypto'
+import { scrypt } from 'scrypt-js'
 import { ResultAsync, errAsync } from 'neverthrow'
 import { ScryptParamsT } from './_types'
 import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
@@ -12,37 +12,19 @@ const deriveKey = (
 ): ResultAsync<Buffer, Error> => {
 	if (input.kdf !== 'scrypt')
 		return errAsync(new Error('Wrong KDF, expected scrypt'))
-	const { params, password } = input
+	const { params, password: key } = input
 	const {
-		lengthOfDerivedKey,
-		costParameterN,
-		blockSize,
-		parallelizationParameter,
+		lengthOfDerivedKey: dklen,
+		costParameterN: n,
+		blockSize: r,
+		parallelizationParameter: p,
 	} = params
 	const salt = Buffer.from(params.salt, 'hex')
 
 	return ResultAsync.fromPromise(
-		new Promise((resolve, reject) => {
-			scrypt(
-				password,
-				salt,
-				lengthOfDerivedKey,
-				{
-					N: costParameterN,
-					r: blockSize,
-					p: parallelizationParameter,
-				},
-				(maybeError, key) => {
-					if (!maybeError && key) {
-						resolve(key)
-					} else if (maybeError && !key) {
-						reject(key)
-					} else {
-						throw new Error('Incorrect implementation of scrypt.')
-					}
-				},
-			)
-		}),
+		scrypt(key, salt, n, r, p, dklen).then((uint8array) =>
+			Buffer.from(uint8array),
+		),
 		(e: unknown) => {
 			type NodeCryptoErrorLike = {
 				code: string
@@ -54,7 +36,7 @@ const deriveKey = (
 					? (e as NodeCryptoErrorLike).code
 					: JSON.stringify(e, null, 4)
 			return new Error(
-				`Failed to derive data using scrypt, underlying error: ${underlyingErrorMessage}`,
+				`Failed to derive data using scrypt, underlying error: '${underlyingErrorMessage}'`,
 			)
 		},
 	)

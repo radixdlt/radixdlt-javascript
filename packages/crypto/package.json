@@ -42,10 +42,12 @@
     "base-x": "^3.0.8",
     "elliptic": "^6.5.3",
     "neverthrow": "^4.0.1",
+    "scrypt-js": "^3.0.1",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@types/elliptic": "^6.4.12",
+    "@types/scrypt-js": "^2.0.4",
     "@types/uuid": "^8.3.0"
   },
   "gitHead": "ee833a68768aa7fba2636e413a03fc1801ca0817"

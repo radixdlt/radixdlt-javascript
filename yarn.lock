@@ -1553,10 +1553,31 @@
     node-ipc "^9.1.1"
     ws "^7.3.1"
 
+"@radixdlt/data-formats@^1.0.4-alpha.0":
+  version "1.0.6-alpha.0"
+  dependencies:
+    "@radixdlt/util" "^1.0.6-alpha.0"
+    cbor "^5.2.0"
+    neverthrow "^4.0.1"
+    ramda "^0.27.1"
+
+"@radixdlt/networking@^1.0.4-alpha.0":
+  version "1.0.6-alpha.0"
+  dependencies:
+    "@open-rpc/client-js" "^1.6.2"
+
 "@radixdlt/uint256@^1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@radixdlt/uint256/-/uint256-1.1.0.tgz#e0d46b14b63c55b366a53692fb4cc38b37f0a475"
   integrity sha512-jpthXXsTJhvBTQrSSi0lXA0HPTmhrYIJklTRNicZgvITosvpByinCzZEebJbYeGfWlWRsqFHsKbFWgNTRVNIUg==
+
+"@radixdlt/util@^1.0.4-alpha.0":
+  version "1.0.6-alpha.0"
+  dependencies:
+    neverthrow "^4.0.1"
+    ramda "^0.27.1"
+    randombytes "^2.1.0"
+    sodium-native "^3.2.0"
 
 "@sinonjs/commons@^1.7.0":
   version "1.8.1"
@@ -1752,6 +1773,13 @@
   integrity sha512-tZoQ0lv1WKkrpBHemL8yCkI9p8kUk/1PSMwhl0eeyqMQjD+2ePUtVLV8PpNS9Kq3OktObwOx9I3k+HumxTviRg==
   dependencies:
     ts-toolbelt "^6.15.1"
+
+"@types/scrypt-js@^2.0.4":
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/@types/scrypt-js/-/scrypt-js-2.0.4.tgz#c75d17910357d79552a8aa102a8c907ebcd029d5"
+  integrity sha512-FCgSes9EwZrZEv3VmEKGSWeDgJSm6DJdR/QrBnZ1Y6Xhi9EAKmZqr6ocpPtZT/ZbJwaa/rpLyLq4uIy1Imzrhw==
+  dependencies:
+    "@types/node" "*"
 
 "@types/stack-utils@^1.0.1":
   version "1.0.1"
@@ -7971,6 +7999,11 @@ saxes@^5.0.0:
   integrity sha512-5LBh1Tls8c9xgGjw3QrMwETmTMVk0oFgvrFSvWx62llR2hcEInrKNZ2GZCCuuy2lvWrdl5jhbpeqc5hRYKFOcw==
   dependencies:
     xmlchars "^2.2.0"
+
+scrypt-js@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/scrypt-js/-/scrypt-js-3.0.1.tgz#d314a57c2aef69d1ad98a138a21fe9eafa9ee312"
+  integrity sha512-cdwTTnqPu0Hyvf5in5asVdZocVDTNRmR7XEcJuIzMjJeSHybHl7vpB66AzwTaIg6CLSbtjcxc8fqcySfnTkccA==
 
 secp256k1@^4.0.0, secp256k1@^4.0.2:
   version "4.0.2"
