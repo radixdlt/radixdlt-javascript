@@ -42,7 +42,7 @@ export const radixCoreAPI = (node: NodeT): RadixCoreAPI => {
 		...input: I
 	): Observable<P> => toObs(pickFn, ...input).pipe(map((o) => mapOutput(o)))
 
-	return <RadixCoreAPI>{
+	return {
 		node,
 
 		magic: (): Observable<Magic> =>
