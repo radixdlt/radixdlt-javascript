@@ -92,10 +92,10 @@ export type RadixT = RadixAPI &
 		connect: (url: URL) => RadixT
 
 		// Primiarily useful for testing.
-		__withAPI: (radixCoreAPI$: Observable<RadixCoreAPI>) => void
+		__withAPI: (radixCoreAPI$: Observable<RadixCoreAPI>) => RadixT
 
-		withNodeConnection: (node$: Observable<NodeT>) => void
-		withWallet: (wallet: WalletT) => void
+		withNodeConnection: (node$: Observable<NodeT>) => RadixT
+		withWallet: (wallet: WalletT) => RadixT
 
 		// Observe Input
 		observeWallet: () => Observable<WalletT>

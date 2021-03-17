@@ -176,7 +176,6 @@ describe('Radix API', () => {
 		})
 	})
 
-
 	it('can change node with url', async (done) => {
 		const n1 = 'http://www.node1.com/'
 		const n2 = 'http://www.node2.com/'

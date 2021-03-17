@@ -5,6 +5,7 @@ import { mergeMap, withLatestFrom, map } from 'rxjs/operators'
 import { Observable, Subscription, merge, ReplaySubject, of } from 'rxjs'
 
 import { radixCoreAPI } from './api/radixCoreAPI'
+import { Magic } from '@radixdlt/primitives'
 
 const create = (): RadixT => {
 	const subs = new Subscription()
@@ -30,7 +31,7 @@ const create = (): RadixT => {
 		pickFn: (api: RadixCoreAPI) => (...input: I) => Observable<O>,
 	) => (...input: I) => coreAPI$.pipe(mergeMap((a) => pickFn(a)(...input)))
 
-	const magic = fwdAPICall((a) => a.magic)
+	const magic: () => Observable<Magic> = fwdAPICall((a) => a.magic)
 
 	const api: RadixAPI = {
 		tokenBalancesForAddress: fwdAPICall((a) => a.tokenBalancesForAddress),
@@ -69,36 +70,49 @@ const create = (): RadixT => {
 	const observeAccounts = (): Observable<AccountsT> =>
 		wallet$.pipe(mergeMap((wallet) => wallet.observeAccounts()))
 
-	const withNodeConnection = (node$: Observable<NodeT>): void => {
-		node$.subscribe((n) => nodeSubject.next(n)).add(subs)
-		return
+	const _withNodeConnection = (node$: Observable<NodeT>): void => {
+		node$
+			.subscribe(
+				(n) => nodeSubject.next(n),
+				(e) => nodeSubject.error(e),
+			)
+			.add(subs)
 	}
 
-	let radix: RadixT = (undefined as unknown) as RadixT
-
-	const connect = (url: URL): RadixT => {
-		withNodeConnection(of({ url }))
-		return radix
-	}
-
-	radix = {
+	return {
 		// we forward the full `RadixAPI`, but we also provide some convenience methods based on active account/address.
 		...api,
 
 		// Primarily useful for testing
-		__withAPI: (radixCoreAPI$: Observable<RadixCoreAPI>): void => {
-			radixCoreAPI$.subscribe((a) => coreAPISubject.next(a)).add(subs)
-			return
+		withNodeConnection: function withNodeConnection(
+			node$: Observable<NodeT>,
+		): RadixT {
+			_withNodeConnection(node$)
+			/* eslint-disable functional/no-this-expression */
+			return this
 		},
-
-		withNodeConnection,
-		connect,
-
-		withWallet: (wallet: WalletT): void => {
+		__withAPI: function __withAPI(
+			radixCoreAPI$: Observable<RadixCoreAPI>,
+		): RadixT {
+			radixCoreAPI$
+				.subscribe(
+					(a) => coreAPISubject.next(a),
+					(e) => coreAPISubject.error(e),
+				)
+				.add(subs)
+			return this
+		},
+		connect: function connect(url: URL): RadixT {
+			_withNodeConnection(of({ url }))
+			return this
+		},
+		withWallet: function (wallet: WalletT): RadixT {
 			// Important! We must provide wallet with `magic`,
 			// so that it can derive addresses for its accounts.
 			wallet.provideMagic(magic())
 			walletSubject.next(wallet)
+			return this
+			/* eslint-enable functional/no-this-expression */
 		},
 
 		observeWallet: () => wallet$,
@@ -112,8 +126,6 @@ const create = (): RadixT => {
 		// Active Address/Account APIs
 		tokenBalancesOfActiveAccount,
 	}
-
-	return radix
 }
 
 export const Radix = {
