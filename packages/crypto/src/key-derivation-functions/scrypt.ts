@@ -38,12 +38,25 @@ const deriveKey = (
 					} else if (maybeError && !key) {
 						reject(key)
 					} else {
-						throw new Error('Incorrect impl.')
+						throw new Error('Incorrect implementation of scrypt.')
 					}
 				},
 			)
 		}),
-		() => new Error(`Failed to derive data using scrypt`),
+		(e: unknown) => {
+			type NodeCryptoErrorLike = {
+				code: string
+			}
+			const underlyingErrorMessage: string =
+				e instanceof Error
+					? e.message
+					: (e as NodeCryptoErrorLike).code !== undefined
+					? (e as NodeCryptoErrorLike).code
+					: JSON.stringify(e, null, 4)
+			return new Error(
+				`Failed to derive data using scrypt, underlying error: ${underlyingErrorMessage}`,
+			)
+		},
 	)
 }
 

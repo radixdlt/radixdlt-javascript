@@ -110,7 +110,15 @@ const fromFileAtPath = (
 ): ResultAsync<KeystoreT, Error> => {
 	const fileContents: ResultAsync<Buffer, Error> = ResultAsync.fromPromise(
 		fsPromises.readFile(filePath),
-		() => new Error(`Failed to derive data using scrypt`),
+		(e: unknown) => {
+			return new Error(
+				`Failed to create keystore from filePath: '${filePath.toString()}', underlying error: ${JSON.stringify(
+					e,
+					null,
+					4,
+				)}`,
+			)
+		},
 	)
 	return fileContents.andThen(fromBuffer)
 }
@@ -127,7 +135,7 @@ const saveToFileAtPath = (
 		fsPromises.writeFile(filePath, json),
 		(unknownError: unknown) =>
 			new Error(
-				`Failed to save keystore at path ${filePath.toString()}, error: ${JSON.stringify(
+				`Failed to save keystore at path '${filePath.toString()}', underlying error: ${JSON.stringify(
 					unknownError,
 					null,
 					4,
