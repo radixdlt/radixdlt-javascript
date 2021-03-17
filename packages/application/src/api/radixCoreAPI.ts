@@ -24,14 +24,14 @@ import { Transaction } from './json-rpc/_types'
 import { AtomIdentifierT } from '@radixdlt/atom'
 
 export const radixCoreAPI = (node: NodeT): RadixCoreAPI => {
-	const rpcAPI: NodeAPI = nodeAPI(node.url)
+	const api = nodeAPI(node.url)
 
 	const toObs = <I extends unknown[], E, O>(
 		pickFn: (api: NodeAPI) => (...input: I) => ResultAsync<O, E | E[]>,
 		...input: I
 	): Observable<O> => {
 		return defer(() => {
-			const fn: (...input: I) => ResultAsync<O, E | E[]> = pickFn(rpcAPI)
+			const fn: (...input: I) => ResultAsync<O, E | E[]> = pickFn(api)
 			return toObservable(fn(...input))
 		})
 	}
