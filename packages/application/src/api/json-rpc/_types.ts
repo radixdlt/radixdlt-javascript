@@ -90,7 +90,11 @@ export namespace ExecutedTransactions {
 		resourceIdentifier: string
 	}
 
-	export type Input = [address: string, size: number]
+	export type Input = [
+		address: string,
+		size: number, // must be > 0
+		cursor?: string, // AtomIdentifier
+	]
 
 	export type Response = {
 		cursor: string

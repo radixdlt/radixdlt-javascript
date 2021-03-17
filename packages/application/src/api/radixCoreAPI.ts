@@ -59,14 +59,17 @@ export const radixCoreAPI = (node: NodeT): RadixCoreAPI => {
 		executedTransactions: (
 			input: Readonly<{
 				address: AddressT
+
 				// pagination
-				size: number
+				size: number // must be larger than 0
+				cursor?: AtomIdentifierT
 			}>,
 		): Observable<ExecutedTransactions> =>
 			toObs(
 				(a) => a.executedTransactions,
 				input.address.toString(),
 				input.size,
+				input.cursor?.toString(),
 			),
 
 		nativeToken: (): Observable<Token> => toObs((a) => a.nativeToken),
@@ -97,6 +100,10 @@ export const radixCoreAPI = (node: NodeT): RadixCoreAPI => {
 		submitSignedAtom: (
 			signedAtom: SignedAtom,
 		): Observable<SubmittedAtomResponse> =>
-			toObs((a) => a.submitSignedAtom, ...signedAtom),
+			toObs((a) => a.submitSignedAtom,
+				signedAtom.atomCBOR,
+				signedAtom.signerPublicKey.toString(true),
+				signedAtom.signature.toDER(),
+			),
 	}
 }

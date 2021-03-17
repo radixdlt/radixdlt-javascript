@@ -186,7 +186,7 @@ describe('HD Wallet', () => {
 		const magicSubject = new Subject<Magic>()
 		wallet.provideMagic(magicSubject.asObservable())
 
-		wallet.provideMagic(of(magicFromNumber(123))) // number must be < 256
+		wallet.provideMagic(of(magicFromNumber(123)))
 
 		const magic = magicFromNumber(123)
 		wallet.observeActiveAddress().subscribe((address) => {

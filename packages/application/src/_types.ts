@@ -5,20 +5,6 @@ import { AmountT, Magic } from '@radixdlt/primitives'
 import { Observable } from 'rxjs'
 import { AccountsT, AccountT, AddressT, WalletT } from '@radixdlt/account'
 
-export type FeeEntry = Readonly<{
-	feeFor: (
-		input: Readonly<{
-			upParticles: AnyUpParticle[]
-			atomByteCount: number
-		}>,
-	) => Result<AmountT, Error>
-}>
-
-export type TokenFeeTable = Readonly<{
-	minimumFee: AmountT
-	feeEntries: FeeEntry[]
-}>
-
 import {
 	ExecutedTransactions as ExecutedTransactionsEndpoint,
 	GetAtomForTransaction as GetAtomForTransactionEndpoint,
@@ -32,6 +18,7 @@ import {
 	TransactionStatus as TransactionStatusEndpoint,
 	Transaction as TransactionType,
 } from './api/json-rpc/_types'
+import { PublicKey, Signature } from '@radixdlt/crypto'
 
 export type Transaction = TransactionType
 
@@ -49,7 +36,12 @@ export type NetworkTransactionThroughput = NetworkTransactionThroughputEndpoint.
 export type NetworkTransactionDemand = NetworkTransactionDemandEndpoint.DecodedResponse
 export type AtomFromTransactionResponse = GetAtomForTransactionEndpoint.DecodedResponse
 export type SubmittedAtomResponse = SubmitSignedAtomEndpoint.DecodedResponse
-export type SignedAtom = SubmitSignedAtomEndpoint.Input
+
+export type SignedAtom = Readonly<{
+	atomCBOR: string
+	signerPublicKey: PublicKey
+	signature: Signature
+}>
 
 export type RadixAPI = Readonly<{
 	tokenBalancesForAddress: (address: AddressT) => Observable<TokenBalances>
@@ -57,8 +49,10 @@ export type RadixAPI = Readonly<{
 	executedTransactions: (
 		input: Readonly<{
 			address: AddressT
+
 			// pagination
-			size: number
+			size: number // must be larger than 0
+			cursor?: AtomIdentifierT
 		}>,
 	) => Observable<ExecutedTransactions>
 

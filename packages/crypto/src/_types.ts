@@ -22,6 +22,7 @@ export type UnsignedMessage = Readonly<{
 export type Signature = Readonly<{
 	r: UInt256
 	s: UInt256
+	toDER: () => string
 	equals: (other: Signature) => boolean
 }>
 
