@@ -1,5 +1,5 @@
-import { Scrypt, ScryptParams } from '../dist/key-derivation-functions/scrypt'
-import { ScryptParamsT } from '../dist/key-derivation-functions/_types'
+import { Scrypt, ScryptParams } from '../src/key-derivation-functions/scrypt'
+import { ScryptParamsT } from '../src/key-derivation-functions/_types'
 
 describe('scrypt', () => {
 	it('returns underlying error', async (done) => {
