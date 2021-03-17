@@ -1,6 +1,6 @@
 {
   "name": "@radixdlt/data-formats",
-  "version": "1.0.3-alpha.0",
+  "version": "1.0.5-alpha.0",
   "description": "Data formats used for serialization.",
   "keywords": [
     "CBOR",
@@ -28,7 +28,7 @@
     "node": ">=15.5.0 <16"
   },
   "dependencies": {
-    "@radixdlt/util": "^1.0.3-alpha.0",
+    "@radixdlt/util": "^1.0.5-alpha.0",
     "cbor": "^5.2.0",
     "neverthrow": "^4.0.1",
     "ramda": "^0.27.1"
