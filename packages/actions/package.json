@@ -1,6 +1,6 @@
 {
   "name": "@radixdlt/actions",
-  "version": "1.0.5-alpha.0",
+  "version": "1.0.6-alpha.0",
   "description": "Declare actions you as a user would like to perform e.g. 'transfer tokens' (`TransferTokensAction`)",
   "keywords": [
     "Actions"
@@ -20,9 +20,9 @@
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "dependencies": {
-    "@radixdlt/account": "^1.0.5-alpha.0",
-    "@radixdlt/atom": "^1.0.5-alpha.0",
-    "@radixdlt/primitives": "^1.0.5-alpha.0",
+    "@radixdlt/account": "^1.0.6-alpha.0",
+    "@radixdlt/atom": "^1.0.6-alpha.0",
+    "@radixdlt/primitives": "^1.0.6-alpha.0",
     "@types/uuid": "^8.3.0",
     "neverthrow": "^4.0.1",
     "uuid": "^8.3.2"
