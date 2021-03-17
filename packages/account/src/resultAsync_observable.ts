@@ -12,8 +12,7 @@ export const toObservable = <T, E = Error>(
 					subscriber.complete()
 				},
 				(e: E | E[]) => {
-					const error = Array.isArray(e) ? e[0] : e
-					subscriber.error(error)
+					subscriber.error(e)
 				},
 			)
 		})

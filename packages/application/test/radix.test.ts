@@ -123,7 +123,7 @@ describe('Radix API', () => {
 
 	it('emits node connection without wallet', async (done) => {
 		const radix = Radix.create()
-		radix._withAPI(mockAPI())
+		radix.__withAPI(mockAPI())
 
 		radix.observeNode().subscribe(
 			(node) => {
@@ -159,13 +159,24 @@ describe('Radix API', () => {
 		emitNewValues(radix)
 	}
 
-	it('can change node', async (done) => {
+	it('can change node with nodeConnection', async (done) => {
 		const n1 = 'http://www.node1.com/'
 		const n2 = 'http://www.node2.com/'
 
 		await testChangeNode([n1, n2], done, (radix: RadixT) => {
-			radix.withAPIAtNode(dummyNode(n1))
-			radix.withAPIAtNode(dummyNode(n2))
+			radix.withNodeConnection(dummyNode(n1))
+			radix.withNodeConnection(dummyNode(n2))
+		})
+	})
+
+
+	it('can change node with url', async (done) => {
+		const n1 = 'http://www.node1.com/'
+		const n2 = 'http://www.node2.com/'
+
+		await testChangeNode([n1, n2], done, (radix: RadixT) => {
+			radix.connect(new URL(n1))
+			radix.connect(new URL(n2))
 		})
 	})
 
@@ -174,8 +185,8 @@ describe('Radix API', () => {
 		const n2 = 'http://www.node2.com/'
 
 		await testChangeNode([n1, n2], done, (radix: RadixT) => {
-			radix._withAPI(mockAPI(n1))
-			radix._withAPI(mockAPI(n2))
+			radix.__withAPI(mockAPI(n1))
+			radix.__withAPI(mockAPI(n2))
 		})
 	})
 
@@ -197,7 +208,7 @@ describe('Radix API', () => {
 		const radix = Radix.create()
 		const wallet = createWallet()
 		radix.withWallet(wallet)
-		radix._withAPI(mockAPI())
+		radix.__withAPI(mockAPI())
 
 		radix.observeActiveAddress().subscribe(
 			(address) => {
@@ -210,7 +221,7 @@ describe('Radix API', () => {
 
 	it('returns native token without wallet', async (done) => {
 		const radix = Radix.create()
-		radix._withAPI(mockAPI())
+		radix.__withAPI(mockAPI())
 
 		radix.nativeToken().subscribe(
 			(token) => {

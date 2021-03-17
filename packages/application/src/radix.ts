@@ -2,7 +2,7 @@ import { AccountsT, AccountT, AddressT, WalletT } from '@radixdlt/account'
 import { NodeT, RadixAPI, RadixCoreAPI, RadixT, TokenBalances } from './_types'
 
 import { mergeMap, withLatestFrom, map } from 'rxjs/operators'
-import { Observable, Subscription, merge, ReplaySubject } from 'rxjs'
+import { Observable, Subscription, merge, ReplaySubject, of } from "rxjs";
 
 import { radixCoreAPI } from './api/radixCoreAPI'
 
@@ -69,20 +69,24 @@ const create = (): RadixT => {
 	const observeAccounts = (): Observable<AccountsT> =>
 		wallet$.pipe(mergeMap((wallet) => wallet.observeAccounts()))
 
-	return {
+	const withNodeConnection = (node$: Observable<NodeT>): void => {
+		node$.subscribe((n) => nodeSubject.next(n)).add(subs)
+		return
+	}
+
+	const radix = {
 		// we forward the full `RadixAPI`, but we also provide some convenience methods based on active account/address.
 		...api,
 
 		// Primarily useful for testing
-		_withAPI: (radixCoreAPI$: Observable<RadixCoreAPI>): void => {
+		__withAPI: (radixCoreAPI$: Observable<RadixCoreAPI>): void => {
 			radixCoreAPI$.subscribe((a) => coreAPISubject.next(a)).add(subs)
 			return
 		},
 
-		withAPIAtNode: (node$: Observable<NodeT>): void => {
-			node$.subscribe((n) => nodeSubject.next(n)).add(subs)
-			return
-		},
+		withNodeConnection,
+
+		connect: (url: URL): void => withNodeConnection(of({ url })),
 
 		withWallet: (wallet: WalletT): void => {
 			// Important! We must provide wallet with `magic`,
@@ -102,6 +106,8 @@ const create = (): RadixT => {
 		// Active Address/Account APIs
 		tokenBalancesOfActiveAccount,
 	}
+
+	return radix
 }
 
 export const Radix = {
