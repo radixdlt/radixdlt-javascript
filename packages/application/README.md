@@ -8,4 +8,5 @@ High level abstraction user facing API for interacting with the Radix decentrali
 const radixApplication = require('@radixdlt/application')
 
 // TODO: DEMONSTRATE API
+//
 ```
