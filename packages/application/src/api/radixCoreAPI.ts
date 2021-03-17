@@ -100,7 +100,8 @@ export const radixCoreAPI = (node: NodeT): RadixCoreAPI => {
 		submitSignedAtom: (
 			signedAtom: SignedAtom,
 		): Observable<SubmittedAtomResponse> =>
-			toObs((a) => a.submitSignedAtom,
+			toObs(
+				(a) => a.submitSignedAtom,
 				signedAtom.atomCBOR,
 				signedAtom.signerPublicKey.toString(true),
 				signedAtom.signature.toDER(),

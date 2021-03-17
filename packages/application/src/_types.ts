@@ -1,7 +1,6 @@
-import { AnyUpParticle, AtomIdentifierT } from '@radixdlt/atom'
-import { Result } from 'neverthrow'
+import { AtomIdentifierT } from '@radixdlt/atom'
 
-import { AmountT, Magic } from '@radixdlt/primitives'
+import { Magic } from '@radixdlt/primitives'
 import { Observable } from 'rxjs'
 import { AccountsT, AccountT, AddressT, WalletT } from '@radixdlt/account'
 

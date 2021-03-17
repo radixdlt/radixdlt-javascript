@@ -71,7 +71,9 @@ describe('elliptic curve cryptography', () => {
 			'2442ce9d2b916064108014783e923ec36b49743e2ffa1c4496f01a512aafd9e5',
 		)
 
-		expect(signature.toDER()).toBe('3045022100934b1ea10a4b3c1757e2b0c017d0b6143ce3c9a7e6a4a49860d7a6ab210ee3d802202442ce9d2b916064108014783e923ec36b49743e2ffa1c4496f01a512aafd9e5')
+		expect(signature.toDER()).toBe(
+			'3045022100934b1ea10a4b3c1757e2b0c017d0b6143ce3c9a7e6a4a49860d7a6ab210ee3d802202442ce9d2b916064108014783e923ec36b49743e2ffa1c4496f01a512aafd9e5',
+		)
 	})
 
 	it('should be able to derive publicKey from privateKey', () => {
