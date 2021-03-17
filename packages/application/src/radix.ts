@@ -1,113 +1,10 @@
-import {
-	AccountsT,
-	AccountT,
-	AddressT,
-	toObservable,
-	WalletT,
-} from '@radixdlt/account'
-import {
-	NodeT,
-	RadixCoreAPI,
-	RadixT,
-	Token,
-	TokenBalances,
-	ExecutedTransactions,
-	TokenFeeForTransaction,
-	Stakes,
-	TransactionStatus,
-	NetworkTransactionThroughput,
-	NetworkTransactionDemand,
-	AtomFromTransactionResponse,
-	SubmittedAtomResponse,
-	SignedAtom,
-} from './_types'
-import { nodeAPI } from './api/api'
+import { AccountsT, AccountT, AddressT, WalletT } from '@radixdlt/account'
+import { NodeT, RadixAPI, RadixCoreAPI, RadixT, TokenBalances } from './_types'
 
 import { mergeMap, withLatestFrom, map } from 'rxjs/operators'
-import { Observable, Subscription, merge, ReplaySubject, defer } from 'rxjs'
-import { Magic, magicFromNumber } from '@radixdlt/primitives'
-import { Transaction } from './api/json-rpc/_types'
-import { ResultAsync } from 'neverthrow'
-import { AtomIdentifierT } from '@radixdlt/atom'
-import { NodeAPI } from './api/_types'
+import { Observable, Subscription, merge, ReplaySubject } from 'rxjs'
 
-const radixCoreAPI = (node: NodeT): RadixCoreAPI => {
-	const rpcAPI: NodeAPI = nodeAPI(node.url)
-
-	const toObs = <I extends unknown[], E, O>(
-		pickFn: (api: NodeAPI) => (...input: I) => ResultAsync<O, E | E[]>,
-		...input: I
-	): Observable<O> => {
-		return defer(() => {
-			const fn: (...input: I) => ResultAsync<O, E | E[]> = pickFn(rpcAPI)
-			return toObservable(fn(...input))
-		})
-	}
-
-	const toObsMap = <I extends unknown[], E, O, P>(
-		pickFn: (api: NodeAPI) => (...input: I) => ResultAsync<O, E | E[]>,
-		mapOutput: (output: O) => P,
-		...input: I
-	): Observable<P> => toObs(pickFn, ...input).pipe(map((o) => mapOutput(o)))
-
-	return <RadixCoreAPI>{
-		node,
-
-		magic: (): Observable<Magic> =>
-			toObsMap(
-				(a) => a.universeMagic,
-				(m) => magicFromNumber(m.magic),
-			),
-
-		tokenBalancesForAddress: (
-			address: AddressT,
-		): Observable<TokenBalances> =>
-			toObs((a) => a.tokenBalances, address.toString()),
-
-		executedTransactions: (
-			input: Readonly<{
-				address: AddressT
-				// pagination
-				size: number
-			}>,
-		): Observable<ExecutedTransactions> =>
-			toObs(
-				(a) => a.executedTransactions,
-				input.address.toString(),
-				input.size,
-			),
-
-		nativeToken: (): Observable<Token> => toObs((a) => a.nativeToken),
-
-		tokenFeeForTransaction: (
-			transaction: Transaction,
-		): Observable<TokenFeeForTransaction> =>
-			toObs((a) => a.tokenFeeForTransaction, transaction),
-
-		stakesForAddress: (address: AddressT): Observable<Stakes> =>
-			toObs((a) => a.stakes, address.toString()),
-		transactionStatus: (
-			atomIdentifier: AtomIdentifierT,
-		): Observable<TransactionStatus> =>
-			toObs((a) => a.transactionStatus, atomIdentifier.toString()),
-
-		networkTransactionThroughput: (): Observable<NetworkTransactionThroughput> =>
-			toObs((a) => a.networkTransactionThroughput),
-
-		networkTransactionDemand: (): Observable<NetworkTransactionDemand> =>
-			toObs((a) => a.networkTransactionDemand),
-
-		getAtomForTransaction: (
-			transaction: Transaction,
-		): Observable<AtomFromTransactionResponse> =>
-			toObs((a) => a.getAtomForTransaction, transaction),
-
-		submitSignedAtom: (
-			signedAtom: SignedAtom,
-		): Observable<SubmittedAtomResponse> =>
-			toObs((a) => a.submitSignedAtom, ...signedAtom),
-	}
-}
+import { radixCoreAPI } from './api/radixCoreAPI'
 
 const create = (): RadixT => {
 	const subs = new Subscription()
@@ -128,8 +25,27 @@ const create = (): RadixT => {
 		mergeMap((wallet) => wallet.observeActiveAddress()),
 	)
 
-	const nativeToken = (): Observable<Token> =>
-		coreAPI$.pipe(mergeMap((api: RadixCoreAPI) => api.nativeToken()))
+	// Forwards calls to RadixCoreAPI, return type is a function: `(input?: I) => Observable<O>`
+	const fwdAPICall = <I extends unknown[], O>(
+		pickFn: (api: RadixCoreAPI) => (...input: I) => Observable<O>,
+	) => (...input: I) => coreAPI$.pipe(mergeMap((a) => pickFn(a)(...input)))
+
+	const magic = fwdAPICall((a) => a.magic)
+
+	const api: RadixAPI = {
+		tokenBalancesForAddress: fwdAPICall((a) => a.tokenBalancesForAddress),
+		executedTransactions: fwdAPICall((a) => a.executedTransactions),
+		nativeToken: fwdAPICall((a) => a.nativeToken),
+		tokenFeeForTransaction: fwdAPICall((a) => a.tokenFeeForTransaction),
+		stakesForAddress: fwdAPICall((a) => a.stakesForAddress),
+		transactionStatus: fwdAPICall((a) => a.transactionStatus),
+		networkTransactionThroughput: fwdAPICall(
+			(a) => a.networkTransactionThroughput,
+		),
+		networkTransactionDemand: fwdAPICall((a) => a.networkTransactionDemand),
+		getAtomForTransaction: fwdAPICall((a) => a.getAtomForTransaction),
+		submitSignedAtom: fwdAPICall((a) => a.submitSignedAtom),
+	}
 
 	const tokenBalancesOfActiveAccount = (): Observable<TokenBalances> =>
 		coreAPI$.pipe(
@@ -138,10 +54,6 @@ const create = (): RadixT => {
 				api.tokenBalancesForAddress(activeAddress),
 			),
 		)
-
-	const magic$: Observable<Magic> = coreAPI$.pipe(
-		mergeMap((api) => api.magic()),
-	)
 
 	const node$ = merge(
 		nodeSubject.asObservable(),
@@ -158,6 +70,9 @@ const create = (): RadixT => {
 		wallet$.pipe(mergeMap((wallet) => wallet.observeAccounts()))
 
 	return {
+		// we forward the full `RadixAPI`, but we also provide some convenience methods based on active account/address.
+		...api,
+
 		// Primarily useful for testing
 		_withAPI: (radixCoreAPI$: Observable<RadixCoreAPI>): void => {
 			radixCoreAPI$.subscribe((a) => coreAPISubject.next(a)).add(subs)
@@ -172,7 +87,7 @@ const create = (): RadixT => {
 		withWallet: (wallet: WalletT): void => {
 			// Important! We must provide wallet with `magic`,
 			// so that it can derive addresses for its accounts.
-			wallet.provideMagic(magic$)
+			wallet.provideMagic(magic())
 			walletSubject.next(wallet)
 		},
 
@@ -184,8 +99,7 @@ const create = (): RadixT => {
 		observeActiveAccount,
 		observeAccounts,
 
-		// API
-		nativeToken,
+		// Active Address/Account APIs
 		tokenBalancesOfActiveAccount,
 	}
 }

@@ -51,11 +51,7 @@ export type AtomFromTransactionResponse = GetAtomForTransactionEndpoint.DecodedR
 export type SubmittedAtomResponse = SubmitSignedAtomEndpoint.DecodedResponse
 export type SignedAtom = SubmitSignedAtomEndpoint.Input
 
-export type RadixCoreAPI = Readonly<{
-	node: NodeT
-
-	magic: () => Observable<Magic>
-
+export type RadixAPI = Readonly<{
 	tokenBalancesForAddress: (address: AddressT) => Observable<TokenBalances>
 
 	executedTransactions: (
@@ -91,26 +87,31 @@ export type RadixCoreAPI = Readonly<{
 	) => Observable<SubmittedAtomResponse>
 }>
 
-export type RadixT = Readonly<{
-	// Input
+export type RadixCoreAPI = RadixAPI &
+	Readonly<{
+		node: NodeT
+		magic: () => Observable<Magic>
+	}>
 
-	// Primiarily useful for testing.
-	_withAPI: (radixCoreAPI$: Observable<RadixCoreAPI>) => void
+export type RadixT = RadixAPI &
+	Readonly<{
+		// Input
 
-	withAPIAtNode: (node$: Observable<NodeT>) => void
-	withWallet: (wallet: WalletT) => void
+		// Primiarily useful for testing.
+		_withAPI: (radixCoreAPI$: Observable<RadixCoreAPI>) => void
 
-	// Observe Input
-	observeWallet: () => Observable<WalletT>
-	observeNode: () => Observable<NodeT>
+		withAPIAtNode: (node$: Observable<NodeT>) => void
+		withWallet: (wallet: WalletT) => void
 
-	// Wallet APIs
-	observeActiveAddress: () => Observable<AddressT>
-	observeActiveAccount: () => Observable<AccountT>
-	observeAccounts: () => Observable<AccountsT>
+		// Observe Input
+		observeWallet: () => Observable<WalletT>
+		observeNode: () => Observable<NodeT>
 
-	// API
-	nativeToken: () => Observable<Token>
-	tokenBalancesOfActiveAccount: () => Observable<TokenBalances>
-	// TODO impl all...
-}>
+		// Wallet APIs
+		observeActiveAddress: () => Observable<AddressT>
+		observeActiveAccount: () => Observable<AccountT>
+		observeAccounts: () => Observable<AccountsT>
+
+		// Active Address/Account APIs
+		tokenBalancesOfActiveAccount: () => Observable<TokenBalances>
+	}>
