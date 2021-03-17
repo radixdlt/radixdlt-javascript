@@ -1,16 +1,31 @@
-import { Radix } from '../src/radix'
 import {
-	AddressT,
-	HDMasterSeed,
-	Mnemonic,
-	Wallet,
-	WalletT,
-} from '@radixdlt/account'
+	SubmittedAtomResponse,
+	AtomFromTransactionResponse,
+	NetworkTransactionDemand,
+	NetworkTransactionThroughput,
+	NodeT,
+	RadixCoreAPI,
+	Token,
+	RadixT,
+	TokenBalances,
+	ExecutedTransactions,
+	Transaction,
+	TokenFeeForTransaction,
+	Stakes,
+	TransactionStatus,
+	SignedAtom,
+} from '../src/_types'
+import { Radix } from '../src/radix'
+import { AddressT, HDMasterSeed, Wallet, WalletT } from '@radixdlt/account'
 import { Observable, of, throwError } from 'rxjs'
-import { NodeT, RadixCoreAPI, Token, TokenBalances } from '../src/_types'
-import { Magic, magicFromNumber } from '@radixdlt/primitives'
+import { Amount, Magic, magicFromNumber, maxAmount } from '@radixdlt/primitives'
 import { map, take, toArray } from 'rxjs/operators'
-import { RadixT } from '../dist/_types'
+import {
+	AtomIdentifierT,
+	ResourceIdentifier,
+	tokenPermissionsAll,
+} from '@radixdlt/atom'
+import { UInt256 } from '@radixdlt/uint256'
 
 const createWallet = (): WalletT => {
 	const masterSeed = HDMasterSeed.fromSeed(
@@ -24,15 +39,80 @@ const dummyNode = (urlString: string): Observable<NodeT> =>
 		url: new URL(urlString),
 	})
 
+const xrd: Token = {
+	name: 'Rad',
+	rri: ResourceIdentifier.fromString(
+		'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD',
+	)._unsafeUnwrap(),
+	symbol: 'XRD',
+	description: 'The native coin of Radix network',
+	granularity: Amount.inSmallestDenomination(UInt256.valueOf(1)),
+	isSupplyMutable: false,
+	currentSupply: maxAmount,
+	tokenInfoURL: new URL('http://www.radixdlt.com'),
+	iconURL: new URL('http://www.image.radixdlt.com/'),
+	tokenPermission: tokenPermissionsAll,
+}
+
+const crashingAPI: RadixCoreAPI = {
+	node: { url: new URL('http://www.not.implemented.com') },
+
+	magic: (): Observable<Magic> =>
+		throwError(() => new Error('Not implemented')),
+
+	tokenBalancesForAddress: (_address: AddressT): Observable<TokenBalances> =>
+		throwError(() => new Error('Not implemented')),
+
+	executedTransactions: (
+		_input: Readonly<{
+			address: AddressT
+			// pagination
+			size: number
+		}>,
+	): Observable<ExecutedTransactions> =>
+		throwError(() => new Error('Not implemented')),
+
+	nativeToken: (): Observable<Token> =>
+		throwError(() => new Error('Not implemented')),
+
+	tokenFeeForTransaction: (
+		_transaction: Transaction,
+	): Observable<TokenFeeForTransaction> =>
+		throwError(() => new Error('Not implemented')),
+
+	stakesForAddress: (_address: AddressT): Observable<Stakes> =>
+		throwError(() => new Error('Not implemented')),
+
+	transactionStatus: (
+		_atomIdentifier: AtomIdentifierT,
+	): Observable<TransactionStatus> =>
+		throwError(() => new Error('Not implemented')),
+
+	networkTransactionThroughput: (): Observable<NetworkTransactionThroughput> =>
+		throwError(() => new Error('Not implemented')),
+
+	networkTransactionDemand: (): Observable<NetworkTransactionDemand> =>
+		throwError(() => new Error('Not implemented')),
+
+	getAtomForTransaction: (
+		_transaction: Transaction,
+	): Observable<AtomFromTransactionResponse> =>
+		throwError(() => new Error('Not implemented')),
+
+	submitSignedAtom: (
+		_signedAtom: SignedAtom,
+	): Observable<SubmittedAtomResponse> =>
+		throwError(() => new Error('Not implemented')),
+}
+
 const mockAPI = (urlString?: string): Observable<RadixCoreAPI> => {
-	const mockedAPI: RadixCoreAPI = {
+	const mockedPartialAPI = {
+		...crashingAPI,
 		node: { url: new URL(urlString ?? 'http://www.example.com') },
 		magic: (): Observable<Magic> => of(magicFromNumber(123)),
-		nativeToken: (): Observable<Token> => of('TokenDefinition'),
-		tokenBalances: (address: AddressT): Observable<TokenBalances> =>
-			throwError(() => new Error('impl me')),
+		nativeToken: (): Observable<Token> => of(xrd),
 	}
-	return of(mockedAPI)
+	return of(mockedPartialAPI)
 }
 
 describe('Radix API', () => {
@@ -134,7 +214,7 @@ describe('Radix API', () => {
 
 		radix.nativeToken().subscribe(
 			(token) => {
-				expect(token).toBe('TokenDefinition')
+				expect(token.symbol).toBe('XRD')
 				done()
 			},
 			(error) => done(error),

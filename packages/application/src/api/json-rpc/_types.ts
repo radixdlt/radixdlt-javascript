@@ -30,7 +30,7 @@ export enum Endpoint {
 
 type Action = TransferTokensActionT | BurnTokensActionT
 
-type Transaction = {
+export type Transaction = {
 	message: {
 		msg: string
 		encryptionScheme: string
@@ -254,7 +254,7 @@ export namespace SubmitSignedAtom {
 	export type Input = [
 		atomCBOR: string,
 		signerPublicKey: string,
-		signature: { r: string; s: string },
+		signatureDER: string,
 	]
 
 	export type Response = {

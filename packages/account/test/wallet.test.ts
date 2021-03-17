@@ -15,7 +15,6 @@ const createWallet = (): WalletT => {
 	return Wallet.create({ masterSeed })
 }
 
-
 const createSpecificWallet = (): WalletT => {
 	const masterSeed = HDMasterSeed.fromSeed(
 		Buffer.from('deadbeef'.repeat(8), 'hex'),

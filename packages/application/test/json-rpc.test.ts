@@ -424,7 +424,7 @@ describe('networking', () => {
 			}
 
 			const result = (
-				await client.submitSignedAtom('', '', {} as any)
+				await client.submitSignedAtom('', '', '')
 			)._unsafeUnwrap()
 
 			expect(result.atomIdentifier.equals(expected.atomIdentifier)).toBe(

@@ -1,18 +1,6 @@
-import { AnyUpParticle } from '@radixdlt/atom'
-import { Result, ResultAsync } from 'neverthrow'
-import {
-	ExecutedTransactions,
-	GetAtomForTransaction,
-	NativeToken,
-	NetworkTransactionDemand,
-	NetworkTransactionThroughput,
-	Stakes,
-	SubmitSignedAtom,
-	TokenBalances,
-	TokenFeeForTransaction,
-	TransactionStatus,
-	UniverseMagic,
-} from './api/json-rpc/_types'
+import { AnyUpParticle, AtomIdentifierT } from '@radixdlt/atom'
+import { Result } from 'neverthrow'
+
 import { AmountT, Magic } from '@radixdlt/primitives'
 import { Observable } from 'rxjs'
 import { AccountsT, AccountT, AddressT, WalletT } from '@radixdlt/account'
@@ -31,64 +19,77 @@ export type TokenFeeTable = Readonly<{
 	feeEntries: FeeEntry[]
 }>
 
-export type NodeAPI = {
-	universeMagic: (
-		...input: UniverseMagic.Input
-	) => ResultAsync<UniverseMagic.DecodedResponse, Error[]>
+import {
+	ExecutedTransactions as ExecutedTransactionsEndpoint,
+	GetAtomForTransaction as GetAtomForTransactionEndpoint,
+	NativeToken as NativeTokenEndpoint,
+	NetworkTransactionDemand as NetworkTransactionDemandEndpoint,
+	NetworkTransactionThroughput as NetworkTransactionThroughputEndpoint,
+	Stakes as StakesEndpoint,
+	SubmitSignedAtom as SubmitSignedAtomEndpoint,
+	TokenBalances as TokenBalancesEndpoint,
+	TokenFeeForTransaction as TokenFeeForTransactionEndpoint,
+	TransactionStatus as TransactionStatusEndpoint,
+	Transaction as TransactionType,
+} from './api/json-rpc/_types'
 
-	tokenBalances: (
-		...input: TokenBalances.Input
-	) => ResultAsync<TokenBalances.DecodedResponse, Error[]>
+export type Transaction = TransactionType
 
-	executedTransactions: (
-		...input: ExecutedTransactions.Input
-	) => ResultAsync<ExecutedTransactions.DecodedResponse, Error[]>
-
-	nativeToken: (
-		...input: NativeToken.Input
-	) => ResultAsync<NativeToken.DecodedResponse, Error[]>
-
-	tokenFeeForTransaction: (
-		...input: TokenFeeForTransaction.Input
-	) => ResultAsync<TokenFeeForTransaction.DecodedResponse, Error[]>
-
-	stakes: (
-		...input: Stakes.Input
-	) => ResultAsync<Stakes.DecodedResponse, Error[]>
-
-	transactionStatus: (
-		...input: TransactionStatus.Input
-	) => ResultAsync<TransactionStatus.DecodedResponse, Error[]>
-
-	networkTransactionThroughput: (
-		...input: NetworkTransactionThroughput.Input
-	) => ResultAsync<NetworkTransactionThroughput.DecodedResponse, Error[]>
-
-	networkTransactionDemand: (
-		...input: NetworkTransactionDemand.Input
-	) => ResultAsync<NetworkTransactionDemand.DecodedResponse, Error[]>
-
-	getAtomForTransaction: (
-		...input: GetAtomForTransaction.Input
-	) => ResultAsync<GetAtomForTransaction.DecodedResponse, Error[]>
-
-	submitSignedAtom: (
-		...input: SubmitSignedAtom.Input
-	) => ResultAsync<SubmitSignedAtom.DecodedResponse, Error[]>
-}
 export type NodeT = Readonly<{
 	url: URL
 }>
 
-export type Token = 'TokenDefinition'
-export type TokenBalances = 'TokenBalancesForOneAccount'
+export type TokenBalances = TokenBalancesEndpoint.DecodedResponse
+export type ExecutedTransactions = ExecutedTransactionsEndpoint.DecodedResponse
+export type Token = NativeTokenEndpoint.DecodedResponse
+export type TokenFeeForTransaction = TokenFeeForTransactionEndpoint.DecodedResponse
+export type Stakes = StakesEndpoint.DecodedResponse
+export type TransactionStatus = TransactionStatusEndpoint.DecodedResponse
+export type NetworkTransactionThroughput = NetworkTransactionThroughputEndpoint.DecodedResponse
+export type NetworkTransactionDemand = NetworkTransactionDemandEndpoint.DecodedResponse
+export type AtomFromTransactionResponse = GetAtomForTransactionEndpoint.DecodedResponse
+export type SubmittedAtomResponse = SubmitSignedAtomEndpoint.DecodedResponse
+export type SignedAtom = SubmitSignedAtomEndpoint.Input
 
-export type RadixCoreAPI = {
+export type RadixCoreAPI = Readonly<{
 	node: NodeT
+
 	magic: () => Observable<Magic>
+
+	tokenBalancesForAddress: (address: AddressT) => Observable<TokenBalances>
+
+	executedTransactions: (
+		input: Readonly<{
+			address: AddressT
+			// pagination
+			size: number
+		}>,
+	) => Observable<ExecutedTransactions>
+
 	nativeToken: () => Observable<Token>
-	tokenBalances: (address: AddressT) => Observable<TokenBalances>
-}
+
+	tokenFeeForTransaction: (
+		transaction: Transaction,
+	) => Observable<TokenFeeForTransaction>
+
+	stakesForAddress: (address: AddressT) => Observable<Stakes>
+
+	transactionStatus: (
+		atomIdentifier: AtomIdentifierT,
+	) => Observable<TransactionStatus>
+
+	networkTransactionThroughput: () => Observable<NetworkTransactionThroughput>
+
+	networkTransactionDemand: () => Observable<NetworkTransactionDemand>
+
+	getAtomForTransaction: (
+		transaction: Transaction,
+	) => Observable<AtomFromTransactionResponse>
+
+	submitSignedAtom: (
+		signedAtom: SignedAtom,
+	) => Observable<SubmittedAtomResponse>
+}>
 
 export type RadixT = Readonly<{
 	// Input
