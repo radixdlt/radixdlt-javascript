@@ -89,7 +89,7 @@ export type RadixCoreAPI = RadixAPI &
 export type RadixT = RadixAPI &
 	Readonly<{
 		// Input
-		connect: (url: URL) => void
+		connect: (url: URL) => RadixT
 
 		// Primiarily useful for testing.
 		__withAPI: (radixCoreAPI$: Observable<RadixCoreAPI>) => void

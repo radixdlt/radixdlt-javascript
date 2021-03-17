@@ -2,7 +2,7 @@ import { AccountsT, AccountT, AddressT, WalletT } from '@radixdlt/account'
 import { NodeT, RadixAPI, RadixCoreAPI, RadixT, TokenBalances } from './_types'
 
 import { mergeMap, withLatestFrom, map } from 'rxjs/operators'
-import { Observable, Subscription, merge, ReplaySubject, of } from "rxjs";
+import { Observable, Subscription, merge, ReplaySubject, of } from 'rxjs'
 
 import { radixCoreAPI } from './api/radixCoreAPI'
 
@@ -86,7 +86,10 @@ const create = (): RadixT => {
 
 		withNodeConnection,
 
-		connect: (url: URL): void => withNodeConnection(of({ url })),
+		connect: (url: URL): RadixT => {
+			withNodeConnection(of({ url }))
+			return (undefined as unknown) as RadixT
+		},
 
 		withWallet: (wallet: WalletT): void => {
 			// Important! We must provide wallet with `magic`,
@@ -107,7 +110,19 @@ const create = (): RadixT => {
 		tokenBalancesOfActiveAccount,
 	}
 
-	return radix
+	const decorateSelf = <I>(
+		fwd: (partialSelf: RadixT) => (input: I) => RadixT,
+	): ((input: I) => RadixT) => {
+		return (input: I): RadixT => {
+			fwd(radix)(input)
+			return radix
+		}
+	}
+
+	return {
+		...radix,
+		connect: decorateSelf((r) => r.connect),
+	}
 }
 
 export const Radix = {

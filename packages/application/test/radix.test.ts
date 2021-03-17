@@ -121,6 +121,13 @@ describe('Radix API', () => {
 		expect(radix).toBeDefined()
 	})
 
+	it('can connect and is chainable', () => {
+		const radix = Radix.create().connect(new URL('http://www.my.node.com'))
+		expect(radix).toBeDefined()
+		expect(radix.nativeToken).toBeDefined()
+		expect(radix.tokenBalancesForAddress).toBeDefined() // etc
+	})
+
 	it('emits node connection without wallet', async (done) => {
 		const radix = Radix.create()
 		radix.__withAPI(mockAPI())
