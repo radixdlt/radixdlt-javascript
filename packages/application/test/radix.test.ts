@@ -132,7 +132,7 @@ describe('Radix API', () => {
 		const radix = Radix.create()
 		radix.__withAPI(mockAPI())
 
-		radix.observeNode().subscribe(
+		radix.node.subscribe(
 			(node) => {
 				expect(node.url.host).toBe('www.example.com')
 				done()
@@ -148,8 +148,7 @@ describe('Radix API', () => {
 	): Promise<void> => {
 		const radix = Radix.create()
 
-		radix
-			.observeNode()
+		radix.node
 			.pipe(
 				map((n: NodeT) => n.url.toString()),
 				take(2),
@@ -201,7 +200,7 @@ describe('Radix API', () => {
 		const wallet = createWallet()
 		radix.withWallet(wallet)
 
-		radix.observeActiveAccount().subscribe(
+		radix.activeAccount.subscribe(
 			(account) => {
 				expect(account.hdPath.addressIndex.value()).toBe(0)
 				done()
@@ -216,7 +215,7 @@ describe('Radix API', () => {
 		radix.withWallet(wallet)
 		radix.__withAPI(mockAPI())
 
-		radix.observeActiveAddress().subscribe(
+		radix.activeAddress.subscribe(
 			(address) => {
 				expect(address.magicByte).toBe(123)
 				done()

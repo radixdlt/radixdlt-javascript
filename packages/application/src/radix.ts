@@ -1,5 +1,5 @@
-import { AccountsT, AccountT, AddressT, WalletT } from '@radixdlt/account'
-import { NodeT, RadixAPI, RadixCoreAPI, RadixT, TokenBalances } from './_types'
+import { WalletT } from '@radixdlt/account'
+import { NodeT, RadixAPI, RadixCoreAPI, RadixT } from './_types'
 
 import { mergeMap, withLatestFrom, map } from 'rxjs/operators'
 import { Observable, Subscription, merge, ReplaySubject, of } from 'rxjs'
@@ -48,27 +48,29 @@ const create = (): RadixT => {
 		submitSignedAtom: fwdAPICall((a) => a.submitSignedAtom),
 	}
 
-	const tokenBalancesOfActiveAccount = (): Observable<TokenBalances> =>
-		coreAPI$.pipe(
-			withLatestFrom(activeAddress$),
-			mergeMap(([api, activeAddress]) =>
-				api.tokenBalancesForAddress(activeAddress),
-			),
-		)
+	const tokenBalances = coreAPI$.pipe(
+		withLatestFrom(activeAddress$),
+		mergeMap(([api, activeAddress]) =>
+			api.tokenBalancesForAddress(activeAddress),
+		),
+	)
 
 	const node$ = merge(
 		nodeSubject.asObservable(),
 		coreAPISubject.asObservable().pipe(map((api) => api.node)),
 	)
 
-	const observeActiveAddress = (): Observable<AddressT> =>
-		wallet$.pipe(mergeMap((wallet) => wallet.observeActiveAddress()))
+	const activeAddress = wallet$.pipe(
+		mergeMap((wallet) => wallet.observeActiveAddress()),
+	)
 
-	const observeActiveAccount = (): Observable<AccountT> =>
-		wallet$.pipe(mergeMap((wallet) => wallet.observeActiveAccount()))
+	const activeAccount = wallet$.pipe(
+		mergeMap((wallet) => wallet.observeActiveAccount()),
+	)
 
-	const observeAccounts = (): Observable<AccountsT> =>
-		wallet$.pipe(mergeMap((wallet) => wallet.observeAccounts()))
+	const accounts = wallet$.pipe(
+		mergeMap((wallet) => wallet.observeAccounts()),
+	)
 
 	const _withNodeConnection = (node$: Observable<NodeT>): void => {
 		node$
@@ -115,16 +117,16 @@ const create = (): RadixT => {
 			/* eslint-enable functional/no-this-expression */
 		},
 
-		observeWallet: () => wallet$,
-		observeNode: () => node$,
+		wallet: wallet$,
+		node: node$,
 
 		// Wallet APIs
-		observeActiveAddress,
-		observeActiveAccount,
-		observeAccounts,
+		activeAddress,
+		activeAccount,
+		accounts,
 
 		// Active Address/Account APIs
-		tokenBalancesOfActiveAccount,
+		tokenBalances,
 	}
 }
 

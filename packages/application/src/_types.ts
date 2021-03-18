@@ -98,14 +98,14 @@ export type RadixT = RadixAPI &
 		withWallet: (wallet: WalletT) => RadixT
 
 		// Observe Input
-		observeWallet: () => Observable<WalletT>
-		observeNode: () => Observable<NodeT>
+		wallet: Observable<WalletT>
+		node: Observable<NodeT>
 
 		// Wallet APIs
-		observeActiveAddress: () => Observable<AddressT>
-		observeActiveAccount: () => Observable<AccountT>
-		observeAccounts: () => Observable<AccountsT>
+		activeAddress: Observable<AddressT>
+		activeAccount: Observable<AccountT>
+		accounts: Observable<AccountsT>
 
 		// Active Address/Account APIs
-		tokenBalancesOfActiveAccount: () => Observable<TokenBalances>
+		tokenBalances: Observable<TokenBalances>
 	}>
