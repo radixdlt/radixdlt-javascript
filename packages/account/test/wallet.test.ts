@@ -198,7 +198,7 @@ describe('HD Wallet', () => {
 			})
 
 		wallet.deriveNext({ alsoSwitchTo: true })
-		wallet.switchAccount({ to: 0 })
+		wallet.switchAccount({ toIndex: 0 })
 	})
 
 	it('can derive address for accounts', async (done) => {

@@ -1,11 +1,13 @@
 import { Observable, BehaviorSubject, ReplaySubject, Subscription } from 'rxjs'
 import { Account } from './account'
 import {
-	AccountIndexPosition,
 	AccountsT,
 	AccountT,
 	AddressT,
-	TargetAccountIndexT,
+	DeriveNextAccountInput,
+	SwitchAccountInput,
+	SwitchToAccount,
+	SwitchToAccountIndex,
 	WalletT,
 } from './_types'
 import { mergeMap, map, distinctUntilChanged } from 'rxjs/operators'
@@ -102,12 +104,7 @@ const create = (
 			alsoSwitchTo: input.alsoSwitchTo,
 		})
 
-	const deriveNext = (
-		input?: Readonly<{
-			isHardened?: boolean // defaults to true
-			alsoSwitchTo?: boolean // defaults to false
-		}>,
-	): AccountT =>
+	const deriveNext = (input?: DeriveNextAccountInput): AccountT =>
 		_deriveAtIndex({
 			addressIndex: {
 				index: numberOfAccounts(),
@@ -115,34 +112,46 @@ const create = (
 			},
 			alsoSwitchTo: input?.alsoSwitchTo,
 		})
-
-	const switchAccount = (
-		input: Readonly<{ to: AccountT | TargetAccountIndexT }>,
-	): AccountT => {
-		const targetAccountInput = input.to
-		if (isAccount(targetAccountInput)) {
-			activeAccountSubject.next(targetAccountInput)
-			return targetAccountInput
-		} else if (typeof targetAccountInput === 'number') {
-			const unsorted = accountsSubject.getValue()
-			const sortedKeys = [...unsorted.keys()].sort((a, b) =>
-				Math.min(a.addressIndex.value(), b.addressIndex.value()),
+	const switchAccount = (input: SwitchAccountInput): AccountT => {
+		const isSwitchToAccount = (
+			something: unknown,
+		): something is SwitchToAccount => {
+			const inspection = input as SwitchToAccount
+			return (
+				inspection.toAccount !== undefined &&
+				isAccount(inspection.toAccount)
 			)
-			const firstAccount = unsorted.get(sortedKeys[0])
+		}
+
+		const isSwitchToAccountIndex = (
+			something: unknown,
+		): something is SwitchToAccountIndex => {
+			const inspection = input as SwitchToAccountIndex
+			return inspection.toIndex !== undefined
+		}
+
+		if (input === 'last') {
+			const lastIndex = numberOfAccounts() - 1
+			return switchAccount({ toIndex: lastIndex })
+		} else if (input === 'first') {
+			return switchAccount({ toIndex: 0 })
+		} else if (isSwitchToAccount(input)) {
+			const toAccount = input.toAccount
+			activeAccountSubject.next(toAccount)
+			return toAccount
+		} else if (isSwitchToAccountIndex(input)) {
+			const unsafeTargetIndex = input.toIndex
+			const accounts = accountsSubject.getValue()
+
+			const safeTargetIndex = Math.min(unsafeTargetIndex, accounts.size)
+
+			const firstAccount = Array.from(accounts.values())[safeTargetIndex]
 			if (!firstAccount) {
 				throw new Error('No accounts...')
 			}
-			return switchAccount({ to: firstAccount })
+			return switchAccount({ toAccount: firstAccount })
 		} else {
-			const accountIndexPosition = targetAccountInput as AccountIndexPosition
-			switch (accountIndexPosition) {
-				case AccountIndexPosition.FIRST: {
-					return switchAccount({ to: 0 })
-				}
-				case AccountIndexPosition.LAST: {
-					return switchAccount({ to: numberOfAccounts() - 1 })
-				}
-			}
+			throw new Error('should never happen')
 		}
 	}
 

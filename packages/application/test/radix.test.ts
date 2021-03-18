@@ -1,23 +1,23 @@
 import {
-	SubmittedAtomResponse,
 	AtomFromTransactionResponse,
+	ExecutedTransactions,
 	NetworkTransactionDemand,
 	NetworkTransactionThroughput,
 	NodeT,
 	RadixCoreAPI,
-	Token,
 	RadixT,
-	TokenBalances,
-	ExecutedTransactions,
-	Transaction,
-	TokenFeeForTransaction,
-	Stakes,
-	TransactionStatus,
 	SignedAtom,
+	Stakes,
+	SubmittedAtomResponse,
+	Token,
+	TokenBalances,
+	TokenFeeForTransaction,
+	Transaction,
+	TransactionStatus,
 } from '../src/_types'
 import { Radix } from '../src/radix'
 import { AddressT, HDMasterSeed, Wallet, WalletT } from '@radixdlt/account'
-import { Observable, of, throwError } from 'rxjs'
+import { Observable, of, Subscription, throwError } from 'rxjs'
 import { Amount, Magic, magicFromNumber, maxAmount } from '@radixdlt/primitives'
 import { map, take, toArray } from 'rxjs/operators'
 import {
@@ -327,5 +327,61 @@ describe('Radix API', () => {
 			Promise.resolve(keystoreForTest.keystore)
 
 		radix.login(keystoreForTest.password, loadKeystore)
+	})
+
+	it('radix can derive accounts', async (done) => {
+		const subs = new Subscription()
+		const radix = Radix.create()
+
+		radix.activeAccount
+			.pipe(
+				map((a) => a.hdPath.addressIndex.value()),
+				take(2),
+				toArray(),
+			)
+			.subscribe(
+				(accounts) => {
+					expect(accounts).toStrictEqual([0, 2])
+					done()
+				},
+				(e) => done(e),
+			)
+			.add(subs)
+
+		radix
+			.withWallet(createWallet())
+			.deriveNextAccount()
+			.deriveNextAccount({ alsoSwitchTo: true })
+	})
+
+	it('radix can switch to accounts', async (done) => {
+		const subs = new Subscription()
+		const radix = Radix.create()
+
+		const expectedValues = [0, 1, 2, 3, 1, 0, 3]
+
+		radix.activeAccount
+			.pipe(
+				map((a) => a.hdPath.addressIndex.value()),
+				take(expectedValues.length),
+				toArray(),
+			)
+			.subscribe(
+				(accounts) => {
+					expect(accounts).toStrictEqual(expectedValues)
+					done()
+				},
+				(e) => done(e),
+			)
+			.add(subs)
+
+		radix
+			.withWallet(createWallet()) //0
+			.deriveNextAccount({ alsoSwitchTo: true }) // 1
+			.deriveNextAccount({ alsoSwitchTo: true }) // 2
+			.deriveNextAccount({ alsoSwitchTo: true }) // 3
+			.switchAccount({ toIndex: 1 })
+			.switchAccount('first')
+			.switchAccount('last')
 	})
 })

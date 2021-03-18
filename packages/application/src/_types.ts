@@ -2,7 +2,14 @@ import { AtomIdentifierT } from '@radixdlt/atom'
 
 import { Magic } from '@radixdlt/primitives'
 import { Observable } from 'rxjs'
-import { AccountsT, AccountT, AddressT, WalletT } from '@radixdlt/account'
+import {
+	AccountsT,
+	AccountT,
+	AddressT,
+	DeriveNextAccountInput,
+	SwitchAccountInput,
+	WalletT,
+} from '@radixdlt/account'
 
 import {
 	ExecutedTransactions as ExecutedTransactionsEndpoint,
@@ -106,6 +113,9 @@ export type RadixT = RadixAPI &
 		node: Observable<NodeT>
 
 		// Wallet APIs
+		deriveNextAccount: (input?: DeriveNextAccountInput) => RadixT
+		switchAccount: (input: SwitchAccountInput) => RadixT
+
 		activeAddress: Observable<AddressT>
 		activeAccount: Observable<AccountT>
 		accounts: Observable<AccountsT>

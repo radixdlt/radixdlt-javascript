@@ -1,8 +1,20 @@
-import { Wallet, WalletT } from '@radixdlt/account'
+import {
+	DeriveNextAccountInput,
+	SwitchAccountInput,
+	Wallet,
+	WalletT,
+} from '@radixdlt/account'
 import { NodeT, RadixAPI, RadixCoreAPI, RadixT } from './_types'
 
-import { mergeMap, withLatestFrom, map } from 'rxjs/operators'
-import { Observable, Subscription, merge, ReplaySubject, of } from 'rxjs'
+import { mergeMap, withLatestFrom, map, tap } from 'rxjs/operators'
+import {
+	Observable,
+	Subscription,
+	merge,
+	ReplaySubject,
+	of,
+	Subject,
+} from 'rxjs'
 
 import { radixCoreAPI } from './api/radixCoreAPI'
 import { Magic } from '@radixdlt/primitives'
@@ -14,6 +26,9 @@ const create = (): RadixT => {
 	const nodeSubject = new ReplaySubject<NodeT>()
 	const coreAPISubject = new ReplaySubject<RadixCoreAPI>()
 	const walletSubject = new ReplaySubject<WalletT>()
+
+	const deriveAccountSubject = new Subject<DeriveNextAccountInput>()
+	const switchAccountSubject = new Subject<SwitchAccountInput>()
 
 	const wallet$ = walletSubject.asObservable()
 
@@ -89,6 +104,22 @@ const create = (): RadixT => {
 		walletSubject.next(wallet)
 	}
 
+	deriveAccountSubject
+		.pipe(
+			withLatestFrom(wallet$),
+			tap(([derivation, w]) => w.deriveNext(derivation)),
+		)
+		.subscribe()
+		.add(subs)
+
+	switchAccountSubject
+		.pipe(
+			withLatestFrom(wallet$),
+			tap(([switchTo, w]) => w.switchAccount(switchTo)),
+		)
+		.subscribe()
+		.add(subs)
+
 	return {
 		// we forward the full `RadixAPI`, but we also provide some convenience methods based on active account/address.
 		...api,
@@ -134,9 +165,22 @@ const create = (): RadixT => {
 
 			return this
 		},
-		/* eslint-enable functional/no-this-expression */
+
 		wallet: wallet$,
 		node: node$,
+
+		deriveNextAccount: function (input?: DeriveNextAccountInput): RadixT {
+			const derivation: DeriveNextAccountInput = input ?? {}
+			deriveAccountSubject.next(derivation)
+			return this
+		},
+
+		switchAccount: function (input: SwitchAccountInput): RadixT {
+			switchAccountSubject.next(input)
+			return this
+		},
+
+		/* eslint-enable functional/no-this-expression */
 
 		// Wallet APIs
 		activeAddress,
