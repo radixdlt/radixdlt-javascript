@@ -91,7 +91,7 @@ Here follows the generation of a new mnemonic and the creation of a wallet, via 
 
 ### Simple wallet creation
 
-This outlines the most convenient wallet creation flow using `byEncryptingSeedOfMnemonic`.
+This outlines the most convenient wallet creation flow using `byEncryptingSeedOfMnemonicAndSavingKeystore`.
 
 ```typescript
 import { Mnemonic, Strength, Language } from '@radixdlt/account'
@@ -106,15 +106,22 @@ const mnemonic = Mnemonic.generateNew()
 // Urge user to backup this password.
 const keystoreEncryptionPassword = confirmPasswordTextField.value() // or similar
 
-// Path to where location where the keystore.json file will be saved.
-const keystorePath = '~/some/path/keystore.json'
+// You need to pass in a function which saves the keystore
+// this example uses 'fs' but using Electron/Browser you might
+// wanna try out https://www.npmjs.com/package/fs-jetpack or similar.
+const saveKeystoreOnDisc = (keystore: KeystoreT): Promise<void> => {
+    import { PathLike, promises as fsPromises } from 'fs'
+    const filePath = 'SOME/SUITABLE/PATH/keystore.json'
+    const json = JSON.stringify(keystore, null, '\t')
+    return fsPromises.writeFile(filePath, json)
+}
 
 // `walletResult` has type `ResultAsync<WalletT, Error>`
 // `ResultAsync`: github.com/supermacro/neverthrow (2️⃣)
-const walletResult = await Wallet.byEncryptingSeedOfMnemonic({
+const walletResult = await Wallet.byEncryptingSeedOfMnemonicAndSavingKeystore({
 	mnemonic,
 	password: keystoreEncryptionPassword,
-	saveKeystoreAtPath: keystorePath,
+	save: saveKeystoreOnDisc,
 })
 
 if (walletResult.isErr()) {
@@ -131,7 +138,7 @@ if (walletResult.isErr()) {
 
 
 ### Alternative wallet creation
-Alternatively you can use a flow you have a bit more control. This is basically exactly what `Wallet.byEncryptingSeedOfMnemonic` above does. 
+Alternatively you can use a flow you have a bit more control. This is basically exactly what `Wallet.byEncryptingSeedOfMnemonicAndSavingKeystore` above does. 
 
 ```typescript
 const mnemonic = Mnemonic.generateNew()
@@ -140,14 +147,15 @@ const masterSeed = HDMasterSeed.fromMnemonic({ mnemonic })
 
 // Tell user to backup encryption password.
 const keystoreEncryptionPassword = confirmPasswordTextField.value() // or similar
-// Path to where location where the keystore.json file will be saved.
-const keystorePath = '~/some/path/keystore.json'
+
 const walletResult = await Keystore.encryptSecret({
-	secret: masterSeed.seed,
-	password,
-})
+		secret: masterSeed.seed,
+		password,
+	})
 	.map((keystore) => ({ keystore, filePath: keystorePath }))
-	.andThen(Keystore.saveToFileAtPath)
+	.andThen((keystore) => {
+		// Save keystore on file and return an `ResultAsync<KeystoreT, Error>
+	})
 	.map((keystore) => ({ keystore, password: keystoreEncryptionPassword }))
 	.andThen(Wallet.fromKeystore)
 
@@ -160,21 +168,30 @@ if (walletResult.isErr()) {
 ```
 
 ### Open wallet (app start)
+
 ```typescript
 // Path to where location where the keystore.json file will be saved.
-const keystorePath = '~/some/path/keystore.json'
+import { Keystore } from "./keystore";
+import { PathLike, promises as fsPromises } from 'fs'
+
 // Each time GUI wallet starts ask user for encryption password in GUI
 const keystoreEncryptionPassword = passwordTextField.value() // or similar
-const walletResult = await Wallet.fromKeystoreAtPath({
-    keystorePath,
-    password: keystoreEncryptionPassword
+
+const loadKeystoreOnDisc = (): Promise<KeystoreT> => {
+	const filePath = 'SOME/SUITABLE/PATH/keystore.json'
+	return fsPromises.readFile(filePath)
+         .then(buffer => Keystore.fromBuffer(buffer))
+}
+
+const walletResult = await Wallet.byLoadingAndDecryptingKeystore({
+	password: keystoreEncryptionPassword
 })
 
 if (walletResult.isErr()) {
-    console.log(`🤷‍♂️ Failed to create wallet: ${walletResult.error}`)
+	console.log(`🤷‍♂️ Failed to create wallet: ${walletResult.error}`)
 } else {
-    const wallet = walletResult.value
-    // do something with 'wallet'
+	const wallet = walletResult.value
+	// do something with 'wallet'
 }
 ```
 

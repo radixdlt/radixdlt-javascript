@@ -17,7 +17,7 @@ import {
 	TransactionStatus as TransactionStatusEndpoint,
 	Transaction as TransactionType,
 } from './api/json-rpc/_types'
-import { PublicKey, Signature } from '@radixdlt/crypto'
+import { KeystoreT, PublicKey, Signature } from '@radixdlt/crypto'
 
 export type Transaction = TransactionType
 
@@ -96,6 +96,10 @@ export type RadixT = RadixAPI &
 
 		withNodeConnection: (node$: Observable<NodeT>) => RadixT
 		withWallet: (wallet: WalletT) => RadixT
+		login: (
+			password: string,
+			loadKeystore: () => Promise<KeystoreT>,
+		) => RadixT
 
 		// Observe Input
 		wallet: Observable<WalletT>

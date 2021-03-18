@@ -26,6 +26,7 @@ import {
 	tokenPermissionsAll,
 } from '@radixdlt/atom'
 import { UInt256 } from '@radixdlt/uint256'
+import { KeystoreT } from '@radixdlt/crypto'
 
 const createWallet = (): WalletT => {
 	const masterSeed = HDMasterSeed.fromSeed(
@@ -113,6 +114,53 @@ const mockAPI = (urlString?: string): Observable<RadixCoreAPI> => {
 		nativeToken: (): Observable<Token> => of(xrd),
 	}
 	return of(mockedPartialAPI)
+}
+
+export type KeystoreForTest = {
+	keystore: KeystoreT
+	password: string
+	expectedSecret: string
+	publicKeysCompressed: string[]
+}
+
+export const keystoreForTest: KeystoreForTest = {
+	password: 'my super strong passaword',
+	expectedSecret:
+		'920075470afdd45c9cb6286593abc6c98b1d25d4d2e3f2d547d4f389f153c8c5916a0857fd6d404e3089cb745594332b1307f46e43ad2357da20935318917063',
+	keystore: {
+		crypto: {
+			cipher: 'AES-GCM',
+			cipherparams: {
+				nonce: 'dc7946168a78da825b3a7f73',
+			},
+			ciphertext:
+				'280c07cd1a7b0d5a7adfd869ff80bc45a97b569be11345d5d15d01d692287d6ef566998fd786965735bba540e5d1df2c482c75e08d1355f09cb47af02c725df4',
+			kdf: 'scrypt',
+			kdfparams: {
+				costParameterN: 8192,
+				costParameterC: 262144,
+				blockSize: 8,
+				parallelizationParameter: 1,
+				lengthOfDerivedKey: 32,
+				salt:
+					'de8db8d11cba474c0e78c76327463e48bf1d5e1cb59c9ab76cc6b1145827efca',
+			},
+			mac: '966bbc6ad90828010d637ded6206ad9a',
+		},
+		id: 'a7c80442-1e50-4166-9f26-dcc5548a865d',
+		version: 1,
+	},
+	// 1. input seed at https://iancoleman.io/bip39/
+	// 2. change to BIP32 and enter derivation path: m/44'/536'/0'/0
+	// 3. Check 'use hardened addresses' checkbox
+	// 4. Copy Private Key from table which is on WIF format
+	// 5. Paste Private Key WIF in https://www.bitaddress.org
+	// 6. Copy paste compressed public key (and lower case it)
+	publicKeysCompressed: [
+		'035fd56ba4a14b44ea6c895fa9ac59c5a47d8ffd1b068a520146499cb6fe9df58a',
+		'0248e961ee2379940d8c1fd44422521b17dc426df37b9cec274f608e63744b358f',
+		'028bae51f118a3fe61c26c43cd472e0e1f6448eb9ce873d7e8859600beb7d401b4',
+	],
 }
 
 describe('Radix API', () => {
@@ -239,18 +287,45 @@ describe('Radix API', () => {
 
 	it('should be able to detect errors', async (done) => {
 		const invalidURLErrorMsg = 'invalid url'
-		const failingNode: Observable<NodeT> = throwError(
-			() => { return new Error(invalidURLErrorMsg) },
-		)
+		const failingNode: Observable<NodeT> = throwError(() => {
+			return new Error(invalidURLErrorMsg)
+		})
 		await Radix.create()
 			.withNodeConnection(failingNode)
 			.node.subscribe({
-				next: (n) => { done(new Error('Expected error but did not get any')) },
+				next: (n) => {
+					done(new Error('Expected error but did not get any'))
+				},
 				error: (errorFn) => {
 					const err = errorFn()
 					expect(err.message).toBe(invalidURLErrorMsg)
 					done()
 				},
-		})
+			})
+	})
+
+	it('login with wallet', async (done) => {
+		const radix = Radix.create()
+		radix.wallet.subscribe(
+			(wallet: WalletT) => {
+				const account = wallet.__unsafeGetAccount()
+				expect(account.hdPath.addressIndex.value()).toBe(0)
+				account.derivePublicKey().subscribe(
+					(pubKey) => {
+						expect(pubKey.toString(true)).toBe(
+							keystoreForTest.publicKeysCompressed[0],
+						)
+						done()
+					},
+					(error) => done(error),
+				)
+			},
+			(e) => done(e),
+		)
+
+		const loadKeystore = (): Promise<KeystoreT> =>
+			Promise.resolve(keystoreForTest.keystore)
+
+		radix.login(keystoreForTest.password, loadKeystore)
 	})
 })

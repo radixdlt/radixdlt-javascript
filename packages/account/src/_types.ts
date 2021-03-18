@@ -66,6 +66,9 @@ export type TargetAccountIndexT = number | AccountIndexPosition
 export type WalletT = PublicKeyDeriving &
 	Signing &
 	Readonly<{
+		// should only be used for testing
+		__unsafeGetAccount: () => AccountT
+
 		// Call this once you can provide an observable providing magic.
 		provideMagic: (magic: Observable<Magic>) => void
 		deriveNext: (
