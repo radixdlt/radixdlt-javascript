@@ -8,7 +8,6 @@
     { "path": "packages/account" },
     { "path": "packages/actions" },
     { "path": "packages/atom" },
-    { "path": "packages/atom-transaction-mapping" },
     { "path": "packages/networking" },
     { "path": "packages/hardware-wallet" },
     { "path": "packages/application" },

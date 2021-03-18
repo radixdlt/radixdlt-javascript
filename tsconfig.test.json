@@ -16,6 +16,5 @@
     { "path": "packages/primitives" },
     { "path": "packages/util" },
     { "path": "packages/data-formats" },
-    { "path": "packages/atom-transaction-mapping" }
   ]
 }

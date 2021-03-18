@@ -7926,13 +7926,6 @@ run-queue@^1.0.0, run-queue@^1.0.3:
   dependencies:
     aproba "^1.1.1"
 
-rxjs@7.0.0-beta.10:
-  version "7.0.0-beta.10"
-  resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-7.0.0-beta.10.tgz#fb9f74bba5154701924209b576643cc9d94b3e53"
-  integrity sha512-iK8B6ACjMn00gObHQYoIyXouyD0cPmzuXFxfYi/i9jBVFQHsjjPt5T51sRDsXJ9Utg4Q7R1m7QiLtuQEQ3r73g==
-  dependencies:
-    tslib "^1.9.0"
-
 rxjs@7.0.0-beta.13:
   version "7.0.0-beta.13"
   resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-7.0.0-beta.13.tgz#f8dd03f7aa414c9f7fde831431e54c4534ecfa39"
