@@ -1,4 +1,4 @@
-import { createCipheriv, createDecipheriv } from 'crypto'
+import { cipher as forgeCipher, util as forgeUtil } from 'node-forge'
 import { AES_GCM_SealedBoxT } from './_types'
 import { err, ok, Result, combine } from 'neverthrow'
 import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
@@ -6,7 +6,7 @@ import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
 const tagLength = 16
 const nonceLength = 12
 
-const AES_GMM_256_ALGORITHM = 'aes-256-gcm'
+const AES_GCM_256_ALGORITHM = 'AES-GCM'
 
 export type AES_GCM_Input = Readonly<{
 	plaintext: Buffer
@@ -47,18 +47,33 @@ const seal = (input: AES_GCM_Input): Result<AES_GCM_SealedBoxT, Error> => {
 		Buffer.from(secureRandom.randomSecureBytes(nonceLength), 'hex')
 
 	return validateNonce(nonce).map((nonce) => {
-		const cipher = createCipheriv(
-			AES_GMM_256_ALGORITHM,
-			input.symmetricKey,
-			nonce,
+		const aesCipher = forgeCipher.createCipher(
+			AES_GCM_256_ALGORITHM,
+			forgeUtil.createBuffer(input.symmetricKey),
 		)
+
+		const iv = forgeUtil.createBuffer(nonce)
+		const startOptions = { iv }
+
 		if (input.additionalAuthenticationData) {
-			cipher.setAAD(input.additionalAuthenticationData)
+			aesCipher.start({
+				...startOptions,
+				additionalData: forgeUtil.hexToBytes(
+					input.additionalAuthenticationData.toString('hex'),
+				),
+			})
+		} else {
+			aesCipher.start(startOptions)
 		}
-		const firstChunk = cipher.update(input.plaintext)
-		const secondChunk = cipher.final()
-		const ciphertext = Buffer.concat([firstChunk, secondChunk])
-		const authTag = cipher.getAuthTag()
+
+		aesCipher.update(forgeUtil.createBuffer(input.plaintext))
+
+		if (!aesCipher.finish()) {
+			throw new Error(`AES encryption failed, error unknown...`)
+		}
+
+		const ciphertext = Buffer.from(aesCipher.output.toHex(), 'hex')
+		const authTag = Buffer.from(aesCipher.mode.tag.toHex(), 'hex')
 
 		return {
 			ciphertext,
@@ -88,21 +103,38 @@ const open = (
 			const nonce = resultList[0]
 			const authTag = resultList[1]
 
-			const decipher = createDecipheriv(
-				AES_GMM_256_ALGORITHM,
-				symmetricKey,
-				nonce,
+			const decipher = forgeCipher.createDecipher(
+				AES_GCM_256_ALGORITHM,
+				forgeUtil.createBuffer(symmetricKey),
 			)
 
-			decipher.setAuthTag(authTag)
+			const iv = forgeUtil.createBuffer(nonce)
+			const tag = forgeUtil.createBuffer(authTag)
 
-			if (additionalAuthenticationData) {
-				decipher.setAAD(additionalAuthenticationData)
+			const startOptions = {
+				iv,
+				tag,
 			}
 
-			const firstChunk = decipher.update(ciphertext)
-			const secondChunk = decipher.final()
-			return Buffer.concat([firstChunk, secondChunk])
+			if (additionalAuthenticationData) {
+				const additionalData = forgeUtil.hexToBytes(
+					additionalAuthenticationData.toString('hex'),
+				)
+				decipher.start({
+					...startOptions,
+					additionalData,
+				})
+			} else {
+				decipher.start(startOptions)
+			}
+
+			decipher.update(forgeUtil.createBuffer(ciphertext))
+
+			if (!decipher.finish()) {
+				throw new Error(`AES decryption failed, error unknown...`)
+			}
+
+			return Buffer.from(decipher.output.toHex(), 'hex')
 		},
 	)
 }
@@ -112,5 +144,5 @@ export const AES_GCM = {
 	open,
 	tagLength,
 	nonceLength,
-	algorithm: AES_GMM_256_ALGORITHM,
+	algorithm: AES_GCM_256_ALGORITHM,
 }

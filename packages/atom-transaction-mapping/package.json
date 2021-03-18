@@ -1,6 +1,6 @@
 {
   "name": "@radixdlt/atom-transaction-mapping",
-  "version": "1.0.6-alpha.0",
+  "version": "1.0.7-alpha.0",
   "description": "Create Atoms from actions",
   "keywords": [
     "Mapper",
@@ -24,9 +24,9 @@
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "dependencies": {
-    "@radixdlt/account": "^1.0.6-alpha.0",
-    "@radixdlt/actions": "^1.0.6-alpha.0",
-    "@radixdlt/atom": "^1.0.6-alpha.0",
+    "@radixdlt/account": "^1.0.7-alpha.0",
+    "@radixdlt/actions": "^1.0.7-alpha.0",
+    "@radixdlt/atom": "^1.0.7-alpha.0",
     "@radixdlt/primitives": "^1.0.6-alpha.0",
     "@radixdlt/uint256": "^1.1.0",
     "@radixdlt/util": "^1.0.6-alpha.0",

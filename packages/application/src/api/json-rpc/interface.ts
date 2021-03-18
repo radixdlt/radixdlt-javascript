@@ -1,4 +1,3 @@
-import { callAPI } from '../utils'
 import {
 	Endpoint,
 	ExecutedTransactions,
@@ -13,7 +12,7 @@ import {
 	GetAtomForTransaction,
 	SubmitSignedAtom,
 } from './_types'
-import { Result } from 'neverthrow'
+import { Result, ResultAsync } from 'neverthrow'
 import {
 	handleExecutedTransactionsResponse,
 	handleGetAtomForTxResponse,
@@ -27,6 +26,23 @@ import {
 	handleTransactionStatusResponse,
 	handleUniverseMagicResponse,
 } from './responseHandlers'
+import { andThen, pipe } from 'ramda'
+
+const callAPI = <Params extends unknown[], DecodedResponse>(
+	endpoint: Endpoint,
+) => (
+	call: (endpoint: Endpoint, params: Params) => Promise<unknown>,
+	handleResponse: (response: unknown) => Result<DecodedResponse, Error[]>,
+) => (...params: Params) =>
+	pipe(
+		call,
+		andThen(handleResponse),
+		(value) =>
+			// ignore typecheck here because typings in Ramda pipe can't handle the spread operator.
+			// @ts-ignore
+			ResultAsync.fromPromise(value, (e: Error[]) => e).andThen((r) => r),
+		// @ts-ignore
+	)(endpoint, ...params)
 
 const setupAPICall = (
 	call: (endpoint: Endpoint, ...params: unknown[]) => Promise<unknown>,

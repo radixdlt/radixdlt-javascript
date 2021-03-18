@@ -1,5 +1,5 @@
-import { Scrypt, ScryptParams } from '../dist/key-derivation-functions/scrypt'
-import { ScryptParamsT } from '../dist/key-derivation-functions/_types'
+import { Scrypt, ScryptParams } from '../src/key-derivation-functions/scrypt'
+import { ScryptParamsT } from '../src/key-derivation-functions/_types'
 
 describe('scrypt', () => {
 	it('returns underlying error', async (done) => {
@@ -17,7 +17,7 @@ describe('scrypt', () => {
 		}).match(
 			(k) => done(new Error('Expected error but got none.')),
 			(e) => {
-				const expectedError = `Failed to derive data using scrypt, underlying error: ERR_CRYPTO_INVALID_SCRYPT_PARAMS`
+				const expectedError = `Failed to derive data using scrypt, underlying error: 'N must be power of 2'`
 				expect(e.message).toBe(expectedError)
 				done()
 			},

@@ -18,9 +18,18 @@ export const signDataWithPrivateKey = (
 		input.privateKey.toString(16),
 	)
 
-	const ellipticSignature = privateKey.sign(input.data, {
+	const ellipticSignature: ec.Signature = privateKey.sign(input.data, {
 		canonical: true,
 	})
+
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+	const derUnknown = ellipticSignature.toDER('hex')
+	if (!derUnknown || typeof derUnknown !== 'string') {
+		throw new Error(
+			'Incorrect implementation, should always be able to format DER from signature.',
+		)
+	}
+	const der: string = derUnknown
 
 	return combine([
 		uint256FromBN(ellipticSignature.r),
@@ -31,6 +40,7 @@ export const signDataWithPrivateKey = (
 		return {
 			r,
 			s,
+			toDER: () => der,
 			equals: (other: Signature): boolean =>
 				r.eq(other.r) && s.eq(other.s),
 		}

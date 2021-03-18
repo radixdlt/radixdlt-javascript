@@ -1,10 +1,4 @@
-import {
-	Observable,
-	BehaviorSubject,
-	ReplaySubject,
-	Subscription,
-	Subject,
-} from 'rxjs'
+import { Observable, BehaviorSubject, ReplaySubject, Subscription } from 'rxjs'
 import { Account } from './account'
 import {
 	AccountIndexPosition,
@@ -47,17 +41,22 @@ const create = (
 
 	const subs = new Subscription()
 
-	const activeAccountSubject = new ReplaySubject<AccountT>(1)
+	const activeAccountSubject = new ReplaySubject<AccountT>()
 
 	const accountsSubject = new BehaviorSubject<Map<HDPathRadixT, AccountT>>(
 		new Map(),
 	)
 	const numberOfAccounts = (): number => accountsSubject.getValue().size
 
-	const universeMagicSubject = new Subject<Magic>()
+	const universeMagicSubject = new ReplaySubject<Magic>()
+	const magic$ = universeMagicSubject
+		.asObservable()
+		.pipe(distinctUntilChanged((a: Magic, b: Magic) => a.byte === b.byte))
 
-	const provideMagic = (magic: Observable<Magic>): void => {
-		magic.subscribe(universeMagicSubject).add(subs)
+	const provideMagic = (magic$: Observable<Magic>): void => {
+		magic$
+			.subscribe((magic: Magic) => universeMagicSubject.next(magic))
+			.add(subs)
 	}
 
 	const _deriveWithPath = (
@@ -70,13 +69,14 @@ const create = (
 			hdPath: input.hdPath,
 			deriveNodeAtPath: () => hdNodeDeriverWithBip32Path(input.hdPath),
 			addressFromPublicKey: (publicKey: PublicKey) =>
-				universeMagicSubject
-					.asObservable()
-					.pipe(
-						map((magic) =>
-							Address.fromPublicKeyAndMagic({ publicKey, magic }),
-						),
+				magic$.pipe(
+					map((magic) =>
+						Address.fromPublicKeyAndMagic({
+							publicKey,
+							magic,
+						}),
 					),
+				),
 		})
 		const accounts = accountsSubject.getValue()
 		accounts.set(newAccount.hdPath, newAccount)
