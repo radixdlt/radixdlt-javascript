@@ -4,7 +4,6 @@ import { PublicKey, Signature, UnsignedMessage } from '@radixdlt/crypto'
 import { Observable } from 'rxjs'
 import { BIP32T } from './bip32/_types'
 import { Option } from 'prelude-ts'
-import { HDMasterSeedT } from './_index'
 import { HDPathRadixT } from './bip32/_index'
 import { Magic } from '@radixdlt/primitives'
 
@@ -52,16 +51,21 @@ export type AccountsT = Readonly<{
 	all: AccountT[]
 }>
 
-export type MasterSeedProviderT = Readonly<{
-	masterSeed: () => Observable<HDMasterSeedT>
-}>
+export type SwitchToAccount = Readonly<{ toAccount: AccountT }>
+export type SwitchToAccountIndex = Readonly<{ toIndex: number }>
 
-export enum AccountIndexPosition {
-	FIRST,
-	LAST, // last known/derived
-}
+export type SwitchAccountInput =
+	| 'first'
+	| 'last'
+	| SwitchToAccount
+	| SwitchToAccountIndex
 
-export type TargetAccountIndexT = number | AccountIndexPosition
+export type DeriveNextAccountInput =
+	| undefined
+	| Readonly<{
+			isHardened?: boolean // defaults to true
+			alsoSwitchTo?: boolean // defaults to false
+	  }>
 
 export type WalletT = PublicKeyDeriving &
 	Signing &
@@ -71,16 +75,9 @@ export type WalletT = PublicKeyDeriving &
 
 		// Call this once you can provide an observable providing magic.
 		provideMagic: (magic: Observable<Magic>) => void
-		deriveNext: (
-			input?: Readonly<{
-				isHardened?: boolean // defaults to true
-				alsoSwitchTo?: boolean // defaults to false
-			}>,
-		) => AccountT
+		deriveNext: (input?: DeriveNextAccountInput) => AccountT
 
-		switchAccount: (
-			input: Readonly<{ to: AccountT | TargetAccountIndexT }>,
-		) => AccountT
+		switchAccount: (input: SwitchAccountInput) => AccountT
 
 		observeActiveAccount: () => Observable<AccountT>
 		observeActiveAddress: () => Observable<AddressT>

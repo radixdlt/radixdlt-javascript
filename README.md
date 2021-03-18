@@ -281,7 +281,7 @@ radix.wallet.deriveNext({ alsoSwitchTo: true })
 radix.wallet.deriveNext({ alsoSwitchTo: true })
 // '🙋🏽‍♀️ My address is: 9SAihkYQDBKvHfhvwEw4QBfx1rpjvta2TvmWibyXixVzX2JHHHWf'
 
-radix.wallet.switchAccount({ to: AccountIndexPosition.FIRST })
+radix.wallet.switchAccount('first')
 // '🙋🏽‍♀️ My address is: 9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT'
 ```
 
@@ -294,10 +294,10 @@ Alternatives to the `switchAccount` call on the last line in the code block abov
 
 ```typescript
 // SAME AS
-radix.wallet.switchAccount({ to: 0 })
+radix.wallet.switchAccount({ toIndex: 0 })
 // SAME AS
 const theAccountAtIndex0: AccountT = ... // you will have access to this from UI wallet, the list of the accounts, see `Observe Accounts` section below.
-radix.wallet.switchAccount({ to: theAccountAtIndex0 })
+radix.wallet.switchAccount({ toAccount: theAccountAtIndex0 })
 ```
 
 Now it might not be clear why you would wanna use `{ to: AccountIndexPosition.FIRST }` instead of `{ to: 0}`, but the enum `AccountIndexPosition` also contains the case `LAST`, which is convenient. Compare:
@@ -305,10 +305,10 @@ Now it might not be clear why you would wanna use `{ to: AccountIndexPosition.FI
 ```typescript
 // Instead of
 const numberOfAccounts = ... // you will have access to this from UI wallet, the list of the accounts, see `Observe Accounts` section below.
-radix.wallet.switchAccount({ to: numberOfAccounts - 1 })
+radix.wallet.switchAccount({ toIndex: numberOfAccounts - 1 })
 
 // You can simply call:
-radix.wallet.switchAccount({ to: AccountIndexPosition.LAST })
+radix.wallet.switchAccount('last')
 ```
 
 ## Observe Accounts (list)
