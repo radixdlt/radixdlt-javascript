@@ -1,4 +1,4 @@
-import { WalletT } from '@radixdlt/account'
+import { Wallet, WalletT } from '@radixdlt/account'
 import { NodeT, RadixAPI, RadixCoreAPI, RadixT } from './_types'
 
 import { mergeMap, withLatestFrom, map } from 'rxjs/operators'
@@ -6,6 +6,7 @@ import { Observable, Subscription, merge, ReplaySubject, of } from 'rxjs'
 
 import { radixCoreAPI } from './api/radixCoreAPI'
 import { Magic } from '@radixdlt/primitives'
+import { KeystoreT } from '@radixdlt/crypto'
 
 const create = (): RadixT => {
 	const subs = new Subscription()
@@ -81,21 +82,24 @@ const create = (): RadixT => {
 			.add(subs)
 	}
 
+	const _withWallet = (wallet: WalletT): void => {
+		// Important! We must provide wallet with `magic`,
+		// so that it can derive addresses for its accounts.
+		wallet.provideMagic(magic())
+		walletSubject.next(wallet)
+	}
+
 	return {
 		// we forward the full `RadixAPI`, but we also provide some convenience methods based on active account/address.
 		...api,
 
 		// Primarily useful for testing
-		withNodeConnection: function withNodeConnection(
-			node$: Observable<NodeT>,
-		): RadixT {
+		withNodeConnection: function (node$: Observable<NodeT>): RadixT {
 			_withNodeConnection(node$)
 			/* eslint-disable functional/no-this-expression */
 			return this
 		},
-		__withAPI: function __withAPI(
-			radixCoreAPI$: Observable<RadixCoreAPI>,
-		): RadixT {
+		__withAPI: function (radixCoreAPI$: Observable<RadixCoreAPI>): RadixT {
 			radixCoreAPI$
 				.subscribe(
 					(a) => coreAPISubject.next(a),
@@ -104,19 +108,33 @@ const create = (): RadixT => {
 				.add(subs)
 			return this
 		},
-		connect: function connect(url: URL): RadixT {
+		connect: function (url: URL): RadixT {
 			_withNodeConnection(of({ url }))
 			return this
 		},
+
 		withWallet: function (wallet: WalletT): RadixT {
-			// Important! We must provide wallet with `magic`,
-			// so that it can derive addresses for its accounts.
-			wallet.provideMagic(magic())
-			walletSubject.next(wallet)
+			_withWallet(wallet)
 			return this
-			/* eslint-enable functional/no-this-expression */
 		},
 
+		login: function (
+			password: string,
+			loadKeystore: () => Promise<KeystoreT>,
+		): RadixT {
+			void Wallet.byLoadingAndDecryptingKeystore({
+				password,
+				load: loadKeystore,
+			}).then((walletResult) => {
+				walletResult.match(
+					(w) => _withWallet(w),
+					(e) => walletSubject.error(e),
+				)
+			})
+
+			return this
+		},
+		/* eslint-enable functional/no-this-expression */
 		wallet: wallet$,
 		node: node$,
 

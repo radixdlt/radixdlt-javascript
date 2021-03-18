@@ -26,8 +26,6 @@ import { Magic } from '@radixdlt/primitives'
 import { Address } from './address'
 import { ResultAsync } from 'neverthrow'
 import { HDMasterSeed } from './bip39/hdMasterSeed'
-import { PathLike } from 'fs'
-import { FileHandle } from 'fs/promises'
 
 // eslint-disable-next-line max-lines-per-function
 const create = (
@@ -178,6 +176,20 @@ const create = (
 	)
 
 	return {
+		// should only be used for testing
+		__unsafeGetAccount: (): AccountT => {
+			const accounts = accountsSubject.getValue()
+			const keyAny = accounts.keys()?.next()
+			if (!keyAny) {
+				throw new Error('No account')
+			}
+			const key = (keyAny.value as unknown) as HDPathRadixT
+			const account = accounts.get(key)
+			if (!account) {
+				throw new Error('No account')
+			}
+			return account
+		},
 		provideMagic,
 		deriveNext,
 		switchAccount,
@@ -191,6 +203,29 @@ const create = (
 	}
 }
 
+const byLoadingAndDecryptingKeystore = (
+	input: Readonly<{
+		password: string
+		load: () => Promise<KeystoreT>
+	}>,
+): ResultAsync<WalletT, Error> => {
+	const loadKeystore = (): ResultAsync<KeystoreT, Error> =>
+		ResultAsync.fromPromise(input.load(), (e: unknown) => {
+			type ErrMgs = { message?: string }
+			const underlyingError =
+				(e as ErrMgs).message !== undefined
+					? (e as ErrMgs).message!
+					: JSON.stringify(e, null, 4)
+			return new Error(
+				`Failed to load keystore, underlying error: '${underlyingError}'`,
+			)
+		})
+
+	return loadKeystore()
+		.map((k: KeystoreT) => ({ keystore: k, password: input.password }))
+		.andThen(Wallet.fromKeystore)
+}
+
 const fromKeystore = (
 	input: Readonly<{
 		keystore: KeystoreT
@@ -199,44 +234,43 @@ const fromKeystore = (
 ): ResultAsync<WalletT, Error> =>
 	Keystore.decrypt(input)
 		.map(HDMasterSeed.fromSeed)
-		.map((m) => ({ masterSeed: m }))
+		.map((m: HDMasterSeedT) => ({ masterSeed: m }))
 		.map(create)
 
-const byEncryptingSeedOfMnemonic = (
+const byEncryptingSeedOfMnemonicAndSavingKeystore = (
 	input: Readonly<{
 		mnemonic: MnemomicT
 		password: string
-		saveKeystoreAtPath: PathLike | FileHandle
+		save: (keystoreToSave: KeystoreT) => Promise<void>
 	}>,
 ): ResultAsync<WalletT, Error> => {
-	const { mnemonic, password, saveKeystoreAtPath: filePath } = input
+	const { mnemonic, password } = input
 	const masterSeed = HDMasterSeed.fromMnemonic({ mnemonic })
+
+	const save = (keystoreToSave: KeystoreT): ResultAsync<KeystoreT, Error> =>
+		ResultAsync.fromPromise(input.save(keystoreToSave), (e: unknown) => {
+			type ErrMgs = { message?: string }
+			const underlyingError =
+				(e as ErrMgs).message !== undefined
+					? (e as ErrMgs).message!
+					: JSON.stringify(e, null, 4)
+			return new Error(
+				`Failed to save keystore, underlying error: '${underlyingError}'`,
+			)
+		}).map(() => keystoreToSave)
 
 	return Keystore.encryptSecret({
 		secret: masterSeed.seed,
 		password,
 	})
-		.map((keystore) => ({ keystore, filePath }))
-		.andThen(Keystore.saveToFileAtPath)
-		.map((keystore) => ({ keystore, password }))
-		.andThen(Wallet.fromKeystore)
-}
-
-const fromKeystoreAtPath = (
-	input: Readonly<{
-		keystorePath: PathLike | FileHandle
-		password: string
-	}>,
-): ResultAsync<WalletT, Error> => {
-	const { keystorePath: filePath, password } = input
-	return Keystore.fromFileAtPath(filePath)
-		.map((k) => ({ keystore: k, password }))
+		.andThen(save)
+		.map((keystore: KeystoreT) => ({ keystore, password }))
 		.andThen(Wallet.fromKeystore)
 }
 
 export const Wallet = {
 	create,
 	fromKeystore,
-	fromKeystoreAtPath,
-	byEncryptingSeedOfMnemonic,
+	byLoadingAndDecryptingKeystore,
+	byEncryptingSeedOfMnemonicAndSavingKeystore,
 }

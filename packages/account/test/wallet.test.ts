@@ -3,9 +3,8 @@ import { Wallet } from '../src/wallet'
 import { Mnemonic } from '../src/bip39/mnemonic'
 import { HDMasterSeed } from '../src/bip39/hdMasterSeed'
 import { HDMasterSeedT } from '../src/bip39/_types'
-import { unlinkSync } from 'fs'
 import { map, take, toArray } from 'rxjs/operators'
-import { Keystore, PublicKey } from '@radixdlt/crypto'
+import { KeystoreT, PublicKey } from '@radixdlt/crypto'
 import { combineLatest, of, Subject } from 'rxjs'
 import { Magic, magicFromNumber } from '@radixdlt/primitives'
 
@@ -49,19 +48,24 @@ describe('HD Wallet', () => {
 		const mnemonic = Mnemonic.generateNew()
 
 		const password = 'super secret password'
-		const keystorePath = './keystoreFromTest.json'
 
-		Wallet.byEncryptingSeedOfMnemonic({
+		let load: () => Promise<KeystoreT>
+
+		await Wallet.byEncryptingSeedOfMnemonicAndSavingKeystore({
 			mnemonic,
 			password,
-			saveKeystoreAtPath: keystorePath,
+			save: (keystoreToSave: KeystoreT) => {
+				load = () => Promise.resolve(keystoreToSave)
+				return Promise.resolve(undefined)
+			},
 		})
 			.andThen((wallet1) =>
-				Keystore.fromFileAtPath(keystorePath)
-					.andThen((keystore) =>
-						Wallet.fromKeystore({ keystore, password }),
-					)
-					.map((wallet2) => ({ wallet1, wallet2 })),
+				Wallet.byLoadingAndDecryptingKeystore({ password, load }).map(
+					(wallet2) => ({
+						wallet1,
+						wallet2,
+					}),
+				),
 			)
 			.match(
 				(wallets) => {
@@ -69,33 +73,46 @@ describe('HD Wallet', () => {
 				},
 				(e) => done(e),
 			)
-			.finally(() => unlinkSync(keystorePath))
 	})
 
-	it(`can create a wallet then load it from path later`, async (done) => {
+	it('save errors are propagated', async (done) => {
 		const mnemonic = Mnemonic.generateNew()
-
 		const password = 'super secret password'
-		const keystorePath = './keystoreFromTest.json'
 
-		Wallet.byEncryptingSeedOfMnemonic({
-			password,
-			saveKeystoreAtPath: keystorePath,
+		const errMsg = 'ERROR_FROM_TEST'
+
+		await Wallet.byEncryptingSeedOfMnemonicAndSavingKeystore({
 			mnemonic,
-		})
-			.andThen((createdWallet) =>
-				Wallet.fromKeystoreAtPath({ keystorePath, password }).map(
-					(loadedWallet) => ({
-						wallet1: createdWallet,
-						wallet2: loadedWallet,
-					}),
-				),
-			)
-			.match(
-				(wallets) => expectWalletsEqual(wallets, done),
-				(e) => done(e),
-			)
-			.finally(() => unlinkSync(keystorePath))
+			password,
+			save: (_) => Promise.reject(new Error(errMsg)),
+		}).match(
+			(_) => done(new Error('Expected error but got none')),
+			(error) => {
+				expect(error.message).toBe(
+					`Failed to save keystore, underlying error: '${errMsg}'`,
+				)
+				done()
+			},
+		)
+	})
+
+	it('load errors are propagated', async (done) => {
+		const password = 'super secret password'
+
+		const errMsg = 'ERROR_FROM_TEST'
+
+		await Wallet.byLoadingAndDecryptingKeystore({
+			password,
+			load: () => Promise.reject(new Error(errMsg)),
+		}).match(
+			(_) => done(new Error('Expected error but got none')),
+			(error) => {
+				expect(error.message).toBe(
+					`Failed to load keystore, underlying error: '${errMsg}'`,
+				)
+				done()
+			},
+		)
 	})
 
 	it('can observe accounts', (done) => {
@@ -112,6 +129,9 @@ describe('HD Wallet', () => {
 		wallet.observeActiveAccount().subscribe((active) => {
 			expect(active.hdPath.addressIndex.value()).toBe(0)
 			expect(active.hdPath.toString()).toBe(`m/44'/536'/0'/0/0'`)
+			expect(
+				wallet.__unsafeGetAccount().hdPath.equals(active.hdPath),
+			).toBe(true)
 			done()
 		})
 	})

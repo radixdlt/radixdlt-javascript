@@ -5,7 +5,6 @@ import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
 import { ScryptParamsT } from '../key-derivation-functions/_types'
 import { Scrypt, ScryptParams } from '../key-derivation-functions/scrypt'
 import { v4 as uuidv4 } from 'uuid'
-import { PathLike, promises as fsPromises } from 'fs'
 
 const minimumPasswordLength = 8
 
@@ -80,7 +79,7 @@ const decrypt = (
 	const params = keystore.crypto.kdfparams
 
 	return validatePassword(password)
-		.map((p) => ({ kdf, params, password: Buffer.from(p) }))
+		.map((p: string) => ({ kdf, params, password: Buffer.from(p) }))
 		.asyncAndThen((inp) => Scrypt.deriveKey(inp))
 		.map((derivedKey) => ({
 			symmetricKey: derivedKey,
@@ -103,45 +102,6 @@ const fromBuffer = (keystoreBuffer: Buffer): Result<KeystoreT, Error> => {
 	} catch {
 		return err(new Error('Failed to parse keystore from JSON data'))
 	}
-}
-
-const fromFileAtPath = (
-	filePath: PathLike | fsPromises.FileHandle,
-): ResultAsync<KeystoreT, Error> => {
-	const fileContents: ResultAsync<Buffer, Error> = ResultAsync.fromPromise(
-		fsPromises.readFile(filePath),
-		(e: unknown) => {
-			return new Error(
-				`Failed to create keystore from filePath: '${filePath.toString()}', underlying error: ${JSON.stringify(
-					e,
-					null,
-					4,
-				)}`,
-			)
-		},
-	)
-	return fileContents.andThen(fromBuffer)
-}
-
-const saveToFileAtPath = (
-	input: Readonly<{
-		keystore: KeystoreT
-		filePath: PathLike | fsPromises.FileHandle
-	}>,
-): ResultAsync<KeystoreT, Error> => {
-	const { filePath, keystore } = input
-	const json = JSON.stringify(keystore, null, '\t')
-	return ResultAsync.fromPromise(
-		fsPromises.writeFile(filePath, json),
-		(unknownError: unknown) =>
-			new Error(
-				`Failed to save keystore at path '${filePath.toString()}', underlying error: ${JSON.stringify(
-					unknownError,
-					null,
-					4,
-				)}`,
-			),
-	).map(() => keystore)
 }
 
 const isScryptParams = (something: unknown): something is ScryptParamsT => {
@@ -179,9 +139,7 @@ const isKeystore = (something: unknown): something is KeystoreT => {
 }
 
 export const Keystore = {
-	saveToFileAtPath,
 	fromBuffer,
-	fromFileAtPath,
 	decrypt,
 	minimumPasswordLength,
 	validatePassword,

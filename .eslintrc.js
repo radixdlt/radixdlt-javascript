@@ -50,6 +50,7 @@ module.exports = {
 
 		'@typescript-eslint/require-await': 'off',
 		'@typescript-eslint/ban-ts-comment': 'off',
+		'@typescript-eslint/no-non-null-assertion': 'off',
 
 		// ESLint-Plugin-Functional RULES
 		'functional/immutable-data': 'error',
