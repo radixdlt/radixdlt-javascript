@@ -37,13 +37,11 @@ This git repository is a so called "monorepo" using [`yarn` *workspaces*](https:
 
 | Package | Description | Key Components | Internal Dependency | Notable external dependency |
 | --- | --- | --- | --- | --- |
-| [`@radixdlt/application`][app] | High level abstraction for interacting with the Radix Distributed Ledger | `RadixApplicationClient` | [`@radixdlt/atom-transaction-mapping`][atom-transaction-mapping], [`@radix/crypto`][crypto] | NONE |
+| [`@radixdlt/application`][app] | High level abstraction for interacting with the Radix Distributed Ledger | `RadixT` | [`@radix/crypto`][crypto] | NONE |
 ||
 | [`@radixdlt/hardware-wallet`][hwLedger] | Ledger Nano hardware wallet application. | `HWWalletLedger` | [`@radixdlt/atom`][atom] | [`LedgerHQ/ledgerjs`](https://github.com/LedgerHQ/ledgerjs) |
 ||
 | [`@radixdlt/networking`][networking] | Sending and receiving of atoms over network transportation. | `AtomPuller`, `AtomSender`, `WebsocketToNode` | [`@radixdlt/atom`][atom] | NONE |
-||
-| [`@radixdlt/atom-transaction-mapping`][atom-transaction-mapping] | Creating Atoms from `Transaction` | `AtomToTransactionMapper`, `TransactionToAtomMapper` | [`@radixdlt/atom`][atom], [`@radix/actions`][actions] | NONE |
 ||
 | [`@radixdlt/actions`][actions] | High level abstractions user initiated actions. | `TokenTransferAction`, `SendMessageAction` | [`@radixdlt/primitives`][primitives] | NONE |
 ||
@@ -66,7 +64,6 @@ This git repository is a so called "monorepo" using [`yarn` *workspaces*](https:
 [app]: ./packages/application
 [account]: ./packages/account
 [dataformats]: ./packages/data-formats
-[atom-transaction-mapping]: ./packages/atom-transaction-mapping
 [atom]: ./packages/atom
 [crypto]: ./packages/crypto
 [primitives]: ./packages/primitives
