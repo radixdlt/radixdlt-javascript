@@ -83,6 +83,6 @@ module.exports = {
 		'@typescript-eslint/no-unsafe-member-access': 'warn',
 		'max-lines': 'off',
 		'@typescript-eslint/no-namespace': 'off',
-		'functional/no-this-expression': 'off'
+		'functional/no-this-expression': 'off',
 	},
 }

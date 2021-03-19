@@ -6,7 +6,15 @@ import {
 } from '@radixdlt/account'
 import { NodeT, RadixAPI, RadixCoreAPI, RadixT } from './_types'
 
-import { mergeMap, withLatestFrom, map, tap, shareReplay, switchMap, catchError } from 'rxjs/operators'
+import {
+	mergeMap,
+	withLatestFrom,
+	map,
+	tap,
+	shareReplay,
+	switchMap,
+	catchError,
+} from 'rxjs/operators'
 import {
 	Observable,
 	Subscription,
@@ -32,7 +40,7 @@ type WalletError = {
 }
 
 type APIError = {
-	tag: 'api',
+	tag: 'api'
 	error: Error
 }
 
@@ -53,11 +61,11 @@ const create = (): RadixT => {
 
 	const coreAPIViaNode$ = nodeSubject
 		.asObservable()
-		.pipe(map((n: NodeT) => radixCoreAPI(n))) // this can't be hardcoded to be radixCoreAPI, for testing
+		.pipe(map((n: NodeT) => radixCoreAPI(n)))
 
 	const coreAPI$ = merge(coreAPIViaNode$, coreAPISubject.asObservable()).pipe(
-        shareReplay(1)
-    )
+		shareReplay(1),
+	)
 
 	const activeAddress$ = wallet$.pipe(
 		mergeMap((wallet) => wallet.observeActiveAddress()),
@@ -66,9 +74,7 @@ const create = (): RadixT => {
 	// Forwards calls to RadixCoreAPI, return type is a function: `(input?: I) => Observable<O>`
 	const fwdAPICall = <I extends unknown[], O>(
 		pickFn: (api: RadixCoreAPI) => (...input: I) => Observable<O>,
-	) => (...input: I) => coreAPI$.pipe(
-		mergeMap((a) => pickFn(a)(...input))
-	)
+	) => (...input: I) => coreAPI$.pipe(mergeMap((a) => pickFn(a)(...input)))
 
 	const magic: () => Observable<Magic> = fwdAPICall((a) => a.magic)
 
@@ -91,10 +97,10 @@ const create = (): RadixT => {
 		withLatestFrom(coreAPI$),
 		switchMap(([activeAddress, api]) =>
 			api.tokenBalancesForAddress(activeAddress).pipe(
-				catchError(error => {
+				catchError((error) => {
 					errorNotificationSubject.next({
 						tag: 'api',
-						error
+						error,
 					})
 					return EMPTY
 				}),
@@ -109,31 +115,27 @@ const create = (): RadixT => {
 
 	const activeAddress = wallet$.pipe(
 		mergeMap((wallet) => wallet.observeActiveAddress()),
-		shareReplay(1)
+		shareReplay(1),
 	)
 
 	const activeAccount = wallet$.pipe(
 		mergeMap((wallet) => wallet.observeActiveAccount()),
-		shareReplay(1)
 	)
 
 	const accounts = wallet$.pipe(
 		mergeMap((wallet) => wallet.observeAccounts()),
-		shareReplay(1)
 	)
 
 	const _withNodeConnection = (node: Observable<NodeT>): void => {
-		node
-			.subscribe(
-				(n) => nodeSubject.next(n),
-				error => {
-					errorNotificationSubject.next({
-						tag: 'node',
-						error
-					})
-				}
-			)
-			.add(subs)
+		node.subscribe(
+			(n) => nodeSubject.next(n),
+			(error) => {
+				errorNotificationSubject.next({
+					tag: 'node',
+					error,
+				})
+			},
+		).add(subs)
 	}
 
 	const _withWallet = (wallet: WalletT): void => {

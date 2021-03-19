@@ -300,18 +300,22 @@ describe('Radix API', () => {
 		const failingNode: Observable<NodeT> = throwError(() => {
 			return new Error(invalidURLErrorMsg)
 		})
-		Radix.create()
-			.withNodeConnection(failingNode)
-			.node.subscribe({
-				next: (n) => {
-					done(new Error('Expected error but did not get any'))
-				},
-				error: (errorFn) => {
-					const err = errorFn()
-					expect(err.message).toBe(invalidURLErrorMsg)
-					done()
-				},
-			})
+
+		const subs = new Subscription()
+
+		const radix = Radix.create()
+
+		radix.node.subscribe((n) => {
+			done(new Error('Expected error but did not get any'))
+		}).add(subs)
+
+		radix.errors.subscribe({
+			next: (error) => {
+				done()
+			}
+		}).add(subs)
+
+		radix.withNodeConnection(failingNode)
 	})
 
 	it('login with wallet', async (done) => {
@@ -380,11 +384,22 @@ describe('Radix API', () => {
 				(accounts) => {
 					expect(accounts).toStrictEqual(expectedValues)
 					done()
-				}
-			).add(subs)
+				},
+				(e) => done(e),
+			)
+			.add(subs)
+
+		radix
+			.withWallet(createWallet()) //0
+			.deriveNextAccount({ alsoSwitchTo: true }) // 1
+			.deriveNextAccount({ alsoSwitchTo: true }) // 2
+			.deriveNextAccount({ alsoSwitchTo: true }) // 3
+			.switchAccount({ toIndex: 1 })
+			.switchAccount('first')
+			.switchAccount('last')
 	})
 
-	it('shou', done => {
+	it('shou', (done) => {
 		const failingNode: Observable<NodeT> = throwError(() => {
 			return new Error('')
 		})
@@ -393,35 +408,41 @@ describe('Radix API', () => {
 
 		const radix = Radix.create()
 
-		radix.node.subscribe((n) => {
-			done(new Error('Expected error but did not get any'))
-		}).add(subs)
+		radix.node
+			.subscribe((n) => {
+				done(new Error('Expected error but did not get any'))
+			})
+			.add(subs)
 
-		radix.errors.subscribe({
-			next: (error) => {
-				done()
-			}
-		}).add(subs)
+		radix.errors
+			.subscribe({
+				next: (error) => {
+					done()
+				},
+			})
+			.add(subs)
 
 		radix.withNodeConnection(failingNode)
 	})
 
-	it.only('should forward an error when calling api', done => {
+	it('should forward an error when calling api', (done) => {
 		const subs = new Subscription()
 
-		const radix = Radix
-			.create()
-			.__withAPI(mockAPI())
+		const radix = Radix.create().__withAPI(mockAPI())
 
-		radix.tokenBalances.subscribe((n) => {
-			done(Error('nope'))
-		}).add(subs)
+		radix.tokenBalances
+			.subscribe((n) => {
+				done(Error('nope'))
+			})
+			.add(subs)
 
-		radix.errors.subscribe({
-			next: (error) => {
-				done()
-			}
-		}).add(subs)
+		radix.errors
+			.subscribe({
+				next: (error) => {
+					done()
+				},
+			})
+			.add(subs)
 
 		radix.withWallet(createWallet())
 
