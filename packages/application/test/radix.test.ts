@@ -295,7 +295,7 @@ describe('Radix API', () => {
 		)
 	})
 
-	it('should be able to detect errors', done => {
+	it('should be able to detect errors', (done) => {
 		const invalidURLErrorMsg = 'invalid url'
 		const failingNode: Observable<NodeT> = throwError(() => {
 			return new Error(invalidURLErrorMsg)
@@ -305,15 +305,19 @@ describe('Radix API', () => {
 
 		const radix = Radix.create()
 
-		radix.node.subscribe((n) => {
-			done(new Error('Expected error but did not get any'))
-		}).add(subs)
+		radix.node
+			.subscribe((n) => {
+				done(new Error('Expected error but did not get any'))
+			})
+			.add(subs)
 
-		radix.errors.subscribe({
-			next: (error) => {
-				done()
-			}
-		}).add(subs)
+		radix.errors
+			.subscribe({
+				next: (error) => {
+					done()
+				},
+			})
+			.add(subs)
 
 		radix.withNodeConnection(failingNode)
 	})
