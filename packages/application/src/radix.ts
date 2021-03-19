@@ -97,7 +97,7 @@ const create = (): RadixT => {
 		withLatestFrom(coreAPI$),
 		switchMap(([activeAddress, api]) =>
 			api.tokenBalancesForAddress(activeAddress).pipe(
-				catchError((error) => {
+				catchError((error: Error) => {
 					errorNotificationSubject.next({
 						tag: 'api',
 						error,
@@ -131,7 +131,7 @@ const create = (): RadixT => {
 	const _withNodeConnection = (node: Observable<NodeT>): void => {
 		node.subscribe(
 			(n) => nodeSubject.next(n),
-			(error) => {
+			(error: Error) => {
 				errorNotificationSubject.next({
 					tag: 'node',
 					error,
