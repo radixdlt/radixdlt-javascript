@@ -6,7 +6,7 @@ import {
 } from '@radixdlt/account'
 import { NodeT, RadixAPI, RadixCoreAPI, RadixT } from './_types'
 
-import { mergeMap, withLatestFrom, map, tap } from 'rxjs/operators'
+import { mergeMap, withLatestFrom, map, tap, shareReplay, switchMap, catchError } from 'rxjs/operators'
 import {
 	Observable,
 	Subscription,
@@ -14,11 +14,29 @@ import {
 	ReplaySubject,
 	of,
 	Subject,
+	EMPTY,
 } from 'rxjs'
 
 import { radixCoreAPI } from './api/radixCoreAPI'
 import { Magic } from '@radixdlt/primitives'
 import { KeystoreT } from '@radixdlt/crypto'
+
+type NodeError = {
+	tag: 'node'
+	error: Error
+}
+
+type WalletError = {
+	tag: 'wallet'
+	error: Error
+}
+
+type APIError = {
+	tag: 'api',
+	error: Error
+}
+
+type ErrorNotification = NodeError | WalletError | APIError
 
 const create = (): RadixT => {
 	const subs = new Subscription()
@@ -26,6 +44,7 @@ const create = (): RadixT => {
 	const nodeSubject = new ReplaySubject<NodeT>()
 	const coreAPISubject = new ReplaySubject<RadixCoreAPI>()
 	const walletSubject = new ReplaySubject<WalletT>()
+	const errorNotificationSubject = new Subject<ErrorNotification>()
 
 	const deriveAccountSubject = new Subject<DeriveNextAccountInput>()
 	const switchAccountSubject = new Subject<SwitchAccountInput>()
@@ -34,9 +53,11 @@ const create = (): RadixT => {
 
 	const coreAPIViaNode$ = nodeSubject
 		.asObservable()
-		.pipe(map((n: NodeT) => radixCoreAPI(n)))
+		.pipe(map((n: NodeT) => radixCoreAPI(n))) // this can't be hardcoded to be radixCoreAPI, for testing
 
-	const coreAPI$ = merge(coreAPIViaNode$, coreAPISubject.asObservable())
+	const coreAPI$ = merge(coreAPIViaNode$, coreAPISubject.asObservable()).pipe(
+        shareReplay(1)
+    )
 
 	const activeAddress$ = wallet$.pipe(
 		mergeMap((wallet) => wallet.observeActiveAddress()),
@@ -45,7 +66,9 @@ const create = (): RadixT => {
 	// Forwards calls to RadixCoreAPI, return type is a function: `(input?: I) => Observable<O>`
 	const fwdAPICall = <I extends unknown[], O>(
 		pickFn: (api: RadixCoreAPI) => (...input: I) => Observable<O>,
-	) => (...input: I) => coreAPI$.pipe(mergeMap((a) => pickFn(a)(...input)))
+	) => (...input: I) => coreAPI$.pipe(
+		mergeMap((a) => pickFn(a)(...input))
+	)
 
 	const magic: () => Observable<Magic> = fwdAPICall((a) => a.magic)
 
@@ -64,10 +87,18 @@ const create = (): RadixT => {
 		submitSignedAtom: fwdAPICall((a) => a.submitSignedAtom),
 	}
 
-	const tokenBalances = coreAPI$.pipe(
-		withLatestFrom(activeAddress$),
-		mergeMap(([api, activeAddress]) =>
-			api.tokenBalancesForAddress(activeAddress),
+	const tokenBalances = activeAddress$.pipe(
+		withLatestFrom(coreAPI$),
+		switchMap(([activeAddress, api]) =>
+			api.tokenBalancesForAddress(activeAddress).pipe(
+				catchError(error => {
+					errorNotificationSubject.next({
+						tag: 'api',
+						error
+					})
+					return EMPTY
+				}),
+			),
 		),
 	)
 
@@ -78,21 +109,29 @@ const create = (): RadixT => {
 
 	const activeAddress = wallet$.pipe(
 		mergeMap((wallet) => wallet.observeActiveAddress()),
+		shareReplay(1)
 	)
 
 	const activeAccount = wallet$.pipe(
 		mergeMap((wallet) => wallet.observeActiveAccount()),
+		shareReplay(1)
 	)
 
 	const accounts = wallet$.pipe(
 		mergeMap((wallet) => wallet.observeAccounts()),
+		shareReplay(1)
 	)
 
-	const _withNodeConnection = (node$: Observable<NodeT>): void => {
-		node$
+	const _withNodeConnection = (node: Observable<NodeT>): void => {
+		node
 			.subscribe(
 				(n) => nodeSubject.next(n),
-				(e) => nodeSubject.error(e),
+				error => {
+					errorNotificationSubject.next({
+						tag: 'node',
+						error
+					})
+				}
 			)
 			.add(subs)
 	}
@@ -127,14 +166,21 @@ const create = (): RadixT => {
 		// Primarily useful for testing
 		withNodeConnection: function (node$: Observable<NodeT>): RadixT {
 			_withNodeConnection(node$)
-			/* eslint-disable functional/no-this-expression */
 			return this
 		},
 		__withAPI: function (radixCoreAPI$: Observable<RadixCoreAPI>): RadixT {
 			radixCoreAPI$
 				.subscribe(
 					(a) => coreAPISubject.next(a),
-					(e) => coreAPISubject.error(e),
+					(e) => {
+						console.log(
+							`☣️ SUPPRESSED ERROR: ${JSON.stringify(
+								e,
+								null,
+								4,
+							)}`,
+						)
+					},
 				)
 				.add(subs)
 			return this
@@ -165,6 +211,9 @@ const create = (): RadixT => {
 
 			return this
 		},
+
+		// @ts-ignore
+		errors: errorNotificationSubject.asObservable(),
 
 		wallet: wallet$,
 		node: node$,

@@ -1,7 +1,7 @@
 import { AtomIdentifierT } from '@radixdlt/atom'
 
 import { Magic } from '@radixdlt/primitives'
-import { Observable } from 'rxjs'
+import { ErrorNotification, Observable, Subject } from 'rxjs'
 import {
 	AccountsT,
 	AccountT,
@@ -122,4 +122,6 @@ export type RadixT = RadixAPI &
 
 		// Active Address/Account APIs
 		tokenBalances: Observable<TokenBalances>
+
+		errors: Subject<ErrorNotification>
 	}>

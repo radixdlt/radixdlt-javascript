@@ -55,6 +55,16 @@ const xrd: Token = {
 	tokenPermission: tokenPermissionsAll,
 }
 
+const balancesFor = (address: AddressT, amount: number): TokenBalances => ({
+	owner: address,
+	tokenBalances: [
+		{
+			token: xrd.rri,
+			amount: Amount.inSmallestDenomination(UInt256.valueOf(amount)),
+		},
+	],
+})
+
 const crashingAPI: RadixCoreAPI = {
 	node: { url: new URL('http://www.not.implemented.com') },
 
@@ -285,12 +295,12 @@ describe('Radix API', () => {
 		)
 	})
 
-	it('should be able to detect errors', async (done) => {
+	it('should be able to detect errors', done => {
 		const invalidURLErrorMsg = 'invalid url'
 		const failingNode: Observable<NodeT> = throwError(() => {
 			return new Error(invalidURLErrorMsg)
 		})
-		await Radix.create()
+		Radix.create()
 			.withNodeConnection(failingNode)
 			.node.subscribe({
 				next: (n) => {
@@ -369,6 +379,92 @@ describe('Radix API', () => {
 			.subscribe(
 				(accounts) => {
 					expect(accounts).toStrictEqual(expectedValues)
+					done()
+				}
+			).add(subs)
+	})
+
+	it('shou', done => {
+		const failingNode: Observable<NodeT> = throwError(() => {
+			return new Error('')
+		})
+
+		const subs = new Subscription()
+
+		const radix = Radix.create()
+
+		radix.node.subscribe((n) => {
+			done(new Error('Expected error but did not get any'))
+		}).add(subs)
+
+		radix.errors.subscribe({
+			next: (error) => {
+				done()
+			}
+		}).add(subs)
+
+		radix.withNodeConnection(failingNode)
+	})
+
+	it.only('should forward an error when calling api', done => {
+		const subs = new Subscription()
+
+		const radix = Radix
+			.create()
+			.__withAPI(mockAPI())
+
+		radix.tokenBalances.subscribe((n) => {
+			done(Error('nope'))
+		}).add(subs)
+
+		radix.errors.subscribe({
+			next: (error) => {
+				done()
+			}
+		}).add(subs)
+
+		radix.withWallet(createWallet())
+
+		radix.tokenBalancesForAddress('' as any)
+	})
+
+	it('does not kill property observables when rpc requests fail', async (done) => {
+		const subs = new Subscription()
+		let amountVal = 100
+		let shouldEmitError = false
+
+		const api = of(<RadixCoreAPI>{
+			...crashingAPI,
+			magic: (): Observable<Magic> => of(magicFromNumber(123)),
+			tokenBalancesForAddress: (
+				a: AddressT,
+			): Observable<TokenBalances> => {
+				if (shouldEmitError) {
+					return throwError(() => new Error('Manual error'))
+				} else {
+					const observableBalance = of(balancesFor(a, amountVal))
+					amountVal += 100
+					return observableBalance
+				}
+			},
+		})
+
+		const radix = Radix.create()
+		radix.withWallet(createWallet())
+		radix.__withAPI(api)
+
+		const expectedValues = [100, 200, 300]
+
+		const tokenBalancesToTest$ = radix.tokenBalances.pipe(
+			map((tb) => tb.tokenBalances[0].amount.magnitude.valueOf()),
+			take(expectedValues.length),
+			toArray(),
+		)
+
+		tokenBalancesToTest$
+			.subscribe(
+				(amounts) => {
+					expect(amounts).toStrictEqual(expectedValues)
 					done()
 				},
 				(e) => done(e),
