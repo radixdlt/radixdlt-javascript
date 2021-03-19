@@ -16,15 +16,28 @@ import {
 	TransactionStatus,
 } from '../src/_types'
 import { Radix } from '../src/radix'
-import { Address, AddressT, HDMasterSeed, Wallet, WalletT } from "@radixdlt/account";
-import { Observable, of, Subject, Subscription, throwError } from "rxjs";
-import { Amount, AmountT, Magic, magicFromNumber, maxAmount } from "@radixdlt/primitives";
+import {
+	Address,
+	AddressT,
+	HDMasterSeed,
+	Wallet,
+	WalletT,
+} from '@radixdlt/account'
+import { Observable, of, Subject, Subscription, throwError } from 'rxjs'
+import {
+	Amount,
+	AmountT,
+	Magic,
+	magicFromNumber,
+	maxAmount,
+} from '@radixdlt/primitives'
 import { map, take, toArray } from 'rxjs/operators'
 import {
 	AtomIdentifierT,
-	ResourceIdentifier, ResourceIdentifierT,
-	tokenPermissionsAll
-} from "@radixdlt/atom";
+	ResourceIdentifier,
+	ResourceIdentifierT,
+	tokenPermissionsAll,
+} from '@radixdlt/atom'
 import { UInt256 } from '@radixdlt/uint256'
 import { KeystoreT } from '@radixdlt/crypto'
 
@@ -60,9 +73,9 @@ const balancesFor = (address: AddressT, amount: number): TokenBalances => ({
 	tokenBalances: [
 		{
 			token: xrd.rri,
-			amount: Amount.inSmallestDenomination(UInt256.valueOf(amount))
+			amount: Amount.inSmallestDenomination(UInt256.valueOf(amount)),
 		},
-	]
+	],
 })
 
 const crashingAPI: RadixCoreAPI = {
@@ -396,72 +409,52 @@ describe('Radix API', () => {
 	})
 
 	it('does not kill property observables when rpc requests fail', async (done) => {
-		/*
-		* const tokenBalances = coreAPI$.pipe(
-		withLatestFrom(activeAddress$),
-		mergeMap(([api, activeAddress]) =>
-			api.tokenBalancesForAddress(activeAddress),
-		),
-	)
-
-		* */
 		const subs = new Subscription()
-
 		let amountVal = 100
-
-		// const emitErrorSubject = new Subject<Error>()
 		let shouldEmitError = false
 
-		const magic = magicFromNumber(123)
-		const api = (urlString?: string): Observable<RadixCoreAPI> => {
-			const mockedPartialAPI = {
-				...crashingAPI,
-				node: { url: new URL(urlString ?? 'http://www.example.com') },
-				magic: (): Observable<Magic> => of(magic),
-				tokenBalancesForAddress: (a: AddressT): Observable<TokenBalances> =>  {
-					if (shouldEmitError) {
-						console.log(`🔥 manually causing error on 'tokenBalancesForAddress'`)
-						return throwError(() => new Error('Manual error'))
-					} else {
-						console.log(`🔮 fetch of tokenBalances for address was triggered: ${a.toString()}`)
-						const observableBalance =  of(balancesFor(a, amountVal))
-						amountVal += 100
-						return observableBalance
-					}
-
-
+		const api = of(<RadixCoreAPI>{
+			...crashingAPI,
+			magic: (): Observable<Magic> => of(magicFromNumber(123)),
+			tokenBalancesForAddress: (
+				a: AddressT,
+			): Observable<TokenBalances> => {
+				if (shouldEmitError) {
+					return throwError(() => new Error('Manual error'))
+				} else {
+					const observableBalance = of(balancesFor(a, amountVal))
+					amountVal += 100
+					return observableBalance
 				}
+			},
+		})
 
-			}
-			return of(mockedPartialAPI)
-		}
-		const wallet = createWallet()
-		// const address = Address.fromPublicKeyAndMagic({ magic, publicKey: wallet.__unsafeGetAccount().})
 		const radix = Radix.create()
-		radix.withWallet(wallet)
-		radix.__withAPI(api())
+		radix.withWallet(createWallet())
+		radix.__withAPI(api)
 
 		const expectedValues = [100, 200, 300]
 
-		radix.tokenBalances
-			.pipe(
-				map(tb => tb.tokenBalances[0].amount.magnitude.valueOf()),
-				take(3),
-				toArray()
-			)
+		const tokenBalancesToTest$ = radix.tokenBalances.pipe(
+			map((tb) => tb.tokenBalances[0].amount.magnitude.valueOf()),
+			take(expectedValues.length),
+			toArray(),
+		)
+
+		tokenBalancesToTest$
 			.subscribe(
 				(amounts) => {
 					expect(amounts).toStrictEqual(expectedValues)
-				done()
-			},
-			e => { done(new Error('got error, but expected none')) }
-		).add(subs)
+					done()
+				},
+				(e) => done(e),
+			)
+			.add(subs)
 
 		radix.deriveNextAccount({ alsoSwitchTo: true })
 		shouldEmitError = true
 		radix.deriveNextAccount({ alsoSwitchTo: true })
 		shouldEmitError = false
 		radix.deriveNextAccount({ alsoSwitchTo: true })
-
 	})
 })

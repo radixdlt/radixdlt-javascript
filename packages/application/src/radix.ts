@@ -76,22 +76,12 @@ const create = (): RadixT => {
 		submitSignedAtom: fwdAPICall((a) => a.submitSignedAtom),
 	}
 
-	activeAddress$
-		.subscribe((a) => console.log(`⭐️ activeAddress$: ${a.toString()}`))
-		.add(subs)
-
 	const tokenBalances = activeAddress$.pipe(
 		withLatestFrom(coreAPI$),
 		switchMap(([activeAddress, api]) =>
 			api.tokenBalancesForAddress(activeAddress).pipe(
 				catchError((e) => {
-					console.log(
-						`🙋🏽‍♀️ caughtError: ${JSON.stringify(
-							e,
-							null,
-							4,
-						)}, prevented prop 'tokenBalances' to die?`,
-					)
+					// TODO should forward `e` to a new `errorNotificationSubject` via 'next'
 					return EMPTY
 				}),
 			),
