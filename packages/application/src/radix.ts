@@ -4,7 +4,13 @@ import {
 	Wallet,
 	WalletT,
 } from '@radixdlt/account'
-import { NodeT, RadixAPI, RadixCoreAPI, RadixT } from './_types'
+import {
+	NodeT,
+	RadixAPI,
+	RadixCoreAPI,
+	RadixT,
+	ErrorNotification,
+} from './_types'
 
 import {
 	mergeMap,
@@ -28,23 +34,6 @@ import {
 import { radixCoreAPI } from './api/radixCoreAPI'
 import { Magic } from '@radixdlt/primitives'
 import { KeystoreT } from '@radixdlt/crypto'
-
-type NodeError = {
-	tag: 'node'
-	error: Error
-}
-
-type WalletError = {
-	tag: 'wallet'
-	error: Error
-}
-
-type APIError = {
-	tag: 'api'
-	error: Error
-}
-
-type ErrorNotification = NodeError | WalletError | APIError
 
 const create = (): RadixT => {
 	const subs = new Subscription()
@@ -216,7 +205,6 @@ const create = (): RadixT => {
 			return this
 		},
 
-		// @ts-ignore
 		errors: errorNotificationSubject.asObservable(),
 
 		wallet: wallet$,

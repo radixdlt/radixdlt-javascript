@@ -1,7 +1,7 @@
 import { AtomIdentifierT } from '@radixdlt/atom'
 
 import { Magic } from '@radixdlt/primitives'
-import { ErrorNotification, Observable, Subject } from 'rxjs'
+import { Observable } from 'rxjs'
 import {
 	AccountsT,
 	AccountT,
@@ -48,6 +48,23 @@ export type SignedAtom = Readonly<{
 	signerPublicKey: PublicKey
 	signature: Signature
 }>
+
+type NodeError = {
+	tag: 'node'
+	error: Error
+}
+
+type WalletError = {
+	tag: 'wallet'
+	error: Error
+}
+
+type APIError = {
+	tag: 'api'
+	error: Error
+}
+
+export type ErrorNotification = NodeError | WalletError | APIError
 
 export type RadixAPI = Readonly<{
 	tokenBalancesForAddress: (address: AddressT) => Observable<TokenBalances>
@@ -123,5 +140,5 @@ export type RadixT = RadixAPI &
 		// Active Address/Account APIs
 		tokenBalances: Observable<TokenBalances>
 
-		errors: Subject<ErrorNotification>
+		errors: Observable<ErrorNotification>
 	}>
