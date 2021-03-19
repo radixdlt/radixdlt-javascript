@@ -120,10 +120,12 @@ const create = (): RadixT => {
 
 	const activeAccount = wallet$.pipe(
 		mergeMap((wallet) => wallet.observeActiveAccount()),
+		shareReplay(1),
 	)
 
 	const accounts = wallet$.pipe(
 		mergeMap((wallet) => wallet.observeAccounts()),
+		shareReplay(1),
 	)
 
 	const _withNodeConnection = (node: Observable<NodeT>): void => {

@@ -399,32 +399,6 @@ describe('Radix API', () => {
 			.switchAccount('last')
 	})
 
-	it('shou', (done) => {
-		const failingNode: Observable<NodeT> = throwError(() => {
-			return new Error('')
-		})
-
-		const subs = new Subscription()
-
-		const radix = Radix.create()
-
-		radix.node
-			.subscribe((n) => {
-				done(new Error('Expected error but did not get any'))
-			})
-			.add(subs)
-
-		radix.errors
-			.subscribe({
-				next: (error) => {
-					done()
-				},
-			})
-			.add(subs)
-
-		radix.withNodeConnection(failingNode)
-	})
-
 	it('should forward an error when calling api', (done) => {
 		const subs = new Subscription()
 
