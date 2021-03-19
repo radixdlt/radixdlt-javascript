@@ -6,7 +6,15 @@ import {
 } from '@radixdlt/account'
 import { NodeT, RadixAPI, RadixCoreAPI, RadixT } from './_types'
 
-import { mergeMap, withLatestFrom, map, tap } from 'rxjs/operators'
+import {
+	mergeMap,
+	withLatestFrom,
+	map,
+	tap,
+	shareReplay,
+	switchMap,
+	catchError,
+} from 'rxjs/operators'
 import {
 	Observable,
 	Subscription,
@@ -14,6 +22,7 @@ import {
 	ReplaySubject,
 	of,
 	Subject,
+	EMPTY,
 } from 'rxjs'
 
 import { radixCoreAPI } from './api/radixCoreAPI'
@@ -36,10 +45,13 @@ const create = (): RadixT => {
 		.asObservable()
 		.pipe(map((n: NodeT) => radixCoreAPI(n)))
 
-	const coreAPI$ = merge(coreAPIViaNode$, coreAPISubject.asObservable())
+	const coreAPI$ = merge(coreAPIViaNode$, coreAPISubject.asObservable()).pipe(
+		shareReplay(1),
+	)
 
 	const activeAddress$ = wallet$.pipe(
 		mergeMap((wallet) => wallet.observeActiveAddress()),
+		shareReplay(1),
 	)
 
 	// Forwards calls to RadixCoreAPI, return type is a function: `(input?: I) => Observable<O>`
@@ -64,10 +76,25 @@ const create = (): RadixT => {
 		submitSignedAtom: fwdAPICall((a) => a.submitSignedAtom),
 	}
 
-	const tokenBalances = coreAPI$.pipe(
-		withLatestFrom(activeAddress$),
-		mergeMap(([api, activeAddress]) =>
-			api.tokenBalancesForAddress(activeAddress),
+	activeAddress$
+		.subscribe((a) => console.log(`⭐️ activeAddress$: ${a.toString()}`))
+		.add(subs)
+
+	const tokenBalances = activeAddress$.pipe(
+		withLatestFrom(coreAPI$),
+		switchMap(([activeAddress, api]) =>
+			api.tokenBalancesForAddress(activeAddress).pipe(
+				catchError((e) => {
+					console.log(
+						`🙋🏽‍♀️ caughtError: ${JSON.stringify(
+							e,
+							null,
+							4,
+						)}, prevented prop 'tokenBalances' to die?`,
+					)
+					return EMPTY
+				}),
+			),
 		),
 	)
 
@@ -92,7 +119,11 @@ const create = (): RadixT => {
 		node$
 			.subscribe(
 				(n) => nodeSubject.next(n),
-				(e) => nodeSubject.error(e),
+				(e) => {
+					console.log(
+						`☣️ SUPPRESSED ERROR: ${JSON.stringify(e, null, 4)}`,
+					)
+				},
 			)
 			.add(subs)
 	}
@@ -134,7 +165,15 @@ const create = (): RadixT => {
 			radixCoreAPI$
 				.subscribe(
 					(a) => coreAPISubject.next(a),
-					(e) => coreAPISubject.error(e),
+					(e) => {
+						console.log(
+							`☣️ SUPPRESSED ERROR: ${JSON.stringify(
+								e,
+								null,
+								4,
+							)}`,
+						)
+					},
 				)
 				.add(subs)
 			return this
