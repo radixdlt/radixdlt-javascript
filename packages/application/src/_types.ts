@@ -110,36 +110,32 @@ export type RadixCoreAPI = RadixAPI &
 		magic: () => Observable<Magic>
 	}>
 
-export type RadixT =
-	Readonly<{
-		api: RadixAPI,
-		// Input
-		connect: (url: URL) => RadixT
+export type RadixT = Readonly<{
+	api: RadixAPI
+	// Input
+	connect: (url: URL) => RadixT
 
-		// Primiarily useful for testing.
-		__withAPI: (radixCoreAPI$: Observable<RadixCoreAPI>) => RadixT
+	// Primiarily useful for testing.
+	__withAPI: (radixCoreAPI$: Observable<RadixCoreAPI>) => RadixT
 
-		withNodeConnection: (node$: Observable<NodeT>) => RadixT
-		withWallet: (wallet: WalletT) => RadixT
-		login: (
-			password: string,
-			loadKeystore: () => Promise<KeystoreT>,
-		) => RadixT
+	withNodeConnection: (node$: Observable<NodeT>) => RadixT
+	withWallet: (wallet: WalletT) => RadixT
+	login: (password: string, loadKeystore: () => Promise<KeystoreT>) => RadixT
 
-		// Observe Input
-		wallet: Observable<WalletT>
-		node: Observable<NodeT>
+	// Observe Input
+	wallet: Observable<WalletT>
+	node: Observable<NodeT>
 
-		// Wallet APIs
-		deriveNextAccount: (input?: DeriveNextAccountInput) => RadixT
-		switchAccount: (input: SwitchAccountInput) => RadixT
+	// Wallet APIs
+	deriveNextAccount: (input?: DeriveNextAccountInput) => RadixT
+	switchAccount: (input: SwitchAccountInput) => RadixT
 
-		activeAddress: Observable<AddressT>
-		activeAccount: Observable<AccountT>
-		accounts: Observable<AccountsT>
+	activeAddress: Observable<AddressT>
+	activeAccount: Observable<AccountT>
+	accounts: Observable<AccountsT>
 
-		// Active Address/Account APIs
-		tokenBalances: Observable<TokenBalances>
+	// Active Address/Account APIs
+	tokenBalances: Observable<TokenBalances>
 
-		errors: Observable<ErrorNotification>
-	}>
+	errors: Observable<ErrorNotification>
+}>

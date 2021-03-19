@@ -427,7 +427,7 @@ describe('Radix API', () => {
 		radix.api.tokenBalancesForAddress('' as any)
 	})
 
-	it.only('does not kill property observables when rpc requests fail', async (done) => {
+	it('does not kill property observables when rpc requests fail', async (done) => {
 		const subs = new Subscription()
 		let amountVal = 100
 		let counter = 0
@@ -454,22 +454,23 @@ describe('Radix API', () => {
 		radix.withWallet(createWallet())
 		radix.__withAPI(api)
 
-		radix.errors.subscribe(error => {
+		radix.errors.subscribe((error) => {
 			console.log(error)
 		})
 
 		const expectedValues = [100, 200, 300]
 
-		radix.tokenBalances.pipe(
-			map((tb) => tb.tokenBalances[0].amount.magnitude.valueOf()),
-			take(expectedValues.length),
-			toArray(),
-		).subscribe(
-			(amounts) => {
+		radix.tokenBalances
+			.pipe(
+				map((tb) => tb.tokenBalances[0].amount.magnitude.valueOf()),
+				take(expectedValues.length),
+				toArray(),
+			)
+			.subscribe((amounts) => {
 				expect(amounts).toEqual(expectedValues)
 				done()
-			}
-		).add(subs)
+			})
+			.add(subs)
 
 		radix
 			.deriveNextAccount({ alsoSwitchTo: true }) // 1

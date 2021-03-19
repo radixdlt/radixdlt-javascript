@@ -63,16 +63,17 @@ const create = (): RadixT => {
 	// Forwards calls to RadixCoreAPI, return type is a function: `(input?: I) => Observable<O>`
 	const fwdAPICall = <I extends unknown[], O>(
 		pickFn: (api: RadixCoreAPI) => (...input: I) => Observable<O>,
-	) => (...input: I) => coreAPI$.pipe(
-		mergeMap((a) => pickFn(a)(...input)),
-		catchError((error: Error) => {
-			errorNotificationSubject.next({
-				tag: 'api',
-				error,
-			})
-			return EMPTY
-		})
-	)
+	) => (...input: I) =>
+		coreAPI$.pipe(
+			mergeMap((a) => pickFn(a)(...input)),
+			catchError((error: Error) => {
+				errorNotificationSubject.next({
+					tag: 'api',
+					error,
+				})
+				return EMPTY
+			}),
+		)
 
 	const magic: () => Observable<Magic> = fwdAPICall((a) => a.magic)
 
@@ -104,7 +105,7 @@ const create = (): RadixT => {
 				}),
 			),
 		),
-		shareReplay(1)
+		shareReplay(1),
 	)
 
 	const node$ = merge(
@@ -165,7 +166,7 @@ const create = (): RadixT => {
 	return {
 		// we forward the full `RadixAPI`, but we also provide some convenience methods based on active account/address.
 		api: {
-			...api
+			...api,
 		},
 
 		// Primarily useful for testing
