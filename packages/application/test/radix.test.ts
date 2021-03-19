@@ -182,8 +182,8 @@ describe('Radix API', () => {
 	it('can connect and is chainable', () => {
 		const radix = Radix.create().connect(new URL('http://www.my.node.com'))
 		expect(radix).toBeDefined()
-		expect(radix.nativeToken).toBeDefined()
-		expect(radix.tokenBalancesForAddress).toBeDefined() // etc
+		expect(radix.api.nativeToken).toBeDefined()
+		expect(radix.api.tokenBalancesForAddress).toBeDefined() // etc
 	})
 
 	it('emits node connection without wallet', async (done) => {
@@ -286,7 +286,7 @@ describe('Radix API', () => {
 		const radix = Radix.create()
 		radix.__withAPI(mockAPI())
 
-		radix.nativeToken().subscribe(
+		radix.api.nativeToken().subscribe(
 			(token) => {
 				expect(token.symbol).toBe('XRD')
 				done()
@@ -424,13 +424,13 @@ describe('Radix API', () => {
 
 		radix.withWallet(createWallet())
 
-		radix.tokenBalancesForAddress('' as any)
+		radix.api.tokenBalancesForAddress('' as any)
 	})
 
-	it('does not kill property observables when rpc requests fail', async (done) => {
+	it.only('does not kill property observables when rpc requests fail', async (done) => {
 		const subs = new Subscription()
 		let amountVal = 100
-		let shouldEmitError = false
+		let counter = 0
 
 		const api = of(<RadixCoreAPI>{
 			...crashingAPI,
@@ -438,10 +438,12 @@ describe('Radix API', () => {
 			tokenBalancesForAddress: (
 				a: AddressT,
 			): Observable<TokenBalances> => {
-				if (shouldEmitError) {
+				if (counter > 2 && counter < 5) {
+					counter++
 					return throwError(() => new Error('Manual error'))
 				} else {
 					const observableBalance = of(balancesFor(a, amountVal))
+					counter++
 					amountVal += 100
 					return observableBalance
 				}
@@ -452,26 +454,24 @@ describe('Radix API', () => {
 		radix.withWallet(createWallet())
 		radix.__withAPI(api)
 
+		radix.errors.subscribe(error => {
+			console.log(error)
+		})
+
 		const expectedValues = [100, 200, 300]
 
-		const tokenBalancesToTest$ = radix.tokenBalances.pipe(
+		radix.tokenBalances.pipe(
 			map((tb) => tb.tokenBalances[0].amount.magnitude.valueOf()),
 			take(expectedValues.length),
 			toArray(),
-		)
-
-		tokenBalancesToTest$
-			.subscribe(
-				(amounts) => {
-					expect(amounts).toStrictEqual(expectedValues)
-					done()
-				},
-				(e) => done(e),
-			)
-			.add(subs)
+		).subscribe(
+			(amounts) => {
+				expect(amounts).toEqual(expectedValues)
+				done()
+			}
+		).add(subs)
 
 		radix
-			.withWallet(createWallet()) //0
 			.deriveNextAccount({ alsoSwitchTo: true }) // 1
 			.deriveNextAccount({ alsoSwitchTo: true }) // 2
 			.deriveNextAccount({ alsoSwitchTo: true }) // 3

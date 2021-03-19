@@ -110,8 +110,9 @@ export type RadixCoreAPI = RadixAPI &
 		magic: () => Observable<Magic>
 	}>
 
-export type RadixT = RadixAPI &
+export type RadixT =
 	Readonly<{
+		api: RadixAPI,
 		// Input
 		connect: (url: URL) => RadixT
 
