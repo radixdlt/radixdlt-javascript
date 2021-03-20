@@ -175,11 +175,7 @@ const create = (): RadixT => {
 			return this
 		},
 		__withAPI: function (radixCoreAPI$: Observable<RadixCoreAPI>): RadixT {
-			radixCoreAPI$
-				.subscribe(
-					(a) => coreAPISubject.next(a)
-				)
-				.add(subs)
+			radixCoreAPI$.subscribe((a) => coreAPISubject.next(a)).add(subs)
 			return this
 		},
 		connect: function (url: URL): RadixT {

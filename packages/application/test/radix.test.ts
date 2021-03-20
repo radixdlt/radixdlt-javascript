@@ -16,7 +16,13 @@ import {
 	TransactionStatus,
 } from '../src/_types'
 import { Radix } from '../src/radix'
-import { Address, AddressT, HDMasterSeed, Wallet, WalletT } from '@radixdlt/account'
+import {
+	Address,
+	AddressT,
+	HDMasterSeed,
+	Wallet,
+	WalletT,
+} from '@radixdlt/account'
 import { Observable, of, Subscription, throwError } from 'rxjs'
 import { Amount, Magic, magicFromNumber, maxAmount } from '@radixdlt/primitives'
 import { map, take, toArray } from 'rxjs/operators'
@@ -428,7 +434,11 @@ describe('Radix API', () => {
 
 		radix.withWallet(createWallet())
 
-		radix.api.tokenBalancesForAddress(Address.fromBase58String('9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT')._unsafeUnwrap())
+		radix.api.tokenBalancesForAddress(
+			Address.fromBase58String(
+				'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+			)._unsafeUnwrap(),
+		)
 	})
 
 	it('does not kill property observables when rpc requests fail', async (done) => {

@@ -72,9 +72,7 @@ export type RadixAPI = Readonly<{
 	executedTransactions: (
 		input: Readonly<{
 			address: AddressT
-
-			// pagination
-			size: number // must be larger than 0
+			size: number
 			cursor?: AtomIdentifierT
 		}>,
 	) => Observable<ExecutedTransactions>

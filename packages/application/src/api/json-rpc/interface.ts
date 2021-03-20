@@ -11,7 +11,7 @@ import {
 	NetworkTransactionThroughput,
 	GetAtomForTransaction,
 	SubmitSignedAtom,
-	API_PREFIX,
+	Endpoint
 } from './_types'
 import { Result, ResultAsync } from 'neverthrow'
 import {
@@ -30,9 +30,9 @@ import {
 import { andThen, pipe } from 'ramda'
 
 const callAPI = <Params extends unknown[], DecodedResponse>(
-	endpoint: ApiMethod,
+	endpoint: Endpoint,
 ) => (
-	call: (endpoint: ApiMethod, params: Params) => Promise<unknown>,
+	call: (endpoint: Endpoint, params: Params) => Promise<unknown>,
 	handleResponse: (response: unknown) => Result<DecodedResponse, Error[]>,
 ) => (...params: Params) =>
 	pipe(
@@ -43,16 +43,16 @@ const callAPI = <Params extends unknown[], DecodedResponse>(
 			// @ts-ignore
 			ResultAsync.fromPromise(value, (e: Error[]) => e).andThen((r) => r),
 		// @ts-ignore
-	)(`${API_PREFIX}.${endpoint}`, ...params)
+	)(endpoint, ...params)
 
 const setupAPICall = (
-	call: (endpoint: ApiMethod, ...params: unknown[]) => Promise<unknown>,
+	call: (endpoint: Endpoint, ...params: unknown[]) => Promise<unknown>,
 ) => <I extends unknown[], R>(
 	handleResponse: (response: unknown) => Result<R, Error[]>,
-) => (endpoint: ApiMethod) => callAPI<I, R>(endpoint)(call, handleResponse)
+) => (endpoint: Endpoint) => callAPI<I, R>(endpoint)(call, handleResponse)
 
 export const getAPI = (
-	call: (endpoint: ApiMethod, ...params: unknown[]) => Promise<unknown>,
+	call: (endpoint: Endpoint, ...params: unknown[]) => Promise<unknown>,
 ) => {
 	const setupAPIResponse = setupAPICall(call)
 
@@ -60,55 +60,58 @@ export const getAPI = (
 		[ApiMethod.UNIVERSE_MAGIC]: setupAPIResponse<
 			UniverseMagic.Input,
 			UniverseMagic.DecodedResponse
-		>(handleUniverseMagicResponse)(ApiMethod.UNIVERSE_MAGIC),
+		>(handleUniverseMagicResponse)('radix.universeMagic'),
 
 		[ApiMethod.TOKEN_BALANCES]: setupAPIResponse<
 			TokenBalances.Input,
 			TokenBalances.DecodedResponse
-		>(handleTokenBalancesResponse)(ApiMethod.TOKEN_BALANCES),
+		>(handleTokenBalancesResponse)('radix.tokenBalances'),
 
 		[ApiMethod.EXECUTED_TXS]: setupAPIResponse<
 			ExecutedTransactions.Input,
 			ExecutedTransactions.DecodedResponse
-		>(handleExecutedTransactionsResponse)(ApiMethod.EXECUTED_TXS),
+		>(handleExecutedTransactionsResponse)('radix.executedTransactions'),
 
 		[ApiMethod.NATIVE_TOKEN]: setupAPIResponse<
 			NativeToken.Input,
 			NativeToken.DecodedResponse
-		>(handleNativeTokenResponse)(ApiMethod.NATIVE_TOKEN),
+		>(handleNativeTokenResponse)('radix.nativeToken'),
 
 		[ApiMethod.TOKEN_FEE_FOR_TX]: setupAPIResponse<
 			TokenFeeForTransaction.Input,
 			TokenFeeForTransaction.DecodedResponse
-		>(handleTokenFeeForTxResponse)(ApiMethod.TOKEN_FEE_FOR_TX),
+		>(handleTokenFeeForTxResponse)('radix.tokenFeeForTransaction'),
 
-		[ApiMethod.STAKES]: setupAPIResponse<Stakes.Input, Stakes.DecodedResponse>(
-			handleStakesResponse,
-		)(ApiMethod.STAKES),
+		[ApiMethod.STAKES]: setupAPIResponse<
+			Stakes.Input,
+			Stakes.DecodedResponse
+		>(handleStakesResponse)('radix.stakes'),
 
 		[ApiMethod.TX_STATUS]: setupAPIResponse<
 			TransactionStatus.Input,
 			TransactionStatus.DecodedResponse
-		>(handleTransactionStatusResponse)(ApiMethod.TX_STATUS),
+		>(handleTransactionStatusResponse)('radix.transactionStatus'),
 
 		[ApiMethod.NETWORK_TX_THROUGHPUT]: setupAPIResponse<
 			NetworkTransactionThroughput.Input,
 			NetworkTransactionThroughput.DecodedResponse
-		>(handleNetworkTxThroughputResponse)(ApiMethod.NETWORK_TX_THROUGHPUT),
+		>(handleNetworkTxThroughputResponse)(
+			'radix.networkTransactionThroughput',
+		),
 
 		[ApiMethod.NETWORK_TX_DEMAND]: setupAPIResponse<
 			NetworkTransactionDemand.Input,
 			NetworkTransactionDemand.DecodedResponse
-		>(handleNetworkTxDemandResponse)(ApiMethod.NETWORK_TX_DEMAND),
+		>(handleNetworkTxDemandResponse)('radix.networkTransactionDemand'),
 
 		[ApiMethod.GET_ATOM_FOR_TX]: setupAPIResponse<
 			GetAtomForTransaction.Input,
 			GetAtomForTransaction.DecodedResponse
-		>(handleGetAtomForTxResponse)(ApiMethod.GET_ATOM_FOR_TX),
+		>(handleGetAtomForTxResponse)('radix.getAtomForTransaction'),
 
 		[ApiMethod.SUBMIT_SIGNED_ATOM]: setupAPIResponse<
 			SubmitSignedAtom.Input,
 			SubmitSignedAtom.DecodedResponse
-		>(handleSubmitSignedAtomResponse)(ApiMethod.SUBMIT_SIGNED_ATOM),
+		>(handleSubmitSignedAtomResponse)('radix.submitSignedAtom'),
 	}
 }

@@ -12,6 +12,8 @@ import {
 } from '@radixdlt/atom'
 import { AmountT } from '@radixdlt/primitives'
 
+type API_PREFIX = 'radix'
+
 export enum ApiMethod {
 	UNIVERSE_MAGIC = 'universeMagic',
 	TOKEN_BALANCES = 'tokenBalances',
@@ -28,7 +30,7 @@ export enum ApiMethod {
 	SUBMIT_SIGNED_ATOM = 'submitSignedAtom',
 }
 
-export const API_PREFIX = 'radix'
+export type Endpoint = `${API_PREFIX}.${typeof ApiMethod[keyof typeof ApiMethod]}`
 
 type Action = TransferTokensActionT | BurnTokensActionT
 
