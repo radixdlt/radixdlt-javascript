@@ -5,7 +5,6 @@ import {
 	NetworkTransactionThroughput,
 	NodeT,
 	RadixCoreAPI,
-	RadixT,
 	SignedAtom,
 	Stakes,
 	SubmittedAtomResponse,
@@ -14,7 +13,7 @@ import {
 	TokenFeeForTransaction,
 	Transaction,
 	TransactionStatus,
-} from '../src/_types'
+} from '../src/api/_types'
 import { Radix } from '../src/radix'
 import {
 	Address,
@@ -33,6 +32,7 @@ import {
 } from '@radixdlt/atom'
 import { UInt256 } from '@radixdlt/uint256'
 import { KeystoreT } from '@radixdlt/crypto'
+import { RadixT } from '../src/_types'
 
 const createWallet = (): WalletT => {
 	const masterSeed = HDMasterSeed.fromSeed(

@@ -4,13 +4,7 @@ import {
 	Wallet,
 	WalletT,
 } from '@radixdlt/account'
-import {
-	NodeT,
-	RadixAPI,
-	RadixCoreAPI,
-	RadixT,
-	ErrorNotification,
-} from './_types'
+import { NodeT, RadixAPI, RadixCoreAPI } from './api/_types'
 
 import {
 	mergeMap,
@@ -34,6 +28,7 @@ import {
 import { radixCoreAPI } from './api/radixCoreAPI'
 import { Magic } from '@radixdlt/primitives'
 import { KeystoreT } from '@radixdlt/crypto'
+import { ErrorNotification, RadixT } from './_types'
 
 const create = (): RadixT => {
 	const subs = new Subscription()

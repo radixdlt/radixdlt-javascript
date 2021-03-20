@@ -11,7 +11,7 @@ import {
 	NetworkTransactionThroughput,
 	GetAtomForTransaction,
 	SubmitSignedAtom,
-	Endpoint
+	Endpoint,
 } from './_types'
 import { Result, ResultAsync } from 'neverthrow'
 import {
