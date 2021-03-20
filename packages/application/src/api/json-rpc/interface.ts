@@ -1,5 +1,5 @@
 import {
-	Endpoint,
+	ApiMethod,
 	ExecutedTransactions,
 	NativeToken,
 	TokenBalances,
@@ -11,6 +11,7 @@ import {
 	NetworkTransactionThroughput,
 	GetAtomForTransaction,
 	SubmitSignedAtom,
+	API_PREFIX,
 } from './_types'
 import { Result, ResultAsync } from 'neverthrow'
 import {
@@ -29,9 +30,9 @@ import {
 import { andThen, pipe } from 'ramda'
 
 const callAPI = <Params extends unknown[], DecodedResponse>(
-	endpoint: Endpoint,
+	endpoint: ApiMethod,
 ) => (
-	call: (endpoint: Endpoint, params: Params) => Promise<unknown>,
+	call: (endpoint: ApiMethod, params: Params) => Promise<unknown>,
 	handleResponse: (response: unknown) => Result<DecodedResponse, Error[]>,
 ) => (...params: Params) =>
 	pipe(
@@ -42,72 +43,72 @@ const callAPI = <Params extends unknown[], DecodedResponse>(
 			// @ts-ignore
 			ResultAsync.fromPromise(value, (e: Error[]) => e).andThen((r) => r),
 		// @ts-ignore
-	)(endpoint, ...params)
+	)(`${API_PREFIX}.${endpoint}`, ...params)
 
 const setupAPICall = (
-	call: (endpoint: Endpoint, ...params: unknown[]) => Promise<unknown>,
+	call: (endpoint: ApiMethod, ...params: unknown[]) => Promise<unknown>,
 ) => <I extends unknown[], R>(
 	handleResponse: (response: unknown) => Result<R, Error[]>,
-) => (endpoint: Endpoint) => callAPI<I, R>(endpoint)(call, handleResponse)
+) => (endpoint: ApiMethod) => callAPI<I, R>(endpoint)(call, handleResponse)
 
 export const getAPI = (
-	call: (endpoint: Endpoint, ...params: unknown[]) => Promise<unknown>,
+	call: (endpoint: ApiMethod, ...params: unknown[]) => Promise<unknown>,
 ) => {
 	const setupAPIResponse = setupAPICall(call)
 
 	return {
-		universeMagic: setupAPIResponse<
+		[ApiMethod.UNIVERSE_MAGIC]: setupAPIResponse<
 			UniverseMagic.Input,
 			UniverseMagic.DecodedResponse
-		>(handleUniverseMagicResponse)(Endpoint.UNIVERSE_MAGIC),
+		>(handleUniverseMagicResponse)(ApiMethod.UNIVERSE_MAGIC),
 
-		tokenBalances: setupAPIResponse<
+		[ApiMethod.TOKEN_BALANCES]: setupAPIResponse<
 			TokenBalances.Input,
 			TokenBalances.DecodedResponse
-		>(handleTokenBalancesResponse)(Endpoint.TOKEN_BALANCES),
+		>(handleTokenBalancesResponse)(ApiMethod.TOKEN_BALANCES),
 
-		executedTransactions: setupAPIResponse<
+		[ApiMethod.EXECUTED_TXS]: setupAPIResponse<
 			ExecutedTransactions.Input,
 			ExecutedTransactions.DecodedResponse
-		>(handleExecutedTransactionsResponse)(Endpoint.EXECUTED_TXS),
+		>(handleExecutedTransactionsResponse)(ApiMethod.EXECUTED_TXS),
 
-		nativeToken: setupAPIResponse<
+		[ApiMethod.NATIVE_TOKEN]: setupAPIResponse<
 			NativeToken.Input,
 			NativeToken.DecodedResponse
-		>(handleNativeTokenResponse)(Endpoint.NATIVE_TOKEN),
+		>(handleNativeTokenResponse)(ApiMethod.NATIVE_TOKEN),
 
-		tokenFeeForTransaction: setupAPIResponse<
+		[ApiMethod.TOKEN_FEE_FOR_TX]: setupAPIResponse<
 			TokenFeeForTransaction.Input,
 			TokenFeeForTransaction.DecodedResponse
-		>(handleTokenFeeForTxResponse)(Endpoint.TOKEN_FEE_FOR_TX),
+		>(handleTokenFeeForTxResponse)(ApiMethod.TOKEN_FEE_FOR_TX),
 
-		stakes: setupAPIResponse<Stakes.Input, Stakes.DecodedResponse>(
+		[ApiMethod.STAKES]: setupAPIResponse<Stakes.Input, Stakes.DecodedResponse>(
 			handleStakesResponse,
-		)(Endpoint.STAKES),
+		)(ApiMethod.STAKES),
 
-		transactionStatus: setupAPIResponse<
+		[ApiMethod.TX_STATUS]: setupAPIResponse<
 			TransactionStatus.Input,
 			TransactionStatus.DecodedResponse
-		>(handleTransactionStatusResponse)(Endpoint.TX_STATUS),
+		>(handleTransactionStatusResponse)(ApiMethod.TX_STATUS),
 
-		networkTransactionThroughput: setupAPIResponse<
+		[ApiMethod.NETWORK_TX_THROUGHPUT]: setupAPIResponse<
 			NetworkTransactionThroughput.Input,
 			NetworkTransactionThroughput.DecodedResponse
-		>(handleNetworkTxThroughputResponse)(Endpoint.NETWORK_TX_THROUGHPUT),
+		>(handleNetworkTxThroughputResponse)(ApiMethod.NETWORK_TX_THROUGHPUT),
 
-		networkTransactionDemand: setupAPIResponse<
+		[ApiMethod.NETWORK_TX_DEMAND]: setupAPIResponse<
 			NetworkTransactionDemand.Input,
 			NetworkTransactionDemand.DecodedResponse
-		>(handleNetworkTxDemandResponse)(Endpoint.NETWORK_TX_DEMAND),
+		>(handleNetworkTxDemandResponse)(ApiMethod.NETWORK_TX_DEMAND),
 
-		getAtomForTransaction: setupAPIResponse<
+		[ApiMethod.GET_ATOM_FOR_TX]: setupAPIResponse<
 			GetAtomForTransaction.Input,
 			GetAtomForTransaction.DecodedResponse
-		>(handleGetAtomForTxResponse)(Endpoint.GET_ATOM_FOR_TX),
+		>(handleGetAtomForTxResponse)(ApiMethod.GET_ATOM_FOR_TX),
 
-		submitSignedAtom: setupAPIResponse<
+		[ApiMethod.SUBMIT_SIGNED_ATOM]: setupAPIResponse<
 			SubmitSignedAtom.Input,
 			SubmitSignedAtom.DecodedResponse
-		>(handleSubmitSignedAtomResponse)(Endpoint.SUBMIT_SIGNED_ATOM),
+		>(handleSubmitSignedAtomResponse)(ApiMethod.SUBMIT_SIGNED_ATOM),
 	}
 }

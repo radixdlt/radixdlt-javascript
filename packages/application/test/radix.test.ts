@@ -16,7 +16,7 @@ import {
 	TransactionStatus,
 } from '../src/_types'
 import { Radix } from '../src/radix'
-import { AddressT, HDMasterSeed, Wallet, WalletT } from '@radixdlt/account'
+import { Address, AddressT, HDMasterSeed, Wallet, WalletT } from '@radixdlt/account'
 import { Observable, of, Subscription, throwError } from 'rxjs'
 import { Amount, Magic, magicFromNumber, maxAmount } from '@radixdlt/primitives'
 import { map, take, toArray } from 'rxjs/operators'
@@ -406,7 +406,11 @@ describe('Radix API', () => {
 	it('should forward an error when calling api', (done) => {
 		const subs = new Subscription()
 
-		const radix = Radix.create().__withAPI(mockAPI())
+		const api = of(<RadixCoreAPI>{
+			...crashingAPI,
+		})
+
+		const radix = Radix.create().__withAPI(api)
 
 		radix.tokenBalances
 			.subscribe((n) => {
@@ -424,7 +428,7 @@ describe('Radix API', () => {
 
 		radix.withWallet(createWallet())
 
-		radix.api.tokenBalancesForAddress('' as any)
+		radix.api.tokenBalancesForAddress(Address.fromBase58String('9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT')._unsafeUnwrap())
 	})
 
 	it('does not kill property observables when rpc requests fail', async (done) => {
@@ -453,10 +457,6 @@ describe('Radix API', () => {
 		const radix = Radix.create()
 		radix.withWallet(createWallet())
 		radix.__withAPI(api)
-
-		radix.errors.subscribe((error) => {
-			console.log(error)
-		})
 
 		const expectedValues = [100, 200, 300]
 

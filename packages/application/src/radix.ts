@@ -177,16 +177,7 @@ const create = (): RadixT => {
 		__withAPI: function (radixCoreAPI$: Observable<RadixCoreAPI>): RadixT {
 			radixCoreAPI$
 				.subscribe(
-					(a) => coreAPISubject.next(a),
-					(e) => {
-						console.log(
-							`☣️ SUPPRESSED ERROR: ${JSON.stringify(
-								e,
-								null,
-								4,
-							)}`,
-						)
-					},
+					(a) => coreAPISubject.next(a)
 				)
 				.add(subs)
 			return this
@@ -233,8 +224,6 @@ const create = (): RadixT => {
 			switchAccountSubject.next(input)
 			return this
 		},
-
-		/* eslint-enable functional/no-this-expression */
 
 		// Wallet APIs
 		activeAddress,
