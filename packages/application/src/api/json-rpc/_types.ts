@@ -11,6 +11,7 @@ import {
 	TokenPermission,
 } from '@radixdlt/atom'
 import { AmountT } from '@radixdlt/primitives'
+import { UInt256 } from '@radixdlt/uint256'
 
 export enum Endpoint {
 	UNIVERSE_MAGIC = 'radix.universeMagic',
@@ -74,6 +75,12 @@ export namespace TokenBalances {
 	}
 }
 
+export type PositiveNumber = Readonly<{
+	// We DONT need 256 bits... but we need UNSIGNED, and this is the only unsigned type we have, now we only need to ensure that
+	// the value is not zero.
+	value: UInt256
+}>
+
 export namespace ExecutedTransactions {
 	type RawTransferAction = {
 		type: UserActionType
@@ -91,9 +98,9 @@ export namespace ExecutedTransactions {
 	}
 
 	export type Input = [
-		address: string,
-		size: number, // must be > 0
-		cursor?: string, // AtomIdentifier
+		address: AddressT,
+		size: PositiveNumber,
+		cursor?: AtomIdentifierT,
 	]
 
 	export type Response = {
@@ -111,20 +118,39 @@ export namespace ExecutedTransactions {
 	}
 
 	export type DecodedResponse = {
-		cursor: string
+		cursor: AtomIdentifierT
 		transactions: [
 			{
-				atomId: string
+				atomId: AtomIdentifierT
+				type: TransactionType
 				sentAt: Date
 				fee: AmountT
 				message?: {
-					msg: string
-					encryptionScheme: string
+					msg: EncryptedMessage
+					encryptionScheme: EncryptionScheme
 				}
 				actions: Action[]
 			},
 		]
 	}
+}
+
+export type EncryptedMessage = Readonly<{
+	buffer: Buffer
+}>
+
+export enum EncryptionScheme {
+	UNKNOWN = 'unknown',
+	ECIES_DH_ADD_AES_GCM_V0 = 'ECIES_DH_ADD_AES_GCM_V0',
+}
+
+export enum TransactionType {
+	// Sent _TO_ active account
+	INCOMING = 'incoming',
+	// Sent _FROM_ active account
+	OUTGOING = 'outgoing',
+	// A transaction from someone else to someone else (N.B. that "someone else" might very well be yourself, but just not the active account.)
+	UNRELATED = 'unrelated',
 }
 
 export namespace NativeToken {
@@ -152,10 +178,10 @@ export namespace NativeToken {
 		symbol: string
 		description?: string
 		granularity: AmountT
-		isSupplyMutable: boolean
+		hasMutableSupply: boolean
 		currentSupply: AmountT
-		tokenInfoURL: URL
 		iconURL: URL
+		tokenInfoURL: URL
 		tokenPermission: TokenPermissions
 	}
 }
