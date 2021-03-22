@@ -28,7 +28,7 @@ import {
 import { radixCoreAPI } from './api/radixCoreAPI'
 import { Magic } from '@radixdlt/primitives'
 import { KeystoreT } from '@radixdlt/crypto'
-import { ErrorNotification, RadixT } from './_types'
+import { ErrorNotification, ErrorTag, RadixT } from './_types'
 
 const create = (): RadixT => {
 	const subs = new Subscription()
@@ -63,7 +63,7 @@ const create = (): RadixT => {
 			mergeMap((a) => pickFn(a)(...input)),
 			catchError((error: Error) => {
 				errorNotificationSubject.next({
-					tag: 'api',
+					tag: ErrorTag.API,
 					error,
 				})
 				return EMPTY
@@ -93,7 +93,7 @@ const create = (): RadixT => {
 			api.tokenBalancesForAddress(activeAddress).pipe(
 				catchError((error: Error) => {
 					errorNotificationSubject.next({
-						tag: 'api',
+						tag: ErrorTag.API,
 						error,
 					})
 					return EMPTY
@@ -128,7 +128,7 @@ const create = (): RadixT => {
 			(n) => nodeSubject.next(n),
 			(error: Error) => {
 				errorNotificationSubject.next({
-					tag: 'node',
+					tag: ErrorTag.NODE,
 					error,
 				})
 			},
@@ -193,7 +193,12 @@ const create = (): RadixT => {
 			}).then((walletResult) => {
 				walletResult.match(
 					(w) => _withWallet(w),
-					(e) => walletSubject.error(e),
+					(error) => {
+						errorNotificationSubject.next({
+							tag: ErrorTag.WALLET,
+							error,
+						})
+					},
 				)
 			})
 

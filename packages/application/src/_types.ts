@@ -10,20 +10,20 @@ import { Observable } from 'packages/account/node_modules/rxjs/dist/types'
 import { KeystoreT } from 'packages/crypto/src/keystore/_types'
 import { NodeT, RadixAPI, RadixCoreAPI, TokenBalances } from './api/_types'
 
-type NodeError = {
-	tag: 'node'
+type ErrorT<T extends ErrorTag> = {
+	tag: T
 	error: Error
 }
 
-type WalletError = {
-	tag: 'wallet'
-	error: Error
+export enum ErrorTag {
+	NODE = 'node',
+	WALLET = 'wallet',
+	API = 'api',
 }
 
-type APIError = {
-	tag: 'api'
-	error: Error
-}
+type APIError = ErrorT<ErrorTag.API>
+type WalletError = ErrorT<ErrorTag.WALLET>
+type NodeError = ErrorT<ErrorTag.NODE>
 
 export type ErrorNotification = NodeError | WalletError | APIError
 

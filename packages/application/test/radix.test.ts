@@ -32,7 +32,7 @@ import {
 } from '@radixdlt/atom'
 import { UInt256 } from '@radixdlt/uint256'
 import { KeystoreT } from '@radixdlt/crypto'
-import { RadixT } from '../src/_types'
+import { RadixT, ErrorTag } from '../src/_types'
 
 const createWallet = (): WalletT => {
 	const masterSeed = HDMasterSeed.fromSeed(
@@ -320,6 +320,7 @@ describe('Radix API', () => {
 		radix.errors
 			.subscribe({
 				next: (error) => {
+					expect(error.tag).toEqual(ErrorTag.NODE)
 					done()
 				},
 			})
@@ -351,6 +352,39 @@ describe('Radix API', () => {
 			Promise.resolve(keystoreForTest.keystore)
 
 		radix.login(keystoreForTest.password, loadKeystore)
+	})
+
+	it('should handle wallet error', (done) => {
+		const radix = Radix.create()
+
+		radix.wallet.subscribe((wallet: WalletT) => {
+			const account = wallet.__unsafeGetAccount()
+			expect(account.hdPath.addressIndex.value()).toBe(0)
+			account.derivePublicKey().subscribe(
+				(pubKey) => {
+					expect(pubKey.toString(true)).toBe(
+						keystoreForTest.publicKeysCompressed[0],
+					)
+					done()
+				},
+				(error) => done(error),
+			)
+		})
+
+		radix.errors.subscribe({
+			next: (error) => {
+				expect(error.tag).toEqual(ErrorTag.WALLET)
+			},
+		})
+
+		const loadKeystoreError = (): Promise<KeystoreT> =>
+			Promise.reject('Error!')
+
+		const loadKeystoreSuccess = (): Promise<KeystoreT> =>
+			Promise.resolve(keystoreForTest.keystore)
+
+		radix.login(keystoreForTest.password, loadKeystoreError)
+		radix.login(keystoreForTest.password, loadKeystoreSuccess)
 	})
 
 	it('radix can derive accounts', async (done) => {
@@ -427,6 +461,7 @@ describe('Radix API', () => {
 		radix.errors
 			.subscribe({
 				next: (error) => {
+					expect(error.tag).toEqual(ErrorTag.API)
 					done()
 				},
 			})
@@ -440,6 +475,8 @@ describe('Radix API', () => {
 			)._unsafeUnwrap(),
 		)
 	})
+
+	it('should forward a wallet error', () => {})
 
 	it('does not kill property observables when rpc requests fail', async (done) => {
 		const subs = new Subscription()
