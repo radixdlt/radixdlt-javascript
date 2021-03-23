@@ -32,7 +32,8 @@ import {
 } from '@radixdlt/atom'
 import { UInt256 } from '@radixdlt/uint256'
 import { KeystoreT } from '@radixdlt/crypto'
-import { RadixT, ErrorTag } from '../src/_types'
+import { RadixT } from '../src/_types'
+import { ErrorCategory } from '../src/errors'
 
 const createWallet = (): WalletT => {
 	const masterSeed = HDMasterSeed.fromSeed(
@@ -188,15 +189,15 @@ describe('Radix API', () => {
 	it('can connect and is chainable', () => {
 		const radix = Radix.create().connect(new URL('http://www.my.node.com'))
 		expect(radix).toBeDefined()
-		expect(radix.api.nativeToken).toBeDefined()
-		expect(radix.api.tokenBalancesForAddress).toBeDefined() // etc
+		expect(radix.ledger.nativeToken).toBeDefined()
+		expect(radix.ledger.tokenBalancesForAddress).toBeDefined() // etc
 	})
 
 	it('emits node connection without wallet', async (done) => {
 		const radix = Radix.create()
 		radix.__withAPI(mockAPI())
 
-		radix.node.subscribe(
+		radix.__node.subscribe(
 			(node) => {
 				expect(node.url.host).toBe('www.example.com')
 				done()
@@ -212,7 +213,7 @@ describe('Radix API', () => {
 	): Promise<void> => {
 		const radix = Radix.create()
 
-		radix.node
+		radix.__node
 			.pipe(
 				map((n: NodeT) => n.url.toString()),
 				take(2),
@@ -292,7 +293,7 @@ describe('Radix API', () => {
 		const radix = Radix.create()
 		radix.__withAPI(mockAPI())
 
-		radix.api.nativeToken().subscribe(
+		radix.ledger.nativeToken().subscribe(
 			(token) => {
 				expect(token.symbol).toBe('XRD')
 				done()
@@ -311,7 +312,7 @@ describe('Radix API', () => {
 
 		const radix = Radix.create()
 
-		radix.node
+		radix.__node
 			.subscribe((n) => {
 				done(new Error('Expected error but did not get any'))
 			})
@@ -320,7 +321,7 @@ describe('Radix API', () => {
 		radix.errors
 			.subscribe({
 				next: (error) => {
-					expect(error.tag).toEqual(ErrorTag.NODE)
+					expect(error.category).toEqual(ErrorCategory.NODE)
 					done()
 				},
 			})
@@ -331,7 +332,7 @@ describe('Radix API', () => {
 
 	it('login with wallet', async (done) => {
 		const radix = Radix.create()
-		radix.wallet.subscribe(
+		radix.__wallet.subscribe(
 			(wallet: WalletT) => {
 				const account = wallet.__unsafeGetAccount()
 				expect(account.hdPath.addressIndex.value()).toBe(0)
@@ -357,7 +358,7 @@ describe('Radix API', () => {
 	it('should handle wallet error', (done) => {
 		const radix = Radix.create()
 
-		radix.wallet.subscribe((wallet: WalletT) => {
+		radix.__wallet.subscribe((wallet: WalletT) => {
 			const account = wallet.__unsafeGetAccount()
 			expect(account.hdPath.addressIndex.value()).toBe(0)
 			account.derivePublicKey().subscribe(
@@ -373,7 +374,7 @@ describe('Radix API', () => {
 
 		radix.errors.subscribe({
 			next: (error) => {
-				expect(error.tag).toEqual(ErrorTag.WALLET)
+				expect(error.category).toEqual(ErrorCategory.WALLET)
 			},
 		})
 
@@ -461,7 +462,7 @@ describe('Radix API', () => {
 		radix.errors
 			.subscribe({
 				next: (error) => {
-					expect(error.tag).toEqual(ErrorTag.API)
+					expect(error.category).toEqual(ErrorCategory.API)
 					done()
 				},
 			})
@@ -469,7 +470,7 @@ describe('Radix API', () => {
 
 		radix.withWallet(createWallet())
 
-		radix.api.tokenBalancesForAddress(
+		radix.ledger.tokenBalancesForAddress(
 			Address.fromBase58String(
 				'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
 			)._unsafeUnwrap(),
