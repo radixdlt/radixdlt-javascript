@@ -33,7 +33,7 @@ import {
 import { UInt256 } from '@radixdlt/uint256'
 import { KeystoreT } from '@radixdlt/crypto'
 import { RadixT } from '../src/_types'
-import { ErrorCategory } from '../src/errors'
+import { ErrorCategory, ErrorCause } from '../src/errors'
 
 const createWallet = (): WalletT => {
 	const masterSeed = HDMasterSeed.fromSeed(
@@ -447,9 +447,7 @@ describe('Radix API', () => {
 	it('should forward an error when calling api', (done) => {
 		const subs = new Subscription()
 
-		const api = of(<RadixCoreAPI>{
-			...crashingAPI,
-		})
+		const api = mockAPI()
 
 		const radix = Radix.create().__withAPI(api)
 
@@ -463,6 +461,7 @@ describe('Radix API', () => {
 			.subscribe({
 				next: (error) => {
 					expect(error.category).toEqual(ErrorCategory.API)
+					expect(error.cause).toEqual(ErrorCause.TOKEN_BALANCES_FAILED)
 					done()
 				},
 			})
@@ -476,8 +475,6 @@ describe('Radix API', () => {
 			)._unsafeUnwrap(),
 		)
 	})
-
-	it('should forward a wallet error', () => {})
 
 	it('does not kill property observables when rpc requests fail', async (done) => {
 		const subs = new Subscription()
