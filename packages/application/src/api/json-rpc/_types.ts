@@ -11,23 +11,26 @@ import {
 	TokenPermission,
 } from '@radixdlt/atom'
 import { AmountT } from '@radixdlt/primitives'
-import { UInt256 } from '@radixdlt/uint256'
 
-export enum Endpoint {
-	UNIVERSE_MAGIC = 'radix.universeMagic',
-	TOKEN_BALANCES = 'radix.tokenBalances',
-	EXECUTED_TXS = 'radix.executedTransactions',
-	STAKES = 'radix.stakes',
-	UNSTAKES = 'radix.unstakes',
-	TX_STATUS = 'radix.transactionStatus',
-	NETWORK_TX_THROUGHPUT = 'radix.networkTransactionThroughput',
-	NETWORK_TX_DEMAND = 'radix.networkTransactionDemand',
-	VALIDATORS = 'radix.validators',
-	NATIVE_TOKEN = 'radix.nativeToken',
-	TOKEN_FEE_FOR_TX = 'radix.tokenFeeForTransaction',
-	GET_ATOM_FOR_TX = 'radix.getAtomForTransaction',
-	SUBMIT_SIGNED_ATOM = 'radix.submitSignedAtom',
+type API_PREFIX = 'radix'
+
+export enum ApiMethod {
+	UNIVERSE_MAGIC = 'universeMagic',
+	TOKEN_BALANCES = 'tokenBalances',
+	EXECUTED_TXS = 'executedTransactions',
+	STAKES = 'stakes',
+	UNSTAKES = 'unstakes',
+	TX_STATUS = 'transactionStatus',
+	NETWORK_TX_THROUGHPUT = 'networkTransactionThroughput',
+	NETWORK_TX_DEMAND = 'networkTransactionDemand',
+	VALIDATORS = 'validators',
+	NATIVE_TOKEN = 'nativeToken',
+	TOKEN_FEE_FOR_TX = 'tokenFeeForTransaction',
+	GET_ATOM_FOR_TX = 'getAtomForTransaction',
+	SUBMIT_SIGNED_ATOM = 'submitSignedAtom',
 }
+
+export type Endpoint = `${API_PREFIX}.${typeof ApiMethod[keyof typeof ApiMethod]}`
 
 type Action = TransferTokensActionT | BurnTokensActionT
 
@@ -75,12 +78,6 @@ export namespace TokenBalances {
 	}
 }
 
-export type PositiveNumber = Readonly<{
-	// We DONT need 256 bits... but we need UNSIGNED, and this is the only unsigned type we have, now we only need to ensure that
-	// the value is not zero.
-	value: UInt256
-}>
-
 export namespace ExecutedTransactions {
 	type RawTransferAction = {
 		type: UserActionType
@@ -98,9 +95,9 @@ export namespace ExecutedTransactions {
 	}
 
 	export type Input = [
-		address: AddressT,
-		size: PositiveNumber,
-		cursor?: AtomIdentifierT,
+		address: string,
+		size: number, // must be > 0
+		cursor?: string, // AtomIdentifier
 	]
 
 	export type Response = {
@@ -118,39 +115,20 @@ export namespace ExecutedTransactions {
 	}
 
 	export type DecodedResponse = {
-		cursor: AtomIdentifierT
+		cursor: string
 		transactions: [
 			{
-				atomId: AtomIdentifierT
-				type: TransactionType
+				atomId: string
 				sentAt: Date
 				fee: AmountT
 				message?: {
-					msg: EncryptedMessage
-					encryptionScheme: EncryptionScheme
+					msg: string
+					encryptionScheme: string
 				}
 				actions: Action[]
 			},
 		]
 	}
-}
-
-export type EncryptedMessage = Readonly<{
-	buffer: Buffer
-}>
-
-export enum EncryptionScheme {
-	UNKNOWN = 'unknown',
-	ECIES_DH_ADD_AES_GCM_V0 = 'ECIES_DH_ADD_AES_GCM_V0',
-}
-
-export enum TransactionType {
-	// Sent _TO_ active account
-	INCOMING = 'incoming',
-	// Sent _FROM_ active account
-	OUTGOING = 'outgoing',
-	// A transaction from someone else to someone else (N.B. that "someone else" might very well be yourself, but just not the active account.)
-	UNRELATED = 'unrelated',
 }
 
 export namespace NativeToken {
@@ -178,10 +156,10 @@ export namespace NativeToken {
 		symbol: string
 		description?: string
 		granularity: AmountT
-		hasMutableSupply: boolean
+		isSupplyMutable: boolean
 		currentSupply: AmountT
-		iconURL: URL
 		tokenInfoURL: URL
+		iconURL: URL
 		tokenPermission: TokenPermissions
 	}
 }

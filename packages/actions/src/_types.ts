@@ -10,6 +10,7 @@ export enum UserActionType {
 export type UserAction<T> = Readonly<{
 	actionType: T
 	sender: AddressT
+	uuid: string
 }>
 
 export type TokensActionBase<T> = UserAction<T> &
@@ -21,6 +22,7 @@ export type TokensActionBase<T> = UserAction<T> &
 export type TransferTokensActionT = TokensActionBase<UserActionType.TOKEN_TRANSFER> &
 	Readonly<{
 		recipient: AddressT
+		message?: string
 	}>
 
 export type BurnTokensActionT = TokensActionBase<UserActionType.BURN_TOKENS>
@@ -28,12 +30,14 @@ export type BurnTokensActionT = TokensActionBase<UserActionType.BURN_TOKENS>
 export type TokensActionBaseInput = Readonly<{
 	amount: AmountT
 	resourceIdentifier: ResourceIdentifierT
+	uuid?: string
 }>
 
 export type TransferTokensActionInput = TokensActionBaseInput &
 	Readonly<{
 		to: AddressT
 		from: AddressT
+		message?: string
 	}>
 
 export type BurnTokensActionInput = TokensActionBaseInput &
