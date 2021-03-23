@@ -68,7 +68,7 @@ Above code assumes you have a wallet. Looking for wallet creation?
 		- [Transaction Flow Code](#transaction-flow-code)
 	- [Stake Tokens](#stake-tokens)
 	- [Unstake Tokens](#unstake-tokens)
-- [API](#api)
+- [Ledger](#ledger)
 		- [`tokenBalancesForAddress`](#tokenbalancesforaddress)
 		- [`executedTransactions`](#executedtransactions)
 		- [`nativeToken`](#nativetoken)
@@ -131,7 +131,7 @@ In the code block above we did not provide any wallet and notice we access the p
 
 > 💡 Everytime you'll see a heart emoji 💜💚💙💛❤️ it's a message logged from within this library (inspired by [SwiftBeaver](https://github.com/SwiftyBeaver/SwiftyBeaver#during-development-colored-logging-to-xcode-console)), representing `VERBOSE`, `DEBUG`, `INFO`, `WARNING` and `ERROR` log levels respectively.
 
-The [`api` property is separatly documented in the end of this document](#api)
+The [`ledger` property is separatly documented in the end of this document](#ledger)
 
 By the way, in the code block above, did you notice how we could chain calls to `create()`, `connect()`, `setLogLevel()` and `.api`? Thanks because we make these calls _chainable_ by returning the radix "instance".
 
@@ -139,7 +139,7 @@ By the way, in the code block above, did you notice how we could chain calls to 
 
 # Reactive properties
 
-In a GUI wallet you will most likely not use `radix.api` so much, but rather all the reactive properties (Observable variables) on the `radix` value directly. 
+In a GUI wallet you will most likely not use `radix.ledger` so much, but rather all the reactive properties (Observable variables) on the `radix` value directly. 
 
 ## Immortal state listeners
 
@@ -179,7 +179,7 @@ import { combineLatest } from 'rxjs'
 
 combineLatest(
 	radix.tokenBalances, 
-	radix.api.nativeToken()
+	radix.ledger.nativeToken()
 ).pipe(	
 	map((tokenBalances, nativeToken) => tokenBalances.balanceOf(nativeToken.resourceIdentifier)),
 ).subscribe((bal) => console.log(`💵 ${bal.token.symbol} balance: ${bal.amount.toString()}`))
@@ -602,7 +602,7 @@ Let us transfer some tokens! All methods accept specific types such as `AddressT
 
 > 💡 Amount of tokens to send must be a multiple of the token's granularity
 
-You can read out the _granularity_ (of type `AmountT`) from the token info, by using `radix.api.tokenInfo(tokenResourceIdentifier)`.
+You can read out the _granularity_ (of type `AmountT`) from the token info, by using `radix.ledger.tokenInfo(tokenResourceIdentifier)`.
 
 You will also need to make sure to correctly translate unsafe user input into these safe types.
 
@@ -619,7 +619,7 @@ if (recipientAddressResult.isErr()) {
 const recipientAddress: AddressT = recipientAddressResult.value
 
 const fooToken: ResourceIdentifierT = selectedToken.id // or similar, read from `tokenBalances`.
-const tokenGranularity = radix.api
+const tokenGranularity = radix.ledger
 	.tokenInfo(fooToken)
 	.subscribe((token) => {
 		console.log(`🔶🟠🔸 granularity of token ${token.name} : ${token.granularity.toString()}, any transfer of this token MUST be a multiple of this amount.`)
@@ -666,7 +666,7 @@ const minTxFee = await radix.feeForTxIntent(transactionIntentWithoutFee)
 const higherFee = minTxFee.multiplied(2)
 
 // Finish preparing the intent for a transaction, now with fee.
-const intent = intentFeeless.withFee(higherFee)
+const intent = transactionIntentWithoutFee.withFee(higherFee)
 
 // Directly available, ephemeral, relevant only client-side generated random id. Not to be confused with persistent,  transaction id that will be accessible at a later stage.
 const intentID = intent.id
@@ -693,7 +693,7 @@ const transactionId = unsentButSignedTransaction.id
 await radix.submitSignedTransaction(unsentButSignedTransaction)
 
 // Now POLL Radix Core API for transaction status
-radix.api.statusOfTransactionById(transactionId)
+radix.ledger.statusOfTransactionById(transactionId)
 	
 // 🧩 And when returned transaction status is `CONFIRMED` or `REJECTED` we know that the transaction is complete. Update UI accordingly.
 
@@ -731,7 +731,7 @@ Here follows the actual, RxJS based, transaction flow.
 > ⚠️ Not yet implemented, subject to change.
 
 
-# API
+# Ledger
 This outlines all the requests you can make to the Radix Core API. All these requests are completely independent from any wallet, and does not have the notion of any "active address".
 
 ### `tokenBalancesForAddress`
