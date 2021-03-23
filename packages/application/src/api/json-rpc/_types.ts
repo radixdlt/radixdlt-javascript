@@ -12,21 +12,25 @@ import {
 } from '@radixdlt/atom'
 import { AmountT } from '@radixdlt/primitives'
 
-export enum Endpoint {
-	UNIVERSE_MAGIC = 'radix.universeMagic',
-	TOKEN_BALANCES = 'radix.tokenBalances',
-	EXECUTED_TXS = 'radix.executedTransactions',
-	STAKES = 'radix.stakes',
-	UNSTAKES = 'radix.unstakes',
-	TX_STATUS = 'radix.transactionStatus',
-	NETWORK_TX_THROUGHPUT = 'radix.networkTransactionThroughput',
-	NETWORK_TX_DEMAND = 'radix.networkTransactionDemand',
-	VALIDATORS = 'radix.validators',
-	NATIVE_TOKEN = 'radix.nativeToken',
-	TOKEN_FEE_FOR_TX = 'radix.tokenFeeForTransaction',
-	GET_ATOM_FOR_TX = 'radix.getAtomForTransaction',
-	SUBMIT_SIGNED_ATOM = 'radix.submitSignedAtom',
+type API_PREFIX = 'radix'
+
+export enum ApiMethod {
+	UNIVERSE_MAGIC = 'universeMagic',
+	TOKEN_BALANCES = 'tokenBalances',
+	EXECUTED_TXS = 'executedTransactions',
+	STAKES = 'stakes',
+	UNSTAKES = 'unstakes',
+	TX_STATUS = 'transactionStatus',
+	NETWORK_TX_THROUGHPUT = 'networkTransactionThroughput',
+	NETWORK_TX_DEMAND = 'networkTransactionDemand',
+	VALIDATORS = 'validators',
+	NATIVE_TOKEN = 'nativeToken',
+	TOKEN_FEE_FOR_TX = 'tokenFeeForTransaction',
+	GET_ATOM_FOR_TX = 'getAtomForTransaction',
+	SUBMIT_SIGNED_ATOM = 'submitSignedAtom',
 }
+
+export type Endpoint = `${API_PREFIX}.${typeof ApiMethod[keyof typeof ApiMethod]}`
 
 type Action = TransferTokensActionT | BurnTokensActionT
 

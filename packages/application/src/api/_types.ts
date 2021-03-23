@@ -1,3 +1,9 @@
+import { getAPI } from './json-rpc/interface'
+import { AtomIdentifierT } from '@radixdlt/atom'
+
+import { Magic } from '@radixdlt/primitives'
+import { Observable } from 'rxjs'
+import { AddressT } from '@radixdlt/account'
 import {
 	ExecutedTransactions as ExecutedTransactionsEndpoint,
 	GetAtomForTransaction as GetAtomForTransactionEndpoint,
@@ -9,55 +15,79 @@ import {
 	TokenBalances as TokenBalancesEndpoint,
 	TokenFeeForTransaction as TokenFeeForTransactionEndpoint,
 	TransactionStatus as TransactionStatusEndpoint,
-	UniverseMagic as UniverseMagicEndpoint,
+	Transaction as TransactionType,
 } from './json-rpc/_types'
-import { ResultAsync } from 'neverthrow'
+import { PublicKey, Signature } from '@radixdlt/crypto'
 
-export type NodeAPI = Readonly<{
-	universeMagic: (
-		...input: UniverseMagicEndpoint.Input
-	) => ResultAsync<UniverseMagicEndpoint.DecodedResponse, Error[]>
+type JsonRpcAPI = {
+	[Property in keyof ReturnType<typeof getAPI>]: ReturnType<
+		typeof getAPI
+	>[Property]
+}
 
-	tokenBalances: (
-		...input: TokenBalancesEndpoint.Input
-	) => ResultAsync<TokenBalancesEndpoint.DecodedResponse, Error[]>
+export type NodeAPI = JsonRpcAPI // && RestAPI
+
+export type Transaction = TransactionType
+
+export type NodeT = Readonly<{
+	url: URL
+}>
+
+export type TokenBalances = TokenBalancesEndpoint.DecodedResponse
+export type ExecutedTransactions = ExecutedTransactionsEndpoint.DecodedResponse
+export type Token = NativeTokenEndpoint.DecodedResponse
+export type TokenFeeForTransaction = TokenFeeForTransactionEndpoint.DecodedResponse
+export type Stakes = StakesEndpoint.DecodedResponse
+export type TransactionStatus = TransactionStatusEndpoint.DecodedResponse
+export type NetworkTransactionThroughput = NetworkTransactionThroughputEndpoint.DecodedResponse
+export type NetworkTransactionDemand = NetworkTransactionDemandEndpoint.DecodedResponse
+export type AtomFromTransactionResponse = GetAtomForTransactionEndpoint.DecodedResponse
+export type SubmittedAtomResponse = SubmitSignedAtomEndpoint.DecodedResponse
+
+export type SignedAtom = Readonly<{
+	atomCBOR: string
+	signerPublicKey: PublicKey
+	signature: Signature
+}>
+
+export type RadixAPI = Readonly<{
+	tokenBalancesForAddress: (address: AddressT) => Observable<TokenBalances>
 
 	executedTransactions: (
-		...input: ExecutedTransactionsEndpoint.Input
-	) => ResultAsync<ExecutedTransactionsEndpoint.DecodedResponse, Error[]>
+		input: Readonly<{
+			address: AddressT
+			size: number
+			cursor?: AtomIdentifierT
+		}>,
+	) => Observable<ExecutedTransactions>
 
-	nativeToken: (
-		...input: NativeTokenEndpoint.Input
-	) => ResultAsync<NativeTokenEndpoint.DecodedResponse, Error[]>
+	nativeToken: () => Observable<Token>
 
 	tokenFeeForTransaction: (
-		...input: TokenFeeForTransactionEndpoint.Input
-	) => ResultAsync<TokenFeeForTransactionEndpoint.DecodedResponse, Error[]>
+		transaction: Transaction,
+	) => Observable<TokenFeeForTransaction>
 
-	stakes: (
-		...input: StakesEndpoint.Input
-	) => ResultAsync<StakesEndpoint.DecodedResponse, Error[]>
+	stakesForAddress: (address: AddressT) => Observable<Stakes>
 
 	transactionStatus: (
-		...input: TransactionStatusEndpoint.Input
-	) => ResultAsync<TransactionStatusEndpoint.DecodedResponse, Error[]>
+		atomIdentifier: AtomIdentifierT,
+	) => Observable<TransactionStatus>
 
-	networkTransactionThroughput: (
-		...input: NetworkTransactionThroughputEndpoint.Input
-	) => ResultAsync<
-		NetworkTransactionThroughputEndpoint.DecodedResponse,
-		Error[]
-	>
+	networkTransactionThroughput: () => Observable<NetworkTransactionThroughput>
 
-	networkTransactionDemand: (
-		...input: NetworkTransactionDemandEndpoint.Input
-	) => ResultAsync<NetworkTransactionDemandEndpoint.DecodedResponse, Error[]>
+	networkTransactionDemand: () => Observable<NetworkTransactionDemand>
 
 	getAtomForTransaction: (
-		...input: GetAtomForTransactionEndpoint.Input
-	) => ResultAsync<GetAtomForTransactionEndpoint.DecodedResponse, Error[]>
+		transaction: Transaction,
+	) => Observable<AtomFromTransactionResponse>
 
 	submitSignedAtom: (
-		...input: SubmitSignedAtomEndpoint.Input
-	) => ResultAsync<SubmitSignedAtomEndpoint.DecodedResponse, Error[]>
+		signedAtom: SignedAtom,
+	) => Observable<SubmittedAtomResponse>
 }>
+
+export type RadixCoreAPI = RadixAPI &
+	Readonly<{
+		node: NodeT
+		magic: () => Observable<Magic>
+	}>
