@@ -644,14 +644,28 @@ if (!unsafeAmount.isMultipleOf(granularity)) {
 const amount = unsafeAmount
 ```
 
-### Pseudocode (`Promise`)
+### Transaction Flow Summary
 
-Here is a concept of the flow, using `await` syntax. This is not the acualt api, this is pseudocode to help visualize the flow. Since transfer of tokens is a multi-stage rocket there are many things to keep track of. 
+1. Gather and transform unsafe inputs into validated and type safe values.
+2. Create a transaction intent (fee less).
+3. From Radix Core API fetch transaction (including fee) translated from intent. Upon response JS lib  performs some soundness check that the content of the transaction matches the intent (TBD).
+4. Return to GUI wallet a ready to be signed blob + human readable fee.  
+5. GUI wallet tells JS lib to sign and submit blob/transaction to the Radix Core API.
+6. JS lib immeediatly returns the actual transaction id (`txId`), back to the GUI wallet (which it was able to compute locally since it has the signature now.)
+7. GUI wallet tells JS lib to poll status of transaction using the `txId` from last step.
+
+
+### Transaction flow pseudocode (`Promise`)
+
+Here is a *concept* of the flow, using `await` syntax. This is **not** the acual API, it's mere *pseudocode* to help visualize the flow. Since transfer of tokens is a multi-stage rocket there are many things to keep track of. 
 
 ```typescript
 // ⛔️⛔️⛔️ NOT THE ACTUAL API ⛔️⛔️⛔️
 // THIS IS JUST AN OUTLINE OF FLOW
-const transactionIntentWithoutFee = TransactionIntent.create()
+// Step 1️⃣ Gather and transform unsafe inputs into validated and type safe values. Already done in code block above
+
+// Step 2️⃣ Create a transaction intent (fee less).
+const transactionIntent = TransactionIntent.create()
 	.transferTokens({
 		to: recipientAddress,
 		amount: amount,
@@ -659,40 +673,21 @@ const transactionIntentWithoutFee = TransactionIntent.create()
 	})
 	.message(`Thx for lunch Bob, here's for my salad.`)
 
-// Get min fee from Radix Core API
-const minTxFee = await radix.feeForTxIntent(transactionIntentWithoutFee)
-
-// Optionally increase tx fee
-const higherFee = minTxFee.multiplied(2)
-
-// Finish preparing the intent for a transaction, now with fee.
-const intent = transactionIntentWithoutFee.withFee(higherFee)
-
-// Directly available, ephemeral, relevant only client-side generated random id. Not to be confused with persistent,  transaction id that will be accessible at a later stage.
-const intentID = intent.id
-
-// 🧩 In GUI we should temporarily cache this transaction intent, we can display info about it.
-
-const unsignedTransaction = await radix.transactionFrom({ 
+// 3️⃣ From API fetch transaction (incl fee)
+const unsignedTransactionWithReadableFee = await radix.transactionFrom({ 
 	intent: intent
 })
 
-// 🧩 Optionally display contents of `transaction` to power user before she signs it and submits the transaction.
+// 4️⃣ GUI wallet now has access to ready-to-be-signed transaction with human readable fee
 
-const unsentButSignedTransaction = await radix.sign(
+// 5️⃣ GUI wallet tells JS lib to sign and submit blob/transaction to the Radix Core API.
+
+// 6️⃣ JS lib immeediatly returns the actual transaction id 
+const transactionId = await radix.signAndSubmitTransaction(
 	unsignedTransaction
 )
 
-// Persistent tx id that can at a later point in time be used
-// to query ledger with regarding status.
-const transactionId = unsentButSignedTransaction.id
-
-// 🧩 You can now replace `intent` with `unsentButSignedTransaction`
-	
-// Submit signed transaction to Radix Core API
-await radix.submitSignedTransaction(unsentButSignedTransaction)
-
-// Now POLL Radix Core API for transaction status
+// 7️⃣ GUI wallet tells JS lib to poll status of transaction using the txId from last step.
 radix.ledger.statusOfTransactionById(transactionId)
 	
 // 🧩 And when returned transaction status is `CONFIRMED` or `REJECTED` we know that the transaction is complete. Update UI accordingly.
@@ -700,20 +695,6 @@ radix.ledger.statusOfTransactionById(transactionId)
 // THIS IS JUST AN OUTLINE OF FLOW
 // ⛔️⛔️⛔️ NOT THE ACTUAL API ⛔️⛔️⛔️
 ```
-
-### Transaction Flow Summary
-
-To summarize, in the pseudocode above we did the following:
-
-1. Gather and transform unsafe inputs into validate and type safe values.  
-2. Create a transaction intent (fee less).
-3. From Radix Core API fetch minumum transaction fee (`minFee`).  
-4. Optionally in GUI allow user to set transaction fee (`>= minFee`).  
-5. From Radix Core API fetch transaction translated from intent. Upon response JS lib  performs some soundness check that th content of the transaction matches the intent.  
-6. Optionally let power users review the contents of the transaction.  
-7. Locally sign the transaction.  
-8. Submit the signed transaction to the Radix Core API, saving the transaction id (`txId`).
-9. Using `txId` from last step, **poll** the Radix Core API for the status of the transaction and update GUI accordingly when it either fails to succeeds.
 
 ### Transaction Flow Code
 
