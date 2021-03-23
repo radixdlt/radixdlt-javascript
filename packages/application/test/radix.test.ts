@@ -5,7 +5,6 @@ import {
 	NetworkTransactionThroughput,
 	NodeT,
 	RadixCoreAPI,
-	RadixT,
 	SignedAtom,
 	Stakes,
 	SubmittedAtomResponse,
@@ -14,9 +13,15 @@ import {
 	TokenFeeForTransaction,
 	Transaction,
 	TransactionStatus,
-} from '../src/_types'
+} from '../src/api/_types'
 import { Radix } from '../src/radix'
-import { AddressT, HDMasterSeed, Wallet, WalletT } from '@radixdlt/account'
+import {
+	Address,
+	AddressT,
+	HDMasterSeed,
+	Wallet,
+	WalletT,
+} from '@radixdlt/account'
 import { Observable, of, Subscription, throwError } from 'rxjs'
 import { Amount, Magic, magicFromNumber, maxAmount } from '@radixdlt/primitives'
 import { map, take, toArray } from 'rxjs/operators'
@@ -27,6 +32,8 @@ import {
 } from '@radixdlt/atom'
 import { UInt256 } from '@radixdlt/uint256'
 import { KeystoreT } from '@radixdlt/crypto'
+import { RadixT } from '../src/_types'
+import { ErrorCategory, APIErrorCause } from '../src/errors'
 
 const createWallet = (): WalletT => {
 	const masterSeed = HDMasterSeed.fromSeed(
@@ -54,6 +61,16 @@ const xrd: Token = {
 	iconURL: new URL('http://www.image.radixdlt.com/'),
 	tokenPermission: tokenPermissionsAll,
 }
+
+const balancesFor = (address: AddressT, amount: number): TokenBalances => ({
+	owner: address,
+	tokenBalances: [
+		{
+			token: xrd.rri,
+			amount: Amount.inSmallestDenomination(UInt256.valueOf(amount)),
+		},
+	],
+})
 
 const crashingAPI: RadixCoreAPI = {
 	node: { url: new URL('http://www.not.implemented.com') },
@@ -172,15 +189,15 @@ describe('Radix API', () => {
 	it('can connect and is chainable', () => {
 		const radix = Radix.create().connect(new URL('http://www.my.node.com'))
 		expect(radix).toBeDefined()
-		expect(radix.nativeToken).toBeDefined()
-		expect(radix.tokenBalancesForAddress).toBeDefined() // etc
+		expect(radix.ledger.nativeToken).toBeDefined()
+		expect(radix.ledger.tokenBalancesForAddress).toBeDefined() // etc
 	})
 
 	it('emits node connection without wallet', async (done) => {
 		const radix = Radix.create()
 		radix.__withAPI(mockAPI())
 
-		radix.node.subscribe(
+		radix.__node.subscribe(
 			(node) => {
 				expect(node.url.host).toBe('www.example.com')
 				done()
@@ -196,7 +213,7 @@ describe('Radix API', () => {
 	): Promise<void> => {
 		const radix = Radix.create()
 
-		radix.node
+		radix.__node
 			.pipe(
 				map((n: NodeT) => n.url.toString()),
 				take(2),
@@ -276,7 +293,7 @@ describe('Radix API', () => {
 		const radix = Radix.create()
 		radix.__withAPI(mockAPI())
 
-		radix.nativeToken().subscribe(
+		radix.ledger.nativeToken().subscribe(
 			(token) => {
 				expect(token.symbol).toBe('XRD')
 				done()
@@ -285,28 +302,37 @@ describe('Radix API', () => {
 		)
 	})
 
-	it('should be able to detect errors', async (done) => {
+	it('should be able to detect errors', (done) => {
 		const invalidURLErrorMsg = 'invalid url'
 		const failingNode: Observable<NodeT> = throwError(() => {
 			return new Error(invalidURLErrorMsg)
 		})
-		await Radix.create()
-			.withNodeConnection(failingNode)
-			.node.subscribe({
-				next: (n) => {
-					done(new Error('Expected error but did not get any'))
-				},
-				error: (errorFn) => {
-					const err = errorFn()
-					expect(err.message).toBe(invalidURLErrorMsg)
+
+		const subs = new Subscription()
+
+		const radix = Radix.create()
+
+		radix.__node
+			.subscribe((n) => {
+				done(new Error('Expected error but did not get any'))
+			})
+			.add(subs)
+
+		radix.errors
+			.subscribe({
+				next: (error) => {
+					expect(error.category).toEqual(ErrorCategory.NODE)
 					done()
 				},
 			})
+			.add(subs)
+
+		radix.withNodeConnection(failingNode)
 	})
 
 	it('login with wallet', async (done) => {
 		const radix = Radix.create()
-		radix.wallet.subscribe(
+		radix.__wallet.subscribe(
 			(wallet: WalletT) => {
 				const account = wallet.__unsafeGetAccount()
 				expect(account.hdPath.addressIndex.value()).toBe(0)
@@ -327,6 +353,39 @@ describe('Radix API', () => {
 			Promise.resolve(keystoreForTest.keystore)
 
 		radix.login(keystoreForTest.password, loadKeystore)
+	})
+
+	it('should handle wallet error', (done) => {
+		const radix = Radix.create()
+
+		radix.__wallet.subscribe((wallet: WalletT) => {
+			const account = wallet.__unsafeGetAccount()
+			expect(account.hdPath.addressIndex.value()).toBe(0)
+			account.derivePublicKey().subscribe(
+				(pubKey) => {
+					expect(pubKey.toString(true)).toBe(
+						keystoreForTest.publicKeysCompressed[0],
+					)
+					done()
+				},
+				(error) => done(error),
+			)
+		})
+
+		radix.errors.subscribe({
+			next: (error) => {
+				expect(error.category).toEqual(ErrorCategory.WALLET)
+			},
+		})
+
+		const loadKeystoreError = (): Promise<KeystoreT> =>
+			Promise.reject('Error!')
+
+		const loadKeystoreSuccess = (): Promise<KeystoreT> =>
+			Promise.resolve(keystoreForTest.keystore)
+
+		radix.login(keystoreForTest.password, loadKeystoreError)
+		radix.login(keystoreForTest.password, loadKeystoreSuccess)
 	})
 
 	it('radix can derive accounts', async (done) => {
@@ -377,6 +436,90 @@ describe('Radix API', () => {
 
 		radix
 			.withWallet(createWallet()) //0
+			.deriveNextAccount({ alsoSwitchTo: true }) // 1
+			.deriveNextAccount({ alsoSwitchTo: true }) // 2
+			.deriveNextAccount({ alsoSwitchTo: true }) // 3
+			.switchAccount({ toIndex: 1 })
+			.switchAccount('first')
+			.switchAccount('last')
+	})
+
+	it('should forward an error when calling api', (done) => {
+		const subs = new Subscription()
+
+		const api = mockAPI()
+
+		const radix = Radix.create().__withAPI(api)
+
+		radix.tokenBalances
+			.subscribe((n) => {
+				done(Error('nope'))
+			})
+			.add(subs)
+
+		radix.errors
+			.subscribe({
+				next: (error) => {
+					expect(error.category).toEqual(ErrorCategory.API)
+					expect(error.cause).toEqual(
+						APIErrorCause.TOKEN_BALANCES_FAILED,
+					)
+					done()
+				},
+			})
+			.add(subs)
+
+		radix.withWallet(createWallet())
+
+		radix.ledger.tokenBalancesForAddress(
+			Address.fromBase58String(
+				'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+			)._unsafeUnwrap(),
+		)
+	})
+
+	it('does not kill property observables when rpc requests fail', async (done) => {
+		const subs = new Subscription()
+		let amountVal = 100
+		let counter = 0
+
+		const api = of(<RadixCoreAPI>{
+			...crashingAPI,
+			magic: (): Observable<Magic> => of(magicFromNumber(123)),
+			tokenBalancesForAddress: (
+				a: AddressT,
+			): Observable<TokenBalances> => {
+				if (counter > 2 && counter < 5) {
+					counter++
+					return throwError(() => new Error('Manual error'))
+				} else {
+					const observableBalance = of(balancesFor(a, amountVal))
+					counter++
+					amountVal += 100
+					return observableBalance
+				}
+			},
+		})
+
+		const radix = Radix.create()
+		radix.withWallet(createWallet())
+		radix.__withAPI(api)
+
+		const expectedValues = [100, 200, 300]
+
+		radix.tokenBalances
+			.pipe(
+				map((tb) => tb.tokenBalances[0].amount.magnitude.valueOf()),
+				take(expectedValues.length),
+				toArray(),
+			)
+			.subscribe((amounts) => {
+				expect(amounts).toEqual(expectedValues)
+				done()
+			})
+			.add(subs)
+
+		radix
 			.deriveNextAccount({ alsoSwitchTo: true }) // 1
 			.deriveNextAccount({ alsoSwitchTo: true }) // 2
 			.deriveNextAccount({ alsoSwitchTo: true }) // 3

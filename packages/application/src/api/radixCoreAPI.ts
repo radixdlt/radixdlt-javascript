@@ -12,7 +12,7 @@ import {
 	TokenBalances,
 	TokenFeeForTransaction,
 	TransactionStatus,
-} from '../_types'
+} from '../api/_types'
 import { NodeAPI } from './_types'
 import { nodeAPI } from './api'
 import { ResultAsync } from 'neverthrow'
