@@ -33,7 +33,7 @@ import {
 import { UInt256 } from '@radixdlt/uint256'
 import { KeystoreT } from '@radixdlt/crypto'
 import { RadixT } from '../src/_types'
-import { ErrorCategory, ErrorCause } from '../src/errors'
+import { ErrorCategory, APIErrorCause } from '../src/errors'
 
 const createWallet = (): WalletT => {
 	const masterSeed = HDMasterSeed.fromSeed(
@@ -461,7 +461,9 @@ describe('Radix API', () => {
 			.subscribe({
 				next: (error) => {
 					expect(error.category).toEqual(ErrorCategory.API)
-					expect(error.cause).toEqual(ErrorCause.TOKEN_BALANCES_FAILED)
+					expect(error.cause).toEqual(
+						APIErrorCause.TOKEN_BALANCES_FAILED,
+					)
 					done()
 				},
 			})
