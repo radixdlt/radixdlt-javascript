@@ -282,7 +282,7 @@ The `errors` property emits three different category of errors, each error is ta
 import { Observable } from 'rxjs'
 import { ErrorNotification, WalletError, ErrorNotification } from '@radixdlt/application'
 
-const splitErrorNotificationsOnCategory = <Category extends ErrorCategory>(category: Category): Observable<ErrorNotificationT> => radix.errors.pipe(
+const splitErrorNotificationsOnCategory = (category: ErrorCategory): Observable<ErrorNotificationT> => radix.errors.pipe(
 	filter((errorNotification) => errorNotification.category === category),
 )
 
