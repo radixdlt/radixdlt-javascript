@@ -56,7 +56,7 @@ if (walletResult.isErr()) {
 
 
 ### Alternative wallet creation
-Alternatively you can use a flow you have a bit more control. This is basically exactly what `Wallet.byEncryptingSeedOfMnemonicAndSavingKeystore` above does. 
+Alternatively you can use a flow where you have a bit more control. This is basically exactly what `Wallet.byEncryptingSeedOfMnemonicAndSavingKeystore` above does. 
 
 ```typescript
 const mnemonic = Mnemonic.generateNew()
