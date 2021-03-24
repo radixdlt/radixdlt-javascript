@@ -26,7 +26,7 @@ const mnemonic = Mnemonic.generateNew()
 const keystoreEncryptionPassword = confirmPasswordTextField.value() // or similar
 
 // You need to pass in a function which saves the keystore
-// this example uses 'fs' but using Electron/Browser you might
+// this example uses 'fs' but using a browser you might
 // wanna try out https://www.npmjs.com/package/fs-jetpack or similar.
 import { PathLike, promises as fsPromises } from 'fs'
 const saveKeystoreOnDisk = (keystore: KeystoreT): Promise<void> => {
