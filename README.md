@@ -15,7 +15,6 @@ const radix = Radix.create()
 	.subscribe((tb) => console.log(`💎 My token balances ${tb.toString()}`)
 ```
 
-
 # Development
 
 This repository makes use of several technologies to provide a better and faster development experience for contributors. It has to be bootstrapped before you can do productive work.
@@ -89,6 +88,28 @@ This git repository is a so called "monorepo" using [`yarn` *workspaces*](https:
 
 # API outline
 
-Please see the [README of `@radixdlt/application`](packages/application/README.md) for a detail documentation.
+Please see the [README of `@radixdlt/application`](packages/application/README) for a detail documentation.
 
-Please see the [README of `@radixdlt/account`](packages/account/README.md) for info about setup of wallet.
+Please see the [README of `@radixdlt/account`](packages/account/README) for info about setup of wallet.
+
+# Design choices
+
+## RxJS
+This library heavily utilizes [RxJS](https://rxjs-dev.firebaseapp.com/guide/overview) observables. While reactive programming can be daunting to get familiar with for the uninitiated, we believe it carries great benefits for the developer experience.
+
+Rx is all about managing asynchronous data streams. Since we depend a lot on asynchronous API calls, coupled with the fact that we need to update a lot of internal state depending on these streams, RxJS is a good fit for us. It is recommended that you acquire some basic understanding of working with observables before working with this library.
+
+[A primer on reactive programming](https://gist.github.com/staltz/868e7e9bc2a7b8c1f754)
+
+## Error handling
+Try/catch is problematic for handling errors for several reasons.
+
+First, it doesn't help the consumer understand if an error can happen when calling a function. This is the cause for a lot of runtime errors.
+
+Also, it doesn't work well with functional and declarative style of programming.
+
+`throw` should mainly be used if you truly want the program to crash. Most often though, you just want to signal that something bad happened, and let the consumer handle it accordingly.
+
+That's why we use [neverthrow](https://github.com/supermacro/neverthrow) for error handling. 
+
+Neverthrow lets you return a `Result`, which can either be an `Ok` or an `Err`. This forces you to be aware that something can be an error, and take a conscious decision about handling it (or not).
