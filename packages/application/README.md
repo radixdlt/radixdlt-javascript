@@ -37,7 +37,6 @@ Above code assumes you have a wallet. Looking for wallet creation?
 - [Reactive properties](#reactive-properties)
 	- [Immortal state listeners](#immortal-state-listeners)
 		- [Active address](#active-address)
-			- [Universe Magic](#universe-magic)
 		- [Account listing](#account-listing)
 			- [Active account](#active-account)
 		- [Token Balances](#token-balances)
@@ -170,12 +169,7 @@ We subscribe to `activeAddress` which will automatically update with the address
 
 If we would have called `deriveNextAccount` without the `{ alsoSwitchTo: true }` argument we wouldn't have had switched account and we wouldn't have seen the print `"🙋🏽‍♀️ my address is: '9S8P...7RAG'"`, because a new value would not have been emitted on the `activeAddress` reactive property, we would have simple derived a new latent account that we can switch to at a later point. More about [account switching here](#account-switching), more about [account derivation here](#account-derivation).
 
-#### Universe Magic
-
-A radix public address is the base58 encoding of two pieces of information:
-`UniverseMagicByte || PublicKey` plus some checksum bytes. The `UniverseMagicByte` or just `Magic` is an integer uniquely identifying the network. Which will have different values for e.g. our betanet and mainnet, thus we must know the universe magic before we can derive any Radix addresses from a public key. The implications of this is that the `activeAddress` property will not emit any value until we have fetched the universe magic from a node.
-
-> ⚠️ `activeAddress` will not emit any address until you have called connected to a node.
+> ⚠️ `activeAddress` will not emit any address until you have called connected to a node, because a network identifier fetched from the node is required to format an address.
 
 ### Account listing
 
