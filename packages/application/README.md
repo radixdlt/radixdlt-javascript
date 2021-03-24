@@ -167,8 +167,6 @@ radix.deriveNextAccount({ alsoSwitchTo: true })
 
 We subscribe to `activeAddress` which will automatically update with the address of our active "account". We will instantly see our initial account having address ending with _"6RT"_ logged, since we already have an active account. Moments later we create a new account and also switched to it. Since we have subscribed to both `tokenBalances` and `activeAddres`, this will emit the token balances of the new account as well as the address of the new account. 
 
-If we would have called `deriveNextAccount` without the `{ alsoSwitchTo: true }` argument we wouldn't have had switched account and we wouldn't have seen the print `"🙋🏽‍♀️ my address is: '9S8P...7RAG'"`, because a new value would not have been emitted on the `activeAddress` reactive property, we would have simple derived a new latent account that we can switch to at a later point. More about [account switching here](#account-switching), more about [account derivation here](#account-derivation).
-
 > ⚠️ `activeAddress` will not emit any address until you have called connected to a node, because a network identifier fetched from the node is required to format an address.
 
 ### Account listing
