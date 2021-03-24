@@ -134,10 +134,6 @@ In the code block above we did not provide any wallet and notice we access the p
 
 The [`ledger` property is separately documented in the end of this document](#ledger)
 
-By the way, in the code block above, did you notice how we could chain calls to `create()`, `connect()`, `setLogLevel()` and `.ledger`? Thanks because we make these calls _chainable_ by returning the radix "instance".
-
-> 💡 All _methods_ you call return back the `RadixT` value itself, making these methods "chainable" ⛓.
-
 # Reactive properties
 
 In a GUI wallet you will most likely not use `radix.ledger` so much, but rather all the reactive properties (Observable variables) on the `radix` value directly. 
