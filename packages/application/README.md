@@ -596,6 +596,8 @@ The Radix Core API failed to recognize the instructions as a well-formed/well-kn
 
 ## Transfer Tokens
 
+> ⚠️ Not yet implemented, subject to change.
+
 ### Transfer input
 
 Let us transfer some tokens! All methods accept specific types such as `AddressT` for recipient address, `AmountT` for token amounts and `ResourceIdentierT` for token asset identifier. All these will have been exposed to you already via `tokenBalances`, `ledger.nativeToken()` and/or `transactionHistory`.
@@ -702,7 +704,6 @@ radix.ledger.statusOfTransactionById(transactionId)
 ### Transaction Flow Code
 
 Here follows the actual, RxJS based, transaction flow.
-
 
 ```typescript
 const userDidConfirmTransactionSubject = new Subject<UnsignedTransaction>()
