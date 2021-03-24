@@ -89,6 +89,6 @@ This git repository is a so called "monorepo" using [`yarn` *workspaces*](https:
 
 # API outline
 
-Please see the [README of `@radixdlt/application`](packages/application/README) for a detail documentation.
+Please see the [README of `@radixdlt/application`](packages/application/README.md) for a detail documentation.
 
-Please see the [README of `@radixdlt/accounts`](packages/accounts/README) for info about setup of wallet.
+Please see the [README of `@radixdlt/account`](packages/account/README.md) for info about setup of wallet.
