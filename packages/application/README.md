@@ -145,7 +145,7 @@ If any error where to be emitted on these reactive properties, they would comple
 ### Active address
 We can subscribe to the active address, which will emit the formatted radix public address of the active account.
 
-If we create and switch to a new account, we will se how both our active address and our token balances updates automatically.
+If we create and switch to a new account, we will see how both our active address and our token balances would update automatically.
 
 ```typescript
 radix.activeAddress.subscribe(
