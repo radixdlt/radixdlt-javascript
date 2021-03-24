@@ -596,7 +596,61 @@ The Radix Core API failed to recognize the instructions as a well-formed/well-kn
 
 ## Transfer Tokens
 
-> ⚠️ Not yet implemented, subject to change.
+```typescript
+const askUserToConfirmTxSubject = new Subject<UnsignedTransaction>()
+const userDidConfirmTxSubject = new Subject<UnsignedTransaction>()
+
+radix
+	.transactionFromIntent({ 
+		intent: intent, 
+		askUserToConfirmTxSubject: askUserToConfirmTxSubject
+	})
+	.subscribe() // DONT FORGET
+	.add(subs)
+
+
+askUserToConfirmTxSubject.subscribe(
+	(unsignedTxWithFeeForUserToConfirm) => {
+		const txFee = unsignedTxWithFeeForUserToConfirm.fee
+		console.log(`💵 tx fee: ${txFee.toString()}`)
+		// Display unsigned tx with fee in GUI wallet, ask user to confirm
+
+		// "bind" a "Confirm TX" button so that it calls `userDidConfirmTxSubject.next(unsignedTxWithFeeForUserToConfirm)`
+		userDidConfirmTxSubject.next(unsignedTxWithFeeForUserToConfirm)
+	}
+).add(subs)
+
+
+
+userDidConfirmTxSubject
+	.pipe(
+		mergeMap((unsignedUserConfirmedTx): Observable<SignedTransaction> => {
+			// `signAndSubmitTx` will emit two values:
+			// 1. Will immediately emit `SignedTransaction` after signing was done 
+			// but before transaction is submitted to the Radix Core API
+			// 2. Will emit result from submission request to the Radix Core API, 
+			// either failure or success.
+			//
+			return radix.signAndSubmitTx(unsignedUserConfirmedTx).pipe(
+			mergeMap((signedTransaction) => {
+			const txId = signedTransaction.id
+			console.log(`🆔 transaction id: ${txId.toString()}`)
+
+			const pollTxTrigger = timer(5 * 1_000) // every 5 seconds
+
+			return pollTxTrigger.pipe(
+				mergeMap((_) => radix.ledger.statusOfTransactionById(txId)),
+				// Ignored TransactionStatus.FAILED for now
+				takeWhile((status) => status !== TransactionStatus.CONFIMRED)
+			)
+
+		})
+			)
+		}),
+	)
+	.subscribe() // DONT FORGET
+	.add(subs)
+```
 
 ### Transfer input
 
@@ -653,7 +707,7 @@ const amount = unsafeAmount
 3. From Radix Core API fetch transaction (including fee) translated from intent. Upon response JS lib  performs some soundness check that the content of the transaction matches the intent (TBD).
 4. A ready-to-be-signed transaction (including human-readable fee) is returned to the GUI wallet.  
 5. The GUI wallet tells JS lib to sign and submit the transaction to the Radix Core API.
-6. Tbe JS lib immediately returns the actual transaction id (`txId`), back to the GUI wallet (which it was able to compute locally since it has the signature now.)
+6. The JS lib immediately returns the actual transaction id (`txId`), back to the GUI wallet (which it was able to compute locally since it has the signature now.)
 7. GUI wallet tells JS lib to poll status of transaction using the `txId` from last step.
 
 
@@ -684,10 +738,13 @@ const unsignedTransactionWithReadableFee = await radix.transactionFrom({
 
 // 5️⃣ GUI wallet tells JS lib to sign and submit blob/transaction to the Radix Core API.
 
-// 6️⃣ JS lib immeediatly returns the actual transaction id 
-const transactionId = await radix.signAndSubmitTransaction(
+const signedTranscation = await radix.signTransaction(
 	unsignedTransaction
 )
+// 6️⃣ JS lib immediatly returns the actual transaction id 
+const transactionId = signedTranscation.id
+
+await radix.submitSignedTransaction(signedTranscation)
 
 // 7️⃣ GUI wallet tells JS lib to poll status of transaction using the txId from last step.
 radix.ledger.statusOfTransactionById(transactionId)
