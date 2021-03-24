@@ -28,7 +28,7 @@ radix.tokenBalances.subscribe(
 ```
 
 Above code assumes you have a wallet. Looking for wallet creation?
-> 💡 Please see [README of `radixdlt/account`](../account/README) for detailed documentation about getting started with a wallet.
+> 💡 Please see [README of `radixdlt/account`](../account/README) for a detailed documentation about getting started with a wallet.
 
 # Table of Contents
 <!-- MarkdownTOC autolink="true" -->
@@ -46,7 +46,7 @@ Above code assumes you have a wallet. Looking for wallet creation?
 - [Methods](#methods)
 	- [Local methods](#local-methods)
 		- [setLogLevel](#setloglevel)
-		- [Account deriviation](#account-deriviation)
+		- [Account derivation](#account-derivation)
 			- [restoreAccountsUpToIndex](#restoreaccountsuptoindex)
 		- [Account switching](#account-switching)
 		- [Fetch trigger](#fetch-trigger)
@@ -97,7 +97,7 @@ Lastly we [`subscribe`](https://rxjs-dev.firebaseapp.com/guide/observable#subscr
 
 > 💡 Friendly reminder: the observables will not start emitting values until you have subscribed to them
 
-> 💡 Friendly reminder: make sure to handle the returned value of the `subscribe()` function, by adding then to a [`Subscription`](https://rxjs-dev.firebaseapp.com/guide/subscription) object. Otherwise behaviour is undefined and you might experience all sorts of weird errors (memory leaks).
+> 💡 Friendly reminder: make sure to handle the returned value of the `subscribe()` function, by adding then to a [`Subscription`](https://rxjs-dev.firebaseapp.com/guide/subscription) object, otherwise behaviour is undefined and you might experience all sorts of weird errors (e.g. memory leaks).
 > 
 
 However, we can also interact with the [Radix Core API](https://youtu.be/dQw4w9WgXcQ) without using any wallet, using the property `api`, like so:
@@ -128,11 +128,11 @@ const radix = Radix.create()
 // } "
 ```
 
-In the code block above we did not provide any wallet and notice we access the property `ledger`, on which we called the method `nativeToken()` which observable stream we subsequently subscribe to. Lastly we handle the subscription. If we would set the log level to `INFO` (from default of `WARNING`), we would not have seen the output `"💙 got nativeToken response..."`, neither would we if we wouldn't have called `subscribe()`, since all observables returned by _function calls_ are **lazy** (using [`defer`](https://rxjs-dev.firebaseapp.com/api/index/function/defer)).
+In the code block above we did not provide any wallet and notice we access the property `ledger`, on which we called the method `nativeToken()` which observable stream we subsequently subscribe to. Lastly we handle the subscription. If we were to set the log level to `INFO` (from default of `WARNING`), we would not have seen the output `"💙 got nativeToken response..."`, neither would we if we wouldn't have called `subscribe()`, since all observables returned by _function calls_ are **lazy** (using [`defer`](https://rxjs-dev.firebaseapp.com/api/index/function/defer)).
 
 > 💡 Everytime you'll see a heart emoji 💜💚💙💛❤️ it's a message logged from within this library (inspired by [SwiftBeaver](https://github.com/SwiftyBeaver/SwiftyBeaver#during-development-colored-logging-to-xcode-console)), representing `VERBOSE`, `DEBUG`, `INFO`, `WARNING` and `ERROR` log levels respectively.
 
-The [`ledger` property is separatly documented in the end of this document](#ledger)
+The [`ledger` property is separately documented in the end of this document](#ledger)
 
 By the way, in the code block above, did you notice how we could chain calls to `create()`, `connect()`, `setLogLevel()` and `.ledger`? Thanks because we make these calls _chainable_ by returning the radix "instance".
 
@@ -144,12 +144,12 @@ In a GUI wallet you will most likely not use `radix.ledger` so much, but rather 
 
 ## Immortal state listeners
 
-If any error would be emitted on these reactive properties, they would complete (terminate) and you would miss out on any subsequently emitted value. We don't want that, why we've made sure that these never emit any value. All errors are redicted to the specific `errors` property, but [more about that later](#errors). For now just remember that you will always get the latest and greatest data given the current active account from the `radix` interface.
+If any error where to be emitted on these reactive properties, they would complete (terminate), and you would miss out on any subsequently emitted value. We don't want that, why we've made sure that these never emit any value. All errors are redirected to the specific `errors` property, but [more about that later](#errors-sink). For now just remember that you will always get the latest and greatest data given the current active account from the `radix` interface.
 
 ### Active address
 We can subscribe to the active address, which will emit the formatted radix public address of the active account.
 
-If we create and switch to a new account, we will se how both our active address and our token balanaces updates automatically.
+If we create and switch to a new account, we will se how both our active address and our token balances updates automatically.
 
 ```typescript
 radix.activeAddress.subscribe(
@@ -170,14 +170,14 @@ radix.deriveNextAccount({ alsoSwitchTo: true })
 // ]"
 ```
 
-In the last code block we subscribe to yet another reactive stream `activeAddress` (of type `Observable<AddressT>`) which will automatically update with the address of our active "account". We will instantly see our initial account having address ending with _"6RT"_ logged, since we already have an active account (and thanks to ["replay"](https://www.learnrxjs.io/learn-rxjs/operators/multicasting/sharereplay)). Moments later we create a new account and also switched to it, using the call to `deriveNextAccount({ alsoSwitchTo: true })`. Since we have subscribed to both `tokenBalances` and `activeAddres`, this will emit the token balances of the new account as well as the address of the new account. Keen eyes might react (pun not intended) to the order of log events, that we see the address *before* the balances, since is since token balances requires a *network request* to the [Radix Core API](https://youtu.be/dQw4w9WgXcQ) which takes longer time than *locally computing the address*.
+In the last code block we subscribe to yet another reactive stream `activeAddress` (of type `Observable<AddressT>`) which will automatically update with the address of our active "account". We will instantly see our initial account having address ending with _"6RT"_ logged, since we already have an active account (and thanks to ["replay"](https://www.learnrxjs.io/learn-rxjs/operators/multicasting/sharereplay)). Moments later we create a new account and also switched to it, using the call to `deriveNextAccount({ alsoSwitchTo: true })`. Since we have subscribed to both `tokenBalances` and `activeAddres`, this will emit the token balances of the new account as well as the address of the new account. Keen eyes might react (pun not intended) to the order of log events, that the address is logged *before* the balances, this happens since the token balances requires a *network request* to the [Radix Core API](https://youtu.be/dQw4w9WgXcQ) which takes longer time than *locally computing the address*.
 
-If we would have called `deriveNextAccount` without the `{ alsoSwitchTo: true }` argument we would not have switched account and we would not have seen the print `"🙋🏽‍♀️ my address is: '9S8P...7RAG'"`, because a new value would not have been emitted on the `activeAddress` reactive property, we would have simple derived a new latent account that we can switch to at a later point. [More about account switching here](#Account-switching) and [more about account deriviation here](#Account-deriviation).
+If we would have called `deriveNextAccount` without the `{ alsoSwitchTo: true }` argument we wouldn't have had switched account and we wouldn't have seen the print `"🙋🏽‍♀️ my address is: '9S8P...7RAG'"`, because a new value would not have been emitted on the `activeAddress` reactive property, we would have simple derived a new latent account that we can switch to at a later point. More about [account switching here](#account-switching), more about [account derivation here](#account-derivation).
 
 #### Universe Magic
 
 A radix public address is the base58 encoding of two pieces of information:
-`UniverseMagicByte || PublicKey` plus some checksum bytes. The `UniverseMagicByte` or just `Magic` is an integer uniquely identifying the network. Which will have different values for e.g. our betanet and mainnet. Thus we must know the universe magic before we can derive any Radix addresses from a public key. The impliciations of this is that the `activeAddress` property will not emit any value until we have fetched the universe magic from a node.
+`UniverseMagicByte || PublicKey` plus some checksum bytes. The `UniverseMagicByte` or just `Magic` is an integer uniquely identifying the network. Which will have different values for e.g. our betanet and mainnet, thus we must know the universe magic before we can derive any Radix addresses from a public key. The implications of this is that the `activeAddress` property will not emit any value until we have fetched the universe magic from a node.
 
 > ⚠️ `activeAddress` will not emit any address until you have called connected to a node.
 
@@ -201,7 +201,7 @@ radix.accounts.subscribe(
 // ]
 ```
 
-Well, that is not helpful! What are those? An account (of type `AccountT`) itself is not so user friendly or beautiful to look at, it holds a reference to the derivation path used to derive it, and is in itself mostly a collection of functions. So printing them our in a console like this is not so helpful. However, when building a GUI wallet, we can display a clickable dropdown list of accounts and when a user selects an account we should switch to it. You can read about [account switching](#Account-switching) futher down.
+Well, that is not helpful! What are those? An account (of type `AccountT`) itself is not so user-friendly or beautiful to look at, it holds a reference to the derivation path used to derive it, and is in itself mostly a collection of functions. So printing them our in a console like this is not so helpful. However, when building a GUI wallet, we can display a clickable dropdown list of accounts and when a user selects an account we should switch to it. You can read about [account switching](#Account-switching) further down.
 
 #### Active account
 You can also subscribe to just the single active account
@@ -217,7 +217,7 @@ radix.activeAccount.subscribe(
 // },
 ```
 
-But not sure how useful this is. Probably `activeAddress` and `accounts` is all you need.
+The `activeAccount` is probably not so useful, better to use the `activeAddress` and `accounts` properties
 
 ### Token Balances
 
@@ -273,7 +273,7 @@ Please note that the above code is in fact doing this (being explicit and correc
 
 ```typescript
 radix.errors.subscribe({
-	next: (errorNotification) => console.log...
+	next: (errorNotification) => console.log(errorNotification),
 })
 ```
 
@@ -281,14 +281,14 @@ Which is **not** the same as:
 
 ```typescript
 radix.errors.subscribe({
-	error: (errorNotification) => console.log...
+	error: (errorNotification) => console.log(errorNotification),
 })
 ```
 
 The `radix.errors` reactive property is in itself immortal and will never error out, so do **not** add a subscriber to the `error` event, but rather the `next` event**s**.
 
 ### Error "categories"
-The `errors` property emits three different category of errors, each error is tagged with a 'category', each can be regarded as it seperate error channel/stream and you can chose to split it into seperate channels if you'd like.
+The `errors` property emits three different category of errors, each error is tagged with a 'category', each can be regarded as a separate error channel/stream and you can choose to split it into separate channels if you'd like.
 
 ```typescript
 import { Observable } from 'rxjs'
@@ -322,21 +322,21 @@ None of these methods will result in any RPC call to the Radix Core API. All met
 
 > ⚠️ Not yet implemented, subject to change.
 
-Sets the log level of the internal logger of this SDK. We use [roarr](https://github.com/gajus/roarr). By default only error and warning logs will visible to you. Lower the log level to see more information.
+Sets the log level of the internal logger of this SDK. We use [roarr](https://github.com/gajus/roarr). By default, only error and warning logs will visible to you. Lower the log level to see more information.
 
-### Account deriviation
+### Account derivation
 You can create new accounts with `deriveNextAccount()` call, which takes an optional argument, which contains in itself two optional arguments: 
 
 ```typescript
 {
-	isHardened?: boolean // defaults to true
-	alsoSwitchTo?: boolean // defaults to false
+	isHardened?: boolean // Optional, defaults to true
+	alsoSwitchTo?: boolean // Optional, defaults to false
 }
 ```
 
-We have already seen `alsoSwitchTo`, which changes the current active account. The `isHardened` controls whether or not the derived child key pair should be [hardened (not-extended) or not](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#extended-keys). You probably don't need to worry about that, just leave it blank.
+We have already seen `alsoSwitchTo`, which changes the current active account. The `isHardened` controls whether the derived child key pair should be [hardened (not-extended) or not](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#extended-keys). You probably don't need to worry about that, just leave it blank.
 
-If you build a GUI wallet you probably want to **locally save** either a list of the derived accounts, i.e. their hdpaths or you might wanna save the account with the highest value (the index of the last one), so that you can restore them upon app start.
+If you build a GUI wallet you probably want to **locally save** either a list of the derived accounts, i.e. their hdpaths or you might want to save the account with the highest value (the index of the last one), so that you can restore them upon app start.
 
 For your convenience we provide you with a specific method for this
 
@@ -344,7 +344,7 @@ For your convenience we provide you with a specific method for this
 
 > ⚠️ Not yet implemented, subject to change.
 
-You can "restore" all accounts up to some last known index. This does **not** switch the active account. And if you passed in the value `0` nothing will happen.
+You can "restore" all accounts up to some last known index. This does **not** switch the active account. If you passed in the value `0` nothing will happen.
 
 ```typescript
 const localStore = localPersistentStoreAt('some/local/path') // or similar
@@ -393,7 +393,7 @@ radix.switchAccount({ toAccount: selectedAccount })
 // "🙋🏽‍♀️ my address is: <THE_ADDRESS_OF_THE_SELECTED_ACCOUNT>"
 ```
 
-TODO: 👀 we might wanna make it possible to give each account a human readable name, or that might be something a GUI wallet _should_ be responsible for.
+TODO: 👀 we might want to make it possible to give each account a human-readable name, or that might be something a GUI wallet _should_ be responsible for.
 
 ### Fetch trigger
 
@@ -460,7 +460,7 @@ radix
 
 > ⚠️ Not yet implemented, subject to change.
 
-You can sign arbitrary data using the private key of the active account. Typically you will not use this since you will use higher level abstraction level `transferTokens` which also handles the signing part. This should be considered a more low level API for signing generic data.
+You can sign arbitrary data using the private key of the active account, typically you will not use this since you will use higher level method `transferTokens` which also handles the signing part. This should be considered a more low level API for signing generic data.
 
 ```typescript
 radix
@@ -562,9 +562,9 @@ Wow 😅, that's a mouthful... Let's break it down. We call subscribe to the obs
 5. An **optional**, encrypted, message.
 6. A list of actions, more about [these below](#actions).
 
-In the example above we asked for `3` transactions and got (indeed) got three, since there were at least three incoming/outgoing to/from the active account. If you would have asked for let's say `1000` and we only had `42`, then only 42 would have been returned of course.
+In the example above we asked for `3` transactions and got (indeed) got three, since there were at least three incoming/outgoing to/from the active account. If we had asked for let's say `1000` and we only owned `42`, then only 42 would have been returned of course.
 
-We also saw that the first transaction had a "message", but not the other two, it is completely optional, and bound to the transaction itself, not a particular action. We were also unable to read the message, since it is encrypted. **Messages are _not_ decrypted automatically upon recival**, you have to manual ask for a message to be decrypted, typically when displaying detailed information about the containing transaction, but more about [decryption later](https://youtu.be/dQw4w9WgXcQ).
+We also saw that the first transaction had a "message", but not the other two, it is completely optional, and bound to the transaction itself, not a particular action. We were also unable to read the message, since it is encrypted. **Messages are _not_ decrypted automatically when received**, you have to manual ask for a message to be decrypted, typically when displaying detailed information about the containing transaction, but more about [decryption later](https://youtu.be/dQw4w9WgXcQ).
 
 You ought to keep track of the returned `cursor` value in the `transactionHistory` response, since you can use that you query the next "page", like so:
 
@@ -600,7 +600,7 @@ fetchTXTrigger.next(20) // fetch tx 20-33
 // 📒📃 got #14 transactions
 ```
 
-In the code block above we use `cursor` to fetch two diffrent "pages" of the transaction history, but this account only had 34 transactions, so the second page only contained 14 entries.
+In the code block above we use `cursor` to fetch two different "pages" of the transaction history, but this account only had 34 transactions, so the second page only contained 14 entries.
 
 We use a [Subject (RxJS)](https://rxjs-dev.firebaseapp.com/guide/subject) to trigger the multiple calls to `transactionHistory`, in combination with [`mergeMap` ("flatMap)](https://www.learnrxjs.io/learn-rxjs/operators/transformation/mergemap) to transform the observable from `number => TransactionHistory` . An important thing to note is that we *update the cursor upon receiving each new "page"*.
 
@@ -688,15 +688,15 @@ const amount = unsafeAmount
 1. Gather and transform unsafe inputs into validated and type safe values.
 2. Create a transaction intent (may contain multiple actions), no fee is specified.
 3. From Radix Core API fetch transaction (including fee) translated from intent. Upon response JS lib  performs some soundness check that the content of the transaction matches the intent (TBD).
-4. Return to GUI wallet a ready to be signed blob + human readable fee.  
-5. GUI wallet tells JS lib to sign and submit blob/transaction to the Radix Core API.
-6. JS lib immeediatly returns the actual transaction id (`txId`), back to the GUI wallet (which it was able to compute locally since it has the signature now.)
+4. A ready-to-be-signed transaction (including human-readable fee) is returned to the GUI wallet.  
+5. The GUI wallet tells JS lib to sign and submit the transaction to the Radix Core API.
+6. Tbe JS lib immediately returns the actual transaction id (`txId`), back to the GUI wallet (which it was able to compute locally since it has the signature now.)
 7. GUI wallet tells JS lib to poll status of transaction using the `txId` from last step.
 
 
 ### Transaction flow pseudocode (`Promise`)
 
-Here is a *concept* of the flow, using `await` syntax. This is **not** the acual API, it's mere *pseudocode* to help visualize the flow. Since transfer of tokens is a multi-stage rocket there are many things to keep track of. 
+Here is a *concept* of the flow, using `await` syntax. This is **not** the actual API, it's mere *pseudocode* to help visualize the flow. Since transfer of tokens is a multi-stage rocket, there are many things to keep track of. 
 
 ```typescript
 // ⛔️⛔️⛔️ NOT THE ACTUAL API ⛔️⛔️⛔️
@@ -752,7 +752,7 @@ Here follows the actual, RxJS based, transaction flow.
 
 
 # Ledger
-This outlines all the requests you can make to the Radix Core API. All these requests are completely independent from any wallet, and does not have the notion of any "active address".
+This outlines all the requests you can make to the Radix Core API. All these requests are completely independent of any wallet, thus they have no notion of any "active address".
 
 ### `tokenBalancesForAddress`
 ```typescript
@@ -826,7 +826,7 @@ submitSignedAtom: (
 
 > 💡 Friendly reminder: when deemed appropriate, dispose of tour subscriptions by `unsubscribe`
 
-It's impossible to say when approriate, that is up to you.
+It's impossible to say when appropriate, that is up to you.
 
 ```typescript
 // Earlier
