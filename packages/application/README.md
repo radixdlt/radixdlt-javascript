@@ -541,12 +541,11 @@ Wow 😅, that's a mouthful... Let's break it down. We call subscribe to the obs
 5. An **optional**, encrypted, message.
 6. A list of actions, more about [these below](#actions).
 
-In the example above we asked for `3` transactions and got (indeed) got three, since there were at least three incoming/outgoing to/from the active account. If we had asked for let's say `1000` and we only owned `42`, then only 42 would have been returned of course.
+Above we saw an example fetching the 3 earliest transactions for an address.
 
-We also saw that the first transaction had a "message", but not the other two, it is completely optional, and bound to the transaction itself, not a particular action. We were also unable to read the message, since it is encrypted. **Messages are _not_ decrypted automatically when received**, you have to manual ask for a message to be decrypted, typically when displaying detailed information about the containing transaction, but more about [decryption later](https://youtu.be/dQw4w9WgXcQ).
+We are unable to read the message attatched to the first transaction, since it is encrypted. **Messages are _not_ decrypted automatically when received**, you have to manual ask for a message to be decrypted, reade more about [decryption here](#decrypt).
 
 You ought to keep track of the returned `cursor` value in the `transactionHistory` response, since you can use that you query the next "page", like so:
-
 
 ```typescript
 
