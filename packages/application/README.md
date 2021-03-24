@@ -30,7 +30,7 @@ radix.tokenBalances.subscribe(
 Above code assumes you have a wallet. Looking for wallet creation?
 > 💡 Please see [README of `radixdlt/account`](../account/README) for detailed documentation about getting started with a wallet.
 
-# TOC
+# Table of Contents
 <!-- MarkdownTOC autolink="true" -->
 
 - [`RadixT`](#radixt)
