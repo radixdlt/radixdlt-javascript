@@ -92,11 +92,13 @@ All interactions with the Radix ledger is exposed via the reactive interface `Ra
 
 In the code block above we create a `RadixT` instance and provide it with a [Hierarchical Deterministic (HD) wallet](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki) by loading a keystore using a function of type `() => Promise<KeystoreT>` (above named `loadKeystore`). After the keystore has been loaded, it will be decrypted using the provided password and create a wallet value (of type `WalletT`). Which the RadixT type will use internally to manage accounts and expose method for creating new ones. **By default an initial account will be derived automatically**<sup id="defaultDerivationPath">[1](#defaultDerivationPath)</sup>. 
 
-Lastly we [`subscribe`](https://rxjs-dev.firebaseapp.com/guide/observable#subscribing-to-observables) to the reactive stream `tokenBalances` which will automatically fetch and update the token balances for the address of the active "account". Since the Radix Ledger [supports multiple tokens](https://youtu.be/dQw4w9WgXcQ) for each address this will be a list of tokens, the [amount](https://github.com/radixdlt/radixdlt-javascript/blob/main/packages/primitives/src/_types.ts#L33-L48), their symbol ("ticker") and name. 
+Lastly we [`subscribe`](https://rxjs-dev.firebaseapp.com/guide/observable#subscribing-to-observables) to the reactive stream `tokenBalances` which will automatically fetch the token balances for the address of the active "account". See (Fetch Trigger)[#fetchTrigger] continuous update of balance ("polling").
+
+Since the Radix Ledger [supports multiple tokens](https://youtu.be/dQw4w9WgXcQ) for each address this will be a list of tokens, the [amount](https://github.com/radixdlt/radixdlt-javascript/blob/main/packages/primitives/src/_types.ts#L33-L48), their symbol ("ticker") and name. 
 
 > 💡 Friendly reminder: the observables will not start emitting values until you have subscribed to them
 
-> 💡 Friendly reminder: make sure to handle the returned value of the `subscribe()` function, by adding then to a [`Subscription`](https://rxjs-dev.firebaseapp.com/guide/subscription) object, otherwise behaviour is undefined and you might experience all sorts of weird errors (e.g. memory leaks).
+> 💡 Friendly reminder: make sure to handle the returned value of the `subscribe()` function, by adding then to a [`Subscription`](https://rxjs-dev.firebaseapp.com/guide/subscription) object, otherwise behaviour is undefined, and you might experience all sorts of weird errors (e.g. memory leaks).
 > 
 
 However, we can also interact with the [Radix Core API](https://youtu.be/dQw4w9WgXcQ) without using any wallet, using the property `api`, like so:
@@ -144,7 +146,7 @@ If any error where to be emitted on these reactive properties, they would comple
 ### Active address
 We can subscribe to the active address, which will emit the formatted radix public address of the active account.
 
-If we create and switch to a new account, we will see how both our active address and our token balances would update automatically.
+If we create and switch to a new account, we will see how both our active address, and our token balances would update automatically.
 
 ```typescript
 radix.activeAddress.subscribe(
@@ -236,7 +238,7 @@ radix
 // ]"
 ```
 
-See (Fetch Trigger)[#fetchTrigger] for a way either scheduling fetching of token balances on a regular interval, or binding a fetch to a "Fetch Now" button in GUI.
+See (Fetch Trigger)[#fetchTrigger] for a way either scheduling fetching of token balances at a regular interval ("polling"), or triggering a single fetch when user presses a "Fetch Now" button in GUI.
 
 ## Errors sink
 
@@ -260,7 +262,7 @@ radix.errors.subscribe(
 The `radix.errors` reactive property is in itself immortal and will never error out, so do **not** add a subscriber to the `error` event, but rather the `next` event**s**.
 
 ### Error "categories"
-The `errors` property emits three different category of errors, each error is tagged with a 'category', each can be regarded as a separate error channel/stream and you can choose to split it into separate channels if you'd like.
+The `errors` property emits three different category of errors, each error is tagged with a 'category', each can be regarded as a separate error channel/stream, and you can choose to split it into separate channels if you'd like.
 
 ```typescript
 import { Observable } from 'rxjs'
@@ -527,7 +529,7 @@ Wow 😅, that's a mouthful... Let's break it down. We call subscribe to the obs
 
 Above we saw an example fetching the 3 earliest transactions for an address.
 
-We are unable to read the message attatched to the first transaction, since it is encrypted. **Messages are _not_ decrypted automatically when received**, you have to manual ask for a message to be decrypted, reade more about [decryption here](#decrypt).
+We are unable to read the message attached to the first transaction, since it is encrypted. **Messages are _not_ decrypted automatically when received**, you have to manual ask for a message to be decrypted, reade more about [decryption here](#decrypt).
 
 You ought to keep track of the returned `cursor` value in the `transactionHistory` response, since you can use that you query the next "page", like so:
 
@@ -566,8 +568,7 @@ In the code block above we use `cursor` to fetch two different "pages" of the tr
 
 We use a [Subject (RxJS)](https://rxjs-dev.firebaseapp.com/guide/subject) to trigger the multiple calls to `transactionHistory`, in combination with [`mergeMap` ("flatMap)](https://www.learnrxjs.io/learn-rxjs/operators/transformation/mergemap) to transform the observable from `number => TransactionHistory` . An important thing to note is that we *update the cursor upon receiving each new "page"*.
 
-See (Fetch Trigger)[#fetchTrigger] for a way either scheduling fetching of transaction history a regular interval, or binding a fetch to a "Fetch Now" button in GUI.
-
+See (Fetch Trigger)[#fetchTrigger] for a way either scheduling fetching of transaction history at a regular interval ("polling"), or triggering a single fetch when user presses a "Fetch Now" button in GUI.
 
 ### Actions
 
