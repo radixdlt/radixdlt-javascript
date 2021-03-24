@@ -1,6 +1,6 @@
 # `@radixdlt/application`
 
-High-level abstraction user-facing API for interacting with the [Radix decentralized ledger](https://www.radixdlt.com/).
+High-level user-facing API for interacting with the [Radix decentralized ledger](https://www.radixdlt.com/).
 
 ### Intro
 
