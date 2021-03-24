@@ -313,16 +313,7 @@ None of these methods will result in any RPC call to the Radix Core API. All met
 Sets the log level of the internal logger of this SDK. We use [roarr](https://github.com/gajus/roarr). By default, only error and warning logs will visible to you. Lower the log level to see more information.
 
 ### Account derivation
-You can create new accounts with `deriveNextAccount()` call, which takes an optional argument, which contains in itself two optional arguments: 
-
-```typescript
-{
-	isHardened?: boolean // Optional, defaults to true
-	alsoSwitchTo?: boolean // Optional, defaults to false
-}
-```
-
-We have already seen `alsoSwitchTo`, which changes the current active account. The `isHardened` controls whether the derived child key pair should be [hardened (not-extended) or not](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#extended-keys). You probably don't need to worry about that, just leave it blank.
+You can create new accounts with `deriveNextAccount()`, which takes an optional `alsoSwitchTo` argument, which changes the current active account.
 
 If you build a GUI wallet you probably want to **locally save** either a list of the derived accounts, i.e. their hdpaths or you might want to save the account with the highest value (the index of the last one), so that you can restore them upon app start.
 
