@@ -128,7 +128,7 @@ const radix = Radix.create()
 // } "
 ```
 
-In the code block above we did not provide any wallet and notice we access the property `api`, on which we called the method `nativeToken()` which observable stream we subsequently subscribe to. Lastly we handle the subscription. If we would set the log level to `INFO` (from default of `WARNING`), we would not have seen the output `"💙 got nativeToken response..."`, neither would we if we wouldn't have called `subscribe()`, since all observables returned by _function calls_ are **lazy** (using [`defer`](https://rxjs-dev.firebaseapp.com/api/index/function/defer)).
+In the code block above we did not provide any wallet and notice we access the property `ledger`, on which we called the method `nativeToken()` which observable stream we subsequently subscribe to. Lastly we handle the subscription. If we would set the log level to `INFO` (from default of `WARNING`), we would not have seen the output `"💙 got nativeToken response..."`, neither would we if we wouldn't have called `subscribe()`, since all observables returned by _function calls_ are **lazy** (using [`defer`](https://rxjs-dev.firebaseapp.com/api/index/function/defer)).
 
 > 💡 Everytime you'll see a heart emoji 💜💚💙💛❤️ it's a message logged from within this library (inspired by [SwiftBeaver](https://github.com/SwiftyBeaver/SwiftyBeaver#during-development-colored-logging-to-xcode-console)), representing `VERBOSE`, `DEBUG`, `INFO`, `WARNING` and `ERROR` log levels respectively.
 
