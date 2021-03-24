@@ -471,9 +471,9 @@ radix
 
 > ⚠️ Not yet implemented, subject to change.
 
-A transaction is not a token transfer, but a token transfer might be one action amongst many in a transaction.
+A transaction is not a token transfer, however, a token transfer might be _one_ action amongst _many_ in a transaction.
 
-As opposed to the three reactive _properties_ `activeAddress`, `tokenBalances`, `accounts` that we have examined so far, you **cannot** subscribe to the transaction history using a _property_. The reason for this is that the transaction history might be long, and is for that sake paginated. So `RadixT` needs some kind of _"cursor"_ together with a `size`, telling it where and how many transactions to fetch from the Radix Distributed Ledger. 
+Transaction history might be long, and is for that sake paginated. So `RadixT` needs some kind of _"cursor"_ together with a `size`, telling it where and how many transactions to fetch from the Radix Distributed Ledger. 
 
 ```typescript
 radix.transactionHistory({
