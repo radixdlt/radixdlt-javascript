@@ -22,16 +22,14 @@ import { Mnemonic, Strength, Language } from '@radixdlt/account'
 const mnemonic = Mnemonic.generateNew()
 
 // This will be our "application password" (1️⃣)
-// User choses this, however, please tell her to use 1Password to GENERATE a
-// unique and strong encryption password. This password should be unique and strong.
-// Urge user to backup this password.
+// User chooses this, however, please tell her to use a unique, strong randomly generated encryption password. Also urge user to back this up in a safe place. She will need it every time she starts the app.
 const keystoreEncryptionPassword = confirmPasswordTextField.value() // or similar
 
 // You need to pass in a function which saves the keystore
 // this example uses 'fs' but using Electron/Browser you might
 // wanna try out https://www.npmjs.com/package/fs-jetpack or similar.
-const saveKeystoreOnDisc = (keystore: KeystoreT): Promise<void> => {
-    import { PathLike, promises as fsPromises } from 'fs'
+import { PathLike, promises as fsPromises } from 'fs'
+const saveKeystoreOnDisk = (keystore: KeystoreT): Promise<void> => {
     const filePath = 'SOME/SUITABLE/PATH/keystore.json'
     const json = JSON.stringify(keystore, null, '\t')
     return fsPromises.writeFile(filePath, json)
@@ -42,7 +40,7 @@ const saveKeystoreOnDisc = (keystore: KeystoreT): Promise<void> => {
 const walletResult = await Wallet.byEncryptingSeedOfMnemonicAndSavingKeystore({
 	mnemonic,
 	password: keystoreEncryptionPassword,
-	save: saveKeystoreOnDisc,
+	save: saveKeystoreOnDisk,
 })
 
 if (walletResult.isErr()) {
@@ -98,14 +96,15 @@ import { PathLike, promises as fsPromises } from 'fs'
 // Each time GUI wallet starts ask user for encryption password in GUI
 const keystoreEncryptionPassword = passwordTextField.value() // or similar
 
-const loadKeystoreOnDisc = (): Promise<KeystoreT> => {
+const loadKeystoreOnDisk = (): Promise<KeystoreT> => {
 	const filePath = 'SOME/SUITABLE/PATH/keystore.json'
 	return fsPromises.readFile(filePath)
          .then(buffer => Keystore.fromBuffer(buffer))
 }
 
 const walletResult = await Wallet.byLoadingAndDecryptingKeystore({
-	password: keystoreEncryptionPassword
+	password: keystoreEncryptionPassword,
+	load: loadKeystoreOnDisk
 })
 
 if (walletResult.isErr()) {

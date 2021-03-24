@@ -686,7 +686,7 @@ const amount = unsafeAmount
 ### Transaction Flow Summary
 
 1. Gather and transform unsafe inputs into validated and type safe values.
-2. Create a transaction intent (fee less).
+2. Create a transaction intent (may contain multiple actions), no fee is specified.
 3. From Radix Core API fetch transaction (including fee) translated from intent. Upon response JS lib  performs some soundness check that the content of the transaction matches the intent (TBD).
 4. Return to GUI wallet a ready to be signed blob + human readable fee.  
 5. GUI wallet tells JS lib to sign and submit blob/transaction to the Radix Core API.
@@ -703,7 +703,7 @@ Here is a *concept* of the flow, using `await` syntax. This is **not** the acual
 // THIS IS JUST AN OUTLINE OF FLOW
 // Step 1️⃣ Gather and transform unsafe inputs into validated and type safe values. Already done in code block above
 
-// Step 2️⃣ Create a transaction intent (fee less).
+// Step 2️⃣ Create a transaction intent (may contain multiple actions), no fee is specified.
 const transactionIntent = TransactionIntent.create()
 	.transferTokens({
 		to: recipientAddress,
