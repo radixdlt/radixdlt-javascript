@@ -257,22 +257,6 @@ radix.errors.subscribe(
 // "☣️ error { 'tag': 'api', msg: 'Request timed out' }"
 ```
 
-Please note that the above code is in fact doing this (being explicit and correct):
-
-```typescript
-radix.errors.subscribe({
-	next: (errorNotification) => console.log(errorNotification),
-})
-```
-
-Which is **not** the same as:
-
-```typescript
-radix.errors.subscribe({
-	error: (errorNotification) => console.log(errorNotification),
-})
-```
-
 The `radix.errors` reactive property is in itself immortal and will never error out, so do **not** add a subscriber to the `error` event, but rather the `next` event**s**.
 
 ### Error "categories"
