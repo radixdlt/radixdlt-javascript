@@ -596,62 +596,6 @@ The Radix Core API failed to recognize the instructions as a well-formed/well-kn
 
 ## Transfer Tokens
 
-```typescript
-const askUserToConfirmTxSubject = new Subject<UnsignedTransaction>()
-const userDidConfirmTxSubject = new Subject<UnsignedTransaction>()
-
-radix
-	.transactionFromIntent({ 
-		intent: intent, 
-		askUserToConfirmTxSubject: askUserToConfirmTxSubject
-	})
-	.subscribe() // DONT FORGET
-	.add(subs)
-
-
-askUserToConfirmTxSubject.subscribe(
-	(unsignedTxWithFeeForUserToConfirm) => {
-		const txFee = unsignedTxWithFeeForUserToConfirm.fee
-		console.log(`💵 tx fee: ${txFee.toString()}`)
-		// Display unsigned tx with fee in GUI wallet, ask user to confirm
-
-		// "bind" a "Confirm TX" button so that it calls `userDidConfirmTxSubject.next(unsignedTxWithFeeForUserToConfirm)`
-		userDidConfirmTxSubject.next(unsignedTxWithFeeForUserToConfirm)
-	}
-).add(subs)
-
-
-
-userDidConfirmTxSubject
-	.pipe(
-		mergeMap((unsignedUserConfirmedTx): Observable<SignedTransaction> => {
-			// `signAndSubmitTx` will emit two values:
-			// 1. Will immediately emit `SignedTransaction` after signing was done 
-			// but before transaction is submitted to the Radix Core API
-			// 2. Will emit result from submission request to the Radix Core API, 
-			// either failure or success.
-			//
-			return radix.signAndSubmitTx(unsignedUserConfirmedTx).pipe(
-			mergeMap((signedTransaction) => {
-			const txId = signedTransaction.id
-			console.log(`🆔 transaction id: ${txId.toString()}`)
-
-			const pollTxTrigger = timer(5 * 1_000) // every 5 seconds
-
-			return pollTxTrigger.pipe(
-				mergeMap((_) => radix.ledger.statusOfTransactionById(txId)),
-				// Ignored TransactionStatus.FAILED for now
-				takeWhile((status) => status !== TransactionStatus.CONFIMRED)
-			)
-
-		})
-			)
-		}),
-	)
-	.subscribe() // DONT FORGET
-	.add(subs)
-```
-
 ### Transfer input
 
 Let us transfer some tokens! All methods accept specific types such as `AddressT` for recipient address, `AmountT` for token amounts and `ResourceIdentierT` for token asset identifier. All these will have been exposed to you already via `tokenBalances`, `ledger.nativeToken()` and/or `transactionHistory`.
@@ -759,7 +703,93 @@ radix.ledger.statusOfTransactionById(transactionId)
 
 Here follows the actual, RxJS based, transaction flow.
 
-> TODO 👀 write this.
+
+```typescript
+const userDidConfirmTransactionSubject = new Subject<UnsignedTransaction>()
+
+radix
+	.transactionFromIntent({ 
+		intent: transactionIntent, 
+	})
+	.subscribe(
+		((unsignedTxWithFeeForUserToConfirm) => {
+			const txFee = unsignedTxWithFeeForUserToConfirm.fee
+			console.log(`💵 tx fee: ${txFee.toString()}`)
+			
+			// Display unsigned tx with fee in GUI wallet, ask user to confirm.
+			// Keep a reference to `unsignedTxWithFeeForUserToConfirm` around, we 
+			// will need to forward it back to JS lib later.
+
+			// LATER, when user has seen/reviewed tx and press "Confirm TX" button,
+			// use the `unsignedTxWithFeeForUserToConfirm` that you kept around.
+			userDidConfirmTransactionSubject.next(unsignedTxWithFeeForUserToConfirm)
+
+		})
+	) // DONT FORGET
+	.add(subs)
+
+
+const pendingTransactionsSubject = new Subject<SignedTransaction>()
+
+userDidConfirmTransactionSubject
+	.pipe(
+		mergeMap((unsignedUserConfirmedTx): Observable<SignedTransaction> => 
+			radix
+				.sign(unsignedUserConfirmedTx)
+				.pipe(
+					mergeMap((signedTransaction) => {
+						const txId = signedTransaction.id
+						console.log(`🆔 transaction id: ${txId.toString()}`)
+
+						pendingTransactionsSubject.next(signedTransaction)
+						
+						return radix.submitSignedTransaction(signedTransaction)
+					}),
+			),
+		),
+	)
+	.subscribe() // DONT FORGET
+	.add(subs)
+
+
+
+const pollTxStatusTrigger = timer(5 * 1_000) // every 5 seconds
+
+const transactionStatus$ = pollTxStatusTrigger
+	.withLatestFrom(pendingTransactionsSubject)
+	.pipe(
+		mergeMap((signedTransaction) => 
+			radix
+				.ledger
+				.statusOfTransactionById(signedTransaction.id)
+				.pipe(
+					map((status) => ({
+						status,
+						signedTransaction.id,
+					})
+				) 
+			),
+		)
+	)
+
+const transactionConfirmed$ = transactionStatus$.pipe(
+	takeWhile(({ status, _ }) => status !== TransactionStatus.CONFIMRED),
+)
+
+transactionStatus$
+	.subscribe(({ status, id }) => console.log(`🔮 Status ${status.toString()} of tx with id: ${id.toString()}`)) 
+	.add(subs)
+
+// 🔮 Status: INITIATED, 
+// 🔮 Status: PENDING, 
+// 🔮 Status: CONFIRMED, 
+
+transactionConfirmed$
+	.subscribe(({ _, id }) => console.log(`✅ Tx with id ${id.toString()} confirmed`))
+	.add(subs)
+
+// ✅ Status confirmed`
+```
 
 
 ## Stake Tokens
