@@ -242,7 +242,7 @@ See (Fetch Trigger)[#fetchTrigger] for a way either scheduling fetching of token
 
 Since RxJS observable finishes on error, and would stop emitting values after an error, we have made sure all errors are caught and redirected to the `errors` property (of type `Observable<ErrorNotification>). Meaning that all reactive properties you can listen for values on are immortal.
 
-Apart from logging (controlled with the `setLogLevel` method as seen in [intro](#intro) and [documented below](#setloglevel)) it is probably a good idea to listen to errors and handle them appropriately. To be clear, **you probably should _act upon_ these errors**, either you self as a developer or prompt user for action.
+Apart from logging (controlled with the `setLogLevel` method as seen in [intro](#intro) and [documented below](#setloglevel)) it is probably a good idea to listen to errors and handle them appropriately. To be clear, **you probably should _act upon_ these errors**, either you (as a GUI wallet developer) or prompt the user to take appropriate action(s).
 
 ```typescript
 radix.errors.subscribe(
