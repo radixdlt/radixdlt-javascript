@@ -28,7 +28,7 @@ radix.tokenBalances.subscribe(
 ```
 
 Above code assumes you have a wallet. Looking for wallet creation?
-> 💡 Please see [README of `@radixdlt/account` package](../../account/README.md) for a detailed documentation about getting started with a wallet.
+> 💡 Please see [README of `@radixdlt/account` package](../../packages/account/README.md) for a detailed documentation about getting started with a wallet.
 
 # Table of Contents
 <!-- MarkdownTOC autolink="true" -->
