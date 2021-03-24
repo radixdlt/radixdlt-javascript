@@ -23,7 +23,7 @@ radix.tokenBalances.subscribe(
 // "💎 My token balances:
 // [ 
 //      1337.0 'XRD' ("Rads"), 
-//      0.42 'xwBTC' ("Radix-Wrapped Bitcoin")
+//      0.42 'rwBTC' ("Radix-Wrapped Bitcoin")
 // ]"
 ```
 
@@ -36,19 +36,20 @@ Above code assumes you have a wallet. Looking for wallet creation?
 - [`RadixT`](#radixt)
 - [Reactive properties](#reactive-properties)
 	- [Immortal state listeners](#immortal-state-listeners)
-		- [Token Balances](#token-balances)
 		- [Active address](#active-address)
 			- [Universe Magic](#universe-magic)
 		- [Account listing](#account-listing)
 			- [Active account](#active-account)
+		- [Token Balances](#token-balances)
 	- [Errors sink](#errors-sink)
-		- [Error "channels"](#error-channels)
+		- [Error "categories"](#error-categories)
 - [Methods](#methods)
 	- [Local methods](#local-methods)
 		- [setLogLevel](#setloglevel)
 		- [Account deriviation](#account-deriviation)
 			- [restoreAccountsUpToIndex](#restoreaccountsuptoindex)
 		- [Account switching](#account-switching)
+		- [Fetch trigger](#fetch-trigger)
 		- [Decrypt](#decrypt)
 		- [Sign](#sign)
 	- [Methods resulting in RPC calls](#methods-resulting-in-rpc-calls)
@@ -63,8 +64,8 @@ Above code assumes you have a wallet. Looking for wallet creation?
 			- [`Unknown`](#unknown)
 	- [Transfer Tokens](#transfer-tokens)
 		- [Transfer input](#transfer-input)
-		- [Pseudocode \(`Promise`\)](#pseudocode-promise)
 		- [Transaction Flow Summary](#transaction-flow-summary)
+		- [Transaction flow pseudocode \(`Promise`\)](#transaction-flow-pseudocode-promise)
 		- [Transaction Flow Code](#transaction-flow-code)
 	- [Stake Tokens](#stake-tokens)
 	- [Unstake Tokens](#unstake-tokens)
@@ -107,7 +108,7 @@ const subs = new Subscription()
 const radix = Radix.create()
 	.connect(new URL('https://api.radixdlt.com'))
 	.setLogLevel(LogLevel.INFO)
-	.api // accessing all RPC methods
+	.ledger // accessing all RPC methods
 	.nativeToken() // get token info about "XRD"
 	.subscribe()
 	.add(subs)
@@ -133,7 +134,7 @@ In the code block above we did not provide any wallet and notice we access the p
 
 The [`ledger` property is separatly documented in the end of this document](#ledger)
 
-By the way, in the code block above, did you notice how we could chain calls to `create()`, `connect()`, `setLogLevel()` and `.api`? Thanks because we make these calls _chainable_ by returning the radix "instance".
+By the way, in the code block above, did you notice how we could chain calls to `create()`, `connect()`, `setLogLevel()` and `.ledger`? Thanks because we make these calls _chainable_ by returning the radix "instance".
 
 > 💡 All _methods_ you call return back the `RadixT` value itself, making these methods "chainable" ⛓.
 
@@ -144,48 +145,6 @@ In a GUI wallet you will most likely not use `radix.ledger` so much, but rather 
 ## Immortal state listeners
 
 If any error would be emitted on these reactive properties, they would complete (terminate) and you would miss out on any subsequently emitted value. We don't want that, why we've made sure that these never emit any value. All errors are redicted to the specific `errors` property, but [more about that later](#errors). For now just remember that you will always get the latest and greatest data given the current active account from the `radix` interface.
-
-### Token Balances
-
-In [the intro](#intro) we subscribed to the `tokenBalances` and the whole emitted next value. It looked like an array, but it is in fact a map. So if we know the resource identifier (of type `ResourceIdentifierT`) of a certain asset, we can query the balance for just said asset.
-
-```typescript
-
-const fooResourceIdentifier = '/9SAihkYQDBKvHfhvwEw4QBfx1rpjvta2TvmWibyXixVzX2JHHHWf/FOO'
-const barResourceIdentifier = '/9S81XtkW3H9XZrmnzWqYSuTFPhWXdRnnpL3XXk7h5XxAM6zMdH7k/BAR'
-const someInvalidIdentifier = '/my invalid radix address/err0r'
-
-radix.tokenBalances.subscribe(
-	(tokenBalances) => {
-		const fooBalance = tokenBalances.balanceOf(fooResourceIdentifier)
-		const barBalance = tokenBalances.balanceOf(barResourceIdentifier)
-		const balanceOfInvalid = tokenBalances.balanceOf(someInvalidIdentifier)
-		console.log(`💎1️⃣: ${fooBalance.toString()}`)
-		console.log(`💎2️⃣: ${barBalance.toString()}`)
-		console.log(`💎3️⃣: ${balanceOfInvalid.toString()}`)
-	}
-).add(subs)
-
-/* In the near future... */
-// "💎1️⃣ 256 'FOO' ("Foo coin")
-// "💎2️⃣ 13 'BAR' ("Bar token")
-// "💎3️⃣ undefined
-```
-
-Or if we wanna fetch the identifier of the native token let's use [RxJS `combineLatest`](https://rxjs-dev.firebaseapp.com/api/index/function/combineLatest) to get the XRD balance without having to know the identifier before hand:
-
-```typescript
-import { combineLatest } from 'rxjs'
-
-combineLatest(
-	radix.tokenBalances, 
-	radix.ledger.nativeToken()
-).pipe(	
-	map((tokenBalances, nativeToken) => tokenBalances.balanceOf(nativeToken.resourceIdentifier)),
-).subscribe((bal) => console.log(`💵 ${bal.token.symbol} balance: ${bal.amount.toString()}`))
-	.add(subs)
-// '💵 XRD balance: 1234.5'
-```
 
 ### Active address
 We can subscribe to the active address, which will emit the formatted radix public address of the active account.
@@ -260,9 +219,38 @@ radix.activeAccount.subscribe(
 
 But not sure how useful this is. Probably `activeAddress` and `accounts` is all you need.
 
-## Errors sink
+### Token Balances
 
-⚠️ [Being implemented](https://github.com/radixdlt/radixdlt-javascript/pull/58), subject to change.
+In [the intro](#intro) we subscribed to the `tokenBalances`. This will get updated automatically when you switch account.
+
+```typescript
+radix
+	.tokenBalances
+	.subscribe((tokenBalances) => {
+		console.log(`💎: ${tokenBalances.toString()}`)
+	}
+).add(subs)
+
+/* In the near future... */
+// "💎 My token balances:
+// [ 
+//      5.37 'rwBTC' ("Radix-Wrapped Bitcoin")
+// ]"
+
+// Later
+radix
+	.deriveNextAccount({ alsoSwitchTo: true })
+
+/* In the near future... */
+// "💎 My token balances:
+// [ 
+//      8541.37 'rwETH' ("Radix-Wrapped Ether")
+// ]"
+```
+
+See (Fetch Trigger)[#fetchTrigger] for a way either scheduling fetching of token balances on a regular interval, or binding a fetch to a "Fetch Now" button in GUI.
+
+## Errors sink
 
 Since RxJS observable finishes on error, and would stop emitting values after an error, we have made sure all errors are caught and redirected to the `errors` property (of type `Observable<ErrorNotification>). Meaning that all reactive properties you can listen for values on are immortal.
 
@@ -299,27 +287,30 @@ radix.errors.subscribe({
 
 The `radix.errors` reactive property is in itself immortal and will never error out, so do **not** add a subscriber to the `error` event, but rather the `next` event**s**.
 
-### Error "channels"
-The `errors` property emits three different kinds of errors, each error is tagged with a 'tag', each can be regarded as it seperate error channel/stream and you can chose to split it into seperate channels if you'd like.
+### Error "categories"
+The `errors` property emits three different category of errors, each error is tagged with a 'category', each can be regarded as it seperate error channel/stream and you can chose to split it into seperate channels if you'd like.
 
 ```typescript
 import { Observable } from 'rxjs'
-import { ErrorNotification, WalletError, ErrorNotificationTag } from '@radixdlt/application'
+import { ErrorNotification, WalletError, ErrorNotification } from '@radixdlt/application'
 
-const splitErrorNotificationsOnTag = (tag: ErrorNotificationTag): Observable<ErrorNotificationT> => radix.errors.pipe(
-	filter((errorNotification) => errorNotification.tag === tag),
+const splitErrorNotificationsOnCategory = <Category extends ErrorCategory>(category: Category): Observable<ErrorNotificationT> => radix.errors.pipe(
+	filter((errorNotification) => errorNotification.category === category),
 )
 
-const walletErrors = splitErrorNotificationsOnTag('wallet')
+const walletErrors = splitErrorNotificationsOnCategory(ErrorCategory.WALLET)
 
 walletErrors.subscribe(
 	(errorNotification) => {
-		if (errorNotification.error === WalletError.FAILED_TO_DECRYPT) {
-			// display error message in GUI.
+		if (errorNotification.cause === WalletErrorCause.LOAD_KEYSTORE_FAILED) {
+			console.log(`⚠️ failed to load keystore: '${errorNotification.message}'`)
+			// Aslo display error message in GUI.
 		}
 	}
 )
 ```
+
+You can access the underlying error `cause` and even `message` with more details.
 
 # Methods
 
@@ -404,6 +395,51 @@ radix.switchAccount({ toAccount: selectedAccount })
 
 TODO: 👀 we might wanna make it possible to give each account a human readable name, or that might be something a GUI wallet _should_ be responsible for.
 
+### Fetch trigger
+
+⚠️ Not yet implemented, subject to change.
+
+You can specify a fetch trigger (polling), by use of `withFetchTrigger` method.
+
+```typescript
+import { timer } from 'rxjs'
+
+radix
+	.withFetchTrigger({
+		trigger: timer(3 * 60 * 1_000), // every third minute
+		fetch: {
+			tokenBalances: true,
+			transactionHistory: false,
+		}
+	})
+```
+
+The above code will make sure you automatically perform a fetch of token balances every third minute. If you change from `transactionHistory: false` to `transactionHistory: true`, also transaction history will be fetched with the same interval.
+
+```typescript
+import { Subject } from 'rxjs'
+
+const fetchNowSubject = new Subject<void>()
+const trigger = merge(
+	timer(3 * 60 * 1_000), // every third minute,
+	fetchNowSubject
+)
+
+radix
+	.withFetchTrigger({
+		trigger,
+		fetch: {
+			tokenBalances: true,
+			transactionHistory: true,
+		}
+	})
+
+// If you "bind" a "Fetch Now"-button in GUI to call `next` on the subject
+// this will trigger a fetch
+fetchNowSubject.next(undefined) 
+```
+
+
 ### Decrypt
 
 > ⚠️ Not yet implemented, subject to change.
@@ -447,12 +483,12 @@ radix
 
 > ⚠️ Not yet implemented, subject to change.
 
-A transaction is not a token transfer, but a token transfer might be one action amongst many in an (executed) transaction.
+A transaction is not a token transfer, but a token transfer might be one action amongst many in a transaction.
 
 As opposed to the three reactive _properties_ `activeAddress`, `tokenBalances`, `accounts` that we have examined so far, you **cannot** subscribe to the transaction history using a _property_. The reason for this is that the transaction history might be long, and is for that sake paginated. So `RadixT` needs some kind of _"cursor"_ together with a `size`, telling it where and how many transactions to fetch from the Radix Distributed Ledger. 
 
 ```typescript
-radix.executedTransactions({
+radix.transactionHistory({
 	size: 3,
 }).subscribe(
 	(txs) => console.log(`📒⏱ transaction history: ${txs.toString()} ⏱📒`)
@@ -518,7 +554,7 @@ radix.executedTransactions({
 // "
 ```
 
-Wow 😅, that's a mouthful... Let's break it down. We call subscribe to the observable returned by the method call to `executedTransactions(...)` and after a short delay log the received object. It contains some "cursor", being a pointer to the last transaction, we can use this for subsequent pagination pages. We also see an array of "transactions". Each transaction has:  
+Wow 😅, that's a mouthful... Let's break it down. We call subscribe to the observable returned by the method call to `transactionHistory(...)` and after a short delay log the received object. It contains some "cursor", being a pointer to the last transaction, we can use this for subsequent pagination pages. We also see an array of "transactions". Each transaction has:  
 1. An identifier.  
 2. A type (`incoming`, `outgoing` or `unrelated`).
 3. A date.  
@@ -530,7 +566,7 @@ In the example above we asked for `3` transactions and got (indeed) got three, s
 
 We also saw that the first transaction had a "message", but not the other two, it is completely optional, and bound to the transaction itself, not a particular action. We were also unable to read the message, since it is encrypted. **Messages are _not_ decrypted automatically upon recival**, you have to manual ask for a message to be decrypted, typically when displaying detailed information about the containing transaction, but more about [decryption later](https://youtu.be/dQw4w9WgXcQ).
 
-You ought to keep track of the returned `cursor` value in the `executedTransaction` response, since you can use that you query the next "page", like so:
+You ought to keep track of the returned `cursor` value in the `transactionHistory` response, since you can use that you query the next "page", like so:
 
 
 ```typescript
@@ -544,7 +580,7 @@ const fetchTXTrigger = new Subject<number>()
 
 fetchTXTrigger.pipe(
 	mergeMap((pageSize) => {
-		radix.executedTransactions({
+		radix.transactionHistory({
 			size: pageSize,
 			cursor: cursor.getOrNull()
 		})
@@ -566,7 +602,10 @@ fetchTXTrigger.next(20) // fetch tx 20-33
 
 In the code block above we use `cursor` to fetch two diffrent "pages" of the transaction history, but this account only had 34 transactions, so the second page only contained 14 entries.
 
-We use a [Subject (RxJS)](https://rxjs-dev.firebaseapp.com/guide/subject) to trigger the multiple calls to `executedTransactions`, in combination with [`mergeMap` ("flatMap)](https://www.learnrxjs.io/learn-rxjs/operators/transformation/mergemap) to transform the observable from `number => ExecutedTransaction` . An important thing to note is that we *update the cursor upon receiving each new "page"*.
+We use a [Subject (RxJS)](https://rxjs-dev.firebaseapp.com/guide/subject) to trigger the multiple calls to `transactionHistory`, in combination with [`mergeMap` ("flatMap)](https://www.learnrxjs.io/learn-rxjs/operators/transformation/mergemap) to transform the observable from `number => TransactionHistory` . An important thing to note is that we *update the cursor upon receiving each new "page"*.
+
+See (Fetch Trigger)[#fetchTrigger] for a way either scheduling fetching of transaction history a regular interval, or binding a fetch to a "Fetch Now" button in GUI.
+
 
 ### Actions
 
@@ -598,7 +637,7 @@ The Radix Core API failed to recognize the instructions as a well-formed/well-kn
 
 ### Transfer input
 
-Let us transfer some tokens! All methods accept specific types such as `AddressT` for recipient address, `AmountT` for token amounts and `ResourceIdentierT` for token asset identifier. All these will have been exposed to you already via `tokenBalances`, `api.nativeToken()` and/or `executedTransactions`.
+Let us transfer some tokens! All methods accept specific types such as `AddressT` for recipient address, `AmountT` for token amounts and `ResourceIdentierT` for token asset identifier. All these will have been exposed to you already via `tokenBalances`, `ledger.nativeToken()` and/or `transactionHistory`.
 
 > 💡 Amount of tokens to send must be a multiple of the token's granularity
 

@@ -93,6 +93,7 @@ export const signatureFromHexStrings = (input: {
 	return {
 		r,
 		s,
+		toDER: () => 'not implemented',
 		equals: (other: Signature): boolean => r.eq(other.r) && s.eq(other.s),
 	}
 }
