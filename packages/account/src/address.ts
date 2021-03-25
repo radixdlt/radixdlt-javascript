@@ -16,7 +16,6 @@ import {
 	publicKeyFromBytes,
 	radixHash,
 } from '@radixdlt/crypto'
-import { log } from '@radixdlt/util' 
 
 const checksumByteCount = 4
 const CBOR_BYTESTRING_PREFIX: Byte = 4
@@ -135,7 +134,6 @@ const calculateAndAppendChecksum = (buffer: Buffer): Buffer => {
 }
 
 const isAddress = (something: AddressT | unknown): something is AddressT => {
-	log.error('error from address')
 	const inspection = something as AddressT
 	return (
 		inspection.magicByte !== undefined &&
