@@ -263,7 +263,7 @@ const create = (): RadixT => {
 		},
 
 		loglevel: function (level: LogLevel) {
-			log.setLevel(level as unknown as log.LogLevelDesc)
+			log.setLevel(level)
 			return this
 		},
 
