@@ -45,6 +45,7 @@ import {
 	txStatusErr,
 	loadKeystoreErr,
 } from './errors'
+import { log, LogLevel } from '@radixdlt/util'
 
 const create = (): RadixT => {
 	const subs = new Subscription()
@@ -258,6 +259,11 @@ const create = (): RadixT => {
 
 		switchAccount: function (input: SwitchAccountInput): RadixT {
 			switchAccountSubject.next(input)
+			return this
+		},
+
+		loglevel: function (level: LogLevel) {
+			log.setLevel(level as unknown as log.LogLevelDesc)
 			return this
 		},
 
