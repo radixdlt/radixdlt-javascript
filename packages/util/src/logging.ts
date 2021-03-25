@@ -36,11 +36,10 @@ prefix.reg(log)
 prefix.apply(log, {
 	format: (level, name, timestamp) =>
 		`${chalk.gray(`[${timestamp.toString()}]`)} ${
-			meta[level.toLowerCase() as Exclude<LogLevel, 'silent'>]
-				.emoji
-		} ${meta[
-			level.toLowerCase() as Exclude<LogLevel, 'silent'>
-		].color(level)}`,
+			meta[level.toLowerCase() as Exclude<LogLevel, 'silent'>].emoji
+		} ${meta[level.toLowerCase() as Exclude<LogLevel, 'silent'>].color(
+			level,
+		)}`,
 })
 
 export { log }
