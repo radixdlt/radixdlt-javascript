@@ -28,6 +28,7 @@ import { Magic } from '@radixdlt/primitives'
 import { Address } from './address'
 import { ResultAsync } from 'neverthrow'
 import { HDMasterSeed } from './bip39/hdMasterSeed'
+import { log } from '@radixdlt/util'
 
 // eslint-disable-next-line max-lines-per-function
 const create = (
@@ -229,9 +230,11 @@ const byLoadingAndDecryptingKeystore = (
 				`Failed to load keystore, underlying error: '${underlyingError}'`,
 			)
 		})
-
 	return loadKeystore()
-		.map((k: KeystoreT) => ({ keystore: k, password: input.password }))
+		.map((k: KeystoreT) => {
+			log.info('Keystore successfully loaded.')
+			return { keystore: k, password: input.password }
+		})
 		.andThen(Wallet.fromKeystore)
 }
 

@@ -44,7 +44,7 @@ Above code assumes you have a wallet. Looking for wallet creation?
 		- [Error "categories"](#error-categories)
 - [Methods](#methods)
 	- [Local methods](#local-methods)
-		- [setLogLevel](#setloglevel)
+		- [logLevel](#loglevel)
 		- [Account derivation](#account-derivation)
 			- [restoreAccountsUpToIndex](#restoreaccountsuptoindex)
 		- [Account switching](#account-switching)
@@ -292,11 +292,15 @@ You can access the underlying error `cause` and even `message` with more details
 
 None of these methods will result in any RPC call to the Radix Core API. All methods perform local computation only.
 
-### setLogLevel
+### logLevel
 
-> ⚠️ Not yet implemented, subject to change.
+Sets the log level of the internal logger of this SDK. We use [loglevel](https://github.com/pimterry/loglevel). By default, only error and warning logs will visible to you. Lower the log level to see more information.
 
-Sets the log level of the internal logger of this SDK. We use [roarr](https://github.com/gajus/roarr). By default, only error and warning logs will visible to you. Lower the log level to see more information.
+```typescript
+radix.logLevel('error')
+```
+
+The log levels available are `debug`, `error`, `warn`, `info`, and `silent`.
 
 ### Account derivation
 You can create new accounts with `deriveNextAccount()`, which takes an optional `alsoSwitchTo` argument, which changes the current active account.
