@@ -4,6 +4,8 @@ import prefix from 'loglevel-plugin-prefix'
 
 export type LogLevel = 'error' | 'warn' | 'info' | 'silent'
 
+log.setLevel('warn')
+
 const meta = {
     info: {
         color: chalk.blue,
