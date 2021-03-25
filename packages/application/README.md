@@ -66,8 +66,7 @@ Above code assumes you have a wallet. Looking for wallet creation?
 		- [Unsafe user input](#unsafe-user-input)
 		- [Safe user input](#safe-user-input)
 			- [TransactionIntent](#transactionintent)
-		- [Pseudocode](#pseudocode)
-		- [Code](#code)
+		- [Example](#example)
 	- [Stake Tokens](#stake-tokens)
 	- [Unstake Tokens](#unstake-tokens)
 - [Ledger](#ledger)
@@ -711,46 +710,9 @@ const transactionIntent = TransactionIntent.create()
 	.message(`Thx for lunch Bob, here's for my salad.`)
 ```
 
-### Pseudocode
+### Example
 
-Below follows **pseudocode** of the flow, using `await` syntax, to help visualize the steps.
-
-We use the [`transactionIntent` we created earlier](#TransactionIntent).
-
-```typescript
-// ⛔️⛔️⛔️ NOT THE ACTUAL API ⛔️⛔️⛔️
-// Only PSEUDOCODE, to help visualize flow
-
-const unsignedTransaction = await radix.buildTransaction({
-		fromIntent: transactionIntent // from earlier
-	})
-
-console.log(`💵 Transaction fee: ${unsignedTransaction.fee.toString()}`)
-
-const signedTranscation = await radix.signTransaction({
-	unsignedTransaction: unsignedTransaction
-})
-
-const txID = signedTranscation.id
-console.log(`🆔 transaction id: ${txID.toString()}`)
-
-await radix.submitSignedTransaction({
-	signedTranscation,
-})
-
-radix.ledger
-	.statusOfTransaction({ txID })
-	.then((txStatus) => {
-		console.log(`☑️ status of tx: ${txStatus.toString()}`)
-	})
-
-// Only PSEUDOCODE, to help visualize flow
-// ⛔️⛔️⛔️ NOT THE ACTUAL API ⛔️⛔️⛔️
-```
-
-### Code
-
-Here follows the actual, RxJS based, transaction flow.
+Here follows an axample of how we can make a transaction using, `buildTransactionFromIntent` and `submitSignedTransaction`.
 
 We use the [`transactionIntent` we created earlier](#TransactionIntent).
 
