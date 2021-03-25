@@ -366,8 +366,6 @@ TODO: 👀 we might want to make it possible to give each account a human-readab
 
 ### Fetch trigger
 
-⚠️ Not yet implemented, subject to change.
-
 You can specify a fetch trigger (polling), by use of `withFetchTrigger` method.
 
 ```typescript

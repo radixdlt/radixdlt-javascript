@@ -272,7 +272,7 @@ const create = (): RadixT => {
 			return this
 		},
 
-		withFetchInterval: function (input: {
+		withFetchTrigger: function (input: {
 			trigger: Observable<unknown>
 			fetchFor: {
 				tokenBalances?: boolean
@@ -284,7 +284,7 @@ const create = (): RadixT => {
 
 			/*
 			TODO:
-			
+
 			if (input.fetchFor.txHistory)
 				input.trigger.subscribe(txHistoryInterval$)
 			*/

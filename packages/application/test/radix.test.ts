@@ -452,7 +452,7 @@ describe('Radix API', () => {
 
 		const radix = Radix.create()
 			.__withAPI(api)
-			.withFetchInterval({
+			.withFetchTrigger({
 				trigger: timer(1000),
 				fetchFor: {
 					tokenBalances: true,
