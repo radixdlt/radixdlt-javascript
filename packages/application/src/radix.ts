@@ -264,6 +264,9 @@ const create = (): RadixT => {
 
 		loglevel: function (level: LogLevel) {
 			log.setLevel(level as unknown as log.LogLevelDesc)
+			log.error('error from radix')
+			log.info('info from radix')
+			log.warn('warn from radix')
 			return this
 		},
 
