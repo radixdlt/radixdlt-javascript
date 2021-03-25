@@ -6,8 +6,9 @@ import {
 	SwitchAccountInput,
 	WalletT,
 } from '@radixdlt/account'
-import { Observable } from 'packages/account/node_modules/rxjs/dist/types'
-import { KeystoreT } from 'packages/crypto/src/keystore/_types'
+import { KeystoreT } from '@radixdlt/crypto'
+import { LogLevel } from '@radixdlt/util'
+import { Observable } from 'rxjs'
 import { NodeT, RadixAPI, RadixCoreAPI, TokenBalances } from './api/_types'
 import { ErrorNotification } from './errors'
 
@@ -33,6 +34,8 @@ export type RadixT = Readonly<{
 
 	// Active Address/Account APIs
 	tokenBalances: Observable<TokenBalances>
+
+	loglevel: (level: LogLevel) => RadixT
 
 	errors: Observable<ErrorNotification>
 
