@@ -58,6 +58,8 @@ const create = (): RadixT => {
 	const deriveAccountSubject = new Subject<DeriveNextAccountInput>()
 	const switchAccountSubject = new Subject<SwitchAccountInput>()
 
+	const fetchInterval$ = new Subject<unknown>()
+
 	const wallet$ = walletSubject.asObservable()
 
 	const coreAPIViaNode$ = nodeSubject
@@ -133,9 +135,9 @@ const create = (): RadixT => {
 		),
 	}
 
-	const tokenBalances = activeAddress$.pipe(
-		withLatestFrom(coreAPI$),
-		switchMap(([activeAddress, api]) =>
+	const tokenBalances = fetchInterval$.pipe(
+		withLatestFrom(coreAPI$, activeAddress$),
+		switchMap(([_, api, activeAddress]) =>
 			api.tokenBalancesForAddress(activeAddress).pipe(
 				catchError((error: Error) => {
 					errorNotificationSubject.next(
@@ -195,7 +197,10 @@ const create = (): RadixT => {
 	switchAccountSubject
 		.pipe(
 			withLatestFrom(wallet$),
-			tap(([switchTo, w]) => w.switchAccount(switchTo)),
+			tap(([switchTo, w]) => {
+				w.switchAccount(switchTo)
+				fetchInterval$.next(undefined)
+			}),
 		)
 		.subscribe()
 		.add(subs)
@@ -262,8 +267,28 @@ const create = (): RadixT => {
 			return this
 		},
 
-		loglevel: function (level: LogLevel) {
+		logLevel: function (level: LogLevel) {
 			log.setLevel(level)
+			return this
+		},
+
+		withFetchInterval: function (input: {
+			trigger: Observable<unknown>
+			fetchFor: {
+				tokenBalances?: boolean
+				txHistory?: boolean
+			}
+		}) {
+			if (input.fetchFor.tokenBalances)
+				input.trigger.subscribe(fetchInterval$)
+
+			/*
+			TODO:
+			
+			if (input.fetchFor.txHistory)
+				input.trigger.subscribe(txHistoryInterval$)
+			*/
+
 			return this
 		},
 

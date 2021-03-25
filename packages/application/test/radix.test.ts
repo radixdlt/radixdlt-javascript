@@ -22,7 +22,7 @@ import {
 	Wallet,
 	WalletT,
 } from '@radixdlt/account'
-import { Observable, of, Subscription, throwError } from 'rxjs'
+import { Observable, of, Subscription, throwError, timer } from 'rxjs'
 import { Amount, Magic, magicFromNumber, maxAmount } from '@radixdlt/primitives'
 import { map, take, toArray } from 'rxjs/operators'
 import {
@@ -34,6 +34,7 @@ import { UInt256 } from '@radixdlt/uint256'
 import { KeystoreT } from '@radixdlt/crypto'
 import { RadixT } from '../src/_types'
 import { ErrorCategory, APIErrorCause } from '../src/errors'
+import { merge } from 'ramda'
 
 const createWallet = (): WalletT => {
 	const masterSeed = HDMasterSeed.fromSeed(
@@ -449,7 +450,14 @@ describe('Radix API', () => {
 
 		const api = mockAPI()
 
-		const radix = Radix.create().__withAPI(api)
+		const radix = Radix.create()
+			.__withAPI(api)
+			.withFetchInterval({
+				trigger: timer(1000),
+				fetchFor: {
+					tokenBalances: true,
+				},
+			})
 
 		radix.tokenBalances
 			.subscribe((n) => {
@@ -458,14 +466,10 @@ describe('Radix API', () => {
 			.add(subs)
 
 		radix.errors
-			.subscribe({
-				next: (error) => {
-					expect(error.category).toEqual(ErrorCategory.API)
-					expect(error.cause).toEqual(
-						APIErrorCause.TOKEN_BALANCES_FAILED,
-					)
-					done()
-				},
+			.subscribe((error) => {
+				expect(error.category).toEqual(ErrorCategory.API)
+				expect(error.cause).toEqual(APIErrorCause.TOKEN_BALANCES_FAILED)
+				done()
 			})
 			.add(subs)
 

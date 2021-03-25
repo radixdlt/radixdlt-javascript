@@ -35,7 +35,15 @@ export type RadixT = Readonly<{
 	// Active Address/Account APIs
 	tokenBalances: Observable<TokenBalances>
 
-	loglevel: (level: LogLevel) => RadixT
+	logLevel: (level: LogLevel) => RadixT
+
+	withFetchInterval: (input: {
+		trigger: Observable<unknown>
+		fetchFor: {
+			tokenBalances?: boolean
+			txHistory?: boolean
+		}
+	}) => RadixT
 
 	errors: Observable<ErrorNotification>
 
