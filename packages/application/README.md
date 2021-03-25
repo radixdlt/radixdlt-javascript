@@ -61,11 +61,13 @@ Above code assumes you have a wallet. Looking for wallet creation?
 			- [`BurnTokens`](#burntokens)
 			- [`MintTokens`](#minttokens)
 			- [`Unknown`](#unknown)
-	- [Transfer Tokens](#transfer-tokens)
-		- [Transfer input](#transfer-input)
-		- [Transaction Flow Summary](#transaction-flow-summary)
-		- [Transaction flow pseudocode \(`Promise`\)](#transaction-flow-pseudocode-promise)
-		- [Transaction Flow Code](#transaction-flow-code)
+	- [Make Transaction](#make-transaction)
+		- [Flow](#flow)
+		- [Unsafe user input](#unsafe-user-input)
+		- [Safe user input](#safe-user-input)
+			- [TransactionIntent](#transactionintent)
+		- [Pseudocode](#pseudocode)
+		- [Code](#code)
 	- [Stake Tokens](#stake-tokens)
 	- [Unstake Tokens](#unstake-tokens)
 - [Ledger](#ledger)
@@ -362,7 +364,7 @@ TODO: 👀 we might want to make it possible to give each account a human-readab
 
 ### Fetch trigger
 
-⚠️ Not yet implemented, subject to change.
+> ⚠️ Not yet implemented, subject to change.
 
 You can specify a fetch trigger (polling), by use of `withFetchTrigger` method.
 
@@ -594,19 +596,59 @@ Burn tokens.
 The Radix Core API failed to recognize the instructions as a well-formed/well-known canonical action. Will reveal low-level constructs named "particles". For more info, see the [Atom Model]((https://dev.to/radixdlt/knowledgebase-update-atom-model-263i)).
 
 
-## Transfer Tokens
+## Make Transaction
 
 > ⚠️ Not yet implemented, subject to change.
 
-### Transfer input
+Here we show how to transfer tokens, which is one of potentially several _actions_, making up a _transaction_.
 
-Let us transfer some tokens! All methods accept specific types such as `AddressT` for recipient address, `AmountT` for token amounts and `ResourceIdentierT` for token asset identifier. All these will have been exposed to you already via `tokenBalances`, `ledger.nativeToken()` and/or `transactionHistory`.
+The flow of making a transaction is the same, disregarding the contents of it, i.e. if you only make a single _token transfer_ action, or a single _stake tokens_ action, the flow remains the same.
+
+### Flow
+
+1. 🙋🏾‍♀️ `user`**`inputs`** transaction details (recipient, amount, token etc) and passes inputs to library.
+2. 💻 `wallet`**`transforms`** unsafe inputs into validated `TransactionIntent`.  
+3. 🛠 `library`**`requests`** Radix Core API to build transaction from intent and returns built transaction with human-readable fee to wallet.
+4. OPTIONAL 💻 `wallet`**`displays`** transaction fee and waits for user to confirm transaction with PIN code.
+5. 🛠 `library`**`signs`** transaction and returns txID (transactionID) to wallet.
+6. 🛠 `library`**`submits`** signed transaction to Radix Core API which promtly returns initial OK/ERR response, wallet handles this initial response.
+7. 💻 `wallet`**`polls`** status of transaction (using txID from step 5), using appropriate library api, and informs user of final CONFIRMED/REJECTED result. 
+8. 🙋🏾‍♀️ `user`**`acts`** on any failures, e.g. presses "Retry"-button, if prompted with one because of network connection issues during step 6.
+
+### Unsafe user input
+
+Let us transfer some tokens! All methods accept specific types such as `AddressT` for recipient address, `AmountT` for token amounts and `ResourceIdentierT` for token identifier (which you have access to via `tokenBalances`, `nativeToken()` and `transactionHistory()`).
 
 > 💡 Amount of tokens to send must be a multiple of the token's granularity
 
 You can read out the _granularity_ (of type `AmountT`) from the token info, by using `radix.ledger.tokenInfo(tokenResourceIdentifier)`.
 
-You will also need to make sure to correctly translate unsafe user input into these safe types.
+For convenience you can pass in unsafe types, such as `string` as input to all actions, below we create a transaction intent with a single  `transferTokens` action. 
+
+```typescript
+import { TransactionIntent } from '@radixdlt/application'
+
+// Of type `Result<TransactionIntent, Error>
+const intentResult = TransactionIntent.create()
+	.transferTokens({
+		to: '9SBZ9kzpXKAQ9oHHZngahVUQrLwU6DssiPbtCj5Qb6cxqxPC6stb',
+		amount: '12.57',
+		token: '/9SAU2m7yis9iE5u2L44poZ6rYf5JiTAN6GtiRnsBk6JnXoMoAdks/XRD'
+	})
+	.message('Thx for lunch Bob, let me pay for my salad.')
+
+if (intentResult.isErr()) {
+	console.log(`🤷‍♂️ Failed to create transaction intent: ${intentResult.error}`)
+}
+
+const transactionIntent = intentResult.value
+```
+
+### Safe user input
+
+Alternatively you can transform input to save types eagerly, display relevant info for validation errors, and then pass these safe types to the `TransactionIntent`.
+
+<details><summary>Pass safe types (Click to expand ⬇️)</summary>
 
 ```typescript
 import { Amount } from '@radixdlt/primitives'
@@ -626,7 +668,7 @@ const tokenGranularity = radix.ledger
 	.subscribe((token) => {
 		console.log(`🔶🟠🔸 granularity of token ${token.name} : ${token.granularity.toString()}, any transfer of this token MUST be a multiple of this amount.`)
 	}).add(subs)
-	
+
 // Later when we know granularity of token.
 
 const amountString = amountTextField.value() // or similar
@@ -644,73 +686,76 @@ if (!unsafeAmount.isMultipleOf(granularity)) {
 
 // ☑️ Amount is checked against token granularity, safe to send.
 const amount = unsafeAmount
+
+// Scrll down to `TransactionIntent.create()` below ⬇️ 
 ```
 
-### Transaction Flow Summary
+Which results in the [`transactionIntent` below](#TransactionIntent).
 
-1. Gather and transform unsafe inputs into validated and type safe values.
-2. Create a transaction intent (may contain multiple actions), no fee is specified.
-3. From Radix Core API fetch transaction (including fee) translated from intent. Upon response JS lib  performs some soundness check that the content of the transaction matches the intent (TBD).
-4. A ready-to-be-signed transaction (including human-readable fee) is returned to the GUI wallet.  
-5. The GUI wallet tells JS lib to sign and submit the transaction to the Radix Core API.
-6. The JS lib immediately returns the actual transaction id (`txId`), back to the GUI wallet (which it was able to compute locally since it has the signature now.)
-7. GUI wallet tells JS lib to poll status of transaction using the `txId` from last step.
+</details>
 
 
-### Transaction flow pseudocode (`Promise`)
+#### TransactionIntent 
 
-Here is a *concept* of the flow, using `await` syntax. This is **not** the actual API, it's mere *pseudocode* to help visualize the flow. Since transfer of tokens is a multi-stage rocket, there are many things to keep track of. 
+```typescript
+const transactionIntent = TransactionIntent.create()
+	.transferTokens({
+		to: recipientAddress, // safe type `AddressT`
+		amount: amount, // safe type `AmounT`
+		token: fooToken // safe type `ResourceIdentifierT`
+	})
+	.message(`Thx for lunch Bob, here's for my salad.`)
+```
+
+### Pseudocode
+
+Below follows **pseudocode** of the flow, using `await` syntax, to help visualize the steps.
+
+We use the [`transactionIntent` we created earlier](#TransactionIntent).
 
 ```typescript
 // ⛔️⛔️⛔️ NOT THE ACTUAL API ⛔️⛔️⛔️
-// THIS IS JUST AN OUTLINE OF FLOW
-// Step 1️⃣ Gather and transform unsafe inputs into validated and type safe values. Already done in code block above
+// Only PSEUDOCODE, to help visualize flow
 
-// Step 2️⃣ Create a transaction intent (may contain multiple actions), no fee is specified.
-const transactionIntent = TransactionIntent.create()
-	.transferTokens({
-		to: recipientAddress,
-		amount: amount,
-		token: fooToken
+const unsignedTransaction = await radix.buildTransaction({
+		fromIntent: transactionIntent // from earlier
 	})
-	.message(`Thx for lunch Bob, here's for my salad.`)
 
-// 3️⃣ From API fetch transaction (incl fee)
-const unsignedTransactionWithReadableFee = await radix.transactionFrom({ 
-	intent: intent
+console.log(`💵 Transaction fee: ${unsignedTransaction.fee.toString()}`)
+
+const signedTranscation = await radix.signTransaction({
+	unsignedTransaction: unsignedTransaction
 })
 
-// 4️⃣ GUI wallet now has access to ready-to-be-signed transaction with human readable fee
+const txID = signedTranscation.id
+console.log(`🆔 transaction id: ${txID.toString()}`)
 
-// 5️⃣ GUI wallet tells JS lib to sign and submit blob/transaction to the Radix Core API.
+await radix.submitSignedTransaction({
+	signedTranscation,
+})
 
-const signedTranscation = await radix.signTransaction(
-	unsignedTransaction
-)
-// 6️⃣ JS lib immediatly returns the actual transaction id 
-const transactionId = signedTranscation.id
+radix.ledger
+	.statusOfTransaction({ txID })
+	.then((txStatus) => {
+		console.log(`☑️ status of tx: ${txStatus.toString()}`)
+	})
 
-await radix.submitSignedTransaction(signedTranscation)
-
-// 7️⃣ GUI wallet tells JS lib to poll status of transaction using the txId from last step.
-radix.ledger.statusOfTransactionById(transactionId)
-	
-// 🧩 And when returned transaction status is `CONFIRMED` or `REJECTED` we know that the transaction is complete. Update UI accordingly.
-
-// THIS IS JUST AN OUTLINE OF FLOW
+// Only PSEUDOCODE, to help visualize flow
 // ⛔️⛔️⛔️ NOT THE ACTUAL API ⛔️⛔️⛔️
 ```
 
-### Transaction Flow Code
+### Code
 
 Here follows the actual, RxJS based, transaction flow.
+
+We use the [`transactionIntent` we created earlier](#TransactionIntent).
 
 ```typescript
 const userDidConfirmTransactionSubject = new Subject<UnsignedTransaction>()
 
 radix
-	.transactionFromIntent({ 
-		intent: transactionIntent, 
+	.buildTransactionFromIntent({ 
+		intent: transactionIntent, // from earlier
 	})
 	.subscribe(
 		((unsignedTxWithFeeForUserToConfirm) => {
