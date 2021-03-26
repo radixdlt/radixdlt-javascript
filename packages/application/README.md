@@ -714,53 +714,74 @@ Here follows an axample of how we can make a transaction using, `buildTransactio
 We use the [`transactionIntent` we created earlier](#TransactionIntent).
 
 ```typescript
+const askUserToConfirmTransactionSubject = new Subject<UnsignedTransaction>()
 const userDidConfirmTransactionSubject = new Subject<UnsignedTransaction>()
+
+// 👩🏽‍💻 ⬇️ SOMEWHERE IN GUI WALLET CODE ⬇️ 👩🏽‍💻
+//  --- EITHER ---
+// 1) Automatically confirm transactions
+askUserToConfirmTransactionSubject
+	.subscribe((tx) => userDidConfirmTransactionSubject.next(tx))
+	.add(subs)
+//  --- OR ---
+// 2) Require manual confirmation from user
+// We could protect tx sending with an app PIN code in this step.
+askUserToConfirmTransactionSubject
+	.subscribe((tx) => {
+		// DISPLAY DIALOG with "Confirm TX" button, when clicked
+		function onConfirmButtonClick() { // when button
+			userDidConfirmTransactionSubject.next(tx)
+		}
+	})
+	.add(subs)
+// 👩🏽‍💻 ⬆️ SOMEWHERE IN GUI WALLET CODE ⬆️ 👩🏽‍💻 
 
 radix
 	.buildTransactionFromIntent({ 
 		intent: transactionIntent, // from earlier
 	})
-	.subscribe(
-		((unsignedTxWithFeeForUserToConfirm) => {
-			const txFee = unsignedTxWithFeeForUserToConfirm.fee
+	.pipe(
+		tap((unsignedTxForUserToConfirm) => {
+			const txFee = unsignedTxForUserToConfirm.fee
 			console.log(`💵 tx fee: ${txFee.toString()}`)
-			
-			// Display unsigned tx with fee in GUI wallet, ask user to confirm.
-			// Keep a reference to `unsignedTxWithFeeForUserToConfirm` around, we 
-			// will need to forward it back to JS lib later.
-
-			// LATER, when user has seen/reviewed tx and press "Confirm TX" button,
-			// use the `unsignedTxWithFeeForUserToConfirm` that you kept around.
-			userDidConfirmTransactionSubject.next(unsignedTxWithFeeForUserToConfirm)
-
-		})
-	) // DONT FORGET
+			askUserToConfirmTransactionSubject.next(unsignedTxForUserToConfirm)
+		}),
+		// Require `userDidConfirmTransactionSubject` to emit value, either
+		// automatically done, or requiring manual input from user.
+		mergeMap((_) => userDidConfirmTransactionSubject.asObservable()),
+		mergeMap((unsignedUserConfirmedTx) => radix.sign(unsignedUserConfirmedTx)),
+		tap((signedTransaction) => {
+			const txId = signedTransaction.id
+			console.log(`🆔 transaction id: ${txId.toString()}`)
+			pendingTransactionsSubject.next(signedTransaction)
+		}),
+		mergeMap((signedTransaction) => radix.submitSignedTransaction(signedTransaction)),
+	)
+	.subscribe({
+		error: (e) => {
+			// Error handling
+			if (isBuildTransactionError(e)) {
+				switch (e) {
+					case BuildTransactionError.INSUFFICIENT_FUNDS:
+						console.log(`Insufficient funds`)
+						// Display error to user
+						return
+					case BuildTransactionError.AMOUNT_NOT_MULTIPLE_OF_GRANULARITY:
+						console.log(`Amount not multiple of granularity`)
+						// Display error to user
+						return
+				}
+			} else if (isSubmitTransactionError(e)) {
+				switch (e) {
+					case SubmitTransactionError.INVALID_SIGNATURE:
+						console.log(`Failed to sign transaction, wrong account?`)
+				}
+			}
+		},
+	})
 	.add(subs)
-
 
 const pendingTransactionsSubject = new Subject<SignedTransaction>()
-
-userDidConfirmTransactionSubject
-	.pipe(
-		mergeMap((unsignedUserConfirmedTx): Observable<SignedTransaction> => 
-			radix
-				.sign(unsignedUserConfirmedTx)
-				.pipe(
-					mergeMap((signedTransaction) => {
-						const txId = signedTransaction.id
-						console.log(`🆔 transaction id: ${txId.toString()}`)
-
-						pendingTransactionsSubject.next(signedTransaction)
-						
-						return radix.submitSignedTransaction(signedTransaction)
-					}),
-			),
-		),
-	)
-	.subscribe() // DONT FORGET
-	.add(subs)
-
-
 
 const pollTxStatusTrigger = timer(5 * 1_000) // every 5 seconds
 
