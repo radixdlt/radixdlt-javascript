@@ -12,28 +12,45 @@ import {
 	TokenBalances,
 	TokenFeeForTransaction,
 	Transaction,
-	TransactionStatus
-} from "../src/api/_types";
-import { Radix } from "../src/radix";
-import { Address, AddressT, HDMasterSeed, Wallet, WalletT } from "@radixdlt/account";
-import { Observable, of, Subscription, throwError } from "rxjs";
+	TransactionStatus,
+} from '../src/api/_types'
+import { Radix } from '../src/radix'
+import {
+	Address,
+	AddressT,
+	HDMasterSeed,
+	Wallet,
+	WalletT,
+} from '@radixdlt/account'
+import { Observable, of, Subscription, throwError } from 'rxjs'
 import {
 	Amount,
 	Denomination,
 	DenominationOutputFormat,
 	Magic,
 	magicFromNumber,
-	maxAmount
-} from "@radixdlt/primitives";
-import { map, take, toArray } from "rxjs/operators";
-import { AtomIdentifierT, ResourceIdentifier, tokenPermissionsAll } from "@radixdlt/atom";
-import { UInt256 } from "@radixdlt/uint256";
-import { KeystoreT } from "@radixdlt/crypto";
-import { RadixT } from "../src/_types";
-import { APIErrorCause, ErrorCategory } from "../src/errors";
-import { TokenBalance } from "../src/api/json-rpc/_types";
-import { Err } from "neverthrow";
-import { balancesFor, barToken, crashingAPI, fooToken, mockedAPI, xrd } from "./mockRadix";
+	maxAmount,
+} from '@radixdlt/primitives'
+import { map, take, toArray } from 'rxjs/operators'
+import {
+	AtomIdentifierT,
+	ResourceIdentifier,
+	tokenPermissionsAll,
+} from '@radixdlt/atom'
+import { UInt256 } from '@radixdlt/uint256'
+import { KeystoreT } from '@radixdlt/crypto'
+import { RadixT } from '../src/_types'
+import { APIErrorCause, ErrorCategory } from '../src/errors'
+import { TokenBalance } from '../src/api/json-rpc/_types'
+import { Err } from 'neverthrow'
+import {
+	balancesFor,
+	barToken,
+	crashingAPI,
+	fooToken,
+	mockedAPI,
+	xrd,
+} from './mockRadix'
 
 const createWallet = (): WalletT => {
 	const masterSeed = HDMasterSeed.fromSeed(
@@ -56,8 +73,6 @@ const mockAPI = (urlString?: string): Observable<RadixCoreAPI> => {
 	}
 	return of(mockedPartialAPI)
 }
-
-
 
 export type KeystoreForTest = {
 	keystore: KeystoreT
@@ -431,7 +446,11 @@ describe('Radix API', () => {
 		radix.withWallet(createWallet())
 		radix.__withAPI(api)
 
-		const expectedValues = [100000000000000000000, 200000000000000000000, 300000000000000000000]
+		const expectedValues = [
+			100000000000000000000,
+			200000000000000000000,
+			300000000000000000000,
+		]
 
 		radix.tokenBalances
 			.pipe(
@@ -457,8 +476,7 @@ describe('Radix API', () => {
 	it(`mocked API returns differnt but deterministic tokenBalances per account`, (done) => {
 		const subs = new Subscription()
 
-		const radix = Radix
-			.create()
+		const radix = Radix.create()
 
 		const loadKeystore = (): Promise<KeystoreT> =>
 			Promise.resolve(keystoreForTest.keystore)
@@ -467,28 +485,35 @@ describe('Radix API', () => {
 
 		radix.__withAPI(mockedAPI)
 
-		radix.tokenBalances.subscribe((tb) => {
+		radix.tokenBalances
+			.subscribe((tb) => {
+				expect(tb.owner.publicKey.toString(true)).toBe(
+					keystoreForTest.publicKeysCompressed[0],
+				)
 
-			expect(tb.owner.publicKey.toString(true)).toBe(keystoreForTest.publicKeysCompressed[0])
+				expect(tb.tokenBalances.length).toBe(3)
 
-			expect(tb.tokenBalances.length).toBe(3)
+				const tbList = tb.tokenBalances
 
-			const tbList = tb.tokenBalances
+				const tb0 = tbList[0]
+				expect(tb0.token.equals(fooToken.rri)).toBe(true)
+				expect(
+					tb0.amount.toString({
+						denominationOutputFormat:
+							DenominationOutputFormat.SHOW_SYMBOL,
+					}),
+				).toBe('7556')
 
-			const tb0 = tbList[0]
-			expect(tb0.token.equals(fooToken.rri)).toBe(true)
-			expect(tb0.amount.toString({ denominationOutputFormat: DenominationOutputFormat.SHOW_SYMBOL })).toBe('7556')
+				const tb1 = tbList[1]
+				expect(tb1.token.equals(barToken.rri)).toBe(true)
+				expect(tb1.amount.toString()).toBe('7642 E-3')
 
-			const tb1 = tbList[1]
-			expect(tb1.token.equals(barToken.rri)).toBe(true)
-			expect(tb1.amount.toString()).toBe('7642 E-3')
+				const tb2 = tbList[2]
+				expect(tb2.token.equals(xrd.rri)).toBe(true)
+				expect(tb2.amount.toString()).toBe('4489')
 
-			const tb2 = tbList[2]
-			expect(tb2.token.equals(xrd.rri)).toBe(true)
-			expect(tb2.amount.toString()).toBe('4489')
-
-
-			done()
-		}).add(subs)
+				done()
+			})
+			.add(subs)
 	})
 })
