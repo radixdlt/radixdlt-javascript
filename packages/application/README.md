@@ -725,7 +725,7 @@ const askUserToConfirmTransactionSubject = new Subject<UnsignedTransaction>()
 const userDidConfirmTransactionSubject = new Subject<UnsignedTransaction>()
 const pendingTransactionsSubject = new Subject<SignedTransaction>()
 
-const unconfirmedTx$ = radix
+radix
 	.buildTransactionFromIntent({ 
 		intent: transactionIntent, // from earlier
 	})
@@ -736,26 +736,26 @@ const unconfirmedTx$ = radix
 			askUserToConfirmTransactionSubject.next(unsignedTxForUserToConfirm)
 		})
 	)
-
-// Handle build tx errors
-unconfirmedTx$.subscribe({ 
-	error: (e) => {
-		if (isBuildTransactionError(e)) {
-			switch (e) {
-				case BuildTransactionError.INSUFFICIENT_FUNDS:
-					console.log(`Insufficient funds`)
-					// Display error to user
-					return
-				case BuildTransactionError.AMOUNT_NOT_MULTIPLE_OF_GRANULARITY:
-					console.log(`Amount not multiple of granularity`)
-					// Display error to user
-					return
+	.subscribe({ // Don't forget to subscribe
+		error: (e) => {
+			// Handle build tx errors
+			if (isBuildTransactionError(e)) {
+				switch (e) {
+					case BuildTransactionError.INSUFFICIENT_FUNDS:
+						console.log(`Insufficient funds`)
+						// Display error to user
+						return
+					case BuildTransactionError.AMOUNT_NOT_MULTIPLE_OF_GRANULARITY:
+						console.log(`Amount not multiple of granularity`)
+						// Display error to user
+						return
+				}
+			} else {
+				console.log(`Unknown error building tx`)
 			}
-		} else {
-			console.log(`Unknown error building tx`)
-		}
-	},
-}).add(subs)
+		},
+	})
+	.add(subs)
 ```
 
 #### Confirm TX
@@ -790,7 +790,7 @@ askUserToConfirmTransactionSubject
 When transaction is confirmed, either automatically or mannually by user, it is ready to be signed an submitted.
 
 ```typescript
-const txSubmission$ = userDidConfirmTransactionSubject.pipe(
+userDidConfirmTransactionSubject.pipe(
 	mergeMap((unsignedUserConfirmedTx) => radix.sign(unsignedUserConfirmedTx)),
 	tap((signedTransaction) => {
 		const txId = signedTransaction.id
@@ -799,20 +799,20 @@ const txSubmission$ = userDidConfirmTransactionSubject.pipe(
 	}),
 	mergeMap((signedTransaction) => radix.submitSignedTransaction(signedTransaction)),
 )
-
-// Handle tx submission errors
-txSubmission$.subscribe({
-	error: (e) => {
-		if (isSubmitTransactionError(e)) {
-			switch (e) {
-				case SubmitTransactionError.INVALID_SIGNATURE:
-					console.log(`Failed to sign transaction, wrong account?`)
+	.subscribe({ // Don't forget to subscribe
+		error: (e) => {
+			// Handle tx submission errors
+			if (isSubmitTransactionError(e)) {
+				switch (e) {
+					case SubmitTransactionError.INVALID_SIGNATURE:
+						console.log(`Failed to sign transaction, wrong account?`)
+				}
+			} else {
+				console.log(`Unknown error submitting tx`)
 			}
-		} else {
-			console.log(`Unknown error submitting tx`)
-		}
-	},
-}).add(subs)
+		},
+	})
+	.add(subs)
 ```
 
 #### Poll TX status
