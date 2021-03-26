@@ -54,6 +54,11 @@ export namespace UniverseMagic {
 	}
 }
 
+export type TokenBalance = Readonly<{
+	token: ResourceIdentifierT
+	amount: AmountT
+}>
+
 export namespace TokenBalances {
 	export type Input = [address: string]
 
@@ -69,12 +74,7 @@ export namespace TokenBalances {
 
 	export type DecodedResponse = {
 		owner: AddressT
-		tokenBalances: [
-			{
-				token: ResourceIdentifierT
-				amount: AmountT
-			},
-		]
+		tokenBalances: TokenBalance[]
 	}
 }
 
