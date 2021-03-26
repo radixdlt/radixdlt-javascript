@@ -12,28 +12,27 @@ import {
 	TokenBalances,
 	TokenFeeForTransaction,
 	Transaction,
-	TransactionStatus,
-} from '../src/api/_types'
-import { Radix } from '../src/radix'
+	TransactionStatus
+} from "../src/api/_types";
+import { Radix } from "../src/radix";
+import { Address, AddressT, HDMasterSeed, Wallet, WalletT } from "@radixdlt/account";
+import { Observable, of, Subscription, throwError } from "rxjs";
 import {
-	Address,
-	AddressT,
-	HDMasterSeed,
-	Wallet,
-	WalletT,
-} from '@radixdlt/account'
-import { Observable, of, Subscription, throwError } from 'rxjs'
-import { Amount, Magic, magicFromNumber, maxAmount } from '@radixdlt/primitives'
-import { map, take, toArray } from 'rxjs/operators'
-import {
-	AtomIdentifierT,
-	ResourceIdentifier,
-	tokenPermissionsAll,
-} from '@radixdlt/atom'
-import { UInt256 } from '@radixdlt/uint256'
-import { KeystoreT } from '@radixdlt/crypto'
-import { RadixT } from '../src/_types'
-import { ErrorCategory, APIErrorCause } from '../src/errors'
+	Amount,
+	Denomination,
+	DenominationOutputFormat,
+	Magic,
+	magicFromNumber,
+	maxAmount
+} from "@radixdlt/primitives";
+import { map, take, toArray } from "rxjs/operators";
+import { AtomIdentifierT, ResourceIdentifier, tokenPermissionsAll } from "@radixdlt/atom";
+import { UInt256 } from "@radixdlt/uint256";
+import { KeystoreT } from "@radixdlt/crypto";
+import { RadixT } from "../src/_types";
+import { APIErrorCause, ErrorCategory } from "../src/errors";
+import { TokenBalance } from "../src/api/json-rpc/_types";
+import { Err } from "neverthrow";
 
 const createWallet = (): WalletT => {
 	const masterSeed = HDMasterSeed.fromSeed(
@@ -54,7 +53,10 @@ const xrd: Token = {
 	)._unsafeUnwrap(),
 	symbol: 'XRD',
 	description: 'The native coin of Radix network',
-	granularity: Amount.inSmallestDenomination(UInt256.valueOf(1)),
+	granularity: Amount.fromUInt256({
+		magnitude: UInt256.valueOf(1),
+		denomination: Denomination.Whole
+	})._unsafeUnwrap(),
 	isSupplyMutable: false,
 	currentSupply: maxAmount,
 	tokenInfoURL: new URL('http://www.radixdlt.com'),
@@ -62,15 +64,162 @@ const xrd: Token = {
 	tokenPermission: tokenPermissionsAll,
 }
 
-const balancesFor = (address: AddressT, amount: number): TokenBalances => ({
-	owner: address,
-	tokenBalances: [
-		{
-			token: xrd.rri,
-			amount: Amount.inSmallestDenomination(UInt256.valueOf(amount)),
-		},
-	],
-})
+const fooToken: Token = {
+	name: 'Foo token',
+	rri: ResourceIdentifier.fromString(
+		'/9SAGS7iVkjLDa2uoqzvybBJZP5RJd6XLzoeSmqur9WWXoKs7hPqz/FOO',
+	)._unsafeUnwrap(),
+	symbol: 'FOO',
+	description: 'FOOest token.',
+	granularity: Amount.fromUInt256({
+		magnitude: UInt256.valueOf(1),
+		denomination: Denomination.Whole
+	})._unsafeUnwrap(),
+	isSupplyMutable: false,
+	currentSupply: maxAmount,
+	tokenInfoURL: new URL('http://www.footoken.com'),
+	iconURL: new URL('http://www.image.footoken.com/'),
+	tokenPermission: tokenPermissionsAll,
+}
+
+const barToken: Token = {
+	name: 'Bar token',
+	rri: ResourceIdentifier.fromString(
+		'/9S8toEsjy7bLLVYwenrygbEiQDBiSYen4GDEGan5y6nGMXzKT22G/BAR',
+	)._unsafeUnwrap(),
+	symbol: 'BAR',
+	description: 'Bar token. Granularity E-3.',
+	granularity: Amount.fromUInt256({
+		magnitude: UInt256.valueOf(1),
+		denomination: Denomination.Milli
+	})._unsafeUnwrap(),
+	isSupplyMutable: true,
+	currentSupply: maxAmount,
+	tokenInfoURL: new URL('http://www.bartoken.com'),
+	iconURL: new URL('http://www.image.bartoken.com/'),
+	tokenPermission: tokenPermissionsAll,
+}
+
+const radixWrappedBitcoinToken: Token = {
+	name: 'Bitcoin (wrapped on Radix)',
+	rri: ResourceIdentifier.fromString(
+		'/9SBaXGCwn8HcyPsbu4ymzNVCXtvogf3vSqnH39ihqt5RyDFq9hsv/BTCRW',
+	)._unsafeUnwrap(),
+	symbol: 'rwBTC',
+	description: 'Radix wrapped Bitcoin. Granularity E-18.',
+	granularity: Amount.fromUInt256({
+		magnitude: UInt256.valueOf(1),
+		denomination: Denomination.Atto
+	})._unsafeUnwrap(),
+	isSupplyMutable: true,
+	currentSupply: maxAmount,
+	tokenInfoURL: new URL('http://www.bitcoin.radix.com'),
+	iconURL: new URL('http://www.image.bitcoin.radix.com/'),
+	tokenPermission: tokenPermissionsAll,
+}
+
+const radixWrappedEtherToken: Token = {
+	name: 'Ether (wrapped on Radix)',
+	rri: ResourceIdentifier.fromString(
+		'/9SBA2tji3wjuuThohxW37L6vySVuVaUpBFBpq2b7Ey7sKToU2uJp/ETHRW',
+	)._unsafeUnwrap(),
+	symbol: 'rwETH',
+	description: 'Radix wrapped Ether. Granularity E-9.',
+	granularity: Amount.fromUInt256({
+		magnitude: UInt256.valueOf(1),
+		denomination: Denomination.Nano
+	})._unsafeUnwrap(),
+	isSupplyMutable: true,
+	currentSupply: maxAmount,
+	tokenInfoURL: new URL('http://www.ether.radix.com'),
+	iconURL: new URL('http://www.image.ether.radix.com/'),
+	tokenPermission: tokenPermissionsAll,
+}
+
+const balanceOfFor = (input: Readonly<{
+	token: Token,
+	amount: number
+}>): TokenBalance => {
+	if (!Number.isInteger(input.amount) || input.amount < 1) throw new Error('Must be interger >= 1')
+
+	const amt = Amount.fromUInt256({
+		magnitude: input.token.granularity.magnitude.multiply(UInt256.valueOf(input.amount)),
+		denomination: Denomination.Atto
+	})._unsafeUnwrap()
+
+	return {
+		token: input.token.rri,
+		amount: amt.lessThan(input.token.currentSupply) ? amt : input.token.currentSupply
+	}
+}
+
+const balancesFor = (address: AddressT, amount: number): TokenBalances => {
+	return ({
+		owner: address,
+		tokenBalances: [
+			balanceOfFor({
+				token: xrd,
+				amount,
+			})
+		]
+	})
+}
+
+
+const deterministicRandomBalancesForAddress = (address: AddressT): TokenBalances => {
+	// cannot use first, since it is always 02 or 03
+	let bytes = address.publicKey.asData({compressed: true }).slice(1, 33)
+
+	const anInt = (): number => {
+		if (bytes.length === 0) {
+			throw new Error('Failed to create randomness for mocked data.')
+		}
+		const lengthToSlice = 2
+		const buf = bytes.slice(0, lengthToSlice)
+		bytes = bytes.slice(lengthToSlice, bytes.length)
+		return Number.parseInt(buf.toString('hex'), 16)
+	}
+
+	let differentTokens: Token[] = [
+		xrd,
+		fooToken,
+		barToken,
+		radixWrappedBitcoinToken,
+		radixWrappedEtherToken
+	]
+
+	const deterministicRandomToken = (): Token => {
+		const tokenCount = differentTokens.length
+		const tokenIndex = anInt() % tokenCount
+		const token = differentTokens[tokenIndex]
+		differentTokens.splice(tokenIndex, 1)
+		return token
+	}
+
+	const deterministicTokenBalances = (): TokenBalance[] => {
+		const sizeOrZero = anInt() % differentTokens.length
+		const size = Math.max(sizeOrZero, 1)
+		return Array(size).fill(undefined).map((_): TokenBalance => {
+
+			const amtOrZero = anInt() % 10_000
+			const amount = Math.max(10, amtOrZero)
+
+			return balanceOfFor({
+				token: deterministicRandomToken(),
+				amount,
+			})
+		})
+	}
+
+	return ({
+		owner: address,
+		tokenBalances: deterministicTokenBalances()
+	})
+}
+
+const deterministicRandomBalances = (address: AddressT): Observable<TokenBalances> => of(
+	deterministicRandomBalancesForAddress(address)
+)
 
 const crashingAPI: RadixCoreAPI = {
 	node: { url: new URL('http://www.not.implemented.com') },
@@ -526,5 +675,49 @@ describe('Radix API', () => {
 			.switchAccount({ toIndex: 1 })
 			.switchAccount('first')
 			.switchAccount('last')
+	})
+
+	it(`mocked API returns differnt but deterministic tokenBalances per account`, (done) => {
+		const subs = new Subscription()
+
+		const radix = Radix
+			.create()
+
+		const loadKeystore = (): Promise<KeystoreT> =>
+			Promise.resolve(keystoreForTest.keystore)
+
+		radix.login(keystoreForTest.password, loadKeystore)
+
+		const api: Observable<RadixCoreAPI> = of({
+			...crashingAPI,
+			magic: (): Observable<Magic> => of(magicFromNumber(123)),
+			tokenBalancesForAddress: deterministicRandomBalances,
+		})
+
+		radix.__withAPI(api)
+
+		radix.tokenBalances.subscribe((tb) => {
+
+			expect(tb.owner.publicKey.toString(true)).toBe(keystoreForTest.publicKeysCompressed[0])
+
+			expect(tb.tokenBalances.length).toBe(3)
+
+			const tbList = tb.tokenBalances
+
+			const tb0 = tbList[0]
+			expect(tb0.token.equals(fooToken.rri)).toBe(true)
+			expect(tb0.amount.toString({ denominationOutputFormat: DenominationOutputFormat.SHOW_SYMBOL })).toBe('7556')
+
+			const tb1 = tbList[1]
+			expect(tb1.token.equals(barToken.rri)).toBe(true)
+			expect(tb1.amount.toString()).toBe('7642 E-3')
+
+			const tb2 = tbList[2]
+			expect(tb2.token.equals(xrd.rri)).toBe(true)
+			expect(tb2.amount.toString()).toBe('4489')
+
+
+			done()
+		}).add(subs)
 	})
 })
