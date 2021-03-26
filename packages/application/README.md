@@ -64,8 +64,7 @@ Above code assumes you have a wallet. Looking for wallet creation?
 	- [Make Transaction](#make-transaction)
 		- [Flow](#flow)
 		- [Unsafe user input](#unsafe-user-input)
-		- [Safe user input](#safe-user-input)
-			- [TransactionIntent](#transactionintent)
+		- [TransactionIntent](#transactionintent)
 		- [Example](#example)
 	- [Stake Tokens](#stake-tokens)
 	- [Unstake Tokens](#unstake-tokens)
@@ -647,8 +646,6 @@ if (intentResult.isErr()) {
 const transactionIntent = intentResult.value
 ```
 
-### Safe user input
-
 Alternatively you can transform input to save types eagerly, display relevant info for validation errors, and then pass these safe types to the `TransactionIntent`.
 
 <details><summary>Pass safe types (Click to expand ⬇️)</summary>
@@ -698,7 +695,7 @@ Which results in the [`transactionIntent` below](#TransactionIntent).
 </details>
 
 
-#### TransactionIntent 
+### TransactionIntent 
 
 ```typescript
 const transactionIntent = TransactionIntent.create()
