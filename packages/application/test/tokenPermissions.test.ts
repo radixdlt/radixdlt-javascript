@@ -1,4 +1,4 @@
-import { tokenOwnerOnly } from '../src/tokenPermissions'
+import { tokenOwnerOnly } from '@radixdlt/application/dist/tokenPermissions'
 import { TokenPermission } from '../src/_types'
 
 describe('tokenPermissions', () => {

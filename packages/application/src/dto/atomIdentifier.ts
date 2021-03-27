@@ -1,4 +1,4 @@
-import { AtomIdentifierT } from './_types'
+import { AtomIdentifierT } from '@radixdlt/atom/dist/_types'
 import { err, ok, Result } from 'neverthrow'
 import { Byte, isString } from '@radixdlt/util'
 import { decoder, DSONObjectEncoding } from '@radixdlt/data-formats'

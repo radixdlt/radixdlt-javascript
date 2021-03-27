@@ -1,4 +1,4 @@
-import { AtomIdentifier } from '../src/atomIdentifier'
+import { AtomIdentifier } from '@radixdlt/application/dist/atomIdentifier'
 
 describe('AtomIdentifier', () => {
 	it('can check for equality', () => {

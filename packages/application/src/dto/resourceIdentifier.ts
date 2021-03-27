@@ -1,4 +1,4 @@
-import { ResourceIdentifierT } from './_types'
+import { ResourceIdentifierT } from '@radixdlt/atom/dist/_types'
 import { err, ok, Result } from 'neverthrow'
 import { Address, AddressT } from '@radixdlt/account'
 import {

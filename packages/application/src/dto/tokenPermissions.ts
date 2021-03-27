@@ -3,7 +3,7 @@ import {
 	TokenPermission,
 	TokenPermissions,
 	TokenTransition,
-} from './_types'
+} from '@radixdlt/atom/dist/_types'
 
 import { objectEquals } from '@radixdlt/util'
 import {
