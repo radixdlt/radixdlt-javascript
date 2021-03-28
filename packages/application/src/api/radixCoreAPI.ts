@@ -6,6 +6,7 @@ import { AddressT, toObservable } from '@radixdlt/account'
 import { map } from 'rxjs/operators'
 import { Magic } from '@radixdlt/primitives'
 import {
+	ExecutedTransaction,
 	NetworkTransactionDemand,
 	NetworkTransactionThroughput,
 	PendingTransaction,
@@ -20,6 +21,7 @@ import {
 	TransactionIntent,
 	UnsignedTransaction,
 	UnstakePositions,
+	Validators,
 } from '../dto/_types'
 
 export const radixCoreAPI = (node: NodeT): RadixCoreAPI => {
@@ -43,6 +45,13 @@ export const radixCoreAPI = (node: NodeT): RadixCoreAPI => {
 
 	return {
 		node,
+
+		validators: (): Observable<Validators> => toObs((a) => a.validators),
+
+		lookupTransaction: (
+			txID: TransactionIdentifierT,
+		): Observable<ExecutedTransaction> =>
+			toObs((a) => a.lookupTransaction, txID.toString()),
 
 		magic: (): Observable<Magic> =>
 			toObsMap(
