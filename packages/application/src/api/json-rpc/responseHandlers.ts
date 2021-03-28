@@ -1,7 +1,7 @@
 import { Decoder, decoder, JSONDecoding } from '@radixdlt/data-formats'
 import { ok } from 'neverthrow'
 import { UInt256 } from '@radixdlt/uint256'
-import { Amount } from '@radixdlt/primitives'
+import { Amount, magicFromNumber } from '@radixdlt/primitives'
 
 import { Address } from '@radixdlt/account'
 
@@ -86,6 +86,13 @@ const transactionIdentifierDecoder = (...keys: string[]) =>
 			: undefined,
 	)
 
+const magicDecoder = (...keys: string[]) =>
+	decoder((value, key) =>
+		key !== undefined && keys.includes(key) && typeof value === 'number'
+			? ok(magicFromNumber(value))
+			: undefined,
+	)
+
 const executedTXDecoders = JSONDecoding.withDecoders(
 	amountDecoder('amount', 'fee'),
 	dateDecoder('sentAt'),
@@ -103,8 +110,9 @@ export const handleTransactionHistoryResponse = executedTXDecoders.create<Transa
 export const handleLookupTXResponse = executedTXDecoders.create<LookupTransactionEndpoint.DecodedResponse>()
 	.fromJSON
 
-export const handleUniverseMagicResponse = JSONDecoding.withDecoders().create<NetworkIdEndpoint.DecodedResponse>()
-	.fromJSON
+export const handleNetworkIdResponse = JSONDecoding.withDecoders(
+	magicDecoder('networkId'),
+).create<NetworkIdEndpoint.DecodedResponse>().fromJSON
 
 export const handleTokenBalancesResponse = JSONDecoding.withDecoders(
 	addressDecoder('owner'),

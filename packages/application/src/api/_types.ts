@@ -76,10 +76,11 @@ export type RadixAPI = Readonly<{
 	submitSignedTransaction: (
 		signedTransaction: SignedTransaction,
 	) => Observable<PendingTransaction>
+
+	networkId: () => Observable<Magic>
 }>
 
 export type RadixCoreAPI = RadixAPI &
 	Readonly<{
 		node: NodeT
-		magic: () => Observable<Magic>
 	}>

@@ -1,29 +1,5 @@
-import { nodeAPI } from '../src/api/api'
-import { Address } from '@radixdlt/account'
-
-import { Amount } from '@radixdlt/primitives'
-import { UInt256 } from '@radixdlt/uint256'
-import {
-	BuildTransactionEndpoint,
-	NetworkIdEndpoint,
-	NetworkTransactionDemandEndpoint,
-	NetworkTransactionThroughputEndpoint,
-	StakePositionsEndpoint,
-	TokenBalancesEndpoint,
-	TransactionHistoryEndpoint,
-	TransactionStatusEndpoint,
-} from '../src/api/json-rpc/_types'
-import { ResourceIdentifier } from '../src/dto/resourceIdentifier'
-import {
-	ActionType,
-	ExecutedStakeTokensAction,
-	ExecutedTransferTokensAction,
-} from '../src/actions/_types'
-import { TransferTokensAction } from '../src/actions/transferTokensAction'
-import { StakeTokensAction } from '../src/actions/stakeTokensAction'
-import { TokenPermission } from '../src/dto/_types'
-import { makeTokenPermissions } from '../src/dto/tokenPermissions'
-import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
+import { nodeAPI } from '../dist/api/api'
+import { NetworkIdEndpoint } from '../dist/api/json-rpc/_types'
 
 let mockClientReturnValue: any
 
@@ -40,7 +16,6 @@ jest.mock('@open-rpc/client-js', () => ({
 	HTTPTransport: mockHTTPTransport,
 	RequestManager: mockRequestManager,
 }))
-/*
 describe('networking', () => {
 	const client = nodeAPI(new URL('http://xyz'))
 	const address = '9S81XtkW3H9XZrmnzWqYSuTFPhWXdRnnpL3XXk7h5XxAM6zMdH7k'
@@ -53,11 +28,11 @@ describe('networking', () => {
 	describe('json-rpc', () => {
 		it('should handle get universe magic response', async () => {
 			mockClientReturnValue = <NetworkIdEndpoint.Response>{
-				magic: 1000,
+				networkId: 237,
 			}
 
 			const expected: NetworkIdEndpoint.DecodedResponse = {
-				magic: 1000,
+				networkId: { byte: 237 },
 			}
 
 			const result = (await client.networkId())._unsafeUnwrap()
@@ -65,6 +40,7 @@ describe('networking', () => {
 			expect(result).toMatchObject(expected)
 		})
 
+/*
 		it('should handle get token balances response', async () => {
 			const tokenAmount = '100'
 
@@ -414,11 +390,7 @@ describe('networking', () => {
 			)
 			expect(result.failure).toEqual(expected.failure)
 		})
+		*/
 	})
 })
-*/
-describe('it is all skipped', () => {
-	it('is skipped', () => {
-		expect(true).toBeTruthy()
-	})
-})
+

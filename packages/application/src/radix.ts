@@ -89,12 +89,13 @@ const create = (): RadixT => {
 			}),
 		)
 
-	const magic: () => Observable<Magic> = fwdAPICall(
-		(a) => a.magic,
+	const networkId: () => Observable<Magic> = fwdAPICall(
+		(a) => a.networkId,
 		(m) => networkIdErr(m),
 	)
 
 	const api: RadixAPI = {
+		networkId,
 		tokenBalancesForAddress: fwdAPICall(
 			(a) => a.tokenBalancesForAddress,
 			(m) => tokenBalancesErr(m),
@@ -199,7 +200,7 @@ const create = (): RadixT => {
 	const _withWallet = (wallet: WalletT): void => {
 		// Important! We must provide wallet with `magic`,
 		// so that it can derive addresses for its accounts.
-		wallet.provideMagic(magic())
+		wallet.provideNetworkId(networkId())
 		walletSubject.next(wallet)
 	}
 

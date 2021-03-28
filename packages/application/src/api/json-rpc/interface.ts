@@ -10,7 +10,7 @@ import {
 	handleTokenInfoResponse,
 	handleTransactionHistoryResponse,
 	handleTransactionStatusResponse,
-	handleUniverseMagicResponse,
+	handleNetworkIdResponse,
 	handleUnstakesResponse,
 	handleValidatorsResponse,
 } from './responseHandlers'
@@ -65,7 +65,7 @@ export const getAPI = (
 		[ApiMethod.NETWORK_ID]: setupAPIResponse<
 			NetworkIdEndpoint.Input,
 			NetworkIdEndpoint.DecodedResponse
-		>(handleUniverseMagicResponse)('radix.networkId'),
+		>(handleNetworkIdResponse)('radix.networkId'),
 
 		[ApiMethod.TOKEN_BALANCES]: setupAPIResponse<
 			TokenBalancesEndpoint.Input,

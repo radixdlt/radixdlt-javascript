@@ -53,7 +53,7 @@ export const radixCoreAPI = (node: NodeT): RadixCoreAPI => {
 		): Observable<ExecutedTransaction> =>
 			toObs((a) => a.lookupTransaction, txID.toString()),
 
-		magic: (): Observable<Magic> =>
+		networkId: (): Observable<Magic> =>
 			toObsMap(
 				(a) => a.networkId,
 				(m) => m.networkId,
