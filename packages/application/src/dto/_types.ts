@@ -194,9 +194,15 @@ export type TransactionHistory = Readonly<{
 }>
 
 export type Validator = Readonly<{
-	address: AddressT
-	name: string
+	address: AddressT,
+	ownerAddress: AddressT,
+	name: string,
+	infoURL: URL,
+	totalDelegatedStake: AmountT,
+	ownerDelegation: AmountT,
+	isExternalStakeAccepted: boolean
 }>
+
 export type Validators = Validator[]
 
 export type RawExecutedTransaction = Readonly<{

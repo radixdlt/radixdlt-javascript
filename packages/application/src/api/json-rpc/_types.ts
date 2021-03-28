@@ -158,10 +158,21 @@ export namespace NetworkTransactionDemandEndpoint {
 }
 
 export namespace ValidatorsEndpoint {
-	export type Input = []
+	export type Input = [size: number, cursor?: string]
+
 	export type Response = Readonly<{
-		address: string
-		name: string
+		cursor: string
+		validators:
+		{
+			address: string
+			ownerAddress: string
+			name: string
+			infoURL: string
+			totalDelegatedStake: string
+			ownerDelegation: string,
+			isExternalStakeAccepted: boolean
+		}[]
+
 	}>
 	export type DecodedResponse = Validators
 }
