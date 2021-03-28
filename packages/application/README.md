@@ -74,16 +74,18 @@ Above code assumes you have a wallet. Looking for wallet creation?
 	- [Unstake Tokens](#unstake-tokens)
 - [Ledger](#ledger)
 		- [`tokenBalancesForAddress`](#tokenbalancesforaddress)
-		- [`executedTransactions`](#executedtransactions)
+		- [`transactionHistory`](#transactionhistory)
 		- [`nativeToken`](#nativetoken)
 		- [`tokenInfo`](#tokeninfo)
-		- [`tokenFeeForTransaction`](#tokenfeefortransaction)
 		- [`stakesForAddress`](#stakesforaddress)
 		- [`transactionStatus`](#transactionstatus)
 		- [`networkTransactionThroughput`](#networktransactionthroughput)
 		- [`networkTransactionDemand`](#networktransactiondemand)
 		- [`buildTransactionFromIntent`](#buildtransactionfromintent)
 		- [`submitSignedTransaction`](#submitsignedtransaction)
+		- [`validators`](#validators)
+		- [`lookupTransaction`](#lookuptransaction)
+		- [`networkId`](#networkid)
 - [Unsubscribe](#unsubscribe)
 - [Footnotes](#footnotes)
 
@@ -876,9 +878,9 @@ This outlines all the requests you can make to the Radix Core API. All these req
 tokenBalancesForAddress: (address: AddressT) => Observable<TokenBalances>
 ```
 
-### `executedTransactions`
+### `transactionHistory`
 ```typescript
-executedTransactions: (
+transactionHistory: (
 	input: Readonly<{
 		address: AddressT
 
@@ -886,7 +888,7 @@ executedTransactions: (
 		size: number // must be larger than 0
 		cursor?: TransactionIdentifierT
 	}>,
-) => Observable<ExecutedTransactions>
+) => Observable<TransactionHistory>
 ```
 
 ### `nativeToken`
@@ -899,20 +901,15 @@ nativeToken: () => Observable<Token>
 tokenInfo: (resourceIdentifier: ResourceIdentifierT) => Observable<Token>
 ```
 
-### `tokenFeeForTransaction`
-
-```typescript
-tokenFeeForTransaction: (transaction: Transaction) => Observable<TokenFeeForTransaction>
-```
-
 ### `stakesForAddress`
 ```typescript
-stakesForAddress: (address: AddressT) => Observable<Stakes>
+stakesForAddress: (address: AddressT) => Observable<StakePositions>
 ```
 
 ### `transactionStatus`
+
 ```typescript
-transactionStatus: (id: TransactionIdentifierT) => Observable<TransactionStatus>
+transactionStatus: (id: TransactionIdentifierT) => Observable<StatusOfTransaction>
 ```
 
 ### `networkTransactionThroughput`
@@ -937,6 +934,21 @@ buildTransactionFromIntent: (
 submitSignedTransaction: (
 	signedTransaction: SignedTransaction,
 ) => Observable<PendingTransaction>
+```
+
+### `validators`
+```typescript
+validators: (): Observable<Validators>
+```
+
+### `lookupTransaction`
+```typescript
+lookupTransaction: (txID: TransactionIdentifierT): Observable<ExecutedTransaction>
+```
+
+### `networkId`
+```typescript
+networkId: () => Observable<Magic>
 ```
 
 # Unsubscribe
