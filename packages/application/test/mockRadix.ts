@@ -28,6 +28,7 @@ import {
 import { ResourceIdentifier } from '../src/dto/resourceIdentifier'
 import { tokenPermissionsAll } from '../src/dto/tokenPermissions'
 import { RadixCoreAPI } from '../src/api/_types'
+import { ExecutedTransaction, Validators } from '../dist/dto/_types'
 
 export const xrd: Token = {
 	name: 'Rad',
@@ -253,6 +254,15 @@ export const crashingAPI: RadixCoreAPI = {
 
 	tokenBalancesForAddress: (_address: AddressT): Observable<TokenBalances> =>
 		throwError(() => new Error('Not implemented')),
+
+	lookupTransaction: (
+		_txID: TransactionIdentifierT,
+	): Observable<ExecutedTransaction> =>
+		throwError(() => new Error('Not implemented')),
+
+	validators: (
+		_input: Readonly<{ size: number; offset: number }>,
+	): Observable<Validators> => throwError(() => new Error('Not implemented')),
 
 	transactionHistory: (
 		_input: Readonly<{
