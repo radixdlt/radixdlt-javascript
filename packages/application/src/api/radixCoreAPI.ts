@@ -1,27 +1,26 @@
-import {
-	AtomFromTransactionResponse,
-	ExecutedTransactions,
-	NetworkTransactionDemand,
-	NetworkTransactionThroughput,
-	NodeT,
-	RadixCoreAPI,
-	SignedAtom,
-	Stakes,
-	SubmittedAtomResponse,
-	Token,
-	TokenBalances,
-	TokenFeeForTransaction,
-	TransactionStatus,
-} from '../api/_types'
-import { NodeAPI } from './_types'
+import { NodeAPI, NodeT, RadixCoreAPI } from './_types'
 import { nodeAPI } from './api'
 import { ResultAsync } from 'neverthrow'
 import { defer, Observable } from 'rxjs'
 import { AddressT, toObservable } from '@radixdlt/account'
 import { map } from 'rxjs/operators'
-import { Magic, magicFromNumber } from '@radixdlt/primitives'
-import { Transaction } from './json-rpc/_types'
-import { AtomIdentifierT } from '@radixdlt/atom'
+import { Magic } from '@radixdlt/primitives'
+import {
+	NetworkTransactionDemand,
+	NetworkTransactionThroughput,
+	PendingTransaction,
+	ResourceIdentifierT,
+	SignedTransaction,
+	StakePositions,
+	StatusOfTransaction,
+	Token,
+	TokenBalances,
+	TransactionHistory,
+	TransactionIdentifierT,
+	TransactionIntent,
+	UnsignedTransaction,
+	UnstakePositions,
+} from '../dto/_types'
 
 export const radixCoreAPI = (node: NodeT): RadixCoreAPI => {
 	const api = nodeAPI(node.url)
@@ -47,8 +46,8 @@ export const radixCoreAPI = (node: NodeT): RadixCoreAPI => {
 
 		magic: (): Observable<Magic> =>
 			toObsMap(
-				(a) => a.universeMagic,
-				(m) => magicFromNumber(m.magic),
+				(a) => a.networkId,
+				(m) => m.networkId,
 			),
 
 		tokenBalancesForAddress: (
@@ -56,35 +55,36 @@ export const radixCoreAPI = (node: NodeT): RadixCoreAPI => {
 		): Observable<TokenBalances> =>
 			toObs((a) => a.tokenBalances, address.toString()),
 
-		executedTransactions: (
+		transactionHistory: (
 			input: Readonly<{
 				address: AddressT
 
 				// pagination
 				size: number // must be larger than 0
-				cursor?: AtomIdentifierT
+				cursor?: TransactionIdentifierT
 			}>,
-		): Observable<ExecutedTransactions> =>
+		): Observable<TransactionHistory> =>
 			toObs(
-				(a) => a.executedTransactions,
+				(a) => a.transactionHistory,
 				input.address.toString(),
 				input.size,
 				input.cursor?.toString(),
 			),
 
 		nativeToken: (): Observable<Token> => toObs((a) => a.nativeToken),
+		tokenInfo: (rri: ResourceIdentifierT): Observable<Token> =>
+			toObs((a) => a.tokenInfo, rri.toString()),
 
-		tokenFeeForTransaction: (
-			transaction: Transaction,
-		): Observable<TokenFeeForTransaction> =>
-			toObs((a) => a.tokenFeeForTransaction, transaction),
-
-		stakesForAddress: (address: AddressT): Observable<Stakes> =>
+		stakesForAddress: (address: AddressT): Observable<StakePositions> =>
 			toObs((a) => a.stakes, address.toString()),
+
+		unstakesForAddress: (address: AddressT): Observable<UnstakePositions> =>
+			toObs((a) => a.unstakes, address.toString()),
+
 		transactionStatus: (
-			atomIdentifier: AtomIdentifierT,
-		): Observable<TransactionStatus> =>
-			toObs((a) => a.transactionStatus, atomIdentifier.toString()),
+			txID: TransactionIdentifierT,
+		): Observable<StatusOfTransaction> =>
+			toObs((a) => a.transactionStatus, txID.toString()),
 
 		networkTransactionThroughput: (): Observable<NetworkTransactionThroughput> =>
 			toObs((a) => a.networkTransactionThroughput),
@@ -92,19 +92,18 @@ export const radixCoreAPI = (node: NodeT): RadixCoreAPI => {
 		networkTransactionDemand: (): Observable<NetworkTransactionDemand> =>
 			toObs((a) => a.networkTransactionDemand),
 
-		getAtomForTransaction: (
-			transaction: Transaction,
-		): Observable<AtomFromTransactionResponse> =>
-			toObs((a) => a.getAtomForTransaction, transaction),
+		buildTransaction: (
+			transactionIntent: TransactionIntent,
+		): Observable<UnsignedTransaction> =>
+			toObs((a) => a.buildTransaction, transactionIntent),
 
-		submitSignedAtom: (
-			signedAtom: SignedAtom,
-		): Observable<SubmittedAtomResponse> =>
+		submitSignedTransaction: (
+			signedTransaction: SignedTransaction,
+		): Observable<PendingTransaction> =>
 			toObs(
-				(a) => a.submitSignedAtom,
-				signedAtom.atomCBOR,
-				signedAtom.signerPublicKey.toString(true),
-				signedAtom.signature.toDER(),
+				(a) => a.submitSignedTransaction,
+				{ blob: signedTransaction.transaction.blob },
+				signedTransaction.signature.toDER(),
 			),
 	}
 }

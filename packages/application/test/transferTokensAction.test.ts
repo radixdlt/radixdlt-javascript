@@ -1,9 +1,6 @@
 import { Address } from '@radixdlt/account'
 import { Denomination } from '@radixdlt/primitives'
-import { TransferTokensAction } from '../src/transferTokensAction'
-import { TransferTokensActionInput } from '../src/_types'
 import { Amount, zero } from '@radixdlt/primitives/src/amount'
-import { ResourceIdentifier } from '@radixdlt/atom'
 
 describe('TransferTokensActions', () => {
 	const alice = Address.fromBase58String(

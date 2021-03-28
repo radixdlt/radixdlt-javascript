@@ -1,23 +1,27 @@
 import { getAPI } from './json-rpc/interface'
-import { AtomIdentifierT } from '@radixdlt/atom'
 
 import { Magic } from '@radixdlt/primitives'
 import { Observable } from 'rxjs'
 import { AddressT } from '@radixdlt/account'
+
 import {
-	ExecutedTransactions as ExecutedTransactionsEndpoint,
-	GetAtomForTransaction as GetAtomForTransactionEndpoint,
-	NativeToken as NativeTokenEndpoint,
-	NetworkTransactionDemand as NetworkTransactionDemandEndpoint,
-	NetworkTransactionThroughput as NetworkTransactionThroughputEndpoint,
-	Stakes as StakesEndpoint,
-	SubmitSignedAtom as SubmitSignedAtomEndpoint,
-	TokenBalances as TokenBalancesEndpoint,
-	TokenFeeForTransaction as TokenFeeForTransactionEndpoint,
-	TransactionStatus as TransactionStatusEndpoint,
-	Transaction as TransactionType,
-} from './json-rpc/_types'
-import { PublicKey, Signature } from '@radixdlt/crypto'
+	ExecutedTransaction,
+	NetworkTransactionDemand,
+	NetworkTransactionThroughput,
+	PendingTransaction,
+	ResourceIdentifierT,
+	SignedTransaction,
+	StakePositions,
+	StatusOfTransaction,
+	Token,
+	TokenBalances,
+	TransactionHistory,
+	TransactionIdentifierT,
+	TransactionIntent,
+	UnsignedTransaction,
+	UnstakePositions,
+	Validators,
+} from '../dto/_types'
 
 type JsonRpcAPI = {
 	[Property in keyof ReturnType<typeof getAPI>]: ReturnType<
@@ -27,63 +31,51 @@ type JsonRpcAPI = {
 
 export type NodeAPI = JsonRpcAPI // && RestAPI
 
-export type Transaction = TransactionType
-
 export type NodeT = Readonly<{
 	url: URL
-}>
-
-export type TokenBalances = TokenBalancesEndpoint.DecodedResponse
-export type ExecutedTransactions = ExecutedTransactionsEndpoint.DecodedResponse
-export type Token = NativeTokenEndpoint.DecodedResponse
-export type TokenFeeForTransaction = TokenFeeForTransactionEndpoint.DecodedResponse
-export type Stakes = StakesEndpoint.DecodedResponse
-export type TransactionStatus = TransactionStatusEndpoint.DecodedResponse
-export type NetworkTransactionThroughput = NetworkTransactionThroughputEndpoint.DecodedResponse
-export type NetworkTransactionDemand = NetworkTransactionDemandEndpoint.DecodedResponse
-export type AtomFromTransactionResponse = GetAtomForTransactionEndpoint.DecodedResponse
-export type SubmittedAtomResponse = SubmitSignedAtomEndpoint.DecodedResponse
-
-export type SignedAtom = Readonly<{
-	atomCBOR: string
-	signerPublicKey: PublicKey
-	signature: Signature
 }>
 
 export type RadixAPI = Readonly<{
 	tokenBalancesForAddress: (address: AddressT) => Observable<TokenBalances>
 
-	executedTransactions: (
+	transactionHistory: (
 		input: Readonly<{
 			address: AddressT
 			size: number
-			cursor?: AtomIdentifierT
+			cursor?: TransactionIdentifierT
 		}>,
-	) => Observable<ExecutedTransactions>
+	) => Observable<TransactionHistory>
 
 	nativeToken: () => Observable<Token>
 
-	tokenFeeForTransaction: (
-		transaction: Transaction,
-	) => Observable<TokenFeeForTransaction>
+	tokenInfo: (rri: ResourceIdentifierT) => Observable<Token>
 
-	stakesForAddress: (address: AddressT) => Observable<Stakes>
+	stakesForAddress: (address: AddressT) => Observable<StakePositions>
+	unstakesForAddress: (address: AddressT) => Observable<UnstakePositions>
 
 	transactionStatus: (
-		atomIdentifier: AtomIdentifierT,
-	) => Observable<TransactionStatus>
+		txID: TransactionIdentifierT,
+	) => Observable<StatusOfTransaction>
+
+	lookupTransaction: (
+		txID: TransactionIdentifierT,
+	) => Observable<ExecutedTransaction>
+
+	validators: (
+		input: Readonly<{ size: number; offset: number }>,
+	) => Observable<Validators>
 
 	networkTransactionThroughput: () => Observable<NetworkTransactionThroughput>
 
 	networkTransactionDemand: () => Observable<NetworkTransactionDemand>
 
-	getAtomForTransaction: (
-		transaction: Transaction,
-	) => Observable<AtomFromTransactionResponse>
+	buildTransaction: (
+		transactionIntent: TransactionIntent,
+	) => Observable<UnsignedTransaction>
 
-	submitSignedAtom: (
-		signedAtom: SignedAtom,
-	) => Observable<SubmittedAtomResponse>
+	submitSignedTransaction: (
+		signedTransaction: SignedTransaction,
+	) => Observable<PendingTransaction>
 }>
 
 export type RadixCoreAPI = RadixAPI &

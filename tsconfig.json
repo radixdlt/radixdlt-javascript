@@ -6,8 +6,6 @@
     { "path": "packages/crypto" },
     { "path": "packages/data-formats" },
     { "path": "packages/account" },
-    { "path": "packages/actions" },
-    { "path": "packages/atom" },
     { "path": "packages/networking" },
     { "path": "packages/hardware-wallet" },
     { "path": "packages/application" },

@@ -1,10 +1,3 @@
-import {
-	IsOwnerOfToken,
-	TokenPermission,
-	TokenPermissions,
-	TokenTransition,
-} from '@radixdlt/atom/dist/_types'
-
 import { objectEquals } from '@radixdlt/util'
 import {
 	DSONEncoding,
@@ -12,6 +5,12 @@ import {
 	serializerNotNeeded,
 	Tag,
 } from '@radixdlt/data-formats'
+import {
+	IsOwnerOfToken,
+	TokenPermission,
+	TokenPermissions,
+	TokenTransition,
+} from './_types'
 
 export const makeTokenPermissions = (
 	permissions: Readonly<{ [key in TokenTransition]: TokenPermission }>,

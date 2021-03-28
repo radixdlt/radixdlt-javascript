@@ -1,5 +1,5 @@
 import { Address } from '@radixdlt/account'
-import { ResourceIdentifier } from '../src/_index'
+import { ResourceIdentifier } from '../src/dto/resourceIdentifier'
 
 describe('ResourceIdentifier (RRI)', () => {
 	it('can be created from address+name AND from id-string', () => {

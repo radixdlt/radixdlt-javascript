@@ -1,5 +1,5 @@
-import { tokenOwnerOnly } from '@radixdlt/application/dist/tokenPermissions'
-import { TokenPermission } from '../src/_types'
+import { tokenOwnerOnly } from '../src/dto/tokenPermissions'
+import { TokenPermission } from '../src/dto/_types'
 
 describe('tokenPermissions', () => {
 	it(`has a default preset which 'mint' transition permissions`, () => {

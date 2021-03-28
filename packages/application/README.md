@@ -82,8 +82,8 @@ Above code assumes you have a wallet. Looking for wallet creation?
 		- [`transactionStatus`](#transactionstatus)
 		- [`networkTransactionThroughput`](#networktransactionthroughput)
 		- [`networkTransactionDemand`](#networktransactiondemand)
-		- [`getAtomForTransaction`](#getatomfortransaction)
-		- [`submitSignedAtom`](#submitsignedatom)
+		- [`buildTransactionFromIntent`](#buildtransactionfromintent)
+		- [`submitSignedTransaction`](#submitsignedtransaction)
 - [Unsubscribe](#unsubscribe)
 - [Footnotes](#footnotes)
 
@@ -544,10 +544,10 @@ You ought to keep track of the returned `cursor` value in the `transactionHistor
 ```typescript
 
 import { Option, none } from 'prelude-ts'
-import { AtomIdentifierT } from '@radixdlt/application'
+import { TransactionIdentifierT } from '@radixdlt/application'
 import { Subject } from 'rxjs'
 
-const cursor: Option<AtomIdentifierT> = none()
+const cursor: Option<TransactionIdentifierT> = none()
 const fetchTXTrigger = new Subject<number>()
 
 fetchTXTrigger.pipe(
@@ -884,7 +884,7 @@ executedTransactions: (
 
 		// pagination
 		size: number // must be larger than 0
-		cursor?: AtomIdentifierT
+		cursor?: TransactionIdentifierT
 	}>,
 ) => Observable<ExecutedTransactions>
 ```
@@ -912,7 +912,7 @@ stakesForAddress: (address: AddressT) => Observable<Stakes>
 
 ### `transactionStatus`
 ```typescript
-transactionStatus: (id: AtomIdentifierT) => Observable<TransactionStatus>
+transactionStatus: (id: TransactionIdentifierT) => Observable<TransactionStatus>
 ```
 
 ### `networkTransactionThroughput`
@@ -925,18 +925,18 @@ networkTransactionThroughput: () => Observable<NetworkTransactionThroughput>
 networkTransactionDemand: () => Observable<NetworkTransactionDemand>
 ```
 
-### `getAtomForTransaction`
+### `buildTransactionFromIntent`
 ```typescript
-getAtomForTransaction: (
-	transaction: Transaction,
-) => Observable<AtomFromTransactionResponse>
+buildTransactionFromIntent: (
+	intent: TransactionIntent,
+) => Observable<UnsignedTransaction>
 ```
 
-### `submitSignedAtom`
+### `submitSignedTransaction`
 ```typescript
-submitSignedAtom: (
-	signedAtom: SignedAtom,
-) => Observable<SubmittedAtomResponse>
+submitSignedTransaction: (
+	signedTransaction: SignedTransaction,
+) => Observable<PendingTransaction>
 ```
 
 # Unsubscribe

@@ -1,4 +1,3 @@
-import { ResourceIdentifierT } from '@radixdlt/atom/dist/_types'
 import { err, ok, Result } from 'neverthrow'
 import { Address, AddressT } from '@radixdlt/account'
 import {
@@ -9,6 +8,7 @@ import {
 	taggedStringDecoder,
 } from '@radixdlt/data-formats'
 import { Byte } from '@radixdlt/util'
+import { ResourceIdentifierT } from './_types'
 
 const separator = '/'
 

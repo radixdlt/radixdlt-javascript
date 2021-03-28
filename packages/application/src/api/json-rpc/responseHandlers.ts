@@ -1,29 +1,34 @@
-import { decoder, JSONDecoding } from '@radixdlt/data-formats'
+import { Decoder, decoder, JSONDecoding } from '@radixdlt/data-formats'
 import { ok } from 'neverthrow'
 import { UInt256 } from '@radixdlt/uint256'
 import { Amount } from '@radixdlt/primitives'
-import {
-	ExecutedTransactions,
-	NativeToken,
-	Stakes,
-	TokenBalances,
-	TokenFeeForTransaction,
-	UniverseMagic,
-	TransactionStatus,
-	NetworkTransactionThroughput,
-	NetworkTransactionDemand,
-	GetAtomForTransaction,
-	SubmitSignedAtom,
-} from './_types'
+
 import { Address } from '@radixdlt/account'
-import {
-	AtomIdentifier,
-	makeTokenPermissions,
-	ResourceIdentifier,
-	TokenPermission,
-} from '@radixdlt/atom'
-import { BurnTokensAction, TransferTokensAction } from '@radixdlt/actions'
+
 import { isObject } from '@radixdlt/util'
+import {
+	BuildTransactionEndpoint,
+	LookupTransactionEndpoint,
+	NetworkIdEndpoint,
+	NetworkTransactionDemandEndpoint,
+	NetworkTransactionThroughputEndpoint,
+	StakePositionsEndpoint,
+	SubmitSignedTransactionEndpoint,
+	TokenBalancesEndpoint,
+	TokenInfoEndpoint,
+	TransactionHistoryEndpoint,
+	TransactionStatusEndpoint,
+	UnstakesEndpoint,
+	ValidatorsEndpoint,
+} from './_types'
+import { TransactionIdentifier } from '../../dto/transactionIdentifier'
+import { makeTokenPermissions } from '../../dto/tokenPermissions'
+import { TokenPermission } from '../../dto/_types'
+import { ResourceIdentifier } from '../../dto/resourceIdentifier'
+import { TransferTokensAction } from '../../actions/transferTokensAction'
+import { StakeTokensAction } from '../../actions/stakeTokensAction'
+import { UnstakeTokensAction } from '../../actions/unstakeTokensAction'
+import { OtherAction } from '../../actions/otherAction'
 
 const amountDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
@@ -74,60 +79,73 @@ const tokenPermissionsDecoder = (...keys: string[]) =>
 			: undefined,
 	)
 
-const atomIdentifierDecoder = (...keys: string[]) =>
+const transactionIdentifierDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
 		key !== undefined && keys.includes(key) && typeof value === 'string'
-			? AtomIdentifier.create(value)
+			? TransactionIdentifier.create(value)
 			: undefined,
 	)
 
-export const handleExecutedTransactionsResponse = JSONDecoding.withDecoders(
+const executedTXDecoders = JSONDecoding.withDecoders(
 	amountDecoder('amount', 'fee'),
 	dateDecoder('sentAt'),
-	addressDecoder('from', 'to', 'burner'),
+	addressDecoder('from', 'to'),
 	RRIDecoder('resourceIdentifier'),
 	TransferTokensAction.JSONDecoder,
-	BurnTokensAction.JSONDecoder,
-).create<ExecutedTransactions.DecodedResponse>().fromJSON
+	StakeTokensAction.JSONDecoder,
+	UnstakeTokensAction.JSONDecoder,
+	OtherAction.JSONDecoder,
+)
 
-export const handleUniverseMagicResponse = JSONDecoding.withDecoders().create<UniverseMagic.DecodedResponse>()
+export const handleTransactionHistoryResponse = executedTXDecoders.create<TransactionHistoryEndpoint.DecodedResponse>()
+	.fromJSON
+
+export const handleLookupTXResponse = executedTXDecoders.create<LookupTransactionEndpoint.DecodedResponse>()
+	.fromJSON
+
+export const handleUniverseMagicResponse = JSONDecoding.withDecoders().create<NetworkIdEndpoint.DecodedResponse>()
 	.fromJSON
 
 export const handleTokenBalancesResponse = JSONDecoding.withDecoders(
 	addressDecoder('owner'),
 	RRIDecoder('token'),
 	amountDecoder('amount'),
-).create<TokenBalances.DecodedResponse>().fromJSON
+).create<TokenBalancesEndpoint.DecodedResponse>().fromJSON
 
-export const handleNativeTokenResponse = JSONDecoding.withDecoders(
+export const handleValidatorsResponse = JSONDecoding.withDecoders(
+	addressDecoder('owner'),
+).create<ValidatorsEndpoint.DecodedResponse>().fromJSON
+
+export const handleTokenInfoResponse = JSONDecoding.withDecoders(
 	RRIDecoder('rri'),
 	amountDecoder('granularity', 'currentSupply'),
 	URLDecoder('tokenInfoURL', 'iconURL'),
 	tokenPermissionsDecoder('tokenPermission'),
-).create<NativeToken.DecodedResponse>().fromJSON
-
-export const handleTokenFeeForTxResponse = JSONDecoding.withDecoders(
-	amountDecoder('tokenFee'),
-).create<TokenFeeForTransaction.DecodedResponse>().fromJSON
+).create<TokenInfoEndpoint.DecodedResponse>().fromJSON
 
 export const handleStakesResponse = JSONDecoding.withDecoders(
 	addressDecoder('validator'),
 	amountDecoder('amount'),
-).create<Stakes.DecodedResponse>().fromJSON
+).create<StakePositionsEndpoint.DecodedResponse>().fromJSON
+
+export const handleUnstakesResponse = JSONDecoding.withDecoders(
+	addressDecoder('validator'),
+	amountDecoder('amount'),
+).create<UnstakesEndpoint.DecodedResponse>().fromJSON
 
 export const handleTransactionStatusResponse = JSONDecoding.withDecoders(
-	atomIdentifierDecoder('atomIdentifier'),
-).create<TransactionStatus.DecodedResponse>().fromJSON
+	transactionIdentifierDecoder('txID'),
+).create<TransactionStatusEndpoint.DecodedResponse>().fromJSON
 
-export const handleNetworkTxThroughputResponse = JSONDecoding.create<NetworkTransactionThroughput.DecodedResponse>()
+export const handleNetworkTxThroughputResponse = JSONDecoding.create<NetworkTransactionThroughputEndpoint.DecodedResponse>()
 	.fromJSON
 
-export const handleNetworkTxDemandResponse = JSONDecoding.create<NetworkTransactionDemand.DecodedResponse>()
+export const handleNetworkTxDemandResponse = JSONDecoding.create<NetworkTransactionDemandEndpoint.DecodedResponse>()
 	.fromJSON
 
-export const handleGetAtomForTxResponse = JSONDecoding.create<GetAtomForTransaction.DecodedResponse>()
+export const handleBuildTransactionResponse = JSONDecoding.create<BuildTransactionEndpoint.DecodedResponse>()
 	.fromJSON
 
-export const handleSubmitSignedAtomResponse = JSONDecoding.withDecoders(
-	atomIdentifierDecoder('atomIdentifier'),
-).create<SubmitSignedAtom.DecodedResponse>().fromJSON
+export const handleSubmitSignedTransactionResponse = JSONDecoding.withDecoders(
+	transactionIdentifierDecoder('txID'),
+).create<SubmitSignedTransactionEndpoint.DecodedResponse>().fromJSON
