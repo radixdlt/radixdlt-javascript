@@ -50,7 +50,7 @@ const mockAPI = (urlString?: string): Observable<RadixCoreAPI> => {
 	const mockedPartialAPI = {
 		...crashingAPI,
 		node: { url: new URL(urlString ?? 'http://www.example.com') },
-		magic: (): Observable<Magic> => of(magicFromNumber(123)),
+		networkId: (): Observable<Magic> => of(magicFromNumber(123)),
 		nativeToken: (): Observable<Token> => of(xrd),
 	}
 	return of(mockedPartialAPI)
@@ -408,7 +408,7 @@ describe('Radix API', () => {
 
 		const api = of(<RadixCoreAPI>{
 			...crashingAPI,
-			magic: (): Observable<Magic> => of(magicFromNumber(123)),
+			networkId: (): Observable<Magic> => of(magicFromNumber(123)),
 			tokenBalancesForAddress: (
 				a: AddressT,
 			): Observable<TokenBalances> => {

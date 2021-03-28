@@ -249,7 +249,7 @@ export const deterministicRandomBalances = (
 export const crashingAPI: RadixCoreAPI = {
 	node: { url: new URL('http://www.not.implemented.com') },
 
-	magic: (): Observable<Magic> =>
+	networkId: (): Observable<Magic> =>
 		throwError(() => new Error('Not implemented')),
 
 	tokenBalancesForAddress: (_address: AddressT): Observable<TokenBalances> =>
@@ -309,7 +309,7 @@ export const crashingAPI: RadixCoreAPI = {
 
 export const mockedAPI: Observable<RadixCoreAPI> = of({
 	...crashingAPI,
-	magic: (): Observable<Magic> => of(magicFromNumber(123)),
+	networkId: (): Observable<Magic> => of(magicFromNumber(123)),
 	nativeToken: (): Observable<Token> => of(xrd),
 	tokenInfo: (rri: ResourceIdentifierT): Observable<Token> =>
 		of(tokenByRRIMap.get(rri) ?? __fallBackAlexToken),
