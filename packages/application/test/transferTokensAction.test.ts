@@ -48,7 +48,6 @@ describe('TransferTokensActions', () => {
 		expect(tokenTransfer.from.equals(alice)).toBe(true)
 	})
 
-
 	it('should generate a UUID if none is provided.', () => {
 		const tokenTransfer = TransferTokensAction.intended(input)
 		expect(tokenTransfer.uuid).toBeTruthy()

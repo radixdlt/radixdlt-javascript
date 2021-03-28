@@ -15,30 +15,23 @@ import {
 	ResourceIdentifier,
 } from '../dto/resourceIdentifier'
 
-const __isExecTx = (
+const isExecutedTransferTokensAction = (
 	something: unknown,
 ): something is ExecutedTransferTokensAction => {
 	const inspection = something as ExecutedTransferTokensAction
-	const isExecTx =
+	return (
 		Address.isAddress(inspection.from) &&
 		Address.isAddress(inspection.to) &&
 		isAmount(inspection.amount) &&
 		isResourceIdentifier(inspection.resourceIdentifier)
-
-	if (isExecTx) {
-		console.log(`🔮 isExecTx 🎉 🎉`)
-	} else {
-		console.log(`🚩 is not exec tx: ${JSON.stringify(something, null, 4)}`)
-	}
-	return isExecTx
+	)
 }
 
 const JSONDecoder: Decoder = (value) =>
-	isObject(value) && value['type'] === ActionType.TOKEN_TRANSFER
-		? // ? ok(executed(value as RawTransferAction))
-		  __isExecTx(value)
-			? ok(value)
-			: undefined
+	isObject(value) &&
+	value['type'] === ActionType.TOKEN_TRANSFER &&
+	isExecutedTransferTokensAction(value)
+		? ok(value)
 		: undefined
 
 const decoding = JSONDecoding.withDependencies(
@@ -55,7 +48,7 @@ const intended = (
 	const uuid = input.uuid ?? uuidv4()
 
 	return {
-		actionType: ActionType.TOKEN_TRANSFER,
+		type: ActionType.TOKEN_TRANSFER,
 		to: input.to,
 		from: input.from,
 		resourceIdentifier: input.resourceIdentifier,

@@ -26,7 +26,7 @@ const create = (
 	const uuid = input.uuid ?? uuidv4()
 
 	return {
-		actionType: ActionType.UNSTAKE_TOKENS,
+		type: ActionType.UNSTAKE_TOKENS,
 		validator: input.validator,
 		amount: input.amount,
 		uuid: uuid,

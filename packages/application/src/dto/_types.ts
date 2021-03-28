@@ -111,11 +111,10 @@ export type SignedTransaction = Readonly<{
 	signature: Signature
 }>
 
-export type PendingTransaction =
-	| Readonly<{
-			txID: TransactionIdentifierT
-	  }>
-	| Readonly<{ errorMessage?: string }>
+export type PendingTransaction = Readonly<{
+	txID: TransactionIdentifierT
+	errorMessage?: string
+}>
 
 export type RawToken = Readonly<{
 	name: string
@@ -166,7 +165,11 @@ export type NetworkTransactionDemand = Readonly<{
 	tps: number
 }>
 
-export type TransactionStatus = 'PENDING' | 'CONFIRMED' | 'FAILED'
+export enum TransactionStatus {
+	PENDING = 'PENDING',
+	CONFIRMED = 'CONFIRMED',
+	FAILED = 'FAILED',
+}
 
 export type StatusOfTransaction = Readonly<{
 	txID: TransactionIdentifierT

@@ -26,7 +26,7 @@ const intended = (
 	const uuid = input.uuid ?? uuidv4()
 
 	return {
-		actionType: ActionType.STAKE_TOKENS,
+		type: ActionType.STAKE_TOKENS,
 		validator: input.validator,
 		amount: input.amount,
 		uuid: uuid,

@@ -96,7 +96,8 @@ const magicDecoder = (...keys: string[]) =>
 const executedTXDecoders = JSONDecoding.withDecoders(
 	amountDecoder('amount', 'fee'),
 	dateDecoder('sentAt'),
-	addressDecoder('from', 'to'),
+	addressDecoder('from', 'to', 'validator'),
+	transactionIdentifierDecoder('txID'),
 	RRIDecoder('resourceIdentifier'),
 	TransferTokensAction.JSONDecoder,
 	StakeTokensAction.JSONDecoder,

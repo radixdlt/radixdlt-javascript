@@ -11,13 +11,15 @@ describe('TransactionIdentifier', () => {
 	})
 
 	it('can be converted to string', () => {
-		const aid = TransactionIdentifier.create(buffer0)._unsafeUnwrap()
-		expect(aid.toString()).toBe(deadbeefString)
+		const txID = TransactionIdentifier.create(buffer0)._unsafeUnwrap()
+		expect(txID.toString()).toBe(deadbeefString)
 	})
 
 	it('can be created from hex string', () => {
-		const aid = TransactionIdentifier.create(deadbeefString)._unsafeUnwrap()
-		expect(aid.toString()).toBe(deadbeefString)
+		const txID = TransactionIdentifier.create(
+			deadbeefString,
+		)._unsafeUnwrap()
+		expect(txID.toString()).toBe(deadbeefString)
 	})
 
 	const deadbeefString =

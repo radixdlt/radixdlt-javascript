@@ -9,13 +9,13 @@ export enum ActionType {
 	OTHER = 'OTHER',
 }
 
-export type Action<T> = Readonly<{
-	actionType: T
+export type Action<T extends ActionType = ActionType.OTHER> = Readonly<{
+	type: T
 }>
 
 // An intended action specified by the user. Not yet accepted by
 // Radix Core API.
-export type IntendedActionBase<T> = Action<T> &
+export type IntendedActionBase<T extends ActionType> = Action<T> &
 	Readonly<{
 		// An ephemeral, client-side randomly generated, id
 		// useful for debugging purposes. Note that this is
@@ -25,7 +25,7 @@ export type IntendedActionBase<T> = Action<T> &
 
 // An executed action stored in the Radix Ledger, part
 // of transaction history. Marker type.
-export type ExecutedActionBase<T> = Action<T> &
+export type ExecutedActionBase<T extends ActionType> = Action<T> &
 	Readonly<{
 		// Nothing here.
 	}>
