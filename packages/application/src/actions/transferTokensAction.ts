@@ -57,17 +57,6 @@ const intended = (
 	}
 }
 
-// const executed = (
-// 	raw: RawTransferAction
-// ): ExecutedTransferTokensAction => {
-// 	return {
-// 		from: raw.from
-// 		to: AddressT
-// 		amount: AmountT
-// 		resourceIdentifier: ResourceIdentifierT
-// 	}
-// }
-
 export const TransferTokensAction = {
 	intended,
 	...decoding,
