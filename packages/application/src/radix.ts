@@ -14,6 +14,7 @@ import {
 	shareReplay,
 	switchMap,
 	catchError,
+	filter,
 } from 'rxjs/operators'
 import {
 	Observable,
@@ -77,13 +78,13 @@ const create = (): RadixT => {
 		pickFn: (api: RadixCoreAPI) => (...input: I) => Observable<O>,
 		errorFn: (message: string) => ErrorNotification,
 	) => (...input: I) =>
-		coreAPI$.pipe(
-			mergeMap((a) => pickFn(a)(...input)),
-			catchError((error: Error) => {
-				errorNotificationSubject.next(errorFn(error.message))
-				return EMPTY
-			}),
-		)
+			coreAPI$.pipe(
+				mergeMap((a) => pickFn(a)(...input)),
+				catchError((error: Error) => {
+					errorNotificationSubject.next(errorFn(error.message))
+					return EMPTY
+				}),
+			)
 
 	const networkId: () => Observable<Magic> = fwdAPICall(
 		(a) => a.networkId,
@@ -288,11 +289,17 @@ const create = (): RadixT => {
 			callback: (status: TransactionStatus) => void,
 			intervalMs = 300,
 		) => {
+			const seenStatuses: TransactionStatus[] = []
+
 			const subscription = interval(intervalMs)
-				.pipe(mergeMap((_) => api.transactionStatus(txID)))
+				.pipe(
+					mergeMap((_) => api.transactionStatus(txID)),
+					filter(({ status }) => !seenStatuses.includes(status))
+				)
 				.subscribe(({ status }) => {
+					seenStatuses.push(status)
 					callback(status)
-					if(status === TransactionStatus.CONFIRMED) subscription.unsubscribe()
+					if (status === TransactionStatus.CONFIRMED) subscription.unsubscribe()
 				})
 		},
 
