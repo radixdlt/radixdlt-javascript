@@ -9,8 +9,9 @@ import {
 import { KeystoreT } from '@radixdlt/crypto'
 import { LogLevel } from '@radixdlt/util'
 import { Observable } from 'rxjs'
-import { NodeT, RadixAPI, RadixCoreAPI, TokenBalances } from './api/_types'
+import { NodeT, RadixAPI, RadixCoreAPI } from './api/_types'
 import { ErrorNotification } from './errors'
+import { TokenBalances } from './dto/_types'
 
 export type RadixT = Readonly<{
 	ledger: RadixAPI

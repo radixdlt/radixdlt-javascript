@@ -13,7 +13,7 @@ export type Nonce = JSONEncodable &
 		equals: (other: Nonce) => boolean
 	}>
 
-export type Magic = /* DSONCodable & */ Readonly<{
+export type Magic = Readonly<{
 	byte: Byte
 }>
 

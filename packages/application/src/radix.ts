@@ -31,19 +31,22 @@ import { KeystoreT } from '@radixdlt/crypto'
 import { RadixT } from './_types'
 import {
 	ErrorNotification,
-	executedTxErr,
-	getAtomForTxErr,
-	magicErr,
 	nativeTokenErr,
 	networkTxDemandErr,
 	networkTxThroughputErr,
 	getNodeErr,
+	transactionHistoryErr,
+	buildTxFromIntentErr,
+	submitSignedTxErr,
 	stakesForAddressErr,
-	submitSignedAtomErr,
+	networkIdErr,
 	tokenBalancesErr,
-	tokenFeeErr,
+	tokenInfoErr,
 	txStatusErr,
 	loadKeystoreErr,
+	unstakesForAddressErr,
+	validatorsErr,
+	lookupTxErr,
 } from './errors'
 import { log, LogLevel } from '@radixdlt/util'
 
@@ -87,32 +90,48 @@ const create = (): RadixT => {
 			}),
 		)
 
-	const magic: () => Observable<Magic> = fwdAPICall(
-		(a) => a.magic,
-		(m) => magicErr(m),
+	const networkId: () => Observable<Magic> = fwdAPICall(
+		(a) => a.networkId,
+		(m) => networkIdErr(m),
 	)
 
 	const api: RadixAPI = {
+		networkId,
 		tokenBalancesForAddress: fwdAPICall(
 			(a) => a.tokenBalancesForAddress,
 			(m) => tokenBalancesErr(m),
 		),
-		executedTransactions: fwdAPICall(
-			(a) => a.executedTransactions,
-			(m) => executedTxErr(m),
+		transactionHistory: fwdAPICall(
+			(a) => a.transactionHistory,
+			(m) => transactionHistoryErr(m),
 		),
 		nativeToken: fwdAPICall(
 			(a) => a.nativeToken,
 			(m) => nativeTokenErr(m),
 		),
-		tokenFeeForTransaction: fwdAPICall(
-			(a) => a.tokenFeeForTransaction,
-			(m) => tokenFeeErr(m),
+		tokenInfo: fwdAPICall(
+			(a) => a.tokenInfo,
+			(m) => tokenInfoErr(m),
 		),
 		stakesForAddress: fwdAPICall(
 			(a) => a.stakesForAddress,
 			(m) => stakesForAddressErr(m),
 		),
+		unstakesForAddress: fwdAPICall(
+			(a) => a.unstakesForAddress,
+			(m) => unstakesForAddressErr(m),
+		),
+
+		validators: fwdAPICall(
+			(a) => a.validators,
+			(m) => validatorsErr(m),
+		),
+
+		lookupTransaction: fwdAPICall(
+			(a) => a.lookupTransaction,
+			(m) => lookupTxErr(m),
+		),
+
 		transactionStatus: fwdAPICall(
 			(a) => a.transactionStatus,
 			(m) => txStatusErr(m),
@@ -125,13 +144,13 @@ const create = (): RadixT => {
 			(a) => a.networkTransactionDemand,
 			(m) => networkTxDemandErr(m),
 		),
-		getAtomForTransaction: fwdAPICall(
-			(a) => a.getAtomForTransaction,
-			(m) => getAtomForTxErr(m),
+		buildTransaction: fwdAPICall(
+			(a) => a.buildTransaction,
+			(m) => buildTxFromIntentErr(m),
 		),
-		submitSignedAtom: fwdAPICall(
-			(a) => a.submitSignedAtom,
-			(m) => submitSignedAtomErr(m),
+		submitSignedTransaction: fwdAPICall(
+			(a) => a.submitSignedTransaction,
+			(m) => submitSignedTxErr(m),
 		),
 	}
 
@@ -182,7 +201,7 @@ const create = (): RadixT => {
 	const _withWallet = (wallet: WalletT): void => {
 		// Important! We must provide wallet with `magic`,
 		// so that it can derive addresses for its accounts.
-		wallet.provideMagic(magic())
+		wallet.provideNetworkId(networkId())
 		walletSubject.next(wallet)
 	}
 

@@ -1,12 +1,9 @@
 {
   "name": "@radixdlt/networking",
   "version": "1.0.6-alpha.0",
-  "description": "Sending and fetching of Atoms over some transportation protocol, e.g. websockets and/or HTTP",
+  "description": "Requesting and sending data from/to Radix Core RPC API over HTTP(s).",
   "keywords": [
-    "AtomPuller",
-    "AtomSender",
-    "WS",
-    "WebSockets"
+    "RPCClient"
   ],
   "author": "Alexander Cyon <alex.cyon@gmail.com>",
   "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/networking#readme",

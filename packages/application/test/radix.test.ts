@@ -1,19 +1,3 @@
-import {
-	AtomFromTransactionResponse,
-	ExecutedTransactions,
-	NetworkTransactionDemand,
-	NetworkTransactionThroughput,
-	NodeT,
-	RadixCoreAPI,
-	SignedAtom,
-	Stakes,
-	SubmittedAtomResponse,
-	Token,
-	TokenBalances,
-	TokenFeeForTransaction,
-	Transaction,
-	TransactionStatus,
-} from '../src/api/_types'
 import { Radix } from '../src/radix'
 import {
 	Address,
@@ -22,19 +6,33 @@ import {
 	Wallet,
 	WalletT,
 } from '@radixdlt/account'
-import { Observable, of, Subscription, throwError, timer } from 'rxjs'
-import { Amount, Magic, magicFromNumber, maxAmount } from '@radixdlt/primitives'
-import { map, take, toArray } from 'rxjs/operators'
+import { Observable, of, Subscription, throwError } from 'rxjs'
 import {
-	AtomIdentifierT,
-	ResourceIdentifier,
-	tokenPermissionsAll,
-} from '@radixdlt/atom'
+	Amount,
+	Denomination,
+	DenominationOutputFormat,
+	Magic,
+	magicFromNumber,
+	maxAmount,
+} from '@radixdlt/primitives'
+import { map, take, toArray } from 'rxjs/operators'
+
 import { UInt256 } from '@radixdlt/uint256'
 import { KeystoreT } from '@radixdlt/crypto'
 import { RadixT } from '../src/_types'
-import { ErrorCategory, APIErrorCause } from '../src/errors'
-import { merge } from 'ramda'
+import { APIErrorCause, ErrorCategory } from '../src/errors'
+import { Err } from 'neverthrow'
+import {
+	balancesFor,
+	barToken,
+	crashingAPI,
+	fooToken,
+	mockedAPI,
+	tokenByRRIMap,
+	xrd,
+} from './mockRadix'
+import { NodeT, RadixCoreAPI } from '../src/api/_types'
+import { Token, TokenBalances } from '../src/dto/_types'
 
 const createWallet = (): WalletT => {
 	const masterSeed = HDMasterSeed.fromSeed(
@@ -48,87 +46,11 @@ const dummyNode = (urlString: string): Observable<NodeT> =>
 		url: new URL(urlString),
 	})
 
-const xrd: Token = {
-	name: 'Rad',
-	rri: ResourceIdentifier.fromString(
-		'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD',
-	)._unsafeUnwrap(),
-	symbol: 'XRD',
-	description: 'The native coin of Radix network',
-	granularity: Amount.inSmallestDenomination(UInt256.valueOf(1)),
-	isSupplyMutable: false,
-	currentSupply: maxAmount,
-	tokenInfoURL: new URL('http://www.radixdlt.com'),
-	iconURL: new URL('http://www.image.radixdlt.com/'),
-	tokenPermission: tokenPermissionsAll,
-}
-
-const balancesFor = (address: AddressT, amount: number): TokenBalances => ({
-	owner: address,
-	tokenBalances: [
-		{
-			token: xrd.rri,
-			amount: Amount.inSmallestDenomination(UInt256.valueOf(amount)),
-		},
-	],
-})
-
-const crashingAPI: RadixCoreAPI = {
-	node: { url: new URL('http://www.not.implemented.com') },
-
-	magic: (): Observable<Magic> =>
-		throwError(() => new Error('Not implemented')),
-
-	tokenBalancesForAddress: (_address: AddressT): Observable<TokenBalances> =>
-		throwError(() => new Error('Not implemented')),
-
-	executedTransactions: (
-		_input: Readonly<{
-			address: AddressT
-			// pagination
-			size: number
-		}>,
-	): Observable<ExecutedTransactions> =>
-		throwError(() => new Error('Not implemented')),
-
-	nativeToken: (): Observable<Token> =>
-		throwError(() => new Error('Not implemented')),
-
-	tokenFeeForTransaction: (
-		_transaction: Transaction,
-	): Observable<TokenFeeForTransaction> =>
-		throwError(() => new Error('Not implemented')),
-
-	stakesForAddress: (_address: AddressT): Observable<Stakes> =>
-		throwError(() => new Error('Not implemented')),
-
-	transactionStatus: (
-		_atomIdentifier: AtomIdentifierT,
-	): Observable<TransactionStatus> =>
-		throwError(() => new Error('Not implemented')),
-
-	networkTransactionThroughput: (): Observable<NetworkTransactionThroughput> =>
-		throwError(() => new Error('Not implemented')),
-
-	networkTransactionDemand: (): Observable<NetworkTransactionDemand> =>
-		throwError(() => new Error('Not implemented')),
-
-	getAtomForTransaction: (
-		_transaction: Transaction,
-	): Observable<AtomFromTransactionResponse> =>
-		throwError(() => new Error('Not implemented')),
-
-	submitSignedAtom: (
-		_signedAtom: SignedAtom,
-	): Observable<SubmittedAtomResponse> =>
-		throwError(() => new Error('Not implemented')),
-}
-
 const mockAPI = (urlString?: string): Observable<RadixCoreAPI> => {
 	const mockedPartialAPI = {
 		...crashingAPI,
 		node: { url: new URL(urlString ?? 'http://www.example.com') },
-		magic: (): Observable<Magic> => of(magicFromNumber(123)),
+		networkId: (): Observable<Magic> => of(magicFromNumber(123)),
 		nativeToken: (): Observable<Token> => of(xrd),
 	}
 	return of(mockedPartialAPI)
@@ -489,7 +411,7 @@ describe('Radix API', () => {
 
 		const api = of(<RadixCoreAPI>{
 			...crashingAPI,
-			magic: (): Observable<Magic> => of(magicFromNumber(123)),
+			networkId: (): Observable<Magic> => of(magicFromNumber(123)),
 			tokenBalancesForAddress: (
 				a: AddressT,
 			): Observable<TokenBalances> => {
@@ -509,7 +431,11 @@ describe('Radix API', () => {
 		radix.withWallet(createWallet())
 		radix.__withAPI(api)
 
-		const expectedValues = [100, 200, 300]
+		const expectedValues = [
+			100000000000000000000,
+			200000000000000000000,
+			300000000000000000000,
+		]
 
 		radix.tokenBalances
 			.pipe(
@@ -530,5 +456,59 @@ describe('Radix API', () => {
 			.switchAccount({ toIndex: 1 })
 			.switchAccount('first')
 			.switchAccount('last')
+	})
+
+	it(`mocked API returns differnt but deterministic tokenBalances per account`, (done) => {
+		const subs = new Subscription()
+
+		const radix = Radix.create()
+
+		const loadKeystore = (): Promise<KeystoreT> =>
+			Promise.resolve(keystoreForTest.keystore)
+
+		radix.login(keystoreForTest.password, loadKeystore)
+
+		radix.__withAPI(mockedAPI)
+
+		radix.tokenBalances
+			.subscribe((tb) => {
+				expect(tb.owner.publicKey.toString(true)).toBe(
+					keystoreForTest.publicKeysCompressed[0],
+				)
+
+				expect(tb.tokenBalances.length).toBe(3)
+
+				const tbList = tb.tokenBalances
+
+				const tb0 = tbList[0]
+				expect(tb0.token.equals(fooToken.rri)).toBe(true)
+				expect(
+					tb0.amount.toString({
+						denominationOutputFormat:
+							DenominationOutputFormat.SHOW_SYMBOL,
+					}),
+				).toBe('7556')
+
+				const tb1 = tbList[1]
+				expect(tb1.token.equals(barToken.rri)).toBe(true)
+				expect(tb1.amount.toString()).toBe('7642 E-3')
+
+				const tb2 = tbList[2]
+				expect(tb2.token.equals(xrd.rri)).toBe(true)
+				expect(tb2.amount.toString()).toBe('4489')
+
+				done()
+			})
+			.add(subs)
+	})
+
+	it('map of tokens rri', () => {
+		expect(tokenByRRIMap.get(xrd.rri)!.description).toBe(xrd.description)
+		expect(tokenByRRIMap.get(fooToken.rri)!.description).toBe(
+			fooToken.description,
+		)
+		expect(tokenByRRIMap.get(barToken.rri)!.description).toBe(
+			barToken.description,
+		)
 	})
 })

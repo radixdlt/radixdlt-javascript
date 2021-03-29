@@ -204,9 +204,9 @@ describe('HD Wallet', () => {
 	it('can derive address for accounts', async (done) => {
 		const wallet = createWallet()
 		const magicSubject = new Subject<Magic>()
-		wallet.provideMagic(magicSubject.asObservable())
+		wallet.provideNetworkId(magicSubject.asObservable())
 
-		wallet.provideMagic(of(magicFromNumber(123)))
+		wallet.provideNetworkId(of(magicFromNumber(123)))
 
 		const magic = magicFromNumber(123)
 		wallet.observeActiveAddress().subscribe((address) => {
@@ -224,8 +224,8 @@ describe('HD Wallet', () => {
 
 		const expectedValues = [m1, m2].map((m) => m.byte)
 
-		wallet.provideMagic(of(m1))
-		wallet.provideMagic(of(m2))
+		wallet.provideNetworkId(of(m1))
+		wallet.provideNetworkId(of(m2))
 
 		wallet
 			.observeActiveAddress()

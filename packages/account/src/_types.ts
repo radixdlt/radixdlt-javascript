@@ -74,7 +74,7 @@ export type WalletT = PublicKeyDeriving &
 		__unsafeGetAccount: () => AccountT
 
 		// Call this once you can provide an observable providing magic.
-		provideMagic: (magic: Observable<Magic>) => void
+		provideNetworkId: (magic: Observable<Magic>) => void
 		deriveNext: (input?: DeriveNextAccountInput) => AccountT
 
 		switchAccount: (input: SwitchAccountInput) => AccountT

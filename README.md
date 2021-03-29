@@ -49,15 +49,11 @@ This git repository is a so called "monorepo" using [`yarn` *workspaces*](https:
 | --- | --- | --- | --- | --- |
 | [`@radixdlt/application`][app] | High level abstraction for interacting with the Radix Distributed Ledger | `RadixT` | [`@radix/crypto`][crypto] | NONE |
 ||
-| [`@radixdlt/hardware-wallet`][hwLedger] | Ledger Nano hardware wallet application. | `HWWalletLedger` | [`@radixdlt/atom`][atom] | [`LedgerHQ/ledgerjs`](https://github.com/LedgerHQ/ledgerjs) |
+| [`@radixdlt/hardware-wallet`][hwLedger] | Ledger Nano hardware wallet application. | `HWWalletLedger` | None | [`LedgerHQ/ledgerjs`](https://github.com/LedgerHQ/ledgerjs) |
 ||
-| [`@radixdlt/networking`][networking] | Sending and receiving of atoms over network transportation. | `AtomPuller`, `AtomSender`, `WebsocketToNode` | [`@radixdlt/atom`][atom] | NONE |
+| [`@radixdlt/networking`][networking] | JSON-RPC communication. | `RPCClient` | NONE | [`@open-rpc/client-js`](https://github.com/open-rpc/client-js) |
 ||
-| [`@radixdlt/actions`][actions] | High level abstractions user initiated actions. | `TokenTransferAction`, `SendMessageAction` | [`@radixdlt/primitives`][primitives] | NONE |
-||
-| [`@radixdlt/atom`][atom] | Implementation of [Radix *Atom Model*](https://dev.to/radixdlt/knowledgebase-update-atom-model-263i), a container for [CRUD instructions](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) sent to the Radix distributed ledger. | `Atom`, `Particle`, `ParticleGroup`, `Spin` | [`@radixdlt/primitives`][primitives], [`@radix/data-formats`][dataformats] | NONE |
-||
-| [`@radixdlt/account`][account] | User account related APIs | `FOO` | [`@radixdlt/primitives`][primitives], [`@radixdlt/primitives`][crypto] | NONE |
+| [`@radixdlt/account`][account] | HD wallet, keystore and account managment | `Wallet`, `Keystore`, `Mnemonic` | [`@radixdlt/primitives`][primitives], [`@radixdlt/crypto`][crypto], [`@radixdlt/data-formats`][dataformats],  [`@radixdlt/util`][util] | NONE |
 ||
 | [`@radixdlt/crypto`][crypto] | Toolchain of cryptographic primitives such as SHA256 digests, [ECIES encryption](https://en.wikipedia.org/wiki/Integrated_Encryption_Scheme) and [ECC methods](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography) (KeyGen, Sign, Verify) | `PrivateKey`, `PublicKey`, `KeyPair`, `Hasher`, `Signer` | [`@radixdlt/util`][util], [`@radixdlt/primitives`][primitives] | [indutny/elliptic](https://github.com/indutny/elliptic) |
 ||
@@ -74,12 +70,10 @@ This git repository is a so called "monorepo" using [`yarn` *workspaces*](https:
 [app]: ./packages/application
 [account]: ./packages/account
 [dataformats]: ./packages/data-formats
-[atom]: ./packages/atom
 [crypto]: ./packages/crypto
 [primitives]: ./packages/primitives
 [networking]: ./packages/networking
 [hwLedger]: ./packages/hardware-wallet
-[actions]: ./packages/actions
 [util]: ./packages/util
 
 <!-- Third party links -->
@@ -88,9 +82,9 @@ This git repository is a so called "monorepo" using [`yarn` *workspaces*](https:
 
 # API outline
 
-Please see the [README of `@radixdlt/application`](packages/application/README) for a detail documentation.
+Please see the [README of `@radixdlt/application`](packages/application/README.md) for a detail documentation.
 
-Please see the [README of `@radixdlt/account`](packages/account/README) for info about setup of wallet.
+Please see the [README of `@radixdlt/account`](packages/account/README.md) for info about setup of wallet.
 
 # Design choices
 
