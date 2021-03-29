@@ -299,7 +299,7 @@ const create = (): RadixT => {
 		},
 
 		withTokenBalanceFetchTrigger: function (trigger: Observable<number>) {
-			trigger.subscribe(tokenBalanceFetchSubject)
+			trigger.subscribe(tokenBalanceFetchSubject).add(subs)
 
 			return this
 		},
