@@ -6,7 +6,7 @@ import {
 	Wallet,
 	WalletT,
 } from '@radixdlt/account'
-import { Observable, of, Subscription, throwError, timer } from 'rxjs'
+import { interval, Observable, of, Subscription, throwError, timer } from 'rxjs'
 import {
 	DenominationOutputFormat,
 	Magic,
@@ -370,7 +370,7 @@ describe('Radix API', () => {
 
 		const radix = Radix.create()
 			.__withAPI(api)
-			.withTokenBalanceFetchTrigger(timer(1000))
+			.withTokenBalanceFetchTrigger(interval(1000))
 
 		radix.tokenBalances
 			.subscribe((n) => {
@@ -420,7 +420,7 @@ describe('Radix API', () => {
 
 		const radix = Radix.create()
 		radix.withWallet(createWallet())
-		radix.__withAPI(api).withTokenBalanceFetchTrigger(timer(300))
+		radix.__withAPI(api).withTokenBalanceFetchTrigger(interval(300))
 
 		const expectedValues = [
 			100000000000000000000,
@@ -439,14 +439,6 @@ describe('Radix API', () => {
 				done()
 			})
 			.add(subs)
-
-		radix
-			.deriveNextAccount({ alsoSwitchTo: true }) // 1
-			.deriveNextAccount({ alsoSwitchTo: true }) // 2
-			.deriveNextAccount({ alsoSwitchTo: true }) // 3
-			.switchAccount({ toIndex: 1 })
-			.switchAccount('first')
-			.switchAccount('last')
 	})
 
 	it(`mocked API returns differnt but deterministic tokenBalances per account`, (done) => {
