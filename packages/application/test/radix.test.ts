@@ -6,22 +6,18 @@ import {
 	Wallet,
 	WalletT,
 } from '@radixdlt/account'
-import { Observable, of, Subscription, throwError } from 'rxjs'
+import { Observable, of, Subscription, throwError, timer } from 'rxjs'
 import {
-	Amount,
-	Denomination,
 	DenominationOutputFormat,
 	Magic,
 	magicFromNumber,
-	maxAmount,
 } from '@radixdlt/primitives'
 import { map, take, toArray } from 'rxjs/operators'
 
-import { UInt256 } from '@radixdlt/uint256'
 import { KeystoreT } from '@radixdlt/crypto'
 import { RadixT } from '../src/_types'
 import { APIErrorCause, ErrorCategory } from '../src/errors'
-import { Err } from 'neverthrow'
+
 import {
 	balancesFor,
 	barToken,
@@ -374,12 +370,7 @@ describe('Radix API', () => {
 
 		const radix = Radix.create()
 			.__withAPI(api)
-			.withFetchTrigger({
-				trigger: timer(1000),
-				fetchFor: {
-					tokenBalances: true,
-				},
-			})
+			.withTokenBalanceFetchTrigger(timer(1000))
 
 		radix.tokenBalances
 			.subscribe((n) => {
@@ -429,7 +420,7 @@ describe('Radix API', () => {
 
 		const radix = Radix.create()
 		radix.withWallet(createWallet())
-		radix.__withAPI(api)
+		radix.__withAPI(api).withTokenBalanceFetchTrigger(timer(300))
 
 		const expectedValues = [
 			100000000000000000000,

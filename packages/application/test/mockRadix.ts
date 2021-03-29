@@ -261,7 +261,7 @@ export const crashingAPI: RadixCoreAPI = {
 		throwError(() => new Error('Not implemented')),
 
 	validators: (
-		_input: Readonly<{ size: number; offset: number }>,
+		_input: Readonly<{ size: number; cursor: string }>,
 	): Observable<Validators> => throwError(() => new Error('Not implemented')),
 
 	transactionHistory: (

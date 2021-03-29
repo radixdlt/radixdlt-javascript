@@ -1,0 +1,766 @@
+{
+    "openrpc": "1.0.0-rc1",
+    "info": {
+        "title": "Radix Core JSON-RPC API",
+        "version": "1.0.0"
+    },
+    "methods": [
+        {
+            "name": "networkId",
+            "summary": "Get the network \"magic\", a number that uniquely identifies the network and is used when generating addresses.",
+            "params": [],
+            "result": {
+                "name": "networkId",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "networkId": {
+                            "$ref": "#/components/schemas/int32"
+                        }
+                    },
+                    "required": [
+                        "networkId"
+                    ],
+                    "additionalProperties": false
+                }
+            }
+        },
+        {
+            "name": "nativeToken",
+            "summary": "Returns information about the native token of the network.",
+            "params": [],
+            "result": {
+                "$ref": "#/components/responses/tokenInfo"
+            }
+        },
+        {
+            "name": "tokenInfo",
+            "summary": "Return token information on the provided RRI.",
+            "params": [
+                {
+                    "name": "rri",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/rri"
+                    }
+                }
+            ],
+            "result": {
+                "$ref": "#/components/responses/tokenInfo"
+            }
+        },
+        {
+            "name": "tokenBalances",
+            "summary": "Get the token balances for an address.",
+            "params": [
+                {
+                    "name": "address",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/address"
+                    }
+                }
+            ],
+            "result": {
+                "name": "tokenBalances",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "owner": {
+                            "$ref": "#/components/schemas/address"
+                        },
+                        "tokenBalances": {
+                            "type": "array",
+                            "items": [
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "rri": {
+                                            "$ref": "#/components/schemas/rri"
+                                        },
+                                        "amount": {
+                                            "$ref": "#/components/schemas/amount"
+                                        }
+                                    },
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "rri",
+                                        "amount"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "required": [
+                        "owner",
+                        "tokenBalances"
+                    ],
+                    "additionalProperties": false
+                }
+            }
+        },
+        {
+            "name": "transactionHistory",
+            "summary": "Get the paginated transaction history for an address.",
+            "params": [
+                {
+                    "name": "address",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/address"
+                    }
+                },
+                {
+                    "name": "size",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "cursor",
+                    "required": false,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "result": {
+                "name": "transactionHistory",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "cursor": {
+                            "type": "string"
+                        },
+                        "transactions": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/components/schemas/transaction"
+                            }
+                        }
+                    },
+                    "required": [
+                        "cursor",
+                        "transactions"
+                    ],
+                    "additionalProperties": false
+                }
+            }
+        },
+        {
+            "name": "lookupTransaction",
+            "summary": "Get a transaction from its txID.",
+            "params": [
+                {
+                    "name": "txID",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "result": {
+                "name": "transaction",
+                "schema": {
+                    "$ref": "#/components/schemas/transaction"
+                }
+            }
+        },
+        {
+            "name": "stakePositions",
+            "summary": "Get stakes that have not been requested to be unstaked.",
+            "params": [
+                {
+                    "name": "address",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/address"
+                    }
+                }
+            ],
+            "result": {
+                "name": "stakePositions",
+                "schema": {
+                    "type": "array",
+                    "items": [
+                        {
+                            "type": "object",
+                            "properties": {
+                                "validator": {
+                                    "$ref": "#/components/schemas/address"
+                                },
+                                "amount": {
+                                    "$ref": "#/components/schemas/amount"
+                                }
+                            },
+                            "required": [
+                                "validator",
+                                "amount"
+                            ],
+                            "additionalProperties": false
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "unstakePositions",
+            "summary": "Get unstake history for an address.",
+            "params": [
+                {
+                    "name": "address",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/address"
+                    }
+                }
+            ],
+            "result": {
+                "name": "unstakePositions",
+                "schema": {
+                    "type": "array",
+                    "items": [
+                        {
+                            "type": "object",
+                            "properties": {
+                                "amount": {
+                                    "$ref": "#/components/schemas/amount"
+                                },
+                                "fromValidator": {
+                                    "$ref": "#/components/schemas/address"
+                                },
+                                "epochsUntil": {
+                                    "type": "integer"
+                                },
+                                "withdrawTxID": {
+                                    "type": "string"
+                                }
+                            },
+                            "additionalProperties": false,
+                            "required": [
+                                "amount",
+                                "fromValidator",
+                                "epochsUntil",
+                                "withdrawTxID"
+                            ]
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "statusOfTransaction",
+            "summary": "Returns the status of a transaction.",
+            "params": [
+                {
+                    "name": "txID",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "result": {
+                "name": "transactionStatus",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "txID": {
+                            "type": "string"
+                        },
+                        "status": {
+                            "type": "string",
+                            "enum": [
+                                "PENDING",
+                                "CONFIRMED",
+                                "FAILED"
+                            ]
+                        },
+                        "failure": {
+                            "type": "string",
+                            "enum": [
+                                "TRANSACTION_NOT_FOUND"
+                            ]
+                        }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                        "txID",
+                        "status"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "networkTransactionThroughput",
+            "summary": "Returns the average transaction per second in the network.",
+            "params": [],
+            "result": {
+                "name": "networkTransactionThroughput",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "tps": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                        "tps"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "networkTransactionDemand",
+            "summary": "Average transactions submitted to the mempool per second.",
+            "params": [],
+            "result": {
+                "name": "networkTransactionDemand",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "tps": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                        "tps"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "validators",
+            "summary": "Get a paginated validator list, ordered by XRD staked descending.",
+            "params": [
+                {
+                    "name": "size",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 200
+                    }
+                },
+                {
+                    "name": "pageNbr",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ],
+            "result": {
+                "name": "validatorsResponse",
+                "schema": {
+                    "type": "array",
+                    "items": [
+                        {
+                            "type": "object",
+                            "properties": {
+                                "address": {
+                                    "$ref": "#/components/schemas/address"
+                                },
+                                "ownerAddress": {
+                                    "$ref": "#/components/schemas/address"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "infoURL": {
+                                    "$ref": "#/components/schemas/url"
+                                },
+                                "totalDelegatedStake": {
+                                    "$ref": "#/components/schemas/amount"
+                                },
+                                "ownerDelegation": {
+                                    "$ref": "#/components/schemas/amount"
+                                },
+                                "isExternalStakeAccepted": {
+                                    "type": "boolean"
+                                }
+                            },
+                            "additionalProperties": false,
+                            "required": [
+                                "address",
+                                "ownerAddress",
+                                "name",
+                                "infoURL",
+                                "totalDelegatedStake",
+                                "ownerDelegation",
+                                "isExternalStakeAccepted"
+                            ]
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "buildTransaction",
+            "summary": "Get an unsigned transaction.",
+            "params": [
+                {
+                    "name": "message",
+                    "required": false,
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "msg": {
+                                "type": "string"
+                            },
+                            "encryptionScheme": {
+                                "type": "string"
+                            }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                            "msg",
+                            "encryptionScheme"
+                        ]
+                    }
+                },
+                {
+                    "name": "actions",
+                    "required": true,
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/actions"
+                        }
+                    }
+                }
+            ],
+            "result": {
+                "name": "transaction",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "transaction": {
+                            "type": "object",
+                            "properties": {
+                                "blob": {
+                                    "type": "string"
+                                },
+                                "hashOfBlobToSign": {
+                                    "type": "string"
+                                }
+                            },
+                            "additionalProperties": false,
+                            "required": [
+                                "blob",
+                                "hashOfBlobToSign"
+                            ]
+                        },
+                        "fee": {
+                            "$ref": "#/components/schemas/amount"
+                        },
+                        "failure": {
+                            "type": "string",
+                            "enum": [
+                                "MALFORMED_TX",
+                                "INSUFFICIENT_FUNDS",
+                                "NOT_PERMITTED"
+                            ]
+                        }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                        "transaction",
+                        "fee"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "submitSignedTransaction",
+            "summary": "Submits a signed transaction to the network.",
+            "params": [
+                {
+                    "name": "transaction",
+                    "required": true,
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "blob": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "blob"
+                        ]
+                    }
+                },
+                {
+                    "name": "signatureDER",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "result": {
+                "name": "submissionResult",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "txID": {
+                            "type": "string"
+                        },
+                        "errorMsg": {
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                        "txID"
+                    ]
+                }
+            }
+        }
+    ],
+    "components": {
+        "schemas": {
+            "tokenPermission": {
+                "type": "object",
+                "properties": {
+                    "burn": {
+                        "type": "string",
+                        "enum": [
+                            "ownerOnly",
+                            "all"
+                        ]
+                    },
+                    "mint": {
+                        "type": "string",
+                        "enum": [
+                            "ownerOnly",
+                            "all"
+                        ]
+                    }
+                },
+                "additionalProperties": false,
+                "required": [
+                    "burn",
+                    "mint"
+                ]
+            },
+            "actions": {
+                "anyOf": [
+                    {
+                        "type": "object",
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "enum": [
+                                    "TokenTransfer"
+                                ]
+                            },
+                            "from": {
+                                "$ref": "#/components/schemas/address"
+                            },
+                            "to": {
+                                "$ref": "#/components/schemas/address"
+                            },
+                            "amount": {
+                                "$ref": "#/components/schemas/amount"
+                            },
+                            "rri": {
+                                "$ref": "#/components/schemas/rri"
+                            }
+                        },
+                        "required": [
+                            "type",
+                            "from",
+                            "to",
+                            "amount",
+                            "rri"
+                        ]
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "enum": [
+                                    "StakeTokens"
+                                ]
+                            },
+                            "validator": {
+                                "$ref": "#/components/schemas/address"
+                            },
+                            "amount": {
+                                "$ref": "#/components/schemas/amount"
+                            }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                            "type",
+                            "validator",
+                            "amount"
+                        ]
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "enum": [
+                                    "UnstakeTokens"
+                                ]
+                            },
+                            "validator": {
+                                "$ref": "#/components/schemas/address"
+                            },
+                            "amount": {
+                                "$ref": "#/components/schemas/amount"
+                            }
+                        },
+                        "required": [
+                            "type",
+                            "validator",
+                            "amount"
+                        ],
+                        "additionalProperties": false
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "enum": [
+                                    "Other"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "type"
+                        ],
+                        "additionalProperties": false
+                    }
+                ]
+            },
+            "transaction": {
+                "type": "object",
+                "properties": {
+                    "txID": {
+                        "type": "string"
+                    },
+                    "sentAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "fee": {
+                        "$ref": "#/components/schemas/amount"
+                    },
+                    "message": {
+                        "type": "object",
+                        "properties": {
+                            "msg": {
+                                "type": "string"
+                            },
+                            "encryptionScheme": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "msg",
+                            "encryptionScheme"
+                        ]
+                    },
+                    "actions": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/actions"
+                        }
+                    }
+                },
+                "required": [
+                    "txID",
+                    "sentAt",
+                    "fee",
+                    "actions"
+                ]
+            },
+            "int32": {
+                "type": "integer",
+                "minimum": -2147483648,
+                "maximum": 2147483648
+            },
+            "amount": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+            },
+            "rri": {
+                "type": "string",
+                "pattern": "^.+\/.+\/.+$"
+            },
+            "url": {
+                "type": "string",
+                "pattern": "^https?:\/\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)$"
+            },
+            "address": {
+                "type": "string",
+                "maxLength": 52,
+                "minLength": 52
+            }
+        },
+        "responses": {
+            "tokenInfo": {
+                "name": "tokenInfo",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "type": "string"
+                        },
+                        "rri": {
+                            "$ref": "#/components/schemas/rri"
+                        },
+                        "symbol": {
+                            "type": "string"
+                        },
+                        "description": {
+                            "type": "string"
+                        },
+                        "granularity": {
+                            "$ref": "#/components/schemas/amount"
+                        },
+                        "isSupplyMutable": {
+                            "type": "boolean"
+                        },
+                        "currentSupply": {
+                            "$ref": "#/components/schemas/amount"
+                        },
+                        "tokenInfoURL": {
+                            "$ref": "#/components/schemas/url"
+                        },
+                        "iconURL": {
+                            "$ref": "#/components/schemas/url"
+                        },
+                        "tokenPermission": {
+                            "$ref": "#/components/schemas/tokenPermission"
+                        }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                        "name",
+                        "rri",
+                        "symbol",
+                        "granularity",
+                        "isSupplyMutable",
+                        "currentSupply",
+                        "tokenInfoURL",
+                        "iconURL",
+                        "tokenPermission"
+                    ]
+                }
+            }
+        }
+    }
+}

@@ -66,7 +66,7 @@ export type TransactionIntent = Readonly<{
 export type ValidatorsRequestInput = Readonly<{
 	size: number
 	// Address of last seen validator in list
-	cursor?: AddressT
+	cursor: string
 }>
 
 export type TransactionHistoryRequestInput = Readonly<{
