@@ -288,12 +288,12 @@ const create = (): RadixT => {
 			callback: (status: TransactionStatus) => void,
 			intervalMs = 300,
 		) => {
-			interval(intervalMs)
+			const subscription = interval(intervalMs)
 				.pipe(mergeMap((_) => api.transactionStatus(txID)))
 				.subscribe(({ status }) => {
 					callback(status)
+					if(status === TransactionStatus.CONFIRMED) subscription.unsubscribe()
 				})
-				.add(subs)
 		},
 
 		// Wallet APIs
