@@ -7,32 +7,23 @@ import {
 	WalletT,
 } from '@radixdlt/account'
 import { Observable, of, Subscription, throwError } from 'rxjs'
-import {
-	Amount,
-	Denomination,
-	DenominationOutputFormat,
-	Magic,
-	magicFromNumber,
-	maxAmount,
-} from '@radixdlt/primitives'
+import { DenominationOutputFormat } from '@radixdlt/primitives'
 import { map, take, toArray } from 'rxjs/operators'
 
-import { UInt256 } from '@radixdlt/uint256'
 import { KeystoreT } from '@radixdlt/crypto'
 import { RadixT } from '../src/_types'
 import { APIErrorCause, ErrorCategory } from '../src/errors'
-import { Err } from 'neverthrow'
 import {
 	balancesFor,
 	barToken,
-	crashingAPI,
 	fooToken,
 	mockedAPI,
+	mockRadixCoreAPI,
 	tokenByRRIMap,
 	xrd,
 } from './mockRadix'
 import { NodeT, RadixCoreAPI } from '../src/api/_types'
-import { Token, TokenBalances } from '../src/dto/_types'
+import { TokenBalances } from '../src/dto/_types'
 
 const createWallet = (): WalletT => {
 	const masterSeed = HDMasterSeed.fromSeed(
@@ -45,16 +36,6 @@ const dummyNode = (urlString: string): Observable<NodeT> =>
 	of({
 		url: new URL(urlString),
 	})
-
-const mockAPI = (urlString?: string): Observable<RadixCoreAPI> => {
-	const mockedPartialAPI = {
-		...crashingAPI,
-		node: { url: new URL(urlString ?? 'http://www.example.com') },
-		networkId: (): Observable<Magic> => of(magicFromNumber(123)),
-		nativeToken: (): Observable<Token> => of(xrd),
-	}
-	return of(mockedPartialAPI)
-}
 
 export type KeystoreForTest = {
 	keystore: KeystoreT
@@ -100,6 +81,9 @@ export const keystoreForTest: KeystoreForTest = {
 		'035fd56ba4a14b44ea6c895fa9ac59c5a47d8ffd1b068a520146499cb6fe9df58a',
 		'0248e961ee2379940d8c1fd44422521b17dc426df37b9cec274f608e63744b358f',
 		'028bae51f118a3fe61c26c43cd472e0e1f6448eb9ce873d7e8859600beb7d401b4',
+		'031c0641530a7755bdd4ba3232ae94c54febcfe4c68c3ae2684d9308ab60f639ab',
+		'02bbef7faf40ac19c0878a1d5cf9f8df3398934c10410bb280f78929c182c406f0',
+		'03fed9646bd8612fa43d3d873ec1ba67665e257c04830b9ac91e58d20662a0d623',
 	],
 }
 
@@ -118,7 +102,7 @@ describe('Radix API', () => {
 
 	it('emits node connection without wallet', async (done) => {
 		const radix = Radix.create()
-		radix.__withAPI(mockAPI())
+		radix.__withAPI(mockedAPI)
 
 		radix.__node.subscribe(
 			(node) => {
@@ -178,8 +162,8 @@ describe('Radix API', () => {
 		const n2 = 'http://www.node2.com/'
 
 		await testChangeNode([n1, n2], done, (radix: RadixT) => {
-			radix.__withAPI(mockAPI(n1))
-			radix.__withAPI(mockAPI(n2))
+			radix.__withAPI(of(mockRadixCoreAPI({ nodeUrl: n1 })))
+			radix.__withAPI(of(mockRadixCoreAPI({ nodeUrl: n2 })))
 		})
 	})
 
@@ -201,7 +185,7 @@ describe('Radix API', () => {
 		const radix = Radix.create()
 		const wallet = createWallet()
 		radix.withWallet(wallet)
-		radix.__withAPI(mockAPI())
+		radix.__withAPI(mockedAPI)
 
 		radix.activeAddress.subscribe(
 			(address) => {
@@ -214,7 +198,7 @@ describe('Radix API', () => {
 
 	it('returns native token without wallet', async (done) => {
 		const radix = Radix.create()
-		radix.__withAPI(mockAPI())
+		radix.__withAPI(mockedAPI)
 
 		radix.ledger.nativeToken().subscribe(
 			(token) => {
@@ -370,13 +354,28 @@ describe('Radix API', () => {
 	it('should forward an error when calling api', (done) => {
 		const subs = new Subscription()
 
-		const api = mockAPI()
-
-		const radix = Radix.create().__withAPI(api)
+		const radix = Radix.create().__withAPI(
+			of({
+				...mockRadixCoreAPI(),
+				tokenBalancesForAddress: () =>
+					throwError(
+						() =>
+							new Error(
+								'error that should trigger expected failure.',
+							),
+					),
+			}),
+		)
 
 		radix.tokenBalances
-			.subscribe((n) => {
-				done(Error('nope'))
+			.subscribe({
+				next: (_n) => {
+					done(
+						new Error(
+							'Unexpectedly got tokenBalance, but expected error.',
+						),
+					)
+				},
 			})
 			.add(subs)
 
@@ -393,12 +392,6 @@ describe('Radix API', () => {
 			.add(subs)
 
 		radix.withWallet(createWallet())
-
-		radix.ledger.tokenBalancesForAddress(
-			Address.fromBase58String(
-				'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
-			)._unsafeUnwrap(),
-		)
 	})
 
 	it('does not kill property observables when rpc requests fail', async (done) => {
@@ -407,8 +400,7 @@ describe('Radix API', () => {
 		let counter = 0
 
 		const api = of(<RadixCoreAPI>{
-			...crashingAPI,
-			networkId: (): Observable<Magic> => of(magicFromNumber(123)),
+			...mockRadixCoreAPI(),
 			tokenBalancesForAddress: (
 				a: AddressT,
 			): Observable<TokenBalances> => {
@@ -455,46 +447,122 @@ describe('Radix API', () => {
 			.switchAccount('last')
 	})
 
-	it(`mocked API returns differnt but deterministic tokenBalances per account`, (done) => {
+	it('deriveNextAccount method on radix updates accounts', (done) => {
 		const subs = new Subscription()
 
 		const radix = Radix.create()
+			.withWallet(createWallet())
+			.__withAPI(mockedAPI)
+
+		const expected = [1, 2, 3]
+
+		radix.accounts
+			.pipe(
+				map((a) => a.size),
+				take(expected.length),
+				toArray(),
+			)
+			.subscribe((values) => {
+				expect(values).toStrictEqual(expected)
+				done()
+			})
+			.add(subs)
+
+		radix.deriveNextAccount({ alsoSwitchTo: true })
+		radix.deriveNextAccount({ alsoSwitchTo: false })
+	})
+
+	it('deriveNextAccount alsoSwitchTo method on radix updates activeAccount', (done) => {
+		const subs = new Subscription()
+
+		const radix = Radix.create()
+			.withWallet(createWallet())
+			.__withAPI(mockedAPI)
+
+		const expected = [0, 1, 3]
+
+		radix.activeAccount
+			.pipe(
+				map((a) => a.hdPath.addressIndex.value()),
+				take(expected.length),
+				toArray(),
+			)
+			.subscribe((values) => {
+				expect(values).toStrictEqual(expected)
+				done()
+			})
+			.add(subs)
+
+		radix.deriveNextAccount({ alsoSwitchTo: true })
+		radix.deriveNextAccount({ alsoSwitchTo: false })
+		radix.deriveNextAccount({ alsoSwitchTo: true })
+	})
+
+	it('deriveNextAccount alsoSwitchTo method on radix updates activeAddress', (done) => {
+		const subs = new Subscription()
+
+		const radix = Radix.create()
+			.withWallet(createWallet())
+			.__withAPI(mockedAPI)
+
+		const expectedCount = 3
+
+		radix.activeAddress
+			.pipe(take(expectedCount), toArray())
+			.subscribe((values) => {
+				expect(values.length).toBe(expectedCount)
+				done()
+			})
+			.add(subs)
+
+		radix.deriveNextAccount({ alsoSwitchTo: true })
+		radix.deriveNextAccount({ alsoSwitchTo: false })
+		radix.deriveNextAccount({ alsoSwitchTo: true })
+	})
+
+	it('mocked API returns different but deterministic tokenBalances per account', (done) => {
+		const subs = new Subscription()
+
+		const radix = Radix.create().__withAPI(mockedAPI)
 
 		const loadKeystore = (): Promise<KeystoreT> =>
 			Promise.resolve(keystoreForTest.keystore)
 
 		radix.login(keystoreForTest.password, loadKeystore)
 
-		radix.__withAPI(mockedAPI)
+		radix.__wallet
+			.subscribe((_w) => {
+				const expectedValues = [
+					{ pkIndex: 0, tokenBalancesCount: 5 },
+					{ pkIndex: 1, tokenBalancesCount: 5 },
+					{ pkIndex: 2, tokenBalancesCount: 4 },
+					{ pkIndex: 3, tokenBalancesCount: 4 },
+					{ pkIndex: 4, tokenBalancesCount: 3 },
+				]
 
-		radix.tokenBalances
-			.subscribe((tb) => {
-				expect(tb.owner.publicKey.toString(true)).toBe(
-					keystoreForTest.publicKeysCompressed[0],
-				)
+				radix.tokenBalances
+					.pipe(take(expectedValues.length), toArray())
+					.subscribe((values) => {
+						values.forEach((tb, index: number) => {
+							const expected = expectedValues[index]
 
-				expect(tb.tokenBalances.length).toBe(3)
+							expect(tb.owner.publicKey.toString(true)).toBe(
+								keystoreForTest.publicKeysCompressed[
+									expected.pkIndex
+								],
+							)
+							expect(tb.tokenBalances.length).toBe(
+								expected.tokenBalancesCount,
+							)
+						})
+						done()
+					})
+					.add(subs)
 
-				const tbList = tb.tokenBalances
-
-				const tb0 = tbList[0]
-				expect(tb0.token.equals(fooToken.rri)).toBe(true)
-				expect(
-					tb0.amount.toString({
-						denominationOutputFormat:
-							DenominationOutputFormat.SHOW_SYMBOL,
-					}),
-				).toBe('7556')
-
-				const tb1 = tbList[1]
-				expect(tb1.token.equals(barToken.rri)).toBe(true)
-				expect(tb1.amount.toString()).toBe('7642 E-3')
-
-				const tb2 = tbList[2]
-				expect(tb2.token.equals(xrd.rri)).toBe(true)
-				expect(tb2.amount.toString()).toBe('4489')
-
-				done()
+				radix.deriveNextAccount({ alsoSwitchTo: true })
+				radix.deriveNextAccount({ alsoSwitchTo: true })
+				radix.deriveNextAccount({ alsoSwitchTo: true })
+				radix.deriveNextAccount({ alsoSwitchTo: true })
 			})
 			.add(subs)
 	})

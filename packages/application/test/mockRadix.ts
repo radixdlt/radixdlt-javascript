@@ -28,7 +28,14 @@ import {
 import { ResourceIdentifier } from '../src/dto/resourceIdentifier'
 import { tokenPermissionsAll } from '../src/dto/tokenPermissions'
 import { RadixCoreAPI } from '../src/api/_types'
-import { ExecutedTransaction, Validators } from '../dist/dto/_types'
+import {
+	ExecutedTransaction,
+	TransactionHistoryRequestInput,
+	Validators,
+	ValidatorsRequestInput,
+} from '../src/dto/_types'
+import { shareReplay } from 'rxjs/operators'
+import { tokenOwnerOnly } from '../dist/dto/tokenPermissions'
 
 export const xrd: Token = {
 	name: 'Rad',
@@ -82,6 +89,24 @@ export const barToken: Token = {
 	tokenInfoURL: new URL('http://www.bartoken.com'),
 	iconURL: new URL('http://www.image.bartoken.com/'),
 	tokenPermission: tokenPermissionsAll,
+}
+
+export const goldToken: Token = {
+	name: 'Gold token',
+	rri: ResourceIdentifier.fromString(
+		'/9SAihkYQDBKvHfhvwEw4QBfx1rpjvta2TvmWibyXixVzX2JHHHWf/BAR',
+	)._unsafeUnwrap(),
+	symbol: 'GOLD',
+	description: 'Gold token. Granularity E-12.',
+	granularity: Amount.fromUInt256({
+		magnitude: UInt256.valueOf(1),
+		denomination: Denomination.Pico,
+	})._unsafeUnwrap(),
+	isSupplyMutable: false,
+	currentSupply: maxAmount,
+	tokenInfoURL: new URL('http://www.goldtoken.com'),
+	iconURL: new URL('http://www.image.goldtoken.com/'),
+	tokenPermission: tokenOwnerOnly,
 }
 
 export const radixWrappedBitcoinToken: Token = {
@@ -184,6 +209,7 @@ const differentTokens: Token[] = [
 	barToken,
 	radixWrappedBitcoinToken,
 	radixWrappedEtherToken,
+	goldToken,
 ]
 
 export const tokenByRRIMap: Map<
@@ -209,17 +235,19 @@ export const deterministicRandomBalancesForAddress = (
 		return Number.parseInt(buf.toString('hex'), 16)
 	}
 
-	const deterministicRandomToken = (): Token => {
-		const tokenCount = differentTokens.length
-		const tokenIndex = anInt() % tokenCount
-		const token = differentTokens[tokenIndex]
-		differentTokens.splice(tokenIndex, 1)
-		return token
-	}
-
 	const deterministicTokenBalances = (): TokenBalance[] => {
-		const sizeOrZero = anInt() % differentTokens.length
-		const size = Math.max(sizeOrZero, 1)
+		const availableTokens = [...differentTokens]
+
+		const deterministicRandomToken = (): Token => {
+			const tokenCount = availableTokens.length
+			const tokenIndex = anInt() % tokenCount
+			const token = availableTokens[tokenIndex]
+			availableTokens.splice(tokenIndex, 1)
+			return token
+		}
+
+		const size = Math.max(anInt() % availableTokens.length, 1)
+
 		return Array(size)
 			.fill(undefined)
 			.map(
@@ -246,8 +274,8 @@ export const deterministicRandomBalances = (
 ): Observable<TokenBalances> =>
 	of(deterministicRandomBalancesForAddress(address))
 
-export const crashingAPI: RadixCoreAPI = {
-	node: { url: new URL('http://www.not.implemented.com') },
+export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
+	node: { url: new URL(nodeUrl ?? 'http://www.example.com') },
 
 	networkId: (): Observable<Magic> =>
 		throwError(() => new Error('Not implemented')),
@@ -260,16 +288,11 @@ export const crashingAPI: RadixCoreAPI = {
 	): Observable<ExecutedTransaction> =>
 		throwError(() => new Error('Not implemented')),
 
-	validators: (
-		_input: Readonly<{ size: number; offset: number }>,
-	): Observable<Validators> => throwError(() => new Error('Not implemented')),
+	validators: (_input: ValidatorsRequestInput): Observable<Validators> =>
+		throwError(() => new Error('Not implemented')),
 
 	transactionHistory: (
-		_input: Readonly<{
-			address: AddressT
-			// pagination
-			size: number
-		}>,
+		_input: TransactionHistoryRequestInput,
 	): Observable<TransactionHistory> =>
 		throwError(() => new Error('Not implemented')),
 
@@ -305,13 +328,22 @@ export const crashingAPI: RadixCoreAPI = {
 		_signedTransaction: SignedTransaction,
 	): Observable<PendingTransaction> =>
 		throwError(() => new Error('Not implemented')),
-}
+})
 
-export const mockedAPI: Observable<RadixCoreAPI> = of({
-	...crashingAPI,
-	networkId: (): Observable<Magic> => of(magicFromNumber(123)),
+export const mockRadixCoreAPI = (
+	input?: Readonly<{
+		nodeUrl?: string
+		magic?: number
+	}>,
+): RadixCoreAPI => ({
+	...makeThrowingRadixCoreAPI(input?.nodeUrl),
+	networkId: (): Observable<Magic> => {
+		return of(magicFromNumber(input?.magic ?? 123)).pipe(shareReplay(1))
+	},
 	nativeToken: (): Observable<Token> => of(xrd),
 	tokenInfo: (rri: ResourceIdentifierT): Observable<Token> =>
 		of(tokenByRRIMap.get(rri) ?? __fallBackAlexToken),
 	tokenBalancesForAddress: deterministicRandomBalances,
 })
+
+export const mockedAPI: Observable<RadixCoreAPI> = of(mockRadixCoreAPI())
