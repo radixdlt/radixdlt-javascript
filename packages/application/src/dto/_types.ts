@@ -63,6 +63,18 @@ export type TransactionIntent = Readonly<{
 	message?: string
 }>
 
+export type ValidatorsRequestInput = Readonly<{
+	size: number
+	// Address of last seen validator in list
+	cursor?: AddressT
+}>
+
+export type TransactionHistoryRequestInput = Readonly<{
+	address: AddressT
+	size: number
+	cursor?: TransactionIdentifierT
+}>
+
 export type ExecutedTransaction = Readonly<{
 	txID: TransactionIdentifierT
 	sentAt: Date
@@ -194,12 +206,12 @@ export type TransactionHistory = Readonly<{
 }>
 
 export type Validator = Readonly<{
-	address: AddressT,
-	ownerAddress: AddressT,
-	name: string,
-	infoURL: URL,
-	totalDelegatedStake: AmountT,
-	ownerDelegation: AmountT,
+	address: AddressT
+	ownerAddress: AddressT
+	name: string
+	infoURL: URL
+	totalDelegatedStake: AmountT
+	ownerDelegation: AmountT
 	isExternalStakeAccepted: boolean
 }>
 

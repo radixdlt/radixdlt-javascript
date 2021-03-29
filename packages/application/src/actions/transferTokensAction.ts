@@ -2,8 +2,8 @@ import { v4 as uuidv4 } from 'uuid'
 import { Decoder, JSONDecoding } from '@radixdlt/data-formats'
 import { isObject } from '@radixdlt/util'
 import { ok } from 'neverthrow'
-import { Amount, AmountT, isAmount } from '@radixdlt/primitives'
-import { Address, AddressT } from '@radixdlt/account'
+import { Amount, isAmount } from '@radixdlt/primitives'
+import { Address } from '@radixdlt/account'
 import {
 	ActionType,
 	ExecutedTransferTokensAction,

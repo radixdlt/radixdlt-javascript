@@ -938,7 +938,11 @@ submitSignedTransaction: (
 
 ### `validators`
 ```typescript
-validators: (): Observable<Validators>
+validators: (input: {
+	// pagination
+	size: number // must be larger than 0
+	cursor?: AddressT // address of validator in last page
+}): Observable<Validators>
 ```
 
 ### `lookupTransaction`
