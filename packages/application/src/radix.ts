@@ -1,5 +1,4 @@
 import {
-	AddressT,
 	DeriveNextAccountInput,
 	SwitchAccountInput,
 	Wallet,

@@ -162,17 +162,15 @@ export namespace ValidatorsEndpoint {
 
 	export type Response = Readonly<{
 		cursor: string
-		validators:
-		{
+		validators: {
 			address: string
 			ownerAddress: string
 			name: string
 			infoURL: string
 			totalDelegatedStake: string
-			ownerDelegation: string,
+			ownerDelegation: string
 			isExternalStakeAccepted: boolean
 		}[]
-
 	}>
 	export type DecodedResponse = Validators
 }

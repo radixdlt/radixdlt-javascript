@@ -17,11 +17,13 @@ import {
 	Token,
 	TokenBalances,
 	TransactionHistory,
+	TransactionHistoryRequestInput,
 	TransactionIdentifierT,
 	TransactionIntent,
 	UnsignedTransaction,
 	UnstakePositions,
 	Validators,
+	ValidatorsRequestInput,
 } from '../dto/_types'
 
 export const radixCoreAPI = (node: NodeT): RadixCoreAPI => {
@@ -46,7 +48,8 @@ export const radixCoreAPI = (node: NodeT): RadixCoreAPI => {
 	return {
 		node,
 
-		validators: (): Observable<Validators> => toObs((a) => a.validators),
+		validators: (input: ValidatorsRequestInput): Observable<Validators> =>
+			toObs((a) => a.validators, input.size, input.cursor?.toString()),
 
 		lookupTransaction: (
 			txID: TransactionIdentifierT,
@@ -65,13 +68,7 @@ export const radixCoreAPI = (node: NodeT): RadixCoreAPI => {
 			toObs((a) => a.tokenBalances, address.toString()),
 
 		transactionHistory: (
-			input: Readonly<{
-				address: AddressT
-
-				// pagination
-				size: number // must be larger than 0
-				cursor?: TransactionIdentifierT
-			}>,
+			input: TransactionHistoryRequestInput,
 		): Observable<TransactionHistory> =>
 			toObs(
 				(a) => a.transactionHistory,

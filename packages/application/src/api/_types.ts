@@ -16,11 +16,13 @@ import {
 	Token,
 	TokenBalances,
 	TransactionHistory,
+	TransactionHistoryRequestInput,
 	TransactionIdentifierT,
 	TransactionIntent,
 	UnsignedTransaction,
 	UnstakePositions,
 	Validators,
+	ValidatorsRequestInput,
 } from '../dto/_types'
 
 type JsonRpcAPI = {
@@ -39,11 +41,7 @@ export type RadixAPI = Readonly<{
 	tokenBalancesForAddress: (address: AddressT) => Observable<TokenBalances>
 
 	transactionHistory: (
-		input: Readonly<{
-			address: AddressT
-			size: number
-			cursor?: TransactionIdentifierT
-		}>,
+		input: TransactionHistoryRequestInput,
 	) => Observable<TransactionHistory>
 
 	nativeToken: () => Observable<Token>
@@ -61,9 +59,7 @@ export type RadixAPI = Readonly<{
 		txID: TransactionIdentifierT,
 	) => Observable<ExecutedTransaction>
 
-	validators: (
-		input: Readonly<{ size: number; offset: number }>,
-	) => Observable<Validators>
+	validators: (input: ValidatorsRequestInput) => Observable<Validators>
 
 	networkTransactionThroughput: () => Observable<NetworkTransactionThroughput>
 

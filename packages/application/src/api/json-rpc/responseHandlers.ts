@@ -1,4 +1,4 @@
-import { Decoder, decoder, JSONDecoding } from '@radixdlt/data-formats'
+import { decoder, JSONDecoding } from '@radixdlt/data-formats'
 import { ok } from 'neverthrow'
 import { UInt256 } from '@radixdlt/uint256'
 import { Amount, magicFromNumber } from '@radixdlt/primitives'
