@@ -1,19 +1,3 @@
-import {
-	AtomFromTransactionResponse,
-	ExecutedTransactions,
-	NetworkTransactionDemand,
-	NetworkTransactionThroughput,
-	NodeT,
-	RadixCoreAPI,
-	SignedAtom,
-	Stakes,
-	SubmittedAtomResponse,
-	Token,
-	TokenBalances,
-	TokenFeeForTransaction,
-	Transaction,
-	TransactionStatus,
-} from '../src/api/_types'
 import { Radix } from '../src/radix'
 import {
 	Address,
@@ -32,16 +16,11 @@ import {
 	maxAmount,
 } from '@radixdlt/primitives'
 import { map, take, toArray } from 'rxjs/operators'
-import {
-	AtomIdentifierT,
-	ResourceIdentifier,
-	tokenPermissionsAll,
-} from '@radixdlt/atom'
+
 import { UInt256 } from '@radixdlt/uint256'
 import { KeystoreT } from '@radixdlt/crypto'
 import { RadixT } from '../src/_types'
 import { APIErrorCause, ErrorCategory } from '../src/errors'
-import { TokenBalance } from '../src/api/json-rpc/_types'
 import { Err } from 'neverthrow'
 import {
 	balancesFor,
@@ -49,8 +28,11 @@ import {
 	crashingAPI,
 	fooToken,
 	mockedAPI,
+	tokenByRRIMap,
 	xrd,
 } from './mockRadix'
+import { NodeT, RadixCoreAPI } from '../src/api/_types'
+import { Token, TokenBalances } from '../src/dto/_types'
 
 const createWallet = (): WalletT => {
 	const masterSeed = HDMasterSeed.fromSeed(
@@ -68,7 +50,7 @@ const mockAPI = (urlString?: string): Observable<RadixCoreAPI> => {
 	const mockedPartialAPI = {
 		...crashingAPI,
 		node: { url: new URL(urlString ?? 'http://www.example.com') },
-		magic: (): Observable<Magic> => of(magicFromNumber(123)),
+		networkId: (): Observable<Magic> => of(magicFromNumber(123)),
 		nativeToken: (): Observable<Token> => of(xrd),
 	}
 	return of(mockedPartialAPI)
@@ -426,7 +408,7 @@ describe('Radix API', () => {
 
 		const api = of(<RadixCoreAPI>{
 			...crashingAPI,
-			magic: (): Observable<Magic> => of(magicFromNumber(123)),
+			networkId: (): Observable<Magic> => of(magicFromNumber(123)),
 			tokenBalancesForAddress: (
 				a: AddressT,
 			): Observable<TokenBalances> => {
@@ -515,5 +497,15 @@ describe('Radix API', () => {
 				done()
 			})
 			.add(subs)
+	})
+
+	it('map of tokens rri', () => {
+		expect(tokenByRRIMap.get(xrd.rri)!.description).toBe(xrd.description)
+		expect(tokenByRRIMap.get(fooToken.rri)!.description).toBe(
+			fooToken.description,
+		)
+		expect(tokenByRRIMap.get(barToken.rri)!.description).toBe(
+			barToken.description,
+		)
 	})
 })

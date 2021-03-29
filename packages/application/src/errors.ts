@@ -20,16 +20,19 @@ export enum NodeErrorCause {
 
 export enum APIErrorCause {
 	TOKEN_BALANCES_FAILED = 'TOKEN_BALANCES_FAILED',
-	EXECUTED_TX_FAILED = 'EXECUTED_TX_FAILED',
+	TRANSACTION_HISTORY_FAILED = 'TRANSACTION_HISTORY_FAILED',
 	NATIVE_TOKEN_FAILED = 'NATIVE_TOKEN_FAILED',
-	TOKEN_FEE_FOR_TX_FAILED = 'TOKEN_FEE_FOR_TX_FAILED',
+	TOKEN_INFO_FAILED = 'TOKEN_INFO_FAILED',
 	STAKES_FOR_ADDRESS_FAILED = 'STAKES_FOR_ADDRESS_FAILED',
+	UNSTAKES_FOR_ADDRESS_FAILED = 'UNSTAKES_FOR_ADDRESS_FAILED',
 	TX_STATUS_FAILED = 'TX_STATUS_FAILED',
 	NETWORK_TX_THROUGHPUT_FAILED = 'NETWORK_TX_THROUGHPUT_FAILED',
 	NETWORK_TX_DEMAND_FAILED = 'NETWORK_TX_DEMAND_FAILED',
-	GET_ATOM_FOR_TX_FAILED = 'GET_ATOM_FOR_TX_FAILED',
-	SUBMIT_SIGNED_ATOM_FAILED = 'SUBMIT_SIGNED_ATOM_FAILED',
-	MAGIC_FAILED = 'MAGIC_FAILED',
+	LOOKUP_TX_FAILED = 'LOOKUP_TX_FAILED',
+	VALIDATORS_FAILED = 'VALIDATORS_FAILED',
+	BUILD_TRANSACTION_FAILED = 'BUILD_TRANSACTION_FAILED',
+	SUBMIT_SIGNED_TX_FAILED = 'SUBMIT_SIGNED_TX_FAILED',
+	NETWORK_ID_FAILED = 'NETWORK_ID_FAILED',
 }
 
 export type ErrorCause = APIErrorCause | WalletErrorCause | NodeErrorCause
@@ -59,11 +62,16 @@ export const walletError = Error<ErrorCategory.WALLET, WalletErrorCause>(
 )
 
 export const tokenBalancesErr = APIError(APIErrorCause.TOKEN_BALANCES_FAILED)
-export const executedTxErr = APIError(APIErrorCause.EXECUTED_TX_FAILED)
+export const transactionHistoryErr = APIError(
+	APIErrorCause.TRANSACTION_HISTORY_FAILED,
+)
 export const nativeTokenErr = APIError(APIErrorCause.NATIVE_TOKEN_FAILED)
-export const tokenFeeErr = APIError(APIErrorCause.TOKEN_FEE_FOR_TX_FAILED)
+export const tokenInfoErr = APIError(APIErrorCause.TOKEN_INFO_FAILED)
 export const stakesForAddressErr = APIError(
 	APIErrorCause.STAKES_FOR_ADDRESS_FAILED,
+)
+export const unstakesForAddressErr = APIError(
+	APIErrorCause.UNSTAKES_FOR_ADDRESS_FAILED,
 )
 export const txStatusErr = APIError(APIErrorCause.TX_STATUS_FAILED)
 export const networkTxThroughputErr = APIError(
@@ -72,11 +80,14 @@ export const networkTxThroughputErr = APIError(
 export const networkTxDemandErr = APIError(
 	APIErrorCause.NETWORK_TX_DEMAND_FAILED,
 )
-export const getAtomForTxErr = APIError(APIErrorCause.GET_ATOM_FOR_TX_FAILED)
-export const submitSignedAtomErr = APIError(
-	APIErrorCause.SUBMIT_SIGNED_ATOM_FAILED,
+export const buildTxFromIntentErr = APIError(
+	APIErrorCause.BUILD_TRANSACTION_FAILED,
 )
-export const magicErr = APIError(APIErrorCause.MAGIC_FAILED)
+export const submitSignedTxErr = APIError(APIErrorCause.SUBMIT_SIGNED_TX_FAILED)
+export const networkIdErr = APIError(APIErrorCause.NETWORK_ID_FAILED)
+
+export const lookupTxErr = APIError(APIErrorCause.LOOKUP_TX_FAILED)
+export const validatorsErr = APIError(APIErrorCause.VALIDATORS_FAILED)
 
 export const getNodeErr = nodeError(NodeErrorCause.GET_NODE_FAILED)
 

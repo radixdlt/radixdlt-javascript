@@ -74,16 +74,18 @@ Above code assumes you have a wallet. Looking for wallet creation?
 	- [Unstake Tokens](#unstake-tokens)
 - [Ledger](#ledger)
 		- [`tokenBalancesForAddress`](#tokenbalancesforaddress)
-		- [`executedTransactions`](#executedtransactions)
+		- [`transactionHistory`](#transactionhistory)
 		- [`nativeToken`](#nativetoken)
 		- [`tokenInfo`](#tokeninfo)
-		- [`tokenFeeForTransaction`](#tokenfeefortransaction)
 		- [`stakesForAddress`](#stakesforaddress)
 		- [`transactionStatus`](#transactionstatus)
 		- [`networkTransactionThroughput`](#networktransactionthroughput)
 		- [`networkTransactionDemand`](#networktransactiondemand)
-		- [`getAtomForTransaction`](#getatomfortransaction)
-		- [`submitSignedAtom`](#submitsignedatom)
+		- [`buildTransactionFromIntent`](#buildtransactionfromintent)
+		- [`submitSignedTransaction`](#submitsignedtransaction)
+		- [`validators`](#validators)
+		- [`lookupTransaction`](#lookuptransaction)
+		- [`networkId`](#networkid)
 - [Unsubscribe](#unsubscribe)
 - [Footnotes](#footnotes)
 
@@ -544,10 +546,10 @@ You ought to keep track of the returned `cursor` value in the `transactionHistor
 ```typescript
 
 import { Option, none } from 'prelude-ts'
-import { AtomIdentifierT } from '@radixdlt/application'
+import { TransactionIdentifierT } from '@radixdlt/application'
 import { Subject } from 'rxjs'
 
-const cursor: Option<AtomIdentifierT> = none()
+const cursor: Option<TransactionIdentifierT> = none()
 const fetchTXTrigger = new Subject<number>()
 
 fetchTXTrigger.pipe(
@@ -876,17 +878,17 @@ This outlines all the requests you can make to the Radix Core API. All these req
 tokenBalancesForAddress: (address: AddressT) => Observable<TokenBalances>
 ```
 
-### `executedTransactions`
+### `transactionHistory`
 ```typescript
-executedTransactions: (
+transactionHistory: (
 	input: Readonly<{
 		address: AddressT
 
 		// pagination
 		size: number // must be larger than 0
-		cursor?: AtomIdentifierT
+		cursor?: TransactionIdentifierT
 	}>,
-) => Observable<ExecutedTransactions>
+) => Observable<TransactionHistory>
 ```
 
 ### `nativeToken`
@@ -899,20 +901,15 @@ nativeToken: () => Observable<Token>
 tokenInfo: (resourceIdentifier: ResourceIdentifierT) => Observable<Token>
 ```
 
-### `tokenFeeForTransaction`
-
-```typescript
-tokenFeeForTransaction: (transaction: Transaction) => Observable<TokenFeeForTransaction>
-```
-
 ### `stakesForAddress`
 ```typescript
-stakesForAddress: (address: AddressT) => Observable<Stakes>
+stakesForAddress: (address: AddressT) => Observable<StakePositions>
 ```
 
 ### `transactionStatus`
+
 ```typescript
-transactionStatus: (id: AtomIdentifierT) => Observable<TransactionStatus>
+transactionStatus: (id: TransactionIdentifierT) => Observable<StatusOfTransaction>
 ```
 
 ### `networkTransactionThroughput`
@@ -925,18 +922,33 @@ networkTransactionThroughput: () => Observable<NetworkTransactionThroughput>
 networkTransactionDemand: () => Observable<NetworkTransactionDemand>
 ```
 
-### `getAtomForTransaction`
+### `buildTransactionFromIntent`
 ```typescript
-getAtomForTransaction: (
-	transaction: Transaction,
-) => Observable<AtomFromTransactionResponse>
+buildTransactionFromIntent: (
+	intent: TransactionIntent,
+) => Observable<UnsignedTransaction>
 ```
 
-### `submitSignedAtom`
+### `submitSignedTransaction`
 ```typescript
-submitSignedAtom: (
-	signedAtom: SignedAtom,
-) => Observable<SubmittedAtomResponse>
+submitSignedTransaction: (
+	signedTransaction: SignedTransaction,
+) => Observable<PendingTransaction>
+```
+
+### `validators`
+```typescript
+validators: (): Observable<Validators>
+```
+
+### `lookupTransaction`
+```typescript
+lookupTransaction: (txID: TransactionIdentifierT): Observable<ExecutedTransaction>
+```
+
+### `networkId`
+```typescript
+networkId: () => Observable<Magic>
 ```
 
 # Unsubscribe

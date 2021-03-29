@@ -1,65 +1,58 @@
-import { AddressT, Int32 } from '@radixdlt/account'
+import { Int32 } from '@radixdlt/account'
+import { Magic } from '@radixdlt/primitives'
 import {
-	BurnTokensActionT,
-	TransferTokensActionT,
-	UserActionType,
-} from '@radixdlt/actions'
-import {
-	AtomIdentifierT,
-	ResourceIdentifierT,
-	TokenPermissions,
-	TokenPermission,
-} from '@radixdlt/atom'
-import { AmountT } from '@radixdlt/primitives'
+	ExecutedTransaction,
+	NetworkTransactionDemand,
+	NetworkTransactionThroughput,
+	PendingTransaction,
+	RawExecutedTransaction,
+	RawToken,
+	StakePositions,
+	StatusOfTransaction,
+	Token,
+	TokenBalances,
+	TransactionHistory,
+	TransactionIntent,
+	TransactionStatus,
+	UnsignedTransaction,
+	UnstakePositions,
+	Validators,
+} from '../../dto/_types'
 
 type API_PREFIX = 'radix'
 
 export enum ApiMethod {
-	UNIVERSE_MAGIC = 'universeMagic',
+	NETWORK_ID = 'networkId',
 	TOKEN_BALANCES = 'tokenBalances',
-	EXECUTED_TXS = 'executedTransactions',
+	TRANSACTION_HISTORY = 'transactionHistory',
 	STAKES = 'stakes',
 	UNSTAKES = 'unstakes',
 	TX_STATUS = 'transactionStatus',
 	NETWORK_TX_THROUGHPUT = 'networkTransactionThroughput',
 	NETWORK_TX_DEMAND = 'networkTransactionDemand',
 	VALIDATORS = 'validators',
+	LOOKUP_TX = 'lookupTransaction',
 	NATIVE_TOKEN = 'nativeToken',
-	TOKEN_FEE_FOR_TX = 'tokenFeeForTransaction',
-	GET_ATOM_FOR_TX = 'getAtomForTransaction',
-	SUBMIT_SIGNED_ATOM = 'submitSignedAtom',
+	TOKEN_INFO = 'tokenInfo',
+	BUILD_TX_FROM_INTENT = 'buildTransaction',
+	SUBMIT_SIGNED_TX = 'submitSignedTransaction',
 }
 
 export type Endpoint = `${API_PREFIX}.${typeof ApiMethod[keyof typeof ApiMethod]}`
 
-type Action = TransferTokensActionT | BurnTokensActionT
-
-export type Transaction = {
-	message: {
-		msg: string
-		encryptionScheme: string
-	}
-	actions: Action[]
-}
-
-export namespace UniverseMagic {
+export namespace NetworkIdEndpoint {
 	export type Input = []
 
 	export type Response = {
-		magic: Int32
+		networkId: Int32
 	}
 
 	export type DecodedResponse = {
-		magic: Int32
+		networkId: Magic
 	}
 }
 
-export type TokenBalance = Readonly<{
-	token: ResourceIdentifierT
-	amount: AmountT
-}>
-
-export namespace TokenBalances {
+export namespace TokenBalancesEndpoint {
 	export type Input = [address: string]
 
 	export type Response = {
@@ -72,111 +65,43 @@ export namespace TokenBalances {
 		]
 	}
 
-	export type DecodedResponse = {
-		owner: AddressT
-		tokenBalances: TokenBalance[]
-	}
+	export type DecodedResponse = TokenBalances
 }
 
-export namespace ExecutedTransactions {
-	type RawTransferAction = {
-		type: UserActionType
-		from: string
-		to: string
-		amount: string
-		resourceIdentifier: string
-	}
-
-	type RawBurnAction = {
-		type: UserActionType
-		burner: string
-		amount: string
-		resourceIdentifier: string
-	}
-
+export namespace TransactionHistoryEndpoint {
 	export type Input = [
 		address: string,
 		size: number, // must be > 0
-		cursor?: string, // AtomIdentifier
+		cursor?: string, // TransactionIdentifier
 	]
 
-	export type Response = {
+	export type Response = Readonly<{
 		cursor: string
-		transactions: {
-			atomId: string
-			sentAt: string
-			fee: string
-			message?: {
-				msg: string
-				encryptionScheme: string
-			}
-			actions: (RawTransferAction | RawBurnAction)[]
-		}[]
-	}
+		transactions: RawExecutedTransaction[]
+	}>
 
-	export type DecodedResponse = {
-		cursor: string
-		transactions: [
-			{
-				atomId: string
-				sentAt: Date
-				fee: AmountT
-				message?: {
-					msg: string
-					encryptionScheme: string
-				}
-				actions: Action[]
-			},
-		]
-	}
+	export type DecodedResponse = TransactionHistory
 }
 
-export namespace NativeToken {
+export namespace LookupTransactionEndpoint {
+	export type Input = [txID: string]
+	export type Response = RawExecutedTransaction
+	export type DecodedResponse = ExecutedTransaction
+}
+
+export namespace TokenInfoEndpoint {
+	export type Input = [rri: string]
+	export type Response = RawToken
+	export type DecodedResponse = Token
+}
+
+export namespace NativeTokenEndpoint {
 	export type Input = []
-
-	export type Response = {
-		name: string
-		rri: string
-		symbol: string
-		description?: string
-		granularity: string
-		isSupplyMutable: boolean
-		currentSupply: string
-		tokenInfoURL: string
-		iconURL: string
-		tokenPermission: {
-			burn: TokenPermission
-			mint: TokenPermission
-		}
-	}
-
-	export type DecodedResponse = {
-		name: string
-		rri: ResourceIdentifierT
-		symbol: string
-		description?: string
-		granularity: AmountT
-		isSupplyMutable: boolean
-		currentSupply: AmountT
-		tokenInfoURL: URL
-		iconURL: URL
-		tokenPermission: TokenPermissions
-	}
+	export type Response = RawToken
+	export type DecodedResponse = Token
 }
 
-export namespace TokenFeeForTransaction {
-	export type Input = [transaction: Transaction]
-
-	export type Response = {
-		tokenFee: string
-	}
-
-	export type DecodedResponse = {
-		tokenFee: AmountT
-	}
-}
-
-export namespace Stakes {
+export namespace StakePositionsEndpoint {
 	export type Input = [address: string]
 
 	export type Response = {
@@ -184,94 +109,106 @@ export namespace Stakes {
 		amount: string
 	}[]
 
-	export type DecodedResponse = {
-		validator: AddressT
-		amount: AmountT
+	export type DecodedResponse = StakePositions
+}
+
+export namespace UnstakesEndpoint {
+	export type Input = [address: string]
+
+	export type Response = {
+		validator: string
+		amount: string
+		epochsUntil: number
+		withdrawTxID: string
 	}[]
+
+	export type DecodedResponse = UnstakePositions
 }
 
-export namespace Unstakes {
-	// TODO
-}
-
-export namespace TransactionStatus {
-	export type Status = 'PENDING' | 'CONFIRMED' | 'FAILED'
-
-	export type Input = [atomIdentifier: string]
+export namespace TransactionStatusEndpoint {
+	export type Input = [txID: string]
 
 	export type Response = {
-		atomIdentifier: string
-		status: Status
+		txID: string
+		status: TransactionStatus
 		failure?: string
 	}
 
-	export type DecodedResponse = {
-		atomIdentifier: AtomIdentifierT
-		status: Status
-		failure?: string
-	}
+	export type DecodedResponse = StatusOfTransaction
 }
 
-export namespace NetworkTransactionThroughput {
+export namespace NetworkTransactionThroughputEndpoint {
 	export type Input = []
 
 	export type Response = {
 		tps: number
 	}
 
-	export type DecodedResponse = Response
+	export type DecodedResponse = NetworkTransactionThroughput
 }
 
-export namespace NetworkTransactionDemand {
+export namespace NetworkTransactionDemandEndpoint {
 	export type Input = []
 
 	export type Response = {
 		tps: number
 	}
 
-	export type DecodedResponse = Response
+	export type DecodedResponse = NetworkTransactionDemand
 }
 
-export namespace Validators {
-	// TODO
+export namespace ValidatorsEndpoint {
+	export type Input = [size: number, cursor?: string]
+
+	export type Response = Readonly<{
+		cursor: string
+		validators:
+		{
+			address: string
+			ownerAddress: string
+			name: string
+			infoURL: string
+			totalDelegatedStake: string
+			ownerDelegation: string,
+			isExternalStakeAccepted: boolean
+		}[]
+
+	}>
+	export type DecodedResponse = Validators
 }
 
-export namespace GetAtomForTransaction {
+export namespace BuildTransactionEndpoint {
 	export type Failure =
 		| 'MALFORMED_TX'
 		| 'INSUFFICIENT_FUNDS'
 		| 'NOT_PERMITTED'
 
-	export type Input = [transaction: Transaction]
+	export type Input = [transactionIntent: TransactionIntent]
 
 	export type Response = {
-		atomCBOR: string
+		transaction: Readonly<{
+			blob: string
+			hashOfBlobToSign: string
+		}>
+		fee: string
 		failure?: Failure
 	}
 
-	export type DecodedResponse = Response
+	export type DecodedResponse = UnsignedTransaction
 }
 
-export namespace SubmitSignedAtom {
-	export type Failure =
-		| 'INVALID_PUB_KEY'
-		| 'INVALID_SIGNATURE'
-		| 'MALFORMED_ATOM_CBOR'
-		| 'INSUFFICIENT_FUNDS'
-
+export namespace SubmitSignedTransactionEndpoint {
 	export type Input = [
-		atomCBOR: string,
-		signerPublicKey: string,
+		transaction: Readonly<{
+			blob: string
+		}>,
 		signatureDER: string,
 	]
 
 	export type Response = {
-		atomIdentifier: string
-		failure?: Failure
+		txID: string
+		errorMessage?: string
 	}
 
-	export type DecodedResponse = {
-		atomIdentifier: AtomIdentifierT
-		failure?: Failure
-	}
+	export type DecodedResponse = PendingTransaction
 }
