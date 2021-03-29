@@ -1,24 +1,4 @@
 import {
-	AtomFromTransactionResponse,
-	ExecutedTransactions,
-	NetworkTransactionDemand,
-	NetworkTransactionThroughput,
-	RadixCoreAPI,
-	SignedAtom,
-	Stakes,
-	SubmittedAtomResponse,
-	Token,
-	TokenBalances,
-	TokenFeeForTransaction,
-	Transaction,
-	TransactionStatus,
-} from '../src/api/_types'
-import {
-	AtomIdentifierT,
-	ResourceIdentifier,
-	tokenPermissionsAll,
-} from '@radixdlt/atom'
-import {
 	Amount,
 	Denomination,
 	Magic,
@@ -26,9 +6,29 @@ import {
 	maxAmount,
 } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
-import { TokenBalance } from '../src/api/json-rpc/_types'
 import { AddressT } from '@radixdlt/account'
 import { Observable, of, throwError } from 'rxjs'
+import {
+	NetworkTransactionDemand,
+	NetworkTransactionThroughput,
+	PendingTransaction,
+	ResourceIdentifierT,
+	SignedTransaction,
+	StakePositions,
+	StatusOfTransaction,
+	Token,
+	TokenBalance,
+	TokenBalances,
+	TransactionHistory,
+	TransactionIdentifierT,
+	TransactionIntent,
+	UnsignedTransaction,
+	UnstakePositions,
+} from '../src/dto/_types'
+import { ResourceIdentifier } from '../src/dto/resourceIdentifier'
+import { tokenPermissionsAll } from '../src/dto/tokenPermissions'
+import { RadixCoreAPI } from '../src/api/_types'
+import { ExecutedTransaction, Validators } from '../dist/dto/_types'
 
 export const xrd: Token = {
 	name: 'Rad',
@@ -89,7 +89,7 @@ export const radixWrappedBitcoinToken: Token = {
 	rri: ResourceIdentifier.fromString(
 		'/9SBaXGCwn8HcyPsbu4ymzNVCXtvogf3vSqnH39ihqt5RyDFq9hsv/BTCRW',
 	)._unsafeUnwrap(),
-	symbol: 'rwBTC',
+	symbol: 'BTCRW',
 	description: 'Radix wrapped Bitcoin. Granularity E-18.',
 	granularity: Amount.fromUInt256({
 		magnitude: UInt256.valueOf(1),
@@ -107,7 +107,7 @@ export const radixWrappedEtherToken: Token = {
 	rri: ResourceIdentifier.fromString(
 		'/9SBA2tji3wjuuThohxW37L6vySVuVaUpBFBpq2b7Ey7sKToU2uJp/ETHRW',
 	)._unsafeUnwrap(),
-	symbol: 'rwETH',
+	symbol: 'ETHRW',
 	description: 'Radix wrapped Ether. Granularity E-9.',
 	granularity: Amount.fromUInt256({
 		magnitude: UInt256.valueOf(1),
@@ -117,6 +117,25 @@ export const radixWrappedEtherToken: Token = {
 	currentSupply: maxAmount,
 	tokenInfoURL: new URL('http://www.ether.radix.com'),
 	iconURL: new URL('http://www.image.ether.radix.com/'),
+	tokenPermission: tokenPermissionsAll,
+}
+
+export const __fallBackAlexToken: Token = {
+	name: 'Alex token',
+	rri: ResourceIdentifier.fromString(
+		'/9S8LZFHXHTSJqNQ86ZeGKtFMJtqZbYPtgHWSC4LyYjSbduNRpDNN/ALEX',
+	)._unsafeUnwrap(),
+	symbol: 'ALEX',
+	description:
+		'Fallback token for when token for requested symbol was not found.',
+	granularity: Amount.fromUInt256({
+		magnitude: UInt256.valueOf(1),
+		denomination: Denomination.Whole,
+	})._unsafeUnwrap(),
+	isSupplyMutable: true,
+	currentSupply: maxAmount,
+	tokenInfoURL: new URL('http://www.alex.token.com'),
+	iconURL: new URL('http://www.image.alex.token.com/'),
 	tokenPermission: tokenPermissionsAll,
 }
 
@@ -159,6 +178,21 @@ export const balancesFor = (
 	}
 }
 
+const differentTokens: Token[] = [
+	xrd,
+	fooToken,
+	barToken,
+	radixWrappedBitcoinToken,
+	radixWrappedEtherToken,
+]
+
+export const tokenByRRIMap: Map<
+	ResourceIdentifierT,
+	Token
+> = differentTokens.reduce((a: Map<ResourceIdentifierT, Token>, b: Token) => {
+	return a.set(b.rri, b)
+}, new Map<ResourceIdentifierT, Token>())
+
 export const deterministicRandomBalancesForAddress = (
 	address: AddressT,
 ): TokenBalances => {
@@ -174,14 +208,6 @@ export const deterministicRandomBalancesForAddress = (
 		bytes = bytes.slice(lengthToSlice, bytes.length)
 		return Number.parseInt(buf.toString('hex'), 16)
 	}
-
-	const differentTokens: Token[] = [
-		xrd,
-		fooToken,
-		barToken,
-		radixWrappedBitcoinToken,
-		radixWrappedEtherToken,
-	]
 
 	const deterministicRandomToken = (): Token => {
 		const tokenCount = differentTokens.length
@@ -223,35 +249,45 @@ export const deterministicRandomBalances = (
 export const crashingAPI: RadixCoreAPI = {
 	node: { url: new URL('http://www.not.implemented.com') },
 
-	magic: (): Observable<Magic> =>
+	networkId: (): Observable<Magic> =>
 		throwError(() => new Error('Not implemented')),
 
 	tokenBalancesForAddress: (_address: AddressT): Observable<TokenBalances> =>
 		throwError(() => new Error('Not implemented')),
 
-	executedTransactions: (
+	lookupTransaction: (
+		_txID: TransactionIdentifierT,
+	): Observable<ExecutedTransaction> =>
+		throwError(() => new Error('Not implemented')),
+
+	validators: (
+		_input: Readonly<{ size: number; offset: number }>,
+	): Observable<Validators> => throwError(() => new Error('Not implemented')),
+
+	transactionHistory: (
 		_input: Readonly<{
 			address: AddressT
 			// pagination
 			size: number
 		}>,
-	): Observable<ExecutedTransactions> =>
+	): Observable<TransactionHistory> =>
 		throwError(() => new Error('Not implemented')),
 
 	nativeToken: (): Observable<Token> =>
 		throwError(() => new Error('Not implemented')),
 
-	tokenFeeForTransaction: (
-		_transaction: Transaction,
-	): Observable<TokenFeeForTransaction> =>
+	tokenInfo: (_rri: ResourceIdentifierT): Observable<Token> =>
 		throwError(() => new Error('Not implemented')),
 
-	stakesForAddress: (_address: AddressT): Observable<Stakes> =>
+	stakesForAddress: (_address: AddressT): Observable<StakePositions> =>
+		throwError(() => new Error('Not implemented')),
+
+	unstakesForAddress: (_address: AddressT): Observable<UnstakePositions> =>
 		throwError(() => new Error('Not implemented')),
 
 	transactionStatus: (
-		_atomIdentifier: AtomIdentifierT,
-	): Observable<TransactionStatus> =>
+		_txID: TransactionIdentifierT,
+	): Observable<StatusOfTransaction> =>
 		throwError(() => new Error('Not implemented')),
 
 	networkTransactionThroughput: (): Observable<NetworkTransactionThroughput> =>
@@ -260,20 +296,22 @@ export const crashingAPI: RadixCoreAPI = {
 	networkTransactionDemand: (): Observable<NetworkTransactionDemand> =>
 		throwError(() => new Error('Not implemented')),
 
-	getAtomForTransaction: (
-		_transaction: Transaction,
-	): Observable<AtomFromTransactionResponse> =>
+	buildTransaction: (
+		_transactionIntent: TransactionIntent,
+	): Observable<UnsignedTransaction> =>
 		throwError(() => new Error('Not implemented')),
 
-	submitSignedAtom: (
-		_signedAtom: SignedAtom,
-	): Observable<SubmittedAtomResponse> =>
+	submitSignedTransaction: (
+		_signedTransaction: SignedTransaction,
+	): Observable<PendingTransaction> =>
 		throwError(() => new Error('Not implemented')),
 }
 
 export const mockedAPI: Observable<RadixCoreAPI> = of({
 	...crashingAPI,
-	magic: (): Observable<Magic> => of(magicFromNumber(123)),
+	networkId: (): Observable<Magic> => of(magicFromNumber(123)),
 	nativeToken: (): Observable<Token> => of(xrd),
+	tokenInfo: (rri: ResourceIdentifierT): Observable<Token> =>
+		of(tokenByRRIMap.get(rri) ?? __fallBackAlexToken),
 	tokenBalancesForAddress: deterministicRandomBalances,
 })

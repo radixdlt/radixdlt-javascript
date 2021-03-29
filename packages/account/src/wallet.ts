@@ -54,7 +54,7 @@ const create = (
 		.asObservable()
 		.pipe(distinctUntilChanged((a: Magic, b: Magic) => a.byte === b.byte))
 
-	const provideMagic = (magic$: Observable<Magic>): void => {
+	const provideNetworkId = (magic$: Observable<Magic>): void => {
 		magic$
 			.subscribe((magic: Magic) => universeMagicSubject.next(magic))
 			.add(subs)
@@ -200,7 +200,7 @@ const create = (
 			}
 			return account
 		},
-		provideMagic,
+		provideNetworkId,
 		deriveNext,
 		switchAccount,
 		observeAccounts: (): Observable<AccountsT> => accounts$,

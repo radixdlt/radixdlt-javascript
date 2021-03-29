@@ -1,31 +1,29 @@
+import { nodeAPI } from '../dist/api/api'
 import {
-	SubmitSignedAtom,
-	GetAtomForTransaction,
-	ExecutedTransactions,
-	NativeToken,
-	NetworkTransactionDemand,
-	NetworkTransactionThroughput,
-	Stakes,
-	TokenBalances,
-	TokenFeeForTransaction,
-	TransactionStatus,
-	UniverseMagic,
-} from '../src/api/json-rpc/_types'
-import { nodeAPI } from '../src/api/api'
+	BuildTransactionEndpoint,
+	NativeTokenEndpoint,
+	NetworkIdEndpoint,
+	NetworkTransactionDemandEndpoint,
+	NetworkTransactionThroughputEndpoint,
+	StakePositionsEndpoint,
+	SubmitSignedTransactionEndpoint,
+	TokenBalancesEndpoint,
+	TransactionHistoryEndpoint,
+	TransactionStatusEndpoint,
+} from '../dist/api/json-rpc/_types'
+import { ResourceIdentifier } from '../dist/dto/resourceIdentifier'
 import { Address } from '@radixdlt/account'
-import {
-	AtomIdentifier,
-	makeTokenPermissions,
-	ResourceIdentifier,
-	TokenPermission,
-} from '@radixdlt/atom'
 import { Amount } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
+import { TransactionIdentifier } from '../dist/dto/transactionIdentifier'
 import {
-	BurnTokensAction,
-	TransferTokensAction,
-	UserActionType,
-} from '@radixdlt/actions'
+	ActionType,
+	ExecutedStakeTokensAction,
+	ExecutedTransferTokensAction,
+} from '../dist/actions/_types'
+import { ExecutedTransaction, TokenPermission } from '../dist/dto/_types'
+import { makeTokenPermissions } from '../dist/dto/tokenPermissions'
+import { TransactionStatus } from '../src/dto/_types'
 
 let mockClientReturnValue: any
 
@@ -42,27 +40,26 @@ jest.mock('@open-rpc/client-js', () => ({
 	HTTPTransport: mockHTTPTransport,
 	RequestManager: mockRequestManager,
 }))
-
 describe('networking', () => {
 	const client = nodeAPI(new URL('http://xyz'))
 	const address = '9S81XtkW3H9XZrmnzWqYSuTFPhWXdRnnpL3XXk7h5XxAM6zMdH7k'
 	const tokenRRI =
 		'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR'
 	const date = '1995-12-17T03:24:00'
-	const aid =
+	const txID =
 		'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef'
 
 	describe('json-rpc', () => {
 		it('should handle get universe magic response', async () => {
-			mockClientReturnValue = <UniverseMagic.Response>{
-				magic: 1000,
+			mockClientReturnValue = <NetworkIdEndpoint.Response>{
+				networkId: 237,
 			}
 
-			const expected: UniverseMagic.DecodedResponse = {
-				magic: 1000,
+			const expected: NetworkIdEndpoint.DecodedResponse = {
+				networkId: { byte: 237 },
 			}
 
-			const result = (await client.universeMagic())._unsafeUnwrap()
+			const result = (await client.networkId())._unsafeUnwrap()
 
 			expect(result).toMatchObject(expected)
 		})
@@ -80,7 +77,7 @@ describe('networking', () => {
 				],
 			}
 
-			const expected: TokenBalances.DecodedResponse = {
+			const expected: TokenBalancesEndpoint.DecodedResponse = {
 				owner: Address.fromBase58String(address)._unsafeUnwrap(),
 				tokenBalances: [
 					{
@@ -110,118 +107,97 @@ describe('networking', () => {
 		})
 
 		it('should handle get executed transactions response', async () => {
-			mockClientReturnValue = <ExecutedTransactions.Response>{
-				cursor: 'deadbeef',
+			mockClientReturnValue = <TransactionHistoryEndpoint.Response>{
+				cursor:
+					'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
 				transactions: [
 					{
-						atomId: 'deadbeef',
+						txID:
+							'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
 						sentAt: date,
 						fee: '100',
 						actions: [
 							{
-								type: UserActionType.TOKEN_TRANSFER,
+								type: ActionType.TOKEN_TRANSFER.valueOf(),
 								from: address,
 								to: address,
 								amount: '100',
 								resourceIdentifier: tokenRRI,
 							},
 							{
-								type: UserActionType.BURN_TOKENS,
-								burner: address,
+								type: ActionType.STAKE_TOKENS,
+								validator: address,
 								amount: '100',
-								resourceIdentifier: tokenRRI,
 							},
 						],
 					},
 				],
 			}
 
-			const expected: ExecutedTransactions.DecodedResponse = {
-				cursor: 'deadbeef',
-				transactions: [
-					{
-						atomId: 'deadbeef',
-						sentAt: new Date(date),
-						fee: Amount.inSmallestDenomination(new UInt256(100)),
-						actions: [
-							TransferTokensAction.create({
-								amount: Amount.inSmallestDenomination(
-									new UInt256(100),
-								),
-								from: Address.fromBase58String(
-									address,
-								)._unsafeUnwrap(),
-								to: Address.fromBase58String(
-									address,
-								)._unsafeUnwrap(),
-								resourceIdentifier: ResourceIdentifier.fromString(
-									tokenRRI,
-								)._unsafeUnwrap(),
-							}),
+			const expectedTx0A0: ExecutedTransferTokensAction = {
+				type: ActionType.TOKEN_TRANSFER,
+				amount: Amount.inSmallestDenomination(new UInt256(100)),
+				from: Address.fromBase58String(address)._unsafeUnwrap(),
+				to: Address.fromBase58String(address)._unsafeUnwrap(),
+				resourceIdentifier: ResourceIdentifier.fromString(
+					tokenRRI,
+				)._unsafeUnwrap(),
+			}
 
-							BurnTokensAction.create({
-								amount: Amount.inSmallestDenomination(
-									new UInt256(100),
-								),
-								resourceIdentifier: ResourceIdentifier.fromString(
-									tokenRRI,
-								)._unsafeUnwrap(),
-								burner: Address.fromBase58String(
-									address,
-								)._unsafeUnwrap(),
-							}),
-						],
-					},
-				],
+			const expectedTx0A1: ExecutedStakeTokensAction = {
+				type: ActionType.STAKE_TOKENS,
+				amount: Amount.inSmallestDenomination(new UInt256(100)),
+				validator: Address.fromBase58String(address)._unsafeUnwrap(),
+			}
+
+			const expectedTx0: ExecutedTransaction = {
+				txID: TransactionIdentifier.create(txID)._unsafeUnwrap(),
+				sentAt: new Date(date),
+				fee: Amount.inSmallestDenomination(UInt256.valueOf(100)),
+				actions: [expectedTx0A0, expectedTx0A1],
+			}
+
+			const expected: TransactionHistoryEndpoint.DecodedResponse = {
+				cursor:
+					'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+				transactions: [expectedTx0],
 			}
 
 			const result = (
-				await client.executedTransactions('', 0)
+				await client.transactionHistory('', 0)
 			)._unsafeUnwrap()
 
 			expect(result.cursor).toEqual(expected.cursor)
-			expect(result.transactions[0].actions[0].actionType).toEqual(
-				expected.transactions[0].actions[0].actionType,
-			)
-			expect(
-				result.transactions[0].actions[0].amount.equals(
-					expected.transactions[0].actions[0].amount,
-				),
-			).toEqual(true)
-			expect(
-				result.transactions[0].actions[0].resourceIdentifier.equals(
-					expected.transactions[0].actions[0].resourceIdentifier,
-				),
-			).toEqual(true)
-			expect(
-				result.transactions[0].actions[0].sender.equals(
-					expected.transactions[0].actions[0].sender,
-				),
-			).toEqual(true)
-			expect(result.transactions[0].atomId).toEqual(
-				expected.transactions[0].atomId,
-			)
-			expect(
-				result.transactions[0].fee.equals(expected.transactions[0].fee),
-			).toEqual(true)
-			expect(result.transactions[0].sentAt.valueOf()).toEqual(
-				expected.transactions[0].sentAt.valueOf(),
-			)
+			const tx0 = result.transactions[0] as ExecutedTransaction
+
+			expect(tx0.actions.length).toBe(expectedTx0.actions.length)
+
+			const tx0A0 = tx0.actions[0] as ExecutedTransferTokensAction
+			expect(tx0A0.type).toEqual(ActionType.TOKEN_TRANSFER)
+			expect(tx0A0.type).toEqual(expectedTx0A0.type)
+			expect(tx0A0.amount.equals(expectedTx0A0.amount)).toEqual(true)
 
 			expect(
-				result.transactions[0].actions[1].amount.equals(
-					expected.transactions[0].actions[1].amount,
+				tx0A0.resourceIdentifier.equals(
+					expectedTx0A0.resourceIdentifier,
 				),
-			)
-			expect(
-				result.transactions[0].actions[1].resourceIdentifier.equals(
-					expected.transactions[0].actions[1].resourceIdentifier,
-				),
-			)
-			expect(
-				result.transactions[0].actions[1].sender.equals(
-					expected.transactions[0].actions[1].sender,
-				),
+			).toEqual(true)
+
+			expect(tx0A0.from.equals(expectedTx0A0.from)).toEqual(true)
+
+			expect(tx0.txID.equals(expectedTx0.txID)).toBe(true)
+
+			expect(tx0.fee.equals(expectedTx0.fee)).toEqual(true)
+
+			expect(tx0.sentAt.valueOf()).toBe(expectedTx0.sentAt.valueOf())
+
+			const tx0A1 = tx0.actions[1] as ExecutedStakeTokensAction
+			expect(tx0A1.type).toEqual(ActionType.STAKE_TOKENS)
+			expect(tx0A1.type).toEqual(expectedTx0A1.type)
+			expect(tx0A1.amount.equals(expectedTx0A1.amount)).toEqual(true)
+
+			expect(tx0A1.validator.equals(expectedTx0A1.validator)).toEqual(
+				true,
 			)
 		})
 
@@ -236,7 +212,7 @@ describe('networking', () => {
 		const iconURL = 'http://icon.com'
 
 		it('should handle get native token response', async () => {
-			mockClientReturnValue = <NativeToken.Response>{
+			mockClientReturnValue = <NativeTokenEndpoint.Response>{
 				name,
 				rri,
 				symbol,
@@ -252,7 +228,7 @@ describe('networking', () => {
 				},
 			}
 
-			const expected: NativeToken.DecodedResponse = {
+			const expected: NativeTokenEndpoint.DecodedResponse = {
 				name,
 				rri: ResourceIdentifier.fromString(tokenRRI)._unsafeUnwrap(),
 				symbol,
@@ -291,35 +267,17 @@ describe('networking', () => {
 			expect(result.tokenPermission.equals(expected.tokenPermission))
 		})
 
-		it('should handle get token fee from transaction response', async () => {
-			const fee = '100'
-
-			mockClientReturnValue = <TokenFeeForTransaction.Response>{
-				tokenFee: fee,
-			}
-
-			const expected: TokenFeeForTransaction.DecodedResponse = {
-				tokenFee: Amount.inSmallestDenomination(new UInt256(fee)),
-			}
-
-			const result = (
-				await client.tokenFeeForTransaction({} as any)
-			)._unsafeUnwrap()
-
-			expect(result.tokenFee.equals(expected.tokenFee)).toBe(true)
-		})
-
 		it('should handle get stake information response', async () => {
 			const amount = '100'
 
-			mockClientReturnValue = <Stakes.Response>[
+			mockClientReturnValue = <StakePositionsEndpoint.Response>[
 				{
 					validator: address,
 					amount,
 				},
 			]
 
-			const expected: Stakes.DecodedResponse = [
+			const expected: StakePositionsEndpoint.DecodedResponse = [
 				{
 					validator: Address.fromBase58String(
 						address,
@@ -335,26 +293,24 @@ describe('networking', () => {
 		})
 
 		it('should handle get transaction status response', async () => {
-			const txStatus: TransactionStatus.Status = 'CONFIRMED'
+			const txStatus = TransactionStatus.CONFIRMED
 			const failure = 'ouch'
 
-			mockClientReturnValue = <TransactionStatus.Response>{
-				atomIdentifier: aid,
+			mockClientReturnValue = <TransactionStatusEndpoint.Response>{
+				txID: txID,
 				status: txStatus,
 				failure,
 			}
 
-			const expected: TransactionStatus.DecodedResponse = {
-				atomIdentifier: AtomIdentifier.create(aid)._unsafeUnwrap(),
+			const expected: TransactionStatusEndpoint.DecodedResponse = {
+				txID: TransactionIdentifier.create(txID)._unsafeUnwrap(),
 				status: txStatus,
 				failure,
 			}
 
 			const result = (await client.transactionStatus(''))._unsafeUnwrap()
 
-			expect(result.atomIdentifier.equals(result.atomIdentifier)).toBe(
-				true,
-			)
+			expect(result.txID.equals(result.txID)).toBe(true)
 			expect(result.failure).toEqual(expected.failure)
 			expect(result.status).toEqual(expected.status)
 		})
@@ -362,11 +318,13 @@ describe('networking', () => {
 		it('should handle get network transaction throughput response', async () => {
 			const tps = 1
 
-			mockClientReturnValue = <NetworkTransactionThroughput.Response>{
+			mockClientReturnValue = <
+				NetworkTransactionThroughputEndpoint.Response
+			>{
 				tps,
 			}
 
-			const expected: NetworkTransactionThroughput.DecodedResponse = mockClientReturnValue
+			const expected: NetworkTransactionThroughputEndpoint.DecodedResponse = mockClientReturnValue
 
 			const result = (
 				await client.networkTransactionThroughput()
@@ -378,11 +336,11 @@ describe('networking', () => {
 		it('should handle get network transaction demand response', async () => {
 			const tps = 1
 
-			mockClientReturnValue = <NetworkTransactionDemand.Response>{
+			mockClientReturnValue = <NetworkTransactionDemandEndpoint.Response>{
 				tps,
 			}
 
-			const expected: NetworkTransactionDemand.DecodedResponse = mockClientReturnValue
+			const expected: NetworkTransactionDemandEndpoint.DecodedResponse = mockClientReturnValue
 
 			const result = (
 				await client.networkTransactionDemand()
@@ -392,45 +350,48 @@ describe('networking', () => {
 		})
 
 		it('should handle get atom for transaction response', async () => {
-			const atomCBOR = '123'
-			const failure: GetAtomForTransaction.Failure = 'NOT_PERMITTED'
+			const builtTx = {
+				transaction: {
+					blob: 'bloooooooob',
+					hashOfBlobToSign: 'deadbeef',
+				},
+				fee: '12',
+			}
+			const failure: BuildTransactionEndpoint.Failure = 'NOT_PERMITTED'
 
-			mockClientReturnValue = <GetAtomForTransaction.Response>{
-				atomCBOR,
+			mockClientReturnValue = <BuildTransactionEndpoint.Response>{
+				...builtTx,
 				failure,
 			}
 
-			const expected: GetAtomForTransaction.DecodedResponse = mockClientReturnValue
+			const expected: BuildTransactionEndpoint.DecodedResponse = mockClientReturnValue
 
 			const result = (
-				await client.getAtomForTransaction({} as any)
+				await client.buildTransaction({} as any)
 			)._unsafeUnwrap()
 
-			expect(result.atomCBOR).toEqual(expected.atomCBOR)
-			expect(result.failure).toEqual(expected.failure)
+			expect(result).toStrictEqual(expected)
 		})
 
 		it('should handle submit signed atom response', async () => {
-			const failure: SubmitSignedAtom.Failure = 'INSUFFICIENT_FUNDS'
+			const errorMessage: string = 'INSUFFICIENT_FUNDS'
 
-			mockClientReturnValue = <SubmitSignedAtom.Response>{
-				atomIdentifier: aid,
-				failure,
+			mockClientReturnValue = <SubmitSignedTransactionEndpoint.Response>{
+				txID: txID,
+				errorMessage,
 			}
 
-			const expected: SubmitSignedAtom.DecodedResponse = {
-				atomIdentifier: AtomIdentifier.create(aid)._unsafeUnwrap(),
-				failure,
+			const expected: SubmitSignedTransactionEndpoint.DecodedResponse = {
+				txID: TransactionIdentifier.create(txID)._unsafeUnwrap(),
+				errorMessage,
 			}
 
 			const result = (
-				await client.submitSignedAtom('', '', '')
+				await client.submitSignedTransaction({ blob: '' }, '')
 			)._unsafeUnwrap()
 
-			expect(result.atomIdentifier.equals(expected.atomIdentifier)).toBe(
-				true,
-			)
-			expect(result.failure).toEqual(expected.failure)
+			expect(result.txID.equals(expected.txID)).toBe(true)
+			// expect(result.failure).toEqual(expected.failure)
 		})
 	})
 })
