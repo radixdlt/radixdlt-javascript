@@ -23,7 +23,8 @@ import {
 	xrd,
 } from './mockRadix'
 import { NodeT, RadixCoreAPI } from '../src/api/_types'
-import { TokenBalances } from '../src/dto/_types'
+import { TokenBalances, TransactionStatus } from '../src/dto/_types'
+import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
 
 const createWallet = (): WalletT => {
 	const masterSeed = HDMasterSeed.fromSeed(
@@ -574,6 +575,29 @@ describe('Radix API', () => {
 		)
 		expect(tokenByRRIMap.get(barToken.rri)!.description).toBe(
 			barToken.description,
+		)
+	})
+
+	it('should handle transaction status updates', (done) => {
+		const radix = Radix.create().__withAPI(mockedAPI)
+		let count = 0
+
+		radix.onTransactionStatus(
+			TransactionIdentifier.create(
+				'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+			)._unsafeUnwrap(),
+			(status) => {
+				if (count === 0) {
+					expect(status === TransactionStatus.PENDING).toBe(true)
+				} else {
+					expect(
+						status === TransactionStatus.CONFIRMED ||
+							status === TransactionStatus.FAILED,
+					).toBe(true)
+					done()
+				}
+				count++
+			},
 		)
 	})
 })

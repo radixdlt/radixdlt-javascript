@@ -7,7 +7,7 @@ import {
 } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import { AddressT } from '@radixdlt/account'
-import { Observable, of, throwError } from 'rxjs'
+import { Observable, of, throwError, timer } from 'rxjs'
 import {
 	NetworkTransactionDemand,
 	NetworkTransactionThroughput,
@@ -22,6 +22,7 @@ import {
 	TransactionHistory,
 	TransactionIdentifierT,
 	TransactionIntent,
+	TransactionStatus,
 	UnsignedTransaction,
 	UnstakePositions,
 } from '../src/dto/_types'
@@ -34,7 +35,7 @@ import {
 	Validators,
 	ValidatorsRequestInput,
 } from '../src/dto/_types'
-import { shareReplay } from 'rxjs/operators'
+import { delay, shareReplay } from 'rxjs/operators'
 import { tokenOwnerOnly } from '../dist/dto/tokenPermissions'
 
 export const xrd: Token = {
@@ -344,6 +345,26 @@ export const mockRadixCoreAPI = (
 	tokenInfo: (rri: ResourceIdentifierT): Observable<Token> =>
 		of(tokenByRRIMap.get(rri) ?? __fallBackAlexToken),
 	tokenBalancesForAddress: deterministicRandomBalances,
+	transactionStatus: (txID: TransactionIdentifierT) => {
+		const shouldFail = Math.round(Math.random()) > 0.5 ? true : false
+
+		const response = (status: TransactionStatus) => ({
+			txID,
+			status,
+			failure: status === TransactionStatus.FAILED ? 'Failed' : undefined,
+		})
+
+		return (shouldFail
+			? of(
+					response(TransactionStatus.PENDING),
+					response(TransactionStatus.FAILED),
+			  )
+			: of(
+					response(TransactionStatus.PENDING),
+					response(TransactionStatus.CONFIRMED),
+			  )
+		).pipe(delay(1000))
+	},
 })
 
 export const mockedAPI: Observable<RadixCoreAPI> = of(mockRadixCoreAPI())

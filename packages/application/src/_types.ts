@@ -11,7 +11,11 @@ import { LogLevel } from '@radixdlt/util'
 import { Observable } from 'rxjs'
 import { NodeT, RadixAPI, RadixCoreAPI } from './api/_types'
 import { ErrorNotification } from './errors'
-import { TokenBalances } from './dto/_types'
+import {
+	TokenBalances,
+	TransactionIdentifierT,
+	TransactionStatus,
+} from './dto/_types'
 
 export type RadixT = Readonly<{
 	ledger: RadixAPI
@@ -37,6 +41,12 @@ export type RadixT = Readonly<{
 	tokenBalances: Observable<TokenBalances>
 
 	loglevel: (level: LogLevel) => RadixT
+
+	onTransactionStatus: (
+		txID: TransactionIdentifierT,
+		callback: (status: TransactionStatus) => void,
+		intervalMs?: number,
+	) => void
 
 	errors: Observable<ErrorNotification>
 

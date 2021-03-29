@@ -23,6 +23,7 @@ import {
 	of,
 	Subject,
 	EMPTY,
+	interval,
 } from 'rxjs'
 
 import { radixCoreAPI } from './api/radixCoreAPI'
@@ -49,6 +50,7 @@ import {
 	lookupTxErr,
 } from './errors'
 import { log, LogLevel } from '@radixdlt/util'
+import { TransactionIdentifierT, TransactionStatus } from './dto/_types'
 
 const create = (): RadixT => {
 	const subs = new Subscription()
@@ -279,6 +281,19 @@ const create = (): RadixT => {
 		loglevel: function (level: LogLevel) {
 			log.setLevel(level)
 			return this
+		},
+
+		onTransactionStatus: (
+			txID: TransactionIdentifierT,
+			callback: (status: TransactionStatus) => void,
+			intervalMs = 300,
+		) => {
+			interval(intervalMs)
+				.pipe(mergeMap((_) => api.transactionStatus(txID)))
+				.subscribe(({ status }) => {
+					callback(status)
+				})
+				.add(subs)
 		},
 
 		// Wallet APIs
