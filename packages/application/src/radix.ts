@@ -26,8 +26,6 @@ import {
 	EMPTY,
 	interval,
 } from 'rxjs'
-import { map as rxMap } from 'rxjs/operators'
-
 import { radixCoreAPI } from './api/radixCoreAPI'
 import { Magic } from '@radixdlt/primitives'
 import { KeystoreT } from '@radixdlt/crypto'
@@ -83,13 +81,13 @@ const create = (): RadixT => {
 		pickFn: (api: RadixCoreAPI) => (...input: I) => Observable<O>,
 		errorFn: (message: string) => ErrorNotification,
 	) => (...input: I) =>
-			coreAPI$.pipe(
-				mergeMap((a) => pickFn(a)(...input)),
-				catchError((error: Error) => {
-					errorNotificationSubject.next(errorFn(error.message))
-					return EMPTY
-				}),
-			)
+		coreAPI$.pipe(
+			mergeMap((a) => pickFn(a)(...input)),
+			catchError((error: Error) => {
+				errorNotificationSubject.next(errorFn(error.message))
+				return EMPTY
+			}),
+		)
 
 	const networkId: () => Observable<Magic> = fwdAPICall(
 		(a) => a.networkId,
@@ -309,18 +307,14 @@ const create = (): RadixT => {
 			return this
 		},
 
-		transactionStatus: (
-			txID: TransactionIdentifierT,
-			intervalMs = 300,
-		) => {
+		transactionStatus: (txID: TransactionIdentifierT, intervalMs = 300) => {
 			const seenStatuses: TransactionStatus[] = []
 
-			return interval(intervalMs)
-				.pipe(
-					mergeMap((_) => api.transactionStatus(txID)),
-					filter(({ status }) => !seenStatuses.includes(status)),
-					tap(({ status }) => seenStatuses.push(status))
-				)
+			return interval(intervalMs).pipe(
+				mergeMap((_) => api.transactionStatus(txID)),
+				filter(({ status }) => !seenStatuses.includes(status)),
+				tap(({ status }) => seenStatuses.push(status)),
+			)
 		},
 
 		// Wallet APIs

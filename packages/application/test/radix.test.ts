@@ -13,15 +13,7 @@ import { map, take, toArray } from 'rxjs/operators'
 import { KeystoreT } from '@radixdlt/crypto'
 import { RadixT } from '../src/_types'
 import { APIErrorCause, ErrorCategory } from '../src/errors'
-import {
-	balancesFor,
-	barToken,
-	fooToken,
-	mockedAPI,
-	mockRadixCoreAPI,
-	tokenByRRIMap,
-	xrd,
-} from './mockRadix'
+import { balancesFor, mockedAPI, mockRadixCoreAPI } from './mockRadix'
 import { NodeT, RadixCoreAPI } from '../src/api/_types'
 import { TokenBalances, TransactionStatus } from '../src/dto/_types'
 import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
@@ -617,23 +609,23 @@ describe('Radix API', () => {
 		const radix = Radix.create().__withAPI(mockedAPI)
 		let count = 0
 
-		radix.transactionStatus(
-			TransactionIdentifier.create(
-				'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
-			)._unsafeUnwrap()
-		).subscribe(
-			({status}) => {
+		radix
+			.transactionStatus(
+				TransactionIdentifier.create(
+					'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+				)._unsafeUnwrap(),
+			)
+			.subscribe(({ status }) => {
 				if (count === 0) {
 					expect(status === TransactionStatus.PENDING).toBe(true)
 				} else {
 					expect(
 						status === TransactionStatus.CONFIRMED ||
-						status === TransactionStatus.FAILED,
+							status === TransactionStatus.FAILED,
 					).toBe(true)
 					done()
 				}
 				count++
-			},
-		)
+			})
 	})
 })
