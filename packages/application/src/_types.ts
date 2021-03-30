@@ -39,6 +39,7 @@ export type RadixT = Readonly<{
 	logLevel: (level: LogLevel) => RadixT
 
 	withTokenBalanceFetchTrigger: (trigger: Observable<number>) => RadixT
+	withTxHistoryFetchTrigger: (trigger: Observable<number>) => RadixT
 
 	errors: Observable<ErrorNotification>
 

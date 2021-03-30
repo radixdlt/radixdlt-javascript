@@ -63,6 +63,7 @@ const create = (): RadixT => {
 	const switchAccountSubject = new Subject<SwitchAccountInput>()
 
 	const tokenBalanceFetchSubject = new Subject<number>()
+	const txHistoryFetchSubject = new Subject<number>()
 
 	const wallet$ = walletSubject.asObservable()
 
@@ -300,6 +301,12 @@ const create = (): RadixT => {
 
 		withTokenBalanceFetchTrigger: function (trigger: Observable<number>) {
 			trigger.subscribe(tokenBalanceFetchSubject).add(subs)
+
+			return this
+		},
+
+		withTxHistoryFetchTrigger: function (trigger: Observable<number>) {
+			trigger.subscribe(txHistoryFetchSubject).add(subs)
 
 			return this
 		},

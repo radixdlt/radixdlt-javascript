@@ -372,22 +372,29 @@ TODO: 👀 we might want to make it possible to give each account a human-readab
 
 ### Fetch trigger
 
-You can specify a fetch trigger (polling), by use of `withFetchTrigger` method.
+You can specify a fetch trigger (polling):
 
 ```typescript
 import { timer } from 'rxjs'
 
 radix
-	.withFetchTrigger({
-		trigger: timer(3 * 60 * 1_000), // every third minute
-		fetch: {
-			tokenBalances: true,
-			transactionHistory: false,
-		}
-	})
+	.withTokenBalanceFetchTrigger(
+		interval(3 * 60 * 1_000), // every third minute
+	)
 ```
 
-The above code will make sure you automatically perform a fetch of token balances every third minute. If you change from `transactionHistory: false` to `transactionHistory: true`, also transaction history will be fetched with the same interval.
+The above code will make sure you automatically perform a fetch of token balances every third minute. 
+
+Similarly for fetching transaction history:
+
+```typescript
+import { timer } from 'rxjs'
+
+radix
+	.withTxHistoryFetchTrigger(
+		interval(3 * 60 * 1_000), // every third minute
+	)
+```
 
 ```typescript
 import { Subject } from 'rxjs'
