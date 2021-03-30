@@ -370,7 +370,7 @@ radix.switchAccount({ toAccount: selectedAccount })
 
 TODO: 👀 we might want to make it possible to give each account a human-readable name, or that might be something a GUI wallet _should_ be responsible for.
 
-### Fetch trigger
+### Token balance fetch trigger
 
 You can specify a fetch trigger (polling):
 
