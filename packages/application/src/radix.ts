@@ -26,6 +26,7 @@ import {
 	EMPTY,
 	interval,
 } from 'rxjs'
+import { map as rxMap } from 'rxjs/operators'
 
 import { radixCoreAPI } from './api/radixCoreAPI'
 import { Magic } from '@radixdlt/primitives'
@@ -78,13 +79,13 @@ const create = (): RadixT => {
 		pickFn: (api: RadixCoreAPI) => (...input: I) => Observable<O>,
 		errorFn: (message: string) => ErrorNotification,
 	) => (...input: I) =>
-		coreAPI$.pipe(
-			mergeMap((a) => pickFn(a)(...input)),
-			catchError((error: Error) => {
-				errorNotificationSubject.next(errorFn(error.message))
-				return EMPTY
-			}),
-		)
+			coreAPI$.pipe(
+				mergeMap((a) => pickFn(a)(...input)),
+				catchError((error: Error) => {
+					errorNotificationSubject.next(errorFn(error.message))
+					return EMPTY
+				}),
+			)
 
 	const networkId: () => Observable<Magic> = fwdAPICall(
 		(a) => a.networkId,
@@ -284,27 +285,18 @@ const create = (): RadixT => {
 			return this
 		},
 
-		onTransactionStatus: (
+		transactionStatus: (
 			txID: TransactionIdentifierT,
-			callback: (status: TransactionStatus) => void,
 			intervalMs = 300,
 		) => {
 			const seenStatuses: TransactionStatus[] = []
 
-			const subscription = interval(intervalMs)
+			return interval(intervalMs)
 				.pipe(
 					mergeMap((_) => api.transactionStatus(txID)),
 					filter(({ status }) => !seenStatuses.includes(status)),
+					tap(({ status }) => seenStatuses.push(status))
 				)
-				.subscribe(({ status }) => {
-					seenStatuses.push(status)
-					callback(status)
-					if (
-						status === TransactionStatus.CONFIRMED ||
-						status === TransactionStatus.FAILED
-					)
-						subscription.unsubscribe()
-				})
 		},
 
 		// Wallet APIs

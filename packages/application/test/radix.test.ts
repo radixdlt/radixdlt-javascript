@@ -549,7 +549,7 @@ describe('Radix API', () => {
 
 							expect(tb.owner.publicKey.toString(true)).toBe(
 								keystoreForTest.publicKeysCompressed[
-									expected.pkIndex
+								expected.pkIndex
 								],
 							)
 							expect(tb.tokenBalances.length).toBe(
@@ -578,21 +578,22 @@ describe('Radix API', () => {
 		)
 	})
 
-	it('should handle transaction status updates', (done) => {
+	it.only('should handle transaction status updates', (done) => {
 		const radix = Radix.create().__withAPI(mockedAPI)
 		let count = 0
 
-		radix.onTransactionStatus(
+		radix.transactionStatus(
 			TransactionIdentifier.create(
 				'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
-			)._unsafeUnwrap(),
-			(status) => {
+			)._unsafeUnwrap()
+		).subscribe(
+			({status}) => {
 				if (count === 0) {
 					expect(status === TransactionStatus.PENDING).toBe(true)
 				} else {
 					expect(
 						status === TransactionStatus.CONFIRMED ||
-							status === TransactionStatus.FAILED,
+						status === TransactionStatus.FAILED,
 					).toBe(true)
 					done()
 				}

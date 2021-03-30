@@ -12,6 +12,7 @@ import { Observable } from 'rxjs'
 import { NodeT, RadixAPI, RadixCoreAPI } from './api/_types'
 import { ErrorNotification } from './errors'
 import {
+	StatusOfTransaction,
 	TokenBalances,
 	TransactionIdentifierT,
 	TransactionStatus,
@@ -42,11 +43,10 @@ export type RadixT = Readonly<{
 
 	loglevel: (level: LogLevel) => RadixT
 
-	onTransactionStatus: (
+	transactionStatus: (
 		txID: TransactionIdentifierT,
-		callback: (status: TransactionStatus) => void,
 		intervalMs?: number,
-	) => void
+	) => Observable<StatusOfTransaction>
 
 	errors: Observable<ErrorNotification>
 
