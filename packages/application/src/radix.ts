@@ -24,6 +24,7 @@ import {
 	of,
 	Subject,
 	EMPTY,
+	throwError,
 } from 'rxjs'
 
 import { radixCoreAPI } from './api/radixCoreAPI'
@@ -48,11 +49,18 @@ import {
 	unstakesForAddressErr,
 	validatorsErr,
 	lookupTxErr,
+	ErrorCategory,
+	ErrorCause,
+	ErrorT,
+	APIError,
+	APIErrorCause,
 } from './errors'
 import { log, LogLevel } from '@radixdlt/util'
 import {
+	StakePositions,
 	TransactionHistory,
 	TransactionHistoryActiveAccountRequestInput,
+	UnstakePositions,
 } from './dto/_types'
 
 const create = (): RadixT => {
@@ -67,6 +75,8 @@ const create = (): RadixT => {
 	const switchAccountSubject = new Subject<SwitchAccountInput>()
 
 	const tokenBalanceFetchSubject = new Subject<number>()
+	const unstakeFetchSubject = new Subject<number>()
+	const stakeFetchSubject = new Subject<number>()
 	const wallet$ = walletSubject.asObservable()
 
 	const coreAPIViaNode$ = nodeSubject
@@ -81,13 +91,13 @@ const create = (): RadixT => {
 		pickFn: (api: RadixCoreAPI) => (...input: I) => Observable<O>,
 		errorFn: (message: string) => ErrorNotification,
 	) => (...input: I) =>
-			coreAPI$.pipe(
-				mergeMap((a) => pickFn(a)(...input)),
-				catchError((error: Error) => {
-					errorNotificationSubject.next(errorFn(error.message))
-					return EMPTY
-				}),
-			)
+		coreAPI$.pipe(
+			mergeMap((a) => pickFn(a)(...input)),
+			catchError((error: Error) => {
+				errorNotificationSubject.next(errorFn(error.message))
+				return EMPTY
+			}),
+		)
 
 	const networkId: () => Observable<Magic> = fwdAPICall(
 		(a) => a.networkId,
@@ -158,25 +168,46 @@ const create = (): RadixT => {
 		shareReplay(1),
 	)
 
-	const tokenBalances = merge(
-		tokenBalanceFetchSubject.pipe(
-			withLatestFrom(activeAddress),
-			map(result => result[1])
-		),
-		activeAddress,
-	).pipe(
-		withLatestFrom(coreAPI$),
-		switchMap(([address, api]) =>
-			api.tokenBalancesForAddress(address).pipe(
-				catchError((error: Error) => {
-					errorNotificationSubject.next(
-						tokenBalancesErr(error.message),
-					)
-					return EMPTY
-				}),
-			)
-		),
-		shareReplay(1),
+	const activeAddressToAPIObservableWithTrigger = <O>(
+		trigger: Observable<number>,
+		pickFn: (api: RadixCoreAPI) => (address: AddressT) => Observable<O>,
+		errorFn: (errorMessage: string) => APIError,
+	): Observable<O> =>
+		merge(
+			trigger.pipe(
+				withLatestFrom(activeAddress),
+				map((result) => result[1]),
+			),
+			activeAddress,
+		).pipe(
+			withLatestFrom(coreAPI$),
+			switchMap(([address, api]) =>
+				pickFn(api)(address).pipe(
+					catchError((error: Error) => {
+						errorNotificationSubject.next(errorFn(error.message))
+						return EMPTY
+					}),
+				),
+			),
+			shareReplay(1),
+		)
+
+	const tokenBalances = activeAddressToAPIObservableWithTrigger(
+		tokenBalanceFetchSubject,
+		(a) => a.tokenBalancesForAddress,
+		tokenBalancesErr,
+	)
+
+	const stakingPositions = activeAddressToAPIObservableWithTrigger(
+		stakeFetchSubject,
+		(a) => a.stakesForAddress,
+		stakesForAddressErr,
+	)
+
+	const unstakingPositions = activeAddressToAPIObservableWithTrigger(
+		unstakeFetchSubject,
+		(a) => a.unstakesForAddress,
+		unstakesForAddressErr,
 	)
 
 	const transactionHistory = (
@@ -326,6 +357,10 @@ const create = (): RadixT => {
 
 		// Active Address/Account APIs
 		tokenBalances,
+		stakingPositions,
+		unstakingPositions,
+
+		// Methods
 		transactionHistory,
 	}
 }

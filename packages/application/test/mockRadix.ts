@@ -39,9 +39,14 @@ import {
 import { RadixCoreAPI } from '../src/api/_types'
 import { shareReplay } from 'rxjs/operators'
 import { privateKeyFromBuffer, PublicKey, sha256 } from '@radixdlt/crypto'
-import { ActionType, ExecutedAction } from '../src/actions/_types'
+import {
+	ActionType,
+	ExecutedAction,
+	UnstakePosition,
+} from '../src/actions/_types'
 import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
 import { toAddress } from '../../account/test/address.test'
+import { StakePosition } from '../dist/actions/_types'
 
 export const xrd: Token = {
 	name: 'Rad',
@@ -361,6 +366,53 @@ export const deterministicRandomBalancesForAddress = (
 	}
 }
 
+export const deterministicRandomUnstakesForAddress = (
+	address: AddressT,
+): UnstakePositions => {
+	const anInt = detPRNGWithPubKey(address.publicKey)
+	const size = anInt() % 5
+	return Array(size)
+		.fill(undefined)
+		.map(
+			(_, index): UnstakePosition => {
+				const detRandomAddress = (): AddressT =>
+					castOfCharacters[anInt() % castOfCharacters.length]
+				const validator = detRandomAddress()
+				const amount = Amount.fromUnsafe(anInt())._unsafeUnwrap()
+
+				const bytesFromIndex = Buffer.allocUnsafe(2)
+				bytesFromIndex.writeUInt16BE(index)
+				const txIDBuffer = sha256(
+					Buffer.concat([
+						address.publicKey.asData({ compressed: true }),
+						bytesFromIndex,
+					]),
+				)
+
+				const withdrawalTxID = TransactionIdentifier.create(
+					txIDBuffer,
+				)._unsafeUnwrap()
+
+				return {
+					amount,
+					validator,
+					epochsUntil: anInt() % 100,
+					withdrawalTxID,
+				}
+			},
+		)
+}
+
+export const deterministicRandomStakesForAddress = (
+	address: AddressT,
+): StakePositions => {
+	return deterministicRandomUnstakesForAddress(address).map(
+		(un): StakePosition => ({
+			...un,
+		}),
+	)
+}
+
 export const deterministicRandomTxHistoryWithInput = (
 	input: TransactionHistoryRequestInput,
 ): TransactionHistory => {
@@ -515,6 +567,16 @@ export const deterministicRandomLookupTX = (
 ): Observable<ExecutedTransaction> =>
 	of(deterministicRandomLookupTXUsingHist(txID))
 
+export const deterministicRandomUnstakesForAddr = (
+	address: AddressT,
+): Observable<UnstakePositions> =>
+	of(deterministicRandomUnstakesForAddress(address))
+
+export const deterministicRandomStakesForAddr = (
+	address: AddressT,
+): Observable<StakePositions> =>
+	of(deterministicRandomStakesForAddress(address))
+
 export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
 	node: { url: new URL(nodeUrl ?? 'http://www.example.com') },
 
@@ -587,6 +649,8 @@ export const mockRadixCoreAPI = (
 	tokenBalancesForAddress: deterministicRandomBalances,
 	transactionHistory: deterministicRandomTXHistory,
 	lookupTransaction: deterministicRandomLookupTX,
+	unstakesForAddress: deterministicRandomUnstakesForAddr,
+	stakesForAddress: deterministicRandomStakesForAddr,
 })
 
 export const mockedAPI: Observable<RadixCoreAPI> = of(mockRadixCoreAPI())

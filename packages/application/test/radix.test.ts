@@ -1,21 +1,12 @@
 import { Radix } from '../src/radix'
-import {
-	AddressT,
-	HDMasterSeed,
-	Wallet,
-	WalletT,
-} from '@radixdlt/account'
+import { AddressT, HDMasterSeed, Wallet, WalletT } from '@radixdlt/account'
 import { interval, Observable, of, Subscription, throwError } from 'rxjs'
 import { map, take, toArray } from 'rxjs/operators'
 
 import { KeystoreT } from '@radixdlt/crypto'
 import { RadixT } from '../src/_types'
 import { APIErrorCause, ErrorCategory } from '../src/errors'
-import {
-	balancesFor,
-	mockedAPI,
-	mockRadixCoreAPI,
-} from './mockRadix'
+import { balancesFor, mockedAPI, mockRadixCoreAPI } from './mockRadix'
 import { NodeT, RadixCoreAPI } from '../src/api/_types'
 import { TokenBalances } from '../src/dto/_types'
 import { radixCoreAPI } from '../src/api/radixCoreAPI'
