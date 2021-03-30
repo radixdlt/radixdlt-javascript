@@ -57,10 +57,7 @@ Above code assumes you have a wallet. Looking for wallet creation?
 			- [`TokenTransfer`](#tokentransfer)
 			- [`StakeTokens`](#staketokens)
 			- [`UnstakeTokens`](#unstaketokens)
-			- [`ClaimEmissionReward`](#claimemissionreward)
-			- [`BurnTokens`](#burntokens)
-			- [`MintTokens`](#minttokens)
-			- [`Unknown`](#unknown)
+			- [`Other`](#other)
 	- [Make Transaction](#make-transaction)
 		- [Flow](#flow)
 		- [Unsafe user input](#unsafe-user-input)
@@ -557,22 +554,15 @@ See (Fetch Trigger)[#fetchTrigger] for a way either scheduling fetching of trans
 A transfer of some tokens, of a specific amount. This is probably the most relevant action.
 
 #### `StakeTokens`
-Staking tokens.
+Staking of native tokens.
 
 #### `UnstakeTokens`
-Unstake tokens
+Unstaking of staked native tokens.
 
-#### `ClaimEmissionReward`
-Claim emission reward.
-
-#### `BurnTokens`
-Burn tokens.
-
-#### `MintTokens`
-Burn tokens.
-
-#### `Unknown`
-The Radix Core API failed to recognize the instructions as a well-formed/well-known canonical action. Will reveal low-level constructs named "particles". For more info, see the [Atom Model]((https://dev.to/radixdlt/knowledgebase-update-atom-model-263i)).
+#### `Other`
+Two differnt kinds of actions fall in under this category:  
+1. Advanced actions: Well known actions that user cannot perform from the GUI wallet (`MintTokens` action amongst others).
+2. Unknown actions: Ledger instructions that are not on canonical form (or otherwise unknown)
 
 
 ## Make Transaction
