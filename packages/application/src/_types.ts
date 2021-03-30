@@ -46,7 +46,7 @@ export type RadixT = Readonly<{
 
 	/**
 	 * Specify a trigger for when to fetch the token balances for the active address.
-	 * 
+	 *
 	 * @param {Observable<number>} trigger - An observable that signals when to fetch.
 	 */
 	withTokenBalanceFetchTrigger: (trigger: Observable<number>) => RadixT

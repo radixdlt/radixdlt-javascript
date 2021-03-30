@@ -1,10 +1,5 @@
 import { Radix } from '../src/radix'
-import {
-	AddressT,
-	HDMasterSeed,
-	Wallet,
-	WalletT,
-} from '@radixdlt/account'
+import { AddressT, HDMasterSeed, Wallet, WalletT } from '@radixdlt/account'
 import { interval, Observable, of, Subscription, throwError } from 'rxjs'
 import { map, take, toArray } from 'rxjs/operators'
 import { KeystoreT } from '@radixdlt/crypto'
@@ -526,7 +521,7 @@ describe('Radix API', () => {
 
 							expect(tb.owner.publicKey.toString(true)).toBe(
 								keystoreForTest.publicKeysCompressed[
-								expected.pkIndex
+									expected.pkIndex
 								],
 							)
 							expect(tb.tokenBalances.length).toBe(
@@ -599,7 +594,7 @@ describe('Radix API', () => {
 				TransactionIdentifier.create(
 					'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
 				)._unsafeUnwrap(),
-				interval(300)
+				interval(300),
 			)
 			.subscribe(({ status }) => {
 				if (count === 0) {
@@ -607,14 +602,14 @@ describe('Radix API', () => {
 				} else {
 					expect(
 						status === TransactionStatus.CONFIRMED ||
-						status === TransactionStatus.FAILED,
+							status === TransactionStatus.FAILED,
 					).toBe(true)
 					done()
 				}
 				count++
 			})
 	})
-	
+
 	it('can lookup tx', (done) => {
 		const subs = new Subscription()
 

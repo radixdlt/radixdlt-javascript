@@ -84,13 +84,13 @@ const create = (): RadixT => {
 		pickFn: (api: RadixCoreAPI) => (...input: I) => Observable<O>,
 		errorFn: (message: string) => ErrorNotification,
 	) => (...input: I) =>
-			coreAPI$.pipe(
-				mergeMap((a) => pickFn(a)(...input)),
-				catchError((error: Error) => {
-					errorNotificationSubject.next(errorFn(error.message))
-					return EMPTY
-				}),
-			)
+		coreAPI$.pipe(
+			mergeMap((a) => pickFn(a)(...input)),
+			catchError((error: Error) => {
+				errorNotificationSubject.next(errorFn(error.message))
+				return EMPTY
+			}),
+		)
 
 	const networkId: () => Observable<Magic> = fwdAPICall(
 		(a) => a.networkId,
@@ -164,7 +164,7 @@ const create = (): RadixT => {
 	const tokenBalances = merge(
 		tokenBalanceFetchSubject.pipe(
 			withLatestFrom(activeAddress),
-			map(result => result[1])
+			map((result) => result[1]),
 		),
 		activeAddress,
 	).pipe(
@@ -177,7 +177,7 @@ const create = (): RadixT => {
 					)
 					return EMPTY
 				}),
-			)
+			),
 		),
 		shareReplay(1),
 	)
@@ -316,7 +316,10 @@ const create = (): RadixT => {
 			return this
 		},
 
-		transactionStatus: (txID: TransactionIdentifierT, trigger: Observable<number>) => {
+		transactionStatus: (
+			txID: TransactionIdentifierT,
+			trigger: Observable<number>,
+		) => {
 			return trigger.pipe(
 				mergeMap((_) => api.transactionStatus(txID)),
 				distinctUntilChanged((prev, cur) => prev.status === cur.status),
