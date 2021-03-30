@@ -1,6 +1,6 @@
 {
   "name": "@radixdlt/networking",
-  "version": "1.0.6-alpha.1",
+  "version": "1.0.6",
   "description": "Requesting and sending data from/to Radix Core RPC API over HTTP(s).",
   "keywords": [
     "RPCClient"
