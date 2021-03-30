@@ -48,7 +48,7 @@ Above code assumes you have a wallet. Looking for wallet creation?
 		- [Account derivation](#account-derivation)
 			- [restoreAccountsUpToIndex](#restoreaccountsuptoindex)
 		- [Account switching](#account-switching)
-		- [Fetch trigger](#fetch-trigger)
+		- [Token balance fetch trigger](#token-balance-fetch-trigger)
 		- [Decrypt](#decrypt)
 		- [Sign](#sign)
 	- [Methods resulting in RPC calls](#methods-resulting-in-rpc-calls)
