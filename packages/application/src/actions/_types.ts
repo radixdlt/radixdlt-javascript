@@ -71,13 +71,13 @@ export type ExecutedStakeTokensAction = ExecutedActionBase<ActionType.STAKE_TOKE
 	StakingProps
 
 // UNSTAKE
-export type UnstakingProps = StakingProps &
+export type UnstakingProps = StakingProps
+
+export type UnstakePosition = UnstakingProps &
 	Readonly<{
 		withdrawalTxID: TransactionIdentifierT
 		epochsUntil: number
 	}>
-
-export type UnstakePosition = UnstakingProps
 
 export type IntendedUnstakeTokensAction = IntendedActionBase<ActionType.UNSTAKE_TOKENS> &
 	StakingProps // Initiated unstakes have same props as stakes.

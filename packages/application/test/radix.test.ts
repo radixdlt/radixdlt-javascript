@@ -549,7 +549,7 @@ describe('Radix API', () => {
 
 							expect(tb.owner.publicKey.toString(true)).toBe(
 								keystoreForTest.publicKeysCompressed[
-								expected.pkIndex
+									expected.pkIndex
 								],
 							)
 							expect(tb.tokenBalances.length).toBe(
@@ -568,17 +568,52 @@ describe('Radix API', () => {
 			.add(subs)
 	})
 
-	it('map of tokens rri', () => {
-		expect(tokenByRRIMap.get(xrd.rri)!.description).toBe(xrd.description)
-		expect(tokenByRRIMap.get(fooToken.rri)!.description).toBe(
-			fooToken.description,
-		)
-		expect(tokenByRRIMap.get(barToken.rri)!.description).toBe(
-			barToken.description,
-		)
+	it('mocked API returns different but deterministic transaction history per account', (done) => {
+		const subs = new Subscription()
+
+		const radix = Radix.create().__withAPI(mockedAPI)
+
+		const loadKeystore = (): Promise<KeystoreT> =>
+			Promise.resolve(keystoreForTest.keystore)
+
+		radix.login(keystoreForTest.password, loadKeystore)
+
+		radix.__wallet
+			.subscribe((_w) => {
+				const expectedValues = [
+					{ pkIndex: 0, actionsCountForEachTx: [3, 4, 3] },
+					{ pkIndex: 1, actionsCountForEachTx: [1, 1, 1] },
+					{ pkIndex: 2, actionsCountForEachTx: [2, 3, 3] },
+				]
+
+				radix
+					.transactionHistory({ size: 3 })
+					.pipe(take(expectedValues.length), toArray())
+					.subscribe((values) => {
+						values.forEach((txHist, index: number) => {
+							const expected = expectedValues[index]
+
+							txHist.transactions.forEach((tx) => {
+								expect(tx.txID.toString().length).toBe(64)
+							})
+
+							expect(
+								txHist.transactions.map(
+									(tx) => tx.actions.length,
+								),
+							).toStrictEqual(expected.actionsCountForEachTx)
+						})
+						done()
+					})
+					.add(subs)
+
+				radix.deriveNextAccount({ alsoSwitchTo: true })
+				radix.deriveNextAccount({ alsoSwitchTo: true })
+			})
+			.add(subs)
 	})
 
-	it.only('should handle transaction status updates', (done) => {
+	it('should handle transaction status updates', (done) => {
 		const radix = Radix.create().__withAPI(mockedAPI)
 		let count = 0
 

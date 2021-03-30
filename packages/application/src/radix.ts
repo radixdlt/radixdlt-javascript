@@ -53,6 +53,10 @@ import {
 } from './errors'
 import { log, LogLevel } from '@radixdlt/util'
 import { TransactionIdentifierT, TransactionStatus } from './dto/_types'
+import {
+	TransactionHistory,
+	TransactionHistoryActiveAccountRequestInput,
+} from './dto/_types'
 
 const create = (): RadixT => {
 	const subs = new Subscription()
@@ -170,6 +174,26 @@ const create = (): RadixT => {
 		),
 		shareReplay(1),
 	)
+
+	const transactionHistory = (
+		input: TransactionHistoryActiveAccountRequestInput,
+	): Observable<TransactionHistory> =>
+		activeAddress.pipe(
+			withLatestFrom(coreAPI$),
+			switchMap(([activeAddress, api]) =>
+				api
+					.transactionHistory({ ...input, address: activeAddress })
+					.pipe(
+						catchError((error: Error) => {
+							errorNotificationSubject.next(
+								transactionHistoryErr(error.message),
+							)
+							return EMPTY
+						}),
+					),
+			),
+			shareReplay(1),
+		)
 
 	const node$ = merge(
 		nodeSubject.asObservable(),
@@ -306,6 +330,7 @@ const create = (): RadixT => {
 
 		// Active Address/Account APIs
 		tokenBalances,
+		transactionHistory,
 	}
 }
 

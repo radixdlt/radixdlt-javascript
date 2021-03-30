@@ -14,8 +14,9 @@ import { ErrorNotification } from './errors'
 import {
 	StatusOfTransaction,
 	TokenBalances,
+	TransactionHistory,
+	TransactionHistoryActiveAccountRequestInput,
 	TransactionIdentifierT,
-	TransactionStatus,
 } from './dto/_types'
 
 export type RadixT = Readonly<{
@@ -40,6 +41,16 @@ export type RadixT = Readonly<{
 
 	// Active Address/Account APIs
 	tokenBalances: Observable<TokenBalances>
+
+	/**
+	 * Transaction history of active account.
+	 *
+	 * @param {TransactionHistoryActiveAccountRequestInput} input - Pagination input, size and cursor.
+	 * @returns {TransactionHistory} A page from the transaction history.
+	 */
+	transactionHistory: (
+		input: TransactionHistoryActiveAccountRequestInput,
+	) => Observable<TransactionHistory>
 
 	loglevel: (level: LogLevel) => RadixT
 
