@@ -69,11 +69,17 @@ export type ValidatorsRequestInput = Readonly<{
 	cursor?: AddressT
 }>
 
-export type TransactionHistoryRequestInput = Readonly<{
-	address: AddressT
+export type TransactionHistoryOfKnownAddressRequestInput = Readonly<{
 	size: number
-	cursor?: TransactionIdentifierT
+	cursor?: string
 }>
+
+export type TransactionHistoryActiveAccountRequestInput = TransactionHistoryOfKnownAddressRequestInput
+
+export type TransactionHistoryRequestInput = TransactionHistoryOfKnownAddressRequestInput &
+	Readonly<{
+		address: AddressT
+	}>
 
 export type ExecutedTransaction = Readonly<{
 	txID: TransactionIdentifierT
