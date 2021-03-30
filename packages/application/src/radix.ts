@@ -83,13 +83,13 @@ const create = (): RadixT => {
 		pickFn: (api: RadixCoreAPI) => (...input: I) => Observable<O>,
 		errorFn: (message: string) => ErrorNotification,
 	) => (...input: I) =>
-		coreAPI$.pipe(
-			mergeMap((a) => pickFn(a)(...input)),
-			catchError((error: Error) => {
-				errorNotificationSubject.next(errorFn(error.message))
-				return EMPTY
-			}),
-		)
+			coreAPI$.pipe(
+				mergeMap((a) => pickFn(a)(...input)),
+				catchError((error: Error) => {
+					errorNotificationSubject.next(errorFn(error.message))
+					return EMPTY
+				}),
+			)
 
 	const networkId: () => Observable<Magic> = fwdAPICall(
 		(a) => a.networkId,
@@ -154,25 +154,22 @@ const create = (): RadixT => {
 			(m) => submitSignedTxErr(m),
 		),
 	}
-	
+
 	const activeAddress = wallet$.pipe(
 		mergeMap((wallet) => wallet.observeActiveAddress()),
 		shareReplay(1),
 	)
 
 	const tokenBalances = merge(
-		tokenBalanceFetchSubject.pipe(withLatestFrom(activeAddress)),
+		tokenBalanceFetchSubject.pipe(
+			withLatestFrom(activeAddress),
+			map(result => result[1])
+		),
 		activeAddress,
 	).pipe(
 		withLatestFrom(coreAPI$),
-		switchMap(([maybeAddress, api]) => {
-			let address: AddressT
-			if (Array.isArray(maybeAddress)) {
-				address = maybeAddress[1]
-			} else {
-				address = maybeAddress
-			}
-			return api.tokenBalancesForAddress(address).pipe(
+		switchMap(([address, api]) =>
+			api.tokenBalancesForAddress(address).pipe(
 				catchError((error: Error) => {
 					errorNotificationSubject.next(
 						tokenBalancesErr(error.message),
@@ -180,18 +177,24 @@ const create = (): RadixT => {
 					return EMPTY
 				}),
 			)
-		}),
+		),
 		shareReplay(1),
 	)
 
 	const transactionHistory = (
 		input: TransactionHistoryActiveAccountRequestInput,
 	): Observable<TransactionHistory> =>
-		activeAddress.pipe(
+		merge(
+			txHistoryFetchSubject.pipe(
+				withLatestFrom(activeAddress),
+				map(result => result[1])
+			),
+			activeAddress,
+		).pipe(
 			withLatestFrom(coreAPI$),
-			switchMap(([activeAddress, api]) =>
+			switchMap(([address, api]) =>
 				api
-					.transactionHistory({ ...input, address: activeAddress })
+					.transactionHistory({ ...input, address })
 					.pipe(
 						catchError((error: Error) => {
 							errorNotificationSubject.next(
@@ -199,7 +202,7 @@ const create = (): RadixT => {
 							)
 							return EMPTY
 						}),
-					),
+					)
 			),
 			shareReplay(1),
 		)
