@@ -24,6 +24,7 @@ import {
 } from './mockRadix'
 import { NodeT, RadixCoreAPI } from '../src/api/_types'
 import { TokenBalances } from '../src/dto/_types'
+import { TransactionIdentifier } from '../dist/dto/transactionIdentifier'
 
 const createWallet = (): WalletT => {
 	const masterSeed = HDMasterSeed.fromSeed(
@@ -580,9 +581,9 @@ describe('Radix API', () => {
 		radix.__wallet
 			.subscribe((_w) => {
 				const expectedValues = [
-					{ pkIndex: 0, actionsCountForEachTx: [3, 4, 3] },
+					{ pkIndex: 0, actionsCountForEachTx: [3, 2, 2] },
 					{ pkIndex: 1, actionsCountForEachTx: [1, 1, 1] },
-					{ pkIndex: 2, actionsCountForEachTx: [2, 3, 3] },
+					{ pkIndex: 2, actionsCountForEachTx: [2, 1, 2] },
 				]
 
 				radix
@@ -608,6 +609,34 @@ describe('Radix API', () => {
 
 				radix.deriveNextAccount({ alsoSwitchTo: true })
 				radix.deriveNextAccount({ alsoSwitchTo: true })
+			})
+			.add(subs)
+	})
+
+	it('can lookup tx', (done) => {
+		const subs = new Subscription()
+
+		const radix = Radix.create().__withAPI(mockedAPI)
+
+		const loadKeystore = (): Promise<KeystoreT> =>
+			Promise.resolve(keystoreForTest.keystore)
+
+		radix.login(keystoreForTest.password, loadKeystore)
+
+		const mockedTXId = TransactionIdentifier.create(
+			Buffer.from(
+				'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+				'hex',
+			),
+		)._unsafeUnwrap()
+
+		radix.__wallet
+			.subscribe((_w) => {
+				radix.ledger.lookupTransaction(mockedTXId).subscribe((tx) => {
+					expect(tx.txID.equals(mockedTXId)).toBe(true)
+					expect(tx.actions.length).toBeGreaterThan(0)
+					done()
+				})
 			})
 			.add(subs)
 	})
