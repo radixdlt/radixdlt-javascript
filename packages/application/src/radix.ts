@@ -1,5 +1,4 @@
 import {
-	AddressT,
 	DeriveNextAccountInput,
 	SwitchAccountInput,
 	Wallet,
@@ -26,7 +25,6 @@ import {
 	of,
 	Subject,
 	EMPTY,
-	interval,
 } from 'rxjs'
 import { radixCoreAPI } from './api/radixCoreAPI'
 import { Magic } from '@radixdlt/primitives'
@@ -52,7 +50,7 @@ import {
 	lookupTxErr,
 } from './errors'
 import { log, LogLevel } from '@radixdlt/util'
-import { TransactionIdentifierT, TransactionStatus } from './dto/_types'
+import { TransactionIdentifierT } from './dto/_types'
 import {
 	TransactionHistory,
 	TransactionHistoryActiveAccountRequestInput,
