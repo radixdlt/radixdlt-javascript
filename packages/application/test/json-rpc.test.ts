@@ -1,4 +1,4 @@
-import { nodeAPI } from '../dist/api/api'
+import { nodeAPI } from '../src/api/api'
 import {
 	BuildTransactionEndpoint,
 	NativeTokenEndpoint,
@@ -10,19 +10,19 @@ import {
 	TokenBalancesEndpoint,
 	TransactionHistoryEndpoint,
 	TransactionStatusEndpoint,
-} from '../dist/api/json-rpc/_types'
-import { ResourceIdentifier } from '../dist/dto/resourceIdentifier'
+} from '../src/api/json-rpc/_types'
+import { ResourceIdentifier } from '../src/dto/resourceIdentifier'
 import { Address } from '@radixdlt/account'
 import { Amount } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
-import { TransactionIdentifier } from '../dist/dto/transactionIdentifier'
+import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
 import {
 	ActionType,
 	ExecutedStakeTokensAction,
 	ExecutedTransferTokensAction,
-} from '../dist/actions/_types'
-import { ExecutedTransaction, TokenPermission } from '../dist/dto/_types'
-import { makeTokenPermissions } from '../dist/dto/tokenPermissions'
+} from '../src/actions/_types'
+import { ExecutedTransaction, TokenPermission } from '../src/dto/_types'
+import { makeTokenPermissions } from '../src/dto/tokenPermissions'
 import { TransactionStatus } from '../src/dto/_types'
 
 let mockClientReturnValue: any
