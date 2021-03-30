@@ -171,7 +171,7 @@ const create = (): RadixT => {
 		shareReplay(1),
 	)
 
-	const transactionHistoryActiveAccount = (
+	const transactionHistory = (
 		input: TransactionHistoryActiveAccountRequestInput,
 	): Observable<TransactionHistory> =>
 		activeAddress.pipe(
@@ -312,7 +312,7 @@ const create = (): RadixT => {
 
 		// Active Address/Account APIs
 		tokenBalances,
-		transactionHistoryActiveAccount,
+		transactionHistory,
 	}
 }
 

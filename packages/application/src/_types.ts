@@ -40,7 +40,13 @@ export type RadixT = Readonly<{
 	// Active Address/Account APIs
 	tokenBalances: Observable<TokenBalances>
 
-	transactionHistoryActiveAccount: (
+	/**
+	 * Transaction history of active account.
+	 *
+	 * @param {TransactionHistoryActiveAccountRequestInput} input - Pagination input, size and cursor.
+	 * @returns {TransactionHistory} A page from the transaction history.
+	 */
+	transactionHistory: (
 		input: TransactionHistoryActiveAccountRequestInput,
 	) => Observable<TransactionHistory>
 

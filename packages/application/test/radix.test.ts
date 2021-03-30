@@ -586,7 +586,7 @@ describe('Radix API', () => {
 				]
 
 				radix
-					.transactionHistoryActiveAccount({ size: 3 })
+					.transactionHistory({ size: 3 })
 					.pipe(take(expectedValues.length), toArray())
 					.subscribe((values) => {
 						values.forEach((txHist, index: number) => {
