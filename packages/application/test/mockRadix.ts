@@ -445,10 +445,13 @@ export const deterministicRandomTxHistoryWithInput = (
 					const date = new Date('2020-03-14T15:32:05')
 					date.setMonth(index % 12)
 
+					const txID = TransactionIdentifier.create(
+						txIDBuffer,
+					)._unsafeUnwrap()
+
+
 					return {
-						txID: TransactionIdentifier.create(
-							txIDBuffer,
-						)._unsafeUnwrap(),
+						txID,
 						sentAt: date,
 						fee: Amount.fromUnsafe(anInt())._unsafeUnwrap(),
 						// message?: {

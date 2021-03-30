@@ -592,6 +592,10 @@ describe('Radix API', () => {
 						values.forEach((txHist, index: number) => {
 							const expected = expectedValues[index]
 
+							txHist.transactions.forEach(tx => {
+								expect(tx.txID.toString().length).toBe(64)
+							})
+
 							expect(
 								txHist.transactions.map(
 									(tx) => tx.actions.length,

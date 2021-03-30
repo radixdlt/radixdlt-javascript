@@ -41,6 +41,7 @@ export type ResourceIdentifierT = JSONEncodable &
  */
 export type TransactionIdentifierT = DSONCodable &
 	Readonly<{
+		__hex: string
 		toString: () => string
 		equals: (other: TransactionIdentifierT) => boolean
 	}>
