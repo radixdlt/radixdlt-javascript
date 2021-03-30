@@ -1,13 +1,11 @@
 import { Radix } from '../src/radix'
 import {
-	Address,
 	AddressT,
 	HDMasterSeed,
 	Wallet,
 	WalletT,
 } from '@radixdlt/account'
-import { Observable, of, Subscription, throwError } from 'rxjs'
-import { DenominationOutputFormat } from '@radixdlt/primitives'
+import { interval, Observable, of, Subscription, throwError } from 'rxjs'
 import { map, take, toArray } from 'rxjs/operators'
 
 import { KeystoreT } from '@radixdlt/crypto'
@@ -15,16 +13,13 @@ import { RadixT } from '../src/_types'
 import { APIErrorCause, ErrorCategory } from '../src/errors'
 import {
 	balancesFor,
-	barToken,
-	fooToken,
 	mockedAPI,
 	mockRadixCoreAPI,
-	tokenByRRIMap,
-	xrd,
 } from './mockRadix'
 import { NodeT, RadixCoreAPI } from '../src/api/_types'
 import { TokenBalances } from '../src/dto/_types'
-import { TransactionIdentifier } from '../dist/dto/transactionIdentifier'
+import { radixCoreAPI } from '../src/api/radixCoreAPI'
+import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
 
 const createWallet = (): WalletT => {
 	const masterSeed = HDMasterSeed.fromSeed(
@@ -381,14 +376,10 @@ describe('Radix API', () => {
 			.add(subs)
 
 		radix.errors
-			.subscribe({
-				next: (error) => {
-					expect(error.category).toEqual(ErrorCategory.API)
-					expect(error.cause).toEqual(
-						APIErrorCause.TOKEN_BALANCES_FAILED,
-					)
-					done()
-				},
+			.subscribe((error) => {
+				expect(error.category).toEqual(ErrorCategory.API)
+				expect(error.cause).toEqual(APIErrorCause.TOKEN_BALANCES_FAILED)
+				done()
 			})
 			.add(subs)
 
@@ -419,7 +410,7 @@ describe('Radix API', () => {
 
 		const radix = Radix.create()
 		radix.withWallet(createWallet())
-		radix.__withAPI(api)
+		radix.__withAPI(api).withTokenBalanceFetchTrigger(interval(300))
 
 		const expectedValues = [
 			100000000000000000000,
@@ -438,14 +429,6 @@ describe('Radix API', () => {
 				done()
 			})
 			.add(subs)
-
-		radix
-			.deriveNextAccount({ alsoSwitchTo: true }) // 1
-			.deriveNextAccount({ alsoSwitchTo: true }) // 2
-			.deriveNextAccount({ alsoSwitchTo: true }) // 3
-			.switchAccount({ toIndex: 1 })
-			.switchAccount('first')
-			.switchAccount('last')
 	})
 
 	it('deriveNextAccount method on radix updates accounts', (done) => {

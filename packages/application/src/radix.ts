@@ -1,4 +1,5 @@
 import {
+	AddressT,
 	DeriveNextAccountInput,
 	SwitchAccountInput,
 	Wallet,
@@ -65,6 +66,7 @@ const create = (): RadixT => {
 	const deriveAccountSubject = new Subject<DeriveNextAccountInput>()
 	const switchAccountSubject = new Subject<SwitchAccountInput>()
 
+	const tokenBalanceFetchSubject = new Subject<number>()
 	const wallet$ = walletSubject.asObservable()
 
 	const coreAPIViaNode$ = nodeSubject
@@ -79,13 +81,13 @@ const create = (): RadixT => {
 		pickFn: (api: RadixCoreAPI) => (...input: I) => Observable<O>,
 		errorFn: (message: string) => ErrorNotification,
 	) => (...input: I) =>
-		coreAPI$.pipe(
-			mergeMap((a) => pickFn(a)(...input)),
-			catchError((error: Error) => {
-				errorNotificationSubject.next(errorFn(error.message))
-				return EMPTY
-			}),
-		)
+			coreAPI$.pipe(
+				mergeMap((a) => pickFn(a)(...input)),
+				catchError((error: Error) => {
+					errorNotificationSubject.next(errorFn(error.message))
+					return EMPTY
+				}),
+			)
 
 	const networkId: () => Observable<Magic> = fwdAPICall(
 		(a) => a.networkId,
@@ -156,17 +158,23 @@ const create = (): RadixT => {
 		shareReplay(1),
 	)
 
-	const tokenBalances = activeAddress.pipe(
+	const tokenBalances = merge(
+		tokenBalanceFetchSubject.pipe(
+			withLatestFrom(activeAddress),
+			map(result => result[1])
+		),
+		activeAddress,
+	).pipe(
 		withLatestFrom(coreAPI$),
-		switchMap(([activeAddress, api]) =>
-			api.tokenBalancesForAddress(activeAddress).pipe(
+		switchMap(([address, api]) =>
+			api.tokenBalancesForAddress(address).pipe(
 				catchError((error: Error) => {
 					errorNotificationSubject.next(
 						tokenBalancesErr(error.message),
 					)
 					return EMPTY
 				}),
-			),
+			)
 		),
 		shareReplay(1),
 	)
@@ -300,8 +308,14 @@ const create = (): RadixT => {
 			return this
 		},
 
-		loglevel: function (level: LogLevel) {
+		logLevel: function (level: LogLevel) {
 			log.setLevel(level)
+			return this
+		},
+
+		withTokenBalanceFetchTrigger: function (trigger: Observable<number>) {
+			trigger.subscribe(tokenBalanceFetchSubject).add(subs)
+
 			return this
 		},
 
