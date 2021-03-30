@@ -11,7 +11,11 @@ import { LogLevel } from '@radixdlt/util'
 import { Observable } from 'rxjs'
 import { NodeT, RadixAPI, RadixCoreAPI } from './api/_types'
 import { ErrorNotification } from './errors'
-import { TokenBalances } from './dto/_types'
+import {
+	TokenBalances,
+	TransactionHistory,
+	TransactionHistoryActiveAccountRequestInput,
+} from './dto/_types'
 
 export type RadixT = Readonly<{
 	ledger: RadixAPI
@@ -35,6 +39,16 @@ export type RadixT = Readonly<{
 
 	// Active Address/Account APIs
 	tokenBalances: Observable<TokenBalances>
+
+	/**
+	 * Transaction history of active account.
+	 *
+	 * @param {TransactionHistoryActiveAccountRequestInput} input - Pagination input, size and cursor.
+	 * @returns {TransactionHistory} A page from the transaction history.
+	 */
+	transactionHistory: (
+		input: TransactionHistoryActiveAccountRequestInput,
+	) => Observable<TransactionHistory>
 
 	loglevel: (level: LogLevel) => RadixT
 

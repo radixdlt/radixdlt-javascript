@@ -1,6 +1,8 @@
 import {
 	Amount,
+	AmountT,
 	Denomination,
+	isAmount,
 	Magic,
 	magicFromNumber,
 	maxAmount,
@@ -9,6 +11,7 @@ import { UInt256 } from '@radixdlt/uint256'
 import { AddressT } from '@radixdlt/account'
 import { Observable, of, throwError } from 'rxjs'
 import {
+	ExecutedTransaction,
 	NetworkTransactionDemand,
 	NetworkTransactionThroughput,
 	PendingTransaction,
@@ -20,15 +23,23 @@ import {
 	TokenBalance,
 	TokenBalances,
 	TransactionHistory,
+	TransactionHistoryRequestInput,
 	TransactionIdentifierT,
 	TransactionIntent,
 	UnsignedTransaction,
 	UnstakePositions,
+	Validators,
+	ValidatorsRequestInput,
 } from '../src/dto/_types'
 import { ResourceIdentifier } from '../src/dto/resourceIdentifier'
 import { tokenPermissionsAll } from '../src/dto/tokenPermissions'
 import { RadixCoreAPI } from '../src/api/_types'
-import { ExecutedTransaction, Validators } from '../dist/dto/_types'
+import { shareReplay } from 'rxjs/operators'
+import { tokenOwnerOnly } from '../src/dto/tokenPermissions'
+import { PublicKey, sha256 } from '@radixdlt/crypto'
+import { ActionType, ExecutedAction } from '../src/actions/_types'
+import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
+import { toAddress } from '../../account/test/address.test'
 
 export const xrd: Token = {
 	name: 'Rad',
@@ -82,6 +93,24 @@ export const barToken: Token = {
 	tokenInfoURL: new URL('http://www.bartoken.com'),
 	iconURL: new URL('http://www.image.bartoken.com/'),
 	tokenPermission: tokenPermissionsAll,
+}
+
+export const goldToken: Token = {
+	name: 'Gold token',
+	rri: ResourceIdentifier.fromString(
+		'/9SAihkYQDBKvHfhvwEw4QBfx1rpjvta2TvmWibyXixVzX2JHHHWf/BAR',
+	)._unsafeUnwrap(),
+	symbol: 'GOLD',
+	description: 'Gold token. Granularity E-12.',
+	granularity: Amount.fromUInt256({
+		magnitude: UInt256.valueOf(1),
+		denomination: Denomination.Pico,
+	})._unsafeUnwrap(),
+	isSupplyMutable: false,
+	currentSupply: maxAmount,
+	tokenInfoURL: new URL('http://www.goldtoken.com'),
+	iconURL: new URL('http://www.image.goldtoken.com/'),
+	tokenPermission: tokenOwnerOnly,
 }
 
 export const radixWrappedBitcoinToken: Token = {
@@ -142,18 +171,17 @@ export const __fallBackAlexToken: Token = {
 export const balanceOfFor = (
 	input: Readonly<{
 		token: Token
-		amount: number
+		amount: number | AmountT
 	}>,
 ): TokenBalance => {
-	if (!Number.isInteger(input.amount) || input.amount < 1)
-		throw new Error('Must be interger >= 1')
-
-	const amt = Amount.fromUInt256({
-		magnitude: input.token.granularity.magnitude.multiply(
-			UInt256.valueOf(input.amount),
-		),
-		denomination: Denomination.Atto,
-	})._unsafeUnwrap()
+	const amt: AmountT = isAmount(input.amount)
+		? input.amount
+		: Amount.fromUInt256({
+				magnitude: input.token.granularity.magnitude.multiply(
+					UInt256.valueOf(input.amount),
+				),
+				denomination: Denomination.Atto,
+		  })._unsafeUnwrap()
 
 	return {
 		token: input.token.rri,
@@ -184,6 +212,70 @@ const differentTokens: Token[] = [
 	barToken,
 	radixWrappedBitcoinToken,
 	radixWrappedEtherToken,
+	goldToken,
+]
+
+// PLEASE KEEP - used as Cast of characters: https://en.wikipedia.org/wiki/Alice_and_Bob#Cast_of_characters
+const alice = toAddress('9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT')
+const bob = toAddress('9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt')
+const carol = toAddress('9S8sKfN3wGyJdfyu9RwWvGKtZqq3R1NaxwT63VXi5dEZ6dUJXLyR')
+const dan = toAddress('9SBFdPAkvquf9XX82D2Z9DzL2WdmNQGcrxFUnKpVytpkMjZWD9Rb')
+const erin = toAddress('9S8LZFHXHTSJqNQ86ZeGKtFMJtqZbYPtgHWSC4LyYjSbduNRpDNN')
+const frank = toAddress('9SBRR1Xa3RRw1M7juwLTHfL1T2Y7XMZJJM6YyJjqddSLGaH2dk9c')
+const grace = toAddress('9S9AtsDC1eR6QSLwrTRi2vteWCg2C1VDMySStFaZVRpMrvErXzBV')
+const heidi = toAddress('9S9y4d9owF7kuRk7b14VhfwrBxHe3w9ukbAcbnoLtBFvjWhTCXpz')
+const ivan = toAddress('9SBRrNSxu6zacM8qyuUpDh4gNqou8QX6QEu53LKVsT4FXjvD77ou')
+const judy = toAddress('9S9tQA7v1jSEUTvLk3hTp9fTmWNsA1ppJ3D6dHLxoqnPcYayAmQf')
+const klara = toAddress('9S8np84gn7skz8U2Vd7GwkvSMzSksMLqAq7nrpu2hA2a31M2rmfD')
+const leonard = toAddress(
+	'9S8toEsjy7bLLVYwenrygbEiQDBiSYen4GDEGan5y6nGMXzKT22G',
+)
+const mallory = toAddress(
+	'9SBZ9kzpXKAQ9oHHZngahVUQrLwU6DssiPbtCj5Qb6cxqxPC6stb',
+)
+const niaj = toAddress('9S9X7DFSGTbfiQpSw1Dv9DHK67K1qHtz1Kjwd2uFtty7Yz8dmZbc')
+const olivia = toAddress('9S81XtkW3H9XZrmnzWqYSuTFPhWXdRnnpL3XXk7h5XxAM6zMdH7k')
+const peggy = toAddress('9SAGS7iVkjLDa2uoqzvybBJZP5RJd6XLzoeSmqur9WWXoKs7hPqz')
+const quentin = toAddress(
+	'9SB4Hvi9sudHncGXhUhuvUYNWziMYYcXXiDZ6i7fpSvRUDCA3rjg',
+)
+const rupert = toAddress('9SAusiPSyX8xJ3gbNJyYUHZaWz1jSYxXoBnWbzMAkcjhug6G3nLd')
+const stella = toAddress('9S8PWQF9smUics1sZEo7CrYgKgCkcopvt9HfWJMTrtPyV2rg7RAG')
+const ted = toAddress('9SAihkYQDBKvHfhvwEw4QBfx1rpjvta2TvmWibyXixVzX2JHHHWf')
+const ursula = toAddress('9SAzQV3ei2g4qcHpvnMSuEGUYREPgcHvQyBNvkHdop18DDyEqpSY')
+const victor = toAddress('9S8PQU9jcALCeXW6sXarwHxjKLqCUM4AkiecSMwdjfUWhdPws9tx')
+const webdy = toAddress('9S9T39u425jJfAkWRYPPhpBFdkU5f1KWBuMPg7mWnCQ2abAFSnoZ')
+const xerxez = toAddress('9SBA2tji3wjuuThohxW37L6vySVuVaUpBFBpq2b7Ey7sKToU2uJp')
+const yara = toAddress('9SBaXGCwn8HcyPsbu4ymzNVCXtvogf3vSqnH39ihqt5RyDFq9hsv')
+const zelda = toAddress('9SAU2m7yis9iE5u2L44poZ6rYf5JiTAN6GtiRnsBk6JnXoMoAdks')
+
+const castOfCharacters: AddressT[] = [
+	alice,
+	bob,
+	carol,
+	dan,
+	erin,
+	frank,
+	grace,
+	heidi,
+	ivan,
+	judy,
+	klara,
+	leonard,
+	mallory,
+	niaj,
+	olivia,
+	peggy,
+	quentin,
+	rupert,
+	stella,
+	ted,
+	ursula,
+	victor,
+	webdy,
+	xerxez,
+	yara,
+	zelda,
 ]
 
 export const tokenByRRIMap: Map<
@@ -193,51 +285,191 @@ export const tokenByRRIMap: Map<
 	return a.set(b.rri, b)
 }, new Map<ResourceIdentifierT, Token>())
 
-export const deterministicRandomBalancesForAddress = (
-	address: AddressT,
-): TokenBalances => {
+const detPRNGWithPubKey = (pubKey: PublicKey): (() => number) => {
 	// cannot use first, since it is always 02 or 03
-	let bytes = address.publicKey.asData({ compressed: true }).slice(1, 33)
+	let bytes = pubKey.asData({ compressed: true }).slice(1, 33)
 
 	const anInt = (): number => {
 		if (bytes.length === 0) {
-			throw new Error('Failed to create randomness for mocked data.')
+			bytes = sha256(pubKey.asData({ compressed: true }))
 		}
 		const lengthToSlice = 2
 		const buf = bytes.slice(0, lengthToSlice)
 		bytes = bytes.slice(lengthToSlice, bytes.length)
 		return Number.parseInt(buf.toString('hex'), 16)
 	}
+	return anInt
+}
+
+type BalanceOfTokenWithInfo = Readonly<{
+	token: Token
+	amount: AmountT
+}>
+
+const detRandBalanceOfTokenWithInfo = (
+	png: () => number,
+): BalanceOfTokenWithInfo[] => {
+	const anInt = png
+	const availableTokens = [...differentTokens]
 
 	const deterministicRandomToken = (): Token => {
-		const tokenCount = differentTokens.length
+		const tokenCount = availableTokens.length
 		const tokenIndex = anInt() % tokenCount
-		const token = differentTokens[tokenIndex]
-		differentTokens.splice(tokenIndex, 1)
+		const token = availableTokens[tokenIndex]
+		availableTokens.splice(tokenIndex, 1)
 		return token
 	}
 
-	const deterministicTokenBalances = (): TokenBalance[] => {
-		const sizeOrZero = anInt() % differentTokens.length
-		const size = Math.max(sizeOrZero, 1)
-		return Array(size)
+	const size = Math.max(anInt() % availableTokens.length, 1)
+
+	return Array(size)
+		.fill(undefined)
+		.map(
+			(_): BalanceOfTokenWithInfo => {
+				const token = deterministicRandomToken()
+				const amtOrZero = anInt() % 10_000
+				const amountNum = Math.max(10, amtOrZero)
+				const amount = Amount.inSmallestDenomination(
+					token.granularity.magnitude.multiply(amountNum),
+				)
+				return {
+					token,
+					amount,
+				}
+			},
+		)
+}
+
+export const deterministicRandomBalancesForAddress = (
+	address: AddressT,
+): TokenBalances => {
+	const anInt = detPRNGWithPubKey(address.publicKey)
+
+	const tokenBalances = detRandBalanceOfTokenWithInfo(anInt).map((bti) =>
+		balanceOfFor(bti),
+	)
+
+	return {
+		owner: address,
+		tokenBalances,
+	}
+}
+
+export const deterministicRandomTxHistoryWithInput = (
+	input: TransactionHistoryRequestInput,
+): TransactionHistory => {
+	const address = input.address
+	const anInt: () => number = detPRNGWithPubKey(address.publicKey)
+	const pubKeyBytes = address.publicKey
+		.asData({ compressed: true })
+		.slice(1, 33)
+	const detRandomAddress = (): AddressT =>
+		castOfCharacters[anInt() % castOfCharacters.length]
+
+	const tokenAndAmounts = detRandBalanceOfTokenWithInfo(anInt)
+
+	const deterministicRandomExecutedTransactions = (): ExecutedTransaction[] => {
+		return Array(input.size)
 			.fill(undefined)
 			.map(
-				(_): TokenBalance => {
-					const amtOrZero = anInt() % 10_000
-					const amount = Math.max(10, amtOrZero)
+				(_, index): ExecutedTransaction => {
+					const detMakeActionForTx = (): ExecutedAction[] => {
+						// mock max 5 actions per tx in history, min 1.
+						const actionCount = Math.max(anInt() % 5, 1)
+						return Array(actionCount)
+							.fill(undefined)
+							.map(
+								(_, actionIndex): ExecutedAction => {
+									const v: number = anInt() % 4 // Transfer, Stake, Unstake, Other
+									const actionType: ActionType =
+										v === 0
+											? ActionType.TOKEN_TRANSFER
+											: v === 1
+											? ActionType.STAKE_TOKENS
+											: v === 2
+											? ActionType.UNSTAKE_TOKENS
+											: ActionType.OTHER
 
-					return balanceOfFor({
-						token: deterministicRandomToken(),
-						amount,
-					})
+									let executedAction: ExecutedAction
+
+									const tokenAndAmount = tokenAndAmounts[
+										actionIndex % tokenAndAmounts.length
+									]!
+
+									switch (actionType) {
+										case ActionType.OTHER:
+											executedAction = {
+												type: ActionType.OTHER,
+											}
+											break
+										case ActionType.STAKE_TOKENS:
+											executedAction = {
+												type: ActionType.STAKE_TOKENS,
+												amount: Amount.fromUnsafe(
+													anInt(),
+												)._unsafeUnwrap(),
+												validator: detRandomAddress(),
+											}
+											break
+										case ActionType.UNSTAKE_TOKENS:
+											executedAction = {
+												type: ActionType.UNSTAKE_TOKENS,
+												amount: Amount.fromUnsafe(
+													anInt(),
+												)._unsafeUnwrap(),
+												validator: detRandomAddress(),
+											}
+											break
+										case ActionType.TOKEN_TRANSFER:
+											executedAction = {
+												type: ActionType.TOKEN_TRANSFER,
+												from: address,
+												to: detRandomAddress(),
+												amount: tokenAndAmount.amount,
+												resourceIdentifier:
+													tokenAndAmount.token.rri,
+											}
+											break
+									}
+
+									return executedAction
+								},
+							)
+					}
+
+					const bytesFromIndex = Buffer.allocUnsafe(2)
+					bytesFromIndex.writeUInt16BE(index)
+					const txIDBuffer = sha256(
+						Buffer.concat([pubKeyBytes, bytesFromIndex]),
+					)
+					const date = new Date('2020-03-14T15:32:05')
+					date.setMonth(index % 12)
+
+					const txID = TransactionIdentifier.create(
+						txIDBuffer,
+					)._unsafeUnwrap()
+
+					return {
+						txID,
+						sentAt: date,
+						fee: Amount.fromUnsafe(anInt())._unsafeUnwrap(),
+						// message?: {
+						// 	msg: string
+						// 	encryptionScheme: string
+						// }
+						actions: detMakeActionForTx(),
+					}
 				},
 			)
 	}
 
+	const updatedCursor = sha256(
+		input.cursor !== undefined ? Buffer.from(input.cursor) : pubKeyBytes,
+	).toString('hex')
+
 	return {
-		owner: address,
-		tokenBalances: deterministicTokenBalances(),
+		cursor: updatedCursor,
+		transactions: deterministicRandomExecutedTransactions(),
 	}
 }
 
@@ -246,8 +478,13 @@ export const deterministicRandomBalances = (
 ): Observable<TokenBalances> =>
 	of(deterministicRandomBalancesForAddress(address))
 
-export const crashingAPI: RadixCoreAPI = {
-	node: { url: new URL('http://www.not.implemented.com') },
+export const deterministicRandomTXHistory = (
+	input: TransactionHistoryRequestInput,
+): Observable<TransactionHistory> =>
+	of(deterministicRandomTxHistoryWithInput(input))
+
+export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
+	node: { url: new URL(nodeUrl ?? 'http://www.example.com') },
 
 	networkId: (): Observable<Magic> =>
 		throwError(() => new Error('Not implemented')),
@@ -260,16 +497,11 @@ export const crashingAPI: RadixCoreAPI = {
 	): Observable<ExecutedTransaction> =>
 		throwError(() => new Error('Not implemented')),
 
-	validators: (
-		_input: Readonly<{ size: number; offset: number }>,
-	): Observable<Validators> => throwError(() => new Error('Not implemented')),
+	validators: (_input: ValidatorsRequestInput): Observable<Validators> =>
+		throwError(() => new Error('Not implemented')),
 
 	transactionHistory: (
-		_input: Readonly<{
-			address: AddressT
-			// pagination
-			size: number
-		}>,
+		_input: TransactionHistoryRequestInput,
 	): Observable<TransactionHistory> =>
 		throwError(() => new Error('Not implemented')),
 
@@ -305,13 +537,23 @@ export const crashingAPI: RadixCoreAPI = {
 		_signedTransaction: SignedTransaction,
 	): Observable<PendingTransaction> =>
 		throwError(() => new Error('Not implemented')),
-}
+})
 
-export const mockedAPI: Observable<RadixCoreAPI> = of({
-	...crashingAPI,
-	networkId: (): Observable<Magic> => of(magicFromNumber(123)),
+export const mockRadixCoreAPI = (
+	input?: Readonly<{
+		nodeUrl?: string
+		magic?: number
+	}>,
+): RadixCoreAPI => ({
+	...makeThrowingRadixCoreAPI(input?.nodeUrl),
+	networkId: (): Observable<Magic> => {
+		return of(magicFromNumber(input?.magic ?? 123)).pipe(shareReplay(1))
+	},
 	nativeToken: (): Observable<Token> => of(xrd),
 	tokenInfo: (rri: ResourceIdentifierT): Observable<Token> =>
 		of(tokenByRRIMap.get(rri) ?? __fallBackAlexToken),
 	tokenBalancesForAddress: deterministicRandomBalances,
+	transactionHistory: deterministicRandomTXHistory,
 })
+
+export const mockedAPI: Observable<RadixCoreAPI> = of(mockRadixCoreAPI())

@@ -49,6 +49,7 @@ export type HardwareWalletSimpleT = Readonly<{
 export type AccountsT = Readonly<{
 	get: (hdPath: HDPathRadixT) => Option<AccountT>
 	all: AccountT[]
+	size: number
 }>
 
 export type SwitchToAccount = Readonly<{ toAccount: AccountT }>

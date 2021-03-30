@@ -72,7 +72,7 @@ export namespace TransactionHistoryEndpoint {
 	export type Input = [
 		address: string,
 		size: number, // must be > 0
-		cursor?: string, // TransactionIdentifier
+		cursor?: string,
 	]
 
 	export type Response = Readonly<{

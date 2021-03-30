@@ -27,6 +27,7 @@ const create = (
 			prefix: CBOR_BYTESTRING_PREFIX,
 			buffer,
 		}),
+		__hex: asString,
 		toString: () => asString,
 		equals: (other: TransactionIdentifierT) =>
 			other.toString() === asString,

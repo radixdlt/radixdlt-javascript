@@ -50,9 +50,7 @@ const create = (
 	const numberOfAccounts = (): number => accountsSubject.getValue().size
 
 	const universeMagicSubject = new ReplaySubject<Magic>()
-	const magic$ = universeMagicSubject
-		.asObservable()
-		.pipe(distinctUntilChanged((a: Magic, b: Magic) => a.byte === b.byte))
+	const magic$ = universeMagicSubject.asObservable()
 
 	const provideNetworkId = (magic$: Observable<Magic>): void => {
 		magic$
@@ -173,6 +171,7 @@ const create = (
 				get: (hdPath: HDPathRadixT): Option<AccountT> =>
 					Option.of(map.get(hdPath)),
 				all: Array.from(map.values()),
+				size: map.size,
 			}),
 		),
 		distinctUntilChanged((a: AccountsT, b: AccountsT): boolean =>
