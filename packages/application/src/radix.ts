@@ -15,6 +15,7 @@ import {
 	switchMap,
 	catchError,
 	filter,
+	distinctUntilChanged,
 } from 'rxjs/operators'
 import {
 	Observable,
@@ -308,12 +309,10 @@ const create = (): RadixT => {
 		},
 
 		transactionStatus: (txID: TransactionIdentifierT, trigger: Observable<number>) => {
-			const seenStatuses: TransactionStatus[] = []
-
 			return trigger.pipe(
 				mergeMap((_) => api.transactionStatus(txID)),
-				filter(({ status }) => !seenStatuses.includes(status)),
-				tap(({ status }) => seenStatuses.push(status)),
+				distinctUntilChanged((prev, cur) => prev.status === cur.status),
+				filter(({ txID }) => txID.equals(txID)),
 			)
 		},
 
