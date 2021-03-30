@@ -18,6 +18,7 @@ import {
 } from './mockRadix'
 import { NodeT, RadixCoreAPI } from '../src/api/_types'
 import { TokenBalances } from '../src/dto/_types'
+import { radixCoreAPI } from '../src/api/radixCoreAPI'
 
 const createWallet = (): WalletT => {
 	const masterSeed = HDMasterSeed.fromSeed(

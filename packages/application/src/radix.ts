@@ -67,8 +67,6 @@ const create = (): RadixT => {
 	const switchAccountSubject = new Subject<SwitchAccountInput>()
 
 	const tokenBalanceFetchSubject = new Subject<number>()
-	const txHistoryFetchSubject = new Subject<number>()
-
 	const wallet$ = walletSubject.asObservable()
 
 	const coreAPIViaNode$ = nodeSubject
@@ -184,17 +182,11 @@ const create = (): RadixT => {
 	const transactionHistory = (
 		input: TransactionHistoryActiveAccountRequestInput,
 	): Observable<TransactionHistory> =>
-		merge(
-			txHistoryFetchSubject.pipe(
-				withLatestFrom(activeAddress),
-				map(result => result[1])
-			),
-			activeAddress,
-		).pipe(
+		activeAddress.pipe(
 			withLatestFrom(coreAPI$),
-			switchMap(([address, api]) =>
+			switchMap(([activeAddress, api]) =>
 				api
-					.transactionHistory({ ...input, address })
+					.transactionHistory({ ...input, address: activeAddress })
 					.pipe(
 						catchError((error: Error) => {
 							errorNotificationSubject.next(
@@ -202,7 +194,7 @@ const create = (): RadixT => {
 							)
 							return EMPTY
 						}),
-					)
+					),
 			),
 			shareReplay(1),
 		)
@@ -323,12 +315,6 @@ const create = (): RadixT => {
 
 		withTokenBalanceFetchTrigger: function (trigger: Observable<number>) {
 			trigger.subscribe(tokenBalanceFetchSubject).add(subs)
-
-			return this
-		},
-
-		withTxHistoryFetchTrigger: function (trigger: Observable<number>) {
-			trigger.subscribe(txHistoryFetchSubject).add(subs)
 
 			return this
 		},

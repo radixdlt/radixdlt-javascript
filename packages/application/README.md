@@ -385,40 +385,6 @@ radix
 
 The above code will make sure you automatically perform a fetch of token balances every third minute. 
 
-Similarly for fetching transaction history:
-
-```typescript
-import { timer } from 'rxjs'
-
-radix
-	.withTxHistoryFetchTrigger(
-		interval(3 * 60 * 1_000), // every third minute
-	)
-```
-
-```typescript
-import { Subject } from 'rxjs'
-
-const fetchNowSubject = new Subject<void>()
-const trigger = merge(
-	timer(3 * 60 * 1_000), // every third minute,
-	fetchNowSubject
-)
-
-radix
-	.withFetchTrigger({
-		trigger,
-		fetch: {
-			tokenBalances: true,
-			transactionHistory: true,
-		}
-	})
-
-// If you "bind" a "Fetch Now"-button in GUI to call `next` on the subject
-// this will trigger a fetch
-fetchNowSubject.next(undefined) 
-```
-
 
 ### Decrypt
 

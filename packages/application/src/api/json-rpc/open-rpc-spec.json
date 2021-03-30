@@ -344,8 +344,7 @@
                     "required": true,
                     "schema": {
                         "type": "integer",
-                        "minimum": 0,
-                        "maximum": 200
+                        "minimum": 0
                     }
                 },
                 {
