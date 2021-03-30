@@ -56,7 +56,7 @@ export type RadixT = Readonly<{
 
 	transactionStatus: (
 		txID: TransactionIdentifierT,
-		intervalMs?: number,
+		trigger: Observable<number>,
 	) => Observable<StatusOfTransaction>
 
 	errors: Observable<ErrorNotification>

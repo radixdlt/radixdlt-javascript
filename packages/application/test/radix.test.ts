@@ -6,7 +6,7 @@ import {
 	Wallet,
 	WalletT,
 } from '@radixdlt/account'
-import { Observable, of, Subscription, throwError } from 'rxjs'
+import { interval, Observable, of, Subscription, throwError } from 'rxjs'
 import { DenominationOutputFormat } from '@radixdlt/primitives'
 import { map, take, toArray } from 'rxjs/operators'
 
@@ -614,6 +614,7 @@ describe('Radix API', () => {
 				TransactionIdentifier.create(
 					'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
 				)._unsafeUnwrap(),
+				interval(300)
 			)
 			.subscribe(({ status }) => {
 				if (count === 0) {

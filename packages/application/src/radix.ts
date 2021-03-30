@@ -307,10 +307,10 @@ const create = (): RadixT => {
 			return this
 		},
 
-		transactionStatus: (txID: TransactionIdentifierT, intervalMs = 300) => {
+		transactionStatus: (txID: TransactionIdentifierT, trigger: Observable<number>) => {
 			const seenStatuses: TransactionStatus[] = []
 
-			return interval(intervalMs).pipe(
+			return trigger.pipe(
 				mergeMap((_) => api.transactionStatus(txID)),
 				filter(({ status }) => !seenStatuses.includes(status)),
 				tap(({ status }) => seenStatuses.push(status)),
