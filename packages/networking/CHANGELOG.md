@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## 1.0.6-alpha.4 (2021-03-30)
+## 1.0.6-alpha.1 (2021-03-30)
 
 
 
@@ -12,10 +12,6 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 ## 1.0.5-alpha.0 (2021-03-17)
-
-
-
-## 1.0.4-alpha.0 (2021-03-16)
 
 
 
@@ -29,4 +25,4 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 # 1.0.0-alpha.0 (2021-03-16)
 
-**Note:** Version bump only for package @radixdlt/primitives
+**Note:** Version bump only for package @radixdlt/networking
