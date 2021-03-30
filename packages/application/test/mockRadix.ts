@@ -449,7 +449,6 @@ export const deterministicRandomTxHistoryWithInput = (
 						txIDBuffer,
 					)._unsafeUnwrap()
 
-
 					return {
 						txID,
 						sentAt: date,
