@@ -180,11 +180,11 @@ export const balanceOfFor = (
 	const amt: AmountT = isAmount(input.amount)
 		? input.amount
 		: Amount.fromUInt256({
-				magnitude: input.token.granularity.magnitude.multiply(
-					UInt256.valueOf(input.amount),
-				),
-				denomination: Denomination.Atto,
-		  })._unsafeUnwrap()
+			magnitude: input.token.granularity.magnitude.multiply(
+				UInt256.valueOf(input.amount),
+			),
+			denomination: Denomination.Atto,
+		})._unsafeUnwrap()
 
 	return {
 		token: input.token.rri,
@@ -392,10 +392,10 @@ export const deterministicRandomTxHistoryWithInput = (
 										v === 0
 											? ActionType.TOKEN_TRANSFER
 											: v === 1
-											? ActionType.STAKE_TOKENS
-											: v === 2
-											? ActionType.UNSTAKE_TOKENS
-											: ActionType.OTHER
+												? ActionType.STAKE_TOKENS
+												: v === 2
+													? ActionType.UNSTAKE_TOKENS
+													: ActionType.OTHER
 
 									let executedAction: ExecutedAction
 
@@ -587,7 +587,8 @@ export const mockRadixCoreAPI = (
 		of(tokenByRRIMap.get(rri) ?? __fallBackAlexToken),
 	tokenBalancesForAddress: deterministicRandomBalances,
 	transactionStatus: (txID: TransactionIdentifierT) => {
-		const shouldFail = Math.round(Math.random()) > 0.5 ? true : false
+		const prng = detPRNGWithBuffer(Buffer.from(txID.__hex, 'hex'))
+		const shouldFail = prng() % 2 > 0
 
 		const response = (status: TransactionStatus) => ({
 			txID,
@@ -597,13 +598,13 @@ export const mockRadixCoreAPI = (
 
 		return (shouldFail
 			? of(
-					response(TransactionStatus.PENDING),
-					response(TransactionStatus.FAILED),
-			  )
+				response(TransactionStatus.PENDING),
+				response(TransactionStatus.FAILED),
+			)
 			: of(
-					response(TransactionStatus.PENDING),
-					response(TransactionStatus.CONFIRMED),
-			  )
+				response(TransactionStatus.PENDING),
+				response(TransactionStatus.CONFIRMED),
+			)
 		).pipe(delay(1000))
 	},
 	transactionHistory: deterministicRandomTXHistory,
