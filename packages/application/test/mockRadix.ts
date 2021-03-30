@@ -8,7 +8,7 @@ import {
 	maxAmount,
 } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
-import { AddressT } from '@radixdlt/account'
+import { Address, AddressT } from '@radixdlt/account'
 import { Observable, of, throwError } from 'rxjs'
 import {
 	ExecutedTransaction,
@@ -33,11 +33,13 @@ import {
 	ValidatorsRequestInput,
 } from '../src/dto/_types'
 import { ResourceIdentifier } from '../src/dto/resourceIdentifier'
-import { tokenPermissionsAll } from '../src/dto/tokenPermissions'
+import {
+	tokenOwnerOnly,
+	tokenPermissionsAll,
+} from '../src/dto/tokenPermissions'
 import { RadixCoreAPI } from '../src/api/_types'
 import { delay, shareReplay } from 'rxjs/operators'
-import { tokenOwnerOnly } from '../dist/dto/tokenPermissions'
-import { PublicKey, sha256 } from '@radixdlt/crypto'
+import { privateKeyFromBuffer, PublicKey, sha256 } from '@radixdlt/crypto'
 import { ActionType, ExecutedAction } from '../src/actions/_types'
 import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
 import { toAddress } from '../../account/test/address.test'
@@ -286,20 +288,24 @@ export const tokenByRRIMap: Map<
 	return a.set(b.rri, b)
 }, new Map<ResourceIdentifierT, Token>())
 
-const detPRNGWithPubKey = (pubKey: PublicKey): (() => number) => {
-	// cannot use first, since it is always 02 or 03
-	let bytes = pubKey.asData({ compressed: true }).slice(1, 33)
-
-	const anInt = (): number => {
+const detPRNGWithBuffer = (buffer: Buffer): (() => number) => {
+	const bufCopy = Buffer.from(buffer)
+	let bytes = Buffer.from(buffer)
+	return (): number => {
 		if (bytes.length === 0) {
-			bytes = sha256(pubKey.asData({ compressed: true }))
+			bytes = sha256(bufCopy)
 		}
 		const lengthToSlice = 2
 		const buf = bytes.slice(0, lengthToSlice)
 		bytes = bytes.slice(lengthToSlice, bytes.length)
 		return Number.parseInt(buf.toString('hex'), 16)
 	}
-	return anInt
+}
+
+const detPRNGWithPubKey = (pubKey: PublicKey): (() => number) => {
+	// cannot use first, since it is always 02 or 03
+	const bytes = pubKey.asData({ compressed: true }).slice(1, 33)
+	return detPRNGWithBuffer(bytes)
 }
 
 type BalanceOfTokenWithInfo = Readonly<{
@@ -474,6 +480,27 @@ export const deterministicRandomTxHistoryWithInput = (
 	}
 }
 
+const deterministicRandomLookupTXUsingHist = (
+	txID: TransactionIdentifierT,
+): ExecutedTransaction => {
+	const seed = sha256(Buffer.from(txID.__hex, 'hex'))
+	const addressWithTXIdBytesAsSeed = Address.fromPublicKeyAndMagicByte({
+		magicByte: 123,
+		publicKey: privateKeyFromBuffer(seed)._unsafeUnwrap().publicKey(),
+	})
+	const txs = deterministicRandomTxHistoryWithInput({
+		size: 1,
+		address: addressWithTXIdBytesAsSeed,
+	}).transactions
+	if (txs.length === 0) {
+		throw new Error('Expected at least one tx...')
+	}
+	return {
+		...txs[0],
+		txID,
+	}
+}
+
 export const deterministicRandomBalances = (
 	address: AddressT,
 ): Observable<TokenBalances> =>
@@ -483,6 +510,11 @@ export const deterministicRandomTXHistory = (
 	input: TransactionHistoryRequestInput,
 ): Observable<TransactionHistory> =>
 	of(deterministicRandomTxHistoryWithInput(input))
+
+export const deterministicRandomLookupTX = (
+	txID: TransactionIdentifierT,
+): Observable<ExecutedTransaction> =>
+	of(deterministicRandomLookupTXUsingHist(txID))
 
 export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
 	node: { url: new URL(nodeUrl ?? 'http://www.example.com') },
@@ -575,6 +607,7 @@ export const mockRadixCoreAPI = (
 		).pipe(delay(1000))
 	},
 	transactionHistory: deterministicRandomTXHistory,
+	lookupTransaction: deterministicRandomLookupTX,
 })
 
 export const mockedAPI: Observable<RadixCoreAPI> = of(mockRadixCoreAPI())

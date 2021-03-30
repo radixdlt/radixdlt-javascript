@@ -48,7 +48,7 @@ Above code assumes you have a wallet. Looking for wallet creation?
 		- [Account derivation](#account-derivation)
 			- [restoreAccountsUpToIndex](#restoreaccountsuptoindex)
 		- [Account switching](#account-switching)
-		- [Fetch trigger](#fetch-trigger)
+		- [Token balance fetch trigger](#token-balance-fetch-trigger)
 		- [Decrypt](#decrypt)
 		- [Sign](#sign)
 	- [Methods resulting in RPC calls](#methods-resulting-in-rpc-calls)
@@ -57,10 +57,7 @@ Above code assumes you have a wallet. Looking for wallet creation?
 			- [`TokenTransfer`](#tokentransfer)
 			- [`StakeTokens`](#staketokens)
 			- [`UnstakeTokens`](#unstaketokens)
-			- [`ClaimEmissionReward`](#claimemissionreward)
-			- [`BurnTokens`](#burntokens)
-			- [`MintTokens`](#minttokens)
-			- [`Unknown`](#unknown)
+			- [`Other`](#other)
 	- [Make Transaction](#make-transaction)
 		- [Flow](#flow)
 		- [Unsafe user input](#unsafe-user-input)
@@ -370,49 +367,20 @@ radix.switchAccount({ toAccount: selectedAccount })
 
 TODO: 👀 we might want to make it possible to give each account a human-readable name, or that might be something a GUI wallet _should_ be responsible for.
 
-### Fetch trigger
+### Token balance fetch trigger
 
-> ⚠️ Not yet implemented, subject to change.
-
-You can specify a fetch trigger (polling), by use of `withFetchTrigger` method.
+You can specify a fetch trigger (polling):
 
 ```typescript
 import { timer } from 'rxjs'
 
 radix
-	.withFetchTrigger({
-		trigger: timer(3 * 60 * 1_000), // every third minute
-		fetch: {
-			tokenBalances: true,
-			transactionHistory: false,
-		}
-	})
+	.withTokenBalanceFetchTrigger(
+		interval(3 * 60 * 1_000), // every third minute
+	)
 ```
 
-The above code will make sure you automatically perform a fetch of token balances every third minute. If you change from `transactionHistory: false` to `transactionHistory: true`, also transaction history will be fetched with the same interval.
-
-```typescript
-import { Subject } from 'rxjs'
-
-const fetchNowSubject = new Subject<void>()
-const trigger = merge(
-	timer(3 * 60 * 1_000), // every third minute,
-	fetchNowSubject
-)
-
-radix
-	.withFetchTrigger({
-		trigger,
-		fetch: {
-			tokenBalances: true,
-			transactionHistory: true,
-		}
-	})
-
-// If you "bind" a "Fetch Now"-button in GUI to call `next` on the subject
-// this will trigger a fetch
-fetchNowSubject.next(undefined) 
-```
+The above code will make sure you automatically perform a fetch of token balances every third minute. 
 
 
 ### Decrypt
@@ -586,22 +554,15 @@ See (Fetch Trigger)[#fetchTrigger] for a way either scheduling fetching of trans
 A transfer of some tokens, of a specific amount. This is probably the most relevant action.
 
 #### `StakeTokens`
-Staking tokens.
+Staking of native tokens.
 
 #### `UnstakeTokens`
-Unstake tokens
+Unstaking of staked native tokens.
 
-#### `ClaimEmissionReward`
-Claim emission reward.
-
-#### `BurnTokens`
-Burn tokens.
-
-#### `MintTokens`
-Burn tokens.
-
-#### `Unknown`
-The Radix Core API failed to recognize the instructions as a well-formed/well-known canonical action. Will reveal low-level constructs named "particles". For more info, see the [Atom Model]((https://dev.to/radixdlt/knowledgebase-update-atom-model-263i)).
+#### `Other`
+Two differnt kinds of actions fall in under this category:  
+1. Advanced actions: Well known actions that user cannot perform from the GUI wallet (`MintTokens` action amongst others).
+2. Unknown actions: Ledger instructions that are not on canonical form (or otherwise unknown)
 
 
 ## Make Transaction
@@ -874,29 +835,53 @@ transactionConfirmed$
 This outlines all the requests you can make to the Radix Core API. All these requests are completely independent of any wallet, thus they have no notion of any "active address".
 
 ### `tokenBalancesForAddress`
+
+> ☑️ Mocked implementation only 🤡.
+
+Balance per token for specified address.
+
+Method signature:
+
 ```typescript
 tokenBalancesForAddress: (address: AddressT) => Observable<TokenBalances>
 ```
 
 ### `transactionHistory`
+> ☑️ Mocked implementation only 🤡.
+
+A page of the transaction history for the specified address. Pagination behaviour is controlled using input `size` and `cursor`.
+
+Method signature:
+
 ```typescript
 transactionHistory: (
 	input: Readonly<{
 		address: AddressT
-
-		// pagination
 		size: number // must be larger than 0
-		cursor?: TransactionIdentifierT
+		cursor?: string
 	}>,
 ) => Observable<TransactionHistory>
 ```
 
 ### `nativeToken`
+> ☑️ Mocked implementation only 🤡.
+
+Information about the native token of the Radix network.
+
+Method signature:
+
 ```typescript
 nativeToken: () => Observable<Token>
 ```
 
 ### `tokenInfo`
+
+> ☑️ Mocked implementation only 🤡.
+
+Information about specified token.
+
+Method signature:
+
 ```typescript
 tokenInfo: (resourceIdentifier: ResourceIdentifierT) => Observable<Token>
 ```
@@ -946,11 +931,25 @@ validators: (input: {
 ```
 
 ### `lookupTransaction`
+
+> ☑️ Mocked implementation only 🤡.
+
+Looks up an executed transaction by a txID. Observable will emit an error if no transaction matching the id is found.
+
+Method signature:
+
 ```typescript
 lookupTransaction: (txID: TransactionIdentifierT): Observable<ExecutedTransaction>
 ```
 
 ### `networkId`
+
+> ☑️ Mocked implementation only 🤡.
+
+Unique identifier for the network, part of each address (prefix).
+
+Method signature:
+
 ```typescript
 networkId: () => Observable<Magic>
 ```

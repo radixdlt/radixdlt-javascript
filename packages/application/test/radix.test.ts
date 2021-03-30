@@ -1,15 +1,12 @@
 import { Radix } from '../src/radix'
 import {
-	Address,
 	AddressT,
 	HDMasterSeed,
 	Wallet,
 	WalletT,
 } from '@radixdlt/account'
 import { interval, Observable, of, Subscription, throwError } from 'rxjs'
-import { DenominationOutputFormat } from '@radixdlt/primitives'
 import { map, take, toArray } from 'rxjs/operators'
-
 import { KeystoreT } from '@radixdlt/crypto'
 import { RadixT } from '../src/_types'
 import { APIErrorCause, ErrorCategory } from '../src/errors'
@@ -373,14 +370,10 @@ describe('Radix API', () => {
 			.add(subs)
 
 		radix.errors
-			.subscribe({
-				next: (error) => {
-					expect(error.category).toEqual(ErrorCategory.API)
-					expect(error.cause).toEqual(
-						APIErrorCause.TOKEN_BALANCES_FAILED,
-					)
-					done()
-				},
+			.subscribe((error) => {
+				expect(error.category).toEqual(ErrorCategory.API)
+				expect(error.cause).toEqual(APIErrorCause.TOKEN_BALANCES_FAILED)
+				done()
 			})
 			.add(subs)
 
@@ -411,7 +404,7 @@ describe('Radix API', () => {
 
 		const radix = Radix.create()
 		radix.withWallet(createWallet())
-		radix.__withAPI(api)
+		radix.__withAPI(api).withTokenBalanceFetchTrigger(interval(300))
 
 		const expectedValues = [
 			100000000000000000000,
@@ -430,14 +423,6 @@ describe('Radix API', () => {
 				done()
 			})
 			.add(subs)
-
-		radix
-			.deriveNextAccount({ alsoSwitchTo: true }) // 1
-			.deriveNextAccount({ alsoSwitchTo: true }) // 2
-			.deriveNextAccount({ alsoSwitchTo: true }) // 3
-			.switchAccount({ toIndex: 1 })
-			.switchAccount('first')
-			.switchAccount('last')
 	})
 
 	it('deriveNextAccount method on radix updates accounts', (done) => {
@@ -541,7 +526,7 @@ describe('Radix API', () => {
 
 							expect(tb.owner.publicKey.toString(true)).toBe(
 								keystoreForTest.publicKeysCompressed[
-									expected.pkIndex
+								expected.pkIndex
 								],
 							)
 							expect(tb.tokenBalances.length).toBe(
@@ -573,9 +558,9 @@ describe('Radix API', () => {
 		radix.__wallet
 			.subscribe((_w) => {
 				const expectedValues = [
-					{ pkIndex: 0, actionsCountForEachTx: [3, 4, 3] },
+					{ pkIndex: 0, actionsCountForEachTx: [3, 2, 2] },
 					{ pkIndex: 1, actionsCountForEachTx: [1, 1, 1] },
-					{ pkIndex: 2, actionsCountForEachTx: [2, 3, 3] },
+					{ pkIndex: 2, actionsCountForEachTx: [2, 1, 2] },
 				]
 
 				radix
@@ -622,11 +607,39 @@ describe('Radix API', () => {
 				} else {
 					expect(
 						status === TransactionStatus.CONFIRMED ||
-							status === TransactionStatus.FAILED,
+						status === TransactionStatus.FAILED,
 					).toBe(true)
 					done()
 				}
 				count++
 			})
+	})
+	
+	it('can lookup tx', (done) => {
+		const subs = new Subscription()
+
+		const radix = Radix.create().__withAPI(mockedAPI)
+
+		const loadKeystore = (): Promise<KeystoreT> =>
+			Promise.resolve(keystoreForTest.keystore)
+
+		radix.login(keystoreForTest.password, loadKeystore)
+
+		const mockedTXId = TransactionIdentifier.create(
+			Buffer.from(
+				'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+				'hex',
+			),
+		)._unsafeUnwrap()
+
+		radix.__wallet
+			.subscribe((_w) => {
+				radix.ledger.lookupTransaction(mockedTXId).subscribe((tx) => {
+					expect(tx.txID.equals(mockedTXId)).toBe(true)
+					expect(tx.actions.length).toBeGreaterThan(0)
+					done()
+				})
+			})
+			.add(subs)
 	})
 })

@@ -42,6 +42,15 @@ export type RadixT = Readonly<{
 	// Active Address/Account APIs
 	tokenBalances: Observable<TokenBalances>
 
+	logLevel: (level: LogLevel) => RadixT
+
+	/**
+	 * Specify a trigger for when to fetch the token balances for the active address.
+	 * 
+	 * @param {Observable<number>} trigger - An observable that signals when to fetch.
+	 */
+	withTokenBalanceFetchTrigger: (trigger: Observable<number>) => RadixT
+
 	/**
 	 * Transaction history of active account.
 	 *
@@ -51,8 +60,6 @@ export type RadixT = Readonly<{
 	transactionHistory: (
 		input: TransactionHistoryActiveAccountRequestInput,
 	) => Observable<TransactionHistory>
-
-	loglevel: (level: LogLevel) => RadixT
 
 	transactionStatus: (
 		txID: TransactionIdentifierT,
