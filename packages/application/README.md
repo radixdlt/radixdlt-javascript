@@ -57,10 +57,7 @@ Above code assumes you have a wallet. Looking for wallet creation?
 			- [`TokenTransfer`](#tokentransfer)
 			- [`StakeTokens`](#staketokens)
 			- [`UnstakeTokens`](#unstaketokens)
-			- [`ClaimEmissionReward`](#claimemissionreward)
-			- [`BurnTokens`](#burntokens)
-			- [`MintTokens`](#minttokens)
-			- [`Unknown`](#unknown)
+			- [`Other`](#other)
 	- [Make Transaction](#make-transaction)
 		- [Flow](#flow)
 		- [Unsafe user input](#unsafe-user-input)
@@ -557,22 +554,15 @@ See (Fetch Trigger)[#fetchTrigger] for a way either scheduling fetching of trans
 A transfer of some tokens, of a specific amount. This is probably the most relevant action.
 
 #### `StakeTokens`
-Staking tokens.
+Staking of native tokens.
 
 #### `UnstakeTokens`
-Unstake tokens
+Unstaking of staked native tokens.
 
-#### `ClaimEmissionReward`
-Claim emission reward.
-
-#### `BurnTokens`
-Burn tokens.
-
-#### `MintTokens`
-Burn tokens.
-
-#### `Unknown`
-The Radix Core API failed to recognize the instructions as a well-formed/well-known canonical action. Will reveal low-level constructs named "particles". For more info, see the [Atom Model]((https://dev.to/radixdlt/knowledgebase-update-atom-model-263i)).
+#### `Other`
+Two differnt kinds of actions fall in under this category:  
+1. Advanced actions: Well known actions that user cannot perform from the GUI wallet (`MintTokens` action amongst others).
+2. Unknown actions: Ledger instructions that are not on canonical form (or otherwise unknown)
 
 
 ## Make Transaction
@@ -845,29 +835,53 @@ transactionConfirmed$
 This outlines all the requests you can make to the Radix Core API. All these requests are completely independent of any wallet, thus they have no notion of any "active address".
 
 ### `tokenBalancesForAddress`
+
+> ☑️ Mocked implementation only 🤡.
+
+Balance per token for specified address.
+
+Method signature:
+
 ```typescript
 tokenBalancesForAddress: (address: AddressT) => Observable<TokenBalances>
 ```
 
 ### `transactionHistory`
+> ☑️ Mocked implementation only 🤡.
+
+A page of the transaction history for the specified address. Pagination behaviour is controlled using input `size` and `cursor`.
+
+Method signature:
+
 ```typescript
 transactionHistory: (
 	input: Readonly<{
 		address: AddressT
-
-		// pagination
 		size: number // must be larger than 0
-		cursor?: TransactionIdentifierT
+		cursor?: string
 	}>,
 ) => Observable<TransactionHistory>
 ```
 
 ### `nativeToken`
+> ☑️ Mocked implementation only 🤡.
+
+Information about the native token of the Radix network.
+
+Method signature:
+
 ```typescript
 nativeToken: () => Observable<Token>
 ```
 
 ### `tokenInfo`
+
+> ☑️ Mocked implementation only 🤡.
+
+Information about specified token.
+
+Method signature:
+
 ```typescript
 tokenInfo: (resourceIdentifier: ResourceIdentifierT) => Observable<Token>
 ```
@@ -917,11 +931,25 @@ validators: (input: {
 ```
 
 ### `lookupTransaction`
+
+> ☑️ Mocked implementation only 🤡.
+
+Looks up an executed transaction by a txID. Observable will emit an error if no transaction matching the id is found.
+
+Method signature:
+
 ```typescript
 lookupTransaction: (txID: TransactionIdentifierT): Observable<ExecutedTransaction>
 ```
 
 ### `networkId`
+
+> ☑️ Mocked implementation only 🤡.
+
+Unique identifier for the network, part of each address (prefix).
+
+Method signature:
+
 ```typescript
 networkId: () => Observable<Magic>
 ```
