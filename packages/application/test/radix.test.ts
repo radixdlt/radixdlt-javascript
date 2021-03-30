@@ -1,24 +1,13 @@
 import { Radix } from '../src/radix'
-import {
-	AddressT,
-	HDMasterSeed,
-	Wallet,
-	WalletT,
-} from '@radixdlt/account'
+import { AddressT, HDMasterSeed, Wallet, WalletT } from '@radixdlt/account'
 import { interval, Observable, of, Subscription, throwError } from 'rxjs'
 import { map, take, toArray } from 'rxjs/operators'
-
 import { KeystoreT } from '@radixdlt/crypto'
 import { RadixT } from '../src/_types'
 import { APIErrorCause, ErrorCategory } from '../src/errors'
-import {
-	balancesFor,
-	mockedAPI,
-	mockRadixCoreAPI,
-} from './mockRadix'
+import { balancesFor, mockedAPI, mockRadixCoreAPI } from './mockRadix'
 import { NodeT, RadixCoreAPI } from '../src/api/_types'
-import { TokenBalances } from '../src/dto/_types'
-import { radixCoreAPI } from '../src/api/radixCoreAPI'
+import { TokenBalances, TransactionStatus } from '../src/dto/_types'
 import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
 
 const createWallet = (): WalletT => {
@@ -594,6 +583,31 @@ describe('Radix API', () => {
 				radix.deriveNextAccount({ alsoSwitchTo: true })
 			})
 			.add(subs)
+	})
+
+	it('should handle transaction status updates', (done) => {
+		const radix = Radix.create().__withAPI(mockedAPI)
+		let count = 0
+
+		radix
+			.transactionStatus(
+				TransactionIdentifier.create(
+					'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+				)._unsafeUnwrap(),
+				interval(300),
+			)
+			.subscribe(({ status }) => {
+				if (count === 0) {
+					expect(status === TransactionStatus.PENDING).toBe(true)
+				} else {
+					expect(
+						status === TransactionStatus.CONFIRMED ||
+							status === TransactionStatus.FAILED,
+					).toBe(true)
+					done()
+				}
+				count++
+			})
 	})
 
 	it('can lookup tx', (done) => {

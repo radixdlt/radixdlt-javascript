@@ -12,9 +12,11 @@ import { Observable } from 'rxjs'
 import { NodeT, RadixAPI, RadixCoreAPI } from './api/_types'
 import { ErrorNotification } from './errors'
 import {
+	StatusOfTransaction,
 	TokenBalances,
 	TransactionHistory,
 	TransactionHistoryActiveAccountRequestInput,
+	TransactionIdentifierT,
 } from './dto/_types'
 
 export type RadixT = Readonly<{
@@ -44,7 +46,7 @@ export type RadixT = Readonly<{
 
 	/**
 	 * Specify a trigger for when to fetch the token balances for the active address.
-	 * 
+	 *
 	 * @param {Observable<number>} trigger - An observable that signals when to fetch.
 	 */
 	withTokenBalanceFetchTrigger: (trigger: Observable<number>) => RadixT
@@ -58,6 +60,11 @@ export type RadixT = Readonly<{
 	transactionHistory: (
 		input: TransactionHistoryActiveAccountRequestInput,
 	) => Observable<TransactionHistory>
+
+	transactionStatus: (
+		txID: TransactionIdentifierT,
+		trigger: Observable<number>,
+	) => Observable<StatusOfTransaction>
 
 	errors: Observable<ErrorNotification>
 

@@ -887,27 +887,31 @@ tokenInfo: (resourceIdentifier: ResourceIdentifierT) => Observable<Token>
 ```
 
 ### `stakesForAddress`
+⚠️ Not yet implemented, will soon be mocked.
 ```typescript
 stakesForAddress: (address: AddressT) => Observable<StakePositions>
 ```
 
 ### `transactionStatus`
-
+> ☑️ Mocked implementation only 🤡.
 ```typescript
 transactionStatus: (id: TransactionIdentifierT) => Observable<StatusOfTransaction>
 ```
 
 ### `networkTransactionThroughput`
+⚠️ Not yet implemented, will soon be mocked.
 ```typescript
 networkTransactionThroughput: () => Observable<NetworkTransactionThroughput>
 ```
 
 ### `networkTransactionDemand`
+⚠️ Not yet implemented, will soon be mocked.
 ```typescript
 networkTransactionDemand: () => Observable<NetworkTransactionDemand>
 ```
 
 ### `buildTransactionFromIntent`
+⚠️ Not yet implemented, will soon be mocked.
 ```typescript
 buildTransactionFromIntent: (
 	intent: TransactionIntent,
@@ -915,6 +919,7 @@ buildTransactionFromIntent: (
 ```
 
 ### `submitSignedTransaction`
+⚠️ Not yet implemented, will soon be mocked.
 ```typescript
 submitSignedTransaction: (
 	signedTransaction: SignedTransaction,
@@ -922,6 +927,7 @@ submitSignedTransaction: (
 ```
 
 ### `validators`
+⚠️ Not yet implemented, will soon be mocked.
 ```typescript
 validators: (input: {
 	// pagination
