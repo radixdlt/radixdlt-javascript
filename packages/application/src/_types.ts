@@ -13,10 +13,12 @@ import { NodeT, RadixAPI, RadixCoreAPI } from './api/_types'
 import { ErrorNotification } from './errors'
 import {
 	StakePositions,
+	StatusOfTransaction,
 	TokenBalances,
 	TransactionHistory,
 	TransactionHistoryActiveAccountRequestInput,
 	UnstakePositions,
+	TransactionIdentifierT,
 } from './dto/_types'
 
 export type RadixT = Readonly<{
@@ -69,6 +71,11 @@ export type RadixT = Readonly<{
 	transactionHistory: (
 		input: TransactionHistoryActiveAccountRequestInput,
 	) => Observable<TransactionHistory>
+
+	transactionStatus: (
+		txID: TransactionIdentifierT,
+		trigger: Observable<number>,
+	) => Observable<StatusOfTransaction>
 
 	errors: Observable<ErrorNotification>
 

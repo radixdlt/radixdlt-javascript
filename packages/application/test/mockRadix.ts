@@ -26,6 +26,7 @@ import {
 	TransactionHistoryRequestInput,
 	TransactionIdentifierT,
 	TransactionIntent,
+	TransactionStatus,
 	UnsignedTransaction,
 	UnstakePositions,
 	Validators,
@@ -37,7 +38,7 @@ import {
 	tokenPermissionsAll,
 } from '../src/dto/tokenPermissions'
 import { RadixCoreAPI } from '../src/api/_types'
-import { shareReplay } from 'rxjs/operators'
+import { delay, shareReplay } from 'rxjs/operators'
 import { privateKeyFromBuffer, PublicKey, sha256 } from '@radixdlt/crypto'
 import {
 	ActionType,
@@ -647,6 +648,27 @@ export const mockRadixCoreAPI = (
 	tokenInfo: (rri: ResourceIdentifierT): Observable<Token> =>
 		of(tokenByRRIMap.get(rri) ?? __fallBackAlexToken),
 	tokenBalancesForAddress: deterministicRandomBalances,
+	transactionStatus: (txID: TransactionIdentifierT) => {
+		const prng = detPRNGWithBuffer(Buffer.from(txID.__hex, 'hex'))
+		const shouldFail = prng() % 2 > 0
+
+		const response = (status: TransactionStatus) => ({
+			txID,
+			status,
+			failure: status === TransactionStatus.FAILED ? 'Failed' : undefined,
+		})
+
+		return (shouldFail
+			? of(
+					response(TransactionStatus.PENDING),
+					response(TransactionStatus.FAILED),
+			  )
+			: of(
+					response(TransactionStatus.PENDING),
+					response(TransactionStatus.CONFIRMED),
+			  )
+		).pipe(delay(1000))
+	},
 	transactionHistory: deterministicRandomTXHistory,
 	lookupTransaction: deterministicRandomLookupTX,
 	unstakesForAddress: deterministicRandomUnstakesForAddr,

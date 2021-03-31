@@ -15,6 +15,8 @@ import {
 	shareReplay,
 	switchMap,
 	catchError,
+	filter,
+	distinctUntilChanged,
 } from 'rxjs/operators'
 import {
 	Observable,
@@ -26,7 +28,6 @@ import {
 	EMPTY,
 	throwError,
 } from 'rxjs'
-
 import { radixCoreAPI } from './api/radixCoreAPI'
 import { Magic } from '@radixdlt/primitives'
 import { KeystoreT } from '@radixdlt/crypto'
@@ -56,6 +57,7 @@ import {
 	APIErrorCause,
 } from './errors'
 import { log, LogLevel } from '@radixdlt/util'
+import { TransactionIdentifierT } from './dto/_types'
 import {
 	StakePositions,
 	TransactionHistory,
@@ -341,6 +343,17 @@ const create = (): RadixT => {
 		logLevel: function (level: LogLevel) {
 			log.setLevel(level)
 			return this
+		},
+
+		transactionStatus: (
+			txID: TransactionIdentifierT,
+			trigger: Observable<number>,
+		) => {
+			return trigger.pipe(
+				mergeMap((_) => api.transactionStatus(txID)),
+				distinctUntilChanged((prev, cur) => prev.status === cur.status),
+				filter(({ txID }) => txID.equals(txID)),
+			)
 		},
 
 		withTokenBalanceFetchTrigger: function (trigger: Observable<number>) {
