@@ -40,14 +40,10 @@ import {
 import { RadixCoreAPI } from '../src/api/_types'
 import { delay, shareReplay } from 'rxjs/operators'
 import { privateKeyFromBuffer, PublicKey, sha256 } from '@radixdlt/crypto'
-import {
-	ActionType,
-	ExecutedAction,
-	UnstakePosition,
-} from '../src/actions/_types'
+import { ActionType, ExecutedAction } from '../src/actions/_types'
 import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
 import { toAddress } from '../../account/test/address.test'
-import { StakePosition } from '../dist/actions/_types'
+import { StakePosition, UnstakePosition } from '../dist/dto/_types'
 
 export const xrd: Token = {
 	name: 'Rad',
@@ -224,40 +220,86 @@ const differentTokens: Token[] = [
 ]
 
 // PLEASE KEEP - used as Cast of characters: https://en.wikipedia.org/wiki/Alice_and_Bob#Cast_of_characters
-const alice = toAddress('9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT')
-const bob = toAddress('9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt')
-const carol = toAddress('9S8sKfN3wGyJdfyu9RwWvGKtZqq3R1NaxwT63VXi5dEZ6dUJXLyR')
-const dan = toAddress('9SBFdPAkvquf9XX82D2Z9DzL2WdmNQGcrxFUnKpVytpkMjZWD9Rb')
-const erin = toAddress('9S8LZFHXHTSJqNQ86ZeGKtFMJtqZbYPtgHWSC4LyYjSbduNRpDNN')
-const frank = toAddress('9SBRR1Xa3RRw1M7juwLTHfL1T2Y7XMZJJM6YyJjqddSLGaH2dk9c')
-const grace = toAddress('9S9AtsDC1eR6QSLwrTRi2vteWCg2C1VDMySStFaZVRpMrvErXzBV')
-const heidi = toAddress('9S9y4d9owF7kuRk7b14VhfwrBxHe3w9ukbAcbnoLtBFvjWhTCXpz')
-const ivan = toAddress('9SBRrNSxu6zacM8qyuUpDh4gNqou8QX6QEu53LKVsT4FXjvD77ou')
-const judy = toAddress('9S9tQA7v1jSEUTvLk3hTp9fTmWNsA1ppJ3D6dHLxoqnPcYayAmQf')
-const klara = toAddress('9S8np84gn7skz8U2Vd7GwkvSMzSksMLqAq7nrpu2hA2a31M2rmfD')
-const leonard = toAddress(
+export const alice = toAddress(
+	'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+)
+export const bob = toAddress(
+	'9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
+)
+export const carol = toAddress(
+	'9S8sKfN3wGyJdfyu9RwWvGKtZqq3R1NaxwT63VXi5dEZ6dUJXLyR',
+)
+export const dan = toAddress(
+	'9SBFdPAkvquf9XX82D2Z9DzL2WdmNQGcrxFUnKpVytpkMjZWD9Rb',
+)
+export const erin = toAddress(
+	'9S8LZFHXHTSJqNQ86ZeGKtFMJtqZbYPtgHWSC4LyYjSbduNRpDNN',
+)
+export const frank = toAddress(
+	'9SBRR1Xa3RRw1M7juwLTHfL1T2Y7XMZJJM6YyJjqddSLGaH2dk9c',
+)
+export const grace = toAddress(
+	'9S9AtsDC1eR6QSLwrTRi2vteWCg2C1VDMySStFaZVRpMrvErXzBV',
+)
+export const heidi = toAddress(
+	'9S9y4d9owF7kuRk7b14VhfwrBxHe3w9ukbAcbnoLtBFvjWhTCXpz',
+)
+export const ivan = toAddress(
+	'9SBRrNSxu6zacM8qyuUpDh4gNqou8QX6QEu53LKVsT4FXjvD77ou',
+)
+export const judy = toAddress(
+	'9S9tQA7v1jSEUTvLk3hTp9fTmWNsA1ppJ3D6dHLxoqnPcYayAmQf',
+)
+export const klara = toAddress(
+	'9S8np84gn7skz8U2Vd7GwkvSMzSksMLqAq7nrpu2hA2a31M2rmfD',
+)
+export const leonard = toAddress(
 	'9S8toEsjy7bLLVYwenrygbEiQDBiSYen4GDEGan5y6nGMXzKT22G',
 )
-const mallory = toAddress(
+export const mallory = toAddress(
 	'9SBZ9kzpXKAQ9oHHZngahVUQrLwU6DssiPbtCj5Qb6cxqxPC6stb',
 )
-const niaj = toAddress('9S9X7DFSGTbfiQpSw1Dv9DHK67K1qHtz1Kjwd2uFtty7Yz8dmZbc')
-const olivia = toAddress('9S81XtkW3H9XZrmnzWqYSuTFPhWXdRnnpL3XXk7h5XxAM6zMdH7k')
-const peggy = toAddress('9SAGS7iVkjLDa2uoqzvybBJZP5RJd6XLzoeSmqur9WWXoKs7hPqz')
-const quentin = toAddress(
+export const niaj = toAddress(
+	'9S9X7DFSGTbfiQpSw1Dv9DHK67K1qHtz1Kjwd2uFtty7Yz8dmZbc',
+)
+export const olivia = toAddress(
+	'9S81XtkW3H9XZrmnzWqYSuTFPhWXdRnnpL3XXk7h5XxAM6zMdH7k',
+)
+export const peggy = toAddress(
+	'9SAGS7iVkjLDa2uoqzvybBJZP5RJd6XLzoeSmqur9WWXoKs7hPqz',
+)
+export const quentin = toAddress(
 	'9SB4Hvi9sudHncGXhUhuvUYNWziMYYcXXiDZ6i7fpSvRUDCA3rjg',
 )
-const rupert = toAddress('9SAusiPSyX8xJ3gbNJyYUHZaWz1jSYxXoBnWbzMAkcjhug6G3nLd')
-const stella = toAddress('9S8PWQF9smUics1sZEo7CrYgKgCkcopvt9HfWJMTrtPyV2rg7RAG')
-const ted = toAddress('9SAihkYQDBKvHfhvwEw4QBfx1rpjvta2TvmWibyXixVzX2JHHHWf')
-const ursula = toAddress('9SAzQV3ei2g4qcHpvnMSuEGUYREPgcHvQyBNvkHdop18DDyEqpSY')
-const victor = toAddress('9S8PQU9jcALCeXW6sXarwHxjKLqCUM4AkiecSMwdjfUWhdPws9tx')
-const webdy = toAddress('9S9T39u425jJfAkWRYPPhpBFdkU5f1KWBuMPg7mWnCQ2abAFSnoZ')
-const xerxez = toAddress('9SBA2tji3wjuuThohxW37L6vySVuVaUpBFBpq2b7Ey7sKToU2uJp')
-const yara = toAddress('9SBaXGCwn8HcyPsbu4ymzNVCXtvogf3vSqnH39ihqt5RyDFq9hsv')
-const zelda = toAddress('9SAU2m7yis9iE5u2L44poZ6rYf5JiTAN6GtiRnsBk6JnXoMoAdks')
+export const rupert = toAddress(
+	'9SAusiPSyX8xJ3gbNJyYUHZaWz1jSYxXoBnWbzMAkcjhug6G3nLd',
+)
+export const stella = toAddress(
+	'9S8PWQF9smUics1sZEo7CrYgKgCkcopvt9HfWJMTrtPyV2rg7RAG',
+)
+export const ted = toAddress(
+	'9SAihkYQDBKvHfhvwEw4QBfx1rpjvta2TvmWibyXixVzX2JHHHWf',
+)
+export const ursula = toAddress(
+	'9SAzQV3ei2g4qcHpvnMSuEGUYREPgcHvQyBNvkHdop18DDyEqpSY',
+)
+export const victor = toAddress(
+	'9S8PQU9jcALCeXW6sXarwHxjKLqCUM4AkiecSMwdjfUWhdPws9tx',
+)
+export const webdy = toAddress(
+	'9S9T39u425jJfAkWRYPPhpBFdkU5f1KWBuMPg7mWnCQ2abAFSnoZ',
+)
+export const xerxez = toAddress(
+	'9SBA2tji3wjuuThohxW37L6vySVuVaUpBFBpq2b7Ey7sKToU2uJp',
+)
+export const yara = toAddress(
+	'9SBaXGCwn8HcyPsbu4ymzNVCXtvogf3vSqnH39ihqt5RyDFq9hsv',
+)
+export const zelda = toAddress(
+	'9SAU2m7yis9iE5u2L44poZ6rYf5JiTAN6GtiRnsBk6JnXoMoAdks',
+)
 
-const castOfCharacters: AddressT[] = [
+export const castOfCharacters: AddressT[] = [
 	alice,
 	bob,
 	carol,
@@ -485,8 +527,7 @@ export const deterministicRandomTxHistoryWithInput = (
 												from: address,
 												to: detRandomAddress(),
 												amount: tokenAndAmount.amount,
-												resourceIdentifier:
-													tokenAndAmount.token.rri,
+												rri: tokenAndAmount.token.rri,
 											}
 											break
 									}

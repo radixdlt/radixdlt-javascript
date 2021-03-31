@@ -26,7 +26,6 @@ import {
 	of,
 	Subject,
 	EMPTY,
-	throwError,
 } from 'rxjs'
 import { radixCoreAPI } from './api/radixCoreAPI'
 import { Magic } from '@radixdlt/primitives'
@@ -50,20 +49,20 @@ import {
 	unstakesForAddressErr,
 	validatorsErr,
 	lookupTxErr,
-	ErrorCategory,
-	ErrorCause,
-	ErrorT,
 	APIError,
-	APIErrorCause,
 } from './errors'
 import { log, LogLevel } from '@radixdlt/util'
-import { TransactionIdentifierT } from './dto/_types'
+import { TransactionIdentifierT, TransactionIntentBuilderT } from './dto/_types'
 import {
-	StakePositions,
 	TransactionHistory,
 	TransactionHistoryActiveAccountRequestInput,
-	UnstakePositions,
 } from './dto/_types'
+import {
+	StakeTokensInput,
+	TransferTokensInput,
+	UnstakeTokensInput,
+} from './actions/_types'
+import { TransactionIntentBuilder } from './dto/transactionIntentBuilder'
 
 const create = (): RadixT => {
 	const subs = new Subscription()
@@ -262,6 +261,23 @@ const create = (): RadixT => {
 		walletSubject.next(wallet)
 	}
 
+	const transferTokens = (
+		input: TransferTokensInput,
+	): TransactionIntentBuilderT =>
+		TransactionIntentBuilder.create().transferTokens(input)
+
+	const stakeTokens = (
+		input: StakeTokensInput,
+	): TransactionIntentBuilderT => {
+		return <TransactionIntentBuilderT>{}
+	}
+
+	const unstakeTokens = (
+		input: UnstakeTokensInput,
+	): TransactionIntentBuilderT => {
+		return <TransactionIntentBuilderT>{}
+	}
+
 	deriveAccountSubject
 		.pipe(
 			withLatestFrom(wallet$),
@@ -364,6 +380,11 @@ const create = (): RadixT => {
 			trigger.subscribe(stakingFetchSubject).add(subs)
 			return this
 		},
+
+		// TransactionIntentBuilder start
+		transferTokens,
+		stakeTokens,
+		unstakeTokens,
 
 		// Wallet APIs
 		activeAddress,

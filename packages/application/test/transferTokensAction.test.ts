@@ -2,8 +2,8 @@ import { Address } from '@radixdlt/account'
 import { Denomination } from '@radixdlt/primitives'
 import { Amount, zero } from '@radixdlt/primitives/src/amount'
 import { ResourceIdentifier } from '../src/dto/resourceIdentifier'
-import { TransferTokensAction } from '../src/actions/transferTokensAction'
-import { IntendedTransferTokensInput } from '../src/actions/_types'
+import { TransferTokensInput } from '../dist/actions/_types'
+import { IntendedTransferTokens } from '../dist/actions/intendedTransferTokensAction'
 
 describe('TransferTokensActions', () => {
 	const alice = Address.fromBase58String(
@@ -20,53 +20,37 @@ describe('TransferTokensActions', () => {
 	})
 	const amount = Amount.fromUnsafe(6, Denomination.Atto)._unsafeUnwrap()
 
-	const input = <IntendedTransferTokensInput>{
+	const input = <TransferTokensInput>{
 		to: bob,
-		from: alice,
 		amount: amount,
-		resourceIdentifier: resourceIdentifier,
+		tokenIdentifier: resourceIdentifier,
 	}
 
 	it(`should have a 'recipient' equal to 'input.to'.`, () => {
-		const tokenTransfer = TransferTokensAction.intended({
-			...input,
-			to: bob,
-		})
+		const tokenTransfer = IntendedTransferTokens.create(input, alice)
 		expect(tokenTransfer.to.equals(bob)).toBe(true)
 	})
 
 	it(`should have an 'amount' equal to 'input.amount'.`, () => {
-		const tokenTransfer = TransferTokensAction.intended(input)
+		const tokenTransfer = IntendedTransferTokens.create(input, alice)
 		expect(tokenTransfer.amount.equals(amount)).toBe(true)
 	})
 
 	it(`should have a 'sender' equal to 'input.from'.`, () => {
-		const tokenTransfer = TransferTokensAction.intended({
-			...input,
-			from: alice,
-		})
+		const tokenTransfer = IntendedTransferTokens.create(input, alice)
 		expect(tokenTransfer.from.equals(alice)).toBe(true)
 	})
 
-	it('should generate a UUID if none is provided.', () => {
-		const tokenTransfer = TransferTokensAction.intended(input)
-		expect(tokenTransfer.uuid).toBeTruthy()
-	})
-
-	it('should be able to specify a UUID.', () => {
-		const uuid = 'randomly generated string'
-		const tokenTransfer = TransferTokensAction.intended({
-			...input,
-			uuid,
-		})
-		expect(tokenTransfer.uuid).toBe(uuid)
+	it(`should have a 'uuid'`, () => {
+		const tokenTransfer = IntendedTransferTokens.create(input, alice)
+		expect(tokenTransfer.uuid).toBeDefined()
 	})
 
 	it('should be possible to transfer 0 tokens', () => {
-		const tokenTransfer = TransferTokensAction.intended({
-			...input,
-			amount: zero,
-		})
+		const tokenTransfer = IntendedTransferTokens.create(
+			{ ...input, amount: zero },
+			alice,
+		)
 
 		expect(tokenTransfer.amount.equals(zero)).toBe(true)
 	})

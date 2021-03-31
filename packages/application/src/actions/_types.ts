@@ -1,6 +1,6 @@
 import { AddressT } from '@radixdlt/account'
 import { AmountT } from '@radixdlt/primitives'
-import { ResourceIdentifierT, TransactionIdentifierT } from '../dto/_types'
+import { ResourceIdentifierT } from '../dto/_types'
 
 export enum ActionType {
 	TOKEN_TRANSFER = 'TokenTransfer',
@@ -13,6 +13,37 @@ export type Action<T extends ActionType = ActionType.OTHER> = Readonly<{
 	type: T
 }>
 
+// ##################################
+// ####                         #####
+// ####     INPUTTED ACTIONS    #####
+// ####                         #####
+// ##################################
+export type TransferTokensInput = Readonly<{
+	to: AddressT
+	amount: AmountT
+	tokenIdentifier: ResourceIdentifierT
+}>
+
+// Same input for stake/unstake for now
+export type StakeAndUnstakeTokensInput = Readonly<{
+	validator: AddressT
+	amount: AmountT
+}>
+
+export type StakeTokensInput = StakeAndUnstakeTokensInput
+export type UnstakeTokensInput = StakeAndUnstakeTokensInput
+
+export type ActionInput =
+	| TransferTokensInput
+	| StakeTokensInput
+	| UnstakeTokensInput
+
+// ##################################
+// ####                         #####
+// ####     INTENDED ACTIONS    #####
+// ####                         #####
+// ##################################
+
 // An intended action specified by the user. Not yet accepted by
 // Radix Core API.
 export type IntendedActionBase<T extends ActionType> = Action<T> &
@@ -20,8 +51,29 @@ export type IntendedActionBase<T extends ActionType> = Action<T> &
 		// An ephemeral, client-side randomly generated, id
 		// useful for debugging purposes. Note that this is
 		// PER action, not per transactionIntent.
+		from: AddressT
 		uuid: string
 	}>
+
+export type IntendedTransferTokensAction = IntendedActionBase<ActionType.TOKEN_TRANSFER> &
+	TransferTokensInput
+
+export type IntendedStakeTokensAction = IntendedActionBase<ActionType.STAKE_TOKENS> &
+	StakeTokensInput
+
+export type IntendedUnstakeTokensAction = IntendedActionBase<ActionType.UNSTAKE_TOKENS> &
+	UnstakeTokensInput
+
+export type IntendedAction =
+	| IntendedTransferTokensAction
+	| IntendedStakeTokensAction
+	| IntendedUnstakeTokensAction
+
+// ##################################
+// ####                         #####
+// ####     EXECUTED ACTIONS    #####
+// ####                         #####
+// ##################################
 
 // An executed action stored in the Radix Ledger, part
 // of transaction history. Marker type.
@@ -30,68 +82,22 @@ export type ExecutedActionBase<T extends ActionType> = Action<T> &
 		// Nothing here.
 	}>
 
-// TRANSFER
-export type TransferTokensProps = Readonly<{
-	from: AddressT
-	to: AddressT
-	amount: AmountT
-	resourceIdentifier: ResourceIdentifierT
-}>
-
-export type InputIntendedAction = Readonly<{
-	uuid?: string
-}>
-
-export type IntendedTransferTokensInput = TransferTokensProps &
-	InputIntendedAction
-
-export type IntendedTransferTokensAction = IntendedActionBase<ActionType.TOKEN_TRANSFER> &
-	TransferTokensProps
 export type ExecutedTransferTokensAction = ExecutedActionBase<ActionType.TOKEN_TRANSFER> &
-	TransferTokensProps
-
-// STAKE
-
-export type StakingProps = Readonly<{
-	validator: AddressT
-	amount: AmountT
-}>
-
-export type IntendedStakeTokensInput = StakingProps & InputIntendedAction
-
-// Unstake action has same input as stake.
-export type IntendedUnstakeTokensInput = IntendedStakeTokensInput
-
-export type StakePosition = StakingProps
-
-export type IntendedStakeTokensAction = IntendedActionBase<ActionType.STAKE_TOKENS> &
-	StakingProps
-
-export type ExecutedStakeTokensAction = ExecutedActionBase<ActionType.STAKE_TOKENS> &
-	StakingProps
-
-// UNSTAKE
-export type UnstakingProps = StakingProps
-
-export type UnstakePosition = UnstakingProps &
+	// 'tokenIdentifier' is called 'rri' in history...
+	Omit<IntendedTransferTokensAction, 'uuid' | 'tokenIdentifier'> &
 	Readonly<{
-		withdrawalTxID: TransactionIdentifierT
-		epochsUntil: number
+		rri: ResourceIdentifierT
 	}>
 
-export type IntendedUnstakeTokensAction = IntendedActionBase<ActionType.UNSTAKE_TOKENS> &
-	StakingProps // Initiated unstakes have same props as stakes.
+export type ExecutedStakeTokensAction = ExecutedActionBase<ActionType.STAKE_TOKENS> &
+	Omit<IntendedStakeTokensAction, 'uuid' | 'from'>
 
 export type ExecutedUnstakeTokensAction = ExecutedActionBase<ActionType.UNSTAKE_TOKENS> &
-	UnstakingProps
+	Omit<IntendedUnstakeTokensAction, 'uuid' | 'from'>
 
 // OTHER (Only "Executed")
 export type ExecutedOtherAction = ExecutedActionBase<ActionType.OTHER>
 
-export type IntendedAction =
-	| IntendedTransferTokensAction
-	| IntendedStakeTokensAction
-	| IntendedUnstakeTokensAction
 export type ExecutedAction =
 	| ExecutedTransferTokensAction
 	| ExecutedStakeTokensAction

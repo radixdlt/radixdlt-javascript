@@ -19,7 +19,13 @@ import {
 	TransactionHistoryActiveAccountRequestInput,
 	UnstakePositions,
 	TransactionIdentifierT,
+	TransactionIntentBuilderT,
 } from './dto/_types'
+import {
+	StakeTokensInput,
+	TransferTokensInput,
+	UnstakeTokensInput,
+} from './actions/_types'
 
 export type RadixT = Readonly<{
 	ledger: RadixAPI
@@ -71,6 +77,11 @@ export type RadixT = Readonly<{
 	transactionHistory: (
 		input: TransactionHistoryActiveAccountRequestInput,
 	) => Observable<TransactionHistory>
+
+	// Make TX flow
+	transferTokens: (input: TransferTokensInput) => TransactionIntentBuilderT
+	stakeTokens: (input: StakeTokensInput) => TransactionIntentBuilderT
+	unstakeTokens: (input: UnstakeTokensInput) => TransactionIntentBuilderT
 
 	transactionStatus: (
 		txID: TransactionIdentifierT,

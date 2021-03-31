@@ -25,10 +25,10 @@ import { TransactionIdentifier } from '../../dto/transactionIdentifier'
 import { makeTokenPermissions } from '../../dto/tokenPermissions'
 import { TokenPermission } from '../../dto/_types'
 import { ResourceIdentifier } from '../../dto/resourceIdentifier'
-import { TransferTokensAction } from '../../actions/transferTokensAction'
-import { StakeTokensAction } from '../../actions/stakeTokensAction'
-import { UnstakeTokensAction } from '../../actions/unstakeTokensAction'
 import { OtherAction } from '../../actions/otherAction'
+import { ExecutedTransferTokens } from '../../actions/executedTransferTokensAction'
+import { ExecutedStakeTokens } from '../../actions/executedStakeTokensAction'
+import { ExecutedUnstakeTokens } from '../../actions/executedUnstakeTokensAction'
 
 const amountDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
@@ -98,10 +98,10 @@ const executedTXDecoders = JSONDecoding.withDecoders(
 	dateDecoder('sentAt'),
 	addressDecoder('from', 'to', 'validator'),
 	transactionIdentifierDecoder('txID'),
-	RRIDecoder('resourceIdentifier'),
-	TransferTokensAction.JSONDecoder,
-	StakeTokensAction.JSONDecoder,
-	UnstakeTokensAction.JSONDecoder,
+	RRIDecoder('rri'),
+	ExecutedTransferTokens.JSONDecoder,
+	ExecutedStakeTokens.JSONDecoder,
+	ExecutedUnstakeTokens.JSONDecoder,
 	OtherAction.JSONDecoder,
 )
 
