@@ -646,4 +646,44 @@ describe('Radix API', () => {
 			})
 			.add(subs)
 	})
+
+	it('can fetch unstake positions', (done) => {
+		const subs = new Subscription()
+
+		const radix = Radix.create()
+			.__withAPI(mockedAPI)
+			.withStakingFetchTrigger(interval(100))
+
+		const loadKeystore = (): Promise<KeystoreT> =>
+			Promise.resolve(keystoreForTest.keystore)
+
+		radix.login(keystoreForTest.password, loadKeystore)
+
+		const expectedStakes = [
+			{ amount: 872, validator: 'oZ', epochsUntil: 42 },
+			{ amount: 856, validator: 'Ld', epochsUntil: 21 },
+			{ amount: 992, validator: 'RT', epochsUntil: 95 },
+		]
+		const expectedValues = [expectedStakes, expectedStakes] // should be unchanged between updates (deterministically mocked).
+		radix.__wallet
+			.subscribe((_w) => {
+				radix.unstakingPositions
+					.pipe(
+						map((sp) =>
+							sp.map((p) => ({
+								amount: p.amount.magnitude.valueOf() % 1000,
+								validator: p.validator.toString().slice(-2),
+								epochsUntil: p.epochsUntil,
+							})),
+						),
+						take(expectedValues.length),
+						toArray(),
+					)
+					.subscribe((values) => {
+						expect(values).toStrictEqual(expectedValues)
+						done()
+					})
+			})
+			.add(subs)
+	})
 })
