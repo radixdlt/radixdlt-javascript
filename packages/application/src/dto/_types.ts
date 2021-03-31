@@ -1,5 +1,5 @@
 import { DSONCodable, JSONEncodable } from '@radixdlt/data-formats'
-import { AddressT } from '@radixdlt/account'
+import { AccountT, AddressT } from '@radixdlt/account'
 import {
 	ActionInput,
 	ActionType,
@@ -89,7 +89,7 @@ export type TransactionIntentBuilderT = Readonly<{
 
 	// Build
 	__syncBuildIgnoreMessage: (from: AddressT) => TransactionIntent
-	buildAndEncrypt: (from: AddressT) => Observable<TransactionIntent>
+	buildAndEncrypt: (from: AccountT) => Observable<TransactionIntent>
 }>
 
 export type EncryptedMessage = Readonly<{

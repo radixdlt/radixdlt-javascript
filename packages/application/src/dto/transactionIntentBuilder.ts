@@ -11,8 +11,9 @@ import {
 	TransactionIntentBuilderState,
 	TransactionIntentBuilderT,
 } from './_types'
-import { AddressT } from '@radixdlt/account'
-import { Observable, of, throwError } from 'rxjs'
+import { AccountT, AddressT } from '@radixdlt/account'
+import { Observable } from 'rxjs'
+import { map } from 'rxjs/operators'
 import {
 	IntendedTransferTokens,
 	isTransferTokensInput,
@@ -115,21 +116,27 @@ const create = (): TransactionIntentBuilderT => {
 		}
 	}
 
-	const buildAndEncrypt = (from: AddressT): Observable<TransactionIntent> => {
-		const encMsg: EncryptedMessage | undefined =
-			message !== undefined
-				? {
-						msg: `PLAIN_TEXT_BECAUSE_ENCRYPTION_IS_NOT_YET_INPLEMENTED___${message}`,
-						encryptionScheme: 'PLAINTEXT',
-				  }
-				: undefined
+	const buildAndEncrypt = (from: AccountT): Observable<TransactionIntent> => {
+		return from.deriveAddress().pipe(
+			map(
+				(address: AddressT): TransactionIntent => {
+					const encMsg: EncryptedMessage | undefined =
+						message !== undefined
+							? {
+									msg: `PLAIN_TEXT_BECAUSE_ENCRYPTION_IS_NOT_YET_INPLEMENTED___${message}`,
+									encryptionScheme: 'PLAINTEXT',
+							  }
+							: undefined
 
-		const builtWithoutMessage = syncBuildIgnoreMessage(from)
+					const builtWithoutMessage = syncBuildIgnoreMessage(address)
 
-		return of({
-			...builtWithoutMessage,
-			message: encMsg,
-		})
+					return {
+						...builtWithoutMessage,
+						message: encMsg,
+					}
+				},
+			),
+		)
 	}
 
 	const methods = {

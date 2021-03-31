@@ -6,10 +6,10 @@ import {
 	StakeTokensInput,
 	TransferTokensInput,
 } from '../dist/actions/_types'
-import { AddressT } from '@radixdlt/account'
+import { AccountT, AddressT } from '@radixdlt/account'
 import { ActionType } from '../src/actions/_types'
 import { TransactionIntentBuilderT } from '../dist/dto/_types'
-import { Subscription } from 'rxjs'
+import { Observable, of, Subscription } from 'rxjs'
 
 describe('tx intent builder', () => {
 	const one = Amount.fromUnsafe(1)._unsafeUnwrap()
@@ -100,7 +100,10 @@ describe('tx intent builder', () => {
 		msg: string,
 		done: jest.DoneCallback,
 	): Subscription => {
-		return builder.buildAndEncrypt(alice).subscribe((txIntent) => {
+		const aliceAccount = <AccountT>{
+			deriveAddress: (): Observable<AddressT> => of(alice),
+		}
+		return builder.buildAndEncrypt(aliceAccount).subscribe((txIntent) => {
 			expect(txIntent.actions.length).toBe(1)
 
 			const attatchedMessage = txIntent.message
