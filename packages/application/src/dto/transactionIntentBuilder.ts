@@ -26,37 +26,9 @@ import {
 	isUnstakeTokensInput,
 } from '../actions/intendedUnstakeTokensAction'
 
-// const stakeTokens = (input: StakeTokensInput): TransactionIntentBuilderT => {
-// 	return <TransactionIntentBuilderT>{}
-// }
-//
-// const unstakeTokens = (
-// 	input: UnstakeTokensInput,
-// ): TransactionIntentBuilderT => {
-// 	return <TransactionIntentBuilderT>{}
-// }
-
-// const transferTokens = (
-// 	transferTokensInput: TransferTokensInput,
-// ): TransactionIntentBuilderT => {
-// 	return <TransactionIntentBuilderT>{}
-// }
-
 type IntermediateAction = ActionInput & {
 	type: 'transfer' | 'stake' | 'unstake'
 }
-
-type IntermediateTransferType = TransferTokensInput &
-	IntermediateAction &
-	Readonly<{
-		type: 'transfer'
-	}>
-
-type IntermediateStakeType = StakeTokensInput &
-	IntermediateAction &
-	Readonly<{
-		type: 'stake'
-	}>
 
 const create = (): TransactionIntentBuilderT => {
 	const intermediateActions: IntermediateAction[] = []
@@ -72,19 +44,30 @@ const create = (): TransactionIntentBuilderT => {
 		__state: snapshotState(),
 	})
 
-	const transferTokens = (
-		transferTokensInput: TransferTokensInput,
+	const addAction = (
+		input: ActionInput,
+		type: 'transfer' | 'stake' | 'unstake',
 	): TransactionIntentBuilderT => {
-		const intermediateTransfer: IntermediateTransferType = {
-			type: 'transfer',
-			...transferTokensInput,
-		}
-		intermediateActions.push(intermediateTransfer)
+		intermediateActions.push({
+			type,
+			...input,
+		})
 		return {
 			...methods,
 			...snapshotBuilderState(),
 		}
 	}
+
+	const transferTokens = (
+		input: TransferTokensInput,
+	): TransactionIntentBuilderT => addAction(input, 'transfer')
+
+	const stakeTokens = (input: StakeTokensInput): TransactionIntentBuilderT =>
+		addAction(input, 'stake')
+
+	const unstakeTokens = (
+		input: UnstakeTokensInput,
+	): TransactionIntentBuilderT => addAction(input, 'unstake')
 
 	const syncBuildIgnoreMessage = (from: AddressT): TransactionIntent => {
 		const intendedActions: IntendedAction[] = intermediateActions.map(
@@ -140,9 +123,9 @@ const create = (): TransactionIntentBuilderT => {
 	}
 
 	const methods = {
-		// recursion, referencing this function itself.
-		transferTokens: transferTokens,
-
+		transferTokens,
+		stakeTokens,
+		unstakeTokens,
 		buildAndEncrypt,
 		__syncBuildIgnoreMessage: syncBuildIgnoreMessage,
 	}
@@ -156,10 +139,3 @@ const create = (): TransactionIntentBuilderT => {
 export const TransactionIntentBuilder = {
 	create,
 }
-
-/*
-*
-export type TransactionIntentBuilderState = Readonly<{
-	actionInputs: ActionInput[]
-	message?: string
-}>*/

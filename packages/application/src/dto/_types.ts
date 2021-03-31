@@ -83,8 +83,8 @@ export type TransactionIntentBuilderT = Readonly<{
 	__state: TransactionIntentBuilderState
 
 	transferTokens: (input: TransferTokensInput) => TransactionIntentBuilderT
-	// stakeTokens: (input: StakeTokensInput) => TransactionIntentBuilderT
-	// unstakeTokens: (input: UnstakeTokensInput) => TransactionIntentBuilderT
+	stakeTokens: (input: StakeTokensInput) => TransactionIntentBuilderT
+	unstakeTokens: (input: UnstakeTokensInput) => TransactionIntentBuilderT
 	// message: (msg: string) => TransactionIntentBuilderT
 
 	// Build
