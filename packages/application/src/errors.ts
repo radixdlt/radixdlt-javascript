@@ -1,4 +1,4 @@
-type ErrorT<Category extends ErrorCategory, Cause extends ErrorCause> = {
+export type ErrorT<Category extends ErrorCategory, Cause extends ErrorCause> = {
 	category: Category
 	cause: Cause
 	message: string
@@ -37,7 +37,7 @@ export enum APIErrorCause {
 
 export type ErrorCause = APIErrorCause | WalletErrorCause | NodeErrorCause
 
-type APIError = ErrorT<ErrorCategory.API, APIErrorCause>
+export type APIError = ErrorT<ErrorCategory.API, APIErrorCause>
 type WalletError = ErrorT<ErrorCategory.WALLET, WalletErrorCause>
 type NodeError = ErrorT<ErrorCategory.NODE, NodeErrorCause>
 

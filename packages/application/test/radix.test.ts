@@ -587,7 +587,11 @@ describe('Radix API', () => {
 
 	it('should handle transaction status updates', (done) => {
 		const radix = Radix.create().__withAPI(mockedAPI)
-		let count = 0
+
+		const expectedValues: TransactionStatus[] = [
+			TransactionStatus.PENDING,
+			TransactionStatus.FAILED,
+		]
 
 		radix
 			.transactionStatus(
@@ -596,17 +600,14 @@ describe('Radix API', () => {
 				)._unsafeUnwrap(),
 				interval(300),
 			)
-			.subscribe(({ status }) => {
-				if (count === 0) {
-					expect(status === TransactionStatus.PENDING).toBe(true)
-				} else {
-					expect(
-						status === TransactionStatus.CONFIRMED ||
-							status === TransactionStatus.FAILED,
-					).toBe(true)
-					done()
-				}
-				count++
+			.pipe(
+				map(({ status }) => status),
+				take(expectedValues.length),
+				toArray(),
+			)
+			.subscribe((values) => {
+				expect(values).toStrictEqual(expectedValues)
+				done()
 			})
 	})
 
@@ -634,6 +635,78 @@ describe('Radix API', () => {
 					expect(tx.actions.length).toBeGreaterThan(0)
 					done()
 				})
+			})
+			.add(subs)
+	})
+
+	it('can fetch stake positions', (done) => {
+		const subs = new Subscription()
+
+		const radix = Radix.create()
+			.__withAPI(mockedAPI)
+			.withStakingFetchTrigger(interval(100))
+
+		const loadKeystore = (): Promise<KeystoreT> =>
+			Promise.resolve(keystoreForTest.keystore)
+
+		radix.login(keystoreForTest.password, loadKeystore)
+
+		const expectedStakes = [72, 56, 92]
+		const expectedValues = [expectedStakes, expectedStakes] // should be unchanged between updates (deterministically mocked).
+		radix.__wallet
+			.subscribe((_w) => {
+				radix.stakingPositions
+					.pipe(
+						map((sp) =>
+							sp.map((p) => p.amount.magnitude.valueOf() % 100),
+						),
+						take(expectedValues.length),
+						toArray(),
+					)
+					.subscribe((values) => {
+						expect(values).toStrictEqual(expectedValues)
+						done()
+					})
+			})
+			.add(subs)
+	})
+
+	it('can fetch unstake positions', (done) => {
+		const subs = new Subscription()
+
+		const radix = Radix.create()
+			.__withAPI(mockedAPI)
+			.withStakingFetchTrigger(interval(100))
+
+		const loadKeystore = (): Promise<KeystoreT> =>
+			Promise.resolve(keystoreForTest.keystore)
+
+		radix.login(keystoreForTest.password, loadKeystore)
+
+		const expectedStakes = [
+			{ amount: 872, validator: 'oZ', epochsUntil: 42 },
+			{ amount: 856, validator: 'Ld', epochsUntil: 21 },
+			{ amount: 992, validator: 'RT', epochsUntil: 95 },
+		]
+		const expectedValues = [expectedStakes, expectedStakes] // should be unchanged between updates (deterministically mocked).
+		radix.__wallet
+			.subscribe((_w) => {
+				radix.unstakingPositions
+					.pipe(
+						map((sp) =>
+							sp.map((p) => ({
+								amount: p.amount.magnitude.valueOf() % 1000,
+								validator: p.validator.toString().slice(-2),
+								epochsUntil: p.epochsUntil,
+							})),
+						),
+						take(expectedValues.length),
+						toArray(),
+					)
+					.subscribe((values) => {
+						expect(values).toStrictEqual(expectedValues)
+						done()
+					})
 			})
 			.add(subs)
 	})

@@ -382,6 +382,9 @@ radix
 
 The above code will make sure you automatically perform a fetch of token balances every third minute. 
 
+### Staking fetch trigger
+
+Use `withStakingFetchTrigger` to specify a fetch trigger for unstakes/stakes. See `balance fetch trigger` for details.
 
 ### Decrypt
 
@@ -887,9 +890,27 @@ tokenInfo: (resourceIdentifier: ResourceIdentifierT) => Observable<Token>
 ```
 
 ### `stakesForAddress`
-⚠️ Not yet implemented, will soon be mocked.
+
+> ☑️ Mocked implementation only 🤡.
+
+Current stakes to validators for given address.
+
+Method signature:
+
 ```typescript
 stakesForAddress: (address: AddressT) => Observable<StakePositions>
+```
+
+### `unstakesForAddress`
+
+> ☑️ Mocked implementation only 🤡.
+
+Current unstakes from validators for given address.
+
+Method signature:
+
+```typescript
+unstakesForAddress: (address: AddressT) => Observable<UnstakePositions>
 ```
 
 ### `transactionStatus`
