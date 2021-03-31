@@ -75,8 +75,7 @@ const create = (): RadixT => {
 	const switchAccountSubject = new Subject<SwitchAccountInput>()
 
 	const tokenBalanceFetchSubject = new Subject<number>()
-	const unstakeFetchSubject = new Subject<number>()
-	const stakeFetchSubject = new Subject<number>()
+	const stakingFetchSubject = new Subject<number>()
 	const wallet$ = walletSubject.asObservable()
 
 	const coreAPIViaNode$ = nodeSubject
@@ -199,13 +198,13 @@ const create = (): RadixT => {
 	)
 
 	const stakingPositions = activeAddressToAPIObservableWithTrigger(
-		stakeFetchSubject,
+		stakingFetchSubject,
 		(a) => a.stakesForAddress,
 		stakesForAddressErr,
 	)
 
 	const unstakingPositions = activeAddressToAPIObservableWithTrigger(
-		unstakeFetchSubject,
+		stakingFetchSubject,
 		(a) => a.unstakesForAddress,
 		unstakesForAddressErr,
 	)
@@ -346,7 +345,10 @@ const create = (): RadixT => {
 
 		withTokenBalanceFetchTrigger: function (trigger: Observable<number>) {
 			trigger.subscribe(tokenBalanceFetchSubject).add(subs)
-
+			return this
+		},
+		withStakingFetchTrigger: function (trigger: Observable<number>) {
+			trigger.subscribe(stakingFetchSubject).add(subs)
 			return this
 		},
 

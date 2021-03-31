@@ -54,6 +54,13 @@ export type RadixT = Readonly<{
 	withTokenBalanceFetchTrigger: (trigger: Observable<number>) => RadixT
 
 	/**
+	 * Specify a trigger for when to fetch the stakes and unstakes for the active address.
+	 *
+	 * @param {Observable<number>} trigger - An observable that signals when to fetch.
+	 */
+	withStakingFetchTrigger: (trigger: Observable<number>) => RadixT
+
+	/**
 	 * Transaction history of active account.
 	 *
 	 * @param {TransactionHistoryActiveAccountRequestInput} input - Pagination input, size and cursor.
