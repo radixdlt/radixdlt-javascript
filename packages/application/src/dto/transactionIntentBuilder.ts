@@ -32,7 +32,7 @@ type IntermediateAction = ActionInput & {
 
 const create = (): TransactionIntentBuilderT => {
 	const intermediateActions: IntermediateAction[] = []
-	const message: string | undefined = undefined
+	let message: string | undefined = undefined
 	const snapshotState = (): TransactionIntentBuilderState => ({
 		actionInputs: intermediateActions,
 		message,
@@ -68,6 +68,16 @@ const create = (): TransactionIntentBuilderT => {
 	const unstakeTokens = (
 		input: UnstakeTokensInput,
 	): TransactionIntentBuilderT => addAction(input, 'unstake')
+
+	const replaceAnyPreviousMessageWithNew = (
+		newMessage: string,
+	): TransactionIntentBuilderT => {
+		message = newMessage
+		return {
+			...methods,
+			...snapshotBuilderState(),
+		}
+	}
 
 	const syncBuildIgnoreMessage = (from: AddressT): TransactionIntent => {
 		const intendedActions: IntendedAction[] = intermediateActions.map(
@@ -109,7 +119,7 @@ const create = (): TransactionIntentBuilderT => {
 		const encMsg: EncryptedMessage | undefined =
 			message !== undefined
 				? {
-						msg: `PLAIN_TEXT_BECAUSE_ENCRYPTION_IS_NOT_YET_INPLEMENTED___${message!}`,
+						msg: `PLAIN_TEXT_BECAUSE_ENCRYPTION_IS_NOT_YET_INPLEMENTED___${message}`,
 						encryptionScheme: 'PLAINTEXT',
 				  }
 				: undefined
@@ -127,6 +137,7 @@ const create = (): TransactionIntentBuilderT => {
 		stakeTokens,
 		unstakeTokens,
 		buildAndEncrypt,
+		message: replaceAnyPreviousMessageWithNew,
 		__syncBuildIgnoreMessage: syncBuildIgnoreMessage,
 	}
 

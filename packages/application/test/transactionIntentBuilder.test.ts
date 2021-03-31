@@ -8,6 +8,8 @@ import {
 } from '../dist/actions/_types'
 import { AddressT } from '@radixdlt/account'
 import { ActionType } from '../src/actions/_types'
+import { TransactionIntentBuilderT } from '../dist/dto/_types'
+import { Subscription } from 'rxjs'
 
 describe('tx intent builder', () => {
 	const one = Amount.fromUnsafe(1)._unsafeUnwrap()
@@ -91,6 +93,59 @@ describe('tx intent builder', () => {
 			expect(t.amount).toBe(expected[i].amount)
 			expect(t.to.equals(expected[i].to)).toBe(true)
 		})
+	})
+
+	const testWithMessage = (
+		builder: TransactionIntentBuilderT,
+		msg: string,
+		done: jest.DoneCallback,
+	): Subscription => {
+		return builder.buildAndEncrypt(alice).subscribe((txIntent) => {
+			expect(txIntent.actions.length).toBe(1)
+
+			const attatchedMessage = txIntent.message
+			if (!attatchedMessage) {
+				done(new Error('Expected message...'))
+				return
+			} else {
+				const message = attatchedMessage!.msg
+				const encryptionScheme = attatchedMessage!.encryptionScheme
+
+				expect(message).toBe(
+					`PLAIN_TEXT_BECAUSE_ENCRYPTION_IS_NOT_YET_INPLEMENTED___${msg}`,
+				)
+
+				// TODO update when message encryption is done.
+				expect(encryptionScheme).toBe('PLAINTEXT')
+				done()
+			}
+		})
+	}
+
+	it('can transfer then attach message', (done) => {
+		const subs = new Subscription()
+		const msg = 'Hey Bob, hope you are well'
+
+		testWithMessage(
+			TransactionIntentBuilder.create()
+				.transferTokens(transfS(3, bob))
+				.message(msg),
+			msg,
+			done,
+		).add(subs)
+	})
+
+	it('can attach message then transfer', (done) => {
+		const subs = new Subscription()
+		const msg = 'Hey Bob, how are you?'
+
+		testWithMessage(
+			TransactionIntentBuilder.create()
+				.message(msg)
+				.transferTokens(transfS(3, bob)),
+			msg,
+			done,
+		).add(subs)
 	})
 
 	it('can add transfer, stake, unstake then transfer', () => {

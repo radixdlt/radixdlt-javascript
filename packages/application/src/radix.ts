@@ -266,17 +266,13 @@ const create = (): RadixT => {
 	): TransactionIntentBuilderT =>
 		TransactionIntentBuilder.create().transferTokens(input)
 
-	const stakeTokens = (
-		input: StakeTokensInput,
-	): TransactionIntentBuilderT => {
-		return <TransactionIntentBuilderT>{}
-	}
+	const stakeTokens = (input: StakeTokensInput): TransactionIntentBuilderT =>
+		TransactionIntentBuilder.create().stakeTokens(input)
 
 	const unstakeTokens = (
 		input: UnstakeTokensInput,
-	): TransactionIntentBuilderT => {
-		return <TransactionIntentBuilderT>{}
-	}
+	): TransactionIntentBuilderT =>
+		TransactionIntentBuilder.create().unstakeTokens(input)
 
 	deriveAccountSubject
 		.pipe(
