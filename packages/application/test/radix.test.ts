@@ -637,4 +637,18 @@ describe('Radix API', () => {
 			})
 			.add(subs)
 	})
+
+	it('should get validators', done => {
+		const radix = Radix.create().__withAPI(mockedAPI)
+
+		radix.ledger.validators({
+			size: 10,
+			cursor: ''
+		}).subscribe(validators => {
+			expect(validators.length === 10)
+			done()
+		})
+	})
+
+	it('')
 })

@@ -6,6 +6,7 @@ import {
 	Magic,
 	magicFromNumber,
 	maxAmount,
+	secureRandomUInt256,
 } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import { Address, AddressT } from '@radixdlt/account'
@@ -29,6 +30,7 @@ import {
 	TransactionStatus,
 	UnsignedTransaction,
 	UnstakePositions,
+	Validator,
 	Validators,
 	ValidatorsRequestInput,
 } from '../src/dto/_types'
@@ -252,6 +254,35 @@ const xerxez = toAddress('9SBA2tji3wjuuThohxW37L6vySVuVaUpBFBpq2b7Ey7sKToU2uJp')
 const yara = toAddress('9SBaXGCwn8HcyPsbu4ymzNVCXtvogf3vSqnH39ihqt5RyDFq9hsv')
 const zelda = toAddress('9SAU2m7yis9iE5u2L44poZ6rYf5JiTAN6GtiRnsBk6JnXoMoAdks')
 
+const characterNames: string[] = [
+	"alice",
+	"bob",
+	"carol",
+	"dan",
+	"erin",
+	"frank",
+	"grace",
+	"heidi",
+	"ivan",
+	"judy",
+	"klara",
+	"leonard",
+	"mallory",
+	"niaj",
+	"olivia",
+	"peggy",
+	"quentin",
+	"rupert",
+	"stella",
+	"ted",
+	"ursula",
+	"victor",
+	"webdy",
+	"xerxez",
+	"yara",
+	"zelda",
+]
+
 const castOfCharacters: AddressT[] = [
 	alice,
 	bob,
@@ -299,6 +330,45 @@ const detPRNGWithBuffer = (buffer: Buffer): (() => number) => {
 		const buf = bytes.slice(0, lengthToSlice)
 		bytes = bytes.slice(lengthToSlice, bytes.length)
 		return Number.parseInt(buf.toString('hex'), 16)
+	}
+}
+
+const randomValidatorList = (size: number) => {
+	const validatorList: Validator[] = []
+	const prng = detPRNGWithBuffer(Buffer.from('12345', 'hex'))
+	const listSize = prng() % 5 === 1 ? size - Math.round(size/2) : size
+
+	for (let i = 0; i < listSize; i++) {
+		const random = prng()
+		const address = castOfCharacters[random % castOfCharacters.length]
+		const ownerAddress = castOfCharacters[(random + 1) % castOfCharacters.length]
+		const name = characterNames[random % characterNames.length]
+		const amount = Amount.fromUnsafe(random)._unsafeUnwrap()
+		const bool = random % 2 === 0 ? true : false
+
+		validatorList.push({
+			address,
+			ownerAddress,
+			name,
+			infoURL: new URL('https://example.com'),
+			totalDelegatedStake: amount,
+			ownerDelegation: amount,
+			isExternalStakeAccepted: bool
+		})
+	}
+	return validatorList
+}
+
+const randomUnsignedTransaction = () => {
+	const prng = detPRNGWithBuffer(Buffer.from('12345', 'hex'))
+	const random = prng()
+	return {
+		transaction: {
+			blob: 'placeholder',
+			hashOfBlobToSign: ''
+		},
+		fee: Amount.fromUnsafe(random)._unsafeUnwrap(),
+		failure: 
 	}
 }
 
@@ -605,10 +675,13 @@ export const mockRadixCoreAPI = (
 				response(TransactionStatus.PENDING),
 				response(TransactionStatus.CONFIRMED),
 			)
-		).pipe(delay(1000))
+		).pipe(delay(3000))
 	},
 	transactionHistory: deterministicRandomTXHistory,
 	lookupTransaction: deterministicRandomLookupTX,
+	validators: (input: ValidatorsRequestInput): Observable<Validators> => of(randomValidatorList(input.size)),
+	buildTransaction: (transactionIntent: TransactionIntent): Observable<UnsignedTransaction> => of(),
+	submitSignedTransaction: 
 })
 
 export const mockedAPI: Observable<RadixCoreAPI> = of(mockRadixCoreAPI())
