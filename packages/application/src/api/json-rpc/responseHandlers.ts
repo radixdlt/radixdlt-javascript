@@ -1,5 +1,5 @@
 import { decoder, JSONDecoding } from '@radixdlt/data-formats'
-import { ok } from 'neverthrow'
+import { err, ok, Result } from 'neverthrow'
 import { UInt256 } from '@radixdlt/uint256'
 import { Amount, magicFromNumber } from '@radixdlt/primitives'
 
@@ -23,7 +23,7 @@ import {
 } from './_types'
 import { TransactionIdentifier } from '../../dto/transactionIdentifier'
 import { makeTokenPermissions } from '../../dto/tokenPermissions'
-import { TokenPermission } from '../../dto/_types'
+import { TokenPermission, TransactionIdentifierT } from '../../dto/_types'
 import { ResourceIdentifier } from '../../dto/resourceIdentifier'
 import { OtherAction } from '../../actions/otherAction'
 import { ExecutedTransferTokens } from '../../actions/executedTransferTokensAction'
@@ -105,6 +105,20 @@ const executedTXDecoders = JSONDecoding.withDecoders(
 	OtherAction.JSONDecoder,
 )
 
+const isFailure = (response: unknown): response is { failure: string } =>
+	(response as { failure: string }).failure ||
+	(response as { failure: string }).failure === ''
+		? true
+		: false
+
+const hasErrorMessage = (
+	response: unknown,
+): response is { errorMessage: string } =>
+	(response as { errorMessage: string }).errorMessage ||
+	(response as { errorMessage: string }).errorMessage === ''
+		? true
+		: false
+
 export const handleTransactionHistoryResponse = executedTXDecoders.create<TransactionHistoryEndpoint.DecodedResponse>()
 	.fromJSON
 
@@ -152,9 +166,20 @@ export const handleNetworkTxThroughputResponse = JSONDecoding.create<NetworkTran
 export const handleNetworkTxDemandResponse = JSONDecoding.create<NetworkTransactionDemandEndpoint.DecodedResponse>()
 	.fromJSON
 
-export const handleBuildTransactionResponse = JSONDecoding.create<BuildTransactionEndpoint.DecodedResponse>()
-	.fromJSON
+export const handleBuildTransactionResponse = (
+	json: unknown,
+): Result<BuildTransactionEndpoint.DecodedResponse, Error[]> =>
+	isFailure(json)
+		? err([Error(json.failure)])
+		: JSONDecoding.create<BuildTransactionEndpoint.DecodedResponse>().fromJSON(
+				json,
+		  )
 
-export const handleSubmitSignedTransactionResponse = JSONDecoding.withDecoders(
-	transactionIdentifierDecoder('txID'),
-).create<SubmitSignedTransactionEndpoint.DecodedResponse>().fromJSON
+export const handleSubmitSignedTransactionResponse = (
+	json: unknown,
+): Result<SubmitSignedTransactionEndpoint.DecodedResponse, Error[]> =>
+	hasErrorMessage(json)
+		? err([Error(json.errorMessage)])
+		: JSONDecoding.withDecoders(transactionIdentifierDecoder('txID'))
+				.create<SubmitSignedTransactionEndpoint.DecodedResponse>()
+				.fromJSON(json)

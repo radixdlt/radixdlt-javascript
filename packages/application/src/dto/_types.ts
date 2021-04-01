@@ -157,13 +157,12 @@ export type TransactionBlob = Readonly<{
 }>
 
 export type UnsignedTransaction = Readonly<{
-	transaction?: TransactionBlob &
+	transaction: TransactionBlob &
 		Readonly<{
 			// hex string
 			hashOfBlobToSign: string
 		}>
-	fee?: AmountT
-	failure?: string
+	fee: AmountT
 }>
 
 export type SignedTransaction = Readonly<{
@@ -172,8 +171,7 @@ export type SignedTransaction = Readonly<{
 }>
 
 export type PendingTransaction = Readonly<{
-	txID?: TransactionIdentifierT
-	failure?: string
+	txID: TransactionIdentifierT
 }>
 
 export type RawToken = Readonly<{

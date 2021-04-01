@@ -373,38 +373,28 @@ const randomValidatorList = (size: number) => {
 const unsignedRandom = detPRNGWithBuffer(Buffer.from('unsgn'))
 const randomUnsignedTransaction = (): UnsignedTransaction => {
 	const random = unsignedRandom()
-	const shouldFail = unsignedRandom() % 5 === 0
 
-	return shouldFail
-		? {
-				failure: 'MALFORMED_TX',
-		  }
-		: {
-				transaction: {
-					blob: 'placeholder',
-					hashOfBlobToSign: sha256(
-						Buffer.from('placeholder'),
-					).toString('hex'),
-				},
-				fee: Amount.fromUnsafe(random)._unsafeUnwrap(),
-		  }
+	return {
+		transaction: {
+			blob: 'placeholder',
+			hashOfBlobToSign: sha256(Buffer.from('placeholder')).toString(
+				'hex',
+			),
+		},
+		fee: Amount.fromUnsafe(random)._unsafeUnwrap(),
+	}
 }
 
 const randomPendingTransaction = (
 	signedTx: SignedTransaction,
 ): PendingTransaction => {
 	const prng = detPRNGWithBuffer(Buffer.from(signedTx.transaction.blob))
-	const shouldFail = prng() % 2 > 0
 
-	return shouldFail
-		? {
-				failure: 'Failed',
-		  }
-		: {
-				txID: TransactionIdentifier.create(
-					sha256(Buffer.from(signedTx.transaction.blob)),
-				)._unsafeUnwrap(),
-		  }
+	return {
+		txID: TransactionIdentifier.create(
+			sha256(Buffer.from(signedTx.transaction.blob)),
+		)._unsafeUnwrap(),
+	}
 }
 
 const rndDemand = detPRNGWithBuffer(Buffer.from('dmnd'))

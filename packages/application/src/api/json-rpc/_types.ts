@@ -183,14 +183,17 @@ export namespace BuildTransactionEndpoint {
 
 	export type Input = [transactionIntent: TransactionIntent]
 
-	export type Response = {
-		transaction: Readonly<{
-			blob: string
-			hashOfBlobToSign: string
-		}>
-		fee: string
-		failure?: Failure
-	}
+	export type Response =
+		| {
+				transaction: Readonly<{
+					blob: string
+					hashOfBlobToSign: string
+				}>
+				fee: string
+		  }
+		| {
+				failure: string
+		  }
 
 	export type DecodedResponse = UnsignedTransaction
 }
@@ -203,10 +206,13 @@ export namespace SubmitSignedTransactionEndpoint {
 		signatureDER: string,
 	]
 
-	export type Response = {
-		txID: string
-		errorMessage?: string
-	}
+	export type Response =
+		| {
+				txID: string
+		  }
+		| {
+				errorMessage: string
+		  }
 
 	export type DecodedResponse = PendingTransaction
 }

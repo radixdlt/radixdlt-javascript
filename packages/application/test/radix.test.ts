@@ -16,12 +16,16 @@ import { NodeT, RadixCoreAPI } from '../src/api/_types'
 import {
 	TokenBalances,
 	TransactionIdentifierT,
+	TransactionIntent,
 	TransactionStatus,
 } from '../src/dto/_types'
 import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
 import { Amount, AmountT } from '@radixdlt/primitives'
 import { signatureFromHexStrings } from '@radixdlt/crypto/test/ellipticCurveCryptography.test'
 import { TransactionIntentBuilder } from '../src/dto/transactionIntentBuilder'
+import { nodeAPI } from '../src/api/api'
+import { BuildTransactionEndpoint } from '../src/api/json-rpc/_types'
+import { err, Result, ResultAsync } from 'neverthrow'
 
 const createWallet = (): WalletT => {
 	const masterSeed = HDMasterSeed.fromSeed(
@@ -534,7 +538,7 @@ describe('Radix API', () => {
 
 							expect(tb.owner.publicKey.toString(true)).toBe(
 								keystoreForTest.publicKeysCompressed[
-								expected.pkIndex
+									expected.pkIndex
 								],
 							)
 							expect(tb.tokenBalances.length).toBe(
@@ -674,11 +678,11 @@ describe('Radix API', () => {
 
 		const radix = Radix.create().__withAPI(mockedAPI)
 
-		const transactionIntent = TransactionIntentBuilder
-			.create()
+		const transactionIntent = TransactionIntentBuilder.create()
 			.stakeTokens({
-				validator: '9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
-				amount: 10000
+				validator:
+					'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+				amount: 10000,
 			})
 			.__syncBuildIgnoreMessage(alice)
 			._unsafeUnwrap()
@@ -702,7 +706,7 @@ describe('Radix API', () => {
 		radix.ledger
 			.submitSignedTransaction({
 				transaction: {
-					blob: '',
+					blob: 'xyz',
 				},
 				signature: signatureFromHexStrings({
 					r:
@@ -717,14 +721,14 @@ describe('Radix API', () => {
 						txID: TransactionIdentifierT
 					}).txID.toString(),
 				).toEqual(
-					'2c4b8f4e4bc5b2502c4b8f4e4bc5b2502c4b8f4e4bc5b2502c4b8f4e4bc5b250',
+					'3608bca1e44ea6c4d268eb6db02260269892c0b42b86bbf1e77a6fa16c3c9282',
 				)
 				done()
 			})
 			.add(subs)
 	})
 
-	it.only('should get network transaction demand response', done => {
+	it('should get network transaction demand response', (done) => {
 		const subs = new Subscription()
 
 		const radix = Radix.create().__withAPI(mockedAPI)

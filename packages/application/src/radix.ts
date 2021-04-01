@@ -63,6 +63,7 @@ import {
 	UnstakeTokensInput,
 } from './actions/_types'
 import { TransactionIntentBuilder } from './dto/transactionIntentBuilder'
+import { nodeAPI } from './api/api'
 
 const create = (): RadixT => {
 	const subs = new Subscription()
@@ -81,7 +82,7 @@ const create = (): RadixT => {
 
 	const coreAPIViaNode$ = nodeSubject
 		.asObservable()
-		.pipe(map((n: NodeT) => radixCoreAPI(n)))
+		.pipe(map((n: NodeT) => radixCoreAPI(n, nodeAPI(n.url))))
 
 	const coreAPI$ = merge(coreAPIViaNode$, coreAPISubject.asObservable()).pipe(
 		shareReplay(1),
