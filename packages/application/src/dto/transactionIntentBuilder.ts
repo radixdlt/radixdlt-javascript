@@ -186,13 +186,17 @@ const create = (
 
 	const build = (
 		input: Readonly<{
-			spendingSender: Observable<AddressT>
 			encryptMessageIfAnyWithAccount: Observable<AccountT>
+			spendingSender?: Observable<AddressT>
 		}>,
 	): Observable<TransactionIntent> => {
 		const encryptingAccount$ = input.encryptMessageIfAnyWithAccount
-
-		return input.spendingSender.pipe(
+		const spendingSender: Observable<AddressT> =
+			input.spendingSender ??
+			input.encryptMessageIfAnyWithAccount.pipe(
+				mergeMap((a) => a.deriveAddress()),
+			)
+		return spendingSender.pipe(
 			mergeMap((from: AddressT) =>
 				toObservableFromResult(
 					intendedActionsFromIntermediateActions(from),

@@ -95,8 +95,10 @@ export type TransactionIntentBuilderT = Readonly<{
 	) => Result<TransactionIntent, Error>
 	build: (
 		input: Readonly<{
-			spendingSender: Observable<AddressT>
 			encryptMessageIfAnyWithAccount: Observable<AccountT>
+
+			// if 'undefined', the address of the `AccountT` will be used.
+			spendingSender?: Observable<AddressT>
 		}>,
 	) => Observable<TransactionIntent>
 }>
