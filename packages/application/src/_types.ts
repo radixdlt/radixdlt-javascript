@@ -12,10 +12,12 @@ import { Observable } from 'rxjs'
 import { NodeT, RadixAPI, RadixCoreAPI } from './api/_types'
 import { ErrorNotification } from './errors'
 import {
+	StakePositions,
 	StatusOfTransaction,
 	TokenBalances,
 	TransactionHistory,
 	TransactionHistoryActiveAccountRequestInput,
+	UnstakePositions,
 	TransactionIdentifierT,
 } from './dto/_types'
 
@@ -41,6 +43,8 @@ export type RadixT = Readonly<{
 
 	// Active Address/Account APIs
 	tokenBalances: Observable<TokenBalances>
+	stakingPositions: Observable<StakePositions>
+	unstakingPositions: Observable<UnstakePositions>
 
 	logLevel: (level: LogLevel) => RadixT
 
@@ -50,6 +54,13 @@ export type RadixT = Readonly<{
 	 * @param {Observable<number>} trigger - An observable that signals when to fetch.
 	 */
 	withTokenBalanceFetchTrigger: (trigger: Observable<number>) => RadixT
+
+	/**
+	 * Specify a trigger for when to fetch the stakes and unstakes for the active address.
+	 *
+	 * @param {Observable<number>} trigger - An observable that signals when to fetch.
+	 */
+	withStakingFetchTrigger: (trigger: Observable<number>) => RadixT
 
 	/**
 	 * Transaction history of active account.

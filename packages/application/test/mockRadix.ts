@@ -41,9 +41,14 @@ import {
 import { RadixCoreAPI } from '../src/api/_types'
 import { delay, shareReplay } from 'rxjs/operators'
 import { privateKeyFromBuffer, PublicKey, sha256 } from '@radixdlt/crypto'
-import { ActionType, ExecutedAction } from '../src/actions/_types'
+import {
+	ActionType,
+	ExecutedAction,
+	UnstakePosition,
+} from '../src/actions/_types'
 import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
 import { toAddress } from '../../account/test/address.test'
+import { StakePosition } from '../dist/actions/_types'
 
 export const xrd: Token = {
 	name: 'Rad',
@@ -433,73 +438,6 @@ const randomThroughput = (): NetworkTransactionDemand => ({
 	tps: rndThroughput() % 200,
 })
 
-const stakeRandom = detPRNGWithBuffer(Buffer.from('stakes'))
-const randomStakes = (): StakePositions => {
-	const stakePositions: StakePositions = []
-	const listSize = stakeRandom() % 50
-
-	for (let i = 0; i < listSize; i++) {
-		const random = stakeRandom()
-		const validator = castOfCharacters[random % castOfCharacters.length]
-		const amount = Amount.fromUnsafe(random)._unsafeUnwrap()
-
-		stakePositions.push({
-			validator,
-			amount,
-		})
-	}
-	return stakePositions
-}
-
-const unstakesRandom = detPRNGWithBuffer(Buffer.from('unstakes'))
-const randomUnstakes = (): UnstakePositions => {
-	const stakePositions: UnstakePositions = []
-	const listSize = unstakesRandom() % 50
-
-	const rand32ByteHex = (random: number) => {
-		let hex = ''
-		for (let i = 0; i < 64; i++) {
-			hex = hex.concat(
-				[
-					'0',
-					'1',
-					'2',
-					'3',
-					'4',
-					'5',
-					'6',
-					'7',
-					'8',
-					'9',
-					'a',
-					'b',
-					'c',
-					'd',
-					'e',
-					'f',
-				][random % 16],
-			)
-		}
-		return hex
-	}
-
-	for (let i = 0; i < listSize; i++) {
-		const random = unstakesRandom()
-		const validator = castOfCharacters[random % castOfCharacters.length]
-		const amount = Amount.fromUnsafe(random)._unsafeUnwrap()
-
-		stakePositions.push({
-			validator,
-			amount,
-			withdrawalTxID: TransactionIdentifier.create(
-				rand32ByteHex(random),
-			)._unsafeUnwrap(),
-			epochsUntil: random % 10,
-		})
-	}
-	return stakePositions
-}
-
 const detPRNGWithPubKey = (pubKey: PublicKey): (() => number) => {
 	// cannot use first, since it is always 02 or 03
 	const bytes = pubKey.asData({ compressed: true }).slice(1, 33)
@@ -558,6 +496,53 @@ export const deterministicRandomBalancesForAddress = (
 		owner: address,
 		tokenBalances,
 	}
+}
+
+export const deterministicRandomUnstakesForAddress = (
+	address: AddressT,
+): UnstakePositions => {
+	const anInt = detPRNGWithPubKey(address.publicKey)
+	const size = anInt() % 5
+	return Array(size)
+		.fill(undefined)
+		.map(
+			(_, index): UnstakePosition => {
+				const detRandomAddress = (): AddressT =>
+					castOfCharacters[anInt() % castOfCharacters.length]
+				const validator = detRandomAddress()
+				const amount = Amount.fromUnsafe(anInt())._unsafeUnwrap()
+
+				const bytesFromIndex = Buffer.allocUnsafe(2)
+				bytesFromIndex.writeUInt16BE(index)
+				const txIDBuffer = sha256(
+					Buffer.concat([
+						address.publicKey.asData({ compressed: true }),
+						bytesFromIndex,
+					]),
+				)
+
+				const withdrawalTxID = TransactionIdentifier.create(
+					txIDBuffer,
+				)._unsafeUnwrap()
+
+				return {
+					amount,
+					validator,
+					epochsUntil: anInt() % 100,
+					withdrawalTxID,
+				}
+			},
+		)
+}
+
+export const deterministicRandomStakesForAddress = (
+	address: AddressT,
+): StakePositions => {
+	return deterministicRandomUnstakesForAddress(address).map(
+		(un): StakePosition => ({
+			...un,
+		}),
+	)
 }
 
 export const deterministicRandomTxHistoryWithInput = (
@@ -714,6 +699,16 @@ export const deterministicRandomLookupTX = (
 ): Observable<ExecutedTransaction> =>
 	of(deterministicRandomLookupTXUsingHist(txID))
 
+export const deterministicRandomUnstakesForAddr = (
+	address: AddressT,
+): Observable<UnstakePositions> =>
+	of(deterministicRandomUnstakesForAddress(address))
+
+export const deterministicRandomStakesForAddr = (
+	address: AddressT,
+): Observable<StakePositions> =>
+	of(deterministicRandomStakesForAddress(address))
+
 export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
 	node: { url: new URL(nodeUrl ?? 'http://www.example.com') },
 
@@ -806,8 +801,6 @@ export const mockRadixCoreAPI = (
 			  )
 		).pipe(delay(3000))
 	},
-	transactionHistory: deterministicRandomTXHistory,
-	lookupTransaction: deterministicRandomLookupTX,
 	validators: (input: ValidatorsRequestInput): Observable<Validators> =>
 		of(randomValidatorList(input.size)),
 	buildTransaction: (
@@ -820,9 +813,10 @@ export const mockRadixCoreAPI = (
 		of(randomDemand()),
 	networkTransactionThroughput: (): Observable<NetworkTransactionThroughput> =>
 		of(randomThroughput()),
-	stakesForAddress: (): Observable<StakePositions> => of(randomStakes()),
-	unstakesForAddress: (): Observable<UnstakePositions> =>
-		of(randomUnstakes()),
+	transactionHistory: deterministicRandomTXHistory,
+	lookupTransaction: deterministicRandomLookupTX,
+	unstakesForAddress: deterministicRandomUnstakesForAddr,
+	stakesForAddress: deterministicRandomStakesForAddr,
 })
 
 export const mockedAPI: Observable<RadixCoreAPI> = of(mockRadixCoreAPI())
