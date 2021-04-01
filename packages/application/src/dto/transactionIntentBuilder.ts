@@ -12,8 +12,8 @@ import {
 	TransactionIntentBuilderT,
 } from './_types'
 import { AccountT, AddressT } from '@radixdlt/account'
-import { Observable } from 'rxjs'
-import { map } from 'rxjs/operators'
+import { Observable, throwError, of } from 'rxjs'
+import { mergeMap } from 'rxjs/operators'
 import {
 	IntendedTransferTokens,
 	isTransferTokensInput,
@@ -26,6 +26,7 @@ import {
 	IntendedUnstakeTokens,
 	isUnstakeTokensInput,
 } from '../actions/intendedUnstakeTokensAction'
+import { combine, err, Result } from 'neverthrow'
 
 type IntermediateAction = ActionInput & {
 	type: 'transfer' | 'stake' | 'unstake'
@@ -80,46 +81,50 @@ const create = (): TransactionIntentBuilderT => {
 		}
 	}
 
-	const syncBuildIgnoreMessage = (from: AddressT): TransactionIntent => {
-		const intendedActions: IntendedAction[] = intermediateActions.map(
-			(i): IntendedAction => {
-				const intermediateActionType = i.type
-				if (intermediateActionType === 'transfer') {
-					if (isTransferTokensInput(i)) {
-						return IntendedTransferTokens.create(i, from)
+	const syncBuildIgnoreMessage = (
+		from: AddressT,
+	): Result<TransactionIntent, Error> => {
+		return combine(
+			intermediateActions.map(
+				(i): Result<IntendedAction, Error> => {
+					const intermediateActionType = i.type
+					if (intermediateActionType === 'transfer') {
+						if (isTransferTokensInput(i)) {
+							return IntendedTransferTokens.create(i, from)
+						} else {
+							throw new Error('Not transfer tokens input')
+						}
+					} else if (intermediateActionType === 'stake') {
+						if (isStakeTokensInput(i)) {
+							return IntendedStakeTokens.create(i, from)
+						} else {
+							throw new Error('Not stake tokens input')
+						}
+					} else if (intermediateActionType === 'unstake') {
+						if (isUnstakeTokensInput(i)) {
+							return IntendedUnstakeTokens.create(i, from)
+						} else {
+							throw new Error('Not unstake tokens input')
+						}
 					} else {
-						throw new Error('Not transfer tokens input')
+						return err(
+							new Error(
+								'Incorrect implementation, forgot something...',
+							),
+						)
 					}
-				} else if (intermediateActionType === 'stake') {
-					if (isStakeTokensInput(i)) {
-						return IntendedStakeTokens.create(i, from)
-					} else {
-						throw new Error('Not stake tokens input')
-					}
-				} else if (intermediateActionType === 'unstake') {
-					if (isUnstakeTokensInput(i)) {
-						return IntendedUnstakeTokens.create(i, from)
-					} else {
-						throw new Error('Not unstake tokens input')
-					}
-				} else {
-					throw new Error(
-						'Incorrect implementation, forgot something...',
-					)
-				}
-			},
-		)
-
-		return {
-			actions: intendedActions,
+				},
+			),
+		).map((actions) => ({
+			actions,
 			message: undefined,
-		}
+		}))
 	}
 
 	const buildAndEncrypt = (from: AccountT): Observable<TransactionIntent> => {
 		return from.deriveAddress().pipe(
-			map(
-				(address: AddressT): TransactionIntent => {
+			mergeMap(
+				(address: AddressT): Observable<TransactionIntent> => {
 					const encMsg: EncryptedMessage | undefined =
 						message !== undefined
 							? {
@@ -128,11 +133,23 @@ const create = (): TransactionIntentBuilderT => {
 							  }
 							: undefined
 
-					const builtWithoutMessage = syncBuildIgnoreMessage(address)
+					const builtWithoutMessageResult = syncBuildIgnoreMessage(
+						address,
+					)
 
-					return {
-						...builtWithoutMessage,
-						message: encMsg,
+					if (builtWithoutMessageResult.isErr()) {
+						const error = builtWithoutMessageResult.error
+						return throwError(
+							() => new Error(`Input error: ${error.message}`),
+						)
+					} else {
+						const builtWithoutMessage =
+							builtWithoutMessageResult.value
+						const value: TransactionIntent = {
+							...builtWithoutMessage,
+							message: encMsg,
+						}
+						return of(value)
 					}
 				},
 			),

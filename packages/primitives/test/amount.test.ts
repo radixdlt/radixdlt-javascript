@@ -2,6 +2,7 @@ import { UInt256 } from '@radixdlt/uint256'
 import { AmountT } from '../src/_types'
 import {
 	Amount,
+	AmountOrUnsafeInput,
 	eight,
 	eleven,
 	fifteen,
@@ -21,15 +22,12 @@ import {
 	zero,
 } from '../src/amount'
 import {
-	AmountInputUnsafe,
 	Denomination,
 	DenominationOutputFormat,
 	Granularity,
 	isUInt256,
 	maxAmount,
 } from '../src/_index'
-const makeAmount = (unsafe: AmountInputUnsafe): AmountT =>
-	Amount.fromUnsafe(unsafe, Denomination.Atto)._unsafeUnwrap()
 
 describe('Amount', () => {
 	it('have correct values and equal itself', () => {
@@ -62,12 +60,14 @@ describe('Amount', () => {
 	})
 
 	it('should consider same numbers expressed in different denomination as equal', () => {
-		const amount = Amount.fromUnsafe(42)._unsafeUnwrap()
 		const amountFromAtto = Amount.fromUnsafe(
 			'42' + '0'.repeat(18),
-			Denomination.Atto,
 		)._unsafeUnwrap()
-		expect(amount.equals(amountFromAtto)).toBe(true)
+		const amountFromWhole = Amount.fromUnsafe(
+			42,
+			Denomination.Whole,
+		)._unsafeUnwrap()
+		expect(amountFromWhole.equals(amountFromAtto)).toBe(true)
 	})
 
 	it('should consider large magnitude of tiny denomination less than small magnitude of large denomination', () => {

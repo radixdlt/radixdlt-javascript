@@ -1,6 +1,7 @@
-import { AddressT } from '@radixdlt/account'
-import { AmountT } from '@radixdlt/primitives'
+import { AddressOrUnsafeInput, AddressT } from '@radixdlt/account'
+import { AmountOrUnsafeInput, AmountT } from '@radixdlt/primitives'
 import { ResourceIdentifierT } from '../dto/_types'
+import { ResourceIdentifierOrUnsafeInput } from '../dto/resourceIdentifier'
 
 export enum ActionType {
 	TOKEN_TRANSFER = 'TokenTransfer',
@@ -18,16 +19,17 @@ export type Action<T extends ActionType = ActionType.OTHER> = Readonly<{
 // ####     INPUTTED ACTIONS    #####
 // ####                         #####
 // ##################################
+
 export type TransferTokensInput = Readonly<{
-	to: AddressT
-	amount: AmountT
-	tokenIdentifier: ResourceIdentifierT
+	to: AddressOrUnsafeInput
+	amount: AmountOrUnsafeInput
+	tokenIdentifier: ResourceIdentifierOrUnsafeInput
 }>
 
 // Same input for stake/unstake for now
 export type StakeAndUnstakeTokensInput = Readonly<{
-	validator: AddressT
-	amount: AmountT
+	validator: AddressOrUnsafeInput
+	amount: AmountOrUnsafeInput
 }>
 
 export type StakeTokensInput = StakeAndUnstakeTokensInput
@@ -43,6 +45,19 @@ export type ActionInput =
 // ####     INTENDED ACTIONS    #####
 // ####                         #####
 // ##################################
+export type TransferTokensProps = Readonly<{
+	to: AddressT
+	amount: AmountT
+	tokenIdentifier: ResourceIdentifierT
+}>
+
+export type StakeAndUnstakeTokensProps = Readonly<{
+	validator: AddressT
+	amount: AmountT
+}>
+
+export type StakeTokensProps = StakeAndUnstakeTokensProps
+export type UnstakeTokensProps = StakeAndUnstakeTokensProps
 
 // An intended action specified by the user. Not yet accepted by
 // Radix Core API.
@@ -56,13 +71,13 @@ export type IntendedActionBase<T extends ActionType> = Action<T> &
 	}>
 
 export type IntendedTransferTokensAction = IntendedActionBase<ActionType.TOKEN_TRANSFER> &
-	TransferTokensInput
+	TransferTokensProps
 
 export type IntendedStakeTokensAction = IntendedActionBase<ActionType.STAKE_TOKENS> &
-	StakeTokensInput
+	StakeTokensProps
 
 export type IntendedUnstakeTokensAction = IntendedActionBase<ActionType.UNSTAKE_TOKENS> &
-	UnstakeTokensInput
+	UnstakeTokensProps
 
 export type IntendedAction =
 	| IntendedTransferTokensAction

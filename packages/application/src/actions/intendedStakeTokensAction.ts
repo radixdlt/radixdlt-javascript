@@ -4,32 +4,49 @@ import {
 	StakeTokensInput,
 } from './_types'
 import { v4 as uuidv4 } from 'uuid'
-import { Address, AddressT } from '@radixdlt/account'
-import { isAmount } from '@radixdlt/primitives'
+import { Address, AddressT, isAddressOrUnsafeInput } from '@radixdlt/account'
+import {
+	Amount,
+	AmountT,
+	Denomination,
+	isAmountOrUnsafeInput,
+} from '@radixdlt/primitives'
+import { combine, Result } from 'neverthrow'
 
 export const isStakeTokensInput = (
 	something: unknown,
 ): something is StakeTokensInput => {
 	const inspection = something as StakeTokensInput
 	return (
-		Address.isAddress(inspection.validator) && isAmount(inspection.amount)
+		isAddressOrUnsafeInput(inspection.validator) &&
+		isAmountOrUnsafeInput(inspection.amount)
 	)
 }
 
-const create = (
+export const __createIntendedStakeAction = (
 	input: StakeTokensInput,
 	from: AddressT,
-): IntendedStakeTokensAction => {
+): Result<IntendedStakeTokensAction, Error> => {
 	const uuid = uuidv4()
+	return combine([
+		Address.fromUnsafe(input.validator),
+		Amount.fromUnsafe(input.amount),
+	]).map(
+		(resultList): IntendedStakeTokensAction => {
+			const validator = resultList[0] as AddressT
+			const amount = resultList[1] as AmountT
 
-	return {
-		...input,
-		type: ActionType.STAKE_TOKENS,
-		from,
-		uuid,
-	}
+			return {
+				validator,
+				amount,
+				type: ActionType.STAKE_TOKENS,
+				from,
+				uuid,
+			}
+		},
+	)
 }
 
 export const IntendedStakeTokens = {
-	create,
+	create: __createIntendedStakeAction,
 }

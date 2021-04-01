@@ -12,6 +12,7 @@ import {
 import { AmountT } from '@radixdlt/primitives'
 import { Signature } from '@radixdlt/crypto'
 import { Observable } from 'rxjs'
+import { Result } from 'neverthrow'
 
 export type StakePosition = Readonly<{
 	validator: AddressT
@@ -88,7 +89,9 @@ export type TransactionIntentBuilderT = Readonly<{
 	message: (msg: string) => TransactionIntentBuilderT
 
 	// Build
-	__syncBuildIgnoreMessage: (from: AddressT) => TransactionIntent
+	__syncBuildIgnoreMessage: (
+		from: AddressT,
+	) => Result<TransactionIntent, Error>
 	buildAndEncrypt: (from: AccountT) => Observable<TransactionIntent>
 }>
 

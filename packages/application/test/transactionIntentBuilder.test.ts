@@ -1,15 +1,16 @@
-import { TransactionIntentBuilder } from '../dist/dto/transactionIntentBuilder'
+import { TransactionIntentBuilder } from '../src/dto/transactionIntentBuilder'
 import { Amount, DenominationOutputFormat } from '@radixdlt/primitives'
 import { alice, bob, carol, dan, erin, xrd } from './mockRadix'
 import {
+	ActionType,
 	IntendedTransferTokensAction,
 	StakeTokensInput,
 	TransferTokensInput,
-} from '../dist/actions/_types'
+} from '../src/actions/_types'
 import { AccountT, AddressT } from '@radixdlt/account'
-import { ActionType } from '../src/actions/_types'
-import { TransactionIntentBuilderT } from '../dist/dto/_types'
+import { TransactionIntentBuilderT } from '../src/dto/_types'
 import { Observable, of, Subscription } from 'rxjs'
+import { IntendedStakeTokensAction } from '../dist/actions/_types'
 
 describe('tx intent builder', () => {
 	const one = Amount.fromUnsafe(1)._unsafeUnwrap()
@@ -38,12 +39,8 @@ describe('tx intent builder', () => {
 		amount: Amount.fromUnsafe(amount)._unsafeUnwrap(),
 	})
 
-	it('can add single transfer', () => {
-		const builder = TransactionIntentBuilder.create().transferTokens(
-			transfS(1, bob),
-		)
-
-		const txIntent = builder.__syncBuildIgnoreMessage(alice)
+	const validateOneToBob = (builder: TransactionIntentBuilderT): void => {
+		const txIntent = builder.__syncBuildIgnoreMessage(alice)._unsafeUnwrap()
 
 		expect(txIntent.actions.length).toBe(1)
 		const action0 = txIntent.actions[0]
@@ -53,6 +50,44 @@ describe('tx intent builder', () => {
 		expect(transfer0.from.equals(alice)).toBe(true)
 		expect(transfer0.to.equals(bob)).toBe(true)
 		expect(transfer0.tokenIdentifier.equals(xrdRRI)).toBe(true)
+	}
+
+	it('can add single transfer', () => {
+		const builder = TransactionIntentBuilder.create().transferTokens(
+			transfS(1, bob),
+		)
+
+		validateOneToBob(builder)
+	})
+
+	it('can add single transfer from unsafe unputs', () => {
+		const builder = TransactionIntentBuilder.create().transferTokens({
+			// unsafe inputs
+			amount: 1,
+			to: '9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
+			tokenIdentifier:
+				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD',
+		})
+
+		validateOneToBob(builder)
+	})
+
+	it('can stake from unsafe inputs', () => {
+		const builder = TransactionIntentBuilder.create().stakeTokens({
+			validator: '9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
+			amount: 1234567890,
+		})
+
+		const txIntent = builder.__syncBuildIgnoreMessage(alice)._unsafeUnwrap()
+		expect(txIntent.actions.length).toBe(1)
+		const action0 = txIntent.actions[0]
+		expect(action0.type).toBe(ActionType.STAKE_TOKENS)
+		const stakeAction = action0 as IntendedStakeTokensAction
+		expect(
+			stakeAction.amount.toString({
+				denominationOutputFormat: DenominationOutputFormat.OMIT,
+			}),
+		).toBe('1234567890')
 	})
 
 	it('can add multiple transfers', () => {
@@ -69,7 +104,7 @@ describe('tx intent builder', () => {
 			.transferTokens(transfInputs[1])
 			.transferTokens(transfInputs[2])
 
-		const txIntent = builder.__syncBuildIgnoreMessage(alice)
+		const txIntent = builder.__syncBuildIgnoreMessage(alice)._unsafeUnwrap()
 
 		txIntent.actions.forEach((t) => {
 			expect(t.from.equals(alice)).toBe(true)
@@ -158,7 +193,7 @@ describe('tx intent builder', () => {
 			.unstakeTokens(unstakeS(5, dan))
 			.transferTokens(transfS(6, erin))
 
-		const txIntent = builder.__syncBuildIgnoreMessage(alice)
+		const txIntent = builder.__syncBuildIgnoreMessage(alice)._unsafeUnwrap()
 
 		expect(txIntent.actions.length).toBe(4)
 		expect(
