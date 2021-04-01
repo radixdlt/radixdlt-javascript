@@ -6,7 +6,6 @@ import {
 	Magic,
 	magicFromNumber,
 	maxAmount,
-	secureRandomUInt256,
 } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import { Address, AddressT } from '@radixdlt/account'
@@ -182,11 +181,11 @@ export const balanceOfFor = (
 	const amt: AmountT = isAmount(input.amount)
 		? input.amount
 		: Amount.fromUInt256({
-			magnitude: input.token.granularity.magnitude.multiply(
-				UInt256.valueOf(input.amount),
-			),
-			denomination: Denomination.Atto,
-		})._unsafeUnwrap()
+				magnitude: input.token.granularity.magnitude.multiply(
+					UInt256.valueOf(input.amount),
+				),
+				denomination: Denomination.Atto,
+		  })._unsafeUnwrap()
 
 	return {
 		token: input.token.rri,
@@ -255,32 +254,32 @@ const yara = toAddress('9SBaXGCwn8HcyPsbu4ymzNVCXtvogf3vSqnH39ihqt5RyDFq9hsv')
 const zelda = toAddress('9SAU2m7yis9iE5u2L44poZ6rYf5JiTAN6GtiRnsBk6JnXoMoAdks')
 
 const characterNames: string[] = [
-	"alice",
-	"bob",
-	"carol",
-	"dan",
-	"erin",
-	"frank",
-	"grace",
-	"heidi",
-	"ivan",
-	"judy",
-	"klara",
-	"leonard",
-	"mallory",
-	"niaj",
-	"olivia",
-	"peggy",
-	"quentin",
-	"rupert",
-	"stella",
-	"ted",
-	"ursula",
-	"victor",
-	"webdy",
-	"xerxez",
-	"yara",
-	"zelda",
+	'alice',
+	'bob',
+	'carol',
+	'dan',
+	'erin',
+	'frank',
+	'grace',
+	'heidi',
+	'ivan',
+	'judy',
+	'klara',
+	'leonard',
+	'mallory',
+	'niaj',
+	'olivia',
+	'peggy',
+	'quentin',
+	'rupert',
+	'stella',
+	'ted',
+	'ursula',
+	'victor',
+	'webdy',
+	'xerxez',
+	'yara',
+	'zelda',
 ]
 
 const castOfCharacters: AddressT[] = [
@@ -335,13 +334,14 @@ const detPRNGWithBuffer = (buffer: Buffer): (() => number) => {
 
 const randomValidatorList = (size: number) => {
 	const validatorList: Validator[] = []
-	const prng = detPRNGWithBuffer(Buffer.from('12345', 'hex'))
-	const listSize = prng() % 5 === 1 ? size - Math.round(size/2) : size
+	const prng = detPRNGWithBuffer(Buffer.from('validators'))
+	const listSize = prng() % 5 === 1 ? size - Math.round(size / 2) : size
 
 	for (let i = 0; i < listSize; i++) {
 		const random = prng()
 		const address = castOfCharacters[random % castOfCharacters.length]
-		const ownerAddress = castOfCharacters[(random + 1) % castOfCharacters.length]
+		const ownerAddress =
+			castOfCharacters[(random + 1) % castOfCharacters.length]
 		const name = characterNames[random % characterNames.length]
 		const amount = Amount.fromUnsafe(random)._unsafeUnwrap()
 		const bool = random % 2 === 0 ? true : false
@@ -353,23 +353,151 @@ const randomValidatorList = (size: number) => {
 			infoURL: new URL('https://example.com'),
 			totalDelegatedStake: amount,
 			ownerDelegation: amount,
-			isExternalStakeAccepted: bool
+			isExternalStakeAccepted: bool,
 		})
 	}
 	return validatorList
 }
 
-const randomUnsignedTransaction = () => {
-	const prng = detPRNGWithBuffer(Buffer.from('12345', 'hex'))
-	const random = prng()
-	return {
-		transaction: {
-			blob: 'placeholder',
-			hashOfBlobToSign: ''
-		},
-		fee: Amount.fromUnsafe(random)._unsafeUnwrap(),
-		failure: 
+const unsignedRandom = detPRNGWithBuffer(Buffer.from('unsgn'))
+const randomUnsignedTransaction = (): UnsignedTransaction => {
+	const random = unsignedRandom()
+	const shouldFail = unsignedRandom() % 5 === 0
+
+	return shouldFail
+		? {
+				failure: 'MALFORMED_TX',
+		  }
+		: {
+				transaction: {
+					blob: 'placeholder',
+					hashOfBlobToSign: sha256(
+						Buffer.from('placeholder'),
+					).toString('hex'),
+				},
+				fee: Amount.fromUnsafe(random)._unsafeUnwrap(),
+		  }
+}
+
+const randomPendingTransaction = (
+	signedTx: SignedTransaction,
+): PendingTransaction => {
+	const prng = detPRNGWithBuffer(Buffer.from(signedTx.transaction.blob))
+	const shouldFail = prng() % 2 > 0
+
+	const rand32ByteHex = (() => {
+		let hex = ''
+		for (let i = 0; i < 64; i++) {
+			hex = hex.concat(
+				[
+					'0',
+					'1',
+					'2',
+					'3',
+					'4',
+					'5',
+					'6',
+					'7',
+					'8',
+					'9',
+					'a',
+					'b',
+					'c',
+					'd',
+					'e',
+					'f',
+				][prng() % 16],
+			)
+		}
+		return hex
+	})()
+
+	return shouldFail
+		? {
+				failure: 'Failed',
+		  }
+		: {
+				txID: TransactionIdentifier.create(
+					rand32ByteHex,
+				)._unsafeUnwrap(),
+		  }
+}
+
+const rndDemand = detPRNGWithBuffer(Buffer.from('dmnd'))
+const randomDemand = (): NetworkTransactionDemand => ({
+	tps: rndDemand() % 200,
+})
+
+const rndThroughput = detPRNGWithBuffer(Buffer.from('trpt'))
+const randomThroughput = (): NetworkTransactionDemand => ({
+	tps: rndThroughput() % 200,
+})
+
+const stakeRandom = detPRNGWithBuffer(Buffer.from('stakes'))
+const randomStakes = (): StakePositions => {
+	const stakePositions: StakePositions = []
+	const listSize = stakeRandom() % 50
+
+	for (let i = 0; i < listSize; i++) {
+		const random = stakeRandom()
+		const validator = castOfCharacters[random % castOfCharacters.length]
+		const amount = Amount.fromUnsafe(random)._unsafeUnwrap()
+
+		stakePositions.push({
+			validator,
+			amount,
+		})
 	}
+	return stakePositions
+}
+
+const unstakesRandom = detPRNGWithBuffer(Buffer.from('unstakes'))
+const randomUnstakes = (): UnstakePositions => {
+	const stakePositions: UnstakePositions = []
+	const listSize = unstakesRandom() % 50
+
+	const rand32ByteHex = (random: number) => {
+		let hex = ''
+		for (let i = 0; i < 64; i++) {
+			hex = hex.concat(
+				[
+					'0',
+					'1',
+					'2',
+					'3',
+					'4',
+					'5',
+					'6',
+					'7',
+					'8',
+					'9',
+					'a',
+					'b',
+					'c',
+					'd',
+					'e',
+					'f',
+				][random % 16],
+			)
+		}
+		return hex
+	}
+
+	for (let i = 0; i < listSize; i++) {
+		const random = unstakesRandom()
+		const validator = castOfCharacters[random % castOfCharacters.length]
+		const amount = Amount.fromUnsafe(random)._unsafeUnwrap()
+
+		stakePositions.push({
+			validator,
+			amount,
+			withdrawalTxID: TransactionIdentifier.create(
+				rand32ByteHex(random),
+			)._unsafeUnwrap(),
+			epochsUntil: random % 10,
+		})
+	}
+	return stakePositions
 }
 
 const detPRNGWithPubKey = (pubKey: PublicKey): (() => number) => {
@@ -462,10 +590,10 @@ export const deterministicRandomTxHistoryWithInput = (
 										v === 0
 											? ActionType.TOKEN_TRANSFER
 											: v === 1
-												? ActionType.STAKE_TOKENS
-												: v === 2
-													? ActionType.UNSTAKE_TOKENS
-													: ActionType.OTHER
+											? ActionType.STAKE_TOKENS
+											: v === 2
+											? ActionType.UNSTAKE_TOKENS
+											: ActionType.OTHER
 
 									let executedAction: ExecutedAction
 
@@ -648,7 +776,8 @@ export const mockRadixCoreAPI = (
 		magic?: number
 	}>,
 ): RadixCoreAPI => ({
-	...makeThrowingRadixCoreAPI(input?.nodeUrl),
+	node: { url: new URL(input?.nodeUrl ?? 'http://www.example.com') },
+
 	networkId: (): Observable<Magic> => {
 		return of(magicFromNumber(input?.magic ?? 123)).pipe(shareReplay(1))
 	},
@@ -668,20 +797,32 @@ export const mockRadixCoreAPI = (
 
 		return (shouldFail
 			? of(
-				response(TransactionStatus.PENDING),
-				response(TransactionStatus.FAILED),
-			)
+					response(TransactionStatus.PENDING),
+					response(TransactionStatus.FAILED),
+			  )
 			: of(
-				response(TransactionStatus.PENDING),
-				response(TransactionStatus.CONFIRMED),
-			)
+					response(TransactionStatus.PENDING),
+					response(TransactionStatus.CONFIRMED),
+			  )
 		).pipe(delay(3000))
 	},
 	transactionHistory: deterministicRandomTXHistory,
 	lookupTransaction: deterministicRandomLookupTX,
-	validators: (input: ValidatorsRequestInput): Observable<Validators> => of(randomValidatorList(input.size)),
-	buildTransaction: (transactionIntent: TransactionIntent): Observable<UnsignedTransaction> => of(),
-	submitSignedTransaction: 
+	validators: (input: ValidatorsRequestInput): Observable<Validators> =>
+		of(randomValidatorList(input.size)),
+	buildTransaction: (
+		transactionIntent: TransactionIntent,
+	): Observable<UnsignedTransaction> => of(randomUnsignedTransaction()),
+	submitSignedTransaction: (
+		signedTx: SignedTransaction,
+	): Observable<PendingTransaction> => of(randomPendingTransaction(signedTx)),
+	networkTransactionDemand: (): Observable<NetworkTransactionDemand> =>
+		of(randomDemand()),
+	networkTransactionThroughput: (): Observable<NetworkTransactionThroughput> =>
+		of(randomThroughput()),
+	stakesForAddress: (): Observable<StakePositions> => of(randomStakes()),
+	unstakesForAddress: (): Observable<UnstakePositions> =>
+		of(randomUnstakes()),
 })
 
 export const mockedAPI: Observable<RadixCoreAPI> = of(mockRadixCoreAPI())

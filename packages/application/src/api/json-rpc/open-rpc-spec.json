@@ -519,18 +519,31 @@
             "result": {
                 "name": "submissionResult",
                 "schema": {
-                    "type": "object",
-                    "properties": {
-                        "txID": {
-                            "type": "string"
+                    "anyOf":[
+                        {
+                            "type": "object",
+                            "properties": {
+                                "txID": {
+                                    "type": "string"
+                                }
+                            },
+                            "additionalProperties": false,
+                            "required": [
+                                "txID"
+                            ]
                         },
-                        "errorMsg": {
-                            "type": "string"
+                        {
+                            "type": "object",
+                            "properties": {
+                                "errorMsg": {
+                                    "type": "string"
+                                }
+                            },
+                            "additionalProperties": false,
+                            "required": [
+                                "errorMsg"
+                            ]
                         }
-                    },
-                    "additionalProperties": false,
-                    "required": [
-                        "txID"
                     ]
                 }
             }

@@ -1,5 +1,11 @@
 import { Radix } from '../src/radix'
-import { AddressT, HDMasterSeed, Wallet, WalletT } from '@radixdlt/account'
+import {
+	Address,
+	AddressT,
+	HDMasterSeed,
+	Wallet,
+	WalletT,
+} from '@radixdlt/account'
 import { interval, Observable, of, Subscription, throwError } from 'rxjs'
 import { map, take, toArray } from 'rxjs/operators'
 import { KeystoreT } from '@radixdlt/crypto'
@@ -7,8 +13,18 @@ import { RadixT } from '../src/_types'
 import { APIErrorCause, ErrorCategory } from '../src/errors'
 import { balancesFor, mockedAPI, mockRadixCoreAPI } from './mockRadix'
 import { NodeT, RadixCoreAPI } from '../src/api/_types'
-import { TokenBalances, TransactionStatus } from '../src/dto/_types'
+import {
+	TokenBalances,
+	TransactionIdentifierT,
+	TransactionStatus,
+} from '../src/dto/_types'
 import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
+import { Amount, AmountT } from '@radixdlt/primitives'
+import { UInt256 } from '@radixdlt/uint256'
+import { signatureFromHexStrings } from '@radixdlt/crypto/test/ellipticCurveCryptography.test'
+import { ActionType } from '../src/actions/_types'
+import { v4 as uuidv4 } from 'uuid'
+import { StakeTokensAction } from '../src/actions/stakeTokensAction'
 
 const createWallet = (): WalletT => {
 	const masterSeed = HDMasterSeed.fromSeed(
@@ -638,17 +654,96 @@ describe('Radix API', () => {
 			.add(subs)
 	})
 
-	it('should get validators', done => {
+	it('should get validators', (done) => {
 		const radix = Radix.create().__withAPI(mockedAPI)
 
-		radix.ledger.validators({
-			size: 10,
-			cursor: ''
-		}).subscribe(validators => {
-			expect(validators.length === 10)
+		radix.ledger
+			.validators({
+				size: 10,
+				cursor: '',
+			})
+			.subscribe((validators) => {
+				expect(validators.length).toEqual(10)
+				done()
+			})
+	})
+
+	it('should get build transaction response', (done) => {
+		const radix = Radix.create().__withAPI(mockedAPI)
+
+		radix.ledger
+			.buildTransaction({
+				actions: [
+					StakeTokensAction.intended({
+						validator: Address.fromBase58String(
+							'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+						)._unsafeUnwrap(),
+						amount: Amount.make(10000),
+					}),
+				],
+			})
+			.subscribe((unsignedTx) => {
+				expect((unsignedTx as { fee: AmountT }).fee.toString()).toEqual(
+					'30062',
+				)
+				done()
+			})
+	})
+
+	it('should get submitSignedTransaction response', (done) => {
+		const radix = Radix.create().__withAPI(mockedAPI)
+
+		radix.ledger
+			.submitSignedTransaction({
+				transaction: {
+					blob: '',
+				},
+				signature: signatureFromHexStrings({
+					r:
+						'934b1ea10a4b3c1757e2b0c017d0b6143ce3c9a7e6a4a49860d7a6ab210ee3d8',
+					s:
+						'2442ce9d2b916064108014783e923ec36b49743e2ffa1c4496f01a512aafd9e5',
+				}),
+			})
+			.subscribe((pendingTx) => {
+				expect(
+					(pendingTx as {
+						txID: TransactionIdentifierT
+					}).txID.toString(),
+				).toEqual(
+					'2c4b8f4e4bc5b2502c4b8f4e4bc5b2502c4b8f4e4bc5b2502c4b8f4e4bc5b250',
+				)
+				done()
+			})
+	})
+
+	it('should get network transaction demand response', (done) => {
+		const radix = Radix.create().__withAPI(mockedAPI)
+
+		radix.ledger.networkTransactionDemand().subscribe((result) => {
+			expect(result.tps).toEqual(109)
 			done()
 		})
 	})
 
-	it('')
+	it('should get network transaction throughput response', (done) => {
+		const radix = Radix.create().__withAPI(mockedAPI)
+
+		radix.ledger.networkTransactionThroughput().subscribe((result) => {
+			expect(result.tps).toEqual(10)
+			done()
+		})
+	})
+
+	it('should get stakes for address response', (done) => {
+		const radix = Radix.create().__withAPI(mockedAPI)
+		radix.withWallet(createWallet())
+
+		radix.activeAddress.subscribe((address) => {
+			radix.ledger.stakesForAddress(address).subscribe((result) => {
+				expect(result.length).toEqual(6)
+				done()
+			})
+		})
+	})
 })
