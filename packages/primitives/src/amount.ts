@@ -184,15 +184,25 @@ const denominationConversionOfMagnitude = (
 	return ok(quotient)
 }
 
-export type AmountInputUnsafe = UInt256InputUnsafe
+export type AmountUnsafeInput = UInt256InputUnsafe
+export const isAmountUnsafeInput = (
+	something: unknown,
+): something is AmountUnsafeInput => isUnsafeInputForUInt256(something)
+
+export type AmountOrUnsafeInput = AmountT | AmountUnsafeInput
+
+export const isAmountOrUnsafeInput = (
+	something: unknown,
+): something is AmountOrUnsafeInput =>
+	isAmount(something) || isAmountUnsafeInput(something)
 
 const fromUnsafe = (
-	input: AmountT | AmountInputUnsafe,
-	denomination: Denomination = Denomination.Whole,
+	input: AmountOrUnsafeInput,
+	denomination: Denomination = Denomination.Atto,
 ): Result<AmountT, Error> => {
 	return isAmount(input)
 		? ok(input)
-		: isUnsafeInputForUInt256(input)
+		: isAmountUnsafeInput(input)
 		? uint256FromUnsafe(input).andThen((magnitude) =>
 				fromUInt256({
 					magnitude,

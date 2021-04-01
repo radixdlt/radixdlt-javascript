@@ -143,10 +143,23 @@ const isAddress = (something: AddressT | unknown): something is AddressT => {
 	)
 }
 
-const fromUnsafe = (input: AddressT | string): Result<AddressT, Error> => {
+export type AddressUnsafeInput = string
+
+export const isAddressUnsafeInput = (
+	something: unknown,
+): something is AddressUnsafeInput => typeof something === 'string'
+
+export type AddressOrUnsafeInput = AddressT | AddressUnsafeInput
+
+export const isAddressOrUnsafeInput = (
+	something: unknown,
+): something is AddressOrUnsafeInput =>
+	isAddress(something) || isAddressUnsafeInput(something)
+
+const fromUnsafe = (input: AddressOrUnsafeInput): Result<AddressT, Error> => {
 	return isAddress(input)
 		? ok(input)
-		: typeof input === 'string'
+		: isAddressUnsafeInput(input)
 		? fromBase58String(input)
 		: err(new Error('bad type'))
 }

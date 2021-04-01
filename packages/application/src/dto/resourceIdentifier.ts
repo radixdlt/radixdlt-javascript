@@ -83,9 +83,24 @@ export const isResourceIdentifier = (
 		inspection.equals !== undefined
 	)
 }
+export type ResourceIdentifierUnsafeInput = string
+
+export const isResourceIdentifierUnsafeInput = (
+	something: unknown,
+): something is ResourceIdentifierUnsafeInput => typeof something === 'string'
+
+export type ResourceIdentifierOrUnsafeInput =
+	| ResourceIdentifierT
+	| ResourceIdentifierUnsafeInput
+
+export const isResourceIdentifierOrUnsafeInput = (
+	something: unknown,
+): something is ResourceIdentifierOrUnsafeInput =>
+	isResourceIdentifier(something) ||
+	isResourceIdentifierUnsafeInput(something)
 
 const fromUnsafe = (
-	input: ResourceIdentifierT | string,
+	input: ResourceIdentifierOrUnsafeInput,
 ): Result<ResourceIdentifierT, Error> => {
 	return isResourceIdentifier(input) ? ok(input) : fromString(input)
 }

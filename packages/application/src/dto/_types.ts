@@ -1,14 +1,30 @@
 import { DSONCodable, JSONEncodable } from '@radixdlt/data-formats'
-import { AddressT } from '@radixdlt/account'
+import { AccountT, AddressT } from '@radixdlt/account'
 import {
+	ActionInput,
 	ActionType,
 	ExecutedAction,
 	IntendedAction,
-	StakePosition,
-	UnstakePosition,
+	StakeTokensInput,
+	TransferTokensInput,
+	UnstakeTokensInput,
 } from '../actions/_types'
 import { AmountT } from '@radixdlt/primitives'
 import { Signature } from '@radixdlt/crypto'
+import { Observable } from 'rxjs'
+import { Result } from 'neverthrow'
+
+export type StakePosition = Readonly<{
+	validator: AddressT
+	amount: AmountT
+}>
+
+export type UnstakePosition = Readonly<{
+	validator: AddressT
+	amount: AmountT
+	withdrawalTxID: TransactionIdentifierT
+	epochsUntil: number
+}>
 
 export type TokenPermissions = JSONEncodable &
 	DSONCodable &
@@ -59,9 +75,34 @@ export enum TokenTransition {
 	BURN = 'burn',
 }
 
+export type TransactionIntentBuilderState = Readonly<{
+	actionInputs: ActionInput[]
+	message?: string
+}>
+
+export type TransactionIntentBuilderT = Readonly<{
+	__state: TransactionIntentBuilderState
+
+	transferTokens: (input: TransferTokensInput) => TransactionIntentBuilderT
+	stakeTokens: (input: StakeTokensInput) => TransactionIntentBuilderT
+	unstakeTokens: (input: UnstakeTokensInput) => TransactionIntentBuilderT
+	message: (msg: string) => TransactionIntentBuilderT
+
+	// Build
+	__syncBuildIgnoreMessage: (
+		from: AddressT,
+	) => Result<TransactionIntent, Error>
+	buildAndEncrypt: (from: AccountT) => Observable<TransactionIntent>
+}>
+
+export type EncryptedMessage = Readonly<{
+	msg: string
+	encryptionScheme: string
+}>
+
 export type TransactionIntent = Readonly<{
 	actions: IntendedAction[]
-	message?: string
+	message?: EncryptedMessage
 }>
 
 export type ValidatorsRequestInput = Readonly<{
@@ -86,17 +127,16 @@ export type ExecutedTransaction = Readonly<{
 	txID: TransactionIdentifierT
 	sentAt: Date
 	fee: AmountT
-	message?: {
-		msg: string
-		encryptionScheme: string
-	}
+	message?: EncryptedMessage
 	actions: ExecutedAction[]
 }>
 
-export type TokenBalance = Readonly<{
+export type TokenAmount = Readonly<{
 	token: ResourceIdentifierT
 	amount: AmountT
 }>
+
+export type TokenBalance = TokenAmount
 
 export type Token = Readonly<{
 	name: string
@@ -162,7 +202,7 @@ export type RawTransferAction = RawExecutedActionBase &
 		from: string
 		to: string
 		amount: string
-		resourceIdentifier: string
+		rri: string
 	}>
 
 export type RawStakesAction = RawExecutedActionBase &
