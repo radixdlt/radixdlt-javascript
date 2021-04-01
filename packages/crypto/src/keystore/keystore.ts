@@ -6,12 +6,8 @@ import { ScryptParamsT } from '../key-derivation-functions/_types'
 import { Scrypt, ScryptParams } from '../key-derivation-functions/scrypt'
 import { v4 as uuidv4 } from 'uuid'
 
-const minimumPasswordLength = 8
-
 const validatePassword = (password: string): Result<string, Error> =>
-	password.length >= minimumPasswordLength
-		? ok(password)
-		: err(new Error('Password too short'))
+	ok(password) // no validation for now...
 
 const encryptSecret = (
 	input: Readonly<{
@@ -141,7 +137,6 @@ const isKeystore = (something: unknown): something is KeystoreT => {
 export const Keystore = {
 	fromBuffer,
 	decrypt,
-	minimumPasswordLength,
 	validatePassword,
 	encryptSecret,
 }

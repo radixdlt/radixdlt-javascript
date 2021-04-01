@@ -122,7 +122,7 @@ describe('networking', () => {
 								from: address,
 								to: address,
 								amount: '100',
-								resourceIdentifier: tokenRRI,
+								rri: tokenRRI,
 							},
 							{
 								type: ActionType.STAKE_TOKENS,
@@ -139,9 +139,7 @@ describe('networking', () => {
 				amount: Amount.inSmallestDenomination(new UInt256(100)),
 				from: Address.fromBase58String(address)._unsafeUnwrap(),
 				to: Address.fromBase58String(address)._unsafeUnwrap(),
-				resourceIdentifier: ResourceIdentifier.fromString(
-					tokenRRI,
-				)._unsafeUnwrap(),
+				rri: ResourceIdentifier.fromString(tokenRRI)._unsafeUnwrap(),
 			}
 
 			const expectedTx0A1: ExecutedStakeTokensAction = {
@@ -164,7 +162,7 @@ describe('networking', () => {
 			}
 
 			const result = (
-				await client.transactionHistory('', 0)
+				await client.transactionHistory(address, 0)
 			)._unsafeUnwrap()
 
 			expect(result.cursor).toEqual(expected.cursor)
@@ -177,11 +175,7 @@ describe('networking', () => {
 			expect(tx0A0.type).toEqual(expectedTx0A0.type)
 			expect(tx0A0.amount.equals(expectedTx0A0.amount)).toEqual(true)
 
-			expect(
-				tx0A0.resourceIdentifier.equals(
-					expectedTx0A0.resourceIdentifier,
-				),
-			).toEqual(true)
+			expect(tx0A0.rri.equals(expectedTx0A0.rri)).toEqual(true)
 
 			expect(tx0A0.from.equals(expectedTx0A0.from)).toEqual(true)
 
