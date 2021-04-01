@@ -656,6 +656,8 @@ describe('Radix API', () => {
 	})
 
 	it('should get validators', (done) => {
+		const subs = new Subscription()
+
 		const radix = Radix.create().__withAPI(mockedAPI)
 
 		radix.ledger
@@ -666,10 +668,12 @@ describe('Radix API', () => {
 			.subscribe((validators) => {
 				expect(validators.length).toEqual(10)
 				done()
-			})
+			}).add(subs)
 	})
 
 	it('should get build transaction response', (done) => {
+		const subs = new Subscription()
+
 		const radix = Radix.create().__withAPI(mockedAPI)
 
 		radix.ledger
@@ -688,10 +692,12 @@ describe('Radix API', () => {
 					'30062',
 				)
 				done()
-			})
+			}).add(subs)
 	})
 
 	it('should get submitSignedTransaction response', (done) => {
+		const subs = new Subscription()
+
 		const radix = Radix.create().__withAPI(mockedAPI)
 
 		radix.ledger
@@ -715,25 +721,28 @@ describe('Radix API', () => {
 					'2c4b8f4e4bc5b2502c4b8f4e4bc5b2502c4b8f4e4bc5b2502c4b8f4e4bc5b250',
 				)
 				done()
-			})
+			}).add(subs)
 	})
 
 	it('should get network transaction demand response', (done) => {
+		const subs = new Subscription()
+
 		const radix = Radix.create().__withAPI(mockedAPI)
 
 		radix.ledger.networkTransactionDemand().subscribe((result) => {
 			expect(result.tps).toEqual(109)
-			done()
-		})
+		}).add(subs)
 	})
 
 	it('should get network transaction throughput response', (done) => {
+		const subs = new Subscription()
+
 		const radix = Radix.create().__withAPI(mockedAPI)
 
 		radix.ledger.networkTransactionThroughput().subscribe((result) => {
 			expect(result.tps).toEqual(10)
 			done()
-		})
+		}).add(subs)
 	})
 
 	it('can fetch stake positions', (done) => {
