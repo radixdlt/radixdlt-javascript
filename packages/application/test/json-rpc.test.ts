@@ -27,8 +27,8 @@ import { TransactionStatus } from '../src/dto/_types'
 
 let mockClientReturnValue: any
 
-function mockHTTPTransport() {}
-function mockRequestManager() {}
+function mockHTTPTransport() { }
+function mockRequestManager() { }
 function mockClient() {
 	return {
 		request: async () => mockClientReturnValue,
@@ -314,9 +314,9 @@ describe('networking', () => {
 
 			mockClientReturnValue = <
 				NetworkTransactionThroughputEndpoint.Response
-			>{
-				tps,
-			}
+				>{
+					tps,
+				}
 
 			const expected: NetworkTransactionThroughputEndpoint.DecodedResponse = mockClientReturnValue
 
@@ -377,13 +377,13 @@ describe('networking', () => {
 
 			const expected: SubmitSignedTransactionEndpoint.DecodedResponse = {
 				txID: TransactionIdentifier.create(txID)._unsafeUnwrap(),
-				errorMessage,
 			}
 
 			const result = (
 				await client.submitSignedTransaction({ blob: '' }, '')
 			)._unsafeUnwrap()
 
+			//@ts-ignore
 			expect(result.txID.equals(expected.txID)).toBe(true)
 			// expect(result.failure).toEqual(expected.failure)
 		})

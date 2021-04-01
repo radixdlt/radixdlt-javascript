@@ -11,7 +11,7 @@ import { map, take, toArray } from 'rxjs/operators'
 import { KeystoreT } from '@radixdlt/crypto'
 import { RadixT } from '../src/_types'
 import { APIErrorCause, ErrorCategory } from '../src/errors'
-import { balancesFor, mockedAPI, mockRadixCoreAPI } from './mockRadix'
+import { alice, balancesFor, mockedAPI, mockRadixCoreAPI } from './mockRadix'
 import { NodeT, RadixCoreAPI } from '../src/api/_types'
 import {
 	TokenBalances,
@@ -20,11 +20,8 @@ import {
 } from '../src/dto/_types'
 import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
 import { Amount, AmountT } from '@radixdlt/primitives'
-import { UInt256 } from '@radixdlt/uint256'
 import { signatureFromHexStrings } from '@radixdlt/crypto/test/ellipticCurveCryptography.test'
-import { ActionType } from '../src/actions/_types'
-import { v4 as uuidv4 } from 'uuid'
-import { StakeTokensAction } from '../src/actions/stakeTokensAction'
+import { TransactionIntentBuilder } from '../src/dto/transactionIntentBuilder'
 
 const createWallet = (): WalletT => {
 	const masterSeed = HDMasterSeed.fromSeed(
@@ -537,7 +534,7 @@ describe('Radix API', () => {
 
 							expect(tb.owner.publicKey.toString(true)).toBe(
 								keystoreForTest.publicKeysCompressed[
-									expected.pkIndex
+								expected.pkIndex
 								],
 							)
 							expect(tb.tokenBalances.length).toBe(
@@ -668,7 +665,8 @@ describe('Radix API', () => {
 			.subscribe((validators) => {
 				expect(validators.length).toEqual(10)
 				done()
-			}).add(subs)
+			})
+			.add(subs)
 	})
 
 	it('should get build transaction response', (done) => {
@@ -676,23 +674,24 @@ describe('Radix API', () => {
 
 		const radix = Radix.create().__withAPI(mockedAPI)
 
-		radix.ledger
-			.buildTransaction({
-				actions: [
-					StakeTokensAction.intended({
-						validator: Address.fromBase58String(
-							'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
-						)._unsafeUnwrap(),
-						amount: Amount.make(10000),
-					}),
-				],
+		const transactionIntent = TransactionIntentBuilder
+			.create()
+			.stakeTokens({
+				validator: '9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+				amount: 10000
 			})
+			.__syncBuildIgnoreMessage(alice)
+			._unsafeUnwrap()
+
+		radix.ledger
+			.buildTransaction(transactionIntent)
 			.subscribe((unsignedTx) => {
 				expect((unsignedTx as { fee: AmountT }).fee.toString()).toEqual(
-					'30062',
+					'30062 E-18',
 				)
 				done()
-			}).add(subs)
+			})
+			.add(subs)
 	})
 
 	it('should get submitSignedTransaction response', (done) => {
@@ -721,17 +720,22 @@ describe('Radix API', () => {
 					'2c4b8f4e4bc5b2502c4b8f4e4bc5b2502c4b8f4e4bc5b2502c4b8f4e4bc5b250',
 				)
 				done()
-			}).add(subs)
+			})
+			.add(subs)
 	})
 
-	it('should get network transaction demand response', (done) => {
+	it.only('should get network transaction demand response', done => {
 		const subs = new Subscription()
 
 		const radix = Radix.create().__withAPI(mockedAPI)
 
-		radix.ledger.networkTransactionDemand().subscribe((result) => {
-			expect(result.tps).toEqual(109)
-		}).add(subs)
+		radix.ledger
+			.networkTransactionDemand()
+			.subscribe((result) => {
+				expect(result.tps).toEqual(109)
+				done()
+			})
+			.add(subs)
 	})
 
 	it('should get network transaction throughput response', (done) => {
@@ -739,10 +743,13 @@ describe('Radix API', () => {
 
 		const radix = Radix.create().__withAPI(mockedAPI)
 
-		radix.ledger.networkTransactionThroughput().subscribe((result) => {
-			expect(result.tps).toEqual(10)
-			done()
-		}).add(subs)
+		radix.ledger
+			.networkTransactionThroughput()
+			.subscribe((result) => {
+				expect(result.tps).toEqual(10)
+				done()
+			})
+			.add(subs)
 	})
 
 	it('can fetch stake positions', (done) => {
@@ -790,9 +797,9 @@ describe('Radix API', () => {
 		radix.login(keystoreForTest.password, loadKeystore)
 
 		const expectedStakes = [
-			{ amount: 291, validator: 'oZ', epochsUntil: 42 },
-			{ amount: 489, validator: 'Ld', epochsUntil: 21 },
-			{ amount: 143, validator: 'RT', epochsUntil: 95 },
+			{ amount: 291, validator: 'jg', epochsUntil: 42 },
+			{ amount: 489, validator: 'pz', epochsUntil: 21 },
+			{ amount: 143, validator: 'NN', epochsUntil: 95 },
 		]
 		const expectedValues = [expectedStakes, expectedStakes] // should be unchanged between updates (deterministically mocked).
 		radix.__wallet
