@@ -20,12 +20,49 @@ export type PublicKeyDeriving = Readonly<{
 	derivePublicKey: () => Observable<PublicKey>
 }>
 
+export enum EncryptionSchemeName {
+	DO_NOT_ENCRYPT = 'DO_NOT_ENCRYPT',
+}
+
+export type MessageEncryption = Readonly<{
+	encryptionScheme: EncryptionSchemeName
+}>
+
+export type PlaintextMessageToEncrypt = MessageEncryption &
+	Readonly<{
+		plaintext: string
+		publicKeysOfReaders: PublicKey[]
+	}>
+
+export type EncryptedMessage = MessageEncryption &
+	Readonly<{
+		/* hex string of encrypted message buffer `(Cipher | Ephemeral Shared Secret | Nonce | Tag )` */
+		msg: string
+	}>
+
+export type EncryptedMessageToDecrypt = EncryptedMessage &
+	Readonly<{
+		publicKeysOfReaders: PublicKey[]
+	}>
+
 export type Signing = Readonly<{
 	sign: (unsignedMessage: UnsignedMessage) => Observable<Signature>
 }>
 
+export type Decrypting = Readonly<{
+	decrypt: (encryptedMessage: EncryptedMessageToDecrypt) => Observable<string>
+}>
+
+export type Encrypting = Readonly<{
+	encrypt: (
+		plaintext: PlaintextMessageToEncrypt,
+	) => Observable<EncryptedMessage>
+}>
+
 export type AccountT = PublicKeyDeriving &
 	Signing &
+	Encrypting &
+	Decrypting &
 	Readonly<{
 		hdPath: HDPathRadixT
 		deriveAddress: () => Observable<AddressT>

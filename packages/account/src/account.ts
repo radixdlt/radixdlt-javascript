@@ -5,11 +5,22 @@ import {
 	UnsignedMessage,
 } from '@radixdlt/crypto'
 import { mergeMap } from 'rxjs/operators'
-import { Observable, of } from 'rxjs'
+import { Observable, of, throwError } from 'rxjs'
 import { toObservable } from './resultAsync_observable'
-import { AccountT, AddressT, HardwareWalletSimpleT } from './_types'
+import {
+	AccountT,
+	AddressT,
+	EncryptedMessage,
+	EncryptedMessageToDecrypt,
+	EncryptionSchemeName,
+	HardwareWalletSimpleT,
+	PlaintextMessageToEncrypt,
+} from './_types'
 import { HDMasterSeedT, HDNodeT } from './bip39/_types'
 import { HDPathRadixT } from './bip32/bip44/_types'
+
+const NO_ENCRYPTION_YET_PREFIX =
+	'PLAIN_TEXT_BECAUSE_ENCRYPTION_IS_NOT_YET_INPLEMENTED___'
 
 const fromPrivateKey = (
 	input: Readonly<{
@@ -28,6 +39,19 @@ const fromPrivateKey = (
 		hdPath,
 		derivePublicKey: () => of(publicKey),
 		deriveAddress: () => addressFromPublicKey(publicKey),
+		decrypt: (
+			_encryptedMessage: EncryptedMessageToDecrypt,
+		): Observable<string> => throwError(() => new Error('Imple me')),
+
+		encrypt: (
+			plaintext: PlaintextMessageToEncrypt,
+		): Observable<EncryptedMessage> =>
+			plaintext.encryptionScheme === EncryptionSchemeName.DO_NOT_ENCRYPT
+				? of<EncryptedMessage>({
+						encryptionScheme: plaintext.encryptionScheme,
+						msg: `${NO_ENCRYPTION_YET_PREFIX}${plaintext.plaintext}`,
+				  })
+				: throwError(() => new Error('Imple me')),
 	}
 }
 
@@ -60,6 +84,14 @@ const fromHDPathWithHardwareWallet = (
 			derivePublicKey().pipe(
 				mergeMap((pubKey) => input.addressFromPublicKey(pubKey)),
 			),
+		decrypt: (
+			_encryptedMessage: EncryptedMessageToDecrypt,
+		): Observable<string> => throwError(() => new Error('Imple me')),
+
+		encrypt: (
+			_plaintext: PlaintextMessageToEncrypt,
+		): Observable<EncryptedMessage> =>
+			throwError(() => new Error('Imple me')),
 	}
 }
 

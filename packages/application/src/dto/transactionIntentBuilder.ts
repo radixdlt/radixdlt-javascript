@@ -6,14 +6,19 @@ import {
 	UnstakeTokensInput,
 } from '../actions/_types'
 import {
-	EncryptedMessage,
 	TransactionIntent,
 	TransactionIntentBuilderState,
 	TransactionIntentBuilderT,
 } from './_types'
-import { AccountT, AddressT } from '@radixdlt/account'
-import { Observable, throwError, of } from 'rxjs'
-import { mergeMap } from 'rxjs/operators'
+import {
+	AccountT,
+	AddressT,
+	EncryptedMessage,
+	EncryptionSchemeName,
+	toObservableFromResult,
+} from '@radixdlt/account'
+import { Observable, of } from 'rxjs'
+import { map, mergeMap } from 'rxjs/operators'
 import {
 	IntendedTransferTokens,
 	isTransferTokensInput,
@@ -27,17 +32,26 @@ import {
 	isUnstakeTokensInput,
 } from '../actions/intendedUnstakeTokensAction'
 import { combine, err, Result } from 'neverthrow'
+import { PublicKey } from '@radixdlt/crypto'
+import { Option } from 'prelude-ts'
 
 type IntermediateAction = ActionInput & {
 	type: 'transfer' | 'stake' | 'unstake'
 }
 
-const create = (): TransactionIntentBuilderT => {
+const create = (
+	input?: Readonly<{
+		encryptionSchemeName: EncryptionSchemeName
+	}>,
+): TransactionIntentBuilderT => {
+	const encryptionSchemeName: EncryptionSchemeName =
+		input?.encryptionSchemeName ?? EncryptionSchemeName.DO_NOT_ENCRYPT
+
 	const intermediateActions: IntermediateAction[] = []
-	let message: string | undefined = undefined
+	let maybePlaintextMsgToEncrypt: Option<string> = Option.none()
 	const snapshotState = (): TransactionIntentBuilderState => ({
 		actionInputs: intermediateActions,
-		message,
+		message: maybePlaintextMsgToEncrypt.getOrUndefined(),
 	})
 
 	const snapshotBuilderState = (): {
@@ -74,16 +88,21 @@ const create = (): TransactionIntentBuilderT => {
 	const replaceAnyPreviousMessageWithNew = (
 		newMessage: string,
 	): TransactionIntentBuilderT => {
-		message = newMessage
+		maybePlaintextMsgToEncrypt = Option.some(newMessage)
 		return {
 			...methods,
 			...snapshotBuilderState(),
 		}
 	}
 
-	const syncBuildIgnoreMessage = (
+	type IntendedActionsFrom = Readonly<{
+		intendedActions: IntendedAction[]
+		from: AddressT
+	}>
+
+	const intendedActionsFromIntermediateActions = (
 		from: AddressT,
-	): Result<TransactionIntent, Error> => {
+	): Result<IntendedActionsFrom, Error> => {
 		return combine(
 			intermediateActions.map(
 				(i): Result<IntendedAction, Error> => {
@@ -115,42 +134,120 @@ const create = (): TransactionIntentBuilderT => {
 					}
 				},
 			),
-		).map((actions) => ({
-			actions,
-			message: undefined,
-		}))
+		).map((intendedActions) => ({ intendedActions, from }))
 	}
 
-	const buildAndEncrypt = (from: AccountT): Observable<TransactionIntent> => {
-		return from.deriveAddress().pipe(
+	const syncBuildIgnoreMessage = (
+		from: AddressT,
+	): Result<TransactionIntent, Error> => {
+		return intendedActionsFromIntermediateActions(from).map(
+			({ intendedActions }) => ({
+				actions: intendedActions,
+				message: undefined,
+			}),
+		)
+	}
+
+	type ActorsInEncryption = {
+		encryptingAccount: AccountT
+		publicKeysOfReaders: PublicKey[]
+	}
+
+	const gatherPublicKeysFromActions = (
+		input: Readonly<{
+			intendedActionsFrom: IntendedActionsFrom
+			encryptingAccount: AccountT
+		}>,
+	): Observable<ActorsInEncryption> => {
+		return input.encryptingAccount.derivePublicKey().pipe(
+			map((pk) => {
+				const setOfStrings = new Set<string>(pk.toString())
+
+				const publicKeysOfReaders: PublicKey[] = input.intendedActionsFrom.intendedActions.reduce(
+					(acc: PublicKey[], action: IntendedAction) => {
+						action.getUniqueAddresses().forEach((a) => {
+							if (!setOfStrings.has(a.toString())) {
+								acc.push(a.publicKey)
+								setOfStrings.add(a.toString())
+							}
+						})
+						return acc
+					},
+					[] as PublicKey[],
+				)
+
+				return {
+					encryptingAccount: input.encryptingAccount,
+					publicKeysOfReaders,
+				}
+			}),
+		)
+	}
+
+	const build = (
+		input: Readonly<{
+			spendingSender: Observable<AddressT>
+			encryptMessageIfAnyWithAccount: Observable<AccountT>
+		}>,
+	): Observable<TransactionIntent> => {
+		const encryptingAccount$ = input.encryptMessageIfAnyWithAccount
+
+		return input.spendingSender.pipe(
+			mergeMap((from: AddressT) =>
+				toObservableFromResult(
+					intendedActionsFromIntermediateActions(from),
+				),
+			),
 			mergeMap(
-				(address: AddressT): Observable<TransactionIntent> => {
-					const encMsg: EncryptedMessage | undefined =
-						message !== undefined
-							? {
-									msg: `PLAIN_TEXT_BECAUSE_ENCRYPTION_IS_NOT_YET_INPLEMENTED___${message}`,
-									encryptionScheme: 'PLAINTEXT',
-							  }
-							: undefined
-
-					const builtWithoutMessageResult = syncBuildIgnoreMessage(
-						address,
-					)
-
-					if (builtWithoutMessageResult.isErr()) {
-						const error = builtWithoutMessageResult.error
-						return throwError(
-							() => new Error(`Input error: ${error.message}`),
-						)
-					} else {
-						const builtWithoutMessage =
-							builtWithoutMessageResult.value
-						const value: TransactionIntent = {
-							...builtWithoutMessage,
-							message: encMsg,
-						}
-						return of(value)
-					}
+				(
+					intendedActionsFrom: IntendedActionsFrom,
+				): Observable<TransactionIntent> => {
+					return maybePlaintextMsgToEncrypt.match({
+						Some: (plaintext) => {
+							return encryptingAccount$.pipe(
+								mergeMap(
+									(
+										encryptingAccount: AccountT,
+									): Observable<ActorsInEncryption> =>
+										gatherPublicKeysFromActions({
+											intendedActionsFrom,
+											encryptingAccount,
+										}),
+								),
+								mergeMap(
+									(
+										actors: ActorsInEncryption,
+									): Observable<EncryptedMessage> => {
+										return actors.encryptingAccount.encrypt(
+											{
+												plaintext,
+												encryptionScheme: encryptionSchemeName,
+												publicKeysOfReaders:
+													actors.publicKeysOfReaders,
+											},
+										)
+									},
+								),
+								map(
+									(
+										enc: EncryptedMessage,
+									): TransactionIntent => {
+										return {
+											actions:
+												intendedActionsFrom.intendedActions,
+											message: enc,
+										}
+									},
+								),
+							)
+						},
+						None: () => {
+							return of<TransactionIntent>({
+								actions: intendedActionsFrom.intendedActions,
+								message: undefined,
+							})
+						},
+					})
 				},
 			),
 		)
@@ -160,7 +257,7 @@ const create = (): TransactionIntentBuilderT => {
 		transferTokens,
 		stakeTokens,
 		unstakeTokens,
-		buildAndEncrypt,
+		build,
 		message: replaceAnyPreviousMessageWithNew,
 		__syncBuildIgnoreMessage: syncBuildIgnoreMessage,
 	}

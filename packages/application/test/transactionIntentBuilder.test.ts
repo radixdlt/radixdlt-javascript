@@ -7,10 +7,17 @@ import {
 	StakeTokensInput,
 	TransferTokensInput,
 } from '../src/actions/_types'
-import { AccountT, AddressT } from '@radixdlt/account'
+import {
+	AccountT,
+	AddressT,
+	EncryptedMessage,
+	EncryptionSchemeName,
+	PlaintextMessageToEncrypt,
+} from '@radixdlt/account'
 import { TransactionIntentBuilderT } from '../src/dto/_types'
-import { Observable, of, Subscription } from 'rxjs'
-import { IntendedStakeTokensAction } from '../dist/actions/_types'
+import { Observable, of, Subscription, throwError } from 'rxjs'
+import { IntendedStakeTokensAction } from '../src/actions/_types'
+import { PublicKey } from '@radixdlt/crypto'
 
 describe('tx intent builder', () => {
 	const one = Amount.fromUnsafe(1)._unsafeUnwrap()
@@ -135,31 +142,48 @@ describe('tx intent builder', () => {
 		msg: string,
 		done: jest.DoneCallback,
 	): Subscription => {
+		const noEncryptionPrefix = 'NO_ENCR'
 		const aliceAccount = <AccountT>{
 			deriveAddress: (): Observable<AddressT> => of(alice),
+			derivePublicKey: (): Observable<PublicKey> => of(alice.publicKey),
+			encrypt: (
+				plaintext: PlaintextMessageToEncrypt,
+			): Observable<EncryptedMessage> =>
+				plaintext.encryptionScheme ===
+				EncryptionSchemeName.DO_NOT_ENCRYPT
+					? of<EncryptedMessage>({
+							encryptionScheme: plaintext.encryptionScheme,
+							msg: `${noEncryptionPrefix}${plaintext.plaintext}`,
+					  })
+					: throwError(() => new Error('Imple me')),
 		}
-		return builder.buildAndEncrypt(aliceAccount).subscribe((txIntent) => {
-			expect(txIntent.actions.length).toBe(1)
 
-			const attatchedMessage = txIntent.message
-			if (!attatchedMessage) {
-				done(new Error('Expected message...'))
-				return
-			} else {
-				const message = attatchedMessage!.msg
-				const encryptionScheme = attatchedMessage!.encryptionScheme
+		return builder
+			.build({
+				spendingSender: of(alice),
+				encryptMessageIfAnyWithAccount: of(aliceAccount),
+			})
+			.subscribe((txIntent) => {
+				expect(txIntent.actions.length).toBe(1)
 
-				expect(message).toBe(
-					`PLAIN_TEXT_BECAUSE_ENCRYPTION_IS_NOT_YET_INPLEMENTED___${msg}`,
-				)
+				const attatchedMessage = txIntent.message
+				if (!attatchedMessage) {
+					done(new Error('Expected message...'))
+					return
+				} else {
+					const message = attatchedMessage!.msg
+					const encryptionScheme = attatchedMessage!.encryptionScheme
 
-				// TODO update when message encryption is done.
-				expect(encryptionScheme).toBe('PLAINTEXT')
-				done()
-			}
-		})
+					expect(message).toBe(`${noEncryptionPrefix}${msg}`)
+
+					// TODO update when message encryption is done.
+					expect(encryptionScheme).toBe(
+						EncryptionSchemeName.DO_NOT_ENCRYPT,
+					)
+					done()
+				}
+			})
 	}
-
 	it('can transfer then attach message', (done) => {
 		const subs = new Subscription()
 		const msg = 'Hey Bob, hope you are well'
