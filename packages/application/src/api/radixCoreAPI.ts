@@ -1,5 +1,4 @@
 import { NodeAPI, NodeT, RadixCoreAPI } from './_types'
-import { nodeAPI } from './api'
 import { ResultAsync } from 'neverthrow'
 import { defer, Observable } from 'rxjs'
 import { AddressT, toObservable } from '@radixdlt/account'
@@ -26,9 +25,7 @@ import {
 	ValidatorsRequestInput,
 } from '../dto/_types'
 
-export const radixCoreAPI = (node: NodeT): RadixCoreAPI => {
-	const api = nodeAPI(node.url)
-
+export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 	const toObs = <I extends unknown[], E, O>(
 		pickFn: (api: NodeAPI) => (...input: I) => ResultAsync<O, E | E[]>,
 		...input: I

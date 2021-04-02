@@ -24,6 +24,11 @@ import {
 import { ExecutedTransaction, TokenPermission } from '../src/dto/_types'
 import { makeTokenPermissions } from '../src/dto/tokenPermissions'
 import { TransactionStatus } from '../src/dto/_types'
+import { Radix } from '../src/radix'
+import { mockedAPI } from './mockRadix'
+import { radixCoreAPI } from '../src/api/radixCoreAPI'
+import { of } from '@radixdlt/account/node_modules/rxjs'
+import { APIErrorCause, ErrorCategory } from '../src/errors'
 
 let mockClientReturnValue: any
 
@@ -40,6 +45,7 @@ jest.mock('@open-rpc/client-js', () => ({
 	HTTPTransport: mockHTTPTransport,
 	RequestManager: mockRequestManager,
 }))
+
 describe('networking', () => {
 	const client = nodeAPI(new URL('http://xyz'))
 	const address = '9S81XtkW3H9XZrmnzWqYSuTFPhWXdRnnpL3XXk7h5XxAM6zMdH7k'
@@ -351,11 +357,9 @@ describe('networking', () => {
 				},
 				fee: '12',
 			}
-			const failure: BuildTransactionEndpoint.Failure = 'NOT_PERMITTED'
 
 			mockClientReturnValue = <BuildTransactionEndpoint.Response>{
 				...builtTx,
-				failure,
 			}
 
 			const expected: BuildTransactionEndpoint.DecodedResponse = mockClientReturnValue
@@ -368,24 +372,61 @@ describe('networking', () => {
 		})
 
 		it('should handle submit signed atom response', async () => {
-			const errorMessage: string = 'INSUFFICIENT_FUNDS'
-
 			mockClientReturnValue = <SubmitSignedTransactionEndpoint.Response>{
 				txID: txID,
-				errorMessage,
 			}
 
 			const expected: SubmitSignedTransactionEndpoint.DecodedResponse = {
 				txID: TransactionIdentifier.create(txID)._unsafeUnwrap(),
-				errorMessage,
 			}
 
 			const result = (
 				await client.submitSignedTransaction({ blob: '' }, '')
 			)._unsafeUnwrap()
 
+			//@ts-ignore
 			expect(result.txID.equals(expected.txID)).toBe(true)
 			// expect(result.failure).toEqual(expected.failure)
+		})
+
+		it('should handle a build transaction failure', (done) => {
+			mockClientReturnValue = <BuildTransactionEndpoint.Response>{
+				failure: 'Failed',
+			}
+
+			const radix = Radix.create().__withAPI(
+				of(radixCoreAPI({ url: new URL('https://radix.com') }, client)),
+			)
+
+			radix.errors.subscribe((err) => {
+				expect(err.category).toEqual(ErrorCategory.API)
+				expect(err.cause).toEqual(
+					APIErrorCause.BUILD_TRANSACTION_FAILED,
+				)
+				done()
+			})
+
+			radix.ledger.buildTransaction({} as any).subscribe((tx) => {})
+		})
+
+		it('should handle submit signed tx with error message', (done) => {
+			mockClientReturnValue = <SubmitSignedTransactionEndpoint.Response>{
+				failure: 'Failed',
+			}
+
+			const radix = Radix.create().__withAPI(
+				of(radixCoreAPI({ url: new URL('https://radix.com') }, client)),
+			)
+
+			radix.errors.subscribe((err) => {
+				expect(err.category).toEqual(ErrorCategory.API)
+				expect(err.cause).toEqual(APIErrorCause.SUBMIT_SIGNED_TX_FAILED)
+				done()
+			})
+
+			radix.ledger
+				.submitSignedTransaction({} as any)
+				.subscribe((tx) => {})
 		})
 	})
 })

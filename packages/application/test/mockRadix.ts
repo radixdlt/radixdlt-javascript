@@ -29,6 +29,7 @@ import {
 	TransactionStatus,
 	UnsignedTransaction,
 	UnstakePositions,
+	Validator,
 	Validators,
 	ValidatorsRequestInput,
 } from '../src/dto/_types'
@@ -271,33 +272,35 @@ export const peggy = toAddress(
 export const quentin = toAddress(
 	'9SB4Hvi9sudHncGXhUhuvUYNWziMYYcXXiDZ6i7fpSvRUDCA3rjg',
 )
-export const rupert = toAddress(
-	'9SAusiPSyX8xJ3gbNJyYUHZaWz1jSYxXoBnWbzMAkcjhug6G3nLd',
-)
-export const stella = toAddress(
-	'9S8PWQF9smUics1sZEo7CrYgKgCkcopvt9HfWJMTrtPyV2rg7RAG',
-)
-export const ted = toAddress(
-	'9SAihkYQDBKvHfhvwEw4QBfx1rpjvta2TvmWibyXixVzX2JHHHWf',
-)
-export const ursula = toAddress(
-	'9SAzQV3ei2g4qcHpvnMSuEGUYREPgcHvQyBNvkHdop18DDyEqpSY',
-)
-export const victor = toAddress(
-	'9S8PQU9jcALCeXW6sXarwHxjKLqCUM4AkiecSMwdjfUWhdPws9tx',
-)
-export const webdy = toAddress(
-	'9S9T39u425jJfAkWRYPPhpBFdkU5f1KWBuMPg7mWnCQ2abAFSnoZ',
-)
-export const xerxez = toAddress(
-	'9SBA2tji3wjuuThohxW37L6vySVuVaUpBFBpq2b7Ey7sKToU2uJp',
-)
-export const yara = toAddress(
-	'9SBaXGCwn8HcyPsbu4ymzNVCXtvogf3vSqnH39ihqt5RyDFq9hsv',
-)
-export const zelda = toAddress(
-	'9SAU2m7yis9iE5u2L44poZ6rYf5JiTAN6GtiRnsBk6JnXoMoAdks',
-)
+
+const characterNames: string[] = [
+	'alice',
+	'bob',
+	'carol',
+	'dan',
+	'erin',
+	'frank',
+	'grace',
+	'heidi',
+	'ivan',
+	'judy',
+	'klara',
+	'leonard',
+	'mallory',
+	'niaj',
+	'olivia',
+	'peggy',
+	'quentin',
+	'rupert',
+	'stella',
+	'ted',
+	'ursula',
+	'victor',
+	'webdy',
+	'xerxez',
+	'yara',
+	'zelda',
+]
 
 export const castOfCharacters: AddressT[] = [
 	alice,
@@ -317,15 +320,6 @@ export const castOfCharacters: AddressT[] = [
 	olivia,
 	peggy,
 	quentin,
-	rupert,
-	stella,
-	ted,
-	ursula,
-	victor,
-	webdy,
-	xerxez,
-	yara,
-	zelda,
 ]
 
 export const tokenByRRIMap: Map<
@@ -348,6 +342,70 @@ const detPRNGWithBuffer = (buffer: Buffer): (() => number) => {
 		return Number.parseInt(buf.toString('hex'), 16)
 	}
 }
+
+const randomValidatorList = (size: number) => {
+	const validatorList: Validator[] = []
+	const prng = detPRNGWithBuffer(Buffer.from('validators'))
+	const listSize = prng() % 5 === 1 ? size - Math.round(size / 2) : size
+
+	for (let i = 0; i < listSize; i++) {
+		const random = prng()
+		const address = castOfCharacters[random % castOfCharacters.length]
+		const ownerAddress =
+			castOfCharacters[(random + 1) % castOfCharacters.length]
+		const name = characterNames[random % characterNames.length]
+		const amount = Amount.fromUnsafe(random)._unsafeUnwrap()
+		const bool = random % 2 === 0 ? true : false
+
+		validatorList.push({
+			address,
+			ownerAddress,
+			name,
+			infoURL: new URL('https://example.com'),
+			totalDelegatedStake: amount,
+			ownerDelegation: amount,
+			isExternalStakeAccepted: bool,
+		})
+	}
+	return validatorList
+}
+
+const unsignedRandom = detPRNGWithBuffer(Buffer.from('unsgn'))
+const randomUnsignedTransaction = (): UnsignedTransaction => {
+	const random = unsignedRandom()
+
+	return {
+		transaction: {
+			blob: 'placeholder',
+			hashOfBlobToSign: sha256(Buffer.from('placeholder')).toString(
+				'hex',
+			),
+		},
+		fee: Amount.fromUnsafe(random)._unsafeUnwrap(),
+	}
+}
+
+const randomPendingTransaction = (
+	signedTx: SignedTransaction,
+): PendingTransaction => {
+	const prng = detPRNGWithBuffer(Buffer.from(signedTx.transaction.blob))
+
+	return {
+		txID: TransactionIdentifier.create(
+			sha256(Buffer.from(signedTx.transaction.blob)),
+		)._unsafeUnwrap(),
+	}
+}
+
+const rndDemand = detPRNGWithBuffer(Buffer.from('dmnd'))
+const randomDemand = (): NetworkTransactionDemand => ({
+	tps: rndDemand() % 200,
+})
+
+const rndThroughput = detPRNGWithBuffer(Buffer.from('trpt'))
+const randomThroughput = (): NetworkTransactionDemand => ({
+	tps: rndThroughput() % 200,
+})
 
 const detPRNGWithPubKey = (pubKey: PublicKey): (() => number) => {
 	// cannot use first, since it is always 02 or 03
@@ -681,7 +739,8 @@ export const mockRadixCoreAPI = (
 		magic?: number
 	}>,
 ): RadixCoreAPI => ({
-	...makeThrowingRadixCoreAPI(input?.nodeUrl),
+	node: { url: new URL(input?.nodeUrl ?? 'http://www.example.com') },
+
 	networkId: (): Observable<Magic> => {
 		return of(magicFromNumber(input?.magic ?? 123)).pipe(shareReplay(1))
 	},
@@ -708,8 +767,20 @@ export const mockRadixCoreAPI = (
 					response(TransactionStatus.PENDING),
 					response(TransactionStatus.CONFIRMED),
 			  )
-		).pipe(delay(1000))
+		).pipe(delay(3000))
 	},
+	validators: (input: ValidatorsRequestInput): Observable<Validators> =>
+		of(randomValidatorList(input.size)),
+	buildTransaction: (
+		transactionIntent: TransactionIntent,
+	): Observable<UnsignedTransaction> => of(randomUnsignedTransaction()),
+	submitSignedTransaction: (
+		signedTx: SignedTransaction,
+	): Observable<PendingTransaction> => of(randomPendingTransaction(signedTx)),
+	networkTransactionDemand: (): Observable<NetworkTransactionDemand> =>
+		of(randomDemand()),
+	networkTransactionThroughput: (): Observable<NetworkTransactionThroughput> =>
+		of(randomThroughput()),
 	transactionHistory: deterministicRandomTXHistory,
 	lookupTransaction: deterministicRandomLookupTX,
 	unstakesForAddress: deterministicRandomUnstakesForAddr,

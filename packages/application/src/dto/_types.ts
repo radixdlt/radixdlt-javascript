@@ -167,7 +167,7 @@ export type TransactionBlob = Readonly<{
 }>
 
 export type UnsignedTransaction = Readonly<{
-	trasaction: TransactionBlob &
+	transaction: TransactionBlob &
 		Readonly<{
 			// hex string
 			hashOfBlobToSign: string
@@ -182,7 +182,6 @@ export type SignedTransaction = Readonly<{
 
 export type PendingTransaction = Readonly<{
 	txID: TransactionIdentifierT
-	errorMessage?: string
 }>
 
 export type RawToken = Readonly<{
@@ -230,9 +229,7 @@ export type RawUnstakesAction = RawExecutedActionBase &
 export type NetworkTransactionThroughput = Readonly<{
 	tps: number
 }>
-export type NetworkTransactionDemand = Readonly<{
-	tps: number
-}>
+export type NetworkTransactionDemand = NetworkTransactionThroughput
 
 export enum TransactionStatus {
 	PENDING = 'PENDING',

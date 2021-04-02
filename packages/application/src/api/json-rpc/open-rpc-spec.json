@@ -405,6 +405,16 @@
             "summary": "Get an unsigned transaction.",
             "params": [
                 {
+                    "name": "actions",
+                    "required": true,
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/actions"
+                        }
+                    }
+                },
+                {
                     "name": "message",
                     "required": false,
                     "schema": {
@@ -423,55 +433,58 @@
                             "encryptionScheme"
                         ]
                     }
-                },
-                {
-                    "name": "actions",
-                    "required": true,
-                    "schema": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/actions"
-                        }
-                    }
                 }
             ],
             "result": {
                 "name": "transaction",
                 "schema": {
-                    "type": "object",
-                    "properties": {
-                        "transaction": {
+                    "anyOf": [
+                        {
                             "type": "object",
                             "properties": {
-                                "blob": {
-                                    "type": "string"
+                                "transaction": {
+                                    "type": "object",
+                                    "properties": {
+                                        "blob": {
+                                            "type": "string"
+                                        },
+                                        "hashOfBlobToSign": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "blob",
+                                        "hashOfBlobToSign"
+                                    ]
                                 },
-                                "hashOfBlobToSign": {
-                                    "type": "string"
+                                "fee": {
+                                    "$ref": "#/components/schemas/amount"
                                 }
                             },
                             "additionalProperties": false,
                             "required": [
-                                "blob",
-                                "hashOfBlobToSign"
+                                "transaction",
+                                "fee"
                             ]
                         },
-                        "fee": {
-                            "$ref": "#/components/schemas/amount"
-                        },
-                        "failure": {
-                            "type": "string",
-                            "enum": [
-                                "MALFORMED_TX",
-                                "INSUFFICIENT_FUNDS",
-                                "NOT_PERMITTED"
-                            ]
+                        {
+                            "type": "object",
+                            "properties": {
+                                "failure": {
+                                    "type": "string",
+                                    "enum": [
+                                        "MALFORMED_TX",
+                                        "INSUFFICIENT_FUNDS",
+                                        "NOT_PERMITTED"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "failure"
+                            ],
+                            "additionalProperties": false
                         }
-                    },
-                    "additionalProperties": false,
-                    "required": [
-                        "transaction",
-                        "fee"
                     ]
                 }
             }
@@ -506,18 +519,31 @@
             "result": {
                 "name": "submissionResult",
                 "schema": {
-                    "type": "object",
-                    "properties": {
-                        "txID": {
-                            "type": "string"
+                    "anyOf":[
+                        {
+                            "type": "object",
+                            "properties": {
+                                "txID": {
+                                    "type": "string"
+                                }
+                            },
+                            "additionalProperties": false,
+                            "required": [
+                                "txID"
+                            ]
                         },
-                        "errorMsg": {
-                            "type": "string"
+                        {
+                            "type": "object",
+                            "properties": {
+                                "failure": {
+                                    "type": "string"
+                                }
+                            },
+                            "additionalProperties": false,
+                            "required": [
+                                "failure"
+                            ]
                         }
-                    },
-                    "additionalProperties": false,
-                    "required": [
-                        "txID"
                     ]
                 }
             }
@@ -590,6 +616,9 @@
                                     "StakeTokens"
                                 ]
                             },
+                            "from": {
+                                "$ref": "#/components/schemas/address"
+                            },
                             "validator": {
                                 "$ref": "#/components/schemas/address"
                             },
@@ -600,6 +629,7 @@
                         "additionalProperties": false,
                         "required": [
                             "type",
+                            "from",
                             "validator",
                             "amount"
                         ]
@@ -613,6 +643,9 @@
                                     "UnstakeTokens"
                                 ]
                             },
+                            "from": {
+                                "$ref": "#/components/schemas/address"
+                            },
                             "validator": {
                                 "$ref": "#/components/schemas/address"
                             },
@@ -622,6 +655,7 @@
                         },
                         "required": [
                             "type",
+                            "from",
                             "validator",
                             "amount"
                         ],
