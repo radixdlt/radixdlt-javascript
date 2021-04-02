@@ -12,7 +12,6 @@ import {
 	TransactionStatusEndpoint,
 } from '../src/api/json-rpc/_types'
 import { ResourceIdentifier } from '../src/dto/resourceIdentifier'
-import { Address } from '@radixdlt/account'
 import { Amount } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
@@ -25,10 +24,10 @@ import { ExecutedTransaction, TokenPermission } from '../src/dto/_types'
 import { makeTokenPermissions } from '../src/dto/tokenPermissions'
 import { TransactionStatus } from '../src/dto/_types'
 import { Radix } from '../src/radix'
-import { mockedAPI } from './mockRadix'
 import { radixCoreAPI } from '../src/api/radixCoreAPI'
 import { of } from '@radixdlt/account/node_modules/rxjs'
 import { APIErrorCause, ErrorCategory } from '../src/errors'
+import { alice, bob } from './mockRadix'
 
 let mockClientReturnValue: any
 
@@ -48,7 +47,6 @@ jest.mock('@open-rpc/client-js', () => ({
 
 describe('networking', () => {
 	const client = nodeAPI(new URL('http://xyz'))
-	const address = '9S81XtkW3H9XZrmnzWqYSuTFPhWXdRnnpL3XXk7h5XxAM6zMdH7k'
 	const tokenRRI =
 		'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR'
 	const date = '1995-12-17T03:24:00'
@@ -74,7 +72,7 @@ describe('networking', () => {
 			const tokenAmount = '100'
 
 			mockClientReturnValue = {
-				owner: address,
+				owner: alice.toString(),
 				tokenBalances: [
 					{
 						token: tokenRRI,
@@ -84,7 +82,7 @@ describe('networking', () => {
 			}
 
 			const expected: TokenBalancesEndpoint.DecodedResponse = {
-				owner: Address.fromBase58String(address)._unsafeUnwrap(),
+				owner: alice,
 				tokenBalances: [
 					{
 						token: ResourceIdentifier.fromString(
@@ -125,14 +123,14 @@ describe('networking', () => {
 						actions: [
 							{
 								type: ActionType.TOKEN_TRANSFER.valueOf(),
-								from: address,
-								to: address,
+								from: alice.toString(),
+								to: bob.toString(),
 								amount: '100',
 								rri: tokenRRI,
 							},
 							{
 								type: ActionType.STAKE_TOKENS,
-								validator: address,
+								validator: bob.toString(),
 								amount: '100',
 							},
 						],
@@ -143,15 +141,15 @@ describe('networking', () => {
 			const expectedTx0A0: ExecutedTransferTokensAction = {
 				type: ActionType.TOKEN_TRANSFER,
 				amount: Amount.inSmallestDenomination(new UInt256(100)),
-				from: Address.fromBase58String(address)._unsafeUnwrap(),
-				to: Address.fromBase58String(address)._unsafeUnwrap(),
+				from: alice,
+				to: bob,
 				rri: ResourceIdentifier.fromString(tokenRRI)._unsafeUnwrap(),
 			}
 
 			const expectedTx0A1: ExecutedStakeTokensAction = {
 				type: ActionType.STAKE_TOKENS,
 				amount: Amount.inSmallestDenomination(new UInt256(100)),
-				validator: Address.fromBase58String(address)._unsafeUnwrap(),
+				validator: bob,
 			}
 
 			const expectedTx0: ExecutedTransaction = {
@@ -168,7 +166,7 @@ describe('networking', () => {
 			}
 
 			const result = (
-				await client.transactionHistory(address, 0)
+				await client.transactionHistory(alice.toString(), 0)
 			)._unsafeUnwrap()
 
 			expect(result.cursor).toEqual(expected.cursor)
@@ -272,16 +270,14 @@ describe('networking', () => {
 
 			mockClientReturnValue = <StakePositionsEndpoint.Response>[
 				{
-					validator: address,
+					validator: bob.toString(),
 					amount,
 				},
 			]
 
 			const expected: StakePositionsEndpoint.DecodedResponse = [
 				{
-					validator: Address.fromBase58String(
-						address,
-					)._unsafeUnwrap(),
+					validator: bob,
 					amount: Amount.inSmallestDenomination(new UInt256(amount)),
 				},
 			]

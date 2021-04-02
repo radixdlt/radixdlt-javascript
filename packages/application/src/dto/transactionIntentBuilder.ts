@@ -1,6 +1,10 @@
 import {
 	ActionInput,
+	ActionType,
 	IntendedAction,
+	IntendedStakeTokensAction,
+	IntendedTransferTokensAction,
+	IntendedUnstakeTokensAction,
 	StakeTokensInput,
 	TransferTokensInput,
 	UnstakeTokensInput,
@@ -18,6 +22,7 @@ import {
 	AddressT,
 	EncryptedMessage,
 	EncryptionSchemeName,
+	isAddress,
 	toObservableFromResult,
 } from '@radixdlt/account'
 import { isObservable, Observable, of } from 'rxjs'
@@ -37,6 +42,8 @@ import {
 import { combine, err, Result } from 'neverthrow'
 import { PublicKey } from '@radixdlt/crypto'
 import { Option } from 'prelude-ts'
+import { isResourceIdentifier } from './resourceIdentifier'
+import { isAmount } from '@radixdlt/primitives'
 
 type IntermediateAction = ActionInput & {
 	type: 'transfer' | 'stake' | 'unstake'
@@ -45,6 +52,55 @@ type IntermediateAction = ActionInput & {
 const mustHaveAtLeastOneAction = new Error(
 	'A transaction intent must contain at least one of the following actions: TransferToken, StakeTokens or UnstakeTokens',
 )
+
+const isIntendedTransferTokensAction = (
+	something: unknown,
+): something is IntendedTransferTokensAction => {
+	const inspection = something as IntendedTransferTokensAction
+	return (
+		inspection.type === ActionType.TOKEN_TRANSFER &&
+		isAddress(inspection.from) &&
+		isAddress(inspection.to) &&
+		isAmount(inspection.amount) &&
+		isResourceIdentifier(inspection.tokenIdentifier)
+	)
+}
+
+const isIntendedStakeTokensAction = (
+	something: unknown,
+): something is IntendedStakeTokensAction => {
+	const inspection = something as IntendedStakeTokensAction
+	return (
+		inspection.type === ActionType.STAKE_TOKENS &&
+		isAddress(inspection.from) &&
+		isAddress(inspection.validator) &&
+		isAmount(inspection.amount)
+	)
+}
+
+const isIntendedUnstakeTokensAction = (
+	something: unknown,
+): something is IntendedUnstakeTokensAction => {
+	const inspection = something as IntendedUnstakeTokensAction
+	return (
+		inspection.type === ActionType.UNSTAKE_TOKENS &&
+		isAddress(inspection.from) &&
+		isAddress(inspection.validator) &&
+		isAmount(inspection.amount)
+	)
+}
+
+const getUniqueAddresses = (action: IntendedAction): AddressT[] => {
+	if (isIntendedTransferTokensAction(action)) {
+		return [action.to, action.from]
+	} else if (isIntendedStakeTokensAction(action)) {
+		return [action.validator, action.from]
+	} else if (isIntendedUnstakeTokensAction(action)) {
+		return [action.validator, action.from]
+	} else {
+		throw new Error('Incorrect impl')
+	}
+}
 
 const isTransactionIntentBuilderEncryptInput = (
 	something: unknown,
@@ -205,7 +261,7 @@ const create = (
 
 				const publicKeysOfReaders: PublicKey[] = input.intendedActionsFrom.intendedActions.reduce(
 					(acc: PublicKey[], action: IntendedAction) => {
-						action.getUniqueAddresses().forEach((a) => {
+						getUniqueAddresses(action).forEach((a) => {
 							if (!setOfStrings.has(a.toString())) {
 								acc.push(a.publicKey)
 								setOfStrings.add(a.toString())

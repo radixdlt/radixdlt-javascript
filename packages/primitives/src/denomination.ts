@@ -42,7 +42,7 @@ export const formatDenomination = (
 	}>,
 ): string => {
 	const denominationOutputFormat =
-		input.outputFormat ?? DenominationOutputFormat.SHOW_EXPONENT_BASE_TEN
+		input.outputFormat ?? DenominationOutputFormat.OMIT
 	const denomination = input.denomination
 	switch (denominationOutputFormat) {
 		case DenominationOutputFormat.OMIT:

@@ -68,7 +68,6 @@ export type IntendedActionBase<T extends ActionType> = Action<T> &
 		// PER action, not per transactionIntent.
 		from: AddressT
 		uuid: string
-		getUniqueAddresses: () => AddressT[]
 	}>
 
 export type IntendedTransferTokensAction = IntendedActionBase<ActionType.TOKEN_TRANSFER> &

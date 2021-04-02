@@ -47,7 +47,6 @@ export const create = (
 				type: ActionType.TOKEN_TRANSFER,
 				from,
 				uuid,
-				getUniqueAddresses: () => [from, to],
 			}
 		},
 	)

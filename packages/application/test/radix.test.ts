@@ -1,11 +1,5 @@
 import { Radix } from '../src/radix'
-import {
-	Address,
-	AddressT,
-	HDMasterSeed,
-	Wallet,
-	WalletT,
-} from '@radixdlt/account'
+import { AddressT, HDMasterSeed, Wallet, WalletT } from '@radixdlt/account'
 import { interval, Observable, of, Subscription, throwError } from 'rxjs'
 import { map, take, toArray } from 'rxjs/operators'
 import { KeystoreT } from '@radixdlt/crypto'
@@ -16,16 +10,12 @@ import { NodeT, RadixCoreAPI } from '../src/api/_types'
 import {
 	TokenBalances,
 	TransactionIdentifierT,
-	TransactionIntent,
 	TransactionStatus,
 } from '../src/dto/_types'
 import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
-import { Amount, AmountT } from '@radixdlt/primitives'
+import { AmountT } from '@radixdlt/primitives'
 import { signatureFromHexStrings } from '@radixdlt/crypto/test/ellipticCurveCryptography.test'
 import { TransactionIntentBuilder } from '../src/dto/transactionIntentBuilder'
-import { nodeAPI } from '../src/api/api'
-import { BuildTransactionEndpoint } from '../src/api/json-rpc/_types'
-import { err, Result, ResultAsync } from 'neverthrow'
 
 const createWallet = (): WalletT => {
 	const masterSeed = HDMasterSeed.fromSeed(
@@ -684,14 +674,14 @@ describe('Radix API', () => {
 					'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
 				amount: 10000,
 			})
-			.__syncBuildIgnoreMessage(alice)
+			.__syncBuildDoNotEncryptMessageIfAny(alice)
 			._unsafeUnwrap()
 
 		radix.ledger
 			.buildTransaction(transactionIntent)
 			.subscribe((unsignedTx) => {
 				expect((unsignedTx as { fee: AmountT }).fee.toString()).toEqual(
-					'30062 E-18',
+					'33681',
 				)
 				done()
 			})

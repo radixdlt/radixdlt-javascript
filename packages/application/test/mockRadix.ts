@@ -355,7 +355,7 @@ const randomValidatorList = (size: number) => {
 			castOfCharacters[(random + 1) % castOfCharacters.length]
 		const name = characterNames[random % characterNames.length]
 		const amount = Amount.fromUnsafe(random)._unsafeUnwrap()
-		const bool = random % 2 === 0 ? true : false
+		const bool = random % 2 === 0
 
 		validatorList.push({
 			address,
@@ -370,32 +370,39 @@ const randomValidatorList = (size: number) => {
 	return validatorList
 }
 
-const unsignedRandom = detPRNGWithBuffer(Buffer.from('unsgn'))
-const randomUnsignedTransaction = (): UnsignedTransaction => {
-	const random = unsignedRandom()
+const randomUnsignedTransaction = (
+	transactionIntent: TransactionIntent,
+): UnsignedTransaction => {
+	const transactionIntentDet = {
+		...transactionIntent,
+		actions: transactionIntent.actions.map((a) => ({
+			...a,
+			uuid: 'deadbeef',
+		})),
+	}
+
+	const detBlob = JSON.stringify(transactionIntentDet, null, 4)
+	const blobBytes = Buffer.from(detBlob)
+	const bytes32 = sha256(blobBytes)
+
+	const anInt = detPRNGWithBuffer(bytes32)
 
 	return {
 		transaction: {
-			blob: 'placeholder',
-			hashOfBlobToSign: sha256(Buffer.from('placeholder')).toString(
-				'hex',
-			),
+			blob: blobBytes.toString('hex'),
+			hashOfBlobToSign: bytes32.toString('hex'),
 		},
-		fee: Amount.fromUnsafe(random)._unsafeUnwrap(),
+		fee: Amount.fromUnsafe(anInt())._unsafeUnwrap(),
 	}
 }
 
 const randomPendingTransaction = (
 	signedTx: SignedTransaction,
-): PendingTransaction => {
-	const prng = detPRNGWithBuffer(Buffer.from(signedTx.transaction.blob))
-
-	return {
-		txID: TransactionIdentifier.create(
-			sha256(Buffer.from(signedTx.transaction.blob)),
-		)._unsafeUnwrap(),
-	}
-}
+): PendingTransaction => ({
+	txID: TransactionIdentifier.create(
+		sha256(Buffer.from(signedTx.transaction.blob)),
+	)._unsafeUnwrap(),
+})
 
 const rndDemand = detPRNGWithBuffer(Buffer.from('dmnd'))
 const randomDemand = (): NetworkTransactionDemand => ({
@@ -773,7 +780,8 @@ export const mockRadixCoreAPI = (
 		of(randomValidatorList(input.size)),
 	buildTransaction: (
 		transactionIntent: TransactionIntent,
-	): Observable<UnsignedTransaction> => of(randomUnsignedTransaction()),
+	): Observable<UnsignedTransaction> =>
+		of(randomUnsignedTransaction(transactionIntent)),
 	submitSignedTransaction: (
 		signedTx: SignedTransaction,
 	): Observable<PendingTransaction> => of(randomPendingTransaction(signedTx)),
