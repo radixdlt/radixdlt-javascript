@@ -111,14 +111,6 @@ const isFailure = (response: unknown): response is { failure: string } =>
 		? true
 		: false
 
-const hasErrorMessage = (
-	response: unknown,
-): response is { errorMessage: string } =>
-	(response as { errorMessage: string }).errorMessage ||
-	(response as { errorMessage: string }).errorMessage === ''
-		? true
-		: false
-
 export const handleTransactionHistoryResponse = executedTXDecoders.create<TransactionHistoryEndpoint.DecodedResponse>()
 	.fromJSON
 
@@ -178,8 +170,8 @@ export const handleBuildTransactionResponse = (
 export const handleSubmitSignedTransactionResponse = (
 	json: unknown,
 ): Result<SubmitSignedTransactionEndpoint.DecodedResponse, Error[]> =>
-	hasErrorMessage(json)
-		? err([Error(json.errorMessage)])
+	isFailure(json)
+		? err([Error(json.failure)])
 		: JSONDecoding.withDecoders(transactionIdentifierDecoder('txID'))
 				.create<SubmitSignedTransactionEndpoint.DecodedResponse>()
 				.fromJSON(json)

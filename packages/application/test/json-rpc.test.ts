@@ -411,7 +411,7 @@ describe('networking', () => {
 
 		it('should handle submit signed tx with error message', (done) => {
 			mockClientReturnValue = <SubmitSignedTransactionEndpoint.Response>{
-				errorMessage: 'Failed',
+				failure: 'Failed',
 			}
 
 			const radix = Radix.create().__withAPI(

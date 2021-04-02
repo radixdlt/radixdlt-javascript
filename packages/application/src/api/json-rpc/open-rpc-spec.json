@@ -535,13 +535,13 @@
                         {
                             "type": "object",
                             "properties": {
-                                "errorMsg": {
+                                "failure": {
                                     "type": "string"
                                 }
                             },
                             "additionalProperties": false,
                             "required": [
-                                "errorMsg"
+                                "failure"
                             ]
                         }
                     ]

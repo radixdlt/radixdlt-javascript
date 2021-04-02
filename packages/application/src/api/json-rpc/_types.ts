@@ -211,7 +211,7 @@ export namespace SubmitSignedTransactionEndpoint {
 				txID: string
 		  }
 		| {
-				errorMessage: string
+				failure: string
 		  }
 
 	export type DecodedResponse = PendingTransaction
