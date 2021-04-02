@@ -7,6 +7,9 @@ import {
 } from '../actions/_types'
 import {
 	TransactionIntent,
+	TransactionIntentBuilderDoNotEncryptInput,
+	TransactionIntentBuilderEncryptInput,
+	TransactionIntentBuilderOptions,
 	TransactionIntentBuilderState,
 	TransactionIntentBuilderT,
 } from './_types'
@@ -17,7 +20,7 @@ import {
 	EncryptionSchemeName,
 	toObservableFromResult,
 } from '@radixdlt/account'
-import { Observable, of } from 'rxjs'
+import { isObservable, Observable, of } from 'rxjs'
 import { map, mergeMap } from 'rxjs/operators'
 import {
 	IntendedTransferTokens,
@@ -37,6 +40,36 @@ import { Option } from 'prelude-ts'
 
 type IntermediateAction = ActionInput & {
 	type: 'transfer' | 'stake' | 'unstake'
+}
+
+const mustHaveAtLeastOneAction = new Error(
+	'A transaction intent must contain at least one of the following actions: TransferToken, StakeTokens or UnstakeTokens',
+)
+
+const isTransactionIntentBuilderEncryptInput = (
+	something: unknown,
+): something is TransactionIntentBuilderEncryptInput => {
+	const inspection = something as TransactionIntentBuilderEncryptInput
+	return (
+		inspection.encryptMessageIfAnyWithAccount !== undefined &&
+		isObservable(inspection.encryptMessageIfAnyWithAccount) &&
+		(inspection.spendingSender !== undefined
+			? isObservable(inspection.spendingSender)
+			: true)
+	)
+}
+
+const isTransactionIntentBuilderDoNotEncryptInput = (
+	something: unknown,
+): something is TransactionIntentBuilderDoNotEncryptInput => {
+	if (isTransactionIntentBuilderEncryptInput(something)) {
+		return false
+	}
+	const inspection = something as TransactionIntentBuilderDoNotEncryptInput
+	return (
+		inspection.spendingSender !== undefined &&
+		isObservable(inspection.spendingSender)
+	)
 }
 
 const create = (
@@ -103,6 +136,9 @@ const create = (
 	const intendedActionsFromIntermediateActions = (
 		from: AddressT,
 	): Result<IntendedActionsFrom, Error> => {
+		if (intermediateActions.length === 0)
+			return err(mustHaveAtLeastOneAction)
+
 		return combine(
 			intermediateActions.map(
 				(i): Result<IntendedAction, Error> => {
@@ -137,16 +173,20 @@ const create = (
 		).map((intendedActions) => ({ intendedActions, from }))
 	}
 
-	const syncBuildIgnoreMessage = (
+	const syncBuildDoNotEncryptMessageIfAny = (
 		from: AddressT,
-	): Result<TransactionIntent, Error> => {
-		return intendedActionsFromIntermediateActions(from).map(
+	): Result<TransactionIntent, Error> =>
+		intendedActionsFromIntermediateActions(from).map(
 			({ intendedActions }) => ({
 				actions: intendedActions,
-				message: undefined,
+				message: maybePlaintextMsgToEncrypt
+					.map((msg) => ({
+						encryptionScheme: EncryptionSchemeName.DO_NOT_ENCRYPT,
+						msg,
+					}))
+					.getOrUndefined(),
 			}),
 		)
-	}
 
 	type ActorsInEncryption = {
 		encryptingAccount: AccountT
@@ -185,15 +225,26 @@ const create = (
 	}
 
 	const build = (
-		input: Readonly<{
-			encryptMessageIfAnyWithAccount: Observable<AccountT>
-			spendingSender?: Observable<AddressT>
-		}>,
+		options: TransactionIntentBuilderOptions,
 	): Observable<TransactionIntent> => {
-		const encryptingAccount$ = input.encryptMessageIfAnyWithAccount
+		if (isTransactionIntentBuilderDoNotEncryptInput(options)) {
+			return options.spendingSender.pipe(
+				mergeMap((from: AddressT) =>
+					toObservableFromResult(
+						syncBuildDoNotEncryptMessageIfAny(from),
+					),
+				),
+			)
+		}
+
+		if (!isTransactionIntentBuilderEncryptInput(options)) {
+			throw new Error('Incorrect implementation')
+		}
+
+		const encryptingAccount$ = options.encryptMessageIfAnyWithAccount
 		const spendingSender: Observable<AddressT> =
-			input.spendingSender ??
-			input.encryptMessageIfAnyWithAccount.pipe(
+			options.spendingSender ??
+			options.encryptMessageIfAnyWithAccount.pipe(
 				mergeMap((a) => a.deriveAddress()),
 			)
 		return spendingSender.pipe(
@@ -263,7 +314,7 @@ const create = (
 		unstakeTokens,
 		build,
 		message: replaceAnyPreviousMessageWithNew,
-		__syncBuildIgnoreMessage: syncBuildIgnoreMessage,
+		__syncBuildDoNotEncryptMessageIfAny: syncBuildDoNotEncryptMessageIfAny,
 	}
 
 	return {

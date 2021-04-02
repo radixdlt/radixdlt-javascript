@@ -81,6 +81,17 @@ export type TransactionIntentBuilderState = Readonly<{
 	message?: string
 }>
 
+export type TransactionIntentBuilderEncryptInput = Readonly<{
+	encryptMessageIfAnyWithAccount: Observable<AccountT>
+	spendingSender?: Observable<AddressT>
+}>
+export type TransactionIntentBuilderDoNotEncryptInput = Readonly<{
+	spendingSender: Observable<AddressT>
+}>
+export type TransactionIntentBuilderOptions =
+	| TransactionIntentBuilderDoNotEncryptInput
+	| TransactionIntentBuilderEncryptInput
+
 export type TransactionIntentBuilderT = Readonly<{
 	__state: TransactionIntentBuilderState
 
@@ -90,16 +101,12 @@ export type TransactionIntentBuilderT = Readonly<{
 	message: (msg: string) => TransactionIntentBuilderT
 
 	// Build
-	__syncBuildIgnoreMessage: (
+	__syncBuildDoNotEncryptMessageIfAny: (
 		from: AddressT,
 	) => Result<TransactionIntent, Error>
-	build: (
-		input: Readonly<{
-			encryptMessageIfAnyWithAccount: Observable<AccountT>
 
-			// if 'undefined', the address of the `AccountT` will be used.
-			spendingSender?: Observable<AddressT>
-		}>,
+	build: (
+		options: TransactionIntentBuilderOptions,
 	) => Observable<TransactionIntent>
 }>
 
