@@ -133,7 +133,9 @@ const calculateAndAppendChecksum = (buffer: Buffer): Buffer => {
 	return Buffer.concat([buffer, checksumFirstFourBytes])
 }
 
-const isAddress = (something: AddressT | unknown): something is AddressT => {
+export const isAddress = (
+	something: AddressT | unknown,
+): something is AddressT => {
 	const inspection = something as AddressT
 	return (
 		inspection.magicByte !== undefined &&

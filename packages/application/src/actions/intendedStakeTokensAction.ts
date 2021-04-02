@@ -37,7 +37,6 @@ export const __createIntendedStakeAction = (
 				type: ActionType.STAKE_TOKENS,
 				from,
 				uuid,
-				getUniqueAddresses: () => [from, validator],
 			}
 		},
 	)

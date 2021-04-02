@@ -49,6 +49,7 @@ Above code assumes you have a wallet. Looking for wallet creation?
 			- [restoreAccountsUpToIndex](#restoreaccountsuptoindex)
 		- [Account switching](#account-switching)
 		- [Token balance fetch trigger](#token-balance-fetch-trigger)
+		- [Staking fetch trigger](#staking-fetch-trigger)
 		- [Decrypt](#decrypt)
 		- [Sign](#sign)
 	- [Methods resulting in RPC calls](#methods-resulting-in-rpc-calls)
@@ -60,25 +61,24 @@ Above code assumes you have a wallet. Looking for wallet creation?
 			- [`Other`](#other)
 	- [Make Transaction](#make-transaction)
 		- [Flow](#flow)
-		- [Unsafe user input](#unsafe-user-input)
-		- [TransactionIntent](#transactionintent)
+		- [`TransactionIntentBuilder`](#transactionintentbuilder)
+			- [Unsafe user input](#unsafe-user-input)
 		- [Example](#example)
 			- [Build TX](#build-tx)
 			- [Confirm TX](#confirm-tx)
 			- [Submit TX](#submit-tx)
 			- [Poll TX status](#poll-tx-status)
-	- [Stake Tokens](#stake-tokens)
-	- [Unstake Tokens](#unstake-tokens)
 - [Ledger](#ledger)
 		- [`tokenBalancesForAddress`](#tokenbalancesforaddress)
 		- [`transactionHistory`](#transactionhistory)
 		- [`nativeToken`](#nativetoken)
 		- [`tokenInfo`](#tokeninfo)
 		- [`stakesForAddress`](#stakesforaddress)
+		- [`unstakesForAddress`](#unstakesforaddress)
 		- [`transactionStatus`](#transactionstatus)
 		- [`networkTransactionThroughput`](#networktransactionthroughput)
 		- [`networkTransactionDemand`](#networktransactiondemand)
-		- [`buildTransactionFromIntent`](#buildtransactionfromintent)
+		- [`buildTransaction`](#buildtransaction)
 		- [`submitSignedTransaction`](#submitsignedtransaction)
 		- [`validators`](#validators)
 		- [`lookupTransaction`](#lookuptransaction)
@@ -587,7 +587,10 @@ The flow of making a transaction is the same, disregarding the contents of it, i
 7. 💻 `wallet`**`polls`** status of transaction (using txID from step 5), using appropriate library api, and informs user of final CONFIRMED/REJECTED result. 
 8. 🙋🏾‍♀️ `user`**`acts`** on any failures, e.g. presses "Retry"-button, if prompted with one because of network connection issues during step 6.
 
-### Unsafe user input
+
+### `TransactionIntentBuilder`
+
+#### Unsafe user input
 
 Let us transfer some tokens! All methods accept specific types such as `AddressT` for recipient address, `AmountT` for token amounts and `ResourceIdentierT` for token identifier (which you have access to via `tokenBalances`, `nativeToken()` and `transactionHistory()`).
 
@@ -598,22 +601,27 @@ You can read out the _granularity_ (of type `AmountT`) from the token info, by u
 For convenience you can pass in unsafe types, such as `string` as input to all actions, below we create a transaction intent with a single  `transferTokens` action. 
 
 ```typescript
-import { TransactionIntent } from '@radixdlt/application'
+import { TransactionIntentBuilder } from '@radixdlt/application'
 
-// Of type `Result<TransactionIntent, Error>
-const intentResult = TransactionIntent.create()
+TransactionIntentBuilder.create()
 	.transferTokens({
 		to: '9SBZ9kzpXKAQ9oHHZngahVUQrLwU6DssiPbtCj5Qb6cxqxPC6stb',
 		amount: '12.57',
-		token: '/9SAU2m7yis9iE5u2L44poZ6rYf5JiTAN6GtiRnsBk6JnXoMoAdks/XRD'
+		tokenIdentifier: '/9SAU2m7yis9iE5u2L44poZ6rYf5JiTAN6GtiRnsBk6JnXoMoAdks/XRD'
 	})
 	.message('Thx for lunch Bob, let me pay for my salad.')
-
-if (intentResult.isErr()) {
-	console.log(`🤷‍♂️ Failed to create transaction intent: ${intentResult.error}`)
-}
-
-const transactionIntent = intentResult.value
+	.build({
+		encryptMessageIfAnyWithAccount: activeAccount$, // Observable<AccountT>
+	})
+	.subscribe(
+		(transactionIntent) => {
+			console.log(`🎉 transactionIntent: ${transactionIntent.toString()}`)
+		},
+		(error) => {
+			console.log(`🤷‍♂️ Failed to create transaction intent: ${error}`)
+		},
+	)
+	.add(subs)
 ```
 
 Alternatively you can transform input to save types eagerly, display relevant info for validation errors, and then pass these safe types to the `TransactionIntent`.
@@ -657,34 +665,32 @@ if (!unsafeAmount.isMultipleOf(granularity)) {
 // ☑️ Amount is checked against token granularity, safe to send.
 const amount = unsafeAmount
 
-// Scrll down to `TransactionIntent.create()` below ⬇️ 
-```
-
-Which results in the [`transactionIntent` below](#TransactionIntent).
-
-</details>
-
-
-### TransactionIntent 
-
-```typescript
-const transactionIntent = TransactionIntent.create()
+TransactionIntentBuilder.create()
 	.transferTokens({
 		to: recipientAddress, // safe type `AddressT`
 		amount: amount, // safe type `AmounT`
 		token: fooToken // safe type `ResourceIdentifierT`
 	})
 	.message(`Thx for lunch Bob, here's for my salad.`)
+	.build(...)
+	.subscribe(...)
+	.add(subs)
+
 ```
+
+</details>
+
 
 ### Example
 
 Here follows an axample of how we can make a transaction using, `buildTransactionFromIntent` and `submitSignedTransaction`.
 
-We use the [`transactionIntent` we created earlier](#TransactionIntent).
+We use the [`transactionIntent` we built with `TransactionIntentBuilder` earlier](#TransactionIntentBuilder).
 
 
 #### Build TX
+
+> ⚠️ Not yet implemented, subject to change.
 
 ```typescript
 const askUserToConfirmTransactionSubject = new Subject<UnsignedTransaction>()
@@ -752,6 +758,8 @@ askUserToConfirmTransactionSubject
 ```
 
 #### Submit TX
+
+> ⚠️ Not yet implemented, subject to change.
 
 When transaction is confirmed, either automatically or mannually by user, it is ready to be signed an submitted.
 
@@ -824,18 +832,14 @@ transactionConfirmed$
 // ✅ Status confirmed`
 ```
 
-
-## Stake Tokens
-
-> ⚠️ Not yet implemented, subject to change.
-
-## Unstake Tokens
-
-> ⚠️ Not yet implemented, subject to change.
-
-
 # Ledger
+
+> ☑️ Mocked implementation only 🤡.
+
 This outlines all the requests you can make to the Radix Core API. All these requests are completely independent of any wallet, thus they have no notion of any "active address".
+
+**We have finished mocking all methods below.**
+
 
 ### `tokenBalancesForAddress`
 
@@ -920,27 +924,50 @@ transactionStatus: (id: TransactionIdentifierT) => Observable<StatusOfTransactio
 ```
 
 ### `networkTransactionThroughput`
-⚠️ Not yet implemented, will soon be mocked.
+
+> ☑️ Mocked implementation only 🤡.
+
+Information about specified token.
+
+Method signature:
+
 ```typescript
 networkTransactionThroughput: () => Observable<NetworkTransactionThroughput>
 ```
 
 ### `networkTransactionDemand`
-⚠️ Not yet implemented, will soon be mocked.
+
+> ☑️ Mocked implementation only 🤡.
+
+Information about specified token.
+
+Method signature:
 ```typescript
 networkTransactionDemand: () => Observable<NetworkTransactionDemand>
 ```
 
-### `buildTransactionFromIntent`
-⚠️ Not yet implemented, will soon be mocked.
+### `buildTransaction`
+
+> ☑️ Mocked implementation only 🤡.
+
+Information about specified token.
+
+Method signature:
+
 ```typescript
-buildTransactionFromIntent: (
+buildTransaction: (
 	intent: TransactionIntent,
 ) => Observable<UnsignedTransaction>
 ```
 
 ### `submitSignedTransaction`
-⚠️ Not yet implemented, will soon be mocked.
+
+> ☑️ Mocked implementation only 🤡.
+
+Information about specified token.
+
+Method signature:
+
 ```typescript
 submitSignedTransaction: (
 	signedTransaction: SignedTransaction,
@@ -948,7 +975,13 @@ submitSignedTransaction: (
 ```
 
 ### `validators`
-⚠️ Not yet implemented, will soon be mocked.
+
+> ☑️ Mocked implementation only 🤡.
+
+Information about specified token.
+
+Method signature:
+
 ```typescript
 validators: (input: {
 	// pagination

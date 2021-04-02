@@ -23,7 +23,7 @@ import {
 } from './_types'
 import { TransactionIdentifier } from '../../dto/transactionIdentifier'
 import { makeTokenPermissions } from '../../dto/tokenPermissions'
-import { TokenPermission, TransactionIdentifierT } from '../../dto/_types'
+import { TokenPermission } from '../../dto/_types'
 import { ResourceIdentifier } from '../../dto/resourceIdentifier'
 import { OtherAction } from '../../actions/otherAction'
 import { ExecutedTransferTokens } from '../../actions/executedTransferTokensAction'
