@@ -13,6 +13,7 @@ import { AmountT } from '@radixdlt/primitives'
 import { Signature } from '@radixdlt/crypto'
 import { Observable } from 'rxjs'
 import { Result } from 'neverthrow'
+import { EncryptedMessage } from '@radixdlt/account'
 
 export type StakePosition = Readonly<{
 	validator: AddressT
@@ -80,6 +81,17 @@ export type TransactionIntentBuilderState = Readonly<{
 	message?: string
 }>
 
+export type TransactionIntentBuilderEncryptInput = Readonly<{
+	encryptMessageIfAnyWithAccount: Observable<AccountT>
+	spendingSender?: Observable<AddressT>
+}>
+export type TransactionIntentBuilderDoNotEncryptInput = Readonly<{
+	spendingSender: Observable<AddressT>
+}>
+export type TransactionIntentBuilderOptions =
+	| TransactionIntentBuilderDoNotEncryptInput
+	| TransactionIntentBuilderEncryptInput
+
 export type TransactionIntentBuilderT = Readonly<{
 	__state: TransactionIntentBuilderState
 
@@ -89,15 +101,13 @@ export type TransactionIntentBuilderT = Readonly<{
 	message: (msg: string) => TransactionIntentBuilderT
 
 	// Build
-	__syncBuildIgnoreMessage: (
+	__syncBuildDoNotEncryptMessageIfAny: (
 		from: AddressT,
 	) => Result<TransactionIntent, Error>
-	buildAndEncrypt: (from: AccountT) => Observable<TransactionIntent>
-}>
 
-export type EncryptedMessage = Readonly<{
-	msg: string
-	encryptionScheme: string
+	build: (
+		options: TransactionIntentBuilderOptions,
+	) => Observable<TransactionIntent>
 }>
 
 export type TransactionIntent = Readonly<{

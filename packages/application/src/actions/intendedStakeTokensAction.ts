@@ -5,12 +5,7 @@ import {
 } from './_types'
 import { v4 as uuidv4 } from 'uuid'
 import { Address, AddressT, isAddressOrUnsafeInput } from '@radixdlt/account'
-import {
-	Amount,
-	AmountT,
-	Denomination,
-	isAmountOrUnsafeInput,
-} from '@radixdlt/primitives'
+import { Amount, AmountT, isAmountOrUnsafeInput } from '@radixdlt/primitives'
 import { combine, Result } from 'neverthrow'
 
 export const isStakeTokensInput = (
@@ -42,6 +37,7 @@ export const __createIntendedStakeAction = (
 				type: ActionType.STAKE_TOKENS,
 				from,
 				uuid,
+				getUniqueAddresses: () => [from, validator],
 			}
 		},
 	)

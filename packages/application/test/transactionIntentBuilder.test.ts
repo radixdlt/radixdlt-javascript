@@ -7,10 +7,17 @@ import {
 	StakeTokensInput,
 	TransferTokensInput,
 } from '../src/actions/_types'
-import { AccountT, AddressT } from '@radixdlt/account'
+import {
+	AccountT,
+	AddressT,
+	EncryptedMessage,
+	EncryptionSchemeName,
+	PlaintextMessageToEncrypt,
+} from '@radixdlt/account'
 import { TransactionIntentBuilderT } from '../src/dto/_types'
-import { Observable, of, Subscription } from 'rxjs'
-import { IntendedStakeTokensAction } from '../dist/actions/_types'
+import { Observable, of, Subscription, throwError } from 'rxjs'
+import { IntendedStakeTokensAction } from '../src/actions/_types'
+import { PublicKey } from '@radixdlt/crypto'
 
 describe('tx intent builder', () => {
 	const one = Amount.fromUnsafe(1)._unsafeUnwrap()
@@ -40,7 +47,9 @@ describe('tx intent builder', () => {
 	})
 
 	const validateOneToBob = (builder: TransactionIntentBuilderT): void => {
-		const txIntent = builder.__syncBuildIgnoreMessage(alice)._unsafeUnwrap()
+		const txIntent = builder
+			.__syncBuildDoNotEncryptMessageIfAny(alice)
+			._unsafeUnwrap()
 
 		expect(txIntent.actions.length).toBe(1)
 		const action0 = txIntent.actions[0]
@@ -78,7 +87,9 @@ describe('tx intent builder', () => {
 			amount: 1234567890,
 		})
 
-		const txIntent = builder.__syncBuildIgnoreMessage(alice)._unsafeUnwrap()
+		const txIntent = builder
+			.__syncBuildDoNotEncryptMessageIfAny(alice)
+			._unsafeUnwrap()
 		expect(txIntent.actions.length).toBe(1)
 		const action0 = txIntent.actions[0]
 		expect(action0.type).toBe(ActionType.STAKE_TOKENS)
@@ -104,7 +115,9 @@ describe('tx intent builder', () => {
 			.transferTokens(transfInputs[1])
 			.transferTokens(transfInputs[2])
 
-		const txIntent = builder.__syncBuildIgnoreMessage(alice)._unsafeUnwrap()
+		const txIntent = builder
+			.__syncBuildDoNotEncryptMessageIfAny(alice)
+			._unsafeUnwrap()
 
 		txIntent.actions.forEach((t) => {
 			expect(t.from.equals(alice)).toBe(true)
@@ -135,31 +148,48 @@ describe('tx intent builder', () => {
 		msg: string,
 		done: jest.DoneCallback,
 	): Subscription => {
+		const noEncryptionPrefix = 'NO_ENCR'
 		const aliceAccount = <AccountT>{
 			deriveAddress: (): Observable<AddressT> => of(alice),
+			derivePublicKey: (): Observable<PublicKey> => of(alice.publicKey),
+			encrypt: (
+				plaintext: PlaintextMessageToEncrypt,
+			): Observable<EncryptedMessage> =>
+				plaintext.encryptionScheme ===
+				EncryptionSchemeName.DO_NOT_ENCRYPT
+					? of<EncryptedMessage>({
+							encryptionScheme: plaintext.encryptionScheme,
+							msg: `${noEncryptionPrefix}${plaintext.plaintext}`,
+					  })
+					: throwError(() => new Error('Imple me')),
 		}
-		return builder.buildAndEncrypt(aliceAccount).subscribe((txIntent) => {
-			expect(txIntent.actions.length).toBe(1)
 
-			const attatchedMessage = txIntent.message
-			if (!attatchedMessage) {
-				done(new Error('Expected message...'))
-				return
-			} else {
-				const message = attatchedMessage!.msg
-				const encryptionScheme = attatchedMessage!.encryptionScheme
+		return builder
+			.build({
+				spendingSender: of(alice),
+				encryptMessageIfAnyWithAccount: of(aliceAccount),
+			})
+			.subscribe((txIntent) => {
+				expect(txIntent.actions.length).toBe(1)
 
-				expect(message).toBe(
-					`PLAIN_TEXT_BECAUSE_ENCRYPTION_IS_NOT_YET_INPLEMENTED___${msg}`,
-				)
+				const attatchedMessage = txIntent.message
+				if (!attatchedMessage) {
+					done(new Error('Expected message...'))
+					return
+				} else {
+					const message = attatchedMessage!.msg
+					const encryptionScheme = attatchedMessage!.encryptionScheme
 
-				// TODO update when message encryption is done.
-				expect(encryptionScheme).toBe('PLAINTEXT')
-				done()
-			}
-		})
+					expect(message).toBe(`${noEncryptionPrefix}${msg}`)
+
+					// TODO update when message encryption is done.
+					expect(encryptionScheme).toBe(
+						EncryptionSchemeName.DO_NOT_ENCRYPT,
+					)
+					done()
+				}
+			})
 	}
-
 	it('can transfer then attach message', (done) => {
 		const subs = new Subscription()
 		const msg = 'Hey Bob, hope you are well'
@@ -186,6 +216,54 @@ describe('tx intent builder', () => {
 		).add(subs)
 	})
 
+	it('throws errors if no action was specified', () => {
+		TransactionIntentBuilder.create()
+			.__syncBuildDoNotEncryptMessageIfAny(alice)
+			.match(
+				() => {
+					throw new Error('expected error but got none')
+				},
+				(e) => {
+					expect(e.message).toBe(
+						'A transaction intent must contain at least one of the following actions: TransferToken, StakeTokens or UnstakeTokens',
+					)
+				},
+			)
+	})
+
+	it('can have transfer and attach message and skip encryption', (done) => {
+		const subs = new Subscription()
+		const msg = 'Hey Bob, how are you?'
+
+		TransactionIntentBuilder.create()
+			.transferTokens(transfS(3, bob))
+			.message(msg)
+			.build({
+				spendingSender: of(alice),
+			})
+			.subscribe((txIntent) => {
+				expect(txIntent.actions.length).toBe(1)
+
+				const attatchedMessage = txIntent.message
+				if (!attatchedMessage) {
+					done(new Error('Expected message...'))
+					return
+				} else {
+					const message = attatchedMessage!.msg
+					const encryptionScheme = attatchedMessage!.encryptionScheme
+
+					expect(message).toBe(`${msg}`)
+
+					// TODO update when message encryption is done.
+					expect(encryptionScheme).toBe(
+						EncryptionSchemeName.DO_NOT_ENCRYPT,
+					)
+					done()
+				}
+			})
+			.add(subs)
+	})
+
 	it('can add transfer, stake, unstake then transfer', () => {
 		const builder = TransactionIntentBuilder.create()
 			.transferTokens(transfS(3, bob))
@@ -193,7 +271,9 @@ describe('tx intent builder', () => {
 			.unstakeTokens(unstakeS(5, dan))
 			.transferTokens(transfS(6, erin))
 
-		const txIntent = builder.__syncBuildIgnoreMessage(alice)._unsafeUnwrap()
+		const txIntent = builder
+			.__syncBuildDoNotEncryptMessageIfAny(alice)
+			._unsafeUnwrap()
 
 		expect(txIntent.actions.length).toBe(4)
 		expect(

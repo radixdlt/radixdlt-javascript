@@ -5,12 +5,7 @@ import {
 } from './_types'
 import { v4 as uuidv4 } from 'uuid'
 import { Address, AddressT, isAddressOrUnsafeInput } from '@radixdlt/account'
-import {
-	Amount,
-	AmountT,
-	Denomination,
-	isAmountOrUnsafeInput,
-} from '@radixdlt/primitives'
+import { Amount, AmountT, isAmountOrUnsafeInput } from '@radixdlt/primitives'
 import {
 	isResourceIdentifierOrUnsafeInput,
 	ResourceIdentifier,
@@ -52,6 +47,7 @@ export const create = (
 				type: ActionType.TOKEN_TRANSFER,
 				from,
 				uuid,
+				getUniqueAddresses: () => [from, to],
 			}
 		},
 	)
