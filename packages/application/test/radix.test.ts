@@ -605,7 +605,7 @@ describe('Radix API', () => {
 
 		const expectedValues: TransactionStatus[] = [
 			TransactionStatus.PENDING,
-			TransactionStatus.FAILED,
+			TransactionStatus.CONFIRMED,
 		]
 
 		radix
@@ -613,7 +613,7 @@ describe('Radix API', () => {
 				TransactionIdentifier.create(
 					'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
 				)._unsafeUnwrap(),
-				interval(300),
+				interval(10),
 			)
 			.pipe(
 				map(({ status }) => status),
