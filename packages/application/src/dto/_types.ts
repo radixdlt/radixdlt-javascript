@@ -11,9 +11,10 @@ import {
 } from '../actions/_types'
 import { AmountT } from '@radixdlt/primitives'
 import { PublicKey, Signature } from '@radixdlt/crypto'
-import { Observable, Subject } from 'rxjs'
+import { Observable, Subject, Subscription } from 'rxjs'
 import { Result } from 'neverthrow'
 import { EncryptedMessage } from '@radixdlt/account'
+import { Observer, Subscribable, Unsubscribable } from 'rxjs/src/internal/types'
 
 export type StakePosition = Readonly<{
 	validator: AddressT
@@ -146,10 +147,11 @@ export type TransactionTrackingEvent<
 // Marker protocol
 export type PartOfMakeTransactionFlow = unknown
 
-export type TransactionTracking = Readonly<{
-	askUserToConfirmTransaction: Observable<SignedUnconfirmedTransaction>
-	userDidConfirmTransactionSubject: Subject<SignedUnconfirmedTransaction>
+export type TransactionTracking = /* Subscribable<TransactionIdentifierT> & */ Readonly<{
 	tracking: Observable<TransactionTrackingEvent<PartOfMakeTransactionFlow>>
+	subscribe: (
+		observer: Partial<Observer<TransactionIdentifierT>>,
+	) => Subscription
 }>
 
 export type TransactionHistoryOfKnownAddressRequestInput = Readonly<{

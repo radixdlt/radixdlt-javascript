@@ -1,19 +1,14 @@
 import { Radix } from '../src/radix'
 import { AddressT, HDMasterSeed, Wallet, WalletT } from '@radixdlt/account'
-import { interval, Observable, of, Subscription, throwError } from 'rxjs'
+import { interval, Observable, of, Subject, Subscription, throwError } from 'rxjs'
 import { map, take, toArray } from 'rxjs/operators'
 import { KeystoreT } from '@radixdlt/crypto'
-import { RadixT } from '../src/_types'
+import { ManualUserConfirmTX, RadixT } from '../src/_types'
 import { APIErrorCause, ErrorCategory } from '../src/errors'
-import {
-	alice,
-	balancesFor,
-	bob,
-	mockedAPI,
-	mockRadixCoreAPI,
-} from './mockRadix'
+import { alice, balancesFor, bob, mockedAPI, mockRadixCoreAPI } from './mockRadix'
 import { NodeT, RadixCoreAPI } from '../src/api/_types'
 import {
+	SignedUnconfirmedTransaction,
 	TokenBalances,
 	TransactionIdentifierT,
 	TransactionStatus,
@@ -24,6 +19,8 @@ import { signatureFromHexStrings } from '@radixdlt/crypto/test/ellipticCurveCryp
 import { TransactionIntentBuilder } from '../src/dto/transactionIntentBuilder'
 import { TransactionTrackingEventType } from '../dist/dto/_types'
 import { LogLevel } from '@radixdlt/util'
+import { TransferTokensInput } from '../dist/actions/_types'
+import { TransferTokensOptions } from '../dist/_types'
 
 const createWallet = (): WalletT => {
 	const masterSeed = HDMasterSeed.fromSeed(
@@ -828,68 +825,174 @@ describe('Radix API', () => {
 			.add(subs)
 	})
 
-	it('make tx', (done) => {
-		const subs = new Subscription()
 
-		let hasAskedUserToConfirm = false
+	// it('single token transfer tracking reports correct events', (done) => {
+	// 	const subs = new Subscription()
+	//
+	//
+	// 	const radix = Radix.create()
+	// 		.withWallet(createWallet())
+	// 		.__withAPI(mockedAPI)
+	//
+	// 	const transactionTracking = radix.transferTokens(
+	// 		{
+	// 			to: bob,
+	// 			amount: 1,
+	// 			tokenIdentifier:
+	// 				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD',
+	// 		},
+	// 		'automaticallyConfirmTransaction',
+	// 		interval(50),
+	// 	)
+	//
+	// 	// automatic accept
+	// 	transactionTracking.askUserToConfirmTransaction
+	// 		.subscribe((ux) => {
+	// 			transactionTracking.userDidConfirmTransactionSubject.next(ux)
+	// 		})
+	// 		.add(subs)
+	//
+	// })
 
-		const radix = Radix.create()
-			.withWallet(createWallet())
-			.__withAPI(mockedAPI)
+	describe('single token transfer', () => {
 
-		const pollTxStatusTrigger = interval(50)
+		const tokenTransferInput: TransferTokensInput = {
+			to: bob,
+			amount: 1,//Amount.inSmallestDenomination(new UInt256(ArrayBuffer.from(secureRandomGenerator.randomSecureBytes(32), 'hex'))),
+			tokenIdentifier:
+				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD',
+		}
 
-		const transactionTracking = radix.transferTokens(
-			{
-				to: bob,
-				amount: 1,
-				tokenIdentifier:
-					'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD',
-			},
-			pollTxStatusTrigger,
-		)
+		let pollTXStatusTrigger: Observable<unknown>
 
-		// automatic accept
-		transactionTracking.askUserToConfirmTransaction
-			.subscribe((ux) => {
-				hasAskedUserToConfirm = true
-				transactionTracking.userDidConfirmTransactionSubject.next(ux)
-			})
-			.add(subs)
+		const transferTokens = (): TransferTokensOptions => ({
+			transferInput: tokenTransferInput,
+			txConfirmationBeforeFinalization: 'automaticallyConfirmTransaction',
+			pollTXStatusTrigger: pollTXStatusTrigger
+		})
 
-		const expectedValues = [
-			TransactionTrackingEventType.INITIATED,
-			TransactionTrackingEventType.BUILT_FROM_INTENT,
-			TransactionTrackingEventType.SIGNED,
-			TransactionTrackingEventType.SUBMITTED,
-			TransactionTrackingEventType.ASKING_USER_FOR_FINAL_CONFIRMATION,
-			TransactionTrackingEventType.USER_CONFIRMED_TX_BEFORE_FINALIZATION,
-			TransactionTrackingEventType.FINALIZED_AND_IS_NOW_PENDING,
-			TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
-			TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
-			TransactionTrackingEventType.COMPLETED,
-		]
+		let subs = new Subscription()
 
-		transactionTracking.tracking
-			.pipe(
-				map((e) => e.eventUpdateType),
-				take(expectedValues.length),
-				toArray(),
-			)
-			.subscribe({
-				next: (values) => {
-					expect(values).toStrictEqual(expectedValues)
-					expect(hasAskedUserToConfirm).toBe(true)
+		beforeEach(() => {
+			subs.unsubscribe()
+			subs = new Subscription()
+
+			pollTXStatusTrigger = interval(50)
+
+		})
+
+		it('single token transfer tracking reports correct events', (done) => {
+
+			const radix = Radix.create()
+				.withWallet(createWallet())
+				.__withAPI(mockedAPI)
+
+			const transactionTracking = radix.transferTokens(transferTokens())
+
+			const expectedValues = [
+				TransactionTrackingEventType.INITIATED,
+				TransactionTrackingEventType.BUILT_FROM_INTENT,
+				TransactionTrackingEventType.SIGNED,
+				TransactionTrackingEventType.SUBMITTED,
+				TransactionTrackingEventType.ASKING_USER_FOR_FINAL_CONFIRMATION,
+				TransactionTrackingEventType.USER_CONFIRMED_TX_BEFORE_FINALIZATION,
+				TransactionTrackingEventType.FINALIZED_AND_IS_NOW_PENDING,
+				TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
+				TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
+				TransactionTrackingEventType.COMPLETED,
+			]
+
+			transactionTracking.tracking
+				.pipe(
+					map((e) => e.eventUpdateType),
+					take(expectedValues.length),
+					toArray(),
+				)
+				.subscribe({
+					next: (values) => {
+						expect(values).toStrictEqual(expectedValues)
+						// expect(hasAskedUserToConfirm).toBe(true)
+						done()
+					},
+					error: (e) => {
+						done(
+							new Error(
+								`Tx failed, even though we expected it to succeed, error: ${e.toString()}`,
+							),
+						)
+					},
+				})
+				.add(subs)
+		})
+
+		it('single token transfer automatic confirmation subscribe', (done) => {
+
+			const radix = Radix.create()
+				.withWallet(createWallet())
+				.__withAPI(mockedAPI)
+
+
+			const transactionTracking = radix.transferTokens(transferTokens())
+
+			transactionTracking.subscribe({
+					next: (_txID) => { done() },
+					error: (e) => { done(e) }
+				}).add(subs)
+		})
+
+		it('single token transfer manual confirmation subscribe', (done) => {
+
+			const radix = Radix.create()
+				.withWallet(createWallet())
+				.__withAPI(mockedAPI)
+				.logLevel(LogLevel.TRACE)
+
+			const userConfirmation = new Subject<ManualUserConfirmTX>()
+
+			const transactionTracking = radix.transferTokens({ ...transferTokens(), txConfirmationBeforeFinalization: userConfirmation })
+
+			let userHasBeenAskedToConfirmTX = false
+
+			userConfirmation.subscribe((confirmation) => {
+				console.log(`🔮 USER IS ASKED TO CONFIRM: ${confirmation.txToConfirm.txID}`)
+				userHasBeenAskedToConfirmTX = true
+				confirmation.userDidConfirm() // User confirms
+			}).add(subs)
+
+			transactionTracking.subscribe({
+				next: (_txID) => {
+					expect(userHasBeenAskedToConfirmTX).toBe(true)
 					done()
 				},
-				error: (e) => {
-					done(
-						new Error(
-							`Tx failed, even though we expected it to succeed, error: ${e.toString()}`,
-						),
-					)
-				},
-			})
-			.add(subs)
+				error: (e) => { done(e) }
+			}).add(subs)
+		})
+
 	})
+
+	// it('single token transfer BUILT_FROM_INTENT failure', (done) => {
+	// 	const subs = new Subscription()
+	//
+	// 	let hasAskedUserToConfirm = false
+	//
+	// 	const buildError = new Error(`Mocked failure of 'buildTransaction' API call`)
+	//
+	// 	const radix = Radix.create()
+	// 		.withWallet(createWallet())
+	// 		.__withAPI(of({
+	// 			...mockRadixCoreAPI(),
+	// 			buildTransaction: (_intent: TransactionIntent) => throwError(() => buildError)
+	// 		}))
+	//
+	//
+	// 	const transactionTracking = radix.transferTokens(
+	// 		{
+	// 			to: bob,
+	// 			amount: 1,
+	// 			tokenIdentifier:
+	// 				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD',
+	// 		},
+	// 	)
+	// })
+
 })

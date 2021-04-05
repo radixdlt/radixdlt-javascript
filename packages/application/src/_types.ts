@@ -8,7 +8,7 @@ import {
 } from '@radixdlt/account'
 import { KeystoreT } from '@radixdlt/crypto'
 import { LogLevel } from '@radixdlt/util'
-import { Observable } from 'rxjs'
+import { Observable, Subject } from 'rxjs'
 import { NodeT, RadixAPI, RadixCoreAPI } from './api/_types'
 import { ErrorNotification } from './errors'
 import {
@@ -20,8 +20,28 @@ import {
 	UnstakePositions,
 	TransactionIdentifierT,
 	TransactionTracking,
+	SignedUnconfirmedTransaction,
 } from './dto/_types'
 import { TransferTokensInput } from './actions/_types'
+
+export type ManualUserConfirmTX = {
+	txToConfirm: SignedUnconfirmedTransaction
+	userDidConfirm: () => void
+}
+
+export type TransactionConfirmationBeforeFinalization =
+	| 'automaticallyConfirmTransaction'
+	| Subject<ManualUserConfirmTX>
+
+export type MakeTransactionOptions = Readonly<{
+	txConfirmationBeforeFinalization: TransactionConfirmationBeforeFinalization
+	pollTXStatusTrigger?: Observable<unknown>
+}>
+
+export type TransferTokensOptions = MakeTransactionOptions &
+	Readonly<{
+		transferInput: TransferTokensInput
+	}>
 
 export type RadixT = Readonly<{
 	ledger: RadixAPI
@@ -75,10 +95,7 @@ export type RadixT = Readonly<{
 	) => Observable<TransactionHistory>
 
 	// Make TX flow
-	transferTokens: (
-		input: TransferTokensInput,
-		pollTXStatusTrigger?: Observable<unknown>,
-	) => TransactionTracking
+	transferTokens: (input: TransferTokensOptions) => TransactionTracking
 
 	transactionStatus: (
 		txID: TransactionIdentifierT,

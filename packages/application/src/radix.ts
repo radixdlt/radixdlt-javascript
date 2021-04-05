@@ -29,12 +29,19 @@ import {
 	of,
 	ReplaySubject,
 	Subject,
+	Subscribable,
 	Subscription,
 } from 'rxjs'
 import { radixCoreAPI } from './api/radixCoreAPI'
 import { Magic } from '@radixdlt/primitives'
 import { KeystoreT, UnsignedMessage } from '@radixdlt/crypto'
-import { RadixT } from './_types'
+import {
+	MakeTransactionOptions,
+	ManualUserConfirmTX,
+	RadixT,
+	TransactionConfirmationBeforeFinalization,
+	TransferTokensOptions,
+} from './_types'
 import {
 	APIError,
 	buildTxFromIntentErr,
@@ -77,6 +84,7 @@ import {
 import { TransferTokensInput } from './actions/_types'
 import { nodeAPI } from './api/api'
 import { TransactionIntentBuilder } from './dto/transactionIntentBuilder'
+import { Observer, Unsubscribable } from 'rxjs/src/internal/types'
 
 type EventTransactionInitiated = TransactionTrackingEvent<TransactionIntent>
 const eventTransactionInitiated = (
@@ -152,6 +160,11 @@ const eventTransactionCompletedSuccessfully = (
 	value: statusOfTransaction,
 	eventUpdateType: TransactionTrackingEventType.COMPLETED,
 })
+
+const shouldConfirmTransactionAutomatically = (
+	confirmationScheme: TransactionConfirmationBeforeFinalization,
+): confirmationScheme is 'automaticallyConfirmTransaction' =>
+	confirmationScheme === 'automaticallyConfirmTransaction'
 
 const create = (): RadixT => {
 	const subs = new Subscription()
@@ -392,7 +405,7 @@ const create = (): RadixT => {
 
 	const __makeTransactionFromIntent = (
 		transactionIntent$: Observable<TransactionIntent>,
-		pollTXStatusTrigger?: Observable<unknown>,
+		options: MakeTransactionOptions,
 	): TransactionTracking => {
 		log.trace(
 			`Start of transaction flow, inside constructor of 'TransactionTracking'.`,
@@ -400,13 +413,64 @@ const create = (): RadixT => {
 
 		const pendingTXSubject = new Subject<PendingTransaction>()
 
-		/// ===== user facing ⬇️ ===
 		const askUserToConfirmSubject = new Subject<SignedUnconfirmedTransaction>()
 		const userDidConfirmTransactionSubject = new Subject<SignedUnconfirmedTransaction>()
+
+		// Used for logging...
+		let txWillBeAutomaticallyConfirmed = false
+
+		if (
+			shouldConfirmTransactionAutomatically(
+				options.txConfirmationBeforeFinalization,
+			)
+		) {
+			txWillBeAutomaticallyConfirmed = true
+			log.trace(
+				'Transaction has been setup to be automatically confirmed, requiring no final confirmation input from user.',
+			)
+			askUserToConfirmSubject
+				.subscribe((ux) => {
+					userDidConfirmTransactionSubject.next(ux)
+				})
+				.add(subs)
+		} else {
+			log.trace(
+				`Transaction has been setup so that it requires a manual final confirmation from user before being finalized.`,
+			)
+			const twoWayConfirmationSubject: Subject<ManualUserConfirmTX> =
+				options.txConfirmationBeforeFinalization
+
+			// twoWayConfirmationSubject
+			// 	.subscribe((ux) => {
+			// 		log.trace(`Forwarding signedUnconfirmedTX to subject 'userDidConfirmTransactionSubject' now (inside subscribe to 'twoWayConfirmationSubject')`)
+			// 		userDidConfirmTransactionSubject.next(ux)
+			// 	})
+			// 	.add(subs)
+
+			userDidConfirmTransactionSubject
+				.subscribe((ux) => {
+					log.trace(
+						`Forwarding signedUnconfirmedTX to subject 'twoWayConfirmationSubject' now (inside subscribe to 'userDidConfirmTransactionSubject')`,
+					)
+
+					const confirmation: ManualUserConfirmTX = {
+						txToConfirm: ux,
+						userDidConfirm: (): void => {
+							log.trace(
+								`Forwarding signedUnconfirmedTX to subject 'userDidConfirmTransactionSubject' now (inside subscribe to 'twoWayConfirmationSubject')`,
+							)
+							userDidConfirmTransactionSubject.next(ux)
+						},
+					}
+
+					twoWayConfirmationSubject.next(confirmation)
+				})
+				.add(subs)
+		}
+
 		const trackingSubject = new ReplaySubject<
 			TransactionTrackingEvent<PartOfMakeTransactionFlow>
 		>()
-		/// ===== user facing ⬆️ ===
 
 		const track = (
 			event: TransactionTrackingEvent<PartOfMakeTransactionFlow>,
@@ -458,8 +522,13 @@ const create = (): RadixT => {
 					unconfirmedSignedSubmittedTx: SignedUnconfirmedTransaction,
 				) => {
 					log.debug(
-						`Received submitted transaction with txID ${unconfirmedSignedSubmittedTx.txID.toString()} from API => asking user to confirm it now.`,
+						`Received submitted transaction with txID='${unconfirmedSignedSubmittedTx.txID.toString()}' from API => ${
+							txWillBeAutomaticallyConfirmed
+								? 'it will be automatically confirmed for finalization now.'
+								: 'asking user to confirm it before finalization now.'
+						}`,
 					)
+
 					track(
 						eventTransactionSubmitted(unconfirmedSignedSubmittedTx),
 					)
@@ -480,7 +549,14 @@ const create = (): RadixT => {
 				(
 					userConfirmedTX: SignedUnconfirmedTransaction,
 				): Observable<PendingTransaction> => {
-					log.debug('User did confirm tx => finalizing it now.')
+					log.debug(
+						`Transaction has been ${
+							txWillBeAutomaticallyConfirmed
+								? 'automatically'
+								: 'manually confirmed by user'
+						} for finalization => finalizing it now.`,
+					)
+
 					track(eventTransactionUserDidConfirm(userConfirmedTX))
 					return api.finalizeTransaction(userConfirmedTX)
 				},
@@ -506,7 +582,8 @@ const create = (): RadixT => {
 			})
 			.add(subs)
 
-		const pollTxStatusTrigger = pollTXStatusTrigger ?? interval(5 * 1_000) // every 5 seconds
+		const pollTxStatusTrigger =
+			options.pollTXStatusTrigger ?? interval(5 * 1_000) // every 5 seconds
 
 		const transactionStatus$ = pollTxStatusTrigger.pipe(
 			withLatestFrom(pendingTXSubject),
@@ -559,32 +636,48 @@ const create = (): RadixT => {
 			})
 			.add(subs)
 
+		const tracking = trackingSubject.asObservable()
+		const txCompleted$ = tracking.pipe(
+			takeWhile(
+				(e) =>
+					e.eventUpdateType !==
+					TransactionTrackingEventType.COMPLETED,
+			),
+			map((e) => (e.value as StatusOfTransaction).txID),
+		)
+
 		return {
-			askUserToConfirmTransaction: askUserToConfirmSubject.asObservable(),
-			userDidConfirmTransactionSubject,
-			tracking: trackingSubject.asObservable(),
+			subscribe: (
+				observer: Partial<Observer<TransactionIdentifierT>>,
+			): Subscription => {
+				log.info(`✅ TransactionTracking completed successfully`)
+				return txCompleted$.subscribe(observer)
+			},
+
+			tracking,
 		}
 	}
 
 	const __makeTransactionFromBuilder = (
 		transactionIntentBuilderT: TransactionIntentBuilderT,
-		pollTXStatusTrigger?: Observable<unknown>,
+		options: MakeTransactionOptions,
 	): TransactionTracking => {
 		log.debug(`make transaction from builder`)
 		const intent$ = transactionIntentBuilderT.build({
 			encryptMessageIfAnyWithAccount: activeAccount,
 		})
-		return __makeTransactionFromIntent(intent$, pollTXStatusTrigger)
+		return __makeTransactionFromIntent(intent$, options)
 	}
 
 	const transferTokens = (
-		input: TransferTokensInput,
-		pollTXStatusTrigger?: Observable<unknown>,
+		input: TransferTokensOptions,
 	): TransactionTracking => {
 		log.debug(`transferTokens`)
 		return __makeTransactionFromBuilder(
-			TransactionIntentBuilder.create().transferTokens(input),
-			pollTXStatusTrigger,
+			TransactionIntentBuilder.create().transferTokens(
+				input.transferInput,
+			),
+			{ ...input },
 		)
 	}
 
