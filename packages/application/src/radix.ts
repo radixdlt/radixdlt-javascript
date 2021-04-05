@@ -1,4 +1,5 @@
 import {
+	AccountT,
 	AddressT,
 	DeriveNextAccountInput,
 	SwitchAccountInput,
@@ -8,62 +9,149 @@ import {
 import { NodeT, RadixAPI, RadixCoreAPI } from './api/_types'
 
 import {
-	mergeMap,
-	withLatestFrom,
+	catchError,
+	delay,
+	distinctUntilChanged,
+	filter,
 	map,
-	tap,
+	mergeMap,
 	shareReplay,
 	switchMap,
-	catchError,
-	filter,
-	distinctUntilChanged,
+	takeWhile,
+	tap,
+	withLatestFrom,
 } from 'rxjs/operators'
 import {
-	Observable,
-	Subscription,
-	merge,
-	ReplaySubject,
-	of,
-	Subject,
 	EMPTY,
+	interval,
+	merge,
+	Observable,
+	of,
+	ReplaySubject,
+	Subject,
+	Subscription,
 } from 'rxjs'
 import { radixCoreAPI } from './api/radixCoreAPI'
 import { Magic } from '@radixdlt/primitives'
-import { KeystoreT } from '@radixdlt/crypto'
+import { KeystoreT, UnsignedMessage } from '@radixdlt/crypto'
 import { RadixT } from './_types'
 import {
+	APIError,
+	buildTxFromIntentErr,
 	ErrorNotification,
+	finalizeTxErr,
+	getNodeErr,
+	loadKeystoreErr,
+	lookupTxErr,
 	nativeTokenErr,
+	networkIdErr,
 	networkTxDemandErr,
 	networkTxThroughputErr,
-	getNodeErr,
-	transactionHistoryErr,
-	buildTxFromIntentErr,
-	submitSignedTxErr,
 	stakesForAddressErr,
-	networkIdErr,
+	submitSignedTxErr,
 	tokenBalancesErr,
 	tokenInfoErr,
+	transactionHistoryErr,
 	txStatusErr,
-	loadKeystoreErr,
 	unstakesForAddressErr,
 	validatorsErr,
-	lookupTxErr,
-	APIError,
 } from './errors'
 import { log, LogLevel } from '@radixdlt/util'
-import { TransactionIdentifierT, TransactionIntentBuilderT } from './dto/_types'
 import {
+	PartOfMakeTransactionFlow,
+	PendingTransaction,
+	SignedUnconfirmedTransaction,
+	SignedUnsubmittedTransaction,
+	StatusOfTransaction,
 	TransactionHistory,
 	TransactionHistoryActiveAccountRequestInput,
+	TransactionIdentifierT,
+	TransactionIntent,
+	TransactionIntentBuilderT,
+	TransactionStatus,
+	TransactionTracking,
+	TransactionTrackingEvent,
+	TransactionTrackingEventType,
+	UnsignedTransaction,
 } from './dto/_types'
-import {
-	StakeTokensInput,
-	TransferTokensInput,
-	UnstakeTokensInput,
-} from './actions/_types'
-import { TransactionIntentBuilder } from './dto/transactionIntentBuilder'
+import { TransferTokensInput } from './actions/_types'
 import { nodeAPI } from './api/api'
+import { TransactionIntentBuilder } from './dto/transactionIntentBuilder'
+
+type EventTransactionInitiated = TransactionTrackingEvent<TransactionIntent>
+const eventTransactionInitiated = (
+	intent: TransactionIntent,
+): EventTransactionInitiated => ({
+	value: intent,
+	eventUpdateType: TransactionTrackingEventType.INITIATED,
+})
+
+type EventTransactionBuildByAPI = TransactionTrackingEvent<UnsignedTransaction>
+const eventTransactionBuiltByAPI = (
+	unsignedTX: UnsignedTransaction,
+): EventTransactionBuildByAPI => ({
+	value: unsignedTX,
+	eventUpdateType: TransactionTrackingEventType.BUILT_FROM_INTENT,
+})
+
+type EventTransactionSigned = TransactionTrackingEvent<SignedUnsubmittedTransaction>
+const eventTransactionSigned = (
+	signedTX: SignedUnsubmittedTransaction,
+): EventTransactionSigned => ({
+	value: signedTX,
+	eventUpdateType: TransactionTrackingEventType.SIGNED,
+})
+
+type EventTransactionSubmitted = TransactionTrackingEvent<SignedUnconfirmedTransaction>
+const eventTransactionSubmitted = (
+	submitted: SignedUnconfirmedTransaction,
+): EventTransactionSubmitted => ({
+	value: submitted,
+	eventUpdateType: TransactionTrackingEventType.SUBMITTED,
+})
+
+type EventTransactionAskedUserToConfirm = TransactionTrackingEvent<SignedUnconfirmedTransaction>
+const eventTransactionAskingUserForFinalConfirmation = (
+	userConfirmationInput: SignedUnconfirmedTransaction,
+): EventTransactionAskedUserToConfirm => ({
+	value: userConfirmationInput,
+	eventUpdateType:
+		TransactionTrackingEventType.ASKING_USER_FOR_FINAL_CONFIRMATION,
+})
+
+type EventTransactionUserDidConfirm = TransactionTrackingEvent<SignedUnconfirmedTransaction>
+const eventTransactionUserDidConfirm = (
+	userConfirmedTX: SignedUnconfirmedTransaction,
+): EventTransactionUserDidConfirm => ({
+	value: userConfirmedTX,
+	eventUpdateType:
+		TransactionTrackingEventType.USER_CONFIRMED_TX_BEFORE_FINALIZATION,
+})
+
+type EventTransactionFinalizedAndIsNowPending = TransactionTrackingEvent<PendingTransaction>
+const eventTransactionFinalizedAndIsNowPending = (
+	pendingTX: PendingTransaction,
+): EventTransactionFinalizedAndIsNowPending => ({
+	value: pendingTX,
+	eventUpdateType: TransactionTrackingEventType.FINALIZED_AND_IS_NOW_PENDING,
+})
+
+type EventTransactionStatusUpdate = TransactionTrackingEvent<StatusOfTransaction>
+const eventTransactionStatusUpdate = (
+	statusOfTransaction: StatusOfTransaction,
+): EventTransactionStatusUpdate => ({
+	value: statusOfTransaction,
+	eventUpdateType:
+		TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
+})
+
+type EventTransactionCompletedSuccessfully = TransactionTrackingEvent<StatusOfTransaction>
+const eventTransactionCompletedSuccessfully = (
+	statusOfTransaction: StatusOfTransaction,
+): EventTransactionCompletedSuccessfully => ({
+	value: statusOfTransaction,
+	eventUpdateType: TransactionTrackingEventType.COMPLETED,
+})
 
 const create = (): RadixT => {
 	const subs = new Subscription()
@@ -161,6 +249,10 @@ const create = (): RadixT => {
 		submitSignedTransaction: fwdAPICall(
 			(a) => a.submitSignedTransaction,
 			(m) => submitSignedTxErr(m),
+		),
+		finalizeTransaction: fwdAPICall(
+			(a) => a.finalizeTransaction,
+			(m) => finalizeTxErr(m),
 		),
 	}
 
@@ -262,18 +354,239 @@ const create = (): RadixT => {
 		walletSubject.next(wallet)
 	}
 
+	const signUnsignedTx = (
+		unsignedTx: UnsignedTransaction,
+	): Observable<SignedUnsubmittedTransaction> => {
+		log.trace('Starting signing transaction (async).')
+		return activeAccount.pipe(
+			mergeMap(
+				(
+					account: AccountT,
+				): Observable<SignedUnsubmittedTransaction> => {
+					const msgToSignFromTx: UnsignedMessage = {
+						hashedMessage: Buffer.from(
+							unsignedTx.transaction.hashOfBlobToSign,
+							'hex',
+						),
+					}
+					return account.sign(msgToSignFromTx).pipe(
+						withLatestFrom(account.derivePublicKey()),
+						map(
+							([
+								signature,
+								publicKeyOfSigner,
+							]): SignedUnsubmittedTransaction => {
+								log.trace(`Finished signing transaction`)
+								return {
+									transaction: unsignedTx.transaction,
+									signature,
+									publicKeyOfSigner,
+								}
+							},
+						),
+					)
+				},
+			),
+		)
+	}
+
+	const __makeTransactionFromIntent = (
+		transactionIntent$: Observable<TransactionIntent>,
+		pollTXStatusTrigger?: Observable<unknown>,
+	): TransactionTracking => {
+		log.trace(
+			`Start of transaction flow, inside constructor of 'TransactionTracking'.`,
+		)
+
+		const pendingTXSubject = new Subject<PendingTransaction>()
+
+		/// ===== user facing ⬇️ ===
+		const askUserToConfirmSubject = new Subject<SignedUnconfirmedTransaction>()
+		const userDidConfirmTransactionSubject = new Subject<SignedUnconfirmedTransaction>()
+		const trackingSubject = new ReplaySubject<
+			TransactionTrackingEvent<PartOfMakeTransactionFlow>
+		>()
+		/// ===== user facing ⬆️ ===
+
+		const track = (
+			event: TransactionTrackingEvent<PartOfMakeTransactionFlow>,
+		): void => {
+			trackingSubject.next(event)
+		}
+
+		const build$ = transactionIntent$.pipe(
+			mergeMap(
+				(
+					intent: TransactionIntent,
+				): Observable<UnsignedTransaction> => {
+					log.debug(
+						'Transaction intent created => requesting 🛰 API to build it now.',
+					)
+					track(eventTransactionInitiated(intent))
+					return api.buildTransaction(intent)
+				},
+			),
+		)
+
+		const sign$ = build$.pipe(
+			mergeMap(
+				(
+					unsignedTX: UnsignedTransaction,
+				): Observable<SignedUnsubmittedTransaction> => {
+					log.debug('TX built by API => starting signing of it now.')
+					track(eventTransactionBuiltByAPI(unsignedTX))
+					return signUnsignedTx(unsignedTX)
+				},
+			),
+		)
+
+		const submit$ = sign$.pipe(
+			mergeMap(
+				(
+					signedTx: SignedUnsubmittedTransaction,
+				): Observable<SignedUnconfirmedTransaction> => {
+					log.debug(`Finished signing tx => submitting it to API.`)
+					track(eventTransactionSigned(signedTx))
+					return api.submitSignedTransaction(signedTx)
+				},
+			),
+		)
+
+		submit$
+			.subscribe(
+				(
+					unconfirmedSignedSubmittedTx: SignedUnconfirmedTransaction,
+				) => {
+					log.debug(
+						`Received submitted transaction with txID ${unconfirmedSignedSubmittedTx.txID.toString()} from API => asking user to confirm it now.`,
+					)
+					track(
+						eventTransactionSubmitted(unconfirmedSignedSubmittedTx),
+					)
+
+					track(
+						eventTransactionAskingUserForFinalConfirmation(
+							unconfirmedSignedSubmittedTx,
+						),
+					)
+
+					askUserToConfirmSubject.next(unconfirmedSignedSubmittedTx)
+				},
+			)
+			.add(subs)
+
+		const finalize$ = userDidConfirmTransactionSubject.pipe(
+			mergeMap(
+				(
+					userConfirmedTX: SignedUnconfirmedTransaction,
+				): Observable<PendingTransaction> => {
+					log.debug('User did confirm tx => finalizing it now.')
+					track(eventTransactionUserDidConfirm(userConfirmedTX))
+					return api.finalizeTransaction(userConfirmedTX)
+				},
+			),
+		)
+
+		finalize$
+			.subscribe({
+				next: (pendingTx: PendingTransaction) => {
+					log.debug(
+						`Finalized transaction with txID: '${pendingTx.txID.toString()}', it is now pending.`,
+					)
+					track(eventTransactionFinalizedAndIsNowPending(pendingTx))
+					pendingTXSubject.next(pendingTx)
+				},
+				error: (submitTXError: Error) => {
+					// TODO would be great to have access to txID here, hopefully API includes it in error msg?
+					log.error(
+						`Submission of signed transaction to API failed with error: ${submitTXError.message}`,
+					)
+					pendingTXSubject.error(submitTXError)
+				},
+			})
+			.add(subs)
+
+		const pollTxStatusTrigger = pollTXStatusTrigger ?? interval(5 * 1_000) // every 5 seconds
+
+		const transactionStatus$ = pollTxStatusTrigger.pipe(
+			withLatestFrom(pendingTXSubject),
+			mergeMap(([_, pendingTx]) => {
+				log.debug(
+					`Asking API for status of transaction with txID: ${pendingTx.txID.toString()}`,
+				)
+				return api.transactionStatus(pendingTx.txID)
+			}),
+		)
+
+		const transactionCompletedWithStatusConfirmed$ = transactionStatus$.pipe(
+			takeWhile(({ status }) => status !== TransactionStatus.CONFIRMED),
+		)
+
+		transactionStatus$
+			.subscribe({
+				next: (statusOfTransaction) => {
+					const { status, txID } = statusOfTransaction
+					log.trace(
+						`Status ${status.toString()} of tx with id: ${txID.toString()}`,
+					)
+					track(eventTransactionStatusUpdate(statusOfTransaction))
+				},
+				error: (transactionStatusError: Error) => {
+					// TODO hmm how to get txID here?
+					log.error(
+						`Failed to get status of transaction, error: ${transactionStatusError.message}`,
+					)
+				},
+			})
+			.add(subs)
+
+		transactionCompletedWithStatusConfirmed$
+			.pipe(
+				delay(50), // Delay for a few MILLIseconds, just so that transactionStatus observable can emit before this. Merely a cosmetic thing.
+			)
+			.subscribe({
+				next: (statusOfTransaction) => {
+					const { txID } = statusOfTransaction
+					log.info(
+						`Transaction with txID='${txID.toString()}' has completed succesfully.`,
+					)
+					track(
+						eventTransactionCompletedSuccessfully(
+							statusOfTransaction,
+						),
+					)
+				},
+			})
+			.add(subs)
+
+		return {
+			askUserToConfirmTransaction: askUserToConfirmSubject.asObservable(),
+			userDidConfirmTransactionSubject,
+			tracking: trackingSubject.asObservable(),
+		}
+	}
+
+	const __makeTransactionFromBuilder = (
+		transactionIntentBuilderT: TransactionIntentBuilderT,
+		pollTXStatusTrigger?: Observable<unknown>,
+	): TransactionTracking => {
+		log.debug(`make transaction from builder`)
+		const intent$ = transactionIntentBuilderT.build({
+			encryptMessageIfAnyWithAccount: activeAccount,
+		})
+		return __makeTransactionFromIntent(intent$, pollTXStatusTrigger)
+	}
+
 	const transferTokens = (
 		input: TransferTokensInput,
-	): TransactionIntentBuilderT =>
-		TransactionIntentBuilder.create().transferTokens(input)
-
-	const stakeTokens = (input: StakeTokensInput): TransactionIntentBuilderT =>
-		TransactionIntentBuilder.create().stakeTokens(input)
-
-	const unstakeTokens = (
-		input: UnstakeTokensInput,
-	): TransactionIntentBuilderT =>
-		TransactionIntentBuilder.create().unstakeTokens(input)
+		pollTXStatusTrigger?: Observable<unknown>,
+	): TransactionTracking => {
+		log.debug(`transferTokens`)
+		return __makeTransactionFromBuilder(
+			TransactionIntentBuilder.create().transferTokens(input),
+			pollTXStatusTrigger,
+		)
+	}
 
 	deriveAccountSubject
 		.pipe(
@@ -378,10 +691,7 @@ const create = (): RadixT => {
 			return this
 		},
 
-		// TransactionIntentBuilder start
 		transferTokens,
-		stakeTokens,
-		unstakeTokens,
 
 		// Wallet APIs
 		activeAddress,

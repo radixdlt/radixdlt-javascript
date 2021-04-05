@@ -20,7 +20,11 @@ import {
 	ExecutedStakeTokensAction,
 	ExecutedTransferTokensAction,
 } from '../src/actions/_types'
-import { ExecutedTransaction, TokenPermission } from '../src/dto/_types'
+import {
+	BuiltTransactionReadyToSign,
+	ExecutedTransaction,
+	TokenPermission,
+} from '../src/dto/_types'
 import { makeTokenPermissions } from '../src/dto/tokenPermissions'
 import { TransactionStatus } from '../src/dto/_types'
 import { Radix } from '../src/radix'
@@ -28,6 +32,7 @@ import { radixCoreAPI } from '../src/api/radixCoreAPI'
 import { of } from '@radixdlt/account/node_modules/rxjs'
 import { APIErrorCause, ErrorCategory } from '../src/errors'
 import { alice, bob } from './mockRadix'
+import { PublicKey, Signature } from '@radixdlt/crypto'
 
 let mockClientReturnValue: any
 
@@ -290,24 +295,24 @@ describe('networking', () => {
 
 		it('should handle get transaction status response', async () => {
 			const txStatus = TransactionStatus.CONFIRMED
-			const failure = 'ouch'
+
+			const txID_ = TransactionIdentifier.create(txID)._unsafeUnwrap()
 
 			mockClientReturnValue = <TransactionStatusEndpoint.Response>{
-				txID: txID,
+				txID: txID_.toString(),
 				status: txStatus,
-				failure,
 			}
 
 			const expected: TransactionStatusEndpoint.DecodedResponse = {
-				txID: TransactionIdentifier.create(txID)._unsafeUnwrap(),
+				txID: txID_,
 				status: txStatus,
-				failure,
 			}
 
-			const result = (await client.transactionStatus(''))._unsafeUnwrap()
+			const result = (
+				await client.transactionStatus(txID_.toString())
+			)._unsafeUnwrap()
 
 			expect(result.txID.equals(result.txID)).toBe(true)
-			expect(result.failure).toEqual(expected.failure)
 			expect(result.status).toEqual(expected.status)
 		})
 
@@ -368,21 +373,33 @@ describe('networking', () => {
 		})
 
 		it('should handle submit signed atom response', async () => {
+			const txID_ = TransactionIdentifier.create(txID)._unsafeUnwrap()
+
+			const transaction = {
+				blob: 'bloooooooob',
+				hashOfBlobToSign: 'deadbeef',
+			}
+
 			mockClientReturnValue = <SubmitSignedTransactionEndpoint.Response>{
-				txID: txID,
+				txID: txID_.toString(),
+				transaction,
+				publicKeyOfSigner: '',
+				signature: '',
 			}
 
 			const expected: SubmitSignedTransactionEndpoint.DecodedResponse = {
-				txID: TransactionIdentifier.create(txID)._unsafeUnwrap(),
+				txID: txID_,
+				transaction,
+				publicKeyOfSigner: <PublicKey>{},
+				signature: <Signature>{},
 			}
 
 			const result = (
-				await client.submitSignedTransaction({ blob: '' }, '')
+				await client.submitSignedTransaction({ blob: '' }, '', '')
 			)._unsafeUnwrap()
 
 			//@ts-ignore
 			expect(result.txID.equals(expected.txID)).toBe(true)
-			// expect(result.failure).toEqual(expected.failure)
 		})
 
 		it('should handle a build transaction failure', (done) => {

@@ -5,7 +5,13 @@ import { map, take, toArray } from 'rxjs/operators'
 import { KeystoreT } from '@radixdlt/crypto'
 import { RadixT } from '../src/_types'
 import { APIErrorCause, ErrorCategory } from '../src/errors'
-import { alice, balancesFor, mockedAPI, mockRadixCoreAPI } from './mockRadix'
+import {
+	alice,
+	balancesFor,
+	bob,
+	mockedAPI,
+	mockRadixCoreAPI,
+} from './mockRadix'
 import { NodeT, RadixCoreAPI } from '../src/api/_types'
 import {
 	TokenBalances,
@@ -16,6 +22,8 @@ import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
 import { AmountT } from '@radixdlt/primitives'
 import { signatureFromHexStrings } from '@radixdlt/crypto/test/ellipticCurveCryptography.test'
 import { TransactionIntentBuilder } from '../src/dto/transactionIntentBuilder'
+import { TransactionTrackingEventType } from '../dist/dto/_types'
+import { LogLevel } from '@radixdlt/util'
 
 const createWallet = (): WalletT => {
 	const masterSeed = HDMasterSeed.fromSeed(
@@ -695,8 +703,10 @@ describe('Radix API', () => {
 
 		radix.ledger
 			.submitSignedTransaction({
+				publicKeyOfSigner: alice.publicKey,
 				transaction: {
 					blob: 'xyz',
+					hashOfBlobToSign: 'deadbeef',
 				},
 				signature: signatureFromHexStrings({
 					r:
@@ -814,6 +824,62 @@ describe('Radix API', () => {
 						expect(values).toStrictEqual(expectedValues)
 						done()
 					})
+			})
+			.add(subs)
+	})
+
+	it('make tx', (done) => {
+		const subs = new Subscription()
+
+		let hasAskedUserToConfirm = false
+
+		const radix = Radix.create()
+			.withWallet(createWallet())
+			.__withAPI(mockedAPI)
+			.logLevel(LogLevel.DEBUG)
+
+		const pollTxStatusTrigger = interval(50)
+
+		const transactionTracking = radix.transferTokens(
+			{
+				to: bob,
+				amount: 1,
+				tokenIdentifier:
+					'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD',
+			},
+			pollTxStatusTrigger,
+		)
+
+		// automatic accept
+		transactionTracking.askUserToConfirmTransaction
+			.subscribe((ux) => {
+				hasAskedUserToConfirm = true
+				transactionTracking.userDidConfirmTransactionSubject.next(ux)
+			})
+			.add(subs)
+
+		const expectedValues = [
+			TransactionTrackingEventType.INITIATED,
+			TransactionTrackingEventType.BUILT_FROM_INTENT,
+			TransactionTrackingEventType.SIGNED,
+			TransactionTrackingEventType.SUBMITTED,
+			TransactionTrackingEventType.ASKING_USER_FOR_FINAL_CONFIRMATION,
+			TransactionTrackingEventType.USER_CONFIRMED_TX_BEFORE_FINALIZATION,
+			TransactionTrackingEventType.FINALIZED_AND_IS_NOW_PENDING,
+			TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
+			TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
+			TransactionTrackingEventType.COMPLETED,
+		]
+
+		transactionTracking.tracking
+			.pipe(
+				map((e) => e.eventUpdateType),
+				take(expectedValues.length),
+				toArray(),
+			)
+			.subscribe((values) => {
+				expect(values).toStrictEqual(expectedValues)
+				done()
 			})
 			.add(subs)
 	})

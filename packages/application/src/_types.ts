@@ -19,13 +19,9 @@ import {
 	TransactionHistoryActiveAccountRequestInput,
 	UnstakePositions,
 	TransactionIdentifierT,
-	TransactionIntentBuilderT,
+	TransactionTracking,
 } from './dto/_types'
-import {
-	StakeTokensInput,
-	TransferTokensInput,
-	UnstakeTokensInput,
-} from './actions/_types'
+import { TransferTokensInput } from './actions/_types'
 
 export type RadixT = Readonly<{
 	ledger: RadixAPI
@@ -79,33 +75,10 @@ export type RadixT = Readonly<{
 	) => Observable<TransactionHistory>
 
 	// Make TX flow
-
-	/**
-	 * Entrypoint for transaction intent building, with an initial TransferTokens action.
-	 * Returns a chainable TransactionIntentBuilder
-	 *
-	 * @param {TransferTokensInput} input - amount, tokenIdentifier and recipient address.
-	 * @returns {TransactionIntentBuilderT} a chainable TransactionIntentBuilder
-	 */
-	transferTokens: (input: TransferTokensInput) => TransactionIntentBuilderT
-
-	/**
-	 * Entrypoint for transaction intent building, with an initial StakeTokens action.
-	 * Returns a chainable TransactionIntentBuilder
-	 *
-	 * @param {StakeTokensInput} input - amount, validator (address).
-	 * @returns {TransactionIntentBuilderT} a chainable TransactionIntentBuilder
-	 */
-	stakeTokens: (input: StakeTokensInput) => TransactionIntentBuilderT
-
-	/**
-	 * Entrypoint for transaction intent building, with an initial UnStakeTokens action.
-	 * Returns a chainable TransactionIntentBuilder
-	 *
-	 * @param {UnstakeTokensInput} input - amount, validator (address).
-	 * @returns {TransactionIntentBuilderT} a chainable TransactionIntentBuilder
-	 */
-	unstakeTokens: (input: UnstakeTokensInput) => TransactionIntentBuilderT
+	transferTokens: (
+		input: TransferTokensInput,
+		pollTXStatusTrigger?: Observable<unknown>,
+	) => TransactionTracking
 
 	transactionStatus: (
 		txID: TransactionIdentifierT,

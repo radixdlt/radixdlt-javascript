@@ -1,6 +1,6 @@
 import { NodeAPI, NodeT, RadixCoreAPI } from './_types'
 import { ResultAsync } from 'neverthrow'
-import { defer, Observable } from 'rxjs'
+import { defer, Observable, throwError } from 'rxjs'
 import { AddressT, toObservable } from '@radixdlt/account'
 import { map } from 'rxjs/operators'
 import { Magic } from '@radixdlt/primitives'
@@ -10,7 +10,8 @@ import {
 	NetworkTransactionThroughput,
 	PendingTransaction,
 	ResourceIdentifierT,
-	SignedTransaction,
+	SignedUnconfirmedTransaction,
+	SignedUnsubmittedTransaction,
 	StakePositions,
 	StatusOfTransaction,
 	Token,
@@ -101,12 +102,24 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 			toObs((a) => a.buildTransaction, transactionIntent),
 
 		submitSignedTransaction: (
-			signedTransaction: SignedTransaction,
-		): Observable<PendingTransaction> =>
+			signedTransaction: SignedUnsubmittedTransaction,
+		): Observable<SignedUnconfirmedTransaction> =>
 			toObs(
 				(a) => a.submitSignedTransaction,
 				{ blob: signedTransaction.transaction.blob },
+				signedTransaction.publicKeyOfSigner.toString(true),
 				signedTransaction.signature.toDER(),
+			),
+
+		finalizeTransaction: (
+			signedUnconfirmedTransaction: SignedUnconfirmedTransaction,
+		): Observable<PendingTransaction> =>
+			toObs(
+				(a) => a.finalizeTransaction,
+				{ blob: signedUnconfirmedTransaction.transaction.blob },
+				signedUnconfirmedTransaction.publicKeyOfSigner.toString(true),
+				signedUnconfirmedTransaction.signature.toDER(),
+				signedUnconfirmedTransaction.txID.toString(),
 			),
 	}
 }

@@ -1,7 +1,6 @@
 import {
 	privateKeyFromScalar,
 	Signature,
-	unsignedPlainText,
 	publicKeyFromBytes,
 	PrivateKey,
 	Secp256k1,
@@ -10,11 +9,9 @@ import {
 } from '../src/_index'
 
 import { UInt256 } from '@radixdlt/uint256'
-import {
-	publicKeyFromPrivateKey,
-	publicKeyFromPrivateKeyScalar,
-} from '../src/wrap/publicKeyWrapped'
+import { publicKeyFromPrivateKeyScalar } from '../src/wrap/publicKeyWrapped'
 import { pointOnCurve } from '../src/wrap/ecPointOnCurve'
+import { unsignedUnhashedPlainText } from '../dist/unsignedUnhashedMessage'
 
 // TODO CODE DUPLICATION! Move to shared testing only package.
 export const signatureFromHexStrings = (input: {
@@ -52,11 +49,11 @@ describe('elliptic curve cryptography', () => {
 			UInt256.valueOf(1),
 		)._unsafeUnwrap()
 
-		const messageToSign = unsignedPlainText({
+		const messageToSign = unsignedUnhashedPlainText({
 			plainText: 'Satoshi Nakamoto',
 		})
 
-		const signatureResult = await privateKey.sign(messageToSign)
+		const signatureResult = await privateKey.signUnhashed(messageToSign)
 
 		const signature = signatureResult._unsafeUnwrap()
 
@@ -106,13 +103,13 @@ describe('elliptic curve cryptography', () => {
 				'2442ce9d2b916064108014783e923ec36b49743e2ffa1c4496f01a512aafd9e5',
 		})
 
-		const message = unsignedPlainText({
+		const message = unsignedUnhashedPlainText({
 			plainText: 'Satoshi Nakamoto',
 		})
 
 		const signatureValidation = publicKey.isValidSignature({
 			signature: signature,
-			forData: message,
+			forData: { hashedMessage: message.hasher(message.unhashed) },
 		})
 
 		expect(signatureValidation).toBeTruthy()

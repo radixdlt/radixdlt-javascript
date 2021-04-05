@@ -9,22 +9,38 @@ import { UInt256 } from '@radixdlt/uint256'
 import { signDataWithPrivateKey } from './wrap/sign'
 
 import { err, ok, Result, ResultAsync } from 'neverthrow'
-import { UnsignedMessage, Signature, PublicKey, PrivateKey } from './_types'
+import {
+	UnsignedMessage,
+	Signature,
+	PublicKey,
+	PrivateKey,
+	UnsignedUnhashedMessage,
+} from './_types'
 import { publicKeyFromPrivateKey } from './wrap/publicKeyWrapped'
 import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
 import { Secp256k1 } from './secp256k1'
 
 const privateKeyFromValidatedScalar = (scalar: UInt256): PrivateKey => {
+	const signHashed = (
+		unsignedMessage: UnsignedMessage,
+	): ResultAsync<Signature, Error> =>
+		resultToAsync(
+			signDataWithPrivateKey({
+				privateKey: scalar,
+				data: unsignedMessage.hashedMessage,
+			}),
+		)
+
 	const privateKey = {
-		sign: (
-			unsignedMessage: UnsignedMessage,
+		signHashed,
+
+		signUnhashed: (
+			unsignedMessage: UnsignedUnhashedMessage,
 		): ResultAsync<Signature, Error> =>
-			resultToAsync(
-				signDataWithPrivateKey({
-					privateKey: scalar,
-					data: unsignedMessage.hasher(unsignedMessage.unhashed),
-				}),
-			),
+			signHashed({
+				hashedMessage: unsignedMessage.hasher(unsignedMessage.unhashed),
+			}),
+
 		publicKey: () => {
 			throw new Error('Impl me')
 		},

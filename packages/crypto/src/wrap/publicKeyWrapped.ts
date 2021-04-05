@@ -35,7 +35,7 @@ const publicKeyFromEllipticKey = (
 		}>,
 	): boolean => {
 		const unsignedMessage = input.forData
-		const message = unsignedMessage.hasher(unsignedMessage.unhashed)
+		const message = unsignedMessage.hashedMessage
 		const signature = input.signature
 		const r = bnFromUInt256(signature.r)
 		const s = bnFromUInt256(signature.s)
