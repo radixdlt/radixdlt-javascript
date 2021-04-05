@@ -4,6 +4,7 @@ import {
 	HTTPTransport,
 } from '@open-rpc/client-js'
 import { Transport, Client } from './_types'
+import { log } from '@radixdlt/util'
 
 export const RPCClient: Client = (url: URL): Transport => {
 	const transport = new HTTPTransport(url.toString())
@@ -11,7 +12,10 @@ export const RPCClient: Client = (url: URL): Transport => {
 	const client = new OpenRPCClient(requestManager)
 
 	const call = (endpoint: string, ...params: unknown[]): Promise<unknown> =>
-		client.request({ method: endpoint, params })
+	{
+		log.info(`Sending RPC request with endpoint ${endpoint}.`)
+		return client.request({ method: endpoint, params })
+	}
 
 	return {
 		call,
