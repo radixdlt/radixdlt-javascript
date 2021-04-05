@@ -39,7 +39,7 @@ import {
 	tokenPermissionsAll,
 } from '../src/dto/tokenPermissions'
 import { RadixCoreAPI } from '../src/api/_types'
-import { delay, shareReplay } from 'rxjs/operators'
+import { shareReplay } from 'rxjs/operators'
 import { privateKeyFromBuffer, PublicKey, sha256 } from '@radixdlt/crypto'
 import { ActionType, ExecutedAction } from '../src/actions/_types'
 import { TransactionIdentifier } from '../src/dto/transactionIdentifier'

@@ -1,6 +1,6 @@
 import { NodeAPI, NodeT, RadixCoreAPI } from './_types'
 import { ResultAsync } from 'neverthrow'
-import { defer, Observable, throwError } from 'rxjs'
+import { defer, Observable } from 'rxjs'
 import { AddressT, toObservable } from '@radixdlt/account'
 import { map } from 'rxjs/operators'
 import { Magic } from '@radixdlt/primitives'

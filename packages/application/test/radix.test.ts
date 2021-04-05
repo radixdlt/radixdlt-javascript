@@ -836,7 +836,6 @@ describe('Radix API', () => {
 		const radix = Radix.create()
 			.withWallet(createWallet())
 			.__withAPI(mockedAPI)
-			.logLevel(LogLevel.DEBUG)
 
 		const pollTxStatusTrigger = interval(50)
 
@@ -877,9 +876,19 @@ describe('Radix API', () => {
 				take(expectedValues.length),
 				toArray(),
 			)
-			.subscribe((values) => {
-				expect(values).toStrictEqual(expectedValues)
-				done()
+			.subscribe({
+				next: (values) => {
+					expect(values).toStrictEqual(expectedValues)
+					expect(hasAskedUserToConfirm).toBe(true)
+					done()
+				},
+				error: (e) => {
+					done(
+						new Error(
+							`Tx failed, even though we expected it to succeed, error: ${e.toString()}`,
+						),
+					)
+				},
 			})
 			.add(subs)
 	})
