@@ -137,6 +137,9 @@ const create = (
 		} else if (isSwitchToAccount(input)) {
 			const toAccount = input.toAccount
 			activeAccountSubject.next(toAccount)
+			log.info(
+				`Active account switched to: ${toAccount.hdPath.toString()}`,
+			)
 			return toAccount
 		} else if (isSwitchToAccountIndex(input)) {
 			const unsafeTargetIndex = input.toIndex
@@ -268,7 +271,10 @@ const byEncryptingSeedOfMnemonicAndSavingKeystore = (
 			return new Error(
 				`Failed to save keystore, underlying error: '${underlyingError}'`,
 			)
-		}).map(() => keystoreToSave)
+		}).map(() => {
+			log.info('Keystore successfully saved.')
+			return keystoreToSave
+		})
 
 	return Keystore.encryptSecret({
 		secret: masterSeed.seed,

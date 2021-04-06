@@ -44,6 +44,7 @@ import { PublicKey } from '@radixdlt/crypto'
 import { Option } from 'prelude-ts'
 import { isResourceIdentifier } from './resourceIdentifier'
 import { isAmount } from '@radixdlt/primitives'
+import log from 'loglevel'
 
 type IntermediateAction = ActionInput & {
 	type: 'transfer' | 'stake' | 'unstake'
@@ -343,6 +344,11 @@ const create = (
 									(
 										enc: EncryptedMessage,
 									): TransactionIntent => {
+										log.info(
+											`Successfully built transaction with encrypted message. Actions: ${intendedActionsFrom.intendedActions
+												.map((action) => action.type)
+												.toString()}`,
+										)
 										return {
 											actions:
 												intendedActionsFrom.intendedActions,
@@ -353,6 +359,11 @@ const create = (
 							)
 						},
 						None: () => {
+							log.info(
+								`Successfully built transaction. Actions: ${intendedActionsFrom.intendedActions
+									.map((action) => action.type)
+									.toString()}`,
+							)
 							return of<TransactionIntent>({
 								actions: intendedActionsFrom.intendedActions,
 								message: undefined,

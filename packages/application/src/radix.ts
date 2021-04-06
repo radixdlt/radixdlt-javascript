@@ -300,7 +300,10 @@ const create = (): RadixT => {
 
 	const _withNode = (node: Observable<NodeT>): void => {
 		node.subscribe(
-			(n) => nodeSubject.next(n),
+			(n) => {
+				log.info(`Using node ${n.url.toString()}`)
+				nodeSubject.next(n)
+			},
 			(error: Error) => {
 				errorNotificationSubject.next(getNodeErr(error.message))
 			},
@@ -750,6 +753,11 @@ const create = (): RadixT => {
 				mergeMap((_) => api.transactionStatus(txID)),
 				distinctUntilChanged((prev, cur) => prev.status === cur.status),
 				filter(({ txID }) => txID.equals(txID)),
+				tap(({ status }) =>
+					log.info(
+						`Got transaction status ${status.toString()} for txID: ${txID.toString()}`,
+					),
+				),
 			)
 		},
 
@@ -757,6 +765,7 @@ const create = (): RadixT => {
 			trigger.subscribe(tokenBalanceFetchSubject).add(subs)
 			return this
 		},
+
 		withStakingFetchTrigger: function (trigger: Observable<number>) {
 			trigger.subscribe(stakingFetchSubject).add(subs)
 			return this
