@@ -7,12 +7,7 @@ import { ManualUserConfirmTX, RadixT } from '../src/_types'
 import { APIErrorCause, ErrorCategory } from '../src/errors'
 import { alice, balancesFor, bob, mockedAPI, mockRadixCoreAPI } from './mockRadix'
 import { NodeT, RadixCoreAPI } from '../src/api/_types'
-import {
-	SignedUnconfirmedTransaction,
-	TokenBalances,
-	TransactionIdentifierT,
-	TransactionStatus,
-} from '../src/dto/_types'
+import { TokenBalances, TransactionIdentifierT, TransactionStatus } from '../src/dto/_types'
 import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
 import { AmountT } from '@radixdlt/primitives'
 import { signatureFromHexStrings } from '@radixdlt/crypto/test/ellipticCurveCryptography.test'
@@ -825,36 +820,7 @@ describe('Radix API', () => {
 			.add(subs)
 	})
 
-
-	// it('single token transfer tracking reports correct events', (done) => {
-	// 	const subs = new Subscription()
-	//
-	//
-	// 	const radix = Radix.create()
-	// 		.withWallet(createWallet())
-	// 		.__withAPI(mockedAPI)
-	//
-	// 	const transactionTracking = radix.transferTokens(
-	// 		{
-	// 			to: bob,
-	// 			amount: 1,
-	// 			tokenIdentifier:
-	// 				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD',
-	// 		},
-	// 		'automaticallyConfirmTransaction',
-	// 		interval(50),
-	// 	)
-	//
-	// 	// automatic accept
-	// 	transactionTracking.askUserToConfirmTransaction
-	// 		.subscribe((ux) => {
-	// 			transactionTracking.userDidConfirmTransactionSubject.next(ux)
-	// 		})
-	// 		.add(subs)
-	//
-	// })
-
-	describe('single token transfer', () => {
+	describe('make tx single transfer', () => {
 
 		const tokenTransferInput: TransferTokensInput = {
 			to: bob,
@@ -871,17 +837,18 @@ describe('Radix API', () => {
 			pollTXStatusTrigger: pollTXStatusTrigger
 		})
 
-		let subs = new Subscription()
+		let subs: Subscription
 
 		beforeEach(() => {
-			subs.unsubscribe()
 			subs = new Subscription()
-
 			pollTXStatusTrigger = interval(50)
-
 		})
 
-		it('single token transfer tracking reports correct events', (done) => {
+		afterEach(() => {
+			subs.unsubscribe()
+		})
+
+		it('tracking reports correct events', (done) => {
 
 			const radix = Radix.create()
 				.withWallet(createWallet())
@@ -925,27 +892,29 @@ describe('Radix API', () => {
 				.add(subs)
 		})
 
-		it('single token transfer automatic confirmation subscribe', (done) => {
-
+		it('automatic confirmation subscribe', (done) => {
 			const radix = Radix.create()
 				.withWallet(createWallet())
 				.__withAPI(mockedAPI)
 
-
 			const transactionTracking = radix.transferTokens(transferTokens())
 
-			transactionTracking.subscribe({
-					next: (_txID) => { done() },
-					error: (e) => { done(e) }
-				}).add(subs)
-		})
+			let gotTXId = false
 
+			transactionTracking.subscribe({
+					next: (_txID) => { gotTXId = true },
+					complete: () => { done() },
+					error: (e) => { done(new Error(`Tx failed, but expected to succeed. Error ${e}`)) }
+				}).add(subs)
+
+		})
+/*
 		it('single token transfer manual confirmation subscribe', (done) => {
 
 			const radix = Radix.create()
 				.withWallet(createWallet())
 				.__withAPI(mockedAPI)
-				.logLevel(LogLevel.TRACE)
+				.logLevel(LogLevel.DEBUG)
 
 			const userConfirmation = new Subject<ManualUserConfirmTX>()
 
@@ -969,7 +938,7 @@ describe('Radix API', () => {
 		})
 
 	})
-
+*/
 	// it('single token transfer BUILT_FROM_INTENT failure', (done) => {
 	// 	const subs = new Subscription()
 	//
@@ -993,6 +962,7 @@ describe('Radix API', () => {
 	// 				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD',
 	// 		},
 	// 	)
-	// })
 
+
+	})
 })

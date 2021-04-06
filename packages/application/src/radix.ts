@@ -10,13 +10,14 @@ import { NodeT, RadixAPI, RadixCoreAPI } from './api/_types'
 
 import {
 	catchError,
-	delay,
 	distinctUntilChanged,
 	filter,
 	map,
 	mergeMap,
 	shareReplay,
+	skipWhile,
 	switchMap,
+	take,
 	takeWhile,
 	tap,
 	withLatestFrom,
@@ -29,7 +30,6 @@ import {
 	of,
 	ReplaySubject,
 	Subject,
-	Subscribable,
 	Subscription,
 } from 'rxjs'
 import { radixCoreAPI } from './api/radixCoreAPI'
@@ -370,7 +370,7 @@ const create = (): RadixT => {
 	const signUnsignedTx = (
 		unsignedTx: UnsignedTransaction,
 	): Observable<SignedUnsubmittedTransaction> => {
-		log.trace('Starting signing transaction (async).')
+		/* log.trace */ log.debug('Starting signing transaction (async).')
 		return activeAccount.pipe(
 			mergeMap(
 				(
@@ -389,7 +389,9 @@ const create = (): RadixT => {
 								signature,
 								publicKeyOfSigner,
 							]): SignedUnsubmittedTransaction => {
-								log.trace(`Finished signing transaction`)
+								/* log.trace */ log.debug(
+									`Finished signing transaction`,
+								)
 								return {
 									transaction: unsignedTx.transaction,
 									signature,
@@ -407,7 +409,7 @@ const create = (): RadixT => {
 		transactionIntent$: Observable<TransactionIntent>,
 		options: MakeTransactionOptions,
 	): TransactionTracking => {
-		log.trace(
+		/* log.trace */ log.debug(
 			`Start of transaction flow, inside constructor of 'TransactionTracking'.`,
 		)
 
@@ -425,7 +427,7 @@ const create = (): RadixT => {
 			)
 		) {
 			txWillBeAutomaticallyConfirmed = true
-			log.trace(
+			/* log.trace */ log.debug(
 				'Transaction has been setup to be automatically confirmed, requiring no final confirmation input from user.',
 			)
 			askUserToConfirmSubject
@@ -434,7 +436,7 @@ const create = (): RadixT => {
 				})
 				.add(subs)
 		} else {
-			log.trace(
+			/* log.trace */ log.debug(
 				`Transaction has been setup so that it requires a manual final confirmation from user before being finalized.`,
 			)
 			const twoWayConfirmationSubject: Subject<ManualUserConfirmTX> =
@@ -442,21 +444,21 @@ const create = (): RadixT => {
 
 			// twoWayConfirmationSubject
 			// 	.subscribe((ux) => {
-			// 		log.trace(`Forwarding signedUnconfirmedTX to subject 'userDidConfirmTransactionSubject' now (inside subscribe to 'twoWayConfirmationSubject')`)
+			// 		/* log.trace */ log.debug(`Forwarding signedUnconfirmedTX to subject 'userDidConfirmTransactionSubject' now (inside subscribe to 'twoWayConfirmationSubject')`)
 			// 		userDidConfirmTransactionSubject.next(ux)
 			// 	})
 			// 	.add(subs)
 
 			userDidConfirmTransactionSubject
 				.subscribe((ux) => {
-					log.trace(
+					/* log.trace */ log.debug(
 						`Forwarding signedUnconfirmedTX to subject 'twoWayConfirmationSubject' now (inside subscribe to 'userDidConfirmTransactionSubject')`,
 					)
 
 					const confirmation: ManualUserConfirmTX = {
 						txToConfirm: ux,
 						userDidConfirm: (): void => {
-							log.trace(
+							/* log.trace */ log.debug(
 								`Forwarding signedUnconfirmedTX to subject 'userDidConfirmTransactionSubject' now (inside subscribe to 'twoWayConfirmationSubject')`,
 							)
 							userDidConfirmTransactionSubject.next(ux)
@@ -567,7 +569,7 @@ const create = (): RadixT => {
 			.subscribe({
 				next: (pendingTx: PendingTransaction) => {
 					log.debug(
-						`Finalized transaction with txID: '${pendingTx.txID.toString()}', it is now pending.`,
+						`Finalized transaction with txID='${pendingTx.txID.toString()}', it is now pending.`,
 					)
 					track(eventTransactionFinalizedAndIsNowPending(pendingTx))
 					pendingTXSubject.next(pendingTx)
@@ -593,18 +595,23 @@ const create = (): RadixT => {
 				)
 				return api.transactionStatus(pendingTx.txID)
 			}),
+			takeWhile(
+				({ status }) => status === TransactionStatus.PENDING,
+				true,
+			),
 		)
 
 		const transactionCompletedWithStatusConfirmed$ = transactionStatus$.pipe(
-			takeWhile(({ status }) => status !== TransactionStatus.CONFIRMED),
+			skipWhile(({ status }) => status === TransactionStatus.PENDING),
+			take(1),
 		)
 
 		transactionStatus$
 			.subscribe({
 				next: (statusOfTransaction) => {
 					const { status, txID } = statusOfTransaction
-					log.trace(
-						`Status ${status.toString()} of tx with id: ${txID.toString()}`,
+					/* log.trace */ log.debug(
+						`Status ${status.toString()} of transaction with txID='${txID.toString()}'`,
 					)
 					track(eventTransactionStatusUpdate(statusOfTransaction))
 				},
@@ -618,9 +625,6 @@ const create = (): RadixT => {
 			.add(subs)
 
 		transactionCompletedWithStatusConfirmed$
-			.pipe(
-				delay(50), // Delay for a few MILLIseconds, just so that transactionStatus observable can emit before this. Merely a cosmetic thing.
-			)
 			.subscribe({
 				next: (statusOfTransaction) => {
 					const { txID } = statusOfTransaction
@@ -637,20 +641,17 @@ const create = (): RadixT => {
 			.add(subs)
 
 		const tracking = trackingSubject.asObservable()
-		const txCompleted$ = tracking.pipe(
-			takeWhile(
-				(e) =>
-					e.eventUpdateType !==
-					TransactionTrackingEventType.COMPLETED,
-			),
-			map((e) => (e.value as StatusOfTransaction).txID),
+
+		const txCompleted$: Observable<TransactionIdentifierT> = transactionCompletedWithStatusConfirmed$.pipe(
+			withLatestFrom(finalize$),
+			map(([_, t]) => t.txID),
+			take(1),
 		)
 
 		return {
 			subscribe: (
 				observer: Partial<Observer<TransactionIdentifierT>>,
 			): Subscription => {
-				log.info(`✅ TransactionTracking completed successfully`)
 				return txCompleted$.subscribe(observer)
 			},
 
