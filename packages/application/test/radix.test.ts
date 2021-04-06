@@ -870,8 +870,6 @@ describe('Radix API', () => {
 				.withWallet(createWallet())
 				.__withAPI(mockedAPI)
 
-			const transactionTracking = radix.transferTokens(transferTokens())
-
 			const expectedValues = [
 				TransactionTrackingEventType.INITIATED,
 				TransactionTrackingEventType.BUILT_FROM_INTENT,
@@ -885,8 +883,9 @@ describe('Radix API', () => {
 				TransactionTrackingEventType.COMPLETED,
 			]
 
-			transactionTracking.tracking
-				.pipe(
+			radix
+				.transferTokens(transferTokens())
+				.events.pipe(
 					map((e) => e.eventUpdateType),
 					take(expectedValues.length),
 					toArray(),
@@ -916,7 +915,7 @@ describe('Radix API', () => {
 
 			radix
 				.transferTokens(transferTokens())
-				.subscribe({
+				.completion.subscribe({
 					next: (_txID) => {
 						gotTXId = true
 					},
@@ -957,7 +956,7 @@ describe('Radix API', () => {
 				})
 				.add(subs)
 
-			transactionTracking
+			transactionTracking.completion
 				.subscribe({
 					next: (_txID) => {
 						expect(userHasBeenAskedToConfirmTX).toBe(true)
@@ -969,6 +968,5 @@ describe('Radix API', () => {
 				})
 				.add(subs)
 		})
-		
 	})
 })

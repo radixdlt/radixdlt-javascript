@@ -640,13 +640,8 @@ const create = (): RadixT => {
 		)
 
 		return {
-			subscribe: (
-				observer: Partial<Observer<TransactionIdentifierT>>,
-			): Subscription => {
-				return txCompleted$.subscribe(observer)
-			},
-
-			tracking,
+			completion: txCompleted$,
+			events: tracking,
 		}
 	}
 
