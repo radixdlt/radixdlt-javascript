@@ -30,11 +30,11 @@ export type ManualUserConfirmTX = {
 }
 
 export type TransactionConfirmationBeforeFinalization =
-	| 'automaticallyConfirmTransaction'
+	| 'skip'
 	| Subject<ManualUserConfirmTX>
 
 export type MakeTransactionOptions = Readonly<{
-	txConfirmationBeforeFinalization: TransactionConfirmationBeforeFinalization
+	userConfirmation: TransactionConfirmationBeforeFinalization
 	pollTXStatusTrigger?: Observable<unknown>
 }>
 

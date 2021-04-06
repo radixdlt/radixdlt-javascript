@@ -850,7 +850,7 @@ describe('Radix API', () => {
 
 		const transferTokens = (): TransferTokensOptions => ({
 			transferInput: tokenTransferInput,
-			txConfirmationBeforeFinalization: 'automaticallyConfirmTransaction',
+			userConfirmation: 'skip',
 			pollTXStatusTrigger: pollTXStatusTrigger,
 		})
 
@@ -942,7 +942,7 @@ describe('Radix API', () => {
 
 			const transactionTracking = radix.transferTokens({
 				...transferTokens(),
-				txConfirmationBeforeFinalization: userConfirmation,
+				userConfirmation,
 			})
 
 			let userHasBeenAskedToConfirmTX = false

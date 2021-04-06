@@ -6,88 +6,26 @@ High-level user-facing API for interacting with the [Radix decentralized ledger]
 
 ```typescript
 import { Radix } from '@radixdlt/application'
-import { Subscription } from 'rxjs'
 
 const radix = Radix.create()
 	.login('my strong password', loadKeystore)
 	.connect(new URL('https://api.radixdlt.com'))
-
-const subs = new Subscription()
-
-radix.tokenBalances.subscribe(
-	(tokenBalances) => console.log(`💎 My token balances ${tokenBalances.toString()}`)
-).add(subs)
-
-/* In the near future... */
-
-// "💎 My token balances:
-// [ 
-//      1337.0 'XRD' ("Rads"), 
-//      0.42 'rwBTC' ("Radix-Wrapped Bitcoin")
-// ]"
+	.transferTokens(
+		{
+			transferInput: {
+				to: bob,
+				amount: 1,
+				tokenIdentifier:
+					'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD',
+			},
+			userConfirmation: 'skip'
+		}
+	)
+	.subscribe((txID) => console.log(`✅ TokenTransfer with txID ${txID.toString()} completed successfully.`)
 ```
 
 Above code assumes you have a wallet. Looking for wallet creation?
 > 💡 Please see [README of `@radixdlt/account` package](../../packages/account/README.md) for a detailed documentation about getting started with a wallet.
-
-# Table of Contents
-<!-- MarkdownTOC autolink="true" -->
-
-- [`RadixT`](#radixt)
-- [Reactive properties](#reactive-properties)
-	- [Immortal state listeners](#immortal-state-listeners)
-		- [Active address](#active-address)
-		- [Account listing](#account-listing)
-			- [Active account](#active-account)
-		- [Token Balances](#token-balances)
-	- [Errors sink](#errors-sink)
-		- [Error "categories"](#error-categories)
-- [Methods](#methods)
-	- [Local methods](#local-methods)
-		- [logLevel](#loglevel)
-		- [Account derivation](#account-derivation)
-			- [restoreAccountsUpToIndex](#restoreaccountsuptoindex)
-		- [Account switching](#account-switching)
-		- [Token balance fetch trigger](#token-balance-fetch-trigger)
-		- [Staking fetch trigger](#staking-fetch-trigger)
-		- [Decrypt](#decrypt)
-		- [Sign](#sign)
-	- [Methods resulting in RPC calls](#methods-resulting-in-rpc-calls)
-		- [Transaction history](#transaction-history)
-		- [Actions](#actions)
-			- [`TokenTransfer`](#tokentransfer)
-			- [`StakeTokens`](#staketokens)
-			- [`UnstakeTokens`](#unstaketokens)
-			- [`Other`](#other)
-	- [Make Transaction](#make-transaction)
-		- [Flow](#flow)
-		- [`TransactionIntentBuilder`](#transactionintentbuilder)
-			- [Unsafe user input](#unsafe-user-input)
-		- [Example](#example)
-			- [Build TX](#build-tx)
-			- [Confirm TX](#confirm-tx)
-			- [Submit TX](#submit-tx)
-			- [Poll TX status](#poll-tx-status)
-- [Ledger](#ledger)
-		- [`tokenBalancesForAddress`](#tokenbalancesforaddress)
-		- [`transactionHistory`](#transactionhistory)
-		- [`nativeToken`](#nativetoken)
-		- [`tokenInfo`](#tokeninfo)
-		- [`stakesForAddress`](#stakesforaddress)
-		- [`unstakesForAddress`](#unstakesforaddress)
-		- [`transactionStatus`](#transactionstatus)
-		- [`networkTransactionThroughput`](#networktransactionthroughput)
-		- [`networkTransactionDemand`](#networktransactiondemand)
-		- [`buildTransaction`](#buildtransaction)
-		- [`submitSignedTransaction`](#submitsignedtransaction)
-		- [`validators`](#validators)
-		- [`lookupTransaction`](#lookuptransaction)
-		- [`networkId`](#networkid)
-- [Unsubscribe](#unsubscribe)
-- [Footnotes](#footnotes)
-
-<!-- /MarkdownTOC -->
-
 
 # `RadixT`
 
@@ -571,23 +509,42 @@ Two differnt kinds of actions fall in under this category:
 
 ## Make Transaction
 
-> ⚠️ Not yet implemented, subject to change.
-
 Here we show how to transfer tokens, which is one of potentially several _actions_, making up a _transaction_.
+
+```typescript
+import { Radix } from '@radixdlt/application'
+
+const radix = Radix.create()
+	.login('my strong password', loadKeystore)
+	.connect(new URL('https://api.radixdlt.com'))
+	.transferTokens(
+		{
+			transferInput: {
+				to: bob,
+				amount: 1,
+				tokenIdentifier:
+					'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD',
+			},
+			userConfirmation: 'skip'
+		}
+	)
+	.subscribe((txID) => console.log(`✅ TokenTransfer with txID ${txID.toString()} completed successfully.`)
+	.add(subs)
+```
 
 The flow of making a transaction is the same, disregarding the contents of it, i.e. if you only make a single _token transfer_ action, or a single _stake tokens_ action, the flow remains the same.
 
 ### Flow
 
 1. 🙋🏾‍♀️ `user`**`inputs`** transaction details (recipient, amount, token etc) and passes inputs to library.
-2. 💻 `wallet`**`transforms`** unsafe inputs into validated `TransactionIntent`.  
+2. 💻 `wallet`**`transforms`** unsafe inputs into validated `TransactionIntent`.
 3. 🛠 `library`**`requests`** Radix Core API to build transaction from intent and returns built transaction with human-readable fee to wallet.
-4. OPTIONAL 💻 `wallet`**`displays`** transaction fee and waits for user to confirm transaction with PIN code.
-5. 🛠 `library`**`signs`** transaction and returns txID (transactionID) to wallet.
-6. 🛠 `library`**`submits`** signed transaction to Radix Core API which promtly returns initial OK/ERR response, wallet handles this initial response.
-7. 💻 `wallet`**`polls`** status of transaction (using txID from step 5), using appropriate library api, and informs user of final CONFIRMED/REJECTED result. 
-8. 🙋🏾‍♀️ `user`**`acts`** on any failures, e.g. presses "Retry"-button, if prompted with one because of network connection issues during step 6.
-
+4. 🛠 `library`**`signs`** transaction
+5. 🛠 `library`**`submits`** signed transaction to Radix Core API which promtly returns initial OK/ERR response, wallet handles this initial response. **Response contains `txID`.**
+6. OPTIONAL 💻 `wallet`**`displays`** transaction fee and `txID` and waits for user to confirm transaction with PIN code.
+7.  🛠 `library`**`finalizes`** signed transaction with `txID` to Radix Core API which promtly returns initial OK/ERR response, wallet handles this initial response.
+8. 💻 `wallet`**`polls`** status of transaction (using txID from step 5), using appropriate library api, and informs user of final CONFIRMED/REJECTED result.
+9. 🙋🏾‍♀️ `user`**`acts`** on any failures, e.g. presses "Retry"-button, if prompted with one because of network connection issues during step 7.
 
 ### `TransactionIntentBuilder`
 

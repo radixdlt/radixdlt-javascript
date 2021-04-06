@@ -69,7 +69,6 @@ import {
 	PendingTransaction,
 	SignedUnconfirmedTransaction,
 	SignedUnsubmittedTransaction,
-	StatusOfTransaction,
 	TransactionHistory,
 	TransactionHistoryActiveAccountRequestInput,
 	TransactionIdentifierT,
@@ -87,8 +86,7 @@ import { TransactionIntentBuilder } from './dto/transactionIntentBuilder'
 
 const shouldConfirmTransactionAutomatically = (
 	confirmationScheme: TransactionConfirmationBeforeFinalization,
-): confirmationScheme is 'automaticallyConfirmTransaction' =>
-	confirmationScheme === 'automaticallyConfirmTransaction'
+): confirmationScheme is 'skip' => confirmationScheme === 'skip'
 
 const create = (): RadixT => {
 	const subs = new Subscription()
@@ -346,15 +344,7 @@ const create = (): RadixT => {
 		const askUserToConfirmSubject = new Subject<SignedUnconfirmedTransaction>()
 		const userDidConfirmTransactionSubject = new Subject<SignedUnconfirmedTransaction>()
 
-		// Used for logging...
-		let txWillBeAutomaticallyConfirmed = false
-
-		if (
-			shouldConfirmTransactionAutomatically(
-				options.txConfirmationBeforeFinalization,
-			)
-		) {
-			txWillBeAutomaticallyConfirmed = true
+		if (shouldConfirmTransactionAutomatically(options.userConfirmation)) {
 			/* log.trace */ log.debug(
 				'Transaction has been setup to be automatically confirmed, requiring no final confirmation input from user.',
 			)
@@ -371,7 +361,7 @@ const create = (): RadixT => {
 				`Transaction has been setup so that it requires a manual final confirmation from user before being finalized.`,
 			)
 			const twoWayConfirmationSubject: Subject<ManualUserConfirmTX> =
-				options.txConfirmationBeforeFinalization
+				options.userConfirmation
 
 			askUserToConfirmSubject
 				.subscribe((ux) => {
@@ -487,7 +477,9 @@ const create = (): RadixT => {
 				) => {
 					log.debug(
 						`Received submitted transaction with txID='${unconfirmedSignedSubmittedTx.txID.toString()}' from API => ${
-							txWillBeAutomaticallyConfirmed
+							shouldConfirmTransactionAutomatically(
+								options.userConfirmation,
+							)
 								? 'it will be automatically confirmed for finalization now.'
 								: 'asking user to confirm it before finalization now.'
 						}`,
@@ -516,7 +508,9 @@ const create = (): RadixT => {
 				): Observable<PendingTransaction> => {
 					log.debug(
 						`Transaction has been ${
-							txWillBeAutomaticallyConfirmed
+							shouldConfirmTransactionAutomatically(
+								options.userConfirmation,
+							)
 								? 'automatically'
 								: 'manually confirmed by user'
 						} => sending it to 🛰 API for finalization.`,

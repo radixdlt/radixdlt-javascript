@@ -11,8 +11,18 @@ import { Radix } from '@radixdlt/application'
 const radix = Radix.create()
 	.login('my strong password', loadKeystore)
 	.connect(new URL('https://api.radixdlt.com'))
-	.tokenBalances
-	.subscribe((tb) => console.log(`💎 My token balances ${tb.toString()}`)
+	.transferTokens(
+		{
+			transferInput: {
+				to: bob,
+				amount: 1,
+				tokenIdentifier:
+					'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD',
+			},
+			userConfirmation: 'skip'
+		}
+	)
+	.subscribe((txID) => console.log(`✅ TokenTransfer with txID ${txID.toString()} completed successfully.`)
 ```
 
 # Development
