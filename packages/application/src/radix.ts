@@ -92,13 +92,13 @@ const create = (): RadixT => {
 		pickFn: (api: RadixCoreAPI) => (...input: I) => Observable<O>,
 		errorFn: (message: string) => ErrorNotification,
 	) => (...input: I) =>
-		coreAPI$.pipe(
-			mergeMap((a) => pickFn(a)(...input)),
-			catchError((error: Error) => {
-				errorNotificationSubject.next(errorFn(error.message))
-				return EMPTY
-			}),
-		)
+			coreAPI$.pipe(
+				mergeMap((a) => pickFn(a)(...input)),
+				catchError((error: Error) => {
+					errorNotificationSubject.next(errorFn(error.message))
+					return EMPTY
+				}),
+			)
 
 	const networkId: () => Observable<Magic> = fwdAPICall(
 		(a) => a.networkId,
@@ -248,7 +248,10 @@ const create = (): RadixT => {
 
 	const _withNode = (node: Observable<NodeT>): void => {
 		node.subscribe(
-			(n) => nodeSubject.next(n),
+			(n) => {
+				log.info(`Using node ${n.url}`)
+				nodeSubject.next(n)
+			},
 			(error: Error) => {
 				errorNotificationSubject.next(getNodeErr(error.message))
 			},
@@ -366,6 +369,7 @@ const create = (): RadixT => {
 				mergeMap((_) => api.transactionStatus(txID)),
 				distinctUntilChanged((prev, cur) => prev.status === cur.status),
 				filter(({ txID }) => txID.equals(txID)),
+				tap(({ status }) => log.info(`Got transaction status ${status} for txID: ${txID}`))
 			)
 		},
 
@@ -373,6 +377,7 @@ const create = (): RadixT => {
 			trigger.subscribe(tokenBalanceFetchSubject).add(subs)
 			return this
 		},
+
 		withStakingFetchTrigger: function (trigger: Observable<number>) {
 			trigger.subscribe(stakingFetchSubject).add(subs)
 			return this
