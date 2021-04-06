@@ -21,12 +21,11 @@ import {
 	ExecutedTransferTokensAction,
 } from '../src/actions/_types'
 import {
-	BuiltTransactionReadyToSign,
 	ExecutedTransaction,
 	TokenPermission,
+	TransactionStatus,
 } from '../src/dto/_types'
 import { makeTokenPermissions } from '../src/dto/tokenPermissions'
-import { TransactionStatus } from '../src/dto/_types'
 import { Radix } from '../src/radix'
 import { radixCoreAPI } from '../src/api/radixCoreAPI'
 import { of } from '@radixdlt/account/node_modules/rxjs'
@@ -35,6 +34,7 @@ import { alice, bob } from './mockRadix'
 import { PublicKey, Signature } from '@radixdlt/crypto'
 import { Subscription } from 'rxjs'
 import { signatureFromHexStrings } from '../../crypto/test/ellipticCurveCryptography.test'
+import { LogLevel } from '@radixdlt/util'
 
 let mockClientReturnValue: any
 
@@ -412,9 +412,16 @@ describe('networking', () => {
 				failure: mockedErrorMsg,
 			}
 
-			const radix = Radix.create().__withAPI(
-				of(radixCoreAPI({ url: new URL('https://radix.com') }, client)),
-			)
+			const radix = Radix.create()
+				.__withAPI(
+					of(
+						radixCoreAPI(
+							{ url: new URL('https://radix.com') },
+							client,
+						),
+					),
+				)
+				.logLevel(LogLevel.SILENT)
 
 			radix.ledger
 				.buildTransaction({} as any)
@@ -426,7 +433,9 @@ describe('networking', () => {
 							),
 						)
 					},
-					(err: APIError) => {
+					(errors: APIError[]) => {
+						expect(errors.length).toBe(1)
+						const err: APIError = errors[0]
 						expect(err.category).toEqual(ErrorCategory.API)
 						expect(err.cause).toEqual(
 							APIErrorCause.BUILD_TRANSACTION_FAILED,
@@ -446,9 +455,16 @@ describe('networking', () => {
 				failure: mockedErrorMsg,
 			}
 
-			const radix = Radix.create().__withAPI(
-				of(radixCoreAPI({ url: new URL('https://radix.com') }, client)),
-			)
+			const radix = Radix.create()
+				.__withAPI(
+					of(
+						radixCoreAPI(
+							{ url: new URL('https://radix.com') },
+							client,
+						),
+					),
+				)
+				.logLevel(LogLevel.SILENT)
 
 			radix.ledger
 				.submitSignedTransaction({
@@ -472,7 +488,10 @@ describe('networking', () => {
 							),
 						)
 					},
-					(err: APIError) => {
+					(errors: APIError[]) => {
+						expect(errors.length).toBe(1)
+						const err: APIError = errors[0]
+
 						expect(err.category).toEqual(ErrorCategory.API)
 						expect(err.cause).toEqual(
 							APIErrorCause.SUBMIT_SIGNED_TX_FAILED,

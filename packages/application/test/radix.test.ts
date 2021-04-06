@@ -994,7 +994,9 @@ describe('Radix API', () => {
 							),
 						)
 					},
-					error: (err: APIError) => {
+					error: (errors: APIError[]) => {
+						expect(errors.length).toBe(1)
+						const err: APIError = errors[0]
 						expect(err.message).toBe(buildErrorMsg)
 						expect(err.category).toEqual(ErrorCategory.API)
 						expect(err.cause).toEqual(
