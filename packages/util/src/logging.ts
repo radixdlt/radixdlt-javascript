@@ -3,16 +3,25 @@ import chalk from 'chalk'
 import prefix from 'loglevel-plugin-prefix'
 
 export enum LogLevel {
-	DEBUG = 'debug',
-	ERROR = 'error',
-	WARN = 'warn',
-	INFO = 'info',
 	SILENT = 'silent',
+	TRACE = 'trace',
+	DEBUG = 'debug',
+	INFO = 'info',
+	WARN = 'warn',
+	ERROR = 'error',
 }
 
-log.setLevel('warn')
+log.setLevel(LogLevel.WARN)
 
 const meta = {
+	trace: {
+		color: chalk.italic.cyan,
+		emoji: '💜',
+	},
+	debug: {
+		color: chalk.italic.cyan,
+		emoji: '💚',
+	},
 	info: {
 		color: chalk.blue,
 		emoji: '💙',
@@ -23,11 +32,7 @@ const meta = {
 	},
 	error: {
 		color: chalk.red,
-		emoji: '❤',
-	},
-	debug: {
-		color: chalk.italic.cyan,
-		emoji: '💻',
+		emoji: '❤️',
 	},
 }
 

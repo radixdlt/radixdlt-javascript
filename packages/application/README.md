@@ -6,88 +6,26 @@ High-level user-facing API for interacting with the [Radix decentralized ledger]
 
 ```typescript
 import { Radix } from '@radixdlt/application'
-import { Subscription } from 'rxjs'
 
 const radix = Radix.create()
 	.login('my strong password', loadKeystore)
 	.connect(new URL('https://api.radixdlt.com'))
-
-const subs = new Subscription()
-
-radix.tokenBalances.subscribe(
-	(tokenBalances) => console.log(`💎 My token balances ${tokenBalances.toString()}`)
-).add(subs)
-
-/* In the near future... */
-
-// "💎 My token balances:
-// [ 
-//      1337.0 'XRD' ("Rads"), 
-//      0.42 'rwBTC' ("Radix-Wrapped Bitcoin")
-// ]"
+	.transferTokens(
+		{
+			transferInput: {
+				to: bob,
+				amount: 1,
+				tokenIdentifier:
+					'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD',
+			},
+			userConfirmation: 'skip'
+		}
+	)
+	.subscribe((txID) => console.log(`✅ TokenTransfer with txID ${txID.toString()} completed successfully.`)
 ```
 
 Above code assumes you have a wallet. Looking for wallet creation?
 > 💡 Please see [README of `@radixdlt/account` package](../../packages/account/README.md) for a detailed documentation about getting started with a wallet.
-
-# Table of Contents
-<!-- MarkdownTOC autolink="true" -->
-
-- [`RadixT`](#radixt)
-- [Reactive properties](#reactive-properties)
-	- [Immortal state listeners](#immortal-state-listeners)
-		- [Active address](#active-address)
-		- [Account listing](#account-listing)
-			- [Active account](#active-account)
-		- [Token Balances](#token-balances)
-	- [Errors sink](#errors-sink)
-		- [Error "categories"](#error-categories)
-- [Methods](#methods)
-	- [Local methods](#local-methods)
-		- [logLevel](#loglevel)
-		- [Account derivation](#account-derivation)
-			- [restoreAccountsUpToIndex](#restoreaccountsuptoindex)
-		- [Account switching](#account-switching)
-		- [Token balance fetch trigger](#token-balance-fetch-trigger)
-		- [Staking fetch trigger](#staking-fetch-trigger)
-		- [Decrypt](#decrypt)
-		- [Sign](#sign)
-	- [Methods resulting in RPC calls](#methods-resulting-in-rpc-calls)
-		- [Transaction history](#transaction-history)
-		- [Actions](#actions)
-			- [`TokenTransfer`](#tokentransfer)
-			- [`StakeTokens`](#staketokens)
-			- [`UnstakeTokens`](#unstaketokens)
-			- [`Other`](#other)
-	- [Make Transaction](#make-transaction)
-		- [Flow](#flow)
-		- [`TransactionIntentBuilder`](#transactionintentbuilder)
-			- [Unsafe user input](#unsafe-user-input)
-		- [Example](#example)
-			- [Build TX](#build-tx)
-			- [Confirm TX](#confirm-tx)
-			- [Submit TX](#submit-tx)
-			- [Poll TX status](#poll-tx-status)
-- [Ledger](#ledger)
-		- [`tokenBalancesForAddress`](#tokenbalancesforaddress)
-		- [`transactionHistory`](#transactionhistory)
-		- [`nativeToken`](#nativetoken)
-		- [`tokenInfo`](#tokeninfo)
-		- [`stakesForAddress`](#stakesforaddress)
-		- [`unstakesForAddress`](#unstakesforaddress)
-		- [`transactionStatus`](#transactionstatus)
-		- [`networkTransactionThroughput`](#networktransactionthroughput)
-		- [`networkTransactionDemand`](#networktransactiondemand)
-		- [`buildTransaction`](#buildtransaction)
-		- [`submitSignedTransaction`](#submitsignedtransaction)
-		- [`validators`](#validators)
-		- [`lookupTransaction`](#lookuptransaction)
-		- [`networkId`](#networkid)
-- [Unsubscribe](#unsubscribe)
-- [Footnotes](#footnotes)
-
-<!-- /MarkdownTOC -->
-
 
 # `RadixT`
 
@@ -245,7 +183,9 @@ See (Fetch Trigger)[#fetchTrigger] for a way either scheduling fetching of token
 
 ## Errors sink
 
-Since RxJS observable finishes on error, and would stop emitting values after an error, we have made sure all errors are caught and redirected to the `errors` property (of type `Observable<ErrorNotification>). Meaning that all reactive properties you can listen for values on are immortal.
+Since RxJS observable finishes on error, and would stop emitting values after an error, we have made sure all errors on reactive properties, and only reactive properties (i.e. not method calls on `ledger`), are caught and redirected to the `errors` property (of type `Observable<ErrorNotification>). Meaning that all reactive properties you can listen for values on are immortal.
+
+> 💡 Any observable returned from a **method call** on `ledger` will emit errors, and only on that observable. The `errors` sink will NOT be aware of them.
 
 Apart from logging (controlled with the `setLogLevel` method as seen in [intro](#intro) and [documented below](#setloglevel)) it is probably a good idea to listen to errors and handle them appropriately. To be clear, **you probably should _act upon_ these errors**, either you (as a GUI wallet developer) or prompt the user to take appropriate action(s).
 
@@ -259,7 +199,6 @@ radix.errors.subscribe(
 
 // "☣️ error { 'tag': 'node', msg: 'Invalid SSL certificate' }"
 // "☣️ error { 'tag': 'wallet', msg: 'Failed to decrypt wallet' }"
-// "☣️ error { 'tag': 'api', msg: 'Request timed out' }"
 ```
 
 The `radix.errors` reactive property is in itself immortal and will never error out, so do **not** add a subscriber to the `error` event, but rather the `next` event**s**.
@@ -303,7 +242,7 @@ Sets the log level of the internal logger of this SDK. We use [loglevel](https:/
 radix.logLevel('error')
 ```
 
-The log levels available are `debug`, `error`, `warn`, `info`, and `silent`.
+The log levels available are `trace`, `debug`, `error`, `warn`, `info`, and `silent`.
 
 ### Account derivation
 You can create new accounts with `deriveNextAccount()`, which takes an optional `alsoSwitchTo` argument, which changes the current active account.
@@ -570,23 +509,42 @@ Two differnt kinds of actions fall in under this category:
 
 ## Make Transaction
 
-> ⚠️ Not yet implemented, subject to change.
-
 Here we show how to transfer tokens, which is one of potentially several _actions_, making up a _transaction_.
+
+```typescript
+import { Radix } from '@radixdlt/application'
+
+const radix = Radix.create()
+	.login('my strong password', loadKeystore)
+	.connect(new URL('https://api.radixdlt.com'))
+	.transferTokens(
+		{
+			transferInput: {
+				to: bob,
+				amount: 1,
+				tokenIdentifier:
+					'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD',
+			},
+			userConfirmation: 'skip'
+		}
+	)
+	.subscribe((txID) => console.log(`✅ TokenTransfer with txID ${txID.toString()} completed successfully.`)
+	.add(subs)
+```
 
 The flow of making a transaction is the same, disregarding the contents of it, i.e. if you only make a single _token transfer_ action, or a single _stake tokens_ action, the flow remains the same.
 
 ### Flow
 
 1. 🙋🏾‍♀️ `user`**`inputs`** transaction details (recipient, amount, token etc) and passes inputs to library.
-2. 💻 `wallet`**`transforms`** unsafe inputs into validated `TransactionIntent`.  
+2. 💻 `wallet`**`transforms`** unsafe inputs into validated `TransactionIntent`.
 3. 🛠 `library`**`requests`** Radix Core API to build transaction from intent and returns built transaction with human-readable fee to wallet.
-4. OPTIONAL 💻 `wallet`**`displays`** transaction fee and waits for user to confirm transaction with PIN code.
-5. 🛠 `library`**`signs`** transaction and returns txID (transactionID) to wallet.
-6. 🛠 `library`**`submits`** signed transaction to Radix Core API which promtly returns initial OK/ERR response, wallet handles this initial response.
-7. 💻 `wallet`**`polls`** status of transaction (using txID from step 5), using appropriate library api, and informs user of final CONFIRMED/REJECTED result. 
-8. 🙋🏾‍♀️ `user`**`acts`** on any failures, e.g. presses "Retry"-button, if prompted with one because of network connection issues during step 6.
-
+4. 🛠 `library`**`signs`** transaction
+5. 🛠 `library`**`submits`** signed transaction to Radix Core API which promtly returns initial OK/ERR response, wallet handles this initial response. **Response contains `txID`.**
+6. OPTIONAL 💻 `wallet`**`displays`** transaction fee and `txID` and waits for user to confirm transaction with PIN code.
+7.  🛠 `library`**`finalizes`** signed transaction with `txID` to Radix Core API which promtly returns initial OK/ERR response, wallet handles this initial response.
+8. 💻 `wallet`**`polls`** status of transaction (using txID from step 5), using appropriate library api, and informs user of final CONFIRMED/REJECTED result.
+9. 🙋🏾‍♀️ `user`**`acts`** on any failures, e.g. presses "Retry"-button, if prompted with one because of network connection issues during step 7.
 
 ### `TransactionIntentBuilder`
 
@@ -833,6 +791,8 @@ transactionConfirmed$
 ```
 
 # Ledger
+
+All calls via `.ledger` returns failable Observables and any error will **not** be forwarded to the `errors` sink. Handle errors when subscribing to the Observable returned from method call.
 
 > ☑️ Mocked implementation only 🤡.
 

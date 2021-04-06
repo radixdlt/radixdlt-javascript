@@ -32,7 +32,7 @@ const fromPrivateKey = (
 	const { privateKey, hdPath, addressFromPublicKey } = input
 	const publicKey: PublicKey = privateKey.publicKey()
 	const sign = (m: UnsignedMessage): Observable<Signature> =>
-		toObservable(privateKey.sign(m))
+		toObservable(privateKey.signHashed(m))
 
 	return {
 		sign: sign,

@@ -13,12 +13,14 @@ import {
 	handleNetworkIdResponse,
 	handleUnstakesResponse,
 	handleValidatorsResponse,
+	handleFinalizedTransactionResponse,
 } from './responseHandlers'
 import { andThen, pipe } from 'ramda'
 import {
 	ApiMethod,
 	BuildTransactionEndpoint,
 	Endpoint,
+	FinalizeTransactionEndpoint,
 	LookupTransactionEndpoint,
 	NativeTokenEndpoint,
 	NetworkIdEndpoint,
@@ -135,5 +137,10 @@ export const getAPI = (
 		>(handleSubmitSignedTransactionResponse)(
 			'radix.submitSignedTransaction',
 		),
+
+		[ApiMethod.FINALIZE_TX]: setupAPIResponse<
+			FinalizeTransactionEndpoint.Input,
+			FinalizeTransactionEndpoint.DecodedResponse
+		>(handleFinalizedTransactionResponse)('radix.finalizeTransaction'),
 	}
 }

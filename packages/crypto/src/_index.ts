@@ -9,7 +9,7 @@ export * from './_types'
 
 export * from './algorithms'
 export * from './privateKey'
-export * from './unsignedMessage'
+export * from './unsignedUnhashedMessage'
 export * from './publicKey'
 export * from './keyPair'
 export * from './secp256k1'
