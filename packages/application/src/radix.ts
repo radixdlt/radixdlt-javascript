@@ -301,7 +301,7 @@ const create = (): RadixT => {
 	const _withNode = (node: Observable<NodeT>): void => {
 		node.subscribe(
 			(n) => {
-				log.info(`Using node ${n.url}`)
+				log.info(`Using node ${n.url.toString()}`)
 				nodeSubject.next(n)
 			},
 			(error: Error) => {
@@ -753,7 +753,11 @@ const create = (): RadixT => {
 				mergeMap((_) => api.transactionStatus(txID)),
 				distinctUntilChanged((prev, cur) => prev.status === cur.status),
 				filter(({ txID }) => txID.equals(txID)),
-				tap(({ status }) => log.info(`Got transaction status ${status} for txID: ${txID}`))
+				tap(({ status }) =>
+					log.info(
+						`Got transaction status ${status.toString()} for txID: ${txID.toString()}`,
+					),
+				),
 			)
 		},
 

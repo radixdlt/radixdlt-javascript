@@ -137,7 +137,9 @@ const create = (
 		} else if (isSwitchToAccount(input)) {
 			const toAccount = input.toAccount
 			activeAccountSubject.next(toAccount)
-			log.info(`Active account switched to: ${toAccount.hdPath}`)
+			log.info(
+				`Active account switched to: ${toAccount.hdPath.toString()}`,
+			)
 			return toAccount
 		} else if (isSwitchToAccountIndex(input)) {
 			const unsafeTargetIndex = input.toIndex

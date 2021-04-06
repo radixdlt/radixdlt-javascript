@@ -344,7 +344,11 @@ const create = (
 									(
 										enc: EncryptedMessage,
 									): TransactionIntent => {
-										log.info(`Successfully built transaction with encrypted message. Actions: ${intendedActionsFrom.intendedActions.map(action => action.type)}`)
+										log.info(
+											`Successfully built transaction with encrypted message. Actions: ${intendedActionsFrom.intendedActions
+												.map((action) => action.type)
+												.toString()}`,
+										)
 										return {
 											actions:
 												intendedActionsFrom.intendedActions,
@@ -355,7 +359,11 @@ const create = (
 							)
 						},
 						None: () => {
-							log.info(`Successfully built transaction. Actions: ${intendedActionsFrom.intendedActions.map(action => action.type)}`)
+							log.info(
+								`Successfully built transaction. Actions: ${intendedActionsFrom.intendedActions
+									.map((action) => action.type)
+									.toString()}`,
+							)
 							return of<TransactionIntent>({
 								actions: intendedActionsFrom.intendedActions,
 								message: undefined,

@@ -11,11 +11,15 @@ export const RPCClient: Client = (url: URL): Transport => {
 	const requestManager = new RequestManager([transport])
 	const client = new OpenRPCClient(requestManager)
 
-	const call = async (endpoint: string, ...params: unknown[]): Promise<unknown> =>
-	{
+	const call = async (
+		endpoint: string,
+		...params: unknown[]
+	): Promise<unknown> => {
 		log.info(`Sending RPC request with endpoint ${endpoint}.`)
-		const response = await client.request({ method: endpoint, params })
-		log.trace(`Response from call: ${response}`)
+		const response:
+			| Record<string, unknown>
+			| unknown[] = await client.request({ method: endpoint, params })
+		log.trace(`Response from call: ${JSON.stringify(response, null, 2)}`)
 		return response
 	}
 

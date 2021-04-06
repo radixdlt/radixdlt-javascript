@@ -82,6 +82,7 @@ module.exports = {
 		'@typescript-eslint/no-unsafe-return': 'warn',
 		'@typescript-eslint/no-unsafe-member-access': 'warn',
 		'max-lines': 'off',
+		'@typescript-eslint/no-unsafe-assignment': 'off',
 		'@typescript-eslint/no-namespace': 'off',
 		'functional/no-this-expression': 'off',
 	},
