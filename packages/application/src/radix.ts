@@ -389,9 +389,7 @@ const create = (): RadixT => {
 			trackingSubject.next(event)
 		}
 
-		const errorSubject = new ReplaySubject<
-			TransactionTrackingEvent<TXError>
-		>()
+		const completionSubject = new Subject<TransactionIdentifierT>()
 
 		const trackError = (
 			input: Readonly<{
@@ -405,7 +403,7 @@ const create = (): RadixT => {
 			}
 			/* log.trace */ log.debug(`Forwarding error to 'errorSubject'`)
 			track(errorEvent)
-			errorSubject.next(errorEvent)
+			completionSubject.error(errorEvent.value)
 		}
 
 		const build$ = transactionIntent$.pipe(
@@ -589,30 +587,6 @@ const create = (): RadixT => {
 					log.error(
 						`Failed to get status of transaction, error: ${transactionStatusError.message}`,
 					)
-				},
-			})
-			.add(subs)
-
-		const completionSubject = new Subject<TransactionIdentifierT>()
-
-		errorSubject
-			.subscribe({
-				next: (errorEvent) => {
-					log.error(
-						`Killing transaction tracking due to error event: ${JSON.stringify(
-							errorEvent,
-							null,
-							4,
-						)}`,
-					)
-					completionSubject.error(errorEvent.value)
-				},
-				error: (_unexpected) => {
-					const errorMessage = `Incorrect implementation, should never emit errors on errorSubject, should use 'next'`
-					log.error(errorMessage)
-					const error = new Error(errorMessage)
-					completionSubject.error(error)
-					throw error
 				},
 			})
 			.add(subs)
