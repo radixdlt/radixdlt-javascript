@@ -432,6 +432,9 @@ const create = (): RadixT => {
 			)
 			askUserToConfirmSubject
 				.subscribe((ux) => {
+					log.debug(
+						`askUserToConfirmSubject got 'next', calling 'next' on 'userDidConfirmTransactionSubject'`,
+					)
 					userDidConfirmTransactionSubject.next(ux)
 				})
 				.add(subs)
@@ -442,27 +445,15 @@ const create = (): RadixT => {
 			const twoWayConfirmationSubject: Subject<ManualUserConfirmTX> =
 				options.txConfirmationBeforeFinalization
 
-			// twoWayConfirmationSubject
-			// 	.subscribe((ux) => {
-			// 		/* log.trace */ log.debug(`Forwarding signedUnconfirmedTX to subject 'userDidConfirmTransactionSubject' now (inside subscribe to 'twoWayConfirmationSubject')`)
-			// 		userDidConfirmTransactionSubject.next(ux)
-			// 	})
-			// 	.add(subs)
-
-			userDidConfirmTransactionSubject
+			askUserToConfirmSubject
 				.subscribe((ux) => {
 					/* log.trace */ log.debug(
-						`Forwarding signedUnconfirmedTX to subject 'twoWayConfirmationSubject' now (inside subscribe to 'userDidConfirmTransactionSubject')`,
+						`Forwarding signedUnconfirmedTX and 'userDidConfirmTransactionSubject' to subject 'twoWayConfirmationSubject' now (inside subscribe to 'askUserToConfirmSubject')`,
 					)
 
 					const confirmation: ManualUserConfirmTX = {
 						txToConfirm: ux,
-						userDidConfirm: (): void => {
-							/* log.trace */ log.debug(
-								`Forwarding signedUnconfirmedTX to subject 'userDidConfirmTransactionSubject' now (inside subscribe to 'twoWayConfirmationSubject')`,
-							)
-							userDidConfirmTransactionSubject.next(ux)
-						},
+						userDidConfirmSubject: userDidConfirmTransactionSubject,
 					}
 
 					twoWayConfirmationSubject.next(confirmation)
@@ -511,7 +502,7 @@ const create = (): RadixT => {
 				(
 					signedTx: SignedUnsubmittedTransaction,
 				): Observable<SignedUnconfirmedTransaction> => {
-					log.debug(`Finished signing tx => submitting it to API.`)
+					log.debug(`Finished signing tx => submitting it to 🛰  API.`)
 					track(eventTransactionSigned(signedTx))
 					return api.submitSignedTransaction(signedTx)
 				},
@@ -556,7 +547,7 @@ const create = (): RadixT => {
 							txWillBeAutomaticallyConfirmed
 								? 'automatically'
 								: 'manually confirmed by user'
-						} for finalization => finalizing it now.`,
+						} => sending it to 🛰 API for finalization.`,
 					)
 
 					track(eventTransactionUserDidConfirm(userConfirmedTX))

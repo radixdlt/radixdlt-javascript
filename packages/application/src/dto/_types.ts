@@ -147,15 +147,12 @@ export type TransactionTrackingEvent<
 // Marker protocol
 export type PartOfMakeTransactionFlow = unknown
 
-export type TransactionTracking = /* Subscribable<TransactionIdentifierT> */ &
-	Readonly<{
-		tracking: Observable<
-			TransactionTrackingEvent<PartOfMakeTransactionFlow>
-		>
-		subscribe: (
-			observer: Partial<Observer<TransactionIdentifierT>>,
-		) => Subscription
-	}>
+export type TransactionTracking = /* Subscribable<TransactionIdentifierT> */ Readonly<{
+	tracking: Observable<TransactionTrackingEvent<PartOfMakeTransactionFlow>>
+	subscribe: (
+		observer: Partial<Observer<TransactionIdentifierT>>,
+	) => Subscription
+}>
 
 export type TransactionHistoryOfKnownAddressRequestInput = Readonly<{
 	size: number

@@ -26,7 +26,8 @@ import { TransferTokensInput } from './actions/_types'
 
 export type ManualUserConfirmTX = {
 	txToConfirm: SignedUnconfirmedTransaction
-	userDidConfirm: () => void
+	// userDidConfirm: () => void
+	userDidConfirmSubject: Subject<SignedUnconfirmedTransaction>
 }
 
 export type TransactionConfirmationBeforeFinalization =

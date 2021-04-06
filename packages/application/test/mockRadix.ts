@@ -804,7 +804,9 @@ export const mockRadixCoreAPI = (
 		submitSignedTransaction: (
 			signedTransaction: SignedUnsubmittedTransaction,
 		): Observable<SignedUnconfirmedTransaction> =>
-			of(detRandomSignedUnconfirmedTransaction(signedTransaction)).pipe(delay(50)),
+			of(detRandomSignedUnconfirmedTransaction(signedTransaction)).pipe(
+				delay(50),
+			),
 		finalizeTransaction: (signedUnconfirmedTX) =>
 			of(randomPendingTransaction(signedUnconfirmedTX)).pipe(delay(50)),
 		networkTransactionDemand: (): Observable<NetworkTransactionDemand> =>
