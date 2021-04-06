@@ -84,82 +84,6 @@ import {
 } from './dto/_types'
 import { nodeAPI } from './api/api'
 import { TransactionIntentBuilder } from './dto/transactionIntentBuilder'
-import { Observer } from 'rxjs/src/internal/types'
-
-type EventTransactionInitiated = TransactionTrackingEvent<TransactionIntent>
-const eventTransactionInitiated = (
-	intent: TransactionIntent,
-): EventTransactionInitiated => ({
-	value: intent,
-	eventUpdateType: TransactionTrackingEventType.INITIATED,
-})
-
-type EventTransactionBuildByAPI = TransactionTrackingEvent<UnsignedTransaction>
-const eventTransactionBuiltByAPI = (
-	unsignedTX: UnsignedTransaction,
-): EventTransactionBuildByAPI => ({
-	value: unsignedTX,
-	eventUpdateType: TransactionTrackingEventType.BUILT_FROM_INTENT,
-})
-
-type EventTransactionSigned = TransactionTrackingEvent<SignedUnsubmittedTransaction>
-const eventTransactionSigned = (
-	signedTX: SignedUnsubmittedTransaction,
-): EventTransactionSigned => ({
-	value: signedTX,
-	eventUpdateType: TransactionTrackingEventType.SIGNED,
-})
-
-type EventTransactionSubmitted = TransactionTrackingEvent<SignedUnconfirmedTransaction>
-const eventTransactionSubmitted = (
-	submitted: SignedUnconfirmedTransaction,
-): EventTransactionSubmitted => ({
-	value: submitted,
-	eventUpdateType: TransactionTrackingEventType.SUBMITTED,
-})
-
-type EventTransactionAskedUserToConfirm = TransactionTrackingEvent<SignedUnconfirmedTransaction>
-const eventTransactionAskingUserForFinalConfirmation = (
-	userConfirmationInput: SignedUnconfirmedTransaction,
-): EventTransactionAskedUserToConfirm => ({
-	value: userConfirmationInput,
-	eventUpdateType:
-		TransactionTrackingEventType.ASKING_USER_FOR_FINAL_CONFIRMATION,
-})
-
-type EventTransactionUserDidConfirm = TransactionTrackingEvent<SignedUnconfirmedTransaction>
-const eventTransactionUserDidConfirm = (
-	userConfirmedTX: SignedUnconfirmedTransaction,
-): EventTransactionUserDidConfirm => ({
-	value: userConfirmedTX,
-	eventUpdateType:
-		TransactionTrackingEventType.USER_CONFIRMED_TX_BEFORE_FINALIZATION,
-})
-
-type EventTransactionFinalizedAndIsNowPending = TransactionTrackingEvent<PendingTransaction>
-const eventTransactionFinalizedAndIsNowPending = (
-	pendingTX: PendingTransaction,
-): EventTransactionFinalizedAndIsNowPending => ({
-	value: pendingTX,
-	eventUpdateType: TransactionTrackingEventType.FINALIZED_AND_IS_NOW_PENDING,
-})
-
-type EventTransactionStatusUpdate = TransactionTrackingEvent<StatusOfTransaction>
-const eventTransactionStatusUpdate = (
-	statusOfTransaction: StatusOfTransaction,
-): EventTransactionStatusUpdate => ({
-	value: statusOfTransaction,
-	eventUpdateType:
-		TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
-})
-
-type EventTransactionCompletedSuccessfully = TransactionTrackingEvent<StatusOfTransaction>
-const eventTransactionCompletedSuccessfully = (
-	statusOfTransaction: StatusOfTransaction,
-): EventTransactionCompletedSuccessfully => ({
-	value: statusOfTransaction,
-	eventUpdateType: TransactionTrackingEventType.COMPLETED,
-})
 
 const shouldConfirmTransactionAutomatically = (
 	confirmationScheme: TransactionConfirmationBeforeFinalization,
@@ -502,7 +426,10 @@ const create = (): RadixT => {
 					log.debug(
 						'Transaction intent created => requesting 🛰 API to build it now.',
 					)
-					track(eventTransactionInitiated(intent))
+					track({
+						value: intent,
+						eventUpdateType: TransactionTrackingEventType.INITIATED,
+					})
 					return api.buildTransaction(intent)
 				},
 			),
@@ -528,7 +455,11 @@ const create = (): RadixT => {
 					unsignedTX: UnsignedTransaction,
 				): Observable<SignedUnsubmittedTransaction> => {
 					log.debug('TX built by API => starting signing of it now.')
-					track(eventTransactionBuiltByAPI(unsignedTX))
+					track({
+						value: unsignedTX,
+						eventUpdateType:
+							TransactionTrackingEventType.BUILT_FROM_INTENT,
+					})
 					return signUnsignedTx(unsignedTX)
 				},
 			),
@@ -540,7 +471,10 @@ const create = (): RadixT => {
 					signedTx: SignedUnsubmittedTransaction,
 				): Observable<SignedUnconfirmedTransaction> => {
 					log.debug(`Finished signing tx => submitting it to 🛰  API.`)
-					track(eventTransactionSigned(signedTx))
+					track({
+						value: signedTx,
+						eventUpdateType: TransactionTrackingEventType.SIGNED,
+					})
 					return api.submitSignedTransaction(signedTx)
 				},
 			),
@@ -559,15 +493,16 @@ const create = (): RadixT => {
 						}`,
 					)
 
-					track(
-						eventTransactionSubmitted(unconfirmedSignedSubmittedTx),
-					)
+					track({
+						value: unconfirmedSignedSubmittedTx,
+						eventUpdateType: TransactionTrackingEventType.SUBMITTED,
+					})
 
-					track(
-						eventTransactionAskingUserForFinalConfirmation(
-							unconfirmedSignedSubmittedTx,
-						),
-					)
+					track({
+						value: unconfirmedSignedSubmittedTx,
+						eventUpdateType:
+							TransactionTrackingEventType.ASKING_USER_FOR_FINAL_CONFIRMATION,
+					})
 
 					askUserToConfirmSubject.next(unconfirmedSignedSubmittedTx)
 				},
@@ -587,7 +522,11 @@ const create = (): RadixT => {
 						} => sending it to 🛰 API for finalization.`,
 					)
 
-					track(eventTransactionUserDidConfirm(userConfirmedTX))
+					track({
+						value: userConfirmedTX,
+						eventUpdateType:
+							TransactionTrackingEventType.USER_CONFIRMED_TX_BEFORE_FINALIZATION,
+					})
 					return api.finalizeTransaction(userConfirmedTX)
 				},
 			),
@@ -599,7 +538,11 @@ const create = (): RadixT => {
 					log.debug(
 						`Finalized transaction with txID='${pendingTx.txID.toString()}', it is now pending.`,
 					)
-					track(eventTransactionFinalizedAndIsNowPending(pendingTx))
+					track({
+						value: pendingTx,
+						eventUpdateType:
+							TransactionTrackingEventType.FINALIZED_AND_IS_NOW_PENDING,
+					})
 					pendingTXSubject.next(pendingTx)
 				},
 				error: (submitTXError: Error) => {
@@ -641,7 +584,11 @@ const create = (): RadixT => {
 					/* log.trace */ log.debug(
 						`Status ${status.toString()} of transaction with txID='${txID.toString()}'`,
 					)
-					track(eventTransactionStatusUpdate(statusOfTransaction))
+					track({
+						value: statusOfTransaction,
+						eventUpdateType:
+							TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
+					})
 				},
 				error: (transactionStatusError: Error) => {
 					// TODO hmm how to get txID here?
@@ -683,11 +630,10 @@ const create = (): RadixT => {
 					log.info(
 						`Transaction with txID='${txID.toString()}' has completed succesfully.`,
 					)
-					track(
-						eventTransactionCompletedSuccessfully(
-							statusOfTransaction,
-						),
-					)
+					track({
+						value: statusOfTransaction,
+						eventUpdateType: TransactionTrackingEventType.COMPLETED,
+					})
 
 					completionSubject.next(txID)
 					completionSubject.complete()
