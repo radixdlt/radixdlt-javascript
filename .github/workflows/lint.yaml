@@ -1,4 +1,4 @@
-name: Node.js CI
+name: Linting and formatting
 
 on: [push, pull_request]
 
@@ -21,4 +21,5 @@ jobs:
       run: |
         yarn policies set-version '^1.22.10'
     - run: yarn setup-dev
-    - run: yarn sanity
+    - run: yarn format
+    - run: yarn lint
