@@ -1,6 +1,10 @@
-name: Run tests
+name: Build, lint and run tests
 
-on: [push, pull_request]
+on:  
+  push:
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
@@ -21,4 +25,4 @@ jobs:
       run: |
         yarn policies set-version '^1.22.10'
     - run: yarn setup-dev
-    - run: yarn test
+    - run: yarn sanity
