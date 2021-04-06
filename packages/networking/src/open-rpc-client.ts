@@ -10,7 +10,7 @@ export const RPCClient: Client = (url: URL): Transport => {
 	const requestManager = new RequestManager([transport])
 	const client = new OpenRPCClient(requestManager)
 
-	const call = (endpoint: string, ...params: unknown[]): Promise<unknown> =>
+	const call =               (endpoint: string, ...params: unknown[]): Promise<unknown> =>
 		client.request({ method: endpoint, params })
 
 	return {
