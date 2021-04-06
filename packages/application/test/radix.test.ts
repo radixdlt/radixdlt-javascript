@@ -1,7 +1,6 @@
 import { Radix } from '../src/radix'
 import { AddressT, HDMasterSeed, Wallet, WalletT } from '@radixdlt/account'
 import {
-	combineLatest,
 	interval,
 	Observable,
 	of,
@@ -34,6 +33,7 @@ import { TransactionTrackingEventType } from '../dist/dto/_types'
 import { LogLevel } from '@radixdlt/util'
 import { TransferTokensInput } from '../dist/actions/_types'
 import { TransferTokensOptions } from '../dist/_types'
+import { APIError } from '../dist/errors'
 
 const createWallet = (): WalletT => {
 	const masterSeed = HDMasterSeed.fromSeed(
@@ -865,7 +865,7 @@ describe('Radix API', () => {
 			subs.unsubscribe()
 		})
 
-		it('tracking reports correct events', (done) => {
+		it('events emits expected values', (done) => {
 			const radix = Radix.create()
 				.withWallet(createWallet())
 				.__withAPI(mockedAPI)
@@ -964,6 +964,43 @@ describe('Radix API', () => {
 					},
 					error: (e) => {
 						done(e)
+					},
+				})
+				.add(subs)
+		})
+
+		it('error from buildTransaction is propagated', (done) => {
+			const buildErrorMsg = `Mocked failure of 'buildTransaction' API call`
+			const radix = Radix.create()
+				.withWallet(createWallet())
+				.__withAPI(
+					of({
+						...mockRadixCoreAPI(),
+						buildTransaction: (_intent) => {
+							return throwError(new Error(buildErrorMsg))
+						},
+					}),
+				)
+				.logLevel(LogLevel.SILENT)
+
+			const transactionTracking = radix.transferTokens(transferTokens())
+
+			transactionTracking.completion
+				.subscribe({
+					complete: () => {
+						done(
+							new Error(
+								'TX was successful, but we expected an error.',
+							),
+						)
+					},
+					error: (err: APIError) => {
+						expect(err.message).toBe(buildErrorMsg)
+						expect(err.category).toEqual(ErrorCategory.API)
+						expect(err.cause).toEqual(
+							APIErrorCause.BUILD_TRANSACTION_FAILED,
+						)
+						done()
 					},
 				})
 				.add(subs)

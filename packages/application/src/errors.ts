@@ -81,9 +81,11 @@ export const networkTxThroughputErr = APIError(
 export const networkTxDemandErr = APIError(
 	APIErrorCause.NETWORK_TX_DEMAND_FAILED,
 )
-export const buildTxFromIntentErr = APIError(
-	APIErrorCause.BUILD_TRANSACTION_FAILED,
-)
+export const buildTxFromIntentErr = (
+	message: string,
+): ErrorT<ErrorCategory.API, APIErrorCause> =>
+	APIError(APIErrorCause.BUILD_TRANSACTION_FAILED)(message)
+
 export const submitSignedTxErr = APIError(APIErrorCause.SUBMIT_SIGNED_TX_FAILED)
 export const finalizeTxErr = APIError(APIErrorCause.FINALIZE_TX_FAILED)
 

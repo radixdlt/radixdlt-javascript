@@ -63,7 +63,7 @@ import {
 	unstakesForAddressErr,
 	validatorsErr,
 } from './errors'
-import { log, LogLevel } from '@radixdlt/util'
+import { isArray, log, LogLevel } from '@radixdlt/util'
 import {
 	PartOfMakeTransactionFlow,
 	PendingTransaction,
@@ -79,12 +79,12 @@ import {
 	TransactionTracking,
 	TransactionTrackingEvent,
 	TransactionTrackingEventType,
+	TXError,
 	UnsignedTransaction,
 } from './dto/_types'
-import { TransferTokensInput } from './actions/_types'
 import { nodeAPI } from './api/api'
 import { TransactionIntentBuilder } from './dto/transactionIntentBuilder'
-import { Observer, Unsubscribable } from 'rxjs/src/internal/types'
+import { Observer } from 'rxjs/src/internal/types'
 
 type EventTransactionInitiated = TransactionTrackingEvent<TransactionIntent>
 const eventTransactionInitiated = (
@@ -195,9 +195,13 @@ const create = (): RadixT => {
 	) => (...input: I) =>
 		coreAPI$.pipe(
 			mergeMap((a) => pickFn(a)(...input)),
-			catchError((error: Error) => {
-				errorNotificationSubject.next(errorFn(error.message))
-				return EMPTY
+
+			// We do NOT omit/supress error, we merely DECORATE the error
+			catchError((errors) => {
+				const error = isArray(errors)
+					? (errors[0] as Error)
+					: (errors as Error)
+				throw errorFn(error.message)
 			}),
 		)
 
@@ -471,8 +475,27 @@ const create = (): RadixT => {
 			trackingSubject.next(event)
 		}
 
+		const errorSubject = new ReplaySubject<
+			TransactionTrackingEvent<TXError>
+		>()
+
+		const trackError = (
+			input: Readonly<{
+				error: Error
+				inStep: TransactionTrackingEventType
+			}>,
+		): void => {
+			const errorEvent: TransactionTrackingEvent<TXError> = {
+				eventUpdateType: input.inStep,
+				value: input.error,
+			}
+			/* log.trace */ log.debug(`Forwarding error to 'errorSubject'`)
+			track(errorEvent)
+			errorSubject.next(errorEvent)
+		}
+
 		const build$ = transactionIntent$.pipe(
-			mergeMap(
+			switchMap(
 				(
 					intent: TransactionIntent,
 				): Observable<UnsignedTransaction> => {
@@ -483,6 +506,20 @@ const create = (): RadixT => {
 					return api.buildTransaction(intent)
 				},
 			),
+			catchError((e: Error) => {
+				log.error(
+					`API failed to build transaction from intent, error: ${JSON.stringify(
+						e,
+						null,
+						4,
+					)}`,
+				)
+				trackError({
+					error: e,
+					inStep: TransactionTrackingEventType.BUILT_FROM_INTENT,
+				})
+				return EMPTY
+			}),
 		)
 
 		const sign$ = build$.pipe(
@@ -615,6 +652,30 @@ const create = (): RadixT => {
 			})
 			.add(subs)
 
+		const completionSubject = new Subject<TransactionIdentifierT>()
+
+		errorSubject
+			.subscribe({
+				next: (errorEvent) => {
+					log.error(
+						`Killing transaction tracking due to error event: ${JSON.stringify(
+							errorEvent,
+							null,
+							4,
+						)}`,
+					)
+					completionSubject.error(errorEvent.value)
+				},
+				error: (_unexpected) => {
+					const errorMessage = `Incorrect implementation, should never emit errors on errorSubject, should use 'next'`
+					log.error(errorMessage)
+					const error = new Error(errorMessage)
+					completionSubject.error(error)
+					throw error
+				},
+			})
+			.add(subs)
+
 		transactionCompletedWithStatusConfirmed$
 			.subscribe({
 				next: (statusOfTransaction) => {
@@ -627,21 +688,16 @@ const create = (): RadixT => {
 							statusOfTransaction,
 						),
 					)
+
+					completionSubject.next(txID)
+					completionSubject.complete()
 				},
 			})
 			.add(subs)
 
-		const tracking = trackingSubject.asObservable()
-
-		const txCompleted$: Observable<TransactionIdentifierT> = transactionCompletedWithStatusConfirmed$.pipe(
-			withLatestFrom(finalize$),
-			map(([_, t]) => t.txID),
-			take(1),
-		)
-
 		return {
-			completion: txCompleted$,
-			events: tracking,
+			completion: completionSubject.asObservable(),
+			events: trackingSubject.asObservable(),
 		}
 	}
 

@@ -30,9 +30,11 @@ import { TransactionStatus } from '../src/dto/_types'
 import { Radix } from '../src/radix'
 import { radixCoreAPI } from '../src/api/radixCoreAPI'
 import { of } from '@radixdlt/account/node_modules/rxjs'
-import { APIErrorCause, ErrorCategory } from '../src/errors'
+import { APIError, APIErrorCause, ErrorCategory } from '../src/errors'
 import { alice, bob } from './mockRadix'
 import { PublicKey, Signature } from '@radixdlt/crypto'
+import { Subscription } from 'rxjs'
+import { signatureFromHexStrings } from '../../crypto/test/ellipticCurveCryptography.test'
 
 let mockClientReturnValue: any
 
@@ -403,43 +405,83 @@ describe('networking', () => {
 		})
 
 		it('should handle a build transaction failure', (done) => {
+			const subs = new Subscription()
+
+			const mockedErrorMsg = 'MOCKED_FAILURE_OF_BUILD_TX'
 			mockClientReturnValue = <BuildTransactionEndpoint.Response>{
-				failure: 'Failed',
+				failure: mockedErrorMsg,
 			}
 
 			const radix = Radix.create().__withAPI(
 				of(radixCoreAPI({ url: new URL('https://radix.com') }, client)),
 			)
 
-			radix.errors.subscribe((err) => {
-				expect(err.category).toEqual(ErrorCategory.API)
-				expect(err.cause).toEqual(
-					APIErrorCause.BUILD_TRANSACTION_FAILED,
+			radix.ledger
+				.buildTransaction({} as any)
+				.subscribe(
+					(_ux) => {
+						done(
+							new Error(
+								'Call to buildTransaction succeeded, but we expected it to fail.',
+							),
+						)
+					},
+					(err: APIError) => {
+						expect(err.category).toEqual(ErrorCategory.API)
+						expect(err.cause).toEqual(
+							APIErrorCause.BUILD_TRANSACTION_FAILED,
+						)
+						expect(err.message).toBe(mockedErrorMsg)
+						done()
+					},
 				)
-				done()
-			})
-
-			radix.ledger.buildTransaction({} as any).subscribe((tx) => {})
+				.add(subs)
 		})
 
 		it('should handle submit signed tx with error message', (done) => {
+			const subs = new Subscription()
+
+			const mockedErrorMsg = 'MOCKED_FAILURE_OF_SUBMIT_TX'
 			mockClientReturnValue = <SubmitSignedTransactionEndpoint.Response>{
-				failure: 'Failed',
+				failure: mockedErrorMsg,
 			}
 
 			const radix = Radix.create().__withAPI(
 				of(radixCoreAPI({ url: new URL('https://radix.com') }, client)),
 			)
 
-			radix.errors.subscribe((err) => {
-				expect(err.category).toEqual(ErrorCategory.API)
-				expect(err.cause).toEqual(APIErrorCause.SUBMIT_SIGNED_TX_FAILED)
-				done()
-			})
-
 			radix.ledger
-				.submitSignedTransaction({} as any)
-				.subscribe((tx) => {})
+				.submitSignedTransaction({
+					publicKeyOfSigner: alice.publicKey,
+					transaction: {
+						blob: 'xyz',
+						hashOfBlobToSign: 'deadbeef',
+					},
+					signature: signatureFromHexStrings({
+						r:
+							'934b1ea10a4b3c1757e2b0c017d0b6143ce3c9a7e6a4a49860d7a6ab210ee3d8',
+						s:
+							'2442ce9d2b916064108014783e923ec36b49743e2ffa1c4496f01a512aafd9e5',
+					}),
+				})
+				.subscribe(
+					(_ux) => {
+						done(
+							new Error(
+								'Call to buildTransaction succeeded, but we expected it to fail.',
+							),
+						)
+					},
+					(err: APIError) => {
+						expect(err.category).toEqual(ErrorCategory.API)
+						expect(err.cause).toEqual(
+							APIErrorCause.SUBMIT_SIGNED_TX_FAILED,
+						)
+						expect(err.message).toBe(mockedErrorMsg)
+						done()
+					},
+				)
+				.add(subs)
 		})
 	})
 })

@@ -245,7 +245,9 @@ See (Fetch Trigger)[#fetchTrigger] for a way either scheduling fetching of token
 
 ## Errors sink
 
-Since RxJS observable finishes on error, and would stop emitting values after an error, we have made sure all errors are caught and redirected to the `errors` property (of type `Observable<ErrorNotification>). Meaning that all reactive properties you can listen for values on are immortal.
+Since RxJS observable finishes on error, and would stop emitting values after an error, we have made sure all errors on reactive properties, and only reactive properties (i.e. not method calls on `ledger`), are caught and redirected to the `errors` property (of type `Observable<ErrorNotification>). Meaning that all reactive properties you can listen for values on are immortal.
+
+> 💡 Any observable returned from a **method call** on `ledger` will emit errors, and only on that observable. The `errors` sink will NOT be aware of them.
 
 Apart from logging (controlled with the `setLogLevel` method as seen in [intro](#intro) and [documented below](#setloglevel)) it is probably a good idea to listen to errors and handle them appropriately. To be clear, **you probably should _act upon_ these errors**, either you (as a GUI wallet developer) or prompt the user to take appropriate action(s).
 
@@ -259,7 +261,6 @@ radix.errors.subscribe(
 
 // "☣️ error { 'tag': 'node', msg: 'Invalid SSL certificate' }"
 // "☣️ error { 'tag': 'wallet', msg: 'Failed to decrypt wallet' }"
-// "☣️ error { 'tag': 'api', msg: 'Request timed out' }"
 ```
 
 The `radix.errors` reactive property is in itself immortal and will never error out, so do **not** add a subscriber to the `error` event, but rather the `next` event**s**.
@@ -303,7 +304,7 @@ Sets the log level of the internal logger of this SDK. We use [loglevel](https:/
 radix.logLevel('error')
 ```
 
-The log levels available are `debug`, `error`, `warn`, `info`, and `silent`.
+The log levels available are `trace`, `debug`, `error`, `warn`, `info`, and `silent`.
 
 ### Account derivation
 You can create new accounts with `deriveNextAccount()`, which takes an optional `alsoSwitchTo` argument, which changes the current active account.
@@ -833,6 +834,8 @@ transactionConfirmed$
 ```
 
 # Ledger
+
+All calls via `.ledger` returns failable Observables and any error will **not** be forwarded to the `errors` sink. Handle errors when subscribing to the Observable returned from method call.
 
 > ☑️ Mocked implementation only 🤡.
 

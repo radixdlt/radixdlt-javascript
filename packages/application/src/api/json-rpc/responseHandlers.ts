@@ -158,7 +158,7 @@ export const handleTransactionStatusResponse = (
 	json: unknown,
 ): Result<TransactionStatusEndpoint.DecodedResponse, Error[]> =>
 	isRPCRequestFailureResponse(json)
-		? err([Error(json.failure)])
+		? err([new Error(json.failure)])
 		: JSONDecoding.withDecoders(transactionIdentifierDecoder('txID'))
 				.create<TransactionStatusEndpoint.DecodedResponse>()
 				.fromJSON(json)
@@ -173,7 +173,7 @@ export const handleBuildTransactionResponse = (
 	json: unknown,
 ): Result<BuildTransactionEndpoint.DecodedResponse, Error[]> =>
 	isRPCRequestFailureResponse(json)
-		? err([Error(json.failure)])
+		? err([new Error(json.failure)])
 		: JSONDecoding.create<BuildTransactionEndpoint.DecodedResponse>().fromJSON(
 				json,
 		  )
@@ -182,7 +182,7 @@ export const handleSubmitSignedTransactionResponse = (
 	json: unknown,
 ): Result<SubmitSignedTransactionEndpoint.DecodedResponse, Error[]> =>
 	isRPCRequestFailureResponse(json)
-		? err([Error(json.failure)])
+		? err([new Error(json.failure)])
 		: JSONDecoding.withDecoders(transactionIdentifierDecoder('txID'))
 				.create<SubmitSignedTransactionEndpoint.DecodedResponse>()
 				.fromJSON(json)
@@ -191,7 +191,7 @@ export const handleFinalizedTransactionResponse = (
 	json: unknown,
 ): Result<FinalizeTransactionEndpoint.DecodedResponse, Error[]> =>
 	isRPCRequestFailureResponse(json)
-		? err([Error(json.failure)])
+		? err([new Error(json.failure)])
 		: JSONDecoding.withDecoders(transactionIdentifierDecoder('txID'))
 				.create<FinalizeTransactionEndpoint.DecodedResponse>()
 				.fromJSON(json)

@@ -147,6 +147,8 @@ export type TransactionTrackingEvent<
 // Marker protocol
 export type PartOfMakeTransactionFlow = unknown
 
+export type TXError = PartOfMakeTransactionFlow & Error
+
 export type TransactionTracking = Readonly<{
 	events: Observable<TransactionTrackingEvent<PartOfMakeTransactionFlow>>
 	completion: Observable<TransactionIdentifierT>
