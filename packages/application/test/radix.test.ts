@@ -1,11 +1,24 @@
 import { Radix } from '../src/radix'
 import { AddressT, HDMasterSeed, Wallet, WalletT } from '@radixdlt/account'
-import { interval, Observable, of, Subscription, throwError } from 'rxjs'
+import {
+	interval,
+	Observable,
+	of,
+	Subject,
+	Subscription,
+	throwError,
+} from 'rxjs'
 import { map, take, toArray } from 'rxjs/operators'
 import { KeystoreT } from '@radixdlt/crypto'
-import { RadixT } from '../src/_types'
+import { ManualUserConfirmTX, RadixT } from '../src/_types'
 import { APIErrorCause, ErrorCategory } from '../src/errors'
-import { alice, balancesFor, mockedAPI, mockRadixCoreAPI } from './mockRadix'
+import {
+	alice,
+	balancesFor,
+	bob,
+	mockedAPI,
+	mockRadixCoreAPI,
+} from './mockRadix'
 import { NodeT, RadixCoreAPI } from '../src/api/_types'
 import {
 	TokenBalances,
@@ -16,6 +29,11 @@ import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
 import { AmountT } from '@radixdlt/primitives'
 import { signatureFromHexStrings } from '@radixdlt/crypto/test/ellipticCurveCryptography.test'
 import { TransactionIntentBuilder } from '../src/dto/transactionIntentBuilder'
+import { TransactionTrackingEventType } from '../dist/dto/_types'
+import { LogLevel } from '@radixdlt/util'
+import { TransferTokensInput } from '../dist/actions/_types'
+import { TransferTokensOptions } from '../dist/_types'
+import { APIError } from '../dist/errors'
 
 const createWallet = (): WalletT => {
 	const masterSeed = HDMasterSeed.fromSeed(
@@ -597,7 +615,7 @@ describe('Radix API', () => {
 
 		const expectedValues: TransactionStatus[] = [
 			TransactionStatus.PENDING,
-			TransactionStatus.FAILED,
+			TransactionStatus.CONFIRMED,
 		]
 
 		radix
@@ -605,7 +623,7 @@ describe('Radix API', () => {
 				TransactionIdentifier.create(
 					'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
 				)._unsafeUnwrap(),
-				interval(300),
+				interval(10),
 			)
 			.pipe(
 				map(({ status }) => status),
@@ -695,8 +713,10 @@ describe('Radix API', () => {
 
 		radix.ledger
 			.submitSignedTransaction({
+				publicKeyOfSigner: alice.publicKey,
 				transaction: {
 					blob: 'xyz',
+					hashOfBlobToSign: 'deadbeef',
 				},
 				signature: signatureFromHexStrings({
 					r:
@@ -816,5 +836,176 @@ describe('Radix API', () => {
 					})
 			})
 			.add(subs)
+	})
+
+	describe('make tx single transfer', () => {
+		const tokenTransferInput: TransferTokensInput = {
+			to: bob,
+			amount: 1,
+			tokenIdentifier:
+				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD',
+		}
+
+		let pollTXStatusTrigger: Observable<unknown>
+
+		const transferTokens = (): TransferTokensOptions => ({
+			transferInput: tokenTransferInput,
+			userConfirmation: 'skip',
+			pollTXStatusTrigger: pollTXStatusTrigger,
+		})
+
+		let subs: Subscription
+
+		beforeEach(() => {
+			subs = new Subscription()
+			pollTXStatusTrigger = interval(50)
+		})
+
+		afterEach(() => {
+			subs.unsubscribe()
+		})
+
+		it('events emits expected values', (done) => {
+			const radix = Radix.create()
+				.withWallet(createWallet())
+				.__withAPI(mockedAPI)
+
+			const expectedValues = [
+				TransactionTrackingEventType.INITIATED,
+				TransactionTrackingEventType.BUILT_FROM_INTENT,
+				TransactionTrackingEventType.SIGNED,
+				TransactionTrackingEventType.SUBMITTED,
+				TransactionTrackingEventType.ASKING_USER_FOR_FINAL_CONFIRMATION,
+				TransactionTrackingEventType.USER_CONFIRMED_TX_BEFORE_FINALIZATION,
+				TransactionTrackingEventType.FINALIZED_AND_IS_NOW_PENDING,
+				TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
+				TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
+				TransactionTrackingEventType.COMPLETED,
+			]
+
+			radix
+				.transferTokens(transferTokens())
+				.events.pipe(
+					map((e) => e.eventUpdateType),
+					take(expectedValues.length),
+					toArray(),
+				)
+				.subscribe({
+					next: (values) => {
+						expect(values).toStrictEqual(expectedValues)
+						done()
+					},
+					error: (e) => {
+						done(
+							new Error(
+								`Tx failed, even though we expected it to succeed, error: ${e.toString()}`,
+							),
+						)
+					},
+				})
+				.add(subs)
+		})
+
+		it('automatic confirmation', (done) => {
+			const radix = Radix.create()
+				.withWallet(createWallet())
+				.__withAPI(mockedAPI)
+
+			let gotTXId = false
+
+			radix
+				.transferTokens(transferTokens())
+				.completion.subscribe({
+					next: (_txID) => {
+						gotTXId = true
+					},
+					complete: () => {
+						done()
+					},
+					error: (e) => {
+						done(
+							new Error(
+								`Tx failed, but expected to succeed. Error ${e}`,
+							),
+						)
+					},
+				})
+				.add(subs)
+		})
+
+		it('manual confirmation', (done) => {
+			const radix = Radix.create()
+				.withWallet(createWallet())
+				.__withAPI(mockedAPI)
+
+			const userConfirmation = new Subject<ManualUserConfirmTX>()
+
+			const transactionTracking = radix.transferTokens({
+				...transferTokens(),
+				userConfirmation,
+			})
+
+			let userHasBeenAskedToConfirmTX = false
+
+			userConfirmation
+				.subscribe((confirmation) => {
+					userHasBeenAskedToConfirmTX = true
+					confirmation.userDidConfirmSubject.next(
+						confirmation.txToConfirm,
+					) // emulate that usser confirms tx in her GUI wallet
+				})
+				.add(subs)
+
+			transactionTracking.completion
+				.subscribe({
+					next: (_txID) => {
+						expect(userHasBeenAskedToConfirmTX).toBe(true)
+						done()
+					},
+					error: (e) => {
+						done(e)
+					},
+				})
+				.add(subs)
+		})
+
+		it('error from buildTransaction is propagated', (done) => {
+			const buildErrorMsg = `Mocked failure of 'buildTransaction' API call`
+			const radix = Radix.create()
+				.withWallet(createWallet())
+				.__withAPI(
+					of({
+						...mockRadixCoreAPI(),
+						buildTransaction: (_intent) => {
+							return throwError(new Error(buildErrorMsg))
+						},
+					}),
+				)
+				.logLevel(LogLevel.SILENT)
+
+			const transactionTracking = radix.transferTokens(transferTokens())
+
+			transactionTracking.completion
+				.subscribe({
+					complete: () => {
+						done(
+							new Error(
+								'TX was successful, but we expected an error.',
+							),
+						)
+					},
+					error: (errors: APIError[]) => {
+						expect(errors.length).toBe(1)
+						const err: APIError = errors[0]
+						expect(err.message).toBe(buildErrorMsg)
+						expect(err.category).toEqual(ErrorCategory.API)
+						expect(err.cause).toEqual(
+							APIErrorCause.BUILD_TRANSACTION_FAILED,
+						)
+						done()
+					},
+				})
+				.add(subs)
+		})
 	})
 })

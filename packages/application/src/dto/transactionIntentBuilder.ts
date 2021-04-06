@@ -53,7 +53,7 @@ const mustHaveAtLeastOneAction = new Error(
 	'A transaction intent must contain at least one of the following actions: TransferToken, StakeTokens or UnstakeTokens',
 )
 
-const isIntendedTransferTokensAction = (
+export const isIntendedTransferTokensAction = (
 	something: unknown,
 ): something is IntendedTransferTokensAction => {
 	const inspection = something as IntendedTransferTokensAction
@@ -66,7 +66,7 @@ const isIntendedTransferTokensAction = (
 	)
 }
 
-const isIntendedStakeTokensAction = (
+export const isIntendedStakeTokensAction = (
 	something: unknown,
 ): something is IntendedStakeTokensAction => {
 	const inspection = something as IntendedStakeTokensAction
@@ -78,7 +78,7 @@ const isIntendedStakeTokensAction = (
 	)
 }
 
-const isIntendedUnstakeTokensAction = (
+export const isIntendedUnstakeTokensAction = (
 	something: unknown,
 ): something is IntendedUnstakeTokensAction => {
 	const inspection = something as IntendedUnstakeTokensAction

@@ -20,14 +20,21 @@ import {
 	ExecutedStakeTokensAction,
 	ExecutedTransferTokensAction,
 } from '../src/actions/_types'
-import { ExecutedTransaction, TokenPermission } from '../src/dto/_types'
+import {
+	ExecutedTransaction,
+	TokenPermission,
+	TransactionStatus,
+} from '../src/dto/_types'
 import { makeTokenPermissions } from '../src/dto/tokenPermissions'
-import { TransactionStatus } from '../src/dto/_types'
 import { Radix } from '../src/radix'
 import { radixCoreAPI } from '../src/api/radixCoreAPI'
 import { of } from '@radixdlt/account/node_modules/rxjs'
-import { APIErrorCause, ErrorCategory } from '../src/errors'
+import { APIError, APIErrorCause, ErrorCategory } from '../src/errors'
 import { alice, bob } from './mockRadix'
+import { PublicKey, Signature } from '@radixdlt/crypto'
+import { Subscription } from 'rxjs'
+import { signatureFromHexStrings } from '../../crypto/test/ellipticCurveCryptography.test'
+import { LogLevel } from '@radixdlt/util'
 
 let mockClientReturnValue: any
 
@@ -290,24 +297,24 @@ describe('networking', () => {
 
 		it('should handle get transaction status response', async () => {
 			const txStatus = TransactionStatus.CONFIRMED
-			const failure = 'ouch'
+
+			const txID_ = TransactionIdentifier.create(txID)._unsafeUnwrap()
 
 			mockClientReturnValue = <TransactionStatusEndpoint.Response>{
-				txID: txID,
+				txID: txID_.toString(),
 				status: txStatus,
-				failure,
 			}
 
 			const expected: TransactionStatusEndpoint.DecodedResponse = {
-				txID: TransactionIdentifier.create(txID)._unsafeUnwrap(),
+				txID: txID_,
 				status: txStatus,
-				failure,
 			}
 
-			const result = (await client.transactionStatus(''))._unsafeUnwrap()
+			const result = (
+				await client.transactionStatus(txID_.toString())
+			)._unsafeUnwrap()
 
 			expect(result.txID.equals(result.txID)).toBe(true)
-			expect(result.failure).toEqual(expected.failure)
 			expect(result.status).toEqual(expected.status)
 		})
 
@@ -368,61 +375,132 @@ describe('networking', () => {
 		})
 
 		it('should handle submit signed atom response', async () => {
+			const txID_ = TransactionIdentifier.create(txID)._unsafeUnwrap()
+
+			const transaction = {
+				blob: 'bloooooooob',
+				hashOfBlobToSign: 'deadbeef',
+			}
+
 			mockClientReturnValue = <SubmitSignedTransactionEndpoint.Response>{
-				txID: txID,
+				txID: txID_.toString(),
+				transaction,
+				publicKeyOfSigner: '',
+				signature: '',
 			}
 
 			const expected: SubmitSignedTransactionEndpoint.DecodedResponse = {
-				txID: TransactionIdentifier.create(txID)._unsafeUnwrap(),
+				txID: txID_,
+				transaction,
+				publicKeyOfSigner: <PublicKey>{},
+				signature: <Signature>{},
 			}
 
 			const result = (
-				await client.submitSignedTransaction({ blob: '' }, '')
+				await client.submitSignedTransaction({ blob: '' }, '', '')
 			)._unsafeUnwrap()
 
 			//@ts-ignore
 			expect(result.txID.equals(expected.txID)).toBe(true)
-			// expect(result.failure).toEqual(expected.failure)
 		})
 
 		it('should handle a build transaction failure', (done) => {
+			const subs = new Subscription()
+
+			const mockedErrorMsg = 'MOCKED_FAILURE_OF_BUILD_TX'
 			mockClientReturnValue = <BuildTransactionEndpoint.Response>{
-				failure: 'Failed',
+				failure: mockedErrorMsg,
 			}
 
-			const radix = Radix.create().__withAPI(
-				of(radixCoreAPI({ url: new URL('https://radix.com') }, client)),
-			)
-
-			radix.errors.subscribe((err) => {
-				expect(err.category).toEqual(ErrorCategory.API)
-				expect(err.cause).toEqual(
-					APIErrorCause.BUILD_TRANSACTION_FAILED,
+			const radix = Radix.create()
+				.__withAPI(
+					of(
+						radixCoreAPI(
+							{ url: new URL('https://radix.com') },
+							client,
+						),
+					),
 				)
-				done()
-			})
+				.logLevel(LogLevel.SILENT)
 
-			radix.ledger.buildTransaction({} as any).subscribe((tx) => {})
+			radix.ledger
+				.buildTransaction({} as any)
+				.subscribe(
+					(_ux) => {
+						done(
+							new Error(
+								'Call to buildTransaction succeeded, but we expected it to fail.',
+							),
+						)
+					},
+					(errors: APIError[]) => {
+						expect(errors.length).toBe(1)
+						const err: APIError = errors[0]
+						expect(err.category).toEqual(ErrorCategory.API)
+						expect(err.cause).toEqual(
+							APIErrorCause.BUILD_TRANSACTION_FAILED,
+						)
+						expect(err.message).toBe(mockedErrorMsg)
+						done()
+					},
+				)
+				.add(subs)
 		})
 
 		it('should handle submit signed tx with error message', (done) => {
+			const subs = new Subscription()
+
+			const mockedErrorMsg = 'MOCKED_FAILURE_OF_SUBMIT_TX'
 			mockClientReturnValue = <SubmitSignedTransactionEndpoint.Response>{
-				failure: 'Failed',
+				failure: mockedErrorMsg,
 			}
 
-			const radix = Radix.create().__withAPI(
-				of(radixCoreAPI({ url: new URL('https://radix.com') }, client)),
-			)
-
-			radix.errors.subscribe((err) => {
-				expect(err.category).toEqual(ErrorCategory.API)
-				expect(err.cause).toEqual(APIErrorCause.SUBMIT_SIGNED_TX_FAILED)
-				done()
-			})
+			const radix = Radix.create()
+				.__withAPI(
+					of(
+						radixCoreAPI(
+							{ url: new URL('https://radix.com') },
+							client,
+						),
+					),
+				)
+				.logLevel(LogLevel.SILENT)
 
 			radix.ledger
-				.submitSignedTransaction({} as any)
-				.subscribe((tx) => {})
+				.submitSignedTransaction({
+					publicKeyOfSigner: alice.publicKey,
+					transaction: {
+						blob: 'xyz',
+						hashOfBlobToSign: 'deadbeef',
+					},
+					signature: signatureFromHexStrings({
+						r:
+							'934b1ea10a4b3c1757e2b0c017d0b6143ce3c9a7e6a4a49860d7a6ab210ee3d8',
+						s:
+							'2442ce9d2b916064108014783e923ec36b49743e2ffa1c4496f01a512aafd9e5',
+					}),
+				})
+				.subscribe(
+					(_ux) => {
+						done(
+							new Error(
+								'Call to buildTransaction succeeded, but we expected it to fail.',
+							),
+						)
+					},
+					(errors: APIError[]) => {
+						expect(errors.length).toBe(1)
+						const err: APIError = errors[0]
+
+						expect(err.category).toEqual(ErrorCategory.API)
+						expect(err.cause).toEqual(
+							APIErrorCause.SUBMIT_SIGNED_TX_FAILED,
+						)
+						expect(err.message).toBe(mockedErrorMsg)
+						done()
+					},
+				)
+				.add(subs)
 		})
 	})
 })

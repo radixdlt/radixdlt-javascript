@@ -1,4 +1,4 @@
-import { UnsignedMessage, Hasher } from './_types'
+import { Hasher, UnsignedUnhashedMessage } from './_types'
 import { sha256 } from './algorithms'
 
 /**
@@ -6,14 +6,14 @@ import { sha256 } from './algorithms'
  *
  * @param {string} plainText - A plaintext string to be encoded and at a later point (not by this method) hashed by input.hasher and signed.
  * @param {Hasher} [hasher=SHA256] - (optional) A hasher that will be used to hash input.plainText. If none is provided, then SHA256 will be used.
- * @returns {UnsignedMessage} a message to be hashed an signed.
+ * @returns {UnsignedUnhashedMessage} a message to be hashed an signed.
  */
-export const unsignedPlainText = (
+export const unsignedUnhashedPlainText = (
 	input: Readonly<{
 		plainText: string
 		hasher?: Hasher
 	}>,
-): UnsignedMessage => ({
+): UnsignedUnhashedMessage => ({
 	unhashed: Buffer.from(input.plainText, 'utf8'),
 	hasher: input.hasher ?? sha256,
 })

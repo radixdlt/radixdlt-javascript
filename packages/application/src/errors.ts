@@ -32,6 +32,7 @@ export enum APIErrorCause {
 	VALIDATORS_FAILED = 'VALIDATORS_FAILED',
 	BUILD_TRANSACTION_FAILED = 'BUILD_TRANSACTION_FAILED',
 	SUBMIT_SIGNED_TX_FAILED = 'SUBMIT_SIGNED_TX_FAILED',
+	FINALIZE_TX_FAILED = 'FINALIZE_TX_FAILED',
 	NETWORK_ID_FAILED = 'NETWORK_ID_FAILED',
 }
 
@@ -80,10 +81,14 @@ export const networkTxThroughputErr = APIError(
 export const networkTxDemandErr = APIError(
 	APIErrorCause.NETWORK_TX_DEMAND_FAILED,
 )
-export const buildTxFromIntentErr = APIError(
-	APIErrorCause.BUILD_TRANSACTION_FAILED,
-)
+export const buildTxFromIntentErr = (
+	message: string,
+): ErrorT<ErrorCategory.API, APIErrorCause> =>
+	APIError(APIErrorCause.BUILD_TRANSACTION_FAILED)(message)
+
 export const submitSignedTxErr = APIError(APIErrorCause.SUBMIT_SIGNED_TX_FAILED)
+export const finalizeTxErr = APIError(APIErrorCause.FINALIZE_TX_FAILED)
+
 export const networkIdErr = APIError(APIErrorCause.NETWORK_ID_FAILED)
 
 export const lookupTxErr = APIError(APIErrorCause.LOOKUP_TX_FAILED)

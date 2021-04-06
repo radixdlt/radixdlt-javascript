@@ -6,15 +6,31 @@ export type Hasher = (inputData: Buffer) => Buffer
 
 export type Signer = Readonly<{
 	/**
-	 * Produces a cryptographic signature of the input.
+	 * Produces a cryptographic signature of the input (already hashed).
 	 *
-	 * @param {UnsignedMessage} unsignedMessage - The unsigned message to be hashed and signed.
+	 * @param {UnsignedMessage} unsignedMessage - The already hashed, unsigned message to be signed.
 	 * @returns {Signature} An EC signature produces by this signer when signing the message.
 	 */
-	sign: (unsignedMessage: UnsignedMessage) => ResultAsync<Signature, Error>
+	signHashed: (
+		unsignedMessage: UnsignedMessage,
+	) => ResultAsync<Signature, Error>
+
+	/**
+	 * Produces a cryptographic signature of the input.
+	 *
+	 * @param {UnsignedUnhashedMessage} unsignedMessage - The unhashed unsigned message to be hashed and signed.
+	 * @returns {Signature} An EC signature produces by this signer when signing the message.
+	 */
+	signUnhashed: (
+		unsignedMessage: UnsignedUnhashedMessage,
+	) => ResultAsync<Signature, Error>
 }>
 
 export type UnsignedMessage = Readonly<{
+	hashedMessage: Buffer
+}>
+
+export type UnsignedUnhashedMessage = Readonly<{
 	unhashed: Buffer
 	hasher: Hasher
 }>

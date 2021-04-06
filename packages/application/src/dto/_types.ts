@@ -10,10 +10,11 @@ import {
 	UnstakeTokensInput,
 } from '../actions/_types'
 import { AmountT } from '@radixdlt/primitives'
-import { Signature } from '@radixdlt/crypto'
-import { Observable } from 'rxjs'
+import { PublicKey, Signature } from '@radixdlt/crypto'
+import { Observable, Subject, Subscription } from 'rxjs'
 import { Result } from 'neverthrow'
 import { EncryptedMessage } from '@radixdlt/account'
+import { Observer, Subscribable, Unsubscribable } from 'rxjs/src/internal/types'
 
 export type StakePosition = Readonly<{
 	validator: AddressT
@@ -110,15 +111,47 @@ export type TransactionIntentBuilderT = Readonly<{
 	) => Observable<TransactionIntent>
 }>
 
-export type TransactionIntent = Readonly<{
-	actions: IntendedAction[]
-	message?: EncryptedMessage
-}>
+export type TransactionIntent = PartOfMakeTransactionFlow &
+	Readonly<{
+		actions: IntendedAction[]
+		message?: EncryptedMessage
+	}>
 
 export type ValidatorsRequestInput = Readonly<{
 	size: number
 	// Address of last seen validator in list
 	cursor: string
+}>
+
+export enum TransactionTrackingEventType {
+	/* A TransactionIntent was successfully created and any message has been encrypted */
+	INITIATED = 'INITIATED',
+	BUILT_FROM_INTENT = 'BUILT_FROM_INTENT',
+	SIGNED = 'SIGNED',
+	SUBMITTED = 'SUBMITTED',
+	ASKING_USER_FOR_FINAL_CONFIRMATION = 'ASKING_USER_FOR_FINAL_CONFIRMATION',
+	USER_CONFIRMED_TX_BEFORE_FINALIZATION = 'USER_CONFIRMED_TX_BEFORE_FINALIZATION',
+	/* API has finished "finalizing" / "confirming" the transaction, which now is pending. */
+	FINALIZED_AND_IS_NOW_PENDING = 'FINALIZED_AND_IS_NOW_PENDING',
+	UPDATE_OF_STATUS_OF_PENDING_TX = 'UPDATE_OF_STATUS_OF_PENDING_TX',
+	COMPLETED = 'COMPLETED',
+}
+
+export type TransactionTrackingEvent<
+	Value extends PartOfMakeTransactionFlow
+> = Readonly<{
+	eventUpdateType: TransactionTrackingEventType
+	value: Value
+}>
+
+// Marker protocol
+export type PartOfMakeTransactionFlow = unknown
+
+export type TXError = PartOfMakeTransactionFlow & Error
+
+export type TransactionTracking = Readonly<{
+	events: Observable<TransactionTrackingEvent<PartOfMakeTransactionFlow>>
+	completion: Observable<TransactionIdentifierT>
 }>
 
 export type TransactionHistoryOfKnownAddressRequestInput = Readonly<{
@@ -161,28 +194,45 @@ export type Token = Readonly<{
 	tokenPermission: TokenPermissions
 }>
 
-export type TransactionBlob = Readonly<{
+export type StatusOfTransaction = Readonly<{
+	txID: TransactionIdentifierT
+	status: TransactionStatus
+}>
+
+export type BuiltTransactionReadyToSign = Readonly<{
 	// Bytes on hex format
 	blob: string
+	hashOfBlobToSign: string
 }>
 
-export type UnsignedTransaction = Readonly<{
-	transaction: TransactionBlob &
-		Readonly<{
-			// hex string
-			hashOfBlobToSign: string
-		}>
-	fee: AmountT
-}>
+export type UnsignedTransaction = PartOfMakeTransactionFlow &
+	Readonly<{
+		transaction: BuiltTransactionReadyToSign
+		fee: AmountT
+	}>
 
-export type SignedTransaction = Readonly<{
-	transaction: TransactionBlob
+type SignedTXProps = Readonly<{
+	transaction: BuiltTransactionReadyToSign
+	publicKeyOfSigner: PublicKey
 	signature: Signature
 }>
 
-export type PendingTransaction = Readonly<{
-	txID: TransactionIdentifierT
-}>
+export type SignedUnsubmittedTransaction = PartOfMakeTransactionFlow &
+	SignedTXProps &
+	Readonly<{
+		// nothing here
+	}>
+
+export type SignedUnconfirmedTransaction = PartOfMakeTransactionFlow &
+	SignedTXProps &
+	Readonly<{
+		txID: TransactionIdentifierT
+	}>
+
+export type PendingTransaction = PartOfMakeTransactionFlow &
+	Readonly<{
+		txID: TransactionIdentifierT
+	}>
 
 export type RawToken = Readonly<{
 	name: string
@@ -236,12 +286,6 @@ export enum TransactionStatus {
 	CONFIRMED = 'CONFIRMED',
 	FAILED = 'FAILED',
 }
-
-export type StatusOfTransaction = Readonly<{
-	txID: TransactionIdentifierT
-	status: TransactionStatus
-	failure?: string
-}>
 
 export type RawExecutedAction =
 	| RawTransferAction

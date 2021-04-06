@@ -491,7 +491,7 @@
         },
         {
             "name": "submitSignedTransaction",
-            "summary": "Submits a signed transaction to the network.",
+            "summary": "Submits a signed transaction before finalizing it.",
             "params": [
                 {
                     "name": "transaction",
@@ -510,6 +510,87 @@
                 },
                 {
                     "name": "signatureDER",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "publicKeyOfSigner",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "result": {
+                "name": "submissionResult",
+                "schema": {
+                    "anyOf":[
+                        {
+                            "type": "object",
+                            "properties": {
+                                "txID": {
+                                    "type": "string"
+                                }
+                            },
+                            "additionalProperties": false,
+                            "required": [
+                                "txID"
+                            ]
+                        },
+                        {
+                            "type": "object",
+                            "properties": {
+                                "failure": {
+                                    "type": "string"
+                                }
+                            },
+                            "additionalProperties": false,
+                            "required": [
+                                "failure"
+                            ]
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "finalizeTransaction",
+            "summary": "Finalizes a transaction to be dispatched to Radix network.",
+            "params": [
+                {
+                    "name": "transaction",
+                    "required": true,
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "blob": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "blob"
+                        ],
+                        "additionalProperties": false
+                    }
+                },
+                {
+                    "name": "signatureDER",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "publicKeyOfSigner",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "txID",
                     "required": true,
                     "schema": {
                         "type": "string"

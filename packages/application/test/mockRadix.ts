@@ -16,7 +16,7 @@ import {
 	NetworkTransactionThroughput,
 	PendingTransaction,
 	ResourceIdentifierT,
-	SignedTransaction,
+	SignedUnsubmittedTransaction,
 	StakePositions,
 	StatusOfTransaction,
 	Token,
@@ -45,6 +45,7 @@ import { ActionType, ExecutedAction } from '../src/actions/_types'
 import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
 import { toAddress } from '../../account/test/address.test'
 import { StakePosition, UnstakePosition } from '../src/dto/_types'
+import { SignedUnconfirmedTransaction } from '../dist/dto/_types'
 
 export const xrd: Token = {
 	name: 'Rad',
@@ -397,12 +398,22 @@ const randomUnsignedTransaction = (
 }
 
 const randomPendingTransaction = (
-	signedTx: SignedTransaction,
+	signedTx: SignedUnsubmittedTransaction,
 ): PendingTransaction => ({
 	txID: TransactionIdentifier.create(
 		sha256(Buffer.from(signedTx.transaction.blob)),
 	)._unsafeUnwrap(),
 })
+
+const detRandomSignedUnconfirmedTransaction = (
+	signedTransaction: SignedUnsubmittedTransaction,
+): SignedUnconfirmedTransaction => {
+	const txID = randomPendingTransaction(signedTransaction).txID
+	return {
+		...signedTransaction,
+		txID,
+	}
+}
 
 const rndDemand = detPRNGWithBuffer(Buffer.from('dmnd'))
 const randomDemand = (): NetworkTransactionDemand => ({
@@ -735,64 +746,78 @@ export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
 		throwError(() => new Error('Not implemented')),
 
 	submitSignedTransaction: (
-		_signedTransaction: SignedTransaction,
+		_signedTransaction: SignedUnsubmittedTransaction,
+	): Observable<SignedUnconfirmedTransaction> =>
+		throwError(() => new Error('Not implemented')),
+
+	finalizeTransaction: (
+		_signedUnconfirmedTransaction: SignedUnconfirmedTransaction,
 	): Observable<PendingTransaction> =>
 		throwError(() => new Error('Not implemented')),
 })
+
+let txStatusMapCounter: Map<
+	TransactionIdentifierT,
+	number
+> = (undefined as unknown) as Map<TransactionIdentifierT, number>
 
 export const mockRadixCoreAPI = (
 	input?: Readonly<{
 		nodeUrl?: string
 		magic?: number
 	}>,
-): RadixCoreAPI => ({
-	node: { url: new URL(input?.nodeUrl ?? 'http://www.example.com') },
+): RadixCoreAPI => {
+	txStatusMapCounter = new Map<TransactionIdentifierT, number>()
+	return {
+		node: { url: new URL(input?.nodeUrl ?? 'http://www.example.com') },
 
-	networkId: (): Observable<Magic> => {
-		return of(magicFromNumber(input?.magic ?? 123)).pipe(shareReplay(1))
-	},
-	nativeToken: (): Observable<Token> => of(xrd),
-	tokenInfo: (rri: ResourceIdentifierT): Observable<Token> =>
-		of(tokenByRRIMap.get(rri) ?? __fallBackAlexToken),
-	tokenBalancesForAddress: deterministicRandomBalances,
-	transactionStatus: (txID: TransactionIdentifierT) => {
-		const prng = detPRNGWithBuffer(Buffer.from(txID.__hex, 'hex'))
-		const shouldFail = prng() % 2 > 0
+		networkId: (): Observable<Magic> => {
+			return of(magicFromNumber(input?.magic ?? 123)).pipe(shareReplay(1))
+		},
+		nativeToken: (): Observable<Token> => of(xrd),
+		tokenInfo: (rri: ResourceIdentifierT): Observable<Token> =>
+			of(tokenByRRIMap.get(rri) ?? __fallBackAlexToken),
+		tokenBalancesForAddress: deterministicRandomBalances,
+		transactionStatus: (
+			txID: TransactionIdentifierT,
+		): Observable<StatusOfTransaction> => {
+			const last = txStatusMapCounter.get(txID) ?? 0
+			const incremented = last + 1
+			txStatusMapCounter.set(txID, incremented)
 
-		const response = (status: TransactionStatus) => ({
-			txID,
-			status,
-			failure: status === TransactionStatus.FAILED ? 'Failed' : undefined,
-		})
+			const status: TransactionStatus =
+				last <= 1
+					? TransactionStatus.PENDING
+					: TransactionStatus.CONFIRMED
 
-		return (shouldFail
-			? of(
-					response(TransactionStatus.PENDING),
-					response(TransactionStatus.FAILED),
-			  )
-			: of(
-					response(TransactionStatus.PENDING),
-					response(TransactionStatus.CONFIRMED),
-			  )
-		).pipe(delay(3000))
-	},
-	validators: (input: ValidatorsRequestInput): Observable<Validators> =>
-		of(randomValidatorList(input.size)),
-	buildTransaction: (
-		transactionIntent: TransactionIntent,
-	): Observable<UnsignedTransaction> =>
-		of(randomUnsignedTransaction(transactionIntent)),
-	submitSignedTransaction: (
-		signedTx: SignedTransaction,
-	): Observable<PendingTransaction> => of(randomPendingTransaction(signedTx)),
-	networkTransactionDemand: (): Observable<NetworkTransactionDemand> =>
-		of(randomDemand()),
-	networkTransactionThroughput: (): Observable<NetworkTransactionThroughput> =>
-		of(randomThroughput()),
-	transactionHistory: deterministicRandomTXHistory,
-	lookupTransaction: deterministicRandomLookupTX,
-	unstakesForAddress: deterministicRandomUnstakesForAddr,
-	stakesForAddress: deterministicRandomStakesForAddr,
-})
+			return of({
+				txID,
+				status, // when TransactionStatus.FAIL ?
+			}).pipe(delay(50))
+		},
+		validators: (input: ValidatorsRequestInput): Observable<Validators> =>
+			of(randomValidatorList(input.size)),
+		buildTransaction: (
+			transactionIntent: TransactionIntent,
+		): Observable<UnsignedTransaction> =>
+			of(randomUnsignedTransaction(transactionIntent)).pipe(delay(50)),
+		submitSignedTransaction: (
+			signedTransaction: SignedUnsubmittedTransaction,
+		): Observable<SignedUnconfirmedTransaction> =>
+			of(detRandomSignedUnconfirmedTransaction(signedTransaction)).pipe(
+				delay(50),
+			),
+		finalizeTransaction: (signedUnconfirmedTX) =>
+			of(randomPendingTransaction(signedUnconfirmedTX)).pipe(delay(50)),
+		networkTransactionDemand: (): Observable<NetworkTransactionDemand> =>
+			of(randomDemand()),
+		networkTransactionThroughput: (): Observable<NetworkTransactionThroughput> =>
+			of(randomThroughput()),
+		transactionHistory: deterministicRandomTXHistory,
+		lookupTransaction: deterministicRandomLookupTX,
+		unstakesForAddress: deterministicRandomUnstakesForAddr,
+		stakesForAddress: deterministicRandomStakesForAddr,
+	}
+}
 
 export const mockedAPI: Observable<RadixCoreAPI> = of(mockRadixCoreAPI())

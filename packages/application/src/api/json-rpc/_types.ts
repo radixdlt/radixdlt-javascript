@@ -7,6 +7,7 @@ import {
 	PendingTransaction,
 	RawExecutedTransaction,
 	RawToken,
+	SignedUnconfirmedTransaction,
 	StakePositions,
 	StatusOfTransaction,
 	Token,
@@ -36,6 +37,7 @@ export enum ApiMethod {
 	TOKEN_INFO = 'tokenInfo',
 	BUILD_TX_FROM_INTENT = 'buildTransaction',
 	SUBMIT_SIGNED_TX = 'submitSignedTransaction',
+	FINALIZE_TX = 'finalizeTransaction',
 }
 
 export type Endpoint = `${API_PREFIX}.${typeof ApiMethod[keyof typeof ApiMethod]}`
@@ -203,7 +205,29 @@ export namespace SubmitSignedTransactionEndpoint {
 		transaction: Readonly<{
 			blob: string
 		}>,
+		publicKeyOfSigner: string,
 		signatureDER: string,
+	]
+
+	export type Response =
+		| {
+				txID: string
+		  }
+		| {
+				failure: string
+		  }
+
+	export type DecodedResponse = SignedUnconfirmedTransaction
+}
+
+export namespace FinalizeTransactionEndpoint {
+	export type Input = [
+		transaction: Readonly<{
+			blob: string
+		}>,
+		publicKeyOfSigner: string,
+		signatureDER: string,
+		txID: string,
 	]
 
 	export type Response =

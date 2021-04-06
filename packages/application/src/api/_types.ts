@@ -10,7 +10,8 @@ import {
 	NetworkTransactionThroughput,
 	PendingTransaction,
 	ResourceIdentifierT,
-	SignedTransaction,
+	SignedUnconfirmedTransaction,
+	SignedUnsubmittedTransaction,
 	StakePositions,
 	StatusOfTransaction,
 	Token,
@@ -70,7 +71,11 @@ export type RadixAPI = Readonly<{
 	) => Observable<UnsignedTransaction>
 
 	submitSignedTransaction: (
-		signedTransaction: SignedTransaction,
+		signedTransaction: SignedUnsubmittedTransaction,
+	) => Observable<SignedUnconfirmedTransaction>
+
+	finalizeTransaction: (
+		signedUnconfirmedTransaction: SignedUnconfirmedTransaction,
 	) => Observable<PendingTransaction>
 
 	networkId: () => Observable<Magic>
