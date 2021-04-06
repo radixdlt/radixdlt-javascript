@@ -269,7 +269,10 @@ const byEncryptingSeedOfMnemonicAndSavingKeystore = (
 			return new Error(
 				`Failed to save keystore, underlying error: '${underlyingError}'`,
 			)
-		}).map(() => keystoreToSave)
+		}).map(() => {
+			log.info('Keystore successfully saved.')
+			return keystoreToSave
+		})
 
 	return Keystore.encryptSecret({
 		secret: masterSeed.seed,
