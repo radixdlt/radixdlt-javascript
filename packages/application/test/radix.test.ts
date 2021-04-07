@@ -933,7 +933,7 @@ describe('Radix API', () => {
 				.add(subs)
 		})
 
-		it('manual confirmation', (done) => {
+		it.only('manual confirmation', (done) => {
 			const radix = Radix.create()
 				.withWallet(createWallet())
 				.__withAPI(mockedAPI)
@@ -950,9 +950,7 @@ describe('Radix API', () => {
 			userConfirmation
 				.subscribe((confirmation) => {
 					userHasBeenAskedToConfirmTX = true
-					confirmation.userDidConfirmSubject.next(
-						confirmation.txToConfirm,
-					) // emulate that usser confirms tx in her GUI wallet
+					confirmation()
 				})
 				.add(subs)
 

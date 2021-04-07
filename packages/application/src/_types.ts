@@ -24,10 +24,7 @@ import {
 } from './dto/_types'
 import { TransferTokensInput } from './actions/_types'
 
-export type ManualUserConfirmTX = {
-	txToConfirm: SignedUnconfirmedTransaction
-	userDidConfirmSubject: Subject<SignedUnconfirmedTransaction>
-}
+export type ManualUserConfirmTX = () => void
 
 export type TransactionConfirmationBeforeFinalization =
 	| 'skip'

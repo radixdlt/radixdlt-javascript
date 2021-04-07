@@ -23,6 +23,7 @@ import {
 	withLatestFrom,
 } from 'rxjs/operators'
 import {
+	combineLatest,
 	EMPTY,
 	interval,
 	merge,
@@ -365,10 +366,12 @@ const create = (): RadixT => {
 
 		const pendingTXSubject = new Subject<PendingTransaction>()
 
-		const askUserToConfirmSubject = new Subject<SignedUnconfirmedTransaction>()
-		const userDidConfirmTransactionSubject = new Subject<SignedUnconfirmedTransaction>()
+		const askUserToConfirmSubject = new Subject<number>()
+		const userDidConfirmTransactionSubject = new Subject<number>()
 
-		if (shouldConfirmTransactionAutomatically(options.userConfirmation)) {
+		const userConfirmation = options.userConfirmation
+
+		if (shouldConfirmTransactionAutomatically(userConfirmation)) {
 			/* log.trace */ log.debug(
 				'Transaction has been setup to be automatically confirmed, requiring no final confirmation input from user.',
 			)
@@ -384,21 +387,14 @@ const create = (): RadixT => {
 			/* log.trace */ log.debug(
 				`Transaction has been setup so that it requires a manual final confirmation from user before being finalized.`,
 			)
-			const twoWayConfirmationSubject: Subject<ManualUserConfirmTX> =
-				options.userConfirmation
-
+		
 			askUserToConfirmSubject
 				.subscribe((ux) => {
 					/* log.trace */ log.debug(
 						`Forwarding signedUnconfirmedTX and 'userDidConfirmTransactionSubject' to subject 'twoWayConfirmationSubject' now (inside subscribe to 'askUserToConfirmSubject')`,
 					)
 
-					const confirmation: ManualUserConfirmTX = {
-						txToConfirm: ux,
-						userDidConfirmSubject: userDidConfirmTransactionSubject,
-					}
-
-					twoWayConfirmationSubject.next(confirmation)
+					userConfirmation.next(() => userDidConfirmTransactionSubject.next(0))
 				})
 				.add(subs)
 		}
@@ -518,15 +514,28 @@ const create = (): RadixT => {
 							TransactionTrackingEventType.ASKING_USER_FOR_FINAL_CONFIRMATION,
 					})
 
-					askUserToConfirmSubject.next(unconfirmedSignedSubmittedTx)
+					askUserToConfirmSubject.next(0)
 				},
 			)
 			.add(subs)
 
-		const finalize$ = userDidConfirmTransactionSubject.pipe(
+		const whatever = userDidConfirmTransactionSubject.pipe(
+			withLatestFrom(submit$)
+		)
+
+		whatever.subscribe(x => {
+			console.log('whatever :', x)
+		}).add(subs)
+
+		
+		submit$.subscribe(x => {
+			console.log('submit :', x)
+		}).add(subs)
+
+		const finalize$ = whatever.pipe(
 			mergeMap(
 				(
-					userConfirmedTX: SignedUnconfirmedTransaction,
+					[_, userConfirmedTX]
 				): Observable<PendingTransaction> => {
 					log.debug(
 						`Transaction has been ${
