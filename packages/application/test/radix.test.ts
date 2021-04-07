@@ -1024,7 +1024,7 @@ describe('Radix API', () => {
 
 			radix.ledger.nativeToken().subscribe({
 				next: (token) => {
-					console.log(token)
+					done(Error('Should throw'))
 				},
 				error: (e: APIError) => {
 					expect(e.errors.length).toEqual(1)
