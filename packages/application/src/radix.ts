@@ -113,7 +113,7 @@ const create = (): RadixT => {
 	// Forwards calls to RadixCoreAPI, return type is a function: `(input?: I) => Observable<O>`
 	const fwdAPICall = <I extends unknown[], O>(
 		pickFn: (api: RadixCoreAPI) => (...input: I) => Observable<O>,
-		errorFn: (message: string) => ErrorNotification,
+		errorFn: (message: string | Error[]) => ErrorNotification,
 	) => (...input: I) =>
 		coreAPI$.pipe(
 			mergeMap((a) => pickFn(a)(...input)),
@@ -124,27 +124,7 @@ const create = (): RadixT => {
 					? errors
 					: [errors]
 
-				const errorsToThrow: ErrorNotification[] = []
-				for (const e of errorsToPropagate) {
-					type ErrorType = { message: string }
-					if ((e as ErrorType).message !== undefined) {
-						const errorMessage = (e as ErrorType).message
-						const errorToThrow = errorFn(errorMessage)
-						log.error(
-							`Throwing error: ${JSON.stringify(
-								errorToThrow,
-								null,
-								4,
-							)}`,
-						)
-						errorsToThrow.push(errorToThrow)
-					} else {
-						const metaErrorMessage = `Incorrect implementation, expected error type with 'message' field.`
-						log.error(metaErrorMessage)
-						throw new Error(metaErrorMessage)
-					}
-				}
-				throw errorsToThrow
+				throw errorFn(errorsToPropagate as Error[])
 			}),
 		)
 

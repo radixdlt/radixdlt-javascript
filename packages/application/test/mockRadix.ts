@@ -698,62 +698,79 @@ export const deterministicRandomStakesForAddr = (
 export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
 	node: { url: new URL(nodeUrl ?? 'http://www.example.com') },
 
-	networkId: (): Observable<Magic> =>
-		throwError(() => new Error('Not implemented')),
+	networkId: (): Observable<Magic> => {
+		throw Error('Not implemented')
+	},
 
-	tokenBalancesForAddress: (_address: AddressT): Observable<TokenBalances> =>
-		throwError(() => new Error('Not implemented')),
+	tokenBalancesForAddress: (
+		_address: AddressT,
+	): Observable<TokenBalances> => {
+		throw Error('Not implemented')
+	},
 
 	lookupTransaction: (
 		_txID: TransactionIdentifierT,
-	): Observable<ExecutedTransaction> =>
-		throwError(() => new Error('Not implemented')),
+	): Observable<ExecutedTransaction> => {
+		throw Error('Not implemented')
+	},
 
-	validators: (_input: ValidatorsRequestInput): Observable<Validators> =>
-		throwError(() => new Error('Not implemented')),
+	validators: (_input: ValidatorsRequestInput): Observable<Validators> => {
+		throw Error('Not implemented')
+	},
 
 	transactionHistory: (
 		_input: TransactionHistoryRequestInput,
-	): Observable<TransactionHistory> =>
-		throwError(() => new Error('Not implemented')),
+	): Observable<TransactionHistory> => {
+		throw Error('Not implemented')
+	},
 
-	nativeToken: (): Observable<Token> =>
-		throwError(() => new Error('Not implemented')),
+	nativeToken: (): Observable<Token> => {
+		throw Error('Not implemented')
+	},
 
-	tokenInfo: (_rri: ResourceIdentifierT): Observable<Token> =>
-		throwError(() => new Error('Not implemented')),
+	tokenInfo: (_rri: ResourceIdentifierT): Observable<Token> => {
+		throw Error('Not implemented')
+	},
 
-	stakesForAddress: (_address: AddressT): Observable<StakePositions> =>
-		throwError(() => new Error('Not implemented')),
+	stakesForAddress: (_address: AddressT): Observable<StakePositions> => {
+		throw Error('Not implemented')
+	},
 
-	unstakesForAddress: (_address: AddressT): Observable<UnstakePositions> =>
-		throwError(() => new Error('Not implemented')),
+	unstakesForAddress: (_address: AddressT): Observable<UnstakePositions> => {
+		throw Error('Not implemented')
+	},
 
 	transactionStatus: (
 		_txID: TransactionIdentifierT,
-	): Observable<StatusOfTransaction> =>
-		throwError(() => new Error('Not implemented')),
+	): Observable<StatusOfTransaction> => {
+		throw Error('Not implemented')
+	},
 
-	networkTransactionThroughput: (): Observable<NetworkTransactionThroughput> =>
-		throwError(() => new Error('Not implemented')),
+	networkTransactionThroughput: (): Observable<NetworkTransactionThroughput> => {
+		throw Error('Not implemented')
+	},
 
-	networkTransactionDemand: (): Observable<NetworkTransactionDemand> =>
-		throwError(() => new Error('Not implemented')),
+	networkTransactionDemand: (): Observable<NetworkTransactionDemand> => {
+		throw Error('Not implemented')
+	},
 
 	buildTransaction: (
 		_transactionIntent: TransactionIntent,
-	): Observable<UnsignedTransaction> =>
-		throwError(() => new Error('Not implemented')),
+	): Observable<UnsignedTransaction> => {
+		throw Error('Not implemented')
+	},
 
 	submitSignedTransaction: (
 		_signedTransaction: SignedUnsubmittedTransaction,
-	): Observable<SignedUnconfirmedTransaction> =>
-		throwError(() => new Error('Not implemented')),
+	): Observable<SignedUnconfirmedTransaction> => {
+		throw Error('Not implemented')
+	},
 
 	finalizeTransaction: (
 		_signedUnconfirmedTransaction: SignedUnconfirmedTransaction,
-	): Observable<PendingTransaction> =>
-		throwError(() => new Error('Not implemented')),
+	): Observable<PendingTransaction> => {
+		throw Error('Not implemented')
+	},
 })
 
 let txStatusMapCounter: Map<
