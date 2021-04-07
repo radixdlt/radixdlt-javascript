@@ -884,17 +884,9 @@ describe('Radix API', () => {
 				TransactionTrackingEventType.COMPLETED,
 			]
 
-			
-			const tracking = radix
-			.transferTokens(transferTokens())
-			.events
-
-			tracking.subscribe(x => {
-				console.log('🚗: ', x.eventUpdateType)
-			}).add(subs)
-
-
-			tracking.pipe(
+			radix
+				.transferTokens(transferTokens())
+				.events.pipe(
 					map((e) => e.eventUpdateType),
 					take(expectedValues.length),
 					toArray(),
@@ -959,9 +951,7 @@ describe('Radix API', () => {
 			userConfirmation
 				.subscribe((confirmation) => {
 					userHasBeenAskedToConfirmTX = true
-					confirmation.userDidConfirmSubject.next(
-						confirmation.txToConfirm,
-					) // emulate that usser confirms tx in her GUI wallet
+					confirmation.confirm()
 				})
 				.add(subs)
 

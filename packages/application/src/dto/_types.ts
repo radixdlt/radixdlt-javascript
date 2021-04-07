@@ -11,10 +11,9 @@ import {
 } from '../actions/_types'
 import { AmountT } from '@radixdlt/primitives'
 import { PublicKey, Signature } from '@radixdlt/crypto'
-import { Observable, Subject, Subscription } from 'rxjs'
+import { Observable } from 'rxjs'
 import { Result } from 'neverthrow'
 import { EncryptedMessage } from '@radixdlt/account'
-import { Observer, Subscribable, Unsubscribable } from 'rxjs/src/internal/types'
 
 export type StakePosition = Readonly<{
 	validator: AddressT

@@ -9,7 +9,7 @@ import {
 } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import { Address, AddressT } from '@radixdlt/account'
-import { Observable, of, throwError } from 'rxjs'
+import { Observable, of } from 'rxjs'
 import {
 	ExecutedTransaction,
 	NetworkTransactionDemand,
