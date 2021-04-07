@@ -21,12 +21,13 @@ import {
 	TransactionIdentifierT,
 	TransactionTracking,
 	SignedUnconfirmedTransaction,
+	UnsignedTransaction,
 } from './dto/_types'
 import { TransferTokensInput } from './actions/_types'
 
 export type ManualUserConfirmTX = {
-	txToConfirm: SignedUnconfirmedTransaction
-	userDidConfirmSubject: Subject<SignedUnconfirmedTransaction>
+	txToConfirm: UnsignedTransaction
+	userDidConfirmSubject: Subject<UnsignedTransaction>
 }
 
 export type TransactionConfirmationBeforeFinalization =

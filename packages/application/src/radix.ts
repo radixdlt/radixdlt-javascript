@@ -115,18 +115,18 @@ const create = (): RadixT => {
 		pickFn: (api: RadixCoreAPI) => (...input: I) => Observable<O>,
 		errorFn: (message: string | Error[]) => ErrorNotification,
 	) => (...input: I) =>
-		coreAPI$.pipe(
-			mergeMap((a) => pickFn(a)(...input)),
+			coreAPI$.pipe(
+				mergeMap((a) => pickFn(a)(...input)),
 
-			// We do NOT omit/supress error, we merely DECORATE the error
-			catchError((errors: unknown) => {
-				const errorsToPropagate: unknown[] = isArray(errors)
-					? errors
-					: [errors]
+				// We do NOT omit/supress error, we merely DECORATE the error
+				catchError((errors: unknown) => {
+					const errorsToPropagate: unknown[] = isArray(errors)
+						? errors
+						: [errors]
 
-				throw errorFn(errorsToPropagate as Error[])
-			}),
-		)
+					throw errorFn(errorsToPropagate as Error[])
+				}),
+			)
 
 	const networkId: () => Observable<Magic> = fwdAPICall(
 		(a) => a.networkId,
@@ -320,8 +320,8 @@ const create = (): RadixT => {
 								publicKeyOfSigner,
 							]): SignedUnsubmittedTransaction => {
 								/* log.trace */ log.debug(
-									`Finished signing transaction`,
-								)
+								`Finished signing transaction`,
+							)
 								return {
 									transaction: unsignedTx.transaction,
 									signature,
@@ -340,18 +340,18 @@ const create = (): RadixT => {
 		options: MakeTransactionOptions,
 	): TransactionTracking => {
 		/* log.trace */ log.debug(
-			`Start of transaction flow, inside constructor of 'TransactionTracking'.`,
-		)
+		`Start of transaction flow, inside constructor of 'TransactionTracking'.`,
+	)
 
 		const pendingTXSubject = new Subject<PendingTransaction>()
 
-		const askUserToConfirmSubject = new Subject<SignedUnconfirmedTransaction>()
-		const userDidConfirmTransactionSubject = new Subject<SignedUnconfirmedTransaction>()
+		const askUserToConfirmSubject = new Subject<UnsignedTransaction>()
+		const userDidConfirmTransactionSubject = new Subject<UnsignedTransaction>()
 
 		if (shouldConfirmTransactionAutomatically(options.userConfirmation)) {
 			/* log.trace */ log.debug(
-				'Transaction has been setup to be automatically confirmed, requiring no final confirmation input from user.',
-			)
+			'Transaction has been setup to be automatically confirmed, requiring no final confirmation input from user.',
+		)
 			askUserToConfirmSubject
 				.subscribe((ux) => {
 					log.debug(
@@ -362,22 +362,21 @@ const create = (): RadixT => {
 				.add(subs)
 		} else {
 			/* log.trace */ log.debug(
-				`Transaction has been setup so that it requires a manual final confirmation from user before being finalized.`,
-			)
+			`Transaction has been setup so that it requires a manual final confirmation from user before being finalized.`,
+		)
 			const twoWayConfirmationSubject: Subject<ManualUserConfirmTX> =
 				options.userConfirmation
 
 			askUserToConfirmSubject
 				.subscribe((ux) => {
 					/* log.trace */ log.debug(
-						`Forwarding signedUnconfirmedTX and 'userDidConfirmTransactionSubject' to subject 'twoWayConfirmationSubject' now (inside subscribe to 'askUserToConfirmSubject')`,
-					)
+					`Forwarding signedUnconfirmedTX and 'userDidConfirmTransactionSubject' to subject 'twoWayConfirmationSubject' now (inside subscribe to 'askUserToConfirmSubject')`,
+				)
 
 					const confirmation: ManualUserConfirmTX = {
 						txToConfirm: ux,
 						userDidConfirmSubject: userDidConfirmTransactionSubject,
 					}
-
 					twoWayConfirmationSubject.next(confirmation)
 				})
 				.add(subs)
@@ -410,7 +409,7 @@ const create = (): RadixT => {
 			completionSubject.error(errorEvent.value)
 		}
 
-		const build$ = transactionIntent$.pipe(
+		transactionIntent$.pipe(
 			switchMap(
 				(
 					intent: TransactionIntent,
@@ -425,6 +424,14 @@ const create = (): RadixT => {
 					return api.buildTransaction(intent)
 				},
 			),
+			tap(builtTx => {
+				log.debug('TX built by API => starting signing of it now.')
+				track({
+					value: builtTx,
+					eventUpdateType:
+						TransactionTrackingEventType.BUILT_FROM_INTENT,
+				})
+			}),
 			catchError((e: Error) => {
 				log.error(
 					`API failed to build transaction from intent, error: ${JSON.stringify(
@@ -439,25 +446,30 @@ const create = (): RadixT => {
 				})
 				return EMPTY
 			}),
-		)
+		).subscribe(unsignedTx => {
+			track({
+				value: unsignedTx,
+				eventUpdateType:
+					TransactionTrackingEventType.ASKING_USER_FOR_FINAL_CONFIRMATION,
+			})
+			askUserToConfirmSubject.next(unsignedTx)
+		}).add(subs)
 
-		const sign$ = build$.pipe(
+		userDidConfirmTransactionSubject.pipe(
+			tap(confirmed => {
+				track({
+					value: confirmed,
+					eventUpdateType:
+						TransactionTrackingEventType.USER_CONFIRMED_TX_BEFORE_FINALIZATION,
+				})
+			}),
 			mergeMap(
 				(
 					unsignedTX: UnsignedTransaction,
 				): Observable<SignedUnsubmittedTransaction> => {
-					log.debug('TX built by API => starting signing of it now.')
-					track({
-						value: unsignedTX,
-						eventUpdateType:
-							TransactionTrackingEventType.BUILT_FROM_INTENT,
-					})
 					return signUnsignedTx(unsignedTX)
 				},
 			),
-		)
-
-		const submit$ = sign$.pipe(
 			mergeMap(
 				(
 					signedTx: SignedUnsubmittedTransaction,
@@ -470,66 +482,23 @@ const create = (): RadixT => {
 					return api.submitSignedTransaction(signedTx)
 				},
 			),
-		)
-
-		submit$
-			.subscribe(
-				(
-					unconfirmedSignedSubmittedTx: SignedUnconfirmedTransaction,
-				) => {
-					log.debug(
-						`Received submitted transaction with txID='${unconfirmedSignedSubmittedTx.txID.toString()}' from API => ${
-							shouldConfirmTransactionAutomatically(
-								options.userConfirmation,
-							)
-								? 'it will be automatically confirmed for finalization now.'
-								: 'asking user to confirm it before finalization now.'
-						}`,
-					)
-
-					track({
-						value: unconfirmedSignedSubmittedTx,
-						eventUpdateType: TransactionTrackingEventType.SUBMITTED,
-					})
-
-					track({
-						value: unconfirmedSignedSubmittedTx,
-						eventUpdateType:
-							TransactionTrackingEventType.ASKING_USER_FOR_FINAL_CONFIRMATION,
-					})
-
-					askUserToConfirmSubject.next(unconfirmedSignedSubmittedTx)
-				},
-			)
-			.add(subs)
-
-		const finalize$ = userDidConfirmTransactionSubject.pipe(
+			tap(submitted => {
+				log.debug(
+					`Received submitted transaction with txID='${submitted.txID.toString()}' from API, calling finalize.`,
+				)
+				track({
+					value: submitted,
+					eventUpdateType: TransactionTrackingEventType.SUBMITTED,
+				})
+			}),
 			mergeMap(
 				(
 					userConfirmedTX: SignedUnconfirmedTransaction,
 				): Observable<PendingTransaction> => {
-					log.debug(
-						`Transaction has been ${
-							shouldConfirmTransactionAutomatically(
-								options.userConfirmation,
-							)
-								? 'automatically'
-								: 'manually confirmed by user'
-						} => sending it to 🛰 API for finalization.`,
-					)
-
-					track({
-						value: userConfirmedTX,
-						eventUpdateType:
-							TransactionTrackingEventType.USER_CONFIRMED_TX_BEFORE_FINALIZATION,
-					})
 					return api.finalizeTransaction(userConfirmedTX)
 				},
 			),
-		)
-
-		finalize$
-			.subscribe({
+			tap({
 				next: (pendingTx: PendingTransaction) => {
 					log.debug(
 						`Finalized transaction with txID='${pendingTx.txID.toString()}', it is now pending.`,
@@ -549,7 +518,7 @@ const create = (): RadixT => {
 					pendingTXSubject.error(submitTXError)
 				},
 			})
-			.add(subs)
+		).subscribe().add(subs)
 
 		const pollTxStatusTrigger =
 			options.pollTXStatusTrigger ?? interval(5 * 1_000) // every 5 seconds

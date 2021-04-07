@@ -874,19 +874,27 @@ describe('Radix API', () => {
 			const expectedValues = [
 				TransactionTrackingEventType.INITIATED,
 				TransactionTrackingEventType.BUILT_FROM_INTENT,
-				TransactionTrackingEventType.SIGNED,
-				TransactionTrackingEventType.SUBMITTED,
 				TransactionTrackingEventType.ASKING_USER_FOR_FINAL_CONFIRMATION,
 				TransactionTrackingEventType.USER_CONFIRMED_TX_BEFORE_FINALIZATION,
+				TransactionTrackingEventType.SIGNED,
+				TransactionTrackingEventType.SUBMITTED,
 				TransactionTrackingEventType.FINALIZED_AND_IS_NOW_PENDING,
 				TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
 				TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
 				TransactionTrackingEventType.COMPLETED,
 			]
 
-			radix
-				.transferTokens(transferTokens())
-				.events.pipe(
+			
+			const tracking = radix
+			.transferTokens(transferTokens())
+			.events
+
+			tracking.subscribe(x => {
+				console.log('🚗: ', x.eventUpdateType)
+			}).add(subs)
+
+
+			tracking.pipe(
 					map((e) => e.eventUpdateType),
 					take(expectedValues.length),
 					toArray(),
