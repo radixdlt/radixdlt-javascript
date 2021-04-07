@@ -170,7 +170,7 @@ export type ExecutedTransaction = Readonly<{
 	txID: TransactionIdentifierT
 	sentAt: Date
 	fee: AmountT
-	message?: EncryptedMessage
+	message?: string
 	actions: ExecutedAction[]
 }>
 
@@ -319,10 +319,7 @@ export type RawExecutedTransaction = Readonly<{
 	txID: string
 	sentAt: string
 	fee: string
-	message?: {
-		msg: string
-		encryptionScheme: string
-	}
+	message?: string
 	actions: RawExecutedAction[]
 }>
 

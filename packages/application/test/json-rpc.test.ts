@@ -433,14 +433,13 @@ describe('networking', () => {
 							),
 						)
 					},
-					(errors: APIError[]) => {
-						expect(errors.length).toBe(1)
-						const err: APIError = errors[0]
-						expect(err.category).toEqual(ErrorCategory.API)
-						expect(err.cause).toEqual(
+					(error: APIError) => {
+						expect(error.errors.length).toBe(1)
+						expect(error.category).toEqual(ErrorCategory.API)
+						expect(error.cause).toEqual(
 							APIErrorCause.BUILD_TRANSACTION_FAILED,
 						)
-						expect(err.message).toBe(mockedErrorMsg)
+						expect(error.errors[0].message).toBe(mockedErrorMsg)
 						done()
 					},
 				)
@@ -488,15 +487,14 @@ describe('networking', () => {
 							),
 						)
 					},
-					(errors: APIError[]) => {
-						expect(errors.length).toBe(1)
-						const err: APIError = errors[0]
+					(error: APIError) => {
+						expect(error.errors.length).toBe(1)
 
-						expect(err.category).toEqual(ErrorCategory.API)
-						expect(err.cause).toEqual(
+						expect(error.category).toEqual(ErrorCategory.API)
+						expect(error.cause).toEqual(
 							APIErrorCause.SUBMIT_SIGNED_TX_FAILED,
 						)
-						expect(err.message).toBe(mockedErrorMsg)
+						expect(error.errors[0].message).toBe(mockedErrorMsg)
 						done()
 					},
 				)

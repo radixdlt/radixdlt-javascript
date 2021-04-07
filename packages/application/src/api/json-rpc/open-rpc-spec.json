@@ -418,20 +418,7 @@
                     "name": "message",
                     "required": false,
                     "schema": {
-                        "type": "object",
-                        "properties": {
-                            "msg": {
-                                "type": "string"
-                            },
-                            "encryptionScheme": {
-                                "type": "string"
-                            }
-                        },
-                        "additionalProperties": false,
-                        "required": [
-                            "msg",
-                            "encryptionScheme"
-                        ]
+                        "type": "string"
                     }
                 }
             ],
@@ -773,19 +760,7 @@
                         "$ref": "#/components/schemas/amount"
                     },
                     "message": {
-                        "type": "object",
-                        "properties": {
-                            "msg": {
-                                "type": "string"
-                            },
-                            "encryptionScheme": {
-                                "type": "string"
-                            }
-                        },
-                        "required": [
-                            "msg",
-                            "encryptionScheme"
-                        ]
+                        "type": "string"
                     },
                     "actions": {
                         "type": "array",

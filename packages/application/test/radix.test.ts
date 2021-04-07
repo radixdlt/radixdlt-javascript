@@ -16,6 +16,7 @@ import {
 	alice,
 	balancesFor,
 	bob,
+	makeThrowingRadixCoreAPI,
 	mockedAPI,
 	mockRadixCoreAPI,
 } from './mockRadix'
@@ -33,7 +34,7 @@ import { TransactionTrackingEventType } from '../dist/dto/_types'
 import { LogLevel } from '@radixdlt/util'
 import { TransferTokensInput } from '../dist/actions/_types'
 import { TransferTokensOptions } from '../dist/_types'
-import { APIError } from '../dist/errors'
+import { APIError, ErrorNotification } from '../src/errors'
 
 const createWallet = (): WalletT => {
 	const masterSeed = HDMasterSeed.fromSeed(
@@ -977,7 +978,7 @@ describe('Radix API', () => {
 					of({
 						...mockRadixCoreAPI(),
 						buildTransaction: (_intent) => {
-							return throwError(new Error(buildErrorMsg))
+							throw Error(buildErrorMsg)
 						},
 					}),
 				)
@@ -994,18 +995,43 @@ describe('Radix API', () => {
 							),
 						)
 					},
-					error: (errors: APIError[]) => {
-						expect(errors.length).toBe(1)
-						const err: APIError = errors[0]
-						expect(err.message).toBe(buildErrorMsg)
-						expect(err.category).toEqual(ErrorCategory.API)
-						expect(err.cause).toEqual(
+					error: (error: APIError) => {
+						expect(error.errors.length).toBe(1)
+						expect(error.errors[0].message).toBe(buildErrorMsg)
+						expect(error.category).toEqual(ErrorCategory.API)
+						expect(error.cause).toEqual(
 							APIErrorCause.BUILD_TRANSACTION_FAILED,
 						)
 						done()
 					},
 				})
 				.add(subs)
+		})
+
+		it('should be able to handle error on API call', (done) => {
+			const errorMsg = 'failed to fetch native token'
+
+			const radix = Radix.create()
+				.withWallet(createWallet())
+				.__withAPI(
+					of({
+						...mockRadixCoreAPI(),
+						nativeToken: () => {
+							throw Error(errorMsg)
+						},
+					}),
+				)
+
+			radix.ledger.nativeToken().subscribe({
+				next: (token) => {
+					done(Error('Should throw'))
+				},
+				error: (e: APIError) => {
+					expect(e.errors.length).toEqual(1)
+					expect(e.errors[0].message).toEqual(errorMsg)
+					done()
+				},
+			})
 		})
 	})
 })

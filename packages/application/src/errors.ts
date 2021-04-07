@@ -1,7 +1,9 @@
+import { isString } from '@radixdlt/util'
+
 export type ErrorT<Category extends ErrorCategory, Cause extends ErrorCause> = {
 	category: Category
 	cause: Cause
-	message: string
+	errors: Error[]
 }
 
 export enum ErrorCategory {
@@ -44,21 +46,21 @@ type NodeError = ErrorT<ErrorCategory.NODE, NodeErrorCause>
 
 export type ErrorNotification = NodeError | WalletError | APIError
 
-const Error = <E extends ErrorCategory, C extends ErrorCause>(category: E) => (
+const ErrorT = <E extends ErrorCategory, C extends ErrorCause>(category: E) => (
 	cause: C,
-) => (message: string): ErrorT<E, C> => ({
+) => (error: string | Error[]): ErrorT<E, C> => ({
 	category,
 	cause,
-	message,
+	errors: isString(error) ? [Error(error)] : error,
 })
 
-export const APIError = Error<ErrorCategory.API, APIErrorCause>(
+export const APIError = ErrorT<ErrorCategory.API, APIErrorCause>(
 	ErrorCategory.API,
 )
-export const nodeError = Error<ErrorCategory.NODE, NodeErrorCause>(
+export const nodeError = ErrorT<ErrorCategory.NODE, NodeErrorCause>(
 	ErrorCategory.NODE,
 )
-export const walletError = Error<ErrorCategory.WALLET, WalletErrorCause>(
+export const walletError = ErrorT<ErrorCategory.WALLET, WalletErrorCause>(
 	ErrorCategory.WALLET,
 )
 
@@ -82,9 +84,9 @@ export const networkTxDemandErr = APIError(
 	APIErrorCause.NETWORK_TX_DEMAND_FAILED,
 )
 export const buildTxFromIntentErr = (
-	message: string,
+	error: string | Error[],
 ): ErrorT<ErrorCategory.API, APIErrorCause> =>
-	APIError(APIErrorCause.BUILD_TRANSACTION_FAILED)(message)
+	APIError(APIErrorCause.BUILD_TRANSACTION_FAILED)(error)
 
 export const submitSignedTxErr = APIError(APIErrorCause.SUBMIT_SIGNED_TX_FAILED)
 export const finalizeTxErr = APIError(APIErrorCause.FINALIZE_TX_FAILED)
