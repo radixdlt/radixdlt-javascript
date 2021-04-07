@@ -954,6 +954,11 @@ describe('Radix API', () => {
 				})
 				.add(subs)
 
+			transactionTracking.events.subscribe(x => {
+				console.log('🛺', x.eventUpdateType)
+			}
+				).add(subs)
+
 			transactionTracking.completion
 				.subscribe({
 					next: (_txID) => {
