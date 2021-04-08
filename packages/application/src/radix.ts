@@ -39,8 +39,10 @@ import {
 	MakeTransactionOptions,
 	ManualUserConfirmTX,
 	RadixT,
+	StakeOptions,
 	TransactionConfirmationBeforeFinalization,
 	TransferTokensOptions,
+	UnstakeOptions,
 } from './_types'
 import {
 	APIError,
@@ -303,9 +305,7 @@ const create = (): RadixT => {
 		/* log.trace */ log.debug('Starting signing transaction (async).')
 		return activeAccount.pipe(
 			mergeMap(
-				(
-					account: AccountT,
-				): Observable<SignedTransaction> => {
+				(account: AccountT): Observable<SignedTransaction> => {
 					const msgToSignFromTx = Buffer.from(
 						unsignedTx.transaction.hashOfBlobToSign,
 						'hex',
@@ -638,6 +638,22 @@ const create = (): RadixT => {
 		)
 	}
 
+	const stakeTokens = (input: StakeOptions) => {
+		log.debug('stake')
+		return __makeTransactionFromBuilder(
+			TransactionIntentBuilder.create().stakeTokens(input.stakeInput),
+			{ ...input },
+		)
+	}
+
+	const unstakeTokens = (input: UnstakeOptions) => {
+		log.debug('unstake')
+		return __makeTransactionFromBuilder(
+			TransactionIntentBuilder.create().unstakeTokens(input.unstakeInput),
+			{ ...input },
+		)
+	}
+
 	deriveAccountSubject
 		.pipe(
 			withLatestFrom(wallet$),
@@ -749,8 +765,6 @@ const create = (): RadixT => {
 			return this
 		},
 
-		transferTokens,
-
 		// Wallet APIs
 		activeAddress,
 		activeAccount,
@@ -762,7 +776,10 @@ const create = (): RadixT => {
 		unstakingPositions,
 
 		// Methods
+		transferTokens,
 		transactionHistory,
+		stakeTokens,
+		unstakeTokens,
 	}
 }
 

@@ -32,7 +32,7 @@ import { signatureFromHexStrings } from '@radixdlt/crypto/test/ellipticCurveCryp
 import { TransactionIntentBuilder } from '../src/dto/transactionIntentBuilder'
 import { TransactionTrackingEventType } from '../src/dto/_types'
 import { LogLevel } from '@radixdlt/util'
-import { TransferTokensInput } from '../src/actions/_types'
+import { StakeTokensInput, TransferTokensInput } from '../src/actions/_types'
 import { TransferTokensOptions } from '../src/_types'
 import { APIError } from '../src/errors'
 
@@ -989,6 +989,66 @@ describe('Radix API', () => {
 					},
 					error: (e) => {
 						done(e)
+					},
+				})
+				.add(subs)
+		})
+
+		it('should be able to call stake tokens', (done) => {
+			const radix = Radix.create()
+				.withWallet(createWallet())
+				.__withAPI(mockedAPI)
+
+			radix
+				.stakeTokens({
+					stakeInput: {
+						amount: 1,
+						validator:
+							'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+					},
+					userConfirmation: 'skip',
+					pollTXStatusTrigger: pollTXStatusTrigger,
+				})
+				.completion.subscribe({
+					complete: () => {
+						done()
+					},
+					error: (e) => {
+						done(
+							new Error(
+								`Tx failed, but expected to succeed. Error ${e}`,
+							),
+						)
+					},
+				})
+				.add(subs)
+		})
+
+		it('should be able to call unstake tokens', (done) => {
+			const radix = Radix.create()
+				.withWallet(createWallet())
+				.__withAPI(mockedAPI)
+
+			radix
+				.unstakeTokens({
+					unstakeInput: {
+						amount: 1,
+						validator:
+							'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+					},
+					userConfirmation: 'skip',
+					pollTXStatusTrigger: pollTXStatusTrigger,
+				})
+				.completion.subscribe({
+					complete: () => {
+						done()
+					},
+					error: (e) => {
+						done(
+							new Error(
+								`Tx failed, but expected to succeed. Error ${e}`,
+							),
+						)
 					},
 				})
 				.add(subs)

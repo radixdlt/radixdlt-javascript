@@ -509,6 +509,8 @@ Two differnt kinds of actions fall in under this category:
 
 ## Make Transaction
 
+### Token transfer
+
 Here we show how to transfer tokens, which is one of potentially several _actions_, making up a _transaction_.
 
 ```typescript
@@ -528,9 +530,58 @@ const radix = Radix.create()
 			userConfirmation: 'skip'
 		}
 	)
+	.subscribe((txID) => console.log(`✅ Stake with txID ${txID.toString()} completed successfully.`)
+	.add(subs)
+```
+
+### Stake tokens
+
+
+```typescript
+import { Radix } from '@radixdlt/application'
+
+const radix = Radix.create()
+	.login('my strong password', loadKeystore)
+	.connect(new URL('https://api.radixdlt.com'))
+	.stakeTokens(
+		{
+			stakeInput: {
+				amount: 1,
+				validator:
+					'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+			},
+			userConfirmation: 'skip',
+			pollTXStatusTrigger: pollTXStatusTrigger,
+		}
+	)
+	.subscribe((txID) => console.log(`✅ Unstake with txID ${txID.toString()} completed successfully.`)
+	.add(subs)
+```
+
+### Unstake tokens
+
+
+```typescript
+import { Radix } from '@radixdlt/application'
+
+const radix = Radix.create()
+	.login('my strong password', loadKeystore)
+	.connect(new URL('https://api.radixdlt.com'))
+	.unstakeTokens(
+		{
+			unstakeInput: {
+				amount: 1,
+				validator:
+					'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+			},
+			userConfirmation: 'skip',
+			pollTXStatusTrigger: pollTXStatusTrigger,
+		}
+	)
 	.subscribe((txID) => console.log(`✅ TokenTransfer with txID ${txID.toString()} completed successfully.`)
 	.add(subs)
 ```
+
 
 The flow of making a transaction is the same, disregarding the contents of it, i.e. if you only make a single _token transfer_ action, or a single _stake tokens_ action, the flow remains the same.
 
@@ -789,6 +840,8 @@ transactionConfirmed$
 
 // ✅ Status confirmed`
 ```
+
+
 
 # Ledger
 
