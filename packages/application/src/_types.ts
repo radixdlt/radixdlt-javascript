@@ -116,9 +116,9 @@ export type RadixT = Readonly<{
 		trigger: Observable<number>,
 	) => Observable<StatusOfTransaction>
 
-	stake: (input: StakeOptions) => TransactionTracking
+	stakeTokens: (input: StakeOptions) => TransactionTracking
 
-	unstake: (input: UnstakeOptions) => TransactionTracking
+	unstakeTokens: (input: UnstakeOptions) => TransactionTracking
 
 	errors: Observable<ErrorNotification>
 

@@ -638,7 +638,7 @@ const create = (): RadixT => {
 		)
 	}
 
-	const stake = (input: StakeOptions) => {
+	const stakeTokens = (input: StakeOptions) => {
 		log.debug('stake')
 		return __makeTransactionFromBuilder(
 			TransactionIntentBuilder.create().stakeTokens(input.stakeInput),
@@ -646,7 +646,7 @@ const create = (): RadixT => {
 		)
 	}
 
-	const unstake = (input: UnstakeOptions) => {
+	const unstakeTokens = (input: UnstakeOptions) => {
 		log.debug('unstake')
 		return __makeTransactionFromBuilder(
 			TransactionIntentBuilder.create().unstakeTokens(input.unstakeInput),
@@ -765,8 +765,6 @@ const create = (): RadixT => {
 			return this
 		},
 
-		transferTokens,
-
 		// Wallet APIs
 		activeAddress,
 		activeAccount,
@@ -778,9 +776,10 @@ const create = (): RadixT => {
 		unstakingPositions,
 
 		// Methods
+		transferTokens,
 		transactionHistory,
-		stake,
-		unstake,
+		stakeTokens,
+		unstakeTokens,
 	}
 }
 

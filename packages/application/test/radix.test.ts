@@ -999,35 +999,26 @@ describe('Radix API', () => {
 				.withWallet(createWallet())
 				.__withAPI(mockedAPI)
 
-			const userConfirmation = new Subject<ManualUserConfirmTX>()
-
-			const transactionTracking = radix.stake({
-				stakeInput: {
-					amount: 1,
-					validator:
-						'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
-				},
-				userConfirmation,
-				pollTXStatusTrigger: pollTXStatusTrigger,
-			})
-
-			let userHasBeenAskedToConfirmTX = false
-
-			userConfirmation
-				.subscribe((confirmation) => {
-					userHasBeenAskedToConfirmTX = true
-					confirmation.confirm()
+			radix
+				.stakeTokens({
+					stakeInput: {
+						amount: 1,
+						validator:
+							'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+					},
+					userConfirmation: 'skip',
+					pollTXStatusTrigger: pollTXStatusTrigger,
 				})
-				.add(subs)
-
-			transactionTracking.completion
-				.subscribe({
-					next: (_txID) => {
-						expect(userHasBeenAskedToConfirmTX).toBe(true)
+				.completion.subscribe({
+					complete: () => {
 						done()
 					},
 					error: (e) => {
-						done(e)
+						done(
+							new Error(
+								`Tx failed, but expected to succeed. Error ${e}`,
+							),
+						)
 					},
 				})
 				.add(subs)
@@ -1038,35 +1029,26 @@ describe('Radix API', () => {
 				.withWallet(createWallet())
 				.__withAPI(mockedAPI)
 
-			const userConfirmation = new Subject<ManualUserConfirmTX>()
-
-			const transactionTracking = radix.unstake({
-				unstakeInput: {
-					amount: 1,
-					validator:
-						'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
-				},
-				userConfirmation,
-				pollTXStatusTrigger: pollTXStatusTrigger,
-			})
-
-			let userHasBeenAskedToConfirmTX = false
-
-			userConfirmation
-				.subscribe((confirmation) => {
-					userHasBeenAskedToConfirmTX = true
-					confirmation.confirm()
+			radix
+				.unstakeTokens({
+					unstakeInput: {
+						amount: 1,
+						validator:
+							'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+					},
+					userConfirmation: 'skip',
+					pollTXStatusTrigger: pollTXStatusTrigger,
 				})
-				.add(subs)
-
-			transactionTracking.completion
-				.subscribe({
-					next: (_txID) => {
-						expect(userHasBeenAskedToConfirmTX).toBe(true)
+				.completion.subscribe({
+					complete: () => {
 						done()
 					},
 					error: (e) => {
-						done(e)
+						done(
+							new Error(
+								`Tx failed, but expected to succeed. Error ${e}`,
+							),
+						)
 					},
 				})
 				.add(subs)
