@@ -674,10 +674,12 @@ const create = (): RadixT => {
 			_withNode(node$)
 			return this
 		},
+		
 		__withAPI: function (radixCoreAPI$: Observable<RadixCoreAPI>): RadixT {
 			radixCoreAPI$.subscribe((a) => coreAPISubject.next(a)).add(subs)
 			return this
 		},
+
 		connect: function (url: URL): RadixT {
 			_withNode(of({ url }))
 			return this
