@@ -455,20 +455,15 @@ const create = (): RadixT => {
 					askUserToConfirmSubject.next(builtTx)
 				}),
 				withLatestFrom(userDidConfirmTransactionSubject),
-				tap((_) => {
+				map(([unsignedTx, _]) => unsignedTx),
+				tap((unsignedTx) => {
 					track({
-						value: 'confirmed',
+						value: unsignedTx,
 						eventUpdateType:
 							TransactionTrackingEventType.USER_CONFIRMED_TX_BEFORE_FINALIZATION,
 					})
 				}),
-				mergeMap(
-					([
-						unsignedTX,
-					]): Observable<SignedUnsubmittedTransaction> => {
-						return signUnsignedTx(unsignedTX)
-					},
-				),
+				mergeMap((unsignedTx) => signUnsignedTx(unsignedTx)),
 				mergeMap(
 					(
 						signedTx: SignedUnsubmittedTransaction,
@@ -674,7 +669,7 @@ const create = (): RadixT => {
 			_withNode(node$)
 			return this
 		},
-		
+
 		__withAPI: function (radixCoreAPI$: Observable<RadixCoreAPI>): RadixT {
 			radixCoreAPI$.subscribe((a) => coreAPISubject.next(a)).add(subs)
 			return this
