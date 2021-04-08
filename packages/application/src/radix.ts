@@ -426,6 +426,20 @@ const create = (): RadixT => {
 						return api.buildTransaction(intent)
 					},
 				),
+				catchError((e: Error) => {
+					log.error(
+						`API failed to build transaction, error: ${JSON.stringify(
+							e,
+							null,
+							4,
+						)}`,
+					)
+					trackError({
+						error: e,
+						inStep: TransactionTrackingEventType.BUILT_FROM_INTENT,
+					})
+					return EMPTY
+				}),
 				tap((builtTx) => {
 					log.debug('TX built by API => starting signing of it now.')
 					track({
@@ -470,6 +484,20 @@ const create = (): RadixT => {
 						return api.submitSignedTransaction(signedTx)
 					},
 				),
+				catchError((e: Error) => {
+					log.error(
+						`API failed to submit transaction, error: ${JSON.stringify(
+							e,
+							null,
+							4,
+						)}`,
+					)
+					trackError({
+						error: e,
+						inStep: TransactionTrackingEventType.SUBMITTED,
+					})
+					return EMPTY
+				}),
 				tap((submitted) => {
 					log.debug(
 						`Received submitted transaction with txID='${submitted.txID.toString()}' from API, calling finalize.`,
@@ -486,6 +514,21 @@ const create = (): RadixT => {
 						return api.finalizeTransaction(userConfirmedTX)
 					},
 				),
+				catchError((e: Error) => {
+					log.error(
+						`API failed to finalize transaction, error: ${JSON.stringify(
+							e,
+							null,
+							4,
+						)}`,
+					)
+					trackError({
+						error: e,
+						inStep:
+							TransactionTrackingEventType.FINALIZED_AND_IS_NOW_PENDING,
+					})
+					return EMPTY
+				}),
 				tap({
 					next: (pendingTx: PendingTransaction) => {
 						log.debug(
@@ -505,20 +548,6 @@ const create = (): RadixT => {
 						)
 						pendingTXSubject.error(submitTXError)
 					},
-				}),
-				catchError((e: Error) => {
-					log.error(
-						`API failed to build transaction from intent, error: ${JSON.stringify(
-							e,
-							null,
-							4,
-						)}`,
-					)
-					trackError({
-						error: e,
-						inStep: TransactionTrackingEventType.BUILT_FROM_INTENT,
-					})
-					return EMPTY
 				}),
 			)
 			.subscribe()
