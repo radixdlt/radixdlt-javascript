@@ -30,11 +30,11 @@ import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
 import { AmountT } from '@radixdlt/primitives'
 import { signatureFromHexStrings } from '@radixdlt/crypto/test/ellipticCurveCryptography.test'
 import { TransactionIntentBuilder } from '../src/dto/transactionIntentBuilder'
-import { TransactionTrackingEventType } from '../dist/dto/_types'
+import { TransactionTrackingEventType } from '../src/dto/_types'
 import { LogLevel } from '@radixdlt/util'
-import { TransferTokensInput } from '../dist/actions/_types'
-import { TransferTokensOptions } from '../dist/_types'
-import { APIError, ErrorNotification } from '../src/errors'
+import { TransferTokensInput } from '../src/actions/_types'
+import { TransferTokensOptions } from '../src/_types'
+import { APIError } from '../src/errors'
 
 const createWallet = (): WalletT => {
 	const masterSeed = HDMasterSeed.fromSeed(
@@ -547,7 +547,7 @@ describe('Radix API', () => {
 
 							expect(tb.owner.publicKey.toString(true)).toBe(
 								keystoreForTest.publicKeysCompressed[
-								expected.pkIndex
+									expected.pkIndex
 								],
 							)
 							expect(tb.tokenBalances.length).toBe(
@@ -900,8 +900,8 @@ describe('Radix API', () => {
 			const expectedValues = [
 				TransactionTrackingEventType.INITIATED,
 				TransactionTrackingEventType.BUILT_FROM_INTENT,
-				TransactionTrackingEventType.ASKING_USER_FOR_FINAL_CONFIRMATION,
-				TransactionTrackingEventType.USER_CONFIRMED_TX_BEFORE_FINALIZATION,
+				TransactionTrackingEventType.ASKED_FOR_CONFIRMATION,
+				TransactionTrackingEventType.CONFIRMED,
 				TransactionTrackingEventType.SIGNED,
 				TransactionTrackingEventType.SUBMITTED,
 				TransactionTrackingEventType.FINALIZED_AND_IS_NOW_PENDING,
@@ -995,7 +995,11 @@ describe('Radix API', () => {
 		})
 
 		describe('transaction flow errors', () => {
-			const testFailure = (method: string, cause: ErrorCause, done: any) => {
+			const testFailure = (
+				method: string,
+				cause: ErrorCause,
+				done: any,
+			) => {
 				const errorMsg = `Failure`
 
 				const radix = Radix.create()
@@ -1010,7 +1014,9 @@ describe('Radix API', () => {
 					)
 					.logLevel(LogLevel.SILENT)
 
-				const transactionTracking = radix.transferTokens(transferTokens())
+				const transactionTracking = radix.transferTokens(
+					transferTokens(),
+				)
 
 				transactionTracking.completion
 					.subscribe({
@@ -1033,16 +1039,26 @@ describe('Radix API', () => {
 			}
 
 			it('buildTransaction', (done) => {
-				testFailure('buildTransaction', APIErrorCause.BUILD_TRANSACTION_FAILED, done)
+				testFailure(
+					'buildTransaction',
+					APIErrorCause.BUILD_TRANSACTION_FAILED,
+					done,
+				)
 			})
 			it('submitSignedTransaction', (done) => {
-				testFailure('submitSignedTransaction', APIErrorCause.SUBMIT_SIGNED_TX_FAILED, done)
+				testFailure(
+					'submitSignedTransaction',
+					APIErrorCause.SUBMIT_SIGNED_TX_FAILED,
+					done,
+				)
 			})
 			it('finalizeTransaction', (done) => {
-				testFailure('finalizeTransaction', APIErrorCause.FINALIZE_TX_FAILED, done)
+				testFailure(
+					'finalizeTransaction',
+					APIErrorCause.FINALIZE_TX_FAILED,
+					done,
+				)
 			})
 		})
 	})
-
-
 })

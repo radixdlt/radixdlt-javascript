@@ -128,8 +128,8 @@ export enum TransactionTrackingEventType {
 	BUILT_FROM_INTENT = 'BUILT_FROM_INTENT',
 	SIGNED = 'SIGNED',
 	SUBMITTED = 'SUBMITTED',
-	ASKING_USER_FOR_FINAL_CONFIRMATION = 'ASKING_USER_FOR_FINAL_CONFIRMATION',
-	USER_CONFIRMED_TX_BEFORE_FINALIZATION = 'USER_CONFIRMED_TX_BEFORE_FINALIZATION',
+	ASKED_FOR_CONFIRMATION = 'ASKED_FOR_CONFIRMATION',
+	CONFIRMED = 'CONFIRMED',
 	/* API has finished "finalizing" / "confirming" the transaction, which now is pending. */
 	FINALIZED_AND_IS_NOW_PENDING = 'FINALIZED_AND_IS_NOW_PENDING',
 	UPDATE_OF_STATUS_OF_PENDING_TX = 'UPDATE_OF_STATUS_OF_PENDING_TX',
@@ -204,7 +204,7 @@ export type BuiltTransactionReadyToSign = Readonly<{
 	hashOfBlobToSign: string
 }>
 
-export type UnsignedTransaction = PartOfMakeTransactionFlow &
+export type BuiltTransaction = PartOfMakeTransactionFlow &
 	Readonly<{
 		transaction: BuiltTransactionReadyToSign
 		fee: AmountT
@@ -216,13 +216,13 @@ type SignedTXProps = Readonly<{
 	signature: Signature
 }>
 
-export type SignedUnsubmittedTransaction = PartOfMakeTransactionFlow &
+export type SignedTransaction = PartOfMakeTransactionFlow &
 	SignedTXProps &
 	Readonly<{
 		// nothing here
 	}>
 
-export type SignedUnconfirmedTransaction = PartOfMakeTransactionFlow &
+export type SubmittedTransaction = PartOfMakeTransactionFlow &
 	SignedTXProps &
 	Readonly<{
 		txID: TransactionIdentifierT

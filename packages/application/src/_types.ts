@@ -20,12 +20,12 @@ import {
 	UnstakePositions,
 	TransactionIdentifierT,
 	TransactionTracking,
-	UnsignedTransaction,
+	BuiltTransaction,
 } from './dto/_types'
 import { TransferTokensInput } from './actions/_types'
 
 export type ManualUserConfirmTX = {
-	txToConfirm: UnsignedTransaction
+	txToConfirm: BuiltTransaction
 	confirm: () => void
 }
 

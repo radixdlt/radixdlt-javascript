@@ -7,7 +7,7 @@ import {
 	PendingTransaction,
 	RawExecutedTransaction,
 	RawToken,
-	SignedUnconfirmedTransaction,
+	SubmittedTransaction,
 	StakePositions,
 	StatusOfTransaction,
 	Token,
@@ -15,7 +15,7 @@ import {
 	TransactionHistory,
 	TransactionIntent,
 	TransactionStatus,
-	UnsignedTransaction,
+	BuiltTransaction,
 	UnstakePositions,
 	Validators,
 } from '../../dto/_types'
@@ -197,7 +197,7 @@ export namespace BuildTransactionEndpoint {
 				failure: string
 		  }
 
-	export type DecodedResponse = UnsignedTransaction
+	export type DecodedResponse = BuiltTransaction
 }
 
 export namespace SubmitSignedTransactionEndpoint {
@@ -217,7 +217,7 @@ export namespace SubmitSignedTransactionEndpoint {
 				failure: string
 		  }
 
-	export type DecodedResponse = SignedUnconfirmedTransaction
+	export type DecodedResponse = SubmittedTransaction
 }
 
 export namespace FinalizeTransactionEndpoint {

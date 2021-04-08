@@ -67,8 +67,8 @@ import { isArray, log, LogLevel } from '@radixdlt/util'
 import {
 	PartOfMakeTransactionFlow,
 	PendingTransaction,
-	SignedUnconfirmedTransaction,
-	SignedUnsubmittedTransaction,
+	SubmittedTransaction,
+	SignedTransaction,
 	TransactionHistory,
 	TransactionHistoryActiveAccountRequestInput,
 	TransactionIdentifierT,
@@ -79,7 +79,7 @@ import {
 	TransactionTrackingEvent,
 	TransactionTrackingEventType,
 	TXError,
-	UnsignedTransaction,
+	BuiltTransaction,
 } from './dto/_types'
 import { nodeAPI } from './api/api'
 import { TransactionIntentBuilder } from './dto/transactionIntentBuilder'
@@ -298,14 +298,12 @@ const create = (): RadixT => {
 	}
 
 	const signUnsignedTx = (
-		unsignedTx: UnsignedTransaction,
-	): Observable<SignedUnsubmittedTransaction> => {
+		unsignedTx: BuiltTransaction,
+	): Observable<SignedTransaction> => {
 		/* log.trace */ log.debug('Starting signing transaction (async).')
 		return activeAccount.pipe(
 			mergeMap(
-				(
-					account: AccountT,
-				): Observable<SignedUnsubmittedTransaction> => {
+				(account: AccountT): Observable<SignedTransaction> => {
 					const msgToSignFromTx: UnsignedMessage = {
 						hashedMessage: Buffer.from(
 							unsignedTx.transaction.hashOfBlobToSign,
@@ -318,7 +316,7 @@ const create = (): RadixT => {
 							([
 								signature,
 								publicKeyOfSigner,
-							]): SignedUnsubmittedTransaction => {
+							]): SignedTransaction => {
 								/* log.trace */ log.debug(
 									`Finished signing transaction`,
 								)
@@ -345,7 +343,7 @@ const create = (): RadixT => {
 
 		const pendingTXSubject = new Subject<PendingTransaction>()
 
-		const askUserToConfirmSubject = new Subject<UnsignedTransaction>()
+		const askUserToConfirmSubject = new Subject<BuiltTransaction>()
 		const userDidConfirmTransactionSubject = new Subject<0>()
 
 		if (shouldConfirmTransactionAutomatically(options.userConfirmation)) {
@@ -414,7 +412,7 @@ const create = (): RadixT => {
 				switchMap(
 					(
 						intent: TransactionIntent,
-					): Observable<UnsignedTransaction> => {
+					): Observable<BuiltTransaction> => {
 						log.debug(
 							'Transaction intent created => requesting 🛰 API to build it now.',
 						)
@@ -447,27 +445,28 @@ const create = (): RadixT => {
 						eventUpdateType:
 							TransactionTrackingEventType.BUILT_FROM_INTENT,
 					})
+					askUserToConfirmSubject.next(builtTx)
+				}),
+				tap((builtTx) => {
 					track({
 						value: builtTx,
 						eventUpdateType:
-							TransactionTrackingEventType.ASKING_USER_FOR_FINAL_CONFIRMATION,
+							TransactionTrackingEventType.ASKED_FOR_CONFIRMATION,
 					})
-					askUserToConfirmSubject.next(builtTx)
 				}),
 				withLatestFrom(userDidConfirmTransactionSubject),
 				map(([unsignedTx, _]) => unsignedTx),
 				tap((unsignedTx) => {
 					track({
 						value: unsignedTx,
-						eventUpdateType:
-							TransactionTrackingEventType.USER_CONFIRMED_TX_BEFORE_FINALIZATION,
+						eventUpdateType: TransactionTrackingEventType.CONFIRMED,
 					})
 				}),
 				mergeMap((unsignedTx) => signUnsignedTx(unsignedTx)),
 				mergeMap(
 					(
-						signedTx: SignedUnsubmittedTransaction,
-					): Observable<SignedUnconfirmedTransaction> => {
+						signedTx: SignedTransaction,
+					): Observable<SubmittedTransaction> => {
 						log.debug(
 							`Finished signing tx => submitting it to 🛰  API.`,
 						)
@@ -493,7 +492,7 @@ const create = (): RadixT => {
 					})
 					return EMPTY
 				}),
-				tap((submitted) => {
+				tap<SubmittedTransaction>((submitted) => {
 					log.debug(
 						`Received submitted transaction with txID='${submitted.txID.toString()}' from API, calling finalize.`,
 					)
@@ -504,7 +503,7 @@ const create = (): RadixT => {
 				}),
 				mergeMap(
 					(
-						userConfirmedTX: SignedUnconfirmedTransaction,
+						userConfirmedTX: SubmittedTransaction,
 					): Observable<PendingTransaction> => {
 						return api.finalizeTransaction(userConfirmedTX)
 					},
