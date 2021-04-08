@@ -1,6 +1,6 @@
 import { DSONCodable, JSONEncodable } from '@radixdlt/data-formats'
 import { Byte } from '@radixdlt/util'
-import { PublicKey, Signature, UnsignedMessage } from '@radixdlt/crypto'
+import { PublicKey, Signature } from '@radixdlt/crypto'
 import { Observable } from 'rxjs'
 import { BIP32T } from './bip32/_types'
 import { Option } from 'prelude-ts'
@@ -45,8 +45,9 @@ export type EncryptedMessageToDecrypt = EncryptedMessage &
 		publicKeysOfReaders: PublicKey[]
 	}>
 
+/* A reactive counterpart of `Signer` in '@radixdlt/crypto' package  */
 export type Signing = Readonly<{
-	sign: (unsignedMessage: UnsignedMessage) => Observable<Signature>
+	sign: (hashedMessage: Buffer) => Observable<Signature>
 }>
 
 export type Decrypting = Readonly<{
@@ -77,7 +78,7 @@ export type HardwareWalletSimpleT = Readonly<{
 	derivePublicKey: (hdPath: BIP32T) => Observable<PublicKey>
 	sign: (
 		input: Readonly<{
-			unsignedMessage: UnsignedMessage
+			hashedMessage: Buffer
 			hdPath: BIP32T
 		}>,
 	) => Observable<Signature>

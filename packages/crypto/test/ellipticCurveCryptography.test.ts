@@ -6,12 +6,12 @@ import {
 	Secp256k1,
 	generatePrivateKey,
 	generateKeyPair,
+	sha256
 } from '../src/_index'
 
 import { UInt256 } from '@radixdlt/uint256'
-import { publicKeyFromPrivateKeyScalar } from '../src/wrap/publicKeyWrapped'
-import { pointOnCurve } from '../src/wrap/ecPointOnCurve'
-import { unsignedUnhashedPlainText } from '../dist/unsignedUnhashedMessage'
+import { publicKeyFromPrivateKeyScalar } from '../src/elliptic-curve/wrap/publicKeyWrapped'
+import { pointOnCurve } from '../src/elliptic-curve/wrap/ecPointOnCurve'
 
 // TODO CODE DUPLICATION! Move to shared testing only package.
 export const signatureFromHexStrings = (input: {
@@ -49,11 +49,7 @@ describe('elliptic curve cryptography', () => {
 			UInt256.valueOf(1),
 		)._unsafeUnwrap()
 
-		const messageToSign = unsignedUnhashedPlainText({
-			plainText: 'Satoshi Nakamoto',
-		})
-
-		const signatureResult = await privateKey.signUnhashed(messageToSign)
+		const signatureResult = await privateKey.signUnhashed({ msgToHash: 'Satoshi Nakamoto', hasher: sha256})
 
 		const signature = signatureResult._unsafeUnwrap()
 
@@ -103,13 +99,9 @@ describe('elliptic curve cryptography', () => {
 				'2442ce9d2b916064108014783e923ec36b49743e2ffa1c4496f01a512aafd9e5',
 		})
 
-		const message = unsignedUnhashedPlainText({
-			plainText: 'Satoshi Nakamoto',
-		})
-
 		const signatureValidation = publicKey.isValidSignature({
 			signature: signature,
-			forData: { hashedMessage: message.hasher(message.unhashed) },
+			hashedMessage: sha256('Satoshi Nakamoto'),
 		})
 
 		expect(signatureValidation).toBeTruthy()

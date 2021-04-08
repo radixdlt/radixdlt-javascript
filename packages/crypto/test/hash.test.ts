@@ -1,4 +1,5 @@
-import { Hasher, sha256, radixHash, sha512, sha512Twice } from '../src/_index'
+import { Hasher, sha256 } from '../src/_index'
+import { sha256Twice } from '../src/hash/sha'
 
 const testHash = (testVector: {
 	hasher: Hasher
@@ -37,29 +38,10 @@ describe('hashing', () => {
 
 	it('can produce sha256 twice digests', () => {
 		testHashText({
-			hasher: radixHash,
+			hasher: sha256Twice,
 			plainText: 'hello',
 			expected:
 				'9595c9df90075148eb06860365df33584b75bff782a510c6cd4883a419833d50',
-		})
-	})
-
-	it('can produce sha512 digests', () => {
-		// https://www.di-mgt.com.au/sha_testvectors.html
-		testHashText({
-			hasher: sha512,
-			plainText: 'abc',
-			expected:
-				'ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f',
-		})
-	})
-
-	it('can produce sha512 twice digests', () => {
-		testHashText({
-			hasher: sha512Twice,
-			plainText: 'Hello Radix',
-			expected:
-				'4aff9c50959c7bb7d85438289a68e8f8aa6d635b767a125bff02831c3689975006744079ad6ff887796f1dbfedd7c954676c3bf0a36e26b3a415b94b0484a73d',
 		})
 	})
 })

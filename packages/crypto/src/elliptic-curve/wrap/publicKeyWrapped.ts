@@ -6,8 +6,7 @@ import {
 	PrivateKey,
 	PublicKey,
 	Signature,
-	UnsignedMessage,
-} from '../_types'
+} from '../../_types'
 import { buffersEquals } from '@radixdlt/util'
 import { bnFromUInt256 } from '@radixdlt/primitives'
 import { pointOnCurveFromEllipticShortPoint } from './ecPointOnCurve'
@@ -31,11 +30,10 @@ const publicKeyFromEllipticKey = (
 	const isValidSignature = (
 		input: Readonly<{
 			signature: Signature
-			forData: UnsignedMessage
+			hashedMessage: Buffer
 		}>,
 	): boolean => {
-		const unsignedMessage = input.forData
-		const message = unsignedMessage.hashedMessage
+		const message = input.hashedMessage
 		const signature = input.signature
 		const r = bnFromUInt256(signature.r)
 		const s = bnFromUInt256(signature.s)

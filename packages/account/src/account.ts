@@ -1,9 +1,4 @@
-import {
-	PrivateKey,
-	PublicKey,
-	Signature,
-	UnsignedMessage,
-} from '@radixdlt/crypto'
+import { PrivateKey, PublicKey, Signature } from '@radixdlt/crypto'
 import { mergeMap } from 'rxjs/operators'
 import { Observable, of, throwError } from 'rxjs'
 import { toObservable } from './resultAsync_observable'
@@ -31,8 +26,8 @@ const fromPrivateKey = (
 ): AccountT => {
 	const { privateKey, hdPath, addressFromPublicKey } = input
 	const publicKey: PublicKey = privateKey.publicKey()
-	const sign = (m: UnsignedMessage): Observable<Signature> =>
-		toObservable(privateKey.signHashed(m))
+	const sign = (hashedMessage: Buffer): Observable<Signature> =>
+		toObservable(privateKey.sign(hashedMessage))
 
 	return {
 		sign: sign,
@@ -73,10 +68,10 @@ const fromHDPathWithHardwareWallet = (
 
 	return {
 		hdPath: input.hdPath,
-		sign: (unsignedMessage: UnsignedMessage): Observable<Signature> =>
+		sign: (hashedMessage): Observable<Signature> =>
 			hardwareWallet$.pipe(
 				mergeMap((hw: HardwareWalletSimpleT) =>
-					hw.sign({ unsignedMessage, hdPath: input.hdPath }),
+					hw.sign({ hashedMessage, hdPath: input.hdPath }),
 				),
 			),
 		derivePublicKey,

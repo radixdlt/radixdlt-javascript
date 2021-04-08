@@ -16,7 +16,6 @@ import {
 	KeystoreT,
 	PublicKey,
 	Signature,
-	UnsignedMessage,
 } from '@radixdlt/crypto'
 import { Option } from 'prelude-ts'
 import { HDPathRadix, HDPathRadixT } from './bip32/_index'
@@ -210,8 +209,8 @@ const create = (
 		observeActiveAddress: (): Observable<AddressT> => activeAddress$,
 		derivePublicKey: (): Observable<PublicKey> =>
 			activeAccount$.pipe(mergeMap((a) => a.derivePublicKey())),
-		sign: (unsignedMessage: UnsignedMessage): Observable<Signature> =>
-			activeAccount$.pipe(mergeMap((a) => a.sign(unsignedMessage))),
+		sign: (hashedMessage: Buffer): Observable<Signature> =>
+			activeAccount$.pipe(mergeMap((a) => a.sign(hashedMessage))),
 	}
 }
 

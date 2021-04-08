@@ -45,7 +45,7 @@ import { ActionType, ExecutedAction } from '../src/actions/_types'
 import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
 import { toAddress } from '../../account/test/address.test'
 import { StakePosition, UnstakePosition } from '../src/dto/_types'
-import { SignedUnconfirmedTransaction } from '../dist/dto/_types'
+import { SignedUnconfirmedTransaction } from '../src/dto/_types'
 
 export const xrd: Token = {
 	name: 'Rad',

@@ -1,7 +1,6 @@
 import {
 	privateKeyFromScalar,
-	PublicKey,
-	unsignedUnhashedPlainText,
+	PublicKey, sha256Twice,
 } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
 import { Account } from '../src/account'
@@ -46,9 +45,9 @@ describe('account', () => {
 			),
 		)._unsafeUnwrap()
 
-		const message = unsignedUnhashedPlainText({ plainText: 'hey' })
+		const message = 'hey'
 		const expectedSignature = (
-			await matchingPrivateKey.signUnhashed(message)
+			await matchingPrivateKey.signUnhashed({ msgToHash: message } )
 		)._unsafeUnwrap()
 
 		account.derivePublicKey().subscribe((pk) => {
@@ -57,7 +56,7 @@ describe('account', () => {
 			)
 
 			account
-				.sign({ hashedMessage: message.hasher(message.unhashed) })
+				.sign(sha256Twice(message))
 				.subscribe((sig) => {
 					expect(sig.equals(expectedSignature)).toBe(true)
 					done()

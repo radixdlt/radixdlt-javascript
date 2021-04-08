@@ -4,7 +4,7 @@ import { UInt256 } from '@radixdlt/uint256'
 
 import { combine, Result } from 'neverthrow'
 import { ec } from 'elliptic'
-import { Signature } from '../_types'
+import { Signature } from '../../_types'
 import log from 'loglevel'
 
 export const signDataWithPrivateKey = (

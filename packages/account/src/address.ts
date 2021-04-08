@@ -14,8 +14,8 @@ import {
 	base58Encode,
 	PublicKey,
 	publicKeyFromBytes,
-	radixHash,
 } from '@radixdlt/crypto'
+import { sha256Twice } from '@radixdlt/crypto'
 
 const checksumByteCount = 4
 const CBOR_BYTESTRING_PREFIX: Byte = 4
@@ -128,7 +128,7 @@ const calculateAndAppendChecksumFromPubKeyAndMagic = (
 }
 
 const calculateAndAppendChecksum = (buffer: Buffer): Buffer => {
-	const checksum = radixHash(buffer)
+	const checksum = sha256Twice(buffer)
 	const checksumFirstFourBytes = checksum.slice(0, checksumByteCount)
 	return Buffer.concat([buffer, checksumFirstFourBytes])
 }
