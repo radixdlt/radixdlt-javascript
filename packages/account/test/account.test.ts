@@ -1,7 +1,4 @@
-import {
-	privateKeyFromScalar,
-	PublicKey, sha256Twice,
-} from '@radixdlt/crypto'
+import { privateKeyFromScalar, PublicKey, sha256Twice } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
 import { Account } from '../src/account'
 import { Mnemonic } from '../src/bip39/mnemonic'
@@ -47,7 +44,7 @@ describe('account', () => {
 
 		const message = 'hey'
 		const expectedSignature = (
-			await matchingPrivateKey.signUnhashed({ msgToHash: message } )
+			await matchingPrivateKey.signUnhashed({ msgToHash: message })
 		)._unsafeUnwrap()
 
 		account.derivePublicKey().subscribe((pk) => {
@@ -55,12 +52,10 @@ describe('account', () => {
 				'026d5e07cfde5df84b5ef884b629d28d15b0f6c66be229680699767cd57c618288',
 			)
 
-			account
-				.sign(sha256Twice(message))
-				.subscribe((sig) => {
-					expect(sig.equals(expectedSignature)).toBe(true)
-					done()
-				})
+			account.sign(sha256Twice(message)).subscribe((sig) => {
+				expect(sig.equals(expectedSignature)).toBe(true)
+				done()
+			})
 		})
 	})
 })

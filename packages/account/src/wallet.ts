@@ -11,12 +11,7 @@ import {
 	WalletT,
 } from './_types'
 import { mergeMap, map, distinctUntilChanged } from 'rxjs/operators'
-import {
-	Keystore,
-	KeystoreT,
-	PublicKey,
-	Signature,
-} from '@radixdlt/crypto'
+import { Keystore, KeystoreT, PublicKey, Signature } from '@radixdlt/crypto'
 import { Option } from 'prelude-ts'
 import { HDPathRadix, HDPathRadixT } from './bip32/_index'
 import { isAccount } from './account'

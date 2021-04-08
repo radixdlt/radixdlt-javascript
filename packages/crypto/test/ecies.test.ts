@@ -14,7 +14,7 @@ describe('ECIES', () => {
 	it('needs tests', () => {
 		expect(true).toBe(true)
 	})
-/*
+	/*
 	it('can encrypt', () => {
 		const unsafeTestRandom: SecureRandom = {
 			randomSecureBytes: (byteCount: number) =>

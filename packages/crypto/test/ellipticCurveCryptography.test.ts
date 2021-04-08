@@ -6,7 +6,7 @@ import {
 	Secp256k1,
 	generatePrivateKey,
 	generateKeyPair,
-	sha256
+	sha256,
 } from '../src/_index'
 
 import { UInt256 } from '@radixdlt/uint256'
@@ -49,7 +49,10 @@ describe('elliptic curve cryptography', () => {
 			UInt256.valueOf(1),
 		)._unsafeUnwrap()
 
-		const signatureResult = await privateKey.signUnhashed({ msgToHash: 'Satoshi Nakamoto', hasher: sha256})
+		const signatureResult = await privateKey.signUnhashed({
+			msgToHash: 'Satoshi Nakamoto',
+			hasher: sha256,
+		})
 
 		const signature = signatureResult._unsafeUnwrap()
 

@@ -1,12 +1,7 @@
 import { err, ok, Result } from 'neverthrow'
 import { curve, ec } from 'elliptic'
 import BN from 'bn.js'
-import {
-	ECPointOnCurve,
-	PrivateKey,
-	PublicKey,
-	Signature,
-} from '../../_types'
+import { ECPointOnCurve, PrivateKey, PublicKey, Signature } from '../../_types'
 import { buffersEquals } from '@radixdlt/util'
 import { bnFromUInt256 } from '@radixdlt/primitives'
 import { pointOnCurveFromEllipticShortPoint } from './ecPointOnCurve'
