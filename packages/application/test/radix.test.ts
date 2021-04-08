@@ -994,6 +994,84 @@ describe('Radix API', () => {
 				.add(subs)
 		})
 
+		it('should be able to call stake tokens', (done) => {
+			const radix = Radix.create()
+				.withWallet(createWallet())
+				.__withAPI(mockedAPI)
+
+			const userConfirmation = new Subject<ManualUserConfirmTX>()
+
+			const transactionTracking = radix.stake({
+				stakeInput: {
+					amount: 1,
+					validator:
+						'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+				},
+				userConfirmation,
+				pollTXStatusTrigger: pollTXStatusTrigger,
+			})
+
+			let userHasBeenAskedToConfirmTX = false
+
+			userConfirmation
+				.subscribe((confirmation) => {
+					userHasBeenAskedToConfirmTX = true
+					confirmation.confirm()
+				})
+				.add(subs)
+
+			transactionTracking.completion
+				.subscribe({
+					next: (_txID) => {
+						expect(userHasBeenAskedToConfirmTX).toBe(true)
+						done()
+					},
+					error: (e) => {
+						done(e)
+					},
+				})
+				.add(subs)
+		})
+
+		it('should be able to call unstake tokens', (done) => {
+			const radix = Radix.create()
+				.withWallet(createWallet())
+				.__withAPI(mockedAPI)
+
+			const userConfirmation = new Subject<ManualUserConfirmTX>()
+
+			const transactionTracking = radix.unstake({
+				unstakeInput: {
+					amount: 1,
+					validator:
+						'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+				},
+				userConfirmation,
+				pollTXStatusTrigger: pollTXStatusTrigger,
+			})
+
+			let userHasBeenAskedToConfirmTX = false
+
+			userConfirmation
+				.subscribe((confirmation) => {
+					userHasBeenAskedToConfirmTX = true
+					confirmation.confirm()
+				})
+				.add(subs)
+
+			transactionTracking.completion
+				.subscribe({
+					next: (_txID) => {
+						expect(userHasBeenAskedToConfirmTX).toBe(true)
+						done()
+					},
+					error: (e) => {
+						done(e)
+					},
+				})
+				.add(subs)
+		})
+
 		describe('transaction flow errors', () => {
 			const testFailure = (
 				method: string,
@@ -1059,34 +1137,6 @@ describe('Radix API', () => {
 					done,
 				)
 			})
-		})	
-	})
-
-	describe('make tx stake', () => {
-		const stakeInput: StakeTokensInput = {
-			validator: '9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
-			amount: 1,
-		}
-
-		let pollTXStatusTrigger: Observable<unknown>
-
-		const transferTokens = () => ({
-			stakeInput: stakeInput,
-			userConfirmation: 'skip',
-			pollTXStatusTrigger: pollTXStatusTrigger,
 		})
-
-		let subs: Subscription
-
-		beforeEach(() => {
-			subs = new Subscription()
-			pollTXStatusTrigger = interval(50)
-		})
-
-		afterEach(() => {
-			subs.unsubscribe()
-		})
-
-		it()
 	})
 })

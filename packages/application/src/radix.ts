@@ -39,8 +39,10 @@ import {
 	MakeTransactionOptions,
 	ManualUserConfirmTX,
 	RadixT,
+	StakeOptions,
 	TransactionConfirmationBeforeFinalization,
 	TransferTokensOptions,
+	UnstakeOptions,
 } from './_types'
 import {
 	APIError,
@@ -83,7 +85,6 @@ import {
 } from './dto/_types'
 import { nodeAPI } from './api/api'
 import { TransactionIntentBuilder } from './dto/transactionIntentBuilder'
-import { StakeTokensInput, UnstakeTokensInput } from './actions/_types'
 
 const shouldConfirmTransactionAutomatically = (
 	confirmationScheme: TransactionConfirmationBeforeFinalization,
@@ -116,18 +117,18 @@ const create = (): RadixT => {
 		pickFn: (api: RadixCoreAPI) => (...input: I) => Observable<O>,
 		errorFn: (message: string | Error[]) => ErrorNotification,
 	) => (...input: I) =>
-			coreAPI$.pipe(
-				mergeMap((a) => pickFn(a)(...input)),
+		coreAPI$.pipe(
+			mergeMap((a) => pickFn(a)(...input)),
 
-				// We do NOT omit/supress error, we merely DECORATE the error
-				catchError((errors: unknown) => {
-					const errorsToPropagate: unknown[] = isArray(errors)
-						? errors
-						: [errors]
+			// We do NOT omit/supress error, we merely DECORATE the error
+			catchError((errors: unknown) => {
+				const errorsToPropagate: unknown[] = isArray(errors)
+					? errors
+					: [errors]
 
-					throw errorFn(errorsToPropagate as Error[])
-				}),
-			)
+				throw errorFn(errorsToPropagate as Error[])
+			}),
+		)
 
 	const networkId: () => Observable<Magic> = fwdAPICall(
 		(a) => a.networkId,
@@ -244,18 +245,6 @@ const create = (): RadixT => {
 		unstakesForAddressErr,
 	)
 
-	const stake = (stake: StakeTokensInput, options: MakeTransactionOptions) =>
-		__makeTransactionFromBuilder(
-			TransactionIntentBuilder.create().stakeTokens(stake),
-			options,
-		)
-
-	const unstake = (unstake: UnstakeTokensInput, options: MakeTransactionOptions) =>
-		__makeTransactionFromBuilder(
-			TransactionIntentBuilder.create().unstakeTokens(unstake),
-			options,
-		)
-
 	const transactionHistory = (
 		input: TransactionHistoryActiveAccountRequestInput,
 	): Observable<TransactionHistory> =>
@@ -316,9 +305,7 @@ const create = (): RadixT => {
 		/* log.trace */ log.debug('Starting signing transaction (async).')
 		return activeAccount.pipe(
 			mergeMap(
-				(
-					account: AccountT,
-				): Observable<SignedTransaction> => {
+				(account: AccountT): Observable<SignedTransaction> => {
 					const msgToSignFromTx = Buffer.from(
 						unsignedTx.transaction.hashOfBlobToSign,
 						'hex',
@@ -331,8 +318,8 @@ const create = (): RadixT => {
 								publicKeyOfSigner,
 							]): SignedTransaction => {
 								/* log.trace */ log.debug(
-								`Finished signing transaction`,
-							)
+									`Finished signing transaction`,
+								)
 								return {
 									transaction: unsignedTx.transaction,
 									signature,
@@ -351,8 +338,8 @@ const create = (): RadixT => {
 		options: MakeTransactionOptions,
 	): TransactionTracking => {
 		/* log.trace */ log.debug(
-		`Start of transaction flow, inside constructor of 'TransactionTracking'.`,
-	)
+			`Start of transaction flow, inside constructor of 'TransactionTracking'.`,
+		)
 
 		const pendingTXSubject = new Subject<PendingTransaction>()
 
@@ -361,8 +348,8 @@ const create = (): RadixT => {
 
 		if (shouldConfirmTransactionAutomatically(options.userConfirmation)) {
 			/* log.trace */ log.debug(
-			'Transaction has been setup to be automatically confirmed, requiring no final confirmation input from user.',
-		)
+				'Transaction has been setup to be automatically confirmed, requiring no final confirmation input from user.',
+			)
 			askUserToConfirmSubject
 				.subscribe(() => {
 					log.debug(
@@ -373,16 +360,16 @@ const create = (): RadixT => {
 				.add(subs)
 		} else {
 			/* log.trace */ log.debug(
-			`Transaction has been setup so that it requires a manual final confirmation from user before being finalized.`,
-		)
+				`Transaction has been setup so that it requires a manual final confirmation from user before being finalized.`,
+			)
 			const twoWayConfirmationSubject: Subject<ManualUserConfirmTX> =
 				options.userConfirmation
 
 			askUserToConfirmSubject
 				.subscribe((ux) => {
 					/* log.trace */ log.debug(
-					`Forwarding signedUnconfirmedTX and 'userDidConfirmTransactionSubject' to subject 'twoWayConfirmationSubject' now (inside subscribe to 'askUserToConfirmSubject')`,
-				)
+						`Forwarding signedUnconfirmedTX and 'userDidConfirmTransactionSubject' to subject 'twoWayConfirmationSubject' now (inside subscribe to 'askUserToConfirmSubject')`,
+					)
 
 					const confirmation: ManualUserConfirmTX = {
 						txToConfirm: ux,
@@ -651,6 +638,22 @@ const create = (): RadixT => {
 		)
 	}
 
+	const stake = (input: StakeOptions) => {
+		log.debug('stake')
+		return __makeTransactionFromBuilder(
+			TransactionIntentBuilder.create().stakeTokens(input.stakeInput),
+			{ ...input },
+		)
+	}
+
+	const unstake = (input: UnstakeOptions) => {
+		log.debug('unstake')
+		return __makeTransactionFromBuilder(
+			TransactionIntentBuilder.create().unstakeTokens(input.unstakeInput),
+			{ ...input },
+		)
+	}
+
 	deriveAccountSubject
 		.pipe(
 			withLatestFrom(wallet$),
@@ -777,7 +780,7 @@ const create = (): RadixT => {
 		// Methods
 		transactionHistory,
 		stake,
-		unstake
+		unstake,
 	}
 }
 

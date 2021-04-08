@@ -22,7 +22,11 @@ import {
 	TransactionTracking,
 	BuiltTransaction,
 } from './dto/_types'
-import { StakeTokensInput, TransferTokensInput, UnstakeTokensInput } from './actions/_types'
+import {
+	StakeTokensInput,
+	TransferTokensInput,
+	UnstakeTokensInput,
+} from './actions/_types'
 
 export type ManualUserConfirmTX = {
 	txToConfirm: BuiltTransaction
@@ -41,6 +45,16 @@ export type MakeTransactionOptions = Readonly<{
 export type TransferTokensOptions = MakeTransactionOptions &
 	Readonly<{
 		transferInput: TransferTokensInput
+	}>
+
+export type StakeOptions = MakeTransactionOptions &
+	Readonly<{
+		stakeInput: StakeTokensInput
+	}>
+
+export type UnstakeOptions = MakeTransactionOptions &
+	Readonly<{
+		unstakeInput: UnstakeTokensInput
 	}>
 
 export type RadixT = Readonly<{
@@ -102,9 +116,9 @@ export type RadixT = Readonly<{
 		trigger: Observable<number>,
 	) => Observable<StatusOfTransaction>
 
-	stake: (stake: StakeTokensInput, options: MakeTransactionOptions) => TransactionTracking, 
+	stake: (input: StakeOptions) => TransactionTracking
 
-	unstake: (unstake: UnstakeTokensInput, options: MakeTransactionOptions) => TransactionTracking,
+	unstake: (input: UnstakeOptions) => TransactionTracking
 
 	errors: Observable<ErrorNotification>
 
