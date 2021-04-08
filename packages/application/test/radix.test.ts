@@ -11,7 +11,7 @@ import {
 import { map, take, toArray } from 'rxjs/operators'
 import { KeystoreT } from '@radixdlt/crypto'
 import { ManualUserConfirmTX, RadixT } from '../src/_types'
-import { APIErrorCause, ErrorCategory } from '../src/errors'
+import { APIErrorCause, ErrorCategory, ErrorCause } from '../src/errors'
 import {
 	alice,
 	balancesFor,
@@ -839,6 +839,32 @@ describe('Radix API', () => {
 			.add(subs)
 	})
 
+	it('should be able to handle error on API call', (done) => {
+		const errorMsg = 'failed to fetch native token'
+
+		const radix = Radix.create()
+			.withWallet(createWallet())
+			.__withAPI(
+				of({
+					...mockRadixCoreAPI(),
+					nativeToken: () => {
+						throw Error(errorMsg)
+					},
+				}),
+			)
+
+		radix.ledger.nativeToken().subscribe({
+			next: (token) => {
+				done(Error('Should throw'))
+			},
+			error: (e: APIError) => {
+				expect(e.errors.length).toEqual(1)
+				expect(e.errors[0].message).toEqual(errorMsg)
+				done()
+			},
+		})
+	})
+
 	describe('make tx single transfer', () => {
 		const tokenTransferInput: TransferTokensInput = {
 			to: bob,
@@ -874,10 +900,10 @@ describe('Radix API', () => {
 			const expectedValues = [
 				TransactionTrackingEventType.INITIATED,
 				TransactionTrackingEventType.BUILT_FROM_INTENT,
+				TransactionTrackingEventType.ASKED_FOR_CONFIRMATION,
+				TransactionTrackingEventType.CONFIRMED,
 				TransactionTrackingEventType.SIGNED,
 				TransactionTrackingEventType.SUBMITTED,
-				TransactionTrackingEventType.ASKING_USER_FOR_FINAL_CONFIRMATION,
-				TransactionTrackingEventType.USER_CONFIRMED_TX_BEFORE_FINALIZATION,
 				TransactionTrackingEventType.FINALIZED_AND_IS_NOW_PENDING,
 				TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
 				TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
@@ -951,9 +977,7 @@ describe('Radix API', () => {
 			userConfirmation
 				.subscribe((confirmation) => {
 					userHasBeenAskedToConfirmTX = true
-					confirmation.userDidConfirmSubject.next(
-						confirmation.txToConfirm,
-					) // emulate that usser confirms tx in her GUI wallet
+					confirmation.confirm()
 				})
 				.add(subs)
 
@@ -970,67 +994,70 @@ describe('Radix API', () => {
 				.add(subs)
 		})
 
-		it('error from buildTransaction is propagated', (done) => {
-			const buildErrorMsg = `Mocked failure of 'buildTransaction' API call`
-			const radix = Radix.create()
-				.withWallet(createWallet())
-				.__withAPI(
-					of({
-						...mockRadixCoreAPI(),
-						buildTransaction: (_intent) => {
-							throw Error(buildErrorMsg)
-						},
-					}),
-				)
-				.logLevel(LogLevel.SILENT)
+		describe('transaction flow errors', () => {
+			const testFailure = (
+				method: string,
+				cause: ErrorCause,
+				done: any,
+			) => {
+				const errorMsg = `Failure`
 
-			const transactionTracking = radix.transferTokens(transferTokens())
+				const radix = Radix.create()
+					.withWallet(createWallet())
+					.__withAPI(
+						of({
+							...mockRadixCoreAPI(),
+							[method]: (_intent: any) => {
+								throw Error(errorMsg)
+							},
+						}),
+					)
+					.logLevel(LogLevel.SILENT)
 
-			transactionTracking.completion
-				.subscribe({
-					complete: () => {
-						done(
-							new Error(
-								'TX was successful, but we expected an error.',
-							),
-						)
-					},
-					error: (error: APIError) => {
-						expect(error.errors.length).toBe(1)
-						expect(error.errors[0].message).toBe(buildErrorMsg)
-						expect(error.category).toEqual(ErrorCategory.API)
-						expect(error.cause).toEqual(
-							APIErrorCause.BUILD_TRANSACTION_FAILED,
-						)
-						done()
-					},
-				})
-				.add(subs)
-		})
-
-		it('should be able to handle error on API call', (done) => {
-			const errorMsg = 'failed to fetch native token'
-
-			const radix = Radix.create()
-				.withWallet(createWallet())
-				.__withAPI(
-					of({
-						...mockRadixCoreAPI(),
-						nativeToken: () => {
-							throw Error(errorMsg)
-						},
-					}),
+				const transactionTracking = radix.transferTokens(
+					transferTokens(),
 				)
 
-			radix.ledger.nativeToken().subscribe({
-				next: (token) => {
-					done(Error('Should throw'))
-				},
-				error: (e: APIError) => {
-					expect(e.errors.length).toEqual(1)
-					expect(e.errors[0].message).toEqual(errorMsg)
-					done()
-				},
+				transactionTracking.completion
+					.subscribe({
+						complete: () => {
+							done(
+								new Error(
+									'TX was successful, but we expected an error.',
+								),
+							)
+						},
+						error: (error: APIError) => {
+							expect(error.errors.length).toBe(1)
+							expect(error.errors[0].message).toBe(errorMsg)
+							expect(error.category).toEqual(ErrorCategory.API)
+							expect(error.cause).toEqual(cause)
+							done()
+						},
+					})
+					.add(subs)
+			}
+
+			it('buildTransaction', (done) => {
+				testFailure(
+					'buildTransaction',
+					APIErrorCause.BUILD_TRANSACTION_FAILED,
+					done,
+				)
+			})
+			it('submitSignedTransaction', (done) => {
+				testFailure(
+					'submitSignedTransaction',
+					APIErrorCause.SUBMIT_SIGNED_TX_FAILED,
+					done,
+				)
+			})
+			it('finalizeTransaction', (done) => {
+				testFailure(
+					'finalizeTransaction',
+					APIErrorCause.FINALIZE_TX_FAILED,
+					done,
+				)
 			})
 		})
 	})

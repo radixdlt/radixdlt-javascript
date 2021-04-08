@@ -9,14 +9,14 @@ import {
 } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import { Address, AddressT } from '@radixdlt/account'
-import { Observable, of, throwError } from 'rxjs'
+import { Observable, of } from 'rxjs'
 import {
 	ExecutedTransaction,
 	NetworkTransactionDemand,
 	NetworkTransactionThroughput,
 	PendingTransaction,
 	ResourceIdentifierT,
-	SignedUnsubmittedTransaction,
+	SignedTransaction,
 	StakePositions,
 	StatusOfTransaction,
 	Token,
@@ -27,7 +27,7 @@ import {
 	TransactionIdentifierT,
 	TransactionIntent,
 	TransactionStatus,
-	UnsignedTransaction,
+	BuiltTransaction,
 	UnstakePositions,
 	Validator,
 	Validators,
@@ -45,7 +45,7 @@ import { ActionType, ExecutedAction } from '../src/actions/_types'
 import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
 import { toAddress } from '../../account/test/address.test'
 import { StakePosition, UnstakePosition } from '../src/dto/_types'
-import { SignedUnconfirmedTransaction } from '../src/dto/_types'
+import { SubmittedTransaction } from '../src/dto/_types'
 
 export const xrd: Token = {
 	name: 'Rad',
@@ -373,7 +373,7 @@ const randomValidatorList = (size: number) => {
 
 const randomUnsignedTransaction = (
 	transactionIntent: TransactionIntent,
-): UnsignedTransaction => {
+): BuiltTransaction => {
 	const transactionIntentDet = {
 		...transactionIntent,
 		actions: transactionIntent.actions.map((a) => ({
@@ -398,7 +398,7 @@ const randomUnsignedTransaction = (
 }
 
 const randomPendingTransaction = (
-	signedTx: SignedUnsubmittedTransaction,
+	signedTx: SignedTransaction,
 ): PendingTransaction => ({
 	txID: TransactionIdentifier.create(
 		sha256(Buffer.from(signedTx.transaction.blob)),
@@ -406,8 +406,8 @@ const randomPendingTransaction = (
 })
 
 const detRandomSignedUnconfirmedTransaction = (
-	signedTransaction: SignedUnsubmittedTransaction,
-): SignedUnconfirmedTransaction => {
+	signedTransaction: SignedTransaction,
+): SubmittedTransaction => {
 	const txID = randomPendingTransaction(signedTransaction).txID
 	return {
 		...signedTransaction,
@@ -756,18 +756,18 @@ export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
 
 	buildTransaction: (
 		_transactionIntent: TransactionIntent,
-	): Observable<UnsignedTransaction> => {
+	): Observable<BuiltTransaction> => {
 		throw Error('Not implemented')
 	},
 
 	submitSignedTransaction: (
-		_signedTransaction: SignedUnsubmittedTransaction,
-	): Observable<SignedUnconfirmedTransaction> => {
+		_signedTransaction: SignedTransaction,
+	): Observable<SubmittedTransaction> => {
 		throw Error('Not implemented')
 	},
 
 	finalizeTransaction: (
-		_signedUnconfirmedTransaction: SignedUnconfirmedTransaction,
+		_signedUnconfirmedTransaction: SubmittedTransaction,
 	): Observable<PendingTransaction> => {
 		throw Error('Not implemented')
 	},
@@ -816,11 +816,11 @@ export const mockRadixCoreAPI = (
 			of(randomValidatorList(input.size)),
 		buildTransaction: (
 			transactionIntent: TransactionIntent,
-		): Observable<UnsignedTransaction> =>
+		): Observable<BuiltTransaction> =>
 			of(randomUnsignedTransaction(transactionIntent)).pipe(delay(50)),
 		submitSignedTransaction: (
-			signedTransaction: SignedUnsubmittedTransaction,
-		): Observable<SignedUnconfirmedTransaction> =>
+			signedTransaction: SignedTransaction,
+		): Observable<SubmittedTransaction> =>
 			of(detRandomSignedUnconfirmedTransaction(signedTransaction)).pipe(
 				delay(50),
 			),

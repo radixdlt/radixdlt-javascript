@@ -67,8 +67,8 @@ import { isArray, log, LogLevel } from '@radixdlt/util'
 import {
 	PartOfMakeTransactionFlow,
 	PendingTransaction,
-	SignedUnconfirmedTransaction,
-	SignedUnsubmittedTransaction,
+	SubmittedTransaction,
+	SignedTransaction,
 	TransactionHistory,
 	TransactionHistoryActiveAccountRequestInput,
 	TransactionIdentifierT,
@@ -79,7 +79,7 @@ import {
 	TransactionTrackingEvent,
 	TransactionTrackingEventType,
 	TXError,
-	UnsignedTransaction,
+	BuiltTransaction,
 } from './dto/_types'
 import { nodeAPI } from './api/api'
 import { TransactionIntentBuilder } from './dto/transactionIntentBuilder'
@@ -298,14 +298,14 @@ const create = (): RadixT => {
 	}
 
 	const signUnsignedTx = (
-		unsignedTx: UnsignedTransaction,
-	): Observable<SignedUnsubmittedTransaction> => {
+		unsignedTx: BuiltTransaction,
+	): Observable<SignedTransaction> => {
 		/* log.trace */ log.debug('Starting signing transaction (async).')
 		return activeAccount.pipe(
 			mergeMap(
 				(
 					account: AccountT,
-				): Observable<SignedUnsubmittedTransaction> => {
+				): Observable<SignedTransaction> => {
 					const msgToSignFromTx = Buffer.from(
 						unsignedTx.transaction.hashOfBlobToSign,
 						'hex',
@@ -316,7 +316,7 @@ const create = (): RadixT => {
 							([
 								signature,
 								publicKeyOfSigner,
-							]): SignedUnsubmittedTransaction => {
+							]): SignedTransaction => {
 								/* log.trace */ log.debug(
 									`Finished signing transaction`,
 								)
@@ -343,19 +343,19 @@ const create = (): RadixT => {
 
 		const pendingTXSubject = new Subject<PendingTransaction>()
 
-		const askUserToConfirmSubject = new Subject<SignedUnconfirmedTransaction>()
-		const userDidConfirmTransactionSubject = new Subject<SignedUnconfirmedTransaction>()
+		const askUserToConfirmSubject = new Subject<BuiltTransaction>()
+		const userDidConfirmTransactionSubject = new Subject<0>()
 
 		if (shouldConfirmTransactionAutomatically(options.userConfirmation)) {
 			/* log.trace */ log.debug(
 				'Transaction has been setup to be automatically confirmed, requiring no final confirmation input from user.',
 			)
 			askUserToConfirmSubject
-				.subscribe((ux) => {
+				.subscribe(() => {
 					log.debug(
 						`askUserToConfirmSubject got 'next', calling 'next' on 'userDidConfirmTransactionSubject'`,
 					)
-					userDidConfirmTransactionSubject.next(ux)
+					userDidConfirmTransactionSubject.next(0)
 				})
 				.add(subs)
 		} else {
@@ -373,9 +373,8 @@ const create = (): RadixT => {
 
 					const confirmation: ManualUserConfirmTX = {
 						txToConfirm: ux,
-						userDidConfirmSubject: userDidConfirmTransactionSubject,
+						confirm: () => userDidConfirmTransactionSubject.next(0),
 					}
-
 					twoWayConfirmationSubject.next(confirmation)
 				})
 				.add(subs)
@@ -408,145 +407,144 @@ const create = (): RadixT => {
 			completionSubject.error(errorEvent.value)
 		}
 
-		const build$ = transactionIntent$.pipe(
-			switchMap(
-				(
-					intent: TransactionIntent,
-				): Observable<UnsignedTransaction> => {
-					log.debug(
-						'Transaction intent created => requesting 🛰 API to build it now.',
+		transactionIntent$
+			.pipe(
+				switchMap(
+					(
+						intent: TransactionIntent,
+					): Observable<BuiltTransaction> => {
+						log.debug(
+							'Transaction intent created => requesting 🛰 API to build it now.',
+						)
+						track({
+							value: intent,
+							eventUpdateType:
+								TransactionTrackingEventType.INITIATED,
+						})
+						return api.buildTransaction(intent)
+					},
+				),
+				catchError((e: Error) => {
+					log.error(
+						`API failed to build transaction, error: ${JSON.stringify(
+							e,
+							null,
+							4,
+						)}`,
 					)
-					track({
-						value: intent,
-						eventUpdateType: TransactionTrackingEventType.INITIATED,
+					trackError({
+						error: e,
+						inStep: TransactionTrackingEventType.BUILT_FROM_INTENT,
 					})
-					return api.buildTransaction(intent)
-				},
-			),
-			catchError((e: Error) => {
-				log.error(
-					`API failed to build transaction from intent, error: ${JSON.stringify(
-						e,
-						null,
-						4,
-					)}`,
-				)
-				trackError({
-					error: e,
-					inStep: TransactionTrackingEventType.BUILT_FROM_INTENT,
-				})
-				return EMPTY
-			}),
-		)
-
-		const sign$ = build$.pipe(
-			mergeMap(
-				(
-					unsignedTX: UnsignedTransaction,
-				): Observable<SignedUnsubmittedTransaction> => {
+					return EMPTY
+				}),
+				tap((builtTx) => {
 					log.debug('TX built by API => starting signing of it now.')
 					track({
-						value: unsignedTX,
+						value: builtTx,
 						eventUpdateType:
 							TransactionTrackingEventType.BUILT_FROM_INTENT,
 					})
-					return signUnsignedTx(unsignedTX)
-				},
-			),
-		)
-
-		const submit$ = sign$.pipe(
-			mergeMap(
-				(
-					signedTx: SignedUnsubmittedTransaction,
-				): Observable<SignedUnconfirmedTransaction> => {
-					log.debug(`Finished signing tx => submitting it to 🛰  API.`)
+					askUserToConfirmSubject.next(builtTx)
+				}),
+				tap((builtTx) => {
 					track({
-						value: signedTx,
-						eventUpdateType: TransactionTrackingEventType.SIGNED,
+						value: builtTx,
+						eventUpdateType:
+							TransactionTrackingEventType.ASKED_FOR_CONFIRMATION,
 					})
-					return api.submitSignedTransaction(signedTx)
-				},
-			),
-		)
-
-		submit$
-			.subscribe(
-				(
-					unconfirmedSignedSubmittedTx: SignedUnconfirmedTransaction,
-				) => {
-					log.debug(
-						`Received submitted transaction with txID='${unconfirmedSignedSubmittedTx.txID.toString()}' from API => ${
-							shouldConfirmTransactionAutomatically(
-								options.userConfirmation,
-							)
-								? 'it will be automatically confirmed for finalization now.'
-								: 'asking user to confirm it before finalization now.'
-						}`,
-					)
-
+				}),
+				withLatestFrom(userDidConfirmTransactionSubject),
+				map(([unsignedTx, _]) => unsignedTx),
+				tap((unsignedTx) => {
 					track({
-						value: unconfirmedSignedSubmittedTx,
+						value: unsignedTx,
+						eventUpdateType: TransactionTrackingEventType.CONFIRMED,
+					})
+				}),
+				mergeMap((unsignedTx) => signUnsignedTx(unsignedTx)),
+				mergeMap(
+					(
+						signedTx: SignedTransaction,
+					): Observable<SubmittedTransaction> => {
+						log.debug(
+							`Finished signing tx => submitting it to 🛰  API.`,
+						)
+						track({
+							value: signedTx,
+							eventUpdateType:
+								TransactionTrackingEventType.SIGNED,
+						})
+						return api.submitSignedTransaction(signedTx)
+					},
+				),
+				catchError((e: Error) => {
+					log.error(
+						`API failed to submit transaction, error: ${JSON.stringify(
+							e,
+							null,
+							4,
+						)}`,
+					)
+					trackError({
+						error: e,
+						inStep: TransactionTrackingEventType.SUBMITTED,
+					})
+					return EMPTY
+				}),
+				tap<SubmittedTransaction>((submitted) => {
+					log.debug(
+						`Received submitted transaction with txID='${submitted.txID.toString()}' from API, calling finalize.`,
+					)
+					track({
+						value: submitted,
 						eventUpdateType: TransactionTrackingEventType.SUBMITTED,
 					})
-
-					track({
-						value: unconfirmedSignedSubmittedTx,
-						eventUpdateType:
-							TransactionTrackingEventType.ASKING_USER_FOR_FINAL_CONFIRMATION,
-					})
-
-					askUserToConfirmSubject.next(unconfirmedSignedSubmittedTx)
-				},
-			)
-			.add(subs)
-
-		const finalize$ = userDidConfirmTransactionSubject.pipe(
-			mergeMap(
-				(
-					userConfirmedTX: SignedUnconfirmedTransaction,
-				): Observable<PendingTransaction> => {
-					log.debug(
-						`Transaction has been ${
-							shouldConfirmTransactionAutomatically(
-								options.userConfirmation,
-							)
-								? 'automatically'
-								: 'manually confirmed by user'
-						} => sending it to 🛰 API for finalization.`,
+				}),
+				mergeMap(
+					(
+						userConfirmedTX: SubmittedTransaction,
+					): Observable<PendingTransaction> => {
+						return api.finalizeTransaction(userConfirmedTX)
+					},
+				),
+				catchError((e: Error) => {
+					log.error(
+						`API failed to finalize transaction, error: ${JSON.stringify(
+							e,
+							null,
+							4,
+						)}`,
 					)
-
-					track({
-						value: userConfirmedTX,
-						eventUpdateType:
-							TransactionTrackingEventType.USER_CONFIRMED_TX_BEFORE_FINALIZATION,
-					})
-					return api.finalizeTransaction(userConfirmedTX)
-				},
-			),
-		)
-
-		finalize$
-			.subscribe({
-				next: (pendingTx: PendingTransaction) => {
-					log.debug(
-						`Finalized transaction with txID='${pendingTx.txID.toString()}', it is now pending.`,
-					)
-					track({
-						value: pendingTx,
-						eventUpdateType:
+					trackError({
+						error: e,
+						inStep:
 							TransactionTrackingEventType.FINALIZED_AND_IS_NOW_PENDING,
 					})
-					pendingTXSubject.next(pendingTx)
-				},
-				error: (submitTXError: Error) => {
-					// TODO would be great to have access to txID here, hopefully API includes it in error msg?
-					log.error(
-						`Submission of signed transaction to API failed with error: ${submitTXError.message}`,
-					)
-					pendingTXSubject.error(submitTXError)
-				},
-			})
+					return EMPTY
+				}),
+				tap({
+					next: (pendingTx: PendingTransaction) => {
+						log.debug(
+							`Finalized transaction with txID='${pendingTx.txID.toString()}', it is now pending.`,
+						)
+						track({
+							value: pendingTx,
+							eventUpdateType:
+								TransactionTrackingEventType.FINALIZED_AND_IS_NOW_PENDING,
+						})
+						pendingTXSubject.next(pendingTx)
+					},
+					error: (submitTXError: Error) => {
+						// TODO would be great to have access to txID here, hopefully API includes it in error msg?
+						log.error(
+							`Submission of signed transaction to API failed with error: ${submitTXError.message}`,
+						)
+						pendingTXSubject.error(submitTXError)
+					},
+				}),
+			)
+			.subscribe()
 			.add(subs)
 
 		const pollTxStatusTrigger =
@@ -670,10 +668,12 @@ const create = (): RadixT => {
 			_withNode(node$)
 			return this
 		},
+
 		__withAPI: function (radixCoreAPI$: Observable<RadixCoreAPI>): RadixT {
 			radixCoreAPI$.subscribe((a) => coreAPISubject.next(a)).add(subs)
 			return this
 		},
+
 		connect: function (url: URL): RadixT {
 			_withNode(of({ url }))
 			return this
