@@ -3,7 +3,7 @@ export {
 	publicKeyFromPrivateKey,
 } from './wrap/publicKeyWrapped'
 import { publicKeyFromBytesValidated } from './wrap/publicKeyWrapped'
-import { PublicKey } from './_types'
+import { PublicKey } from '../_types'
 
 export const publicKeyFromBytes = publicKeyFromBytesValidated
 

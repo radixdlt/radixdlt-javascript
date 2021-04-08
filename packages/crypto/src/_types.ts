@@ -2,37 +2,17 @@ import { UInt256 } from '@radixdlt/uint256'
 
 import { ResultAsync } from 'neverthrow'
 
-export type Hasher = (inputData: Buffer) => Buffer
+export type Hasher = (input: Buffer | string) => Buffer
 
 export type Signer = Readonly<{
-	/**
-	 * Produces a cryptographic signature of the input (already hashed).
-	 *
-	 * @param {UnsignedMessage} unsignedMessage - The already hashed, unsigned message to be signed.
-	 * @returns {Signature} An EC signature produces by this signer when signing the message.
-	 */
-	signHashed: (
-		unsignedMessage: UnsignedMessage,
-	) => ResultAsync<Signature, Error>
+	sign: (hashedMessage: Buffer) => ResultAsync<Signature, Error>
 
-	/**
-	 * Produces a cryptographic signature of the input.
-	 *
-	 * @param {UnsignedUnhashedMessage} unsignedMessage - The unhashed unsigned message to be hashed and signed.
-	 * @returns {Signature} An EC signature produces by this signer when signing the message.
-	 */
 	signUnhashed: (
-		unsignedMessage: UnsignedUnhashedMessage,
+		input: Readonly<{
+			msgToHash: Buffer | string
+			hasher?: Hasher
+		}>,
 	) => ResultAsync<Signature, Error>
-}>
-
-export type UnsignedMessage = Readonly<{
-	hashedMessage: Buffer
-}>
-
-export type UnsignedUnhashedMessage = Readonly<{
-	unhashed: Buffer
-	hasher: Hasher
 }>
 
 export type Signature = Readonly<{
@@ -59,7 +39,7 @@ export type PublicKey = Readonly<{
 	isValidSignature: (
 		input: Readonly<{
 			signature: Signature
-			forData: UnsignedMessage
+			hashedMessage: Buffer
 		}>,
 	) => boolean
 	decodeToPointOnCurve: () => ECPointOnCurve

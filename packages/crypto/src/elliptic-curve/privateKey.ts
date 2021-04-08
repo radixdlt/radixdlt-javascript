@@ -8,38 +8,45 @@ import { UInt256 } from '@radixdlt/uint256'
 
 import { signDataWithPrivateKey } from './wrap/sign'
 
-import { err, ok, Result, ResultAsync } from 'neverthrow'
-import {
-	UnsignedMessage,
-	Signature,
-	PublicKey,
-	PrivateKey,
-	UnsignedUnhashedMessage,
-} from './_types'
+import { err, errAsync, ok, Result, ResultAsync } from 'neverthrow'
+import { Signature, PublicKey, PrivateKey, Hasher } from '../_types'
 import { publicKeyFromPrivateKey } from './wrap/publicKeyWrapped'
 import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
 import { Secp256k1 } from './secp256k1'
+import { sha256Twice } from '../hash/sha'
 
 const privateKeyFromValidatedScalar = (scalar: UInt256): PrivateKey => {
-	const signHashed = (
-		unsignedMessage: UnsignedMessage,
-	): ResultAsync<Signature, Error> =>
-		resultToAsync(
+	const sign = (hashedMessage: Buffer): ResultAsync<Signature, Error> => {
+		if (hashedMessage.length !== 32) {
+			return errAsync(
+				new Error(
+					'Incorrect length of message to sign, expected 32 bytes.',
+				),
+			)
+		}
+		return resultToAsync(
 			signDataWithPrivateKey({
 				privateKey: scalar,
-				data: unsignedMessage.hashedMessage,
+				data: hashedMessage,
 			}),
 		)
+	}
 
 	const privateKey = {
-		signHashed,
+		sign,
 
 		signUnhashed: (
-			unsignedMessage: UnsignedUnhashedMessage,
-		): ResultAsync<Signature, Error> =>
-			signHashed({
-				hashedMessage: unsignedMessage.hasher(unsignedMessage.unhashed),
-			}),
+			input: Readonly<{
+				msgToHash: Buffer | string
+				hasher?: Hasher
+			}>,
+		): ResultAsync<Signature, Error> => {
+			const hasher = input.hasher ?? sha256Twice
+
+			const hashedMessage = hasher(input.msgToHash)
+
+			return sign(hashedMessage)
+		},
 
 		publicKey: () => {
 			throw new Error('Impl me')

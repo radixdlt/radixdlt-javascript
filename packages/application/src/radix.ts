@@ -34,7 +34,7 @@ import {
 } from 'rxjs'
 import { radixCoreAPI } from './api/radixCoreAPI'
 import { Magic } from '@radixdlt/primitives'
-import { KeystoreT, UnsignedMessage } from '@radixdlt/crypto'
+import { KeystoreT } from '@radixdlt/crypto'
 import {
 	MakeTransactionOptions,
 	ManualUserConfirmTX,
@@ -303,13 +303,13 @@ const create = (): RadixT => {
 		/* log.trace */ log.debug('Starting signing transaction (async).')
 		return activeAccount.pipe(
 			mergeMap(
-				(account: AccountT): Observable<SignedTransaction> => {
-					const msgToSignFromTx: UnsignedMessage = {
-						hashedMessage: Buffer.from(
-							unsignedTx.transaction.hashOfBlobToSign,
-							'hex',
-						),
-					}
+				(
+					account: AccountT,
+				): Observable<SignedTransaction> => {
+					const msgToSignFromTx = Buffer.from(
+						unsignedTx.transaction.hashOfBlobToSign,
+						'hex',
+					)
 					return account.sign(msgToSignFromTx).pipe(
 						withLatestFrom(account.derivePublicKey()),
 						map(

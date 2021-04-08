@@ -2,7 +2,7 @@ import { UInt256 } from '@radixdlt/uint256'
 
 import { combine, err, ok, Result } from 'neverthrow'
 import { curve, ec } from 'elliptic'
-import { ECPointOnCurve, PrivateKey } from '../_types'
+import { ECPointOnCurve, PrivateKey } from '../../_types'
 import { ValidationWitness } from '@radixdlt/util'
 import { bnFromUInt256, uint256FromBN } from '@radixdlt/primitives'
 
