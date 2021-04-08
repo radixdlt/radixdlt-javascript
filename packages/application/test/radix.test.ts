@@ -32,7 +32,7 @@ import { signatureFromHexStrings } from '@radixdlt/crypto/test/ellipticCurveCryp
 import { TransactionIntentBuilder } from '../src/dto/transactionIntentBuilder'
 import { TransactionTrackingEventType } from '../src/dto/_types'
 import { LogLevel } from '@radixdlt/util'
-import { TransferTokensInput } from '../src/actions/_types'
+import { StakeTokensInput, TransferTokensInput } from '../src/actions/_types'
 import { TransferTokensOptions } from '../src/_types'
 import { APIError } from '../src/errors'
 
@@ -1059,6 +1059,34 @@ describe('Radix API', () => {
 					done,
 				)
 			})
+		})	
+	})
+
+	describe('make tx stake', () => {
+		const stakeInput: StakeTokensInput = {
+			validator: '9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+			amount: 1,
+		}
+
+		let pollTXStatusTrigger: Observable<unknown>
+
+		const transferTokens = () => ({
+			stakeInput: stakeInput,
+			userConfirmation: 'skip',
+			pollTXStatusTrigger: pollTXStatusTrigger,
 		})
+
+		let subs: Subscription
+
+		beforeEach(() => {
+			subs = new Subscription()
+			pollTXStatusTrigger = interval(50)
+		})
+
+		afterEach(() => {
+			subs.unsubscribe()
+		})
+
+		it()
 	})
 })
