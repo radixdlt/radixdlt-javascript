@@ -30,11 +30,11 @@ import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
 import { AmountT } from '@radixdlt/primitives'
 import { signatureFromHexStrings } from '@radixdlt/crypto/test/ellipticCurveCryptography.test'
 import { TransactionIntentBuilder } from '../src/dto/transactionIntentBuilder'
-import { TransactionTrackingEventType } from '../dist/dto/_types'
+import { TransactionTrackingEventType } from '../src/dto/_types'
 import { LogLevel } from '@radixdlt/util'
-import { TransferTokensInput } from '../dist/actions/_types'
-import { TransferTokensOptions } from '../dist/_types'
-import { APIError, ErrorNotification } from '../src/errors'
+import { TransferTokensInput } from '../src/actions/_types'
+import { TransferTokensOptions } from '../src/_types'
+import { APIError } from '../src/errors'
 
 const createWallet = (): WalletT => {
 	const masterSeed = HDMasterSeed.fromSeed(
