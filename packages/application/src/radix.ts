@@ -23,6 +23,7 @@ import {
 	withLatestFrom,
 } from 'rxjs/operators'
 import {
+	combineLatest,
 	EMPTY,
 	interval,
 	merge,
@@ -82,6 +83,11 @@ import {
 	TransactionTrackingEventType,
 	TXError,
 	BuiltTransaction,
+	SimpleTokenBalances,
+	TokenBalances,
+	SimpleTokenBalance,
+	TokenBalance,
+	Token,
 } from './dto/_types'
 import { nodeAPI } from './api/api'
 import { TransactionIntentBuilder } from './dto/transactionIntentBuilder'
@@ -227,10 +233,46 @@ const create = (): RadixT => {
 			shareReplay(1),
 		)
 
-	const tokenBalances = activeAddressToAPIObservableWithTrigger(
+	const simpleTokenBalances = activeAddressToAPIObservableWithTrigger(
 		tokenBalanceFetchSubject,
 		(a) => a.tokenBalancesForAddress,
 		tokenBalancesErr,
+	)
+
+	const decorateSimpleTokenBalanceWithTokenInfo = (
+		simpleTokenBalance: SimpleTokenBalance,
+	): Observable<TokenBalance> => {
+		return api.tokenInfo(simpleTokenBalance.token).pipe(
+			map(
+				(tokenInfo: Token): TokenBalance => ({
+					amount: simpleTokenBalance.amount,
+					token: tokenInfo,
+				}),
+			),
+		)
+	}
+
+	const tokenBalances: Observable<TokenBalances> = simpleTokenBalances.pipe(
+		mergeMap(
+			(
+				simpleTokenBalances: SimpleTokenBalances,
+			): Observable<TokenBalances> => {
+				const balanceOfTokensObservableList: Observable<TokenBalance>[] = simpleTokenBalances.tokenBalances.map(
+					decorateSimpleTokenBalanceWithTokenInfo,
+				)
+
+				return combineLatest(balanceOfTokensObservableList).pipe(
+					map(
+						(tokenBalances: TokenBalance[]): TokenBalances => {
+							return {
+								owner: simpleTokenBalances.owner,
+								tokenBalances,
+							}
+						},
+					),
+				)
+			},
+		),
 	)
 
 	const stakingPositions = activeAddressToAPIObservableWithTrigger(

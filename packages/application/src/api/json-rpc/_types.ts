@@ -11,13 +11,13 @@ import {
 	StakePositions,
 	StatusOfTransaction,
 	Token,
-	TokenBalances,
 	TransactionHistory,
 	TransactionIntent,
 	TransactionStatus,
 	BuiltTransaction,
 	UnstakePositions,
 	Validators,
+	SimpleTokenBalances,
 } from '../../dto/_types'
 
 type API_PREFIX = 'radix'
@@ -67,7 +67,7 @@ export namespace TokenBalancesEndpoint {
 		]
 	}
 
-	export type DecodedResponse = TokenBalances
+	export type DecodedResponse = SimpleTokenBalances
 }
 
 export namespace TransactionHistoryEndpoint {

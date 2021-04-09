@@ -15,7 +15,6 @@ import {
 	StakePositions,
 	StatusOfTransaction,
 	Token,
-	TokenBalances,
 	TransactionHistory,
 	TransactionHistoryRequestInput,
 	TransactionIdentifierT,
@@ -24,6 +23,7 @@ import {
 	UnstakePositions,
 	Validators,
 	ValidatorsRequestInput,
+	SimpleTokenBalances,
 } from '../dto/_types'
 
 type JsonRpcAPI = {
@@ -39,7 +39,9 @@ export type NodeT = Readonly<{
 }>
 
 export type RadixAPI = Readonly<{
-	tokenBalancesForAddress: (address: AddressT) => Observable<TokenBalances>
+	tokenBalancesForAddress: (
+		address: AddressT,
+	) => Observable<SimpleTokenBalances>
 
 	transactionHistory: (
 		input: TransactionHistoryRequestInput,

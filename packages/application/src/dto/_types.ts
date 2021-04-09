@@ -174,11 +174,17 @@ export type ExecutedTransaction = Readonly<{
 }>
 
 export type TokenAmount = Readonly<{
+	// TODO rename `token` => `tokenIdentifier`
 	token: ResourceIdentifierT
 	amount: AmountT
 }>
 
-export type TokenBalance = TokenAmount
+export type SimpleTokenBalance = TokenAmount
+
+export type TokenBalance = Readonly<{
+	token: Token
+	amount: AmountT
+}>
 
 export type Token = Readonly<{
 	name: string
@@ -291,6 +297,11 @@ export type RawExecutedAction =
 	| RawStakesAction
 	| RawUnstakesAction
 	| RawOtherExecutedAction
+
+export type SimpleTokenBalances = Readonly<{
+	owner: AddressT
+	tokenBalances: SimpleTokenBalance[]
+}>
 
 export type TokenBalances = Readonly<{
 	owner: AddressT
