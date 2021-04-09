@@ -42,14 +42,14 @@ const applyDecoders = (
 
 	return results.length > 1
 		? err(
-				Error(
-					`JSON decoding failed. Several decoders were valid for key/value pair. 
+			Error(
+				`JSON decoding failed. Several decoders were valid for key/value pair. 
                     This can lead to unexpected behavior.`,
-				),
-		  )
+			),
+		)
 		: results[0]
-		? results[0]
-		: ok(unwrappedValue)
+			? results[0]
+			: ok(unwrappedValue)
 }
 
 const JSONDecode = <T>(...decoders: Decoder[]) => (
@@ -58,7 +58,7 @@ const JSONDecode = <T>(...decoders: Decoder[]) => (
 	const decode = JSONDecodeUnflattened(...decoders)
 
 	return pipe(
-		applyDecoders.bind(null, decoders),
+		//applyDecoders.bind(null, decoders),
 		flattenResultsObject,
 	)(decode(json)) as Result<T, Error[]>
 }
@@ -72,30 +72,27 @@ const JSONDecodeUnflattened = (...decoders: Decoder[]) => (
 ): Result<unknown, Error[]> =>
 	isObject(json)
 		? flattenResultsObject(
-				ok(
-					mapObjIndexed(
-						(value, key) =>
-							applyDecoders(
-								decoders,
-								JSONDecodeUnflattened(...decoders)(value),
-								key,
-							),
-						json,
-					),
+			ok(
+				mapObjIndexed(
+					(value, key) =>
+						applyDecoders(
+							decoders,
+							JSONDecodeUnflattened(...decoders)(value),
+							key,
+						),
+					json,
 				),
-		  )
+			),
+		)
 		: isString(json) || isBoolean(json) || isNumber(json)
-		? applyDecoders(decoders, json).mapErr((err) => [err])
-		: isArray(json)
-		? combine(
-				json.map((item) =>
-					applyDecoders(
-						decoders,
+			? applyDecoders(decoders, json).mapErr((err) => [err])
+			: isArray(json)
+				? combine(
+					json.map((item) =>
 						JSONDecodeUnflattened(...decoders)(item),
 					),
-				),
-		  ).mapErr((err) => [err])
-		: err([Error('JSON decoding failed. Unknown data type.')])
+				).mapErr((err) => err)
+				: err([Error('JSON decoding failed. Unknown data type.')])
 
 /**
  * Adds JSON decoding to a decodable entity.

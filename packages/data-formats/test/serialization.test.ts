@@ -1,10 +1,20 @@
-import { isString } from '@radixdlt/util'
+import { isBoolean, isNumber, isString } from '@radixdlt/util'
 import { Err, err, ok } from 'neverthrow'
 import { decoder, JSONDecoding } from '../src/json'
 
 describe('JSON decoding', () => {
+	const decodeString = (str: string) => str + 'decoded'
+	const decodeBool = (bool: boolean) => !bool
+	const decodeNbr = (nbr: number) => nbr + 1
+
+	const stringDecoder = (val: string) => decoder(value => isString(value) && value === val ? ok(decodeString(value)) : undefined)
+	const boolDecoder = (val: boolean) => decoder(value => isBoolean(value) && value === val ? ok(decodeBool(value)) : undefined)
+	const nbrDecoder = (val: number) => decoder(value => isNumber(value) && value === val ? ok(decodeNbr(value)) : undefined)
+
 	it('should decode an array', () => {
-		const { fromJSON } = JSONDecoding.create()
+		const { fromJSON } = JSONDecoding.withDecoders(
+			stringDecoder('a')
+		).create()
 
 		const json = [
 			{
@@ -15,27 +25,14 @@ describe('JSON decoding', () => {
 			}
 		]
 
-		const expected = json
-
-		const decoded = fromJSON(json)._unsafeUnwrap()
-
-		expect(JSON.stringify(decoded)).toEqual(JSON.stringify(expected))
-
-	})
-
-	it('should decode an array', () => {
-		const { fromJSON } = JSONDecoding.create()
-
-		const json = [
+		const expected = [
 			{
-				a: 'a'
+				a: decodeString('a')
 			},
 			{
 				b: 'b'
 			}
 		]
-
-		const expected = json
 
 		const decoded = fromJSON(json)._unsafeUnwrap()
 
@@ -43,30 +40,38 @@ describe('JSON decoding', () => {
 	})
 
 	it('should decode strings, booleans and numbers', () => {
-		const { fromJSON } = JSONDecoding.create()
-
 		const str = 'string'
 		const bool = true
 		const nbr = 1
 
-		const expected = json
+		const { fromJSON } = JSONDecoding.withDecoders(
+			stringDecoder(str),
+			boolDecoder(bool),
+			nbrDecoder(nbr)
+		).create()
 
-		const decoded = fromJSON(json)._unsafeUnwrap()
+		const expected = [decodeString(str), decodeBool(bool), decodeNbr(nbr)]
 
-		expect(JSON.stringify(decoded)).toEqual(JSON.stringify(expected))
+		const decoded = fromJSON([
+			str,
+			bool,
+			nbr
+		])._unsafeUnwrap()
+
+		expect(decoded).toEqual(expected)
 	})
 
-	it('should decode using string decoders', () => {
+	it('should decode a nested object', () => {
 		const decodedValue = 'decoded'
 
-		const stringDecoder = decoder((value, key) =>
-			key !== undefined && isString(value) && value === 'decodeMe'
+		const stringDecoder = decoder((value) =>
+			isString(value) && value === 'decodeMe'
 				? ok(value + decodedValue)
 				: undefined
 		)
 
-		const stringDecoder2 = decoder((value, key) =>
-			key !== undefined && isString(value) && value === 'decodeMe2'
+		const stringDecoder2 = decoder((value) =>
+			isString(value) && value === 'decodeMe2'
 				? ok(value + decodedValue)
 				: undefined
 		)
@@ -103,20 +108,20 @@ describe('JSON decoding', () => {
 		const errorMsg2 = 'boom2'
 
 
-		const stringDecoder = decoder((value, key) =>
-			key !== undefined && isString(value) && value === 'decodeMe'
+		const stringDecoder = decoder((value) =>
+			isString(value) && value === 'decodeMe'
 				? err(Error(errorMsg1))
 				: undefined
 		)
 
-		const stringDecoder2 = decoder((value, key) =>
-			key !== undefined && isString(value) && value === 'decodeMe2'
+		const stringDecoder2 = decoder((value) =>
+			isString(value) && value === 'decodeMe2'
 				? err(Error(errorMsg2))
 				: undefined
 		)
 
-		const stringDecoder3 = decoder((value, key) =>
-			key !== undefined && isString(value) && value === 'decodeMe3'
+		const stringDecoder3 = decoder((value) =>
+			isString(value) && value === 'decodeMe3'
 				? ok(value + decodedValue)
 				: undefined
 		)
