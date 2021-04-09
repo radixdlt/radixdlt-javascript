@@ -10,7 +10,7 @@ import {
 import {
 	AccountT,
 	AddressT,
-	EncryptedMessage,
+	EncryptedMessageT,
 	EncryptionSchemeName,
 	PlaintextMessageToEncrypt,
 } from '@radixdlt/account'
@@ -154,10 +154,10 @@ describe('tx intent builder', () => {
 			derivePublicKey: (): Observable<PublicKey> => of(alice.publicKey),
 			encrypt: (
 				plaintext: PlaintextMessageToEncrypt,
-			): Observable<EncryptedMessage> =>
+			): Observable<EncryptedMessageT> =>
 				plaintext.encryptionScheme ===
 				EncryptionSchemeName.DO_NOT_ENCRYPT
-					? of<EncryptedMessage>({
+					? of<EncryptedMessageT>({
 							encryptionScheme: plaintext.encryptionScheme,
 							msg: `${noEncryptionPrefix}${plaintext.plaintext}`,
 					  })

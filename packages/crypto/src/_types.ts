@@ -33,6 +33,8 @@ export type ECPointOnCurve = Readonly<{
 	multiplyWithPrivateKey: (privateKey: PrivateKey) => ECPointOnCurve
 }>
 
+export const publicKeyCompressedByteCount = 33
+
 export type PublicKey = Readonly<{
 	asData: (input: { readonly compressed: boolean }) => Buffer
 	toString: (compressed?: boolean) => string

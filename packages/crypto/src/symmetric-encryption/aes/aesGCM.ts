@@ -1,52 +1,27 @@
 import { cipher as forgeCipher, util as forgeUtil } from 'node-forge'
-import { AES_GCM_SealedBoxT } from './_types'
-import { err, ok, Result, combine } from 'neverthrow'
-import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
-
-const tagLength = 16
-const nonceLength = 12
+import {
+	AES_GCM_OPEN_Input,
+	AES_GCM_SEAL_Input,
+	AES_GCM_SealedBoxT,
+} from './_types'
+import { Result, combine } from 'neverthrow'
+import { secureRandomGenerator } from '@radixdlt/util'
+import {
+	AES_GCM_SealedBox,
+	validateNonce,
+	validateTag,
+} from './aesGCMSealedBox'
 
 const AES_GCM_256_ALGORITHM = 'AES-GCM'
 
-export type AES_GCM_Input = Readonly<{
-	plaintext: Buffer
-	symmetricKey: Buffer
-	additionalAuthenticationData?: Buffer
-	nonce?: Buffer
-	secureRandom?: SecureRandom
-}>
+export const aesGCMSealDeterministic = (
+	input: Omit<AES_GCM_SEAL_Input, 'secureRandom'> & {
+		readonly nonce: Buffer
+	},
+): Result<AES_GCM_SealedBoxT, Error> => {
+	const { nonce } = input
 
-const _validateLength = (
-	expectedLength: number,
-	name: string,
-	buffer: Buffer,
-): Result<Buffer, Error> =>
-	buffer.length !== expectedLength
-		? err(
-				new Error(
-					`Incorrect length of ${name}, expected: #${expectedLength} bytes, but got: #${buffer.length}.`,
-				),
-		  )
-		: ok(buffer)
-
-const validateNonce: (
-	buffer: Buffer,
-) => Result<Buffer, Error> = _validateLength.bind(
-	null,
-	nonceLength,
-	'nonce (IV)',
-)
-const validateTag: (
-	buffer: Buffer,
-) => Result<Buffer, Error> = _validateLength.bind(null, tagLength, 'auth tag')
-
-const seal = (input: AES_GCM_Input): Result<AES_GCM_SealedBoxT, Error> => {
-	const secureRandom = input.secureRandom ?? secureRandomGenerator
-	const nonce =
-		input.nonce ??
-		Buffer.from(secureRandom.randomSecureBytes(nonceLength), 'hex')
-
-	return validateNonce(nonce).map((nonce) => {
+	return validateNonce(nonce).andThen((nonce) => {
 		const aesCipher = forgeCipher.createCipher(
 			AES_GCM_256_ALGORITHM,
 			forgeUtil.createBuffer(input.symmetricKey),
@@ -75,21 +50,26 @@ const seal = (input: AES_GCM_Input): Result<AES_GCM_SealedBoxT, Error> => {
 		const ciphertext = Buffer.from(aesCipher.output.toHex(), 'hex')
 		const authTag = Buffer.from(aesCipher.mode.tag.toHex(), 'hex')
 
-		return {
+		return AES_GCM_SealedBox.create({
 			ciphertext,
 			authTag,
 			nonce,
-		}
+		})
 	})
 }
 
-const open = (
-	input: AES_GCM_SealedBoxT &
-		Readonly<{
-			symmetricKey: Buffer
-			additionalAuthenticationData?: Buffer
-		}>,
-): Result<Buffer, Error> => {
+const seal = (input: AES_GCM_SEAL_Input): Result<AES_GCM_SealedBoxT, Error> => {
+	const secureRandom = input.secureRandom ?? secureRandomGenerator
+	const nonce =
+		input.nonce ??
+		Buffer.from(
+			secureRandom.randomSecureBytes(AES_GCM_SealedBox.nonceLength),
+			'hex',
+		)
+	return aesGCMSealDeterministic({ ...input, nonce })
+}
+
+const open = (input: AES_GCM_OPEN_Input): Result<Buffer, Error> => {
 	const {
 		ciphertext,
 		nonce,
@@ -142,7 +122,7 @@ const open = (
 export const AES_GCM = {
 	seal,
 	open,
-	tagLength,
-	nonceLength,
+	tagLength: AES_GCM_SealedBox.tagLength,
+	nonceLength: AES_GCM_SealedBox.nonceLength,
 	algorithm: AES_GCM_256_ALGORITHM,
 }

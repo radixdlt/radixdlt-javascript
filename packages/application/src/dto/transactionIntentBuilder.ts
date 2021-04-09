@@ -20,8 +20,6 @@ import {
 import {
 	AccountT,
 	AddressT,
-	EncryptedMessage,
-	EncryptionSchemeName,
 	isAddress,
 	toObservableFromResult,
 } from '@radixdlt/account'
@@ -40,7 +38,7 @@ import {
 	isUnstakeTokensInput,
 } from '../actions/intendedUnstakeTokensAction'
 import { combine, err, Result } from 'neverthrow'
-import { PublicKey } from '@radixdlt/crypto'
+import { EncryptedMessageT, PublicKey } from '@radixdlt/crypto'
 import { Option } from 'prelude-ts'
 import { isResourceIdentifier } from './resourceIdentifier'
 import { isAmount } from '@radixdlt/primitives'
@@ -131,12 +129,10 @@ const isTransactionIntentBuilderDoNotEncryptInput = (
 
 const create = (
 	input?: Readonly<{
-		encryptionSchemeName: EncryptionSchemeName
+		encryptionSchemeIdentifier: string
 	}>,
 ): TransactionIntentBuilderT => {
-	const encryptionSchemeName: EncryptionSchemeName =
-		input?.encryptionSchemeName ?? EncryptionSchemeName.DO_NOT_ENCRYPT
-
+	const encryptionSchemeIdentifier = input?.encryptionSchemeIdentifier
 	const intermediateActions: IntermediateAction[] = []
 	let maybePlaintextMsgToEncrypt: Option<string> = Option.none()
 	const snapshotState = (): TransactionIntentBuilderState => ({
@@ -232,18 +228,24 @@ const create = (
 
 	const syncBuildDoNotEncryptMessageIfAny = (
 		from: AddressT,
-	): Result<TransactionIntent, Error> =>
-		intendedActionsFromIntermediateActions(from).map(
+	): Result<TransactionIntent, Error> => {
+
+		// maybePlaintextMsgToEncrypt
+		// 	.map((msg) => ({
+		// 		encryptionScheme: EncryptionSchemeName.DO_NOT_ENCRYPT,
+		// 		msg,
+		// 	}))
+		// 	.getOrUndefined(),
+
+		const message: Buffer | undefined = undefined
+
+		return intendedActionsFromIntermediateActions(from).map(
 			({ intendedActions }) => ({
 				actions: intendedActions,
-				message: maybePlaintextMsgToEncrypt
-					.map((msg) => ({
-						encryptionScheme: EncryptionSchemeName.DO_NOT_ENCRYPT,
-						msg,
-					}))
-					.getOrUndefined(),
+				message,
 			}),
 		)
+	}
 
 	type ActorsInEncryption = {
 		encryptingAccount: AccountT
@@ -329,11 +331,11 @@ const create = (
 								mergeMap(
 									(
 										actors: ActorsInEncryption,
-									): Observable<EncryptedMessage> => {
+									): Observable<EncryptedMessageT> => {
 										return actors.encryptingAccount.encrypt(
 											{
 												plaintext,
-												encryptionScheme: encryptionSchemeName,
+												encryptionSchemeIdentifier,
 												publicKeysOfReaders:
 													actors.publicKeysOfReaders,
 											},
@@ -342,7 +344,7 @@ const create = (
 								),
 								map(
 									(
-										enc: EncryptedMessage,
+										encryptedMessage: EncryptedMessageT,
 									): TransactionIntent => {
 										log.info(
 											`Successfully built transaction with encrypted message. Actions: ${intendedActionsFrom.intendedActions
@@ -352,7 +354,7 @@ const create = (
 										return {
 											actions:
 												intendedActionsFrom.intendedActions,
-											message: enc,
+											message: encryptedMessage.combined(),
 										}
 									},
 								),

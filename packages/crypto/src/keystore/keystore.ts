@@ -5,6 +5,11 @@ import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
 import { ScryptParamsT } from '../key-derivation-functions/_types'
 import { Scrypt, ScryptParams } from '../key-derivation-functions/scrypt'
 import { v4 as uuidv4 } from 'uuid'
+import { AES_GCM_SealedBox } from '../symmetric-encryption/aes/aesGCMSealedBox'
+import {
+	AES_GCM_OPEN_Input,
+	AES_GCM_SealedBoxT,
+} from '../symmetric-encryption/aes/_types'
 
 const validatePassword = (password: string): Result<string, Error> =>
 	ok(password) // no validation for now...
@@ -74,19 +79,31 @@ const decrypt = (
 	const encryptedPrivateKey = Buffer.from(keystore.crypto.ciphertext, 'hex')
 	const params = keystore.crypto.kdfparams
 
-	return validatePassword(password)
-		.map((p: string) => ({ kdf, params, password: Buffer.from(p) }))
-		.asyncAndThen((inp) => Scrypt.deriveKey(inp))
-		.map((derivedKey) => ({
-			symmetricKey: derivedKey,
-			nonce: Buffer.from(keystore.crypto.cipherparams.nonce, 'hex'),
-			authTag: Buffer.from(keystore.crypto.mac, 'hex'),
-			ciphertext: encryptedPrivateKey,
-			additionalAuthenticationData: keystore.memo
-				? Buffer.from(keystore.memo)
-				: undefined,
-		}))
-		.andThen((inp) => AES_GCM.open(inp))
+	return AES_GCM_SealedBox.create({
+		nonce: Buffer.from(keystore.crypto.cipherparams.nonce, 'hex'),
+		authTag: Buffer.from(keystore.crypto.mac, 'hex'),
+		ciphertext: encryptedPrivateKey,
+	}).asyncAndThen((aesSealBox: AES_GCM_SealedBoxT) => {
+		const additionalAuthenticationData: Buffer | undefined = keystore.memo
+			? Buffer.from(keystore.memo)
+			: undefined
+
+		const aesOpenInput: Omit<AES_GCM_OPEN_Input, 'symmetricKey'> = {
+			...aesSealBox,
+			additionalAuthenticationData,
+		}
+
+		return validatePassword(password)
+			.map((p: string) => ({ kdf, params, password: Buffer.from(p) }))
+			.asyncAndThen((inp) => Scrypt.deriveKey(inp))
+			.map(
+				(derivedKey: Buffer): AES_GCM_OPEN_Input => ({
+					...aesOpenInput,
+					symmetricKey: derivedKey,
+				}),
+			)
+			.andThen((inp) => AES_GCM.open(inp))
+	})
 }
 
 const fromBuffer = (keystoreBuffer: Buffer): Result<KeystoreT, Error> => {

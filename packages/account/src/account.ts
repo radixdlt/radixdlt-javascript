@@ -1,12 +1,16 @@
-import { PrivateKey, PublicKey, Signature } from '@radixdlt/crypto'
+import {
+	EncryptedMessageT,
+	EncryptedMessageToDecrypt,
+	PrivateKey,
+	PublicKey,
+	Signature,
+} from '@radixdlt/crypto'
 import { mergeMap } from 'rxjs/operators'
 import { Observable, of, throwError } from 'rxjs'
 import { toObservable } from './resultAsync_observable'
 import {
 	AccountT,
 	AddressT,
-	EncryptedMessage,
-	EncryptedMessageToDecrypt,
 	EncryptionSchemeName,
 	HardwareWalletSimpleT,
 	PlaintextMessageToEncrypt,
@@ -40,13 +44,8 @@ const fromPrivateKey = (
 
 		encrypt: (
 			plaintext: PlaintextMessageToEncrypt,
-		): Observable<EncryptedMessage> =>
-			plaintext.encryptionScheme === EncryptionSchemeName.DO_NOT_ENCRYPT
-				? of<EncryptedMessage>({
-						encryptionScheme: plaintext.encryptionScheme,
-						msg: `${NO_ENCRYPTION_YET_PREFIX}${plaintext.plaintext}`,
-				  })
-				: throwError(() => new Error('Imple me')),
+		): Observable<EncryptedMessageT> =>
+			throwError(() => new Error('Imple me')),
 	}
 }
 
@@ -85,7 +84,7 @@ const fromHDPathWithHardwareWallet = (
 
 		encrypt: (
 			_plaintext: PlaintextMessageToEncrypt,
-		): Observable<EncryptedMessage> =>
+		): Observable<EncryptedMessageT> =>
 			throwError(() => new Error('Imple me')),
 	}
 }

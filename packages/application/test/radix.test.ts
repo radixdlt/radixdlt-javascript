@@ -1,14 +1,16 @@
 import { Radix } from '../src/radix'
 import { AddressT, HDMasterSeed, Wallet, WalletT } from '@radixdlt/account'
 import {
+	from,
 	interval,
 	Observable,
 	of,
 	Subject,
 	Subscription,
 	throwError,
+	zip,
 } from 'rxjs'
-import { map, take, toArray } from 'rxjs/operators'
+import { map, mergeMap, take, toArray } from 'rxjs/operators'
 import { KeystoreT } from '@radixdlt/crypto'
 import { ManualUserConfirmTX, RadixT } from '../src/_types'
 import { APIErrorCause, ErrorCategory } from '../src/errors'
@@ -22,6 +24,8 @@ import {
 } from './mockRadix'
 import { NodeT, RadixCoreAPI } from '../src/api/_types'
 import {
+	Token,
+	TokenBalance,
 	TokenBalances,
 	TransactionIdentifierT,
 	TransactionStatus,
@@ -123,6 +127,8 @@ describe('Radix API', () => {
 			(error) => done(error),
 		)
 	})
+
+
 
 	const testChangeNode = async (
 		expectedValues: string[],

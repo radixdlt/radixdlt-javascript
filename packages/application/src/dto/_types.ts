@@ -10,11 +10,9 @@ import {
 	UnstakeTokensInput,
 } from '../actions/_types'
 import { AmountT } from '@radixdlt/primitives'
-import { PublicKey, Signature } from '@radixdlt/crypto'
-import { Observable, Subject, Subscription } from 'rxjs'
+import { EncryptedMessageT, PublicKey, Signature } from '@radixdlt/crypto'
+import { Observable } from 'rxjs'
 import { Result } from 'neverthrow'
-import { EncryptedMessage } from '@radixdlt/account'
-import { Observer, Subscribable, Unsubscribable } from 'rxjs/src/internal/types'
 
 export type StakePosition = Readonly<{
 	validator: AddressT
@@ -114,7 +112,7 @@ export type TransactionIntentBuilderT = Readonly<{
 export type TransactionIntent = PartOfMakeTransactionFlow &
 	Readonly<{
 		actions: IntendedAction[]
-		message?: EncryptedMessage
+		message?: Buffer
 	}>
 
 export type ValidatorsRequestInput = Readonly<{

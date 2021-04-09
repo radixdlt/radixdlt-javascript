@@ -16,6 +16,7 @@ import {
 	publicKeyFromBytes,
 } from '@radixdlt/crypto'
 import { sha256Twice } from '@radixdlt/crypto'
+import { publicKeyCompressedByteCount } from '@radixdlt/crypto'
 
 const checksumByteCount = 4
 const CBOR_BYTESTRING_PREFIX: Byte = 4
@@ -61,7 +62,6 @@ const fromBase58String = (b58String: string): Result<AddressT, Error> =>
 	base58Decode(b58String).andThen(addressFromBuffer)
 
 const addressFromBuffer = (buffer: Buffer): Result<AddressT, Error> => {
-	const publicKeyCompressedByteCount = 33
 	const magicByteCount = 1
 	const addressByteCount =
 		magicByteCount + publicKeyCompressedByteCount + checksumByteCount
