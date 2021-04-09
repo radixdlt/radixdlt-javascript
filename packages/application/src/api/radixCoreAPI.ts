@@ -15,7 +15,6 @@ import {
 	StakePositions,
 	StatusOfTransaction,
 	Token,
-	TokenBalances,
 	TransactionHistory,
 	TransactionHistoryRequestInput,
 	TransactionIdentifierT,
@@ -24,6 +23,7 @@ import {
 	UnstakePositions,
 	Validators,
 	ValidatorsRequestInput,
+	SimpleTokenBalances,
 } from '../dto/_types'
 
 export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
@@ -62,7 +62,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 
 		tokenBalancesForAddress: (
 			address: AddressT,
-		): Observable<TokenBalances> =>
+		): Observable<SimpleTokenBalances> =>
 			toObs((a) => a.tokenBalances, address.toString()),
 
 		transactionHistory: (

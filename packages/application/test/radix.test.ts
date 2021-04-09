@@ -16,13 +16,13 @@ import {
 	alice,
 	balancesFor,
 	bob,
-	makeThrowingRadixCoreAPI,
 	mockedAPI,
 	mockRadixCoreAPI,
 } from './mockRadix'
 import { NodeT, RadixCoreAPI } from '../src/api/_types'
 import {
 	TokenBalances,
+	SimpleTokenBalances,
 	TransactionIdentifierT,
 	TransactionStatus,
 } from '../src/dto/_types'
@@ -32,7 +32,7 @@ import { signatureFromHexStrings } from '@radixdlt/crypto/test/ellipticCurveCryp
 import { TransactionIntentBuilder } from '../src/dto/transactionIntentBuilder'
 import { TransactionTrackingEventType } from '../src/dto/_types'
 import { LogLevel } from '@radixdlt/util'
-import { StakeTokensInput, TransferTokensInput } from '../src/actions/_types'
+import { TransferTokensInput } from '../src/actions/_types'
 import { TransferTokensOptions } from '../src/_types'
 import { APIError } from '../src/errors'
 
@@ -410,7 +410,7 @@ describe('Radix API', () => {
 			...mockRadixCoreAPI(),
 			tokenBalancesForAddress: (
 				a: AddressT,
-			): Observable<TokenBalances> => {
+			): Observable<SimpleTokenBalances> => {
 				if (counter > 2 && counter < 5) {
 					counter++
 					return throwError(() => new Error('Manual error'))
@@ -562,6 +562,47 @@ describe('Radix API', () => {
 				radix.deriveNextAccount({ alsoSwitchTo: true })
 				radix.deriveNextAccount({ alsoSwitchTo: true })
 				radix.deriveNextAccount({ alsoSwitchTo: true })
+			})
+			.add(subs)
+	})
+
+	it('tokenBalances with tokeninfo', (done) => {
+		const subs = new Subscription()
+
+		const radix = Radix.create().__withAPI(mockedAPI)
+
+		const loadKeystore = (): Promise<KeystoreT> =>
+			Promise.resolve(keystoreForTest.keystore)
+
+		radix.login(keystoreForTest.password, loadKeystore)
+
+		radix.__wallet
+			.subscribe((_w) => {
+				type ExpectedValue = { name: string; amount: string }
+				const expectedValues: ExpectedValue[] = [
+					{ name: 'Ether (wrapped on Radix)', amount: '1291' },
+					{ name: 'Bar token', amount: '7785' },
+					{ name: 'Foo token', amount: '4121' },
+					{ name: 'Bitcoin (wrapped on Radix)', amount: '2143' },
+					{ name: 'Gold token', amount: '1674' },
+				]
+
+				radix.tokenBalances
+					.pipe(
+						map((tbs: TokenBalances): ExpectedValue[] => {
+							return tbs.tokenBalances.map(
+								(bot): ExpectedValue => ({
+									name: bot.token.name,
+									amount: bot.amount.toString(),
+								}),
+							)
+						}),
+					)
+					.subscribe((values) => {
+						expect(values).toStrictEqual(expectedValues)
+						done()
+					})
+					.add(subs)
 			})
 			.add(subs)
 	})

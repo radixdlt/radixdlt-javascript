@@ -20,8 +20,8 @@ import {
 	StakePositions,
 	StatusOfTransaction,
 	Token,
-	TokenBalance,
-	TokenBalances,
+	SimpleTokenBalance,
+	SimpleTokenBalances,
 	TransactionHistory,
 	TransactionHistoryRequestInput,
 	TransactionIdentifierT,
@@ -179,7 +179,7 @@ export const balanceOfFor = (
 		token: Token
 		amount: number | AmountT
 	}>,
-): TokenBalance => {
+): SimpleTokenBalance => {
 	const amt: AmountT = isAmount(input.amount)
 		? input.amount
 		: Amount.fromUInt256({
@@ -200,7 +200,7 @@ export const balanceOfFor = (
 export const balancesFor = (
 	address: AddressT,
 	amount: number,
-): TokenBalances => {
+): SimpleTokenBalances => {
 	return {
 		owner: address,
 		tokenBalances: [
@@ -472,7 +472,7 @@ const detRandBalanceOfTokenWithInfo = (
 
 export const deterministicRandomBalancesForAddress = (
 	address: AddressT,
-): TokenBalances => {
+): SimpleTokenBalances => {
 	const anInt = detPRNGWithPubKey(address.publicKey)
 
 	const tokenBalances = detRandBalanceOfTokenWithInfo(anInt).map((bti) =>
@@ -672,7 +672,7 @@ const deterministicRandomLookupTXUsingHist = (
 
 export const deterministicRandomBalances = (
 	address: AddressT,
-): Observable<TokenBalances> =>
+): Observable<SimpleTokenBalances> =>
 	of(deterministicRandomBalancesForAddress(address))
 
 export const deterministicRandomTXHistory = (
@@ -704,7 +704,7 @@ export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
 
 	tokenBalancesForAddress: (
 		_address: AddressT,
-	): Observable<TokenBalances> => {
+	): Observable<SimpleTokenBalances> => {
 		throw Error('Not implemented')
 	},
 
