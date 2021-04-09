@@ -24,7 +24,7 @@ describe('message encryption', () => {
 			const res = await MessageEncryption.decryptEncryptedMessage({
 				encryptedMessage,
 				partyKeys,
-			}).map(b => b.toString('hex'))
+			}).map(b => b.toString('utf-8'))
 			return res._unsafeUnwrap()
 		}
 
@@ -42,9 +42,12 @@ describe('message encryption', () => {
 			const plaintext = 'Hey Bob!'
 			const encryptedMessage = await encrypt(plaintext)
 			const decryptedByAlice = await aliceDecrypt(encryptedMessage)
+			expect(decryptedByAlice).toBe(plaintext)
+
 			const decryptedByBob = await bobDecrypt(encryptedMessage)
 			expect(decryptedByBob).toBe(plaintext)
-			expect(decryptedByAlice).toBe(decryptedByBob)
+
+			expect(decryptedByBob).toBe(decryptedByAlice)
 		})
 	})
 
