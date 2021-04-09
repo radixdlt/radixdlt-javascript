@@ -5,7 +5,7 @@ import { Amount, magicFromNumber } from '@radixdlt/primitives'
 
 import { Address } from '@radixdlt/account'
 
-import { isObject } from '@radixdlt/util'
+import { isObject, isString } from '@radixdlt/util'
 import {
 	BuildTransactionEndpoint,
 	FinalizeTransactionEndpoint,
@@ -33,35 +33,35 @@ import { ExecutedUnstakeTokens } from '../../actions/executedUnstakeTokensAction
 
 const amountDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
-		key !== undefined && keys.includes(key) && typeof value === 'string'
+		key !== undefined && keys.includes(key) && isString(value)
 			? ok(Amount.inSmallestDenomination(new UInt256(value)))
 			: undefined,
 	)
 
 const dateDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
-		key !== undefined && keys.includes(key) && typeof value === 'string'
+		key !== undefined && keys.includes(key) && isString(value)
 			? ok(new Date(value))
 			: undefined,
 	)
 
 const addressDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
-		key !== undefined && keys.includes(key) && typeof value === 'string'
+		key !== undefined && keys.includes(key) && isString(value)
 			? Address.fromBase58String(value)
 			: undefined,
 	)
 
 const RRIDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
-		key !== undefined && keys.includes(key) && typeof value === 'string'
+		key !== undefined && keys.includes(key) && isString(value)
 			? ResourceIdentifier.fromString(value)
 			: undefined,
 	)
 
 const URLDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
-		key !== undefined && keys.includes(key) && typeof value === 'string'
+		key !== undefined && keys.includes(key) && isString(value)
 			? ok(new URL(value))
 			: undefined,
 	)
@@ -82,7 +82,7 @@ const tokenPermissionsDecoder = (...keys: string[]) =>
 
 const transactionIdentifierDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
-		key !== undefined && keys.includes(key) && typeof value === 'string'
+		key !== undefined && keys.includes(key) && isString(value)
 			? TransactionIdentifier.create(value)
 			: undefined,
 	)

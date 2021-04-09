@@ -19,37 +19,6 @@ export const decoder = <T>(
 	algorithm: (value: unknown, key?: string) => Result<T, Error> | undefined,
 ): Decoder => (value: unknown, key?: string) => algorithm(value, key)
 
-/**
- * Creates a decoder for decoding a string with a "tag", e.g `:tag:string`,
- * where the tag is in the format `:<tag>:` and is the first part of the string.
- *
- * The decoder will look for a matching tag, and run the provided algorithm
- * on the string following the tag.
- */
-export const taggedStringDecoder = (tag: string) => <T>(
-	algorithm: (value: string) => Result<T, Error>,
-): Decoder =>
-	decoder<T>((value) =>
-		isString(value) && `:${value.split(':')[1]}:` === tag
-			? algorithm(value.slice(tag.length))
-			: undefined,
-	)
-
-/**
- * Creates a decoder for decoding an object with a `key` prop.
- *
- * If the object has a `key` prop with a value (tag) matching the provided
- * string, it will run the algorithm on the object.
- */
-export const taggedObjectDecoder = (tag: string, key: string) => <T>(
-	algorithm: (value: T) => Result<unknown, Error>,
-): Decoder =>
-	decoder((value) =>
-		isObject(value) && value[key] && value[key] === tag
-			? algorithm(value as T)
-			: undefined,
-	)
-
 const applyDecoders = (
 	decoders: Decoder[],
 	value: unknown,
