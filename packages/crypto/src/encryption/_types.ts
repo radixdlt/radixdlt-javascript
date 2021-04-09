@@ -8,9 +8,11 @@ export type MessageEncryptor = Readonly<{
 export type EncryptionSchemeT = Readonly<{
 	length: Byte
 	identifier: Buffer // always 31 bytes, pad if shorter.
+
+	combined: () => Buffer
 }>
 
-export type SealedMessage = Readonly<{
+export type SealedMessageT = Readonly<{
 	/* The public key of the ephemeral key pair. 33 bytes */
 	ephemeralPublicKey: PublicKey
 
@@ -22,15 +24,17 @@ export type SealedMessage = Readonly<{
 
 	/* The encrypted data. Max 162 bytes. */
 	ciphertext: Buffer
+
+	combined: () => Buffer
 }>
 
 // Max 255 bytes
-export type EncryptedMessageT = Readonly< ̰̰
+export type EncryptedMessageT = Readonly<{
 	/* Exact 32 bytes */
 	encryptionScheme: EncryptionSchemeT
 
 	/* Encrypted message with metadata containing about how it can be decrypted. Max 223 bytes. */
-	sealedMessage: SealedMessage
+	sealedMessage: SealedMessageT
 
 	combined: () => Buffer
 }>

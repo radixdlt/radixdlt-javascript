@@ -11,7 +11,6 @@ import { toObservable } from './resultAsync_observable'
 import {
 	AccountT,
 	AddressT,
-	EncryptionSchemeName,
 	HardwareWalletSimpleT,
 	PlaintextMessageToEncrypt,
 } from './_types'

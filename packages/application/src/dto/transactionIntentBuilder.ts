@@ -23,7 +23,7 @@ import {
 	isAddress,
 	toObservableFromResult,
 } from '@radixdlt/account'
-import { isObservable, Observable, of } from 'rxjs'
+import { isObservable, Observable, of, throwError } from 'rxjs'
 import { map, mergeMap } from 'rxjs/operators'
 import {
 	IntendedTransferTokens,
@@ -332,14 +332,15 @@ const create = (
 									(
 										actors: ActorsInEncryption,
 									): Observable<EncryptedMessageT> => {
-										return actors.encryptingAccount.encrypt(
-											{
-												plaintext,
-												encryptionSchemeIdentifier,
-												publicKeysOfReaders:
-													actors.publicKeysOfReaders,
-											},
-										)
+										return throwError(new Error('impl me'))
+										// return actors.encryptingAccount.encrypt(
+										// 	{
+										// 		plaintext,
+										// 		encryptionSchemeIdentifier,
+										// 		publicKeysOfReaders:
+										// 			actors.publicKeysOfReaders,
+										// 	},
+										// )
 									},
 								),
 								map(
