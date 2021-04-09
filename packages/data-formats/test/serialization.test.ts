@@ -3,6 +3,59 @@ import { Err, err, ok } from 'neverthrow'
 import { decoder, JSONDecoding } from '../src/json'
 
 describe('JSON decoding', () => {
+	it('should decode an array', () => {
+		const { fromJSON } = JSONDecoding.create()
+
+		const json = [
+			{
+				a: 'a'
+			},
+			{
+				b: 'b'
+			}
+		]
+
+		const expected = json
+
+		const decoded = fromJSON(json)._unsafeUnwrap()
+
+		expect(JSON.stringify(decoded)).toEqual(JSON.stringify(expected))
+
+	})
+
+	it('should decode an array', () => {
+		const { fromJSON } = JSONDecoding.create()
+
+		const json = [
+			{
+				a: 'a'
+			},
+			{
+				b: 'b'
+			}
+		]
+
+		const expected = json
+
+		const decoded = fromJSON(json)._unsafeUnwrap()
+
+		expect(JSON.stringify(decoded)).toEqual(JSON.stringify(expected))
+	})
+
+	it('should decode strings, booleans and numbers', () => {
+		const { fromJSON } = JSONDecoding.create()
+
+		const str = 'string'
+		const bool = true
+		const nbr = 1
+
+		const expected = json
+
+		const decoded = fromJSON(json)._unsafeUnwrap()
+
+		expect(JSON.stringify(decoded)).toEqual(JSON.stringify(expected))
+	})
+
 	it('should decode using string decoders', () => {
 		const decodedValue = 'decoded'
 
