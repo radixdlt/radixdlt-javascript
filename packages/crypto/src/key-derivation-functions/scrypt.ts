@@ -53,7 +53,7 @@ const create = (
 	}>,
 ): ScryptParamsT => {
 	const secureRandom = input.secureRandom ?? secureRandomGenerator
-	if (input.salt && input.salt.length !== 64)
+	if (input.salt && input.salt.length !== 32)
 		throw new Error('Expected 32 bytes salt')
 	const salt =
 		input.salt?.toString('hex') ?? secureRandom.randomSecureBytes(32)
