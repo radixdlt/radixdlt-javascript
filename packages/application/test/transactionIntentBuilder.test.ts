@@ -10,14 +10,12 @@ import {
 import {
 	AccountT,
 	AddressT,
-	EncryptedMessageT,
-	EncryptionSchemeName,
 	PlaintextMessageToEncrypt,
 } from '@radixdlt/account'
 import { TransactionIntentBuilderT } from '../src/dto/_types'
 import { Observable, of, Subscription, throwError } from 'rxjs'
 import { IntendedStakeTokensAction } from '../src/actions/_types'
-import { PublicKey } from '@radixdlt/crypto'
+import { EncryptedMessageT, PublicKey } from '@radixdlt/crypto'
 
 describe('tx intent builder', () => {
 	const one = Amount.fromUnsafe(1)._unsafeUnwrap()
@@ -154,14 +152,7 @@ describe('tx intent builder', () => {
 			derivePublicKey: (): Observable<PublicKey> => of(alice.publicKey),
 			encrypt: (
 				plaintext: PlaintextMessageToEncrypt,
-			): Observable<EncryptedMessageT> =>
-				plaintext.encryptionScheme ===
-				EncryptionSchemeName.DO_NOT_ENCRYPT
-					? of<EncryptedMessageT>({
-							encryptionScheme: plaintext.encryptionScheme,
-							msg: `${noEncryptionPrefix}${plaintext.plaintext}`,
-					  })
-					: throwError(() => new Error('Imple me')),
+			): Observable<EncryptedMessageT> => throwError(() => new Error('Imple me')),
 		}
 
 		return builder
@@ -177,15 +168,9 @@ describe('tx intent builder', () => {
 					done(new Error('Expected message...'))
 					return
 				} else {
-					const message = attatchedMessage!.msg
-					const encryptionScheme = attatchedMessage!.encryptionScheme
 
-					expect(message).toBe(`${noEncryptionPrefix}${msg}`)
+					expect(attatchedMessage).toBe(`${noEncryptionPrefix}${msg}`)
 
-					// TODO update when message encryption is done.
-					expect(encryptionScheme).toBe(
-						EncryptionSchemeName.DO_NOT_ENCRYPT,
-					)
 					done()
 				}
 			})
@@ -249,15 +234,7 @@ describe('tx intent builder', () => {
 					done(new Error('Expected message...'))
 					return
 				} else {
-					const message = attatchedMessage!.msg
-					const encryptionScheme = attatchedMessage!.encryptionScheme
-
-					expect(message).toBe(`${msg}`)
-
-					// TODO update when message encryption is done.
-					expect(encryptionScheme).toBe(
-						EncryptionSchemeName.DO_NOT_ENCRYPT,
-					)
+					expect(attatchedMessage).toBe(`${msg}`)
 					done()
 				}
 			})

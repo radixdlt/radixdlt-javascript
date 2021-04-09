@@ -1,5 +1,5 @@
 import { combine, err, Result } from 'neverthrow'
-import { readBuffer } from 'packages/util/src/bufferReader'
+import { readBuffer } from '@radixdlt/util'
 import { publicKeyFromBytes } from '../elliptic-curve/publicKey'
 import {
 	AES_GCM,

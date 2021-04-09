@@ -1,7 +1,6 @@
 import { CryptOperationKeysOfParties, MessageEncryption } from '../src/encryption/message-encryption'
 import { generateKeyPair } from '../src/elliptic-curve/keyPair'
-import { PrivateKey, PublicKey } from '../src/_types'
-import { EncryptedMessageT } from '@radixdlt/account'
+import { EncryptedMessageT } from '../src/encryption/_types'
 
 describe('message encryption', () => {
 
