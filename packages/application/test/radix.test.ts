@@ -682,7 +682,7 @@ describe('Radix API', () => {
 			.add(subs)
 	})
 
-	it.only('should get build transaction response', (done) => {
+	it('should get build transaction response', (done) => {
 		const subs = new Subscription()
 
 		const radix = Radix.create().__withAPI(mockedAPI)
@@ -700,7 +700,7 @@ describe('Radix API', () => {
 			.buildTransaction(transactionIntent)
 			.subscribe((unsignedTx) => {
 				expect((unsignedTx as { fee: AmountT }).fee.toString()).toEqual(
-					'33681',
+					'56479',
 				)
 				done()
 			})

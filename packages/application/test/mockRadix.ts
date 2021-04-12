@@ -384,7 +384,6 @@ const randomUnsignedTransaction = (
 	}
 
 	const detBlob = JSON.stringify(transactionIntentDet, null, 4)
-	console.log(detBlob)
 	const blobBytes = Buffer.from(detBlob)
 	const bytes32 = sha256(blobBytes)
 
