@@ -5,11 +5,6 @@ import { Byte } from '@radixdlt/util'
 
 export type Int64 = Long
 
-export type Nonce = Readonly<{
-	value: Int64
-	equals: (other: Nonce) => boolean
-}>
-
 export type Magic = Readonly<{
 	byte: Byte
 }>
