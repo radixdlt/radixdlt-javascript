@@ -185,7 +185,9 @@ export const balanceOfFor = (
 		? input.amount
 		: Amount.fromUInt256({
 				magnitude: input.token.granularity.magnitude.multiply(
-					isNumber(input.amount) ? UInt256.valueOf(input.amount) : input.amount.magnitude
+					isNumber(input.amount)
+						? UInt256.valueOf(input.amount)
+						: input.amount.magnitude,
 				),
 				denomination: Denomination.Atto,
 		  })._unsafeUnwrap()

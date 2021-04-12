@@ -59,13 +59,13 @@ const tokenPermissionsDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
 		key !== undefined && keys.includes(key) && isObject(value)
 			? ok(
-				makeTokenPermissions(
-					value as Readonly<{
-						mint: TokenPermission
-						burn: TokenPermission
-					}>,
-				),
-			)
+					makeTokenPermissions(
+						value as Readonly<{
+							mint: TokenPermission
+							burn: TokenPermission
+						}>,
+					),
+			  )
 			: undefined,
 	)
 
@@ -89,7 +89,6 @@ const addressDecoder = (...keys: string[]) =>
 			? Address.fromBase58String(value)
 			: undefined,
 	)
-
 
 const executedTXDecoders = JSONDecoding.withDecoders(
 	amountDecoder('amount', 'fee'),
@@ -153,8 +152,8 @@ export const handleTransactionStatusResponse = (
 	isRPCRequestFailureResponse(json)
 		? err([new Error(json.failure)])
 		: JSONDecoding.withDecoders(transactionIdentifierDecoder('txID'))
-			.create<TransactionStatusEndpoint.DecodedResponse>()
-			.fromJSON(json)
+				.create<TransactionStatusEndpoint.DecodedResponse>()
+				.fromJSON(json)
 
 export const handleNetworkTxThroughputResponse = JSONDecoding.create<NetworkTransactionThroughputEndpoint.DecodedResponse>()
 	.fromJSON
@@ -168,8 +167,8 @@ export const handleBuildTransactionResponse = (
 	isRPCRequestFailureResponse(json)
 		? err([new Error(json.failure)])
 		: JSONDecoding.create<BuildTransactionEndpoint.DecodedResponse>().fromJSON(
-			json,
-		)
+				json,
+		  )
 
 export const handleSubmitSignedTransactionResponse = (
 	json: unknown,
@@ -177,8 +176,8 @@ export const handleSubmitSignedTransactionResponse = (
 	isRPCRequestFailureResponse(json)
 		? err([new Error(json.failure)])
 		: JSONDecoding.withDecoders(transactionIdentifierDecoder('txID'))
-			.create<SubmitSignedTransactionEndpoint.DecodedResponse>()
-			.fromJSON(json)
+				.create<SubmitSignedTransactionEndpoint.DecodedResponse>()
+				.fromJSON(json)
 
 export const handleFinalizedTransactionResponse = (
 	json: unknown,
@@ -186,5 +185,5 @@ export const handleFinalizedTransactionResponse = (
 	isRPCRequestFailureResponse(json)
 		? err([new Error(json.failure)])
 		: JSONDecoding.withDecoders(transactionIdentifierDecoder('txID'))
-			.create<FinalizeTransactionEndpoint.DecodedResponse>()
-			.fromJSON(json)
+				.create<FinalizeTransactionEndpoint.DecodedResponse>()
+				.fromJSON(json)

@@ -6,13 +6,12 @@ import { Option } from 'prelude-ts'
 import { HDPathRadixT } from './bip32/_index'
 import { Magic } from '@radixdlt/primitives'
 
-export type AddressT =
-	Readonly<{
-		publicKey: PublicKey
-		magicByte: Byte
-		toString: () => string
-		equals: (other: AddressT) => boolean
-	}>
+export type AddressT = Readonly<{
+	publicKey: PublicKey
+	magicByte: Byte
+	toString: () => string
+	equals: (other: AddressT) => boolean
+}>
 
 export type PublicKeyDeriving = Readonly<{
 	derivePublicKey: () => Observable<PublicKey>
