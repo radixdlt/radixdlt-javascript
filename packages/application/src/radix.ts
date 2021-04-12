@@ -449,54 +449,53 @@ const create = (): RadixT => {
 			completionSubject.error(errorEvent.value)
 		}
 
-		transactionIntent$
-			.pipe(
-				switchMap(
-					(
-						intent: TransactionIntent,
-					): Observable<BuiltTransaction> => {
-						log.debug(
-							'Transaction intent created => requesting 🛰 API to build it now.',
-						)
-						track({
-							value: intent,
-							eventUpdateType:
-								TransactionTrackingEventType.INITIATED,
-						})
-						return api.buildTransaction(intent)
-					},
-				),
-				catchError((e: Error) => {
-					log.error(
-						`API failed to build transaction, error: ${JSON.stringify(
-							e,
-							null,
-							4,
-						)}`,
+		const builtTransaction = transactionIntent$.pipe(
+			switchMap(
+				(intent: TransactionIntent): Observable<BuiltTransaction> => {
+					log.debug(
+						'Transaction intent created => requesting 🛰 API to build it now.',
 					)
-					trackError({
-						error: e,
-						inStep: TransactionTrackingEventType.BUILT_FROM_INTENT,
-					})
-					return EMPTY
-				}),
-				tap((builtTx) => {
-					log.debug('TX built by API => starting signing of it now.')
 					track({
-						value: builtTx,
-						eventUpdateType:
-							TransactionTrackingEventType.BUILT_FROM_INTENT,
+						value: intent,
+						eventUpdateType: TransactionTrackingEventType.INITIATED,
 					})
-					askUserToConfirmSubject.next(builtTx)
-				}),
-				tap((builtTx) => {
-					track({
-						value: builtTx,
-						eventUpdateType:
-							TransactionTrackingEventType.ASKED_FOR_CONFIRMATION,
-					})
-				}),
-				withLatestFrom(userDidConfirmTransactionSubject),
+					return api.buildTransaction(intent)
+				},
+			),
+			catchError((e: Error) => {
+				log.error(
+					`API failed to build transaction, error: ${JSON.stringify(
+						e,
+						null,
+						4,
+					)}`,
+				)
+				trackError({
+					error: e,
+					inStep: TransactionTrackingEventType.BUILT_FROM_INTENT,
+				})
+				return EMPTY
+			}),
+			tap((builtTx) => {
+				log.debug('TX built by API => starting signing of it now.')
+				track({
+					value: builtTx,
+					eventUpdateType:
+						TransactionTrackingEventType.BUILT_FROM_INTENT,
+				})
+				askUserToConfirmSubject.next(builtTx)
+			}),
+			tap((builtTx) => {
+				track({
+					value: builtTx,
+					eventUpdateType:
+						TransactionTrackingEventType.ASKED_FOR_CONFIRMATION,
+				})
+			}),
+		)
+
+		combineLatest([builtTransaction, userDidConfirmTransactionSubject])
+			.pipe(
 				map(([unsignedTx, _]) => unsignedTx),
 				tap((unsignedTx) => {
 					track({

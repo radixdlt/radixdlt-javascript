@@ -18,7 +18,7 @@ import {
 	bob,
 	mockedAPI,
 	mockRadixCoreAPI,
-} from './mockRadix'
+} from '../src/mockRadix'
 import { NodeT, RadixCoreAPI } from '../src/api/_types'
 import {
 	TokenBalances,
@@ -1006,6 +1006,17 @@ describe('Radix API', () => {
 				.withWallet(createWallet())
 				.__withAPI(mockedAPI)
 
+			// Store these values in a way that vue can read and write to it
+			//@ts-ignore
+			let transaction
+			//@ts-ignore
+			let userHasBeenAskedToConfirmTX
+
+			const shouldShowConfirmation = () => {
+				userHasBeenAskedToConfirmTX = true
+				confirmTransaction()
+			}
+
 			const userConfirmation = new Subject<ManualUserConfirmTX>()
 
 			const transactionTracking = radix.transferTokens({
@@ -1013,18 +1024,27 @@ describe('Radix API', () => {
 				userConfirmation,
 			})
 
-			let userHasBeenAskedToConfirmTX = false
-
 			userConfirmation
-				.subscribe((confirmation) => {
-					userHasBeenAskedToConfirmTX = true
-					confirmation.confirm()
+				.subscribe((txn) => {
+					// Opens a modal where the user clicks 'confirm'
+					//@ts-ignore
+					transaction = txn
+					shouldShowConfirmation()
+					// If I just call txn.confirm() it works but the user has no input
+					// txn.confirm()
 				})
 				.add(subs)
+
+			const confirmTransaction = () => {
+				// Check that pin is valid
+				//@ts-ignore
+				transaction.confirm()
+			}
 
 			transactionTracking.completion
 				.subscribe({
 					next: (_txID) => {
+						//@ts-ignore
 						expect(userHasBeenAskedToConfirmTX).toBe(true)
 						done()
 					},

@@ -1,6 +1,6 @@
 import { TransactionIntentBuilder } from '../src/dto/transactionIntentBuilder'
 import { Amount, DenominationOutputFormat } from '@radixdlt/primitives'
-import { alice, bob, carol, dan, erin, xrd } from './mockRadix'
+import { alice, bob, carol, dan, erin, xrd } from '../src/mockRadix'
 import {
 	ActionType,
 	IntendedTransferTokensAction,

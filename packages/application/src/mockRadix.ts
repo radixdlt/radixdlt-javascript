@@ -32,21 +32,20 @@ import {
 	Validator,
 	Validators,
 	ValidatorsRequestInput,
-} from '../src/dto/_types'
-import { ResourceIdentifier } from '../src/dto/resourceIdentifier'
-import {
-	tokenOwnerOnly,
-	tokenPermissionsAll,
-} from '../src/dto/tokenPermissions'
-import { RadixCoreAPI } from '../src/api/_types'
+} from './dto/_types'
+import { ResourceIdentifier } from './dto/resourceIdentifier'
+import { tokenOwnerOnly, tokenPermissionsAll } from './dto/tokenPermissions'
+import { RadixCoreAPI } from './api/_types'
 import { delay, shareReplay } from 'rxjs/operators'
 import { privateKeyFromBuffer, PublicKey, sha256 } from '@radixdlt/crypto'
-import { ActionType, ExecutedAction } from '../src/actions/_types'
-import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
-import { toAddress } from '../../account/test/address.test'
-import { StakePosition, UnstakePosition } from '../src/dto/_types'
-import { SubmittedTransaction } from '../src/dto/_types'
+import { ActionType, ExecutedAction } from './actions/_types'
+import { TransactionIdentifier } from './dto/transactionIdentifier'
+import { StakePosition, UnstakePosition } from './dto/_types'
+import { SubmittedTransaction } from './dto/_types'
 import { isNumber } from '@radixdlt/util'
+
+export const toAddress = (b58: string): AddressT =>
+	Address.fromBase58String(b58)._unsafeUnwrap()
 
 export const xrd: Token = {
 	name: 'Rad',
