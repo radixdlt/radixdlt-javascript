@@ -26,7 +26,6 @@ import { TransactionIdentifier } from '../../dto/transactionIdentifier'
 import { makeTokenPermissions } from '../../dto/tokenPermissions'
 import { TokenPermission } from '../../dto/_types'
 import { ResourceIdentifier } from '../../dto/resourceIdentifier'
-import { OtherAction } from '../../actions/otherAction'
 
 const amountDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
