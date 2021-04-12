@@ -1,4 +1,3 @@
-import { DSONCodable, JSONEncodable } from '@radixdlt/data-formats'
 import { AccountT, AddressT } from '@radixdlt/account'
 import {
 	ActionInput,
@@ -27,15 +26,13 @@ export type UnstakePosition = Readonly<{
 	epochsUntil: number
 }>
 
-export type TokenPermissions = JSONEncodable &
-	DSONCodable &
-	Readonly<{
-		permissions: Readonly<{ [key in TokenTransition]: TokenPermission }>
-		canBeMinted: (isOwnerOfToken: IsOwnerOfToken) => boolean
-		canBeBurned: (isOwnerOfToken: IsOwnerOfToken) => boolean
-		mintPermission: TokenPermission
-		equals: (other: TokenPermissions) => boolean
-	}>
+export type TokenPermissions = Readonly<{
+	permissions: Readonly<{ [key in TokenTransition]: TokenPermission }>
+	canBeMinted: (isOwnerOfToken: IsOwnerOfToken) => boolean
+	canBeBurned: (isOwnerOfToken: IsOwnerOfToken) => boolean
+	mintPermission: TokenPermission
+	equals: (other: TokenPermissions) => boolean
+}>
 
 /**
  * A Radix resource identifier is a human readable index into the Ledger which points to a name state machine
@@ -43,25 +40,22 @@ export type TokenPermissions = JSONEncodable &
  * On format: `/:address/:name`, e.g.
  * `"/JH1P8f3znbyrDj8F4RWpix7hRkgxqHjdW2fNnKpR3v6ufXnknor/XRD"`
  */
-export type ResourceIdentifierT = JSONEncodable &
-	DSONCodable &
-	Readonly<{
-		address: AddressT
-		name: string
-		toString: () => string
-		equals: (other: ResourceIdentifierT) => boolean
-	}>
+export type ResourceIdentifierT = Readonly<{
+	address: AddressT
+	name: string
+	toString: () => string
+	equals: (other: ResourceIdentifierT) => boolean
+}>
 
 /**
  * A transaction identifier, 32 bytes hash of signature + hashOfTxBlob.
  * Used to lookup transactions by ID.
  */
-export type TransactionIdentifierT = DSONCodable &
-	Readonly<{
-		__hex: string
-		toString: () => string
-		equals: (other: TransactionIdentifierT) => boolean
-	}>
+export type TransactionIdentifierT = Readonly<{
+	__hex: string
+	toString: () => string
+	equals: (other: TransactionIdentifierT) => boolean
+}>
 
 export type IsOwnerOfToken = () => boolean
 

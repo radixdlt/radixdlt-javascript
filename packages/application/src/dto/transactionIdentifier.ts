@@ -1,13 +1,5 @@
 import { err, ok, Result } from 'neverthrow'
-import { Byte, isString } from '@radixdlt/util'
-import { decoder, DSONObjectEncoding } from '@radixdlt/data-formats'
 import { TransactionIdentifierT } from './_types'
-
-const CBOR_BYTESTRING_PREFIX: Byte = 6
-
-const JSONDecoder = decoder<TransactionIdentifierT>((value, key) =>
-	key === 'txID' && isString(value) ? create(value) : undefined,
-)
 
 const create = (
 	bytes: Buffer | string,
@@ -23,10 +15,6 @@ const create = (
 	const asString = buffer.toString('hex')
 
 	return ok({
-		...DSONObjectEncoding({
-			prefix: CBOR_BYTESTRING_PREFIX,
-			buffer,
-		}),
 		__hex: asString,
 		toString: () => asString,
 		equals: (other: TransactionIdentifierT) =>
@@ -36,5 +24,4 @@ const create = (
 
 export const TransactionIdentifier = {
 	create,
-	JSONDecoder,
 }

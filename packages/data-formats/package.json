@@ -3,12 +3,10 @@
   "version": "1.0.7",
   "description": "Data formats used for serialization.",
   "keywords": [
-    "CBOR",
-    "DSON",
     "Data"
   ],
   "author": "Alexander Cyon <alex.cyon@gmail.com>",
-  "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/dson#readme",
+  "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/data-formats#readme",
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "publishConfig": {
@@ -29,7 +27,6 @@
   },
   "dependencies": {
     "@radixdlt/util": "^1.0.7",
-    "cbor": "^5.2.0",
     "neverthrow": "^4.0.1",
     "ramda": "^0.27.1"
   },

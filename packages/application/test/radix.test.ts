@@ -741,7 +741,7 @@ describe('Radix API', () => {
 			.buildTransaction(transactionIntent)
 			.subscribe((unsignedTx) => {
 				expect((unsignedTx as { fee: AmountT }).fee.toString()).toEqual(
-					'33681',
+					'56479',
 				)
 				done()
 			})

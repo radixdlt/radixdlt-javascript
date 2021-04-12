@@ -1,5 +1,5 @@
 import { combine, err, ok, Result } from 'neverthrow'
-import { flatten, mapObjIndexed, pipe } from 'ramda'
+import { mapObjIndexed, pipe } from 'ramda'
 import {
 	isObject,
 	isString,
@@ -9,7 +9,7 @@ import {
 	isNumber,
 	isResult,
 } from '@radixdlt/util'
-import { JSONDecodable, Decoder } from './_types'
+import { Decoder } from './_types'
 
 /**
  * Creates a new decoder. A decoder defines a way to transform a key-value pair through a
@@ -18,37 +18,6 @@ import { JSONDecodable, Decoder } from './_types'
 export const decoder = <T>(
 	algorithm: (value: unknown, key?: string) => Result<T, Error> | undefined,
 ): Decoder => (value: unknown, key?: string) => algorithm(value, key)
-
-/**
- * Creates a decoder for decoding a string with a "tag", e.g `:tag:string`,
- * where the tag is in the format `:<tag>:` and is the first part of the string.
- *
- * The decoder will look for a matching tag, and run the provided algorithm
- * on the string following the tag.
- */
-export const taggedStringDecoder = (tag: string) => <T>(
-	algorithm: (value: string) => Result<T, Error>,
-): Decoder =>
-	decoder<T>((value) =>
-		isString(value) && `:${value.split(':')[1]}:` === tag
-			? algorithm(value.slice(tag.length))
-			: undefined,
-	)
-
-/**
- * Creates a decoder for decoding an object with a `key` prop.
- *
- * If the object has a `key` prop with a value (tag) matching the provided
- * string, it will run the algorithm on the object.
- */
-export const taggedObjectDecoder = (tag: string, key: string) => <T>(
-	algorithm: (value: T) => Result<unknown, Error>,
-): Decoder =>
-	decoder((value) =>
-		isObject(value) && value[key] && value[key] === tag
-			? algorithm(value as T)
-			: undefined,
-	)
 
 const applyDecoders = (
 	decoders: Decoder[],
@@ -89,7 +58,7 @@ const JSONDecode = <T>(...decoders: Decoder[]) => (
 	const decode = JSONDecodeUnflattened(...decoders)
 
 	return pipe(
-		applyDecoders.bind(null, decoders),
+		//applyDecoders.bind(null, decoders),
 		flattenResultsObject,
 	)(decode(json)) as Result<T, Error[]>
 }
@@ -119,44 +88,15 @@ const JSONDecodeUnflattened = (...decoders: Decoder[]) => (
 		? applyDecoders(decoders, json).mapErr((err) => [err])
 		: isArray(json)
 		? combine(
-				json.map((item) =>
-					applyDecoders(
-						decoders,
-						JSONDecodeUnflattened(...decoders)(item),
-					),
-				),
-		  ).mapErr((err) => [err])
+				json.map((item) => JSONDecodeUnflattened(...decoders)(item)),
+		  ).mapErr((err) => err)
 		: err([Error('JSON decoding failed. Unknown data type.')])
 
-/**
- * Adds JSON decoding to a decodable entity.
- *
- * @param dependencies JSON decodables that the resulting entity depends on.
- * This is needed to register all the necessary decoders from the dependencies (see exported "decoder" method).
- *
- * @param decoders Decoders needed to perform the decoding.
- * @returns A JSONDecodable entity of type T.
- */
-const withDecoding = <T>(decoders: Decoder[]): JSONDecodable<T> => ({
-	JSONDecoders: decoders,
-	fromJSON: JSONDecode<T>(...decoders),
-})
-
 const withDecoders = (...decoders: Decoder[]) => ({
-	create: <T>() => withDecoding<T>(decoders),
+	create: <T>() => JSONDecode<T>(...decoders),
 })
-
-const withDependencies = (...dependencies: JSONDecodable<unknown>[]) => {
-	const decoders = [...flatten(dependencies.map((dep) => dep.JSONDecoders))]
-
-	return {
-		create: <T>() => withDecoding<T>(decoders),
-		withDecoders: withDecoders.bind(null, ...decoders),
-	}
-}
 
 export const JSONDecoding = {
-	withDependencies,
 	withDecoders,
-	create: <T>() => withDecoding<T>([]),
+	create: <T>() => JSONDecode<T>(...[]),
 }

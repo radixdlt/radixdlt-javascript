@@ -1,11 +1,5 @@
 import { objectEquals } from '@radixdlt/util'
 import {
-	DSONEncoding,
-	JSONEncoding,
-	serializerNotNeeded,
-	Tag,
-} from '@radixdlt/data-formats'
-import {
 	IsOwnerOfToken,
 	TokenPermission,
 	TokenPermissions,
@@ -48,13 +42,6 @@ export const makeTokenPermissions = (
 	const burnPermission = valueOfRequiredPermission(TokenTransition.BURN)
 
 	return {
-		...JSONEncoding(serializerNotNeeded)(() => ({
-			[TokenTransition.BURN]: `${Tag.STRING}${permissions.burn}`,
-			[TokenTransition.MINT]: `${Tag.STRING}${permissions.mint}`,
-		})),
-
-		...DSONEncoding(serializerNotNeeded)(() => permissions),
-
 		permissions,
 		mintPermission,
 		canBeMinted: (isOwnerOfToken: IsOwnerOfToken): boolean =>

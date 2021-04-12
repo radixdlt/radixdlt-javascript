@@ -2,7 +2,6 @@ import { UInt256 } from '@radixdlt/uint256'
 import { AddressT, Address } from '../src/_index'
 
 import { magicFromNumber } from '@radixdlt/primitives'
-import { OutputMode } from '@radixdlt/data-formats'
 import { generatePrivateKey, privateKeyFromScalar } from '@radixdlt/crypto'
 
 // TODO CODE DUPLICATION remove to separate test package...
@@ -69,34 +68,5 @@ describe('Address', () => {
 		)
 		expect(alice.magicByte).toBe(bob.magicByte)
 		expect(alice.equals(bob)).toBe(false)
-	})
-
-	it('should be able to DSON encode', () => {
-		const address = toAddress(
-			'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
-		)
-		const dson = address.toDSON(OutputMode.ALL)._unsafeUnwrap()
-
-		expect(dson.toString('hex')).toBe(
-			'582704390279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798b1186a1e',
-		)
-	})
-
-	it('should be able to JSON encode', () => {
-		const raw = '9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT'
-		const address = toAddress(raw)
-		const json = address.toJSON()._unsafeUnwrap()
-		if (!json) fail('Should have json')
-		expect(json.toString()).toBe(`${Address.JSON_TAG}${raw}`)
-	})
-
-	it('should be able to JSON decode', () => {
-		const raw = '9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT'
-		const expected = toAddress(raw)
-
-		const decoded = Address.fromJSON(
-			`${Address.JSON_TAG}9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT`,
-		)._unsafeUnwrap()
-		expect(decoded.equals(expected)).toBe(true)
 	})
 })

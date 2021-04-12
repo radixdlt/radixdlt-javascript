@@ -1,17 +1,9 @@
 import { Long } from 'long'
 import { UInt256 } from '@radixdlt/uint256'
 import { Result } from 'neverthrow'
-import { DSONCodable, JSONEncodable } from '@radixdlt/data-formats'
 import { Byte } from '@radixdlt/util'
 
 export type Int64 = Long
-
-export type Nonce = JSONEncodable &
-	DSONCodable &
-	Readonly<{
-		value: Int64
-		equals: (other: Nonce) => boolean
-	}>
 
 export type Magic = Readonly<{
 	byte: Byte
@@ -30,22 +22,20 @@ export type AmountStringFormatting = Readonly<{
 	denominationOutputFormat?: DenominationOutputFormat
 }>
 
-export type AmountT = JSONEncodable &
-	DSONCodable &
-	Readonly<{
-		// Magnitude expressed in min denomination
-		magnitude: UInt256
-		isMultipleOf: (other: AmountT) => boolean
-		toString: (formatting?: AmountStringFormatting) => string
-		equals: (other: AmountT) => boolean
-		greaterThan: (other: AmountT) => boolean
-		lessThan: (other: AmountT) => boolean
-		greaterThanOrEquals: (other: AmountT) => boolean
-		lessThanOrEquals: (other: AmountT) => boolean
-		adding: (other: AmountT) => Result<AmountT, Error>
-		subtracting: (other: AmountT) => Result<AmountT, Error>
-		multiplied: (by: AmountT) => Result<AmountT, Error>
-	}>
+export type AmountT = Readonly<{
+	// Magnitude expressed in min denomination
+	magnitude: UInt256
+	isMultipleOf: (other: AmountT) => boolean
+	toString: (formatting?: AmountStringFormatting) => string
+	equals: (other: AmountT) => boolean
+	greaterThan: (other: AmountT) => boolean
+	lessThan: (other: AmountT) => boolean
+	greaterThanOrEquals: (other: AmountT) => boolean
+	lessThanOrEquals: (other: AmountT) => boolean
+	adding: (other: AmountT) => Result<AmountT, Error>
+	subtracting: (other: AmountT) => Result<AmountT, Error>
+	multiplied: (by: AmountT) => Result<AmountT, Error>
+}>
 
 export type Granularity = AmountT
 
