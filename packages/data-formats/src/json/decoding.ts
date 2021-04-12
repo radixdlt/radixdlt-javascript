@@ -1,5 +1,5 @@
 import { combine, err, ok, Result } from 'neverthrow'
-import { flatten, mapObjIndexed, pipe } from 'ramda'
+import { mapObjIndexed, pipe } from 'ramda'
 import {
 	isObject,
 	isString,
@@ -9,7 +9,7 @@ import {
 	isNumber,
 	isResult,
 } from '@radixdlt/util'
-import { JSONDecodable, Decoder } from './_types'
+import { Decoder } from './_types'
 
 /**
  * Creates a new decoder. A decoder defines a way to transform a key-value pair through a
@@ -92,25 +92,12 @@ const JSONDecodeUnflattened = (...decoders: Decoder[]) => (
 		  ).mapErr((err) => err)
 		: err([Error('JSON decoding failed. Unknown data type.')])
 
-/**
- * Adds JSON decoding to a decodable entity.
- *
- * @param dependencies JSON decodables that the resulting entity depends on.
- * This is needed to register all the necessary decoders from the dependencies (see exported "decoder" method).
- *
- * @param decoders Decoders needed to perform the decoding.
- * @returns A JSONDecodable entity of type T.
- */
-const withDecoding = <T>(decoders: Decoder[]): JSONDecodable<T> => ({
-	JSONDecoders: decoders,
-	fromJSON: JSONDecode<T>(...decoders),
-})
 
 const withDecoders = (...decoders: Decoder[]) => ({
-	create: <T>() => withDecoding<T>(decoders),
+	create: <T>() => JSONDecode<T>(...decoders),
 })
 
 export const JSONDecoding = {
 	withDecoders,
-	create: <T>() => withDecoding<T>([]),
+	create: <T>() => JSONDecode<T>(...[]),
 }

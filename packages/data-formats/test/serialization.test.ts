@@ -25,7 +25,7 @@ describe('JSON decoding', () => {
 		)
 
 	it('should decode an array', () => {
-		const { fromJSON } = JSONDecoding.withDecoders(
+		const fromJSON = JSONDecoding.withDecoders(
 			stringDecoder('a'),
 		).create()
 
@@ -57,7 +57,7 @@ describe('JSON decoding', () => {
 		const bool = true
 		const nbr = 1
 
-		const { fromJSON } = JSONDecoding.withDecoders(
+		const fromJSON = JSONDecoding.withDecoders(
 			stringDecoder(str),
 			boolDecoder(bool),
 			nbrDecoder(nbr),
@@ -85,7 +85,7 @@ describe('JSON decoding', () => {
 				: undefined,
 		)
 
-		const { fromJSON } = JSONDecoding.withDecoders(
+		const fromJSON = JSONDecoding.withDecoders(
 			stringDecoder,
 			stringDecoder2,
 		).create()
@@ -134,7 +134,7 @@ describe('JSON decoding', () => {
 				: undefined,
 		)
 
-		const { fromJSON } = JSONDecoding.withDecoders(
+		const fromJSON = JSONDecoding.withDecoders(
 			stringDecoder,
 			stringDecoder2,
 			stringDecoder3,
