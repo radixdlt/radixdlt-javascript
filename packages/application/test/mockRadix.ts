@@ -46,6 +46,7 @@ import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
 import { toAddress } from '../../account/test/address.test'
 import { StakePosition, UnstakePosition } from '../src/dto/_types'
 import { SubmittedTransaction } from '../src/dto/_types'
+import { isNumber } from '@radixdlt/util'
 
 export const xrd: Token = {
 	name: 'Rad',
@@ -184,7 +185,7 @@ export const balanceOfFor = (
 		? input.amount
 		: Amount.fromUInt256({
 				magnitude: input.token.granularity.magnitude.multiply(
-					UInt256.valueOf(input.amount),
+					isNumber(input.amount) ? UInt256.valueOf(input.amount) : input.amount.magnitude
 				),
 				denomination: Denomination.Atto,
 		  })._unsafeUnwrap()
@@ -383,6 +384,7 @@ const randomUnsignedTransaction = (
 	}
 
 	const detBlob = JSON.stringify(transactionIntentDet, null, 4)
+	console.log(detBlob)
 	const blobBytes = Buffer.from(detBlob)
 	const bytes32 = sha256(blobBytes)
 

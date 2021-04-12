@@ -1,4 +1,3 @@
-import { DSONCodable, JSONEncodable } from '@radixdlt/data-formats'
 import { Byte } from '@radixdlt/util'
 import { PublicKey, Signature } from '@radixdlt/crypto'
 import { Observable } from 'rxjs'
@@ -7,8 +6,7 @@ import { Option } from 'prelude-ts'
 import { HDPathRadixT } from './bip32/_index'
 import { Magic } from '@radixdlt/primitives'
 
-export type AddressT = JSONEncodable &
-	DSONCodable &
+export type AddressT =
 	Readonly<{
 		publicKey: PublicKey
 		magicByte: Byte

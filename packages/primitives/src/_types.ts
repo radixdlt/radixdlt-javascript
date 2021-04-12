@@ -1,13 +1,11 @@
 import { Long } from 'long'
 import { UInt256 } from '@radixdlt/uint256'
 import { Result } from 'neverthrow'
-import { DSONCodable, JSONEncodable } from '@radixdlt/data-formats'
 import { Byte } from '@radixdlt/util'
 
 export type Int64 = Long
 
-export type Nonce = JSONEncodable &
-	DSONCodable &
+export type Nonce =
 	Readonly<{
 		value: Int64
 		equals: (other: Nonce) => boolean
@@ -30,8 +28,7 @@ export type AmountStringFormatting = Readonly<{
 	denominationOutputFormat?: DenominationOutputFormat
 }>
 
-export type AmountT = JSONEncodable &
-	DSONCodable &
+export type AmountT =
 	Readonly<{
 		// Magnitude expressed in min denomination
 		magnitude: UInt256

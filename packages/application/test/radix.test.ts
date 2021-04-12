@@ -682,7 +682,7 @@ describe('Radix API', () => {
 			.add(subs)
 	})
 
-	it('should get build transaction response', (done) => {
+	it.only('should get build transaction response', (done) => {
 		const subs = new Subscription()
 
 		const radix = Radix.create().__withAPI(mockedAPI)

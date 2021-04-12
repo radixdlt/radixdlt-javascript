@@ -15,24 +15,7 @@ import {
 	UInt256InputUnsafe,
 	uint256Max,
 } from './uint256-extensions'
-import {
-	DSONObjectEncoding,
-	JSONDecoding,
-	JSONEncoding,
-	serializerNotNeeded,
-	taggedStringDecoder,
-} from '@radixdlt/data-formats'
 import { denominations, formatDenomination } from './denomination'
-import { Byte } from '@radixdlt/util'
-
-const CBOR_BYTESTRING_PREFIX: Byte = 5
-const JSON_TAG = ':u20:'
-
-const JSONDecoder = taggedStringDecoder(JSON_TAG)((data: string) =>
-	ok(inSmallestDenomination(new UInt256(data))),
-)
-
-const jsonDecoding = JSONDecoding.withDecoders(JSONDecoder).create<AmountT>()
 
 export const min = (lhs: AmountT, rhs: AmountT): AmountT =>
 	lhs.lessThanOrEquals(rhs) ? lhs : rhs
@@ -85,16 +68,7 @@ const inSmallestDenomination = (magnitude: UInt256): AmountT => {
 			.andThen(fromUInt256)
 	}
 
-	const buffer = bnFromUInt256(magnitude).toArrayLike(Buffer, 'be', 32)
-
 	return {
-		...JSONEncoding(serializerNotNeeded)(
-			() => `${JSON_TAG}${magnitude.toString(10)}`,
-		),
-		...DSONObjectEncoding({
-			prefix: CBOR_BYTESTRING_PREFIX,
-			buffer,
-		}),
 		magnitude: magnitude,
 		isMultipleOf: (other: AmountT) =>
 			magnitude.mod(other.magnitude, false).eq(UInt256.valueOf(0)),
@@ -268,9 +242,6 @@ export const maxAmount = fromUInt256({
 })._unsafeUnwrap()
 
 export const Amount = {
-	JSON_TAG,
-	...jsonDecoding,
-	JSONDecoder,
 	inSmallestDenomination,
 	fromUnsafe,
 	fromUInt256,

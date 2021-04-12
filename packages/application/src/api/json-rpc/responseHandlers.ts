@@ -27,9 +27,6 @@ import { makeTokenPermissions } from '../../dto/tokenPermissions'
 import { TokenPermission } from '../../dto/_types'
 import { ResourceIdentifier } from '../../dto/resourceIdentifier'
 import { OtherAction } from '../../actions/otherAction'
-import { ExecutedTransferTokens } from '../../actions/executedTransferTokensAction'
-import { ExecutedStakeTokens } from '../../actions/executedStakeTokensAction'
-import { ExecutedUnstakeTokens } from '../../actions/executedUnstakeTokensAction'
 
 const amountDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
@@ -42,13 +39,6 @@ const dateDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
 		key !== undefined && keys.includes(key) && isString(value)
 			? ok(new Date(value))
-			: undefined,
-	)
-
-const addressDecoder = (...keys: string[]) =>
-	decoder((value, key) =>
-		key !== undefined && keys.includes(key) && isString(value)
-			? Address.fromBase58String(value)
 			: undefined,
 	)
 
@@ -70,13 +60,13 @@ const tokenPermissionsDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
 		key !== undefined && keys.includes(key) && isObject(value)
 			? ok(
-					makeTokenPermissions(
-						value as Readonly<{
-							mint: TokenPermission
-							burn: TokenPermission
-						}>,
-					),
-			  )
+				makeTokenPermissions(
+					value as Readonly<{
+						mint: TokenPermission
+						burn: TokenPermission
+					}>,
+				),
+			)
 			: undefined,
 	)
 
@@ -94,16 +84,20 @@ const magicDecoder = (...keys: string[]) =>
 			: undefined,
 	)
 
+const addressDecoder = (...keys: string[]) =>
+	decoder((value, key) =>
+		key !== undefined && keys.includes(key) && isString(value)
+			? Address.fromBase58String(value)
+			: undefined,
+	)
+
+
 const executedTXDecoders = JSONDecoding.withDecoders(
 	amountDecoder('amount', 'fee'),
 	dateDecoder('sentAt'),
 	addressDecoder('from', 'to', 'validator'),
 	transactionIdentifierDecoder('txID'),
 	RRIDecoder('rri'),
-	ExecutedTransferTokens.JSONDecoder,
-	ExecutedStakeTokens.JSONDecoder,
-	ExecutedUnstakeTokens.JSONDecoder,
-	OtherAction.JSONDecoder,
 )
 
 export type RPCRequestFailureResponse = Readonly<{
@@ -160,8 +154,8 @@ export const handleTransactionStatusResponse = (
 	isRPCRequestFailureResponse(json)
 		? err([new Error(json.failure)])
 		: JSONDecoding.withDecoders(transactionIdentifierDecoder('txID'))
-				.create<TransactionStatusEndpoint.DecodedResponse>()
-				.fromJSON(json)
+			.create<TransactionStatusEndpoint.DecodedResponse>()
+			.fromJSON(json)
 
 export const handleNetworkTxThroughputResponse = JSONDecoding.create<NetworkTransactionThroughputEndpoint.DecodedResponse>()
 	.fromJSON
@@ -175,8 +169,8 @@ export const handleBuildTransactionResponse = (
 	isRPCRequestFailureResponse(json)
 		? err([new Error(json.failure)])
 		: JSONDecoding.create<BuildTransactionEndpoint.DecodedResponse>().fromJSON(
-				json,
-		  )
+			json,
+		)
 
 export const handleSubmitSignedTransactionResponse = (
 	json: unknown,
@@ -184,8 +178,8 @@ export const handleSubmitSignedTransactionResponse = (
 	isRPCRequestFailureResponse(json)
 		? err([new Error(json.failure)])
 		: JSONDecoding.withDecoders(transactionIdentifierDecoder('txID'))
-				.create<SubmitSignedTransactionEndpoint.DecodedResponse>()
-				.fromJSON(json)
+			.create<SubmitSignedTransactionEndpoint.DecodedResponse>()
+			.fromJSON(json)
 
 export const handleFinalizedTransactionResponse = (
 	json: unknown,
@@ -193,5 +187,5 @@ export const handleFinalizedTransactionResponse = (
 	isRPCRequestFailureResponse(json)
 		? err([new Error(json.failure)])
 		: JSONDecoding.withDecoders(transactionIdentifierDecoder('txID'))
-				.create<FinalizeTransactionEndpoint.DecodedResponse>()
-				.fromJSON(json)
+			.create<FinalizeTransactionEndpoint.DecodedResponse>()
+			.fromJSON(json)

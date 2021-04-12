@@ -2,7 +2,6 @@ import { UInt256 } from '@radixdlt/uint256'
 import { AmountT } from '../src/_types'
 import {
 	Amount,
-	AmountOrUnsafeInput,
 	eight,
 	eleven,
 	fifteen,
@@ -145,57 +144,6 @@ describe('Amount', () => {
 
 		expect(supply.isMultipleOf(granularity)).toBe(true)
 		expect(granularity.isMultipleOf(supply)).toBe(false)
-	})
-
-	it('should be able to DSON encode amount in denomination whole', () => {
-		const amount = Amount.fromUInt256({
-			magnitude: UInt256.valueOf(6),
-			denomination: Denomination.Whole,
-		})._unsafeUnwrap()
-
-		const expected =
-			'58210500000000000000000000000000000000000000000000000053444835ec580000'
-		const dson = amount.toDSON()._unsafeUnwrap()
-
-		expect(dson.toString('hex')).toBe(expected)
-	})
-
-	it('should be able to DSON encode amount in denomination atto', () => {
-		const amount = Amount.fromUInt256({
-			magnitude: UInt256.valueOf(7),
-			denomination: Denomination.Atto,
-		})._unsafeUnwrap()
-
-		const expected =
-			'5821050000000000000000000000000000000000000000000000000000000000000007'
-		const dson = amount.toDSON()._unsafeUnwrap()
-
-		expect(dson.toString('hex')).toBe(expected)
-	})
-
-	it('should be able to JSON encode', () => {
-		const amount = Amount.fromUInt256({
-			magnitude: UInt256.valueOf(7),
-			denomination: Denomination.Whole,
-		})._unsafeUnwrap()
-
-		const expected = `${Amount.JSON_TAG}7000000000000000000`
-		const json = amount.toJSON()._unsafeUnwrap()
-
-		expect(json).toBe(expected)
-	})
-
-	it('should be able to JSON decode', () => {
-		const result = Amount.fromJSON(
-			`${Amount.JSON_TAG}7000000000000000000`,
-		)._unsafeUnwrap()
-
-		const expected = Amount.fromUInt256({
-			magnitude: UInt256.valueOf(7),
-			denomination: Denomination.Whole,
-		})._unsafeUnwrap()
-
-		expect(result.equals(expected)).toBe(true)
 	})
 
 	it('should be possible to find min of two amounts', () => {

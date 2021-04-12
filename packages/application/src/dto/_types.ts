@@ -1,4 +1,3 @@
-import { DSONCodable, JSONEncodable } from '@radixdlt/data-formats'
 import { AccountT, AddressT } from '@radixdlt/account'
 import {
 	ActionInput,
@@ -27,8 +26,7 @@ export type UnstakePosition = Readonly<{
 	epochsUntil: number
 }>
 
-export type TokenPermissions = JSONEncodable &
-	DSONCodable &
+export type TokenPermissions =
 	Readonly<{
 		permissions: Readonly<{ [key in TokenTransition]: TokenPermission }>
 		canBeMinted: (isOwnerOfToken: IsOwnerOfToken) => boolean
@@ -43,8 +41,7 @@ export type TokenPermissions = JSONEncodable &
  * On format: `/:address/:name`, e.g.
  * `"/JH1P8f3znbyrDj8F4RWpix7hRkgxqHjdW2fNnKpR3v6ufXnknor/XRD"`
  */
-export type ResourceIdentifierT = JSONEncodable &
-	DSONCodable &
+export type ResourceIdentifierT =
 	Readonly<{
 		address: AddressT
 		name: string
@@ -56,7 +53,7 @@ export type ResourceIdentifierT = JSONEncodable &
  * A transaction identifier, 32 bytes hash of signature + hashOfTxBlob.
  * Used to lookup transactions by ID.
  */
-export type TransactionIdentifierT = DSONCodable &
+export type TransactionIdentifierT =
 	Readonly<{
 		__hex: string
 		toString: () => string
