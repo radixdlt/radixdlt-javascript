@@ -38,7 +38,11 @@ import {
 	isUnstakeTokensInput,
 } from '../actions/intendedUnstakeTokensAction'
 import { combine, err, Result } from 'neverthrow'
-import { EncryptedMessageT, PublicKey } from '@radixdlt/crypto'
+import {
+	EncryptedMessage,
+	EncryptedMessageT,
+	PublicKey,
+} from '@radixdlt/crypto'
 import { Option } from 'prelude-ts'
 import { isResourceIdentifier } from './resourceIdentifier'
 import { isAmount } from '@radixdlt/primitives'
@@ -229,57 +233,60 @@ const create = (
 	const syncBuildDoNotEncryptMessageIfAny = (
 		from: AddressT,
 	): Result<TransactionIntent, Error> => {
-
-		// maybePlaintextMsgToEncrypt
-		// 	.map((msg) => ({
-		// 		encryptionScheme: EncryptionSchemeName.DO_NOT_ENCRYPT,
-		// 		msg,
-		// 	}))
-		// 	.getOrUndefined(),
-
-		const message: Buffer | undefined = undefined
-
 		return intendedActionsFromIntermediateActions(from).map(
 			({ intendedActions }) => ({
 				actions: intendedActions,
-				message,
+				message: maybePlaintextMsgToEncrypt
+					.map((msg) => Buffer.from(msg))
+					.getOrUndefined(),
 			}),
 		)
 	}
 
 	type ActorsInEncryption = {
 		encryptingAccount: AccountT
-		publicKeysOfReaders: PublicKey[]
+		singleRecipientPublicKey: PublicKey
 	}
 
-	const gatherPublicKeysFromActions = (
+	const ensureSingleRecipient = (
 		input: Readonly<{
 			intendedActionsFrom: IntendedActionsFrom
 			encryptingAccount: AccountT
 		}>,
 	): Observable<ActorsInEncryption> => {
 		return input.encryptingAccount.derivePublicKey().pipe(
-			map((pk) => {
-				const setOfStrings = new Set<string>(pk.toString())
+			map((pk: PublicKey): PublicKey[] => {
+				const setOfStrings = new Set<string>()
+				setOfStrings.add(pk.toString())
 
-				const publicKeysOfReaders: PublicKey[] = input.intendedActionsFrom.intendedActions.reduce(
+				return input.intendedActionsFrom.intendedActions.reduce(
 					(acc: PublicKey[], action: IntendedAction) => {
 						getUniqueAddresses(action).forEach((a) => {
-							if (!setOfStrings.has(a.toString())) {
+							const pkString = a.publicKey.toString()
+							if (!setOfStrings.has(pkString)) {
 								acc.push(a.publicKey)
-								setOfStrings.add(a.toString())
+								setOfStrings.add(pkString)
 							}
 						})
 						return acc
 					},
 					[] as PublicKey[],
 				)
-
-				return {
-					encryptingAccount: input.encryptingAccount,
-					publicKeysOfReaders,
-				}
 			}),
+			map(
+				(publicKeys): ActorsInEncryption => {
+					if (publicKeys.length !== 1) {
+						throw new Error(
+							'Cannot encrypt message for a transaction containing more than one (or zero) recipient addresses.',
+						)
+					}
+					const singleRecipientPublicKey: PublicKey = publicKeys[0]
+					return {
+						encryptingAccount: input.encryptingAccount,
+						singleRecipientPublicKey,
+					}
+				},
+			),
 		)
 	}
 
@@ -323,7 +330,7 @@ const create = (
 									(
 										encryptingAccount: AccountT,
 									): Observable<ActorsInEncryption> =>
-										gatherPublicKeysFromActions({
+										ensureSingleRecipient({
 											intendedActionsFrom,
 											encryptingAccount,
 										}),
@@ -332,15 +339,13 @@ const create = (
 									(
 										actors: ActorsInEncryption,
 									): Observable<EncryptedMessageT> => {
-										return throwError(new Error('impl me'))
-										// return actors.encryptingAccount.encrypt(
-										// 	{
-										// 		plaintext,
-										// 		encryptionSchemeIdentifier,
-										// 		publicKeysOfReaders:
-										// 			actors.publicKeysOfReaders,
-										// 	},
-										// )
+										return actors.encryptingAccount.encrypt(
+											{
+												plaintext,
+												publicKeyOfOtherParty:
+													actors.singleRecipientPublicKey,
+											},
+										)
 									},
 								),
 								map(

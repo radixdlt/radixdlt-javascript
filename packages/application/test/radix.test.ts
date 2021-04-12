@@ -128,8 +128,6 @@ describe('Radix API', () => {
 		)
 	})
 
-
-
 	const testChangeNode = async (
 		expectedValues: string[],
 		done: jest.DoneCallback,

@@ -1,11 +1,16 @@
-import { PrivateKey, PublicKey } from '../_types'
-import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
+import { DiffieHellman, ECPointOnCurve, PublicKey } from '../_types'
+import { secureRandomGenerator } from '@radixdlt/util'
 import {
 	AES_GCM,
 	aesGCMSealDeterministic,
 } from '../symmetric-encryption/aes/aesGCM'
-import { Result, ResultAsync } from 'neverthrow'
-import { EncryptedMessageT, SealedMessageT } from './_types'
+import { combine, okAsync, Result, ResultAsync } from 'neverthrow'
+import {
+	EncryptedMessageT,
+	MessageDecryptionInput,
+	MessageEncryptionInput,
+	SealedMessageT,
+} from './_types'
 import { Scrypt, ScryptParams } from '../key-derivation-functions/scrypt'
 import { AES_GCM_SealedBoxT } from '../symmetric-encryption/aes/_types'
 import { generateKeyPair } from '../elliptic-curve/keyPair'
@@ -15,71 +20,22 @@ import { EncryptedMessage } from './encryptedMessage'
 import { SealedMessage } from './sealedMessage'
 import { EncryptionScheme } from './encryptionScheme'
 
-const cryptOperationModeEncrypt = 'encrypt' as const
-type CryptOperationModeEncrypt = typeof cryptOperationModeEncrypt
-
-const cryptOperationModeDecrypt = 'decrypt' as const
-type CryptOperationModeDecrypt = typeof cryptOperationModeDecrypt
-
-type CryptOperationMode = CryptOperationModeEncrypt | CryptOperationModeDecrypt
-
-type CryptOperationEncryptInput = Readonly<{
-	plaintext: Buffer
-}>
-type CryptOperationDecryptInput = Readonly<{
-	encrypted: Buffer
-}>
-type CryptOperationInput =
-	| CryptOperationEncryptInput
-	| CryptOperationDecryptInput
-
-export type CryptOperationKeysOfParties = Readonly<{
-	blackPartyPrivateKey: PrivateKey
-	whitePartyPublicKey: PublicKey
+type CalculateSharedSecretInput = Readonly<{
+	ephemeralPublicKey: PublicKey
+	publicKeyOfOtherParty: PublicKey
+	dh: DiffieHellman
 }>
 
-type CryptOperationKeys = CryptOperationKeysOfParties &
-	Readonly<{
-		ephemeralPublicKey: PublicKey
-	}>
-
-type CryptOperationBase = Readonly<{
-	mode: CryptOperationMode
-	input: CryptOperationInput
-	keys: CryptOperationKeys
-}>
-
-type EncryptT = CryptOperationBase &
-	Readonly<{
-		mode: CryptOperationModeEncrypt
-		input: CryptOperationEncryptInput
-	}>
-
-type DecryptT = CryptOperationBase &
-	Readonly<{
-		mode: CryptOperationModeDecrypt
-		input: CryptOperationDecryptInput
-	}>
-
-type CryptOperationT = EncryptT | DecryptT
-
-type SharedSecretKey = Readonly<{
-	sharedSecretPublicKey: PublicKey
-}>
-
-type CryptAlgorithmsT = Readonly<{
-	diffieHellman: (keys: CryptOperationKeys) => SharedSecretKey
-	symmetricKDF: (input: void) => void
-}>
-
-const calculateSharedSecret = (keys: CryptOperationKeys): Buffer => {
-	const dh = keys.whitePartyPublicKey
-		.decodeToPointOnCurve()
-		.multiplyWithPrivateKey(keys.blackPartyPrivateKey)
-
-	const ephemeralPoint = keys.ephemeralPublicKey.decodeToPointOnCurve()
-	const sharedSecretPoint = dh.add(ephemeralPoint)
-	return Buffer.from(sharedSecretPoint.x.toString(16), 'hex')
+const calculateSharedSecret = (
+	input: CalculateSharedSecretInput,
+): ResultAsync<Buffer, Error> => {
+	return input.dh.diffieHellman(input.publicKeyOfOtherParty).map(
+		(dhKey: ECPointOnCurve): Buffer => {
+			const ephemeralPoint = input.ephemeralPublicKey.decodeToPointOnCurve()
+			const sharedSecretPoint = dhKey.add(ephemeralPoint)
+			return Buffer.from(sharedSecretPoint.x.toString(16), 'hex')
+		},
+	)
 }
 
 const kdf = (secret: Buffer, nonce: Buffer): ResultAsync<Buffer, Error> => {
@@ -91,22 +47,17 @@ const kdf = (secret: Buffer, nonce: Buffer): ResultAsync<Buffer, Error> => {
 	})
 }
 
-const decrypt = (
+const decryptAESSealedBox = (
 	input: Readonly<{
 		aesSealedBox: AES_GCM_SealedBoxT
-		keys: CryptOperationKeys
+		sharedSecret: Buffer
+		additionalAuthenticationData: Buffer
 	}>,
 ): ResultAsync<Buffer, Error> => {
 	const nonce = input.aesSealedBox.nonce
-	const ephemeralPublicKey = input.keys.ephemeralPublicKey
+	const { additionalAuthenticationData } = input
 
-	const sharedSecret = calculateSharedSecret(input.keys)
-
-	const additionalAuthenticationData = ephemeralPublicKey.asData({
-		compressed: true,
-	})
-
-	return kdf(sharedSecret, nonce)
+	return kdf(input.sharedSecret, nonce)
 		.map((symmetricKey) => ({
 			...input.aesSealedBox,
 			symmetricKey,
@@ -127,32 +78,49 @@ const aesSealedBoxFromSealedMessage = (
 const decryptSealedMessageWithKeysOfParties = (
 	input: Readonly<{
 		sealedMessage: SealedMessageT
-		partyKeys: CryptOperationKeysOfParties
+		publicKeyOfOtherParty: PublicKey
+		dh: DiffieHellman
 	}>,
 ): ResultAsync<Buffer, Error> => {
 	const ephemeralPublicKey = input.sealedMessage.ephemeralPublicKey
 
-	const keys: CryptOperationKeys = {
-		...input.partyKeys,
-		ephemeralPublicKey,
-	}
+	const additionalAuthenticationData = ephemeralPublicKey.asData({
+		compressed: true,
+	})
 
-	return aesSealedBoxFromSealedMessage(input.sealedMessage)
-		.map((aesSealedBox: AES_GCM_SealedBoxT) => ({ aesSealedBox, keys }))
-		.asyncAndThen(decrypt)
+	return combine([
+		aesSealedBoxFromSealedMessage(input.sealedMessage).asyncAndThen(
+			okAsync,
+		),
+		calculateSharedSecret({
+			...input,
+			ephemeralPublicKey,
+		}),
+	])
+		.map((resultList) => {
+			const aesSealedBox = resultList[0] as AES_GCM_SealedBoxT
+			const sharedSecret = resultList[1] as Buffer
+			return {
+				aesSealedBox,
+				sharedSecret,
+				additionalAuthenticationData,
+			}
+		})
+		.andThen(decryptAESSealedBox)
 }
 
 const decryptEncryptedMessage = (
 	input: Readonly<{
 		encryptedMessage: EncryptedMessageT
-		partyKeys: CryptOperationKeysOfParties
+		publicKeyOfOtherParty: PublicKey
+		dh: DiffieHellman
 	}>,
 ): ResultAsync<Buffer, Error> => {
-	const { partyKeys, encryptedMessage } = input
+	const { encryptedMessage } = input
 	return EncryptedMessage.supportsSchemeOf(encryptedMessage)
 		.map((sealedMessage) => ({
+			...input,
 			sealedMessage,
-			partyKeys,
 		}))
 		.asyncAndThen(decryptSealedMessageWithKeysOfParties)
 }
@@ -160,57 +128,76 @@ const decryptEncryptedMessage = (
 const decryptEncryptedMessageBuffer = (
 	input: Readonly<{
 		encryptedMessageBuffer: Buffer
-		partyKeys: CryptOperationKeysOfParties
+		publicKeyOfOtherParty: PublicKey
+		dh: DiffieHellman
 	}>,
 ): ResultAsync<Buffer, Error> =>
 	EncryptedMessage.fromBuffer(input.encryptedMessageBuffer)
 		.map((encryptedMessage: EncryptedMessageT) => ({
+			...input,
 			encryptedMessage,
-			partyKeys: input.partyKeys,
 		}))
 		.asyncAndThen(decryptEncryptedMessage)
 
-const encryptDeterministic = (
-	input: Readonly<{
-		plaintext: Buffer
+const decrypt = (input: MessageDecryptionInput): ResultAsync<Buffer, Error> =>
+	Buffer.isBuffer(input.encryptedMessage)
+		? decryptEncryptedMessageBuffer({
+				...input,
+				encryptedMessageBuffer: input.encryptedMessage,
+		  })
+		: decryptEncryptedMessage({
+				...input,
+				encryptedMessage: input.encryptedMessage,
+		  })
+
+type DeterministicMessageEncryptionInput = MessageEncryptionInput &
+	Readonly<{
 		nonce: Buffer
-		keys: CryptOperationKeys
-	}>,
+		ephemeralPublicKey: PublicKey
+	}>
+
+const __encryptDeterministic = (
+	input: DeterministicMessageEncryptionInput,
 ): ResultAsync<EncryptedMessageT, Error> => {
-	const { plaintext, nonce } = input
+	const { nonce, ephemeralPublicKey } = input
 
-	const ephemeralPublicKey = input.keys.ephemeralPublicKey
+	const additionalAuthenticationData = ephemeralPublicKey.asData({
+		compressed: true,
+	})
 
-	const sharedSecret = calculateSharedSecret(input.keys)
+	const plaintext =
+		typeof input.plaintext === 'string'
+			? Buffer.from(input.plaintext, 'utf-8')
+			: input.plaintext
 
-	return kdf(sharedSecret, nonce)
-		.andThen((symmetricKey) =>
-			aesGCMSealDeterministic({
-				nonce,
-				plaintext,
-				additionalAuthenticationData: ephemeralPublicKey.asData({
-					compressed: true,
+	return calculateSharedSecret({
+		...input,
+	}).andThen((sharedSecret) => {
+		return kdf(sharedSecret, nonce)
+			.andThen((symmetricKey) =>
+				aesGCMSealDeterministic({
+					nonce,
+					plaintext,
+					additionalAuthenticationData,
+					symmetricKey,
 				}),
-				symmetricKey,
-			}),
-		)
-		.andThen((s) => SealedMessage.fromAESSealedBox(s, ephemeralPublicKey))
-		.map(
-			(sealedMessage: SealedMessageT): EncryptedMessageT => {
-				return EncryptedMessage.create({
-					sealedMessage,
-					encryptionScheme: EncryptionScheme.current,
-				})
-			},
-		)
+			)
+			.andThen((s) =>
+				SealedMessage.fromAESSealedBox(s, ephemeralPublicKey),
+			)
+			.map(
+				(sealedMessage: SealedMessageT): EncryptedMessageT => {
+					return EncryptedMessage.create({
+						sealedMessage,
+						encryptionScheme: EncryptionScheme.current,
+					})
+				},
+			)
+	})
 }
 
 const encrypt = (
-	input: Readonly<{
-		plaintext: Buffer | string
-		partyKeys: CryptOperationKeysOfParties
-		secureRandom?: SecureRandom
-	}>,
+	input: MessageEncryptionInput,
 ): ResultAsync<EncryptedMessageT, Error> => {
 	const secureRandom = input.secureRandom ?? secureRandomGenerator
 
@@ -223,24 +210,15 @@ const encrypt = (
 
 	const ephemeralPublicKey = ephemeralKeyPair.publicKey
 
-	const plaintext =
-		typeof input.plaintext === 'string'
-			? Buffer.from(input.plaintext, 'utf-8')
-			: input.plaintext
-
-	return encryptDeterministic({
-		plaintext,
-		nonce: nonce,
-		keys: {
-			whitePartyPublicKey: input.partyKeys.whitePartyPublicKey,
-			blackPartyPrivateKey: input.partyKeys.blackPartyPrivateKey,
-			ephemeralPublicKey,
-		},
+	return __encryptDeterministic({
+		...input,
+		nonce,
+		ephemeralPublicKey,
 	})
 }
 
 export const MessageEncryption = {
+	__encryptDeterministic,
 	encrypt,
-	decryptEncryptedMessage,
-	decryptEncryptedMessageBuffer,
+	decrypt,
 }

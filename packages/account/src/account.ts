@@ -1,6 +1,7 @@
 import {
+	DiffieHellman,
 	EncryptedMessageT,
-	EncryptedMessageToDecrypt,
+	MessageEncryption,
 	PrivateKey,
 	PublicKey,
 	Signature,
@@ -9,16 +10,14 @@ import { mergeMap } from 'rxjs/operators'
 import { Observable, of, throwError } from 'rxjs'
 import { toObservable } from './resultAsync_observable'
 import {
+	AccountDecryptionInput,
+	AccountEncryptionInput,
 	AccountT,
 	AddressT,
 	HardwareWalletSimpleT,
-	PlaintextMessageToEncrypt,
 } from './_types'
 import { HDMasterSeedT, HDNodeT } from './bip39/_types'
 import { HDPathRadixT } from './bip32/bip44/_types'
-
-const NO_ENCRYPTION_YET_PREFIX =
-	'PLAIN_TEXT_BECAUSE_ENCRYPTION_IS_NOT_YET_INPLEMENTED___'
 
 const fromPrivateKey = (
 	input: Readonly<{
@@ -32,19 +31,31 @@ const fromPrivateKey = (
 	const sign = (hashedMessage: Buffer): Observable<Signature> =>
 		toObservable(privateKey.sign(hashedMessage))
 
+	const dh: DiffieHellman = privateKey.diffieHellman
+
 	return {
+		decrypt: (input: AccountDecryptionInput): Observable<string> => {
+			return toObservable(
+				MessageEncryption.decrypt({
+					...input,
+					dh,
+				}).map((buf: Buffer) => buf.toString('utf-8')),
+			)
+		},
+		encrypt: (
+			input: AccountEncryptionInput,
+		): Observable<EncryptedMessageT> => {
+			return toObservable(
+				MessageEncryption.encrypt({
+					...input,
+					dh,
+				}),
+			)
+		},
 		sign: sign,
 		hdPath,
 		derivePublicKey: () => of(publicKey),
 		deriveAddress: () => addressFromPublicKey(publicKey),
-		decrypt: (
-			_encryptedMessage: EncryptedMessageToDecrypt,
-		): Observable<string> => throwError(() => new Error('Imple me')),
-
-		encrypt: (
-			plaintext: PlaintextMessageToEncrypt,
-		): Observable<EncryptedMessageT> =>
-			throwError(() => new Error('Imple me')),
 	}
 }
 
@@ -77,14 +88,14 @@ const fromHDPathWithHardwareWallet = (
 			derivePublicKey().pipe(
 				mergeMap((pubKey) => input.addressFromPublicKey(pubKey)),
 			),
-		decrypt: (
-			_encryptedMessage: EncryptedMessageToDecrypt,
-		): Observable<string> => throwError(() => new Error('Imple me')),
-
+		decrypt: (input: AccountDecryptionInput): Observable<string> => {
+			return throwError(new Error('impl me'))
+		},
 		encrypt: (
-			_plaintext: PlaintextMessageToEncrypt,
-		): Observable<EncryptedMessageT> =>
-			throwError(() => new Error('Imple me')),
+			input: AccountEncryptionInput,
+		): Observable<EncryptedMessageT> => {
+			return throwError(new Error('impl me'))
+		},
 	}
 }
 

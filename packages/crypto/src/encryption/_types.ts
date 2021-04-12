@@ -1,8 +1,17 @@
-import { Byte } from '@radixdlt/util'
-import { PublicKey } from '../_types'
+import { Byte, SecureRandom } from '@radixdlt/util'
+import { PublicKey, DiffieHellman } from '../_types'
 
-export type MessageEncryptor = Readonly<{
-	encrypt: () => void
+export type MessageEncryptionInput = Readonly<{
+	plaintext: Buffer | string
+	publicKeyOfOtherParty: PublicKey
+	dh: DiffieHellman
+	secureRandom?: SecureRandom
+}>
+
+export type MessageDecryptionInput = Readonly<{
+	encryptedMessage: Buffer | EncryptedMessageT
+	publicKeyOfOtherParty: PublicKey
+	dh: DiffieHellman
 }>
 
 export type EncryptionSchemeT = Readonly<{
@@ -38,8 +47,3 @@ export type EncryptedMessageT = Readonly<{
 
 	combined: () => Buffer
 }>
-
-export type EncryptedMessageToDecrypt = EncryptedMessageT &
-	Readonly<{
-		publicKeysOfReaders: PublicKey[]
-	}>

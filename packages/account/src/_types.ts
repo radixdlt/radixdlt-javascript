@@ -1,12 +1,17 @@
 import { DSONCodable, JSONEncodable } from '@radixdlt/data-formats'
 import { Byte } from '@radixdlt/util'
-import { EncryptedMessageT, PublicKey, Signature } from '@radixdlt/crypto'
+import {
+	EncryptedMessageT,
+	MessageDecryptionInput,
+	MessageEncryptionInput,
+	PublicKey,
+	Signature,
+} from '@radixdlt/crypto'
 import { Observable } from 'rxjs'
 import { BIP32T } from './bip32/_types'
 import { Option } from 'prelude-ts'
 import { HDPathRadixT } from './bip32/_index'
 import { Magic } from '@radixdlt/primitives'
-import { EncryptedMessageToDecrypt } from '@radixdlt/crypto'
 
 export type AddressT = JSONEncodable &
 	DSONCodable &
@@ -21,30 +26,27 @@ export type PublicKeyDeriving = Readonly<{
 	derivePublicKey: () => Observable<PublicKey>
 }>
 
-export type MessageEncryption = Readonly<{
-	encryptionSchemeIdentifier: string
-}>
-
-export type PlaintextMessageToEncrypt = MessageEncryption &
-	Readonly<{
-		plaintext: string
-		publicKeysOfReaders: PublicKey[]
-	}>
-
-
 /* A reactive counterpart of `Signer` in '@radixdlt/crypto' package  */
 export type Signing = Readonly<{
 	sign: (hashedMessage: Buffer) => Observable<Signature>
 }>
 
-export type Decrypting = Readonly<{
-	decrypt: (encryptedMessage: EncryptedMessageToDecrypt) => Observable<string>
+export type AccountEncryptionInput = Readonly<{
+	plaintext: Buffer | string
+	publicKeyOfOtherParty: PublicKey
 }>
 
 export type Encrypting = Readonly<{
-	encrypt: (
-		plaintext: PlaintextMessageToEncrypt,
-	) => Observable<EncryptedMessageT>
+	encrypt: (input: AccountEncryptionInput) => Observable<EncryptedMessageT>
+}>
+
+export type AccountDecryptionInput = Readonly<{
+	encryptedMessage: Buffer | EncryptedMessageT
+	publicKeyOfOtherParty: PublicKey
+}>
+
+export type Decrypting = Readonly<{
+	decrypt: (input: AccountDecryptionInput) => Observable<string>
 }>
 
 export type AccountT = PublicKeyDeriving &

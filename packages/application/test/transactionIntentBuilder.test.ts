@@ -1,25 +1,58 @@
 import { TransactionIntentBuilder } from '../src/dto/transactionIntentBuilder'
 import { Amount, DenominationOutputFormat } from '@radixdlt/primitives'
-import { alice, bob, carol, dan, erin, xrd } from './mockRadix'
+import { carol, dan, erin, xrd } from './mockRadix'
 import {
 	ActionType,
 	IntendedTransferTokensAction,
 	StakeTokensInput,
 	TransferTokensInput,
 } from '../src/actions/_types'
-import {
-	AccountT,
-	AddressT,
-	PlaintextMessageToEncrypt,
-} from '@radixdlt/account'
+import { AddressT, HDMasterSeed, Wallet } from '@radixdlt/account'
 import { TransactionIntentBuilderT } from '../src/dto/_types'
-import { Observable, of, Subscription, throwError } from 'rxjs'
+import { combineLatest, of, Subscription } from 'rxjs'
 import { IntendedStakeTokensAction } from '../src/actions/_types'
-import { EncryptedMessageT, PublicKey } from '@radixdlt/crypto'
+import { EncryptedMessage } from '@radixdlt/crypto'
+import { map } from 'rxjs/operators'
 
 describe('tx intent builder', () => {
 	const one = Amount.fromUnsafe(1)._unsafeUnwrap()
 	const xrdRRI = xrd.rri
+
+	const wallet = Wallet.create({
+		masterSeed: HDMasterSeed.fromSeed(
+			Buffer.from(
+				'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+				'hex',
+			),
+		),
+	})
+	wallet.provideNetworkId(of({ byte: 237 }))
+	const aliceAccount = wallet.deriveNext()
+	const bobAccount = wallet.deriveNext()
+	let alice: AddressT
+	let bob: AddressT
+
+	const subs = new Subscription()
+
+	const plaintext = 'Hey Bob, how are you?'
+	const ciphertext =
+		'1f44485f4144445f4550485f41455347434d3235365f5343525950545f303030f84f644fda49fb6b2799a420301e937abcf975d70cfb2e9ec408bff3cb00d0caa38c6dd7a4c55ebd964910af22e2943a21'
+
+	beforeAll(async (done) => {
+		combineLatest([
+			aliceAccount.deriveAddress(),
+			bobAccount.deriveAddress(),
+		])
+			.pipe(
+				map(([aliceAddress, bobAddress]) => ({ aliceAddress: aliceAddress as AddressT, bobAddress: bobAddress as AddressT }))
+			)
+			.subscribe(({ aliceAddress, bobAddress }) => {
+				alice = aliceAddress
+				bob = bobAddress
+				done()
+			})
+			.add(subs)
+	})
 
 	type SimpleTransf = { amount: number; to: AddressT }
 	const transfT = (input: SimpleTransf): TransferTokensInput => ({
@@ -71,7 +104,7 @@ describe('tx intent builder', () => {
 		const builder = TransactionIntentBuilder.create().transferTokens({
 			// unsafe inputs
 			amount: 1,
-			to: '9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
+			to: bob.toString(),
 			tokenIdentifier:
 				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD',
 		})
@@ -143,18 +176,9 @@ describe('tx intent builder', () => {
 
 	const testWithMessage = (
 		builder: TransactionIntentBuilderT,
-		msg: string,
+		expectedCipher: string,
 		done: jest.DoneCallback,
 	): Subscription => {
-		const noEncryptionPrefix = 'NO_ENCR'
-		const aliceAccount = <AccountT>{
-			deriveAddress: (): Observable<AddressT> => of(alice),
-			derivePublicKey: (): Observable<PublicKey> => of(alice.publicKey),
-			encrypt: (
-				plaintext: PlaintextMessageToEncrypt,
-			): Observable<EncryptedMessageT> => throwError(() => new Error('Imple me')),
-		}
-
 		return builder
 			.build({
 				spendingSender: of(alice),
@@ -168,35 +192,35 @@ describe('tx intent builder', () => {
 					done(new Error('Expected message...'))
 					return
 				} else {
-
-					expect(attatchedMessage).toBe(`${noEncryptionPrefix}${msg}`)
-
+					const encryptedMessage = EncryptedMessage.fromBuffer(
+						attatchedMessage,
+					)._unsafeUnwrap()
+					const cipherText = encryptedMessage.sealedMessage.ciphertext
+					expect(cipherText.length).toBeGreaterThan(0)
 					done()
 				}
 			})
 	}
 	it('can transfer then attach message', (done) => {
 		const subs = new Subscription()
-		const msg = 'Hey Bob, hope you are well'
 
 		testWithMessage(
 			TransactionIntentBuilder.create()
 				.transferTokens(transfS(3, bob))
-				.message(msg),
-			msg,
+				.message(plaintext),
+			ciphertext,
 			done,
 		).add(subs)
 	})
 
 	it('can attach message then transfer', (done) => {
 		const subs = new Subscription()
-		const msg = 'Hey Bob, how are you?'
 
 		testWithMessage(
 			TransactionIntentBuilder.create()
-				.message(msg)
+				.message(plaintext)
 				.transferTokens(transfS(3, bob)),
-			msg,
+			ciphertext,
 			done,
 		).add(subs)
 	})
@@ -218,11 +242,10 @@ describe('tx intent builder', () => {
 
 	it('can have transfer and attach message and skip encryption', (done) => {
 		const subs = new Subscription()
-		const msg = 'Hey Bob, how are you?'
 
 		TransactionIntentBuilder.create()
 			.transferTokens(transfS(3, bob))
-			.message(msg)
+			.message(plaintext)
 			.build({
 				spendingSender: of(alice),
 			})
@@ -234,7 +257,7 @@ describe('tx intent builder', () => {
 					done(new Error('Expected message...'))
 					return
 				} else {
-					expect(attatchedMessage).toBe(`${msg}`)
+					expect(attatchedMessage.toString('utf8')).toBe(plaintext)
 					done()
 				}
 			})

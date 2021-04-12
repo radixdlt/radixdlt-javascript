@@ -2,18 +2,39 @@ import { EncryptedMessageT, EncryptionSchemeT, SealedMessageT } from './_types'
 import { combine, Result } from 'neverthrow'
 import { EncryptionScheme, encryptionSchemeLength } from './encryptionScheme'
 import { readBuffer } from '@radixdlt/util'
-import { SealedMessage } from './sealedMessage'
-import { validateMaxLength } from '../symmetric-encryption/aes/aesGCMSealedBox'
+import { SealedMessage, sealedMessageMinLegth } from './sealedMessage'
+import {
+	validateMaxLength,
+	validateMinLength,
+} from '../symmetric-encryption/aes/aesGCMSealedBox'
 
 export const maxLengthEncryptedMessage = 255
 
-const validateEncryptedMessageLength: (
+const validateEncryptedMessageMaxLength: (
 	buffer: Buffer,
 ) => Result<Buffer, Error> = validateMaxLength.bind(
 	null,
 	maxLengthEncryptedMessage,
-	'encryptedMessage',
+	'encryptedMessage max length',
 )
+
+const minLengthEncryptedMessage = sealedMessageMinLegth + encryptionSchemeLength
+
+const validateEncryptedMessageMinLength: (
+	buffer: Buffer,
+) => Result<Buffer, Error> = validateMinLength.bind(
+	null,
+	minLengthEncryptedMessage,
+	'encryptedMessage min length',
+)
+
+const validateEncryptedMessageLength = (
+	buffer: Buffer,
+): Result<Buffer, Error> =>
+	combine([
+		validateEncryptedMessageMaxLength(buffer),
+		validateEncryptedMessageMinLength(buffer),
+	]).map((_) => buffer)
 
 const create = (
 	input: Readonly<{

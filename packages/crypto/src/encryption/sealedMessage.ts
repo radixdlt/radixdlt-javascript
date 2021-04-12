@@ -42,6 +42,11 @@ export const sealedMessageCipherTextMaxLength =
 	encryptionSchemeLength -
 	publicKeyCompressedByteCount
 
+export const sealedMessageMinLegth =
+	sealedMessageNonceLength +
+	sealedMessageAuthTagLength +
+	publicKeyCompressedByteCount
+
 const validateTag: (
 	buffer: Buffer,
 ) => Result<Buffer, Error> = validateLength.bind(
@@ -62,15 +67,15 @@ const validateCipherText: (
 	buffer: Buffer,
 ) => Result<Buffer, Error> = validateMaxLength.bind(
 	null,
-	sealedMessageAuthTagLength,
+	sealedMessageCipherTextMaxLength,
 	'Ciphertext',
 )
 
-const validateSealedMessageLength: (
+const validateSealedMessageMaxLength: (
 	buffer: Buffer,
 ) => Result<Buffer, Error> = validateMaxLength.bind(
 	null,
-	sealedMessageCipherTextMaxLength,
+	maxLengthEncryptedMessage - encryptionSchemeLength,
 	'SealedMessageT',
 )
 
@@ -87,7 +92,7 @@ const sealedMessageFromBuffer = (
 	if (lengthOfCiphertext <= 0)
 		return err(new Error('Ciphertext cannot be empty'))
 
-	return validateSealedMessageLength(buffer).andThen((buffer) => {
+	return validateSealedMessageMaxLength(buffer).andThen((buffer) => {
 		const readNextBuffer = readBuffer.bind(null, buffer)()
 
 		return combine([
@@ -129,7 +134,7 @@ const validateSealedMessage = (
 		validateNonce(input.nonce),
 		validateTag(input.authTag),
 		validateCipherText(input.ciphertext),
-	]).map((_) => input)
+	]).map((_) => create(input))
 
 export const SealedMessage = {
 	create,

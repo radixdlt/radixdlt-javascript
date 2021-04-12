@@ -1,6 +1,6 @@
 import { combine, err, ok, Result } from 'neverthrow'
 import { AES_GCM_SealedBoxProps, AES_GCM_SealedBoxT } from './_types'
-import { arraysEqual, buffersEquals, readBuffer } from '@radixdlt/util'
+import { buffersEquals, readBuffer } from '@radixdlt/util'
 
 const tagLength = 16
 const nonceLength = 12
