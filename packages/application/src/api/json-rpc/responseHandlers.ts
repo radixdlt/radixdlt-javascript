@@ -149,37 +149,35 @@ export const handleTransactionStatusResponse = (
 ): Result<TransactionStatusEndpoint.DecodedResponse, Error[]> =>
 	isRPCRequestFailureResponse(json)
 		? err([new Error(json.failure)])
-		: JSONDecoding.withDecoders(transactionIdentifierDecoder('txID'))
-				.create<TransactionStatusEndpoint.DecodedResponse>()
-				(json)
+		: JSONDecoding.withDecoders(
+				transactionIdentifierDecoder('txID'),
+		  ).create<TransactionStatusEndpoint.DecodedResponse>()(json)
 
 export const handleNetworkTxThroughputResponse = JSONDecoding.create<NetworkTransactionThroughputEndpoint.DecodedResponse>()
-	
+
 export const handleNetworkTxDemandResponse = JSONDecoding.create<NetworkTransactionDemandEndpoint.DecodedResponse>()
-	
+
 export const handleBuildTransactionResponse = (
 	json: unknown,
 ): Result<BuildTransactionEndpoint.DecodedResponse, Error[]> =>
 	isRPCRequestFailureResponse(json)
 		? err([new Error(json.failure)])
-		: JSONDecoding.create<BuildTransactionEndpoint.DecodedResponse>()(
-				json,
-		  )
+		: JSONDecoding.create<BuildTransactionEndpoint.DecodedResponse>()(json)
 
 export const handleSubmitSignedTransactionResponse = (
 	json: unknown,
 ): Result<SubmitSignedTransactionEndpoint.DecodedResponse, Error[]> =>
 	isRPCRequestFailureResponse(json)
 		? err([new Error(json.failure)])
-		: JSONDecoding.withDecoders(transactionIdentifierDecoder('txID'))
-				.create<SubmitSignedTransactionEndpoint.DecodedResponse>()
-				(json)
+		: JSONDecoding.withDecoders(
+				transactionIdentifierDecoder('txID'),
+		  ).create<SubmitSignedTransactionEndpoint.DecodedResponse>()(json)
 
 export const handleFinalizedTransactionResponse = (
 	json: unknown,
 ): Result<FinalizeTransactionEndpoint.DecodedResponse, Error[]> =>
 	isRPCRequestFailureResponse(json)
 		? err([new Error(json.failure)])
-		: JSONDecoding.withDecoders(transactionIdentifierDecoder('txID'))
-				.create<FinalizeTransactionEndpoint.DecodedResponse>()
-				(json)
+		: JSONDecoding.withDecoders(
+				transactionIdentifierDecoder('txID'),
+		  ).create<FinalizeTransactionEndpoint.DecodedResponse>()(json)

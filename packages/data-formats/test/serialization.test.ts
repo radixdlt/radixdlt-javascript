@@ -25,9 +25,7 @@ describe('JSON decoding', () => {
 		)
 
 	it('should decode an array', () => {
-		const fromJSON = JSONDecoding.withDecoders(
-			stringDecoder('a'),
-		).create()
+		const fromJSON = JSONDecoding.withDecoders(stringDecoder('a')).create()
 
 		const json = [
 			{

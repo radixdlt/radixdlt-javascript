@@ -92,7 +92,6 @@ const JSONDecodeUnflattened = (...decoders: Decoder[]) => (
 		  ).mapErr((err) => err)
 		: err([Error('JSON decoding failed. Unknown data type.')])
 
-
 const withDecoders = (...decoders: Decoder[]) => ({
 	create: <T>() => JSONDecode<T>(...decoders),
 })
