@@ -116,7 +116,7 @@ const decryptSealedMessageWithKeysOfParties = (
 		.andThen(decryptAESSealedBox)
 }
 
-const decryptEncryptedMessage = (
+const decryptMessage = (
 	input: Readonly<{
 		encryptedMessage: EncryptedMessageT
 		publicKeyOfOtherParty: PublicKey
@@ -144,7 +144,7 @@ const decryptEncryptedMessageBuffer = (
 			...input,
 			encryptedMessage,
 		}))
-		.asyncAndThen(decryptEncryptedMessage)
+		.asyncAndThen(decryptMessage)
 
 const decrypt = (input: MessageDecryptionInput): ResultAsync<Buffer, Error> =>
 	Buffer.isBuffer(input.encryptedMessage)
@@ -152,7 +152,7 @@ const decrypt = (input: MessageDecryptionInput): ResultAsync<Buffer, Error> =>
 				...input,
 				encryptedMessageBuffer: input.encryptedMessage,
 		  })
-		: decryptEncryptedMessage({
+		: decryptMessage({
 				...input,
 				encryptedMessage: input.encryptedMessage,
 		  })
