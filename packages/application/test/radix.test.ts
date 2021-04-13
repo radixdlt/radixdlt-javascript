@@ -881,7 +881,7 @@ describe('Radix API', () => {
 
 		radix.login(keystoreForTest.password, loadKeystore)
 
-		const expectedStakes = [91, 89, 43]
+		const expectedStakes = [33, 96, 78, 5, 49]
 		const expectedValues = [expectedStakes, expectedStakes] // should be unchanged between updates (deterministically mocked).
 		radix.__wallet
 			.subscribe((_w) => {
@@ -914,9 +914,9 @@ describe('Radix API', () => {
 		radix.login(keystoreForTest.password, loadKeystore)
 
 		const expectedStakes = [
-			{ amount: 291, validator: 'jg', epochsUntil: 42 },
-			{ amount: 489, validator: 'pz', epochsUntil: 21 },
-			{ amount: 143, validator: 'NN', epochsUntil: 95 },
+			{ amount: 396, validator: 'bc', epochsUntil: 60 },
+			{ amount: 878, validator: '7k', epochsUntil: 46 },
+			{ amount: 649, validator: 'Rb', epochsUntil: 59 }
 		]
 		const expectedValues = [expectedStakes, expectedStakes] // should be unchanged between updates (deterministically mocked).
 		radix.__wallet

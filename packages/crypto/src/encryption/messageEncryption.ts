@@ -6,7 +6,6 @@ import {
 } from '../symmetric-encryption/aes/aesGCM'
 import {
 	combine,
-	err,
 	errAsync,
 	okAsync,
 	Result,
