@@ -1,5 +1,5 @@
 import { EncryptedMessageT, EncryptionSchemeT, SealedMessageT } from './_types'
-import { combine, ok, Result } from 'neverthrow'
+import { combine, Result } from 'neverthrow'
 import { EncryptionScheme, encryptionSchemeLength } from './encryptionScheme'
 import { readBuffer } from '@radixdlt/util'
 import { SealedMessage } from './sealedMessage'
