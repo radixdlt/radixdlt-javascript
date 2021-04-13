@@ -62,11 +62,13 @@ export type KeystoreForTest = {
 	keystore: KeystoreT
 	password: string
 	expectedSecret: string
+	expectedMnemonicPhrase: string
 	publicKeysCompressed: string[]
 }
 
 export const keystoreForTest: KeystoreForTest = {
 	password: 'my super strong passaword',
+	expectedMnemonicPhrase: 'legal winner thank year wave sausage worth useful legal winner thank yellow',
 	expectedSecret: '7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f',
 	keystore: {
 		crypto: {
@@ -305,6 +307,22 @@ describe('Radix API', () => {
 			Promise.resolve(keystoreForTest.keystore)
 
 		radix.login(keystoreForTest.password, loadKeystore)
+	})
+
+	it('radix can reveal mnemonic', (done) => {
+
+		const subs = new Subscription()
+
+		const radix = Radix.create()
+
+		radix.revealMnemonic().subscribe(m => {
+			expect(m.phrase).toBe(keystoreForTest.expectedMnemonicPhrase)
+			done()
+			},
+			(e) => { done(e)
+		}).add(subs)
+
+		radix.login(keystoreForTest.password, () => Promise.resolve(keystoreForTest.keystore))
 	})
 
 	it('should handle wallet error', (done) => {

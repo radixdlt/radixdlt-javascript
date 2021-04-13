@@ -2,6 +2,7 @@ import {
 	AccountT,
 	AddressT,
 	DeriveNextAccountInput,
+	MnemomicT,
 	SwitchAccountInput,
 	Wallet,
 	WalletT,
@@ -208,6 +209,13 @@ const create = (): RadixT => {
 		mergeMap((wallet) => wallet.observeActiveAddress()),
 		shareReplay(1),
 	)
+
+	const revealMnemonic = (): Observable<MnemomicT> =>
+		wallet$.pipe(
+			map((wallet: WalletT): MnemomicT  => {
+				return wallet.revealMnemonic()
+			}),
+		)
 
 	const activeAddressToAPIObservableWithTrigger = <O>(
 		trigger: Observable<number>,
@@ -811,6 +819,7 @@ const create = (): RadixT => {
 		},
 
 		// Wallet APIs
+		revealMnemonic,
 		activeAddress,
 		activeAccount,
 		accounts,

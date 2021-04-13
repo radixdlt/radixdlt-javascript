@@ -4,7 +4,6 @@ import { AES_GCM } from '../symmetric-encryption/aes/aesGCM'
 import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
 import { ScryptParamsT } from '../key-derivation-functions/_types'
 import { Scrypt, ScryptParams } from '../key-derivation-functions/scrypt'
-import { v4 as uuidv4 } from 'uuid'
 import { AES_GCM_SealedBox } from '../symmetric-encryption/aes/aesGCMSealedBox'
 import {
 	AES_GCM_OPEN_Input,
