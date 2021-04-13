@@ -51,6 +51,29 @@ describe('bip39', () => {
 		})
 	})
 
+	it('words must be checksummed', (done) => {
+		const abandonOnly = Array(12).fill('abandon') // last word should be e.g. 'about' to be checksummed.
+		Mnemonic.fromEnglishWords(abandonOnly).match(
+			(_) => {
+				done(new Error('Expected error'))
+			},
+			(error) => {
+				expect(error.message).toBe(
+					'Invalid mnemonic, it is not checksummed.',
+				)
+				done()
+			},
+		)
+	})
+
+	it('from entropy results in expected phrase', () => {
+		const entropy = Buffer.from('7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f', 'hex')
+		const phrase =
+			'legal winner thank year wave sausage worth useful legal winner thank yellow'
+		const mnemonic = Mnemonic.fromEntropy({ entropy })._unsafeUnwrap()
+		expect(mnemonic.phrase).toBe(phrase)
+	})
+
 	it('should work with Trezor test vectors', () => {
 		languages.forEach((vectors, language) => {
 			vectors.forEach((vector) => {

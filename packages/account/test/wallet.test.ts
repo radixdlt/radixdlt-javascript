@@ -1,24 +1,21 @@
 import { WalletT, AddressT } from '../src/_types'
 import { Wallet } from '../src/wallet'
 import { Mnemonic } from '../src/bip39/mnemonic'
-import { HDMasterSeed } from '../src/bip39/hdMasterSeed'
-import { HDMasterSeedT } from '../src/bip39/_types'
 import { map, take, toArray } from 'rxjs/operators'
 import { KeystoreT, PublicKey } from '@radixdlt/crypto'
 import { combineLatest, of, Subject } from 'rxjs'
 import { Magic, magicFromNumber } from '@radixdlt/primitives'
 
-const createWallet = (): WalletT => {
+const createWallet = (password: string = 'radixdlt'): WalletT => {
 	const mnemonic = Mnemonic.generateNew()
-	const masterSeed: HDMasterSeedT = HDMasterSeed.fromMnemonic({ mnemonic })
-	return Wallet.create({ masterSeed })
+	return Wallet.create({ mnemonic, password })
 }
 
-const createSpecificWallet = (): WalletT => {
-	const masterSeed = HDMasterSeed.fromSeed(
-		Buffer.from('deadbeef'.repeat(8), 'hex'),
-	)
-	return Wallet.create({ masterSeed })
+const createSpecificWallet = (password: string = 'radixdlt'): WalletT => {
+	const mnemonic = Mnemonic.fromEnglishPhrase(
+		'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
+	)._unsafeUnwrap()
+	return Wallet.create({ mnemonic, password })
 }
 
 const expectWalletsEqual = (
@@ -51,7 +48,7 @@ describe('HD Wallet', () => {
 
 		let load: () => Promise<KeystoreT>
 
-		await Wallet.byEncryptingSeedOfMnemonicAndSavingKeystore({
+		await Wallet.byEncryptingMnemonicAndSavingKeystore({
 			mnemonic,
 			password,
 			save: (keystoreToSave: KeystoreT) => {
@@ -75,13 +72,26 @@ describe('HD Wallet', () => {
 			)
 	})
 
+	it('mnemonic can be retrieved with password', () => {
+		const password = 'super strong secret password'
+		const mnemonicPhrase =
+			'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
+		const mnemonic = Mnemonic.fromEnglishPhrase(
+			mnemonicPhrase,
+		)._unsafeUnwrap()
+		const wallet = Wallet.create({ mnemonic, password })
+		const mnemonicRevealed = wallet.revealMnemonic(password)._unsafeUnwrap()
+		expect(mnemonicRevealed.equals(mnemonic)).toBe(true)
+		expect(mnemonicRevealed.phrase).toBe(mnemonicPhrase)
+	})
+
 	it('save errors are propagated', async (done) => {
 		const mnemonic = Mnemonic.generateNew()
 		const password = 'super secret password'
 
 		const errMsg = 'ERROR_FROM_TEST'
 
-		await Wallet.byEncryptingSeedOfMnemonicAndSavingKeystore({
+		await Wallet.byEncryptingMnemonicAndSavingKeystore({
 			mnemonic,
 			password,
 			save: (_) => Promise.reject(new Error(errMsg)),

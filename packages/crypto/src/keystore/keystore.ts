@@ -10,6 +10,7 @@ import {
 	AES_GCM_OPEN_Input,
 	AES_GCM_SealedBoxT,
 } from '../symmetric-encryption/aes/_types'
+import { sha256 } from '../hash/sha'
 
 const validatePassword = (password: string): Result<string, Error> =>
 	ok(password) // no validation for now...
@@ -19,7 +20,6 @@ const encryptSecret = (
 		secret: Buffer
 		password: string
 		memo?: string
-		id?: string
 		kdf?: string
 		kdfParams?: ScryptParamsT
 		secureRandom?: SecureRandom
@@ -29,7 +29,6 @@ const encryptSecret = (
 
 	const kdf = input.kdf ?? 'scrypt'
 	const params = input.kdfParams ?? ScryptParams.create({ secureRandom })
-	const id = input.id ?? uuidv4()
 
 	return validatePassword(input.password)
 		.map((p) => ({ kdf, params, password: Buffer.from(p) }))
@@ -50,6 +49,9 @@ const encryptSecret = (
 					'incorrect impl, salt and nonce should not equal',
 				)
 			}
+
+			const id = sha256(cipherText).toString('hex').slice(-16)
+
 			return {
 				memo: input.memo,
 				crypto: {

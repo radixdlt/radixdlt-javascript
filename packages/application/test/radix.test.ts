@@ -1,5 +1,11 @@
 import { Radix } from '../src/radix'
-import { AddressT, HDMasterSeed, Wallet, WalletT } from '@radixdlt/account'
+import {
+	AddressT,
+	HDMasterSeed,
+	Mnemonic,
+	Wallet,
+	WalletT,
+} from '@radixdlt/account'
 import {
 	from,
 	interval,
@@ -11,7 +17,7 @@ import {
 	zip,
 } from 'rxjs'
 import { map, mergeMap, take, toArray } from 'rxjs/operators'
-import { KeystoreT } from '@radixdlt/crypto'
+import { Keystore, KeystoreT } from '@radixdlt/crypto'
 import { ManualUserConfirmTX, RadixT } from '../src/_types'
 import { APIErrorCause, ErrorCategory, ErrorCause } from '../src/errors'
 import {
@@ -41,10 +47,10 @@ import { TransferTokensOptions } from '../src/_types'
 import { APIError } from '../src/errors'
 
 const createWallet = (): WalletT => {
-	const masterSeed = HDMasterSeed.fromSeed(
-		Buffer.from('deadbeef'.repeat(8), 'hex'),
-	)
-	return Wallet.create({ masterSeed })
+	const mnemonic = Mnemonic.fromEnglishPhrase(
+		'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
+	)._unsafeUnwrap()
+	return Wallet.create({ mnemonic, password: 'radixdlt' })
 }
 
 const dummyNode = (urlString: string): Observable<NodeT> =>
@@ -61,16 +67,14 @@ export type KeystoreForTest = {
 
 export const keystoreForTest: KeystoreForTest = {
 	password: 'my super strong passaword',
-	expectedSecret:
-		'920075470afdd45c9cb6286593abc6c98b1d25d4d2e3f2d547d4f389f153c8c5916a0857fd6d404e3089cb745594332b1307f46e43ad2357da20935318917063',
+	expectedSecret: '7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f',
 	keystore: {
 		crypto: {
 			cipher: 'AES-GCM',
 			cipherparams: {
-				nonce: 'dc7946168a78da825b3a7f73',
+				nonce: 'd82fd275598b9b288b8c376d',
 			},
-			ciphertext:
-				'280c07cd1a7b0d5a7adfd869ff80bc45a97b569be11345d5d15d01d692287d6ef566998fd786965735bba540e5d1df2c482c75e08d1355f09cb47af02c725df4',
+			ciphertext: '208e520802bd17d7a569333df41dfd2d',
 			kdf: 'scrypt',
 			kdfparams: {
 				costParameterN: 8192,
@@ -79,30 +83,85 @@ export const keystoreForTest: KeystoreForTest = {
 				parallelizationParameter: 1,
 				lengthOfDerivedKey: 32,
 				salt:
-					'de8db8d11cba474c0e78c76327463e48bf1d5e1cb59c9ab76cc6b1145827efca',
+					'cb2227c6782493df3e822c9f6cd1131dea14e135751215d66f48227383b80acd',
 			},
-			mac: '966bbc6ad90828010d637ded6206ad9a',
+			mac: '68bc72c6a6a89c7fe4eb5fda4f4163e0',
 		},
-		id: 'a7c80442-1e50-4166-9f26-dcc5548a865d',
+		id: 'b34999409a491037',
 		version: 1,
 	},
 	// 1. input seed at https://iancoleman.io/bip39/
 	// 2. change to BIP32 and enter derivation path: m/44'/536'/0'/0
 	// 3. Check 'use hardened addresses' checkbox
-	// 4. Copy Private Key from table which is on WIF format
-	// 5. Paste Private Key WIF in https://www.bitaddress.org
-	// 6. Copy paste compressed public key (and lower case it)
+	// 4. Copy Public Key from table
 	publicKeysCompressed: [
-		'035fd56ba4a14b44ea6c895fa9ac59c5a47d8ffd1b068a520146499cb6fe9df58a',
-		'0248e961ee2379940d8c1fd44422521b17dc426df37b9cec274f608e63744b358f',
-		'028bae51f118a3fe61c26c43cd472e0e1f6448eb9ce873d7e8859600beb7d401b4',
-		'031c0641530a7755bdd4ba3232ae94c54febcfe4c68c3ae2684d9308ab60f639ab',
-		'02bbef7faf40ac19c0878a1d5cf9f8df3398934c10410bb280f78929c182c406f0',
-		'03fed9646bd8612fa43d3d873ec1ba67665e257c04830b9ac91e58d20662a0d623',
+		'03df4d988d2d0dcd61718a8a443ad457722a7eab4614a97bd9aefc8170a2b1329f',
+		'0323f9ae3e9d8065a03c32480017fdbdb95622050c058f16c5c3ed897451654ed2',
+		'038fa13602d11511870600a38076f2c1acc1cfc294337bdbfa38f68b3b41a2040f',
+		'0398b922a1a6a324ed34e874f561e98323379078408cebddb6fd84fc46d350568e',
+		'0255ea4081fe32854c15a4c1b1d308e3e5e9290645ec6981c64500d6a2f6d41767',
+		'02d42d80130d68f10318f850156a35c135f212dbee07e1001363388a2e2b7c7a4d',
 	],
 }
 
 describe('Radix API', () => {
+	// it('CaN CrEaTe NeW KEYstOrE', async (done) => {
+	//
+	// 	const mnemonicPhrase = 'legal winner thank year wave sausage worth useful legal winner thank yellow'
+	//
+	// 	const mnemonic = Mnemonic.fromEnglishPhrase(mnemonicPhrase)._unsafeUnwrap()
+	// 	const expectedEntropy = '7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f'
+	// 	expect(mnemonic.entropy.toString('hex')).toBe(expectedEntropy)
+	// 	const password = 'my super strong passaword'
+	// 	const printKeyStorePassphrough = async (keystoreToSave: KeystoreT): Promise<void> => {
+	// 		console.log(`🔮 keystore:\n\n${JSON.stringify(keystoreToSave, null, 4)}\n\n✅`)
+	// 		return Promise.resolve(undefined)
+	// 	}
+	// 	await Wallet.byEncryptingMnemonicAndSavingKeystore({
+	// 		mnemonic, password, save: printKeyStorePassphrough
+	// 	}).match(
+	// 		((w) => {
+	// 			const revealedMnemonic = w.revealMnemonic(password)._unsafeUnwrap()
+	// 			expect(revealedMnemonic.phrase).toBe(mnemonicPhrase)
+	// 			expect(revealedMnemonic.entropy.toString('hex')).toBe(expectedEntropy)
+	// 			done()
+	// 		}),
+	// 		((e) => {
+	// 			done(e)
+	// 		}),
+	// 	)
+	// })
+
+	it('can load test keystore', async (done) => {
+		// keystoreForTest
+		await Wallet.byLoadingAndDecryptingKeystore({
+			password: keystoreForTest.password,
+			load: () => Promise.resolve(keystoreForTest.keystore),
+		}).match(
+			(wallet) => {
+				const revealedMnemonic = wallet
+					.revealMnemonic(keystoreForTest.password)
+					._unsafeUnwrap()
+				expect(revealedMnemonic.phrase).toBe(
+					'legal winner thank year wave sausage worth useful legal winner thank yellow',
+				)
+				expect(revealedMnemonic.entropy.toString('hex')).toBe(
+					'7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f',
+				)
+				const masterSeed = HDMasterSeed.fromMnemonic({
+					mnemonic: revealedMnemonic,
+				})
+				expect(masterSeed.seed.toString('hex')).toBe(
+					'878386efb78845b3355bd15ea4d39ef97d179cb712b77d5c12b6be415fffeffe5f377ba02bf3f8544ab800b955e51fbff09828f682052a20faa6addbbddfb096',
+				)
+				done()
+			},
+			(error) => {
+				done(error)
+			},
+		)
+	})
+
 	it('can be created empty', () => {
 		const radix = Radix.create()
 		expect(radix).toBeDefined()
@@ -536,11 +595,11 @@ describe('Radix API', () => {
 		radix.__wallet
 			.subscribe((_w) => {
 				const expectedValues = [
-					{ pkIndex: 0, tokenBalancesCount: 5 },
+					{ pkIndex: 0, tokenBalancesCount: 3 },
 					{ pkIndex: 1, tokenBalancesCount: 5 },
-					{ pkIndex: 2, tokenBalancesCount: 4 },
-					{ pkIndex: 3, tokenBalancesCount: 4 },
-					{ pkIndex: 4, tokenBalancesCount: 3 },
+					{ pkIndex: 2, tokenBalancesCount: 1 },
+					{ pkIndex: 3, tokenBalancesCount: 1 },
+					{ pkIndex: 4, tokenBalancesCount: 4 },
 				]
 
 				radix.tokenBalances
@@ -584,11 +643,9 @@ describe('Radix API', () => {
 			.subscribe((_w) => {
 				type ExpectedValue = { name: string; amount: string }
 				const expectedValues: ExpectedValue[] = [
-					{ name: 'Ether (wrapped on Radix)', amount: '1291' },
-					{ name: 'Bar token', amount: '7785' },
-					{ name: 'Foo token', amount: '4121' },
-					{ name: 'Bitcoin (wrapped on Radix)', amount: '2143' },
-					{ name: 'Gold token', amount: '1674' },
+					{ name: 'Gold token', amount: '1533' },
+					{ name: 'Bar token', amount: '9066' },
+					{ name: 'Rad', amount: '5060' },
 				]
 
 				radix.tokenBalances
@@ -624,9 +681,9 @@ describe('Radix API', () => {
 		radix.__wallet
 			.subscribe((_w) => {
 				const expectedValues = [
-					{ pkIndex: 0, actionsCountForEachTx: [3, 2, 2] },
-					{ pkIndex: 1, actionsCountForEachTx: [1, 1, 1] },
-					{ pkIndex: 2, actionsCountForEachTx: [2, 1, 2] },
+					{ pkIndex: 0, actionsCountForEachTx: [3, 1, 2] },
+					{ pkIndex: 1, actionsCountForEachTx: [2, 2, 1] },
+					{ pkIndex: 2, actionsCountForEachTx: [1, 1, 2] },
 				]
 
 				radix

@@ -199,6 +199,9 @@ const fromPhraseInLanguage = (
 	try {
 		entropy = Buffer.from(mnemonicToEntropy(phrase, wordlist), 'hex')
 	} catch (e) {
+		if (e.message === 'Invalid mnemonic checksum') {
+			return err(new Error('Invalid mnemonic, it is not checksummed.'))
+		}
 		return err(e)
 	}
 	const normalizedPhrase = phrase.normalize('NFKD')
