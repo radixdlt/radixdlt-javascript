@@ -45,11 +45,16 @@ export enum LanguageT {
 	ENGLISH,
 }
 
-export type MnemomicT = Readonly<{
+export type MnemonicProps = Readonly<{
 	strength: StrengthT
 	entropy: Buffer
 	words: string[]
 	phrase: string
 	language: LanguageT
-	toString: () => string
 }>
+
+export type MnemomicT = MnemonicProps &
+	Readonly<{
+		toString: () => string
+		equals: (other: MnemomicT) => boolean
+	}>

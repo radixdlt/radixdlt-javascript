@@ -59,8 +59,18 @@ describe('bip39', () => {
 					phrase,
 					language,
 				})._unsafeUnwrap()
+
+				const normalizedPhrase = phrase.normalize('NFKD')
+				const mnemonicFromNormalizedPhrase = Mnemonic.fromPhraseInLanguage(
+					{
+						phrase: normalizedPhrase,
+						language,
+					},
+				)._unsafeUnwrap()
+				expect(mnemonicFromNormalizedPhrase.equals(mnemonic)).toBe(true)
+
 				expect(mnemonic.language).toBe(language)
-				expect(mnemonic.phrase).toBe(vector.mnemonic)
+				expect(mnemonic.phrase).toBe(normalizedPhrase)
 
 				expect(mnemonic.entropy.toString('hex')).toBe(vector.entropy)
 
@@ -72,6 +82,14 @@ describe('bip39', () => {
 
 				const hdMasterNode = hdMasterSeed.masterNode()
 				expect(hdMasterNode.toJSON().xpriv).toBe(vector.bip32_xprv)
+
+				const mnemonicFromEntropy = Mnemonic.fromEntropy({
+					entropy: Buffer.from(vector.entropy, 'hex'),
+					language,
+				})._unsafeUnwrap()
+
+				expect(mnemonicFromEntropy.phrase).toBe(normalizedPhrase)
+				expect(mnemonicFromEntropy.equals(mnemonic)).toBe(true)
 			})
 		})
 	})
