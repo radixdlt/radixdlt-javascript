@@ -19,6 +19,7 @@ export type EncryptionSchemeT = Readonly<{
 	identifier: Buffer // always 31 bytes, pad if shorter.
 
 	combined: () => Buffer
+	equals: (other: EncryptionSchemeT) => boolean
 }>
 
 export type SealedMessageT = Readonly<{

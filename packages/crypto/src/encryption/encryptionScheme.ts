@@ -1,5 +1,6 @@
 import { err, ok, Result } from 'neverthrow'
 import {
+	buffersEquals,
 	byteToBuffer,
 	firstByteOfNumber,
 	readBuffer,
@@ -29,10 +30,15 @@ const create = (
 		identifier: Buffer
 	}>,
 ): EncryptionSchemeT => {
+	const combinedBuf = Buffer.concat([
+		byteToBuffer(input.length),
+		input.identifier,
+	])
 	return {
 		...input,
-		combined: (): Buffer =>
-			Buffer.concat([byteToBuffer(input.length), input.identifier]),
+		combined: (): Buffer => combinedBuf,
+		equals: (other: EncryptionSchemeT) =>
+			buffersEquals(combinedBuf, other.combined()),
 	}
 }
 
