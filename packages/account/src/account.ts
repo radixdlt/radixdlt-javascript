@@ -20,7 +20,7 @@ import {
 import { HDMasterSeedT, HDNodeT } from './bip39/_types'
 import { HDPathRadixT } from './bip32/bip44/_types'
 import { errAsync, okAsync, ResultAsync } from 'neverthrow'
-import { log } from '@radixdlt/util/dist/logging'
+import { log } from '@radixdlt/util'
 
 const fromPrivateKey = (
 	input: Readonly<{

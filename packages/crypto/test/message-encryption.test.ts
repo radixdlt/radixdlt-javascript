@@ -2,12 +2,10 @@ import { MessageEncryption } from '../src/encryption/message-encryption'
 import { generateKeyPair } from '../src/elliptic-curve/keyPair'
 import { EncryptedMessageT } from '../src/encryption/_types'
 import { PublicKey, DiffieHellman } from '../src/_types'
-import { privateKeyFromScalar } from '../dist/elliptic-curve/privateKey'
+import { privateKeyFromScalar } from '../src/elliptic-curve/privateKey'
 import { UInt256 } from '@radixdlt/uint256'
-import { EncryptedMessage } from '../dist/encryption/encryptedMessage'
-import { SecureRandom } from '@radixdlt/util'
-import { EncryptionScheme } from '../dist/encryption/encryptionScheme'
-import { PrivateKey } from '../dist/_types'
+import { EncryptedMessage } from '../src/encryption/encryptedMessage'
+import { PrivateKey } from '../src/_types'
 
 describe('message encryption', () => {
 	describe('can decrypt newly encrypted message', () => {
@@ -53,6 +51,9 @@ describe('message encryption', () => {
 		it('encrypted message can be decrypted by both sender and receiver', async () => {
 			const plaintext = 'Hey Bob!'
 			const encryptedMessage = await aliceEncrypt(plaintext)
+			expect(encryptedMessage.combined().length).toBeLessThanOrEqual(
+				EncryptedMessage.maxLength,
+			)
 			const decryptedByAlice = await aliceDecrypt(encryptedMessage)
 			expect(decryptedByAlice).toBe(plaintext)
 
@@ -60,6 +61,46 @@ describe('message encryption', () => {
 			expect(decryptedByBob).toBe(plaintext)
 
 			expect(decryptedByBob).toBe(decryptedByAlice)
+		})
+	})
+
+	describe('plaintext to encrypt cannot be too long', () => {
+		it('plaintext cannot be over 162 chars', () => {
+			expect(EncryptedMessage.maxLengthOfCipherTextOfSealedMsg).toBe(162)
+		})
+
+		const alicePrivateKey = privateKeyFromScalar(
+			UInt256.valueOf(1),
+		)._unsafeUnwrap()
+		const alice = alicePrivateKey.publicKey()
+		const bobPrivateKey = privateKeyFromScalar(
+			UInt256.valueOf(2),
+		)._unsafeUnwrap()
+		const bob = bobPrivateKey.publicKey()
+
+		it('throws error if plaintext is too long', (done) => {
+			const tooLongMsg =
+				'too long message that is too long because it is over characters limit which is too long to encrypt because it cannot fit because it is too long indeed. Which is why it cannot be encrypted. So expect an error to be thrown.'
+
+			expect(tooLongMsg.length).toBeGreaterThan(
+				EncryptedMessage.maxLengthOfCipherTextOfSealedMsg,
+			)
+
+			MessageEncryption.encrypt({
+				plaintext: tooLongMsg,
+				publicKeyOfOtherParty: bob,
+				dh: alicePrivateKey.diffieHellman,
+			}).match(
+				(_) => {
+					done(new Error('Expected failure.'))
+				},
+				(error) => {
+					expect(error.message).toBe(
+						`Plaintext is too long, expected max #162, but got: #${tooLongMsg.length}`,
+					)
+					done()
+				},
+			)
 		})
 	})
 

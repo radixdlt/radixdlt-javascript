@@ -4,7 +4,14 @@ import {
 	AES_GCM,
 	aesGCMSealDeterministic,
 } from '../symmetric-encryption/aes/aesGCM'
-import { combine, okAsync, Result, ResultAsync } from 'neverthrow'
+import {
+	combine,
+	err,
+	errAsync,
+	okAsync,
+	Result,
+	ResultAsync,
+} from 'neverthrow'
 import {
 	EncryptedMessageT,
 	MessageDecryptionInput,
@@ -170,6 +177,11 @@ const __encryptDeterministic = (
 			? Buffer.from(input.plaintext, 'utf-8')
 			: input.plaintext
 
+	if (plaintext.length > EncryptedMessage.maxLengthOfCipherTextOfSealedMsg) {
+		const errMsg = `Plaintext is too long, expected max #${EncryptedMessage.maxLengthOfCipherTextOfSealedMsg}, but got: #${plaintext.length}`
+		return errAsync(new Error(errMsg))
+	}
+
 	return calculateSharedSecret({
 		...input,
 	}).andThen((sharedSecret) => {
@@ -185,14 +197,12 @@ const __encryptDeterministic = (
 			.andThen((s) =>
 				SealedMessage.fromAESSealedBox(s, ephemeralPublicKey),
 			)
-			.map(
-				(sealedMessage: SealedMessageT): EncryptedMessageT => {
-					return EncryptedMessage.create({
-						sealedMessage,
-						encryptionScheme: EncryptionScheme.current,
-					})
-				},
-			)
+			.andThen((sealedMessage: SealedMessageT) => {
+				return EncryptedMessage.create({
+					sealedMessage,
+					encryptionScheme: EncryptionScheme.current,
+				})
+			})
 	})
 }
 

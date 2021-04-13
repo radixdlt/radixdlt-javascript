@@ -1,4 +1,4 @@
-import { err, ok, Result } from 'neverthrow'
+import { combine, err, ok, Result } from 'neverthrow'
 import {
 	buffersEquals,
 	byteToBuffer,
@@ -7,15 +7,12 @@ import {
 	ValidationWitness,
 } from '@radixdlt/util'
 import { Byte } from 'packages/util/src/_types'
-import {
-	validateLength,
-	validateMaxLength,
-} from '../symmetric-encryption/_index'
+import { validateLength, validateMaxLength, validateMinLength } from '../utils'
 import { EncryptionSchemeT } from './_types'
 
 const currentEncryptionSchemeIdentifier = 'DH_ADD_EPH_AESGCM256_SCRYPT_000'
 
-const supportedEncryptionSchemes = [currentEncryptionSchemeIdentifier]
+const supportedEncryptionSchemes: [string] = [currentEncryptionSchemeIdentifier]
 
 export const encryptionSchemeIdentifierPadChar = '='
 
@@ -75,7 +72,7 @@ const encryptionSchemeNamed = (
 	)
 }
 
-const validateEncryptionSchemeLength: (
+export const __validateEncryptionSchemeLength: (
 	buffer: Buffer,
 ) => Result<Buffer, Error> = validateLength.bind(
 	null,
@@ -83,7 +80,7 @@ const validateEncryptionSchemeLength: (
 	'encryptionScheme',
 )
 
-const validateEncryptionSchemeIdentifierLength: (
+const __validateEncryptionSchemeIdentifierMaxLength: (
 	buffer: Buffer,
 ) => Result<Buffer, Error> = validateMaxLength.bind(
 	null,
@@ -91,16 +88,32 @@ const validateEncryptionSchemeIdentifierLength: (
 	'encryptionSchemeIdentifier',
 )
 
+const __validateEncryptionSchemeIdentifierMinLength: (
+	buffer: Buffer,
+) => Result<Buffer, Error> = validateMinLength.bind(
+	null,
+	1,
+	'encryptionSchemeIdentifier',
+)
+
+export const __validateEncryptionSchemeIdentifierLength = (
+	buffer: Buffer,
+): Result<Buffer, Error> =>
+	combine([
+		__validateEncryptionSchemeIdentifierMaxLength(buffer),
+		__validateEncryptionSchemeIdentifierMinLength(buffer),
+	]).map((_) => buffer)
+
 const encryptionSchemeFromBuffer = (
 	buffer: Buffer,
 ): Result<EncryptionSchemeT, Error> => {
-	return validateEncryptionSchemeLength(buffer)
+	return __validateEncryptionSchemeLength(buffer)
 		.andThen((buffer) => {
 			const readNextBuffer = readBuffer.bind(null, buffer)()
 			return readNextBuffer(encryptionSchemeLengthSpecifyingByteCount)
 				.map((schemeIdLenBuf) => schemeIdLenBuf.readUInt8())
 				.andThen((schemeIdLenNum) => readNextBuffer(schemeIdLenNum))
-				.andThen(validateEncryptionSchemeIdentifierLength)
+				.andThen(__validateEncryptionSchemeIdentifierLength)
 		})
 		.map(
 			(identifier): EncryptionSchemeT =>
@@ -143,6 +156,7 @@ const isSupported = (
 export const EncryptionScheme = {
 	create,
 	isSupported,
+	supportedSchemes: supportedEncryptionSchemes,
 	current: encryptionScheme,
 	fromName: encryptionSchemeNamed,
 	fromBuffer: encryptionSchemeFromBuffer,

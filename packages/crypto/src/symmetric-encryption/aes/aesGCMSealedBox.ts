@@ -1,63 +1,26 @@
-import { combine, err, ok, Result } from 'neverthrow'
+import { combine, Result } from 'neverthrow'
 import { AES_GCM_SealedBoxProps, AES_GCM_SealedBoxT } from './_types'
 import { buffersEquals, readBuffer } from '@radixdlt/util'
+import { validateLength, validateMinLength } from '../../utils'
 
 const tagLength = 16
 const nonceLength = 12
 
 const cipherMinLength = 1
 
-export const validateMaxLength = (
-	expectedMaxLength: number,
-	name: string,
-	buffer: Buffer,
-): Result<Buffer, Error> =>
-	buffer.length > expectedMaxLength
-		? err(
-				new Error(
-					`Incorrect length of ${name}, expected max: #${expectedMaxLength} bytes, but got: #${buffer.length}.`,
-				),
-		  )
-		: ok(buffer)
-
-export const validateMinLength = (
-	expectedMinLength: number,
-	name: string,
-	buffer: Buffer,
-): Result<Buffer, Error> =>
-	buffer.length < expectedMinLength
-		? err(
-				new Error(
-					`Incorrect length of ${name}, expected min: #${expectedMinLength} bytes, but got: #${buffer.length}.`,
-				),
-		  )
-		: ok(buffer)
-
-export const validateLength = (
-	expectedLength: number,
-	name: string,
-	buffer: Buffer,
-): Result<Buffer, Error> =>
-	buffer.length !== expectedLength
-		? err(
-				new Error(
-					`Incorrect length of ${name}, expected: #${expectedLength} bytes, but got: #${buffer.length}.`,
-				),
-		  )
-		: ok(buffer)
-
-export const validateNonce: (
+const __validateNonce: (
 	buffer: Buffer,
 ) => Result<Buffer, Error> = validateLength.bind(
 	null,
 	nonceLength,
 	'nonce (IV)',
 )
-export const validateTag: (
+
+const __validateTag: (
 	buffer: Buffer,
 ) => Result<Buffer, Error> = validateLength.bind(null, tagLength, 'auth tag')
 
-export const validateCiphertext: (
+const __validateAESSealedBoxCiphertext: (
 	buffer: Buffer,
 ) => Result<Buffer, Error> = validateMinLength.bind(
 	null,
@@ -75,9 +38,9 @@ const create = (
 	input: AES_GCM_SealedBoxProps,
 ): Result<AES_GCM_SealedBoxT, Error> =>
 	combine([
-		validateNonce(input.nonce),
-		validateTag(input.authTag),
-		validateCiphertext(input.ciphertext),
+		__validateNonce(input.nonce),
+		__validateTag(input.authTag),
+		__validateAESSealedBoxCiphertext(input.ciphertext),
 	]).map((_) => ({
 		...input,
 		combined: (): Buffer => combineSealedBoxProps(input),

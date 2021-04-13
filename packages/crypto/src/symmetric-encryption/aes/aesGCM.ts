@@ -4,13 +4,9 @@ import {
 	AES_GCM_SEAL_Input,
 	AES_GCM_SealedBoxT,
 } from './_types'
-import { Result, combine } from 'neverthrow'
+import { Result } from 'neverthrow'
 import { secureRandomGenerator } from '@radixdlt/util'
-import {
-	AES_GCM_SealedBox,
-	validateNonce,
-	validateTag,
-} from './aesGCMSealedBox'
+import { AES_GCM_SealedBox } from './aesGCMSealedBox'
 
 const AES_GCM_256_ALGORITHM = 'AES-GCM'
 
@@ -21,40 +17,38 @@ export const aesGCMSealDeterministic = (
 ): Result<AES_GCM_SealedBoxT, Error> => {
 	const { nonce } = input
 
-	return validateNonce(nonce).andThen((nonce) => {
-		const aesCipher = forgeCipher.createCipher(
-			AES_GCM_256_ALGORITHM,
-			forgeUtil.createBuffer(input.symmetricKey),
-		)
+	const aesCipher = forgeCipher.createCipher(
+		AES_GCM_256_ALGORITHM,
+		forgeUtil.createBuffer(input.symmetricKey),
+	)
 
-		const iv = forgeUtil.createBuffer(nonce)
-		const startOptions = { iv }
+	const iv = forgeUtil.createBuffer(nonce)
+	const startOptions = { iv }
 
-		if (input.additionalAuthenticationData) {
-			aesCipher.start({
-				...startOptions,
-				additionalData: forgeUtil.hexToBytes(
-					input.additionalAuthenticationData.toString('hex'),
-				),
-			})
-		} else {
-			aesCipher.start(startOptions)
-		}
-
-		aesCipher.update(forgeUtil.createBuffer(input.plaintext))
-
-		if (!aesCipher.finish()) {
-			throw new Error(`AES encryption failed, error unknown...`)
-		}
-
-		const ciphertext = Buffer.from(aesCipher.output.toHex(), 'hex')
-		const authTag = Buffer.from(aesCipher.mode.tag.toHex(), 'hex')
-
-		return AES_GCM_SealedBox.create({
-			ciphertext,
-			authTag,
-			nonce,
+	if (input.additionalAuthenticationData) {
+		aesCipher.start({
+			...startOptions,
+			additionalData: forgeUtil.hexToBytes(
+				input.additionalAuthenticationData.toString('hex'),
+			),
 		})
+	} else {
+		aesCipher.start(startOptions)
+	}
+
+	aesCipher.update(forgeUtil.createBuffer(input.plaintext))
+
+	if (!aesCipher.finish()) {
+		throw new Error(`AES encryption failed, error unknown...`)
+	}
+
+	const ciphertext = Buffer.from(aesCipher.output.toHex(), 'hex')
+	const authTag = Buffer.from(aesCipher.mode.tag.toHex(), 'hex')
+
+	return AES_GCM_SealedBox.create({
+		ciphertext,
+		authTag,
+		nonce,
 	})
 }
 
@@ -70,53 +64,45 @@ const seal = (input: AES_GCM_SEAL_Input): Result<AES_GCM_SealedBoxT, Error> => {
 }
 
 const open = (input: AES_GCM_OPEN_Input): Result<Buffer, Error> => {
-	const {
-		ciphertext,
-		nonce,
-		authTag,
-		additionalAuthenticationData,
-		symmetricKey,
-	} = input
+	const { ciphertext, additionalAuthenticationData, symmetricKey } = input
 
-	return combine([validateNonce(nonce), validateTag(authTag)]).map(
-		(resultList) => {
-			const nonce = resultList[0]
-			const authTag = resultList[1]
+	return AES_GCM_SealedBox.create(input).map((box: AES_GCM_SealedBoxT) => {
+		const nonce = box.nonce
+		const authTag = box.authTag
 
-			const decipher = forgeCipher.createDecipher(
-				AES_GCM_256_ALGORITHM,
-				forgeUtil.createBuffer(symmetricKey),
+		const decipher = forgeCipher.createDecipher(
+			AES_GCM_256_ALGORITHM,
+			forgeUtil.createBuffer(symmetricKey),
+		)
+
+		const iv = forgeUtil.createBuffer(nonce)
+		const tag = forgeUtil.createBuffer(authTag)
+
+		const startOptions = {
+			iv,
+			tag,
+		}
+
+		if (additionalAuthenticationData) {
+			const additionalData = forgeUtil.hexToBytes(
+				additionalAuthenticationData.toString('hex'),
 			)
+			decipher.start({
+				...startOptions,
+				additionalData,
+			})
+		} else {
+			decipher.start(startOptions)
+		}
 
-			const iv = forgeUtil.createBuffer(nonce)
-			const tag = forgeUtil.createBuffer(authTag)
+		decipher.update(forgeUtil.createBuffer(ciphertext))
 
-			const startOptions = {
-				iv,
-				tag,
-			}
+		if (!decipher.finish()) {
+			throw new Error(`AES decryption failed, error unknown...`)
+		}
 
-			if (additionalAuthenticationData) {
-				const additionalData = forgeUtil.hexToBytes(
-					additionalAuthenticationData.toString('hex'),
-				)
-				decipher.start({
-					...startOptions,
-					additionalData,
-				})
-			} else {
-				decipher.start(startOptions)
-			}
-
-			decipher.update(forgeUtil.createBuffer(ciphertext))
-
-			if (!decipher.finish()) {
-				throw new Error(`AES decryption failed, error unknown...`)
-			}
-
-			return Buffer.from(decipher.output.toHex(), 'hex')
-		},
-	)
+		return Buffer.from(decipher.output.toHex(), 'hex')
+	})
 }
 
 export const AES_GCM = {

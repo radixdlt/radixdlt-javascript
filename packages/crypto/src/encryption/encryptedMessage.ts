@@ -1,39 +1,42 @@
 import { EncryptedMessageT, EncryptionSchemeT, SealedMessageT } from './_types'
-import { combine, Result } from 'neverthrow'
+import { combine, ok, Result } from 'neverthrow'
 import { EncryptionScheme, encryptionSchemeLength } from './encryptionScheme'
 import { readBuffer } from '@radixdlt/util'
-import { SealedMessage, sealedMessageMinLegth } from './sealedMessage'
-import {
-	validateMaxLength,
-	validateMinLength,
-} from '../symmetric-encryption/aes/aesGCMSealedBox'
+import { SealedMessage } from './sealedMessage'
+import { validateMaxLength, validateMinLength } from '../utils'
+import { publicKeyCompressedByteCount } from '../_types'
 
 export const maxLengthEncryptedMessage = 255
+const minLengthEncryptedMessage =
+	SealedMessage.authTagByteCount +
+	SealedMessage.nonceByteCount +
+	publicKeyCompressedByteCount +
+	encryptionSchemeLength
+const maxLengthOfCipherTextOfSealedMsg =
+	maxLengthEncryptedMessage - minLengthEncryptedMessage
 
-const validateEncryptedMessageMaxLength: (
+const __validateEncryptedMessageMaxLength: (
 	buffer: Buffer,
 ) => Result<Buffer, Error> = validateMaxLength.bind(
 	null,
 	maxLengthEncryptedMessage,
-	'encryptedMessage max length',
+	'encryptedMessage',
 )
 
-const minLengthEncryptedMessage = sealedMessageMinLegth + encryptionSchemeLength
-
-const validateEncryptedMessageMinLength: (
+const __validateEncryptedMessageMinLength: (
 	buffer: Buffer,
 ) => Result<Buffer, Error> = validateMinLength.bind(
 	null,
 	minLengthEncryptedMessage,
-	'encryptedMessage min length',
+	'encryptedMessage',
 )
 
-const validateEncryptedMessageLength = (
+export const __validateEncryptedMessageLength = (
 	buffer: Buffer,
 ): Result<Buffer, Error> =>
 	combine([
-		validateEncryptedMessageMaxLength(buffer),
-		validateEncryptedMessageMinLength(buffer),
+		__validateEncryptedMessageMaxLength(buffer),
+		__validateEncryptedMessageMinLength(buffer),
 	]).map((_) => buffer)
 
 const create = (
@@ -41,19 +44,24 @@ const create = (
 		encryptionScheme: EncryptionSchemeT
 		sealedMessage: SealedMessageT
 	}>,
-): EncryptedMessageT => {
-	return {
-		...input,
-		combined: (): Buffer =>
-			Buffer.concat([
-				input.encryptionScheme.combined(),
-				input.sealedMessage.combined(),
-			]),
-	}
+): Result<EncryptedMessageT, Error> => {
+	const concatenatedBuffers = Buffer.concat([
+		input.encryptionScheme.combined(),
+		input.sealedMessage.combined(),
+	])
+
+	return __validateEncryptedMessageLength(concatenatedBuffers).map(
+		(combinedBuffer) => {
+			return {
+				...input,
+				combined: (): Buffer => combinedBuffer,
+			}
+		},
+	)
 }
 
 const fromBuffer = (buf: Buffer): Result<EncryptedMessageT, Error> => {
-	return validateEncryptedMessageLength(buf).andThen(
+	return __validateEncryptedMessageLength(buf).andThen(
 		(buffer): Result<EncryptedMessageT, Error> => {
 			const readNextBuffer = readBuffer.bind(null, buffer)()
 			return combine([
@@ -63,16 +71,14 @@ const fromBuffer = (buf: Buffer): Result<EncryptedMessageT, Error> => {
 				readNextBuffer(buffer.length - encryptionSchemeLength).andThen(
 					SealedMessage.fromBuffer,
 				),
-			]).map(
-				(resultList): EncryptedMessageT => {
-					const encryptionScheme = resultList[0] as EncryptionSchemeT
-					const sealedMessage = resultList[1] as SealedMessageT
-					return EncryptedMessage.create({
-						encryptionScheme,
-						sealedMessage,
-					})
-				},
-			)
+			]).andThen((resultList) => {
+				const encryptionScheme = resultList[0] as EncryptionSchemeT
+				const sealedMessage = resultList[1] as SealedMessageT
+				return EncryptedMessage.create({
+					encryptionScheme,
+					sealedMessage,
+				})
+			})
 		},
 	)
 }
@@ -85,6 +91,8 @@ const supportsSchemeOf = (
 	)
 
 export const EncryptedMessage = {
+	maxLength: maxLengthEncryptedMessage,
+	maxLengthOfCipherTextOfSealedMsg,
 	create,
 	fromBuffer,
 	supportsSchemeOf,

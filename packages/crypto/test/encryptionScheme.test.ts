@@ -1,10 +1,145 @@
 import {
+	__validateEncryptionSchemeIdentifierLength,
+	__validateEncryptionSchemeLength,
 	EncryptionScheme,
 	encryptionSchemeIdentifierLength,
 	encryptionSchemeLength,
-} from '../dist/encryption/encryptionScheme'
+} from '../src/encryption/encryptionScheme'
+import { buffersEquals } from '@radixdlt/util'
 
 describe('EncryptionScheme', () => {
+	describe('scheme buffer length validation functions', () => {
+		const makeBuf = (byteCount: number): Buffer =>
+			Buffer.from('6a'.repeat(byteCount), 'hex')
+
+		describe('validateEncryptionSchemeLength', () => {
+			it('correct scheme length is valid', (done) => {
+				const buffer = makeBuf(32)
+				__validateEncryptionSchemeLength(buffer).match(
+					(buf) => {
+						expect(buffersEquals(buf, buffer)).toBe(true)
+						done()
+					},
+					(error) => {
+						done(
+							new Error(
+								`Got error, but expected success: ${error}`,
+							),
+						)
+					},
+				)
+			})
+
+			const expectedErrorMessage = (actual: number): string =>
+				`Incorrect length of encryptionScheme, expected: #32 bytes, but got: #${actual}.`
+
+			it('too short scheme length is invalid', (done) => {
+				const shortLength = 31
+				const buffer = makeBuf(shortLength)
+				__validateEncryptionSchemeLength(buffer).match(
+					(_) => {
+						done(
+							new Error(
+								'Buffer passed validation, but we expected a failure.',
+							),
+						)
+					},
+					(error) => {
+						expect(error.message).toBe(
+							expectedErrorMessage(shortLength),
+						)
+						done()
+					},
+				)
+			})
+
+			it('too long scheme length is invalid', (done) => {
+				const longLength = 33
+				const buffer = makeBuf(longLength)
+				__validateEncryptionSchemeLength(buffer).match(
+					(_) => {
+						done(
+							new Error(
+								'Buffer passed validation, but we expected a failure.',
+							),
+						)
+					},
+					(error) => {
+						expect(error.message).toBe(
+							expectedErrorMessage(longLength),
+						)
+						done()
+					},
+				)
+			})
+		})
+
+		describe('validateEncryptionSchemeIdentifierLength', () => {
+			it('correct scheme identifier length is valid', (done) => {
+				const buffer = makeBuf(31)
+				__validateEncryptionSchemeIdentifierLength(buffer).match(
+					(buf) => {
+						expect(buffersEquals(buf, buffer)).toBe(true)
+						done()
+					},
+					(error) => {
+						done(
+							new Error(
+								`Got error, but expected success: ${error}`,
+							),
+						)
+					},
+				)
+			})
+
+			const expectedErrorMessageTooLong = (actual: number): string =>
+				`Incorrect length of encryptionSchemeIdentifier, expected max: #31 bytes, but got: #${actual}.`
+
+			const expectedErrorMessageTooShort = (actual: number): string =>
+				`Incorrect length of encryptionSchemeIdentifier, expected min: #1 bytes, but got: #${actual}.`
+
+			it('too short scheme identifier length is invalid', (done) => {
+				const shortLength = 0
+				const buffer = makeBuf(shortLength)
+				__validateEncryptionSchemeIdentifierLength(buffer).match(
+					(_) => {
+						done(
+							new Error(
+								'Buffer passed validation, but we expected a failure.',
+							),
+						)
+					},
+					(error) => {
+						expect(error.message).toBe(
+							expectedErrorMessageTooShort(shortLength),
+						)
+						done()
+					},
+				)
+			})
+
+			it('too long scheme identifier length is invalid', (done) => {
+				const longLength = 32
+				const buffer = makeBuf(longLength)
+				__validateEncryptionSchemeIdentifierLength(buffer).match(
+					(_) => {
+						done(
+							new Error(
+								'Buffer passed validation, but we expected a failure.',
+							),
+						)
+					},
+					(error) => {
+						expect(error.message).toBe(
+							expectedErrorMessageTooLong(longLength),
+						)
+						done()
+					},
+				)
+			})
+		})
+	})
+
 	it('length of identifier is 31', () => {
 		expect(encryptionSchemeIdentifierLength).toBe(31)
 	})
@@ -91,5 +226,11 @@ describe('EncryptionScheme', () => {
 DH_ADD_EPH_AESGCM256_SCRYPT_000 (current)`)
 			},
 		)
+	})
+
+	it('only current scheme DH_ADD_EPH_AESGCM256_SCRYPT_000 is supported', () => {
+		expect(EncryptionScheme.supportedSchemes).toStrictEqual([
+			'DH_ADD_EPH_AESGCM256_SCRYPT_000',
+		])
 	})
 })
