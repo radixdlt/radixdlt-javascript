@@ -239,6 +239,11 @@ const create = (): TransactionIntentBuilderT => {
 		singleRecipientPublicKey: PublicKey
 	}
 
+	type ActorsInEncryptionIntermediate = {
+		others: PublicKey[]
+		mine: PublicKey
+	}
+
 	const ensureSingleRecipient = (
 		input: Readonly<{
 			intendedActionsFrom: IntendedActionsFrom
@@ -246,34 +251,46 @@ const create = (): TransactionIntentBuilderT => {
 		}>,
 	): Observable<ActorsInEncryption> => {
 		return input.encryptingAccount.derivePublicKey().pipe(
-			map((pk: PublicKey): PublicKey[] => {
-				const setOfStrings = new Set<string>()
-				setOfStrings.add(pk.toString())
-
-				return input.intendedActionsFrom.intendedActions.reduce(
-					(acc: PublicKey[], action: IntendedAction) => {
-						getUniqueAddresses(action).forEach((a) => {
-							const pkString = a.publicKey.toString()
-							if (!setOfStrings.has(pkString)) {
-								acc.push(a.publicKey)
-								setOfStrings.add(pkString)
-							}
-						})
-						return acc
-					},
-					[] as PublicKey[],
-				)
-			}),
 			map(
-				(publicKeys): ActorsInEncryption => {
-					if (publicKeys.length !== 1) {
-						const wrongCountMsg =
-							publicKeys.length === 0 ? 'zero' : 'more than one'
+				(pk: PublicKey): ActorsInEncryptionIntermediate => {
+					const setOfStrings = new Set<string>()
+					setOfStrings.add(pk.toString())
+
+					const others = input.intendedActionsFrom.intendedActions.reduce(
+						(acc: PublicKey[], action: IntendedAction) => {
+							getUniqueAddresses(action).forEach((a) => {
+								const pkString = a.publicKey.toString()
+								if (!setOfStrings.has(pkString)) {
+									acc.push(a.publicKey)
+									setOfStrings.add(pkString)
+								}
+							})
+							return acc
+						},
+						[] as PublicKey[],
+					)
+
+					return { others, mine: pk }
+				},
+			),
+			map(
+				(
+					publicKeysAndMine: ActorsInEncryptionIntermediate,
+				): ActorsInEncryption => {
+					if (publicKeysAndMine.others.length > 1) {
 						throw new Error(
-							`Cannot encrypt message for a transaction containing ${wrongCountMsg} recipient addresses.`,
+							`Cannot encrypt message for a transaction containing more than one recipient addresses.`,
 						)
 					}
-					const singleRecipientPublicKey: PublicKey = publicKeys[0]
+
+					const toSelf = publicKeysAndMine.others.length === 0
+					if (toSelf) {
+						log.debug(`Encrypting message to oneself.`)
+					}
+
+					const singleRecipientPublicKey: PublicKey = toSelf
+						? publicKeysAndMine.mine
+						: publicKeysAndMine.others[0]
 					return {
 						encryptingAccount: input.encryptingAccount,
 						singleRecipientPublicKey,

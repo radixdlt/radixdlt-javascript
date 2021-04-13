@@ -12,16 +12,20 @@ describe('message encryption', () => {
 		const alice = generateKeyPair()
 		const bob = generateKeyPair()
 
-		const aliceEncrypt = async (
+		const aliceEncryptTo = async (
+			to: PublicKey,
 			plaintext: string,
 		): Promise<EncryptedMessageT> => {
 			const res = await MessageEncryption.encrypt({
 				plaintext,
-				publicKeyOfOtherParty: bob.publicKey,
+				publicKeyOfOtherParty: to,
 				diffieHellman: alice.privateKey.diffieHellman,
 			})
 			return res._unsafeUnwrap()
 		}
+
+		const aliceEncryptToBob = aliceEncryptTo.bind(null, bob.publicKey)
+		const aliceEncryptToSelf = aliceEncryptTo.bind(null, alice.publicKey)
 
 		const decrypt = async (
 			diffieHellman: DiffieHellman,
@@ -36,10 +40,16 @@ describe('message encryption', () => {
 			return res._unsafeUnwrap()
 		}
 
-		const aliceDecrypt = decrypt.bind(
+		const aliceDecryptWithBobsPubKey = decrypt.bind(
 			null,
 			alice.privateKey.diffieHellman,
 			bob.publicKey,
+		)
+
+		const aliceDecryptWithHerOwnPubKey = decrypt.bind(
+			null,
+			alice.privateKey.diffieHellman,
+			alice.publicKey,
 		)
 
 		const bobDecrypt = decrypt.bind(
@@ -50,17 +60,31 @@ describe('message encryption', () => {
 
 		it('encrypted message can be decrypted by both sender and receiver', async () => {
 			const plaintext = 'Hey Bob!'
-			const encryptedMessage = await aliceEncrypt(plaintext)
+			const encryptedMessage = await aliceEncryptToBob(plaintext)
 			expect(encryptedMessage.combined().length).toBeLessThanOrEqual(
 				EncryptedMessage.maxLength,
 			)
-			const decryptedByAlice = await aliceDecrypt(encryptedMessage)
+			const decryptedByAlice = await aliceDecryptWithBobsPubKey(
+				encryptedMessage,
+			)
 			expect(decryptedByAlice).toBe(plaintext)
 
 			const decryptedByBob = await bobDecrypt(encryptedMessage)
 			expect(decryptedByBob).toBe(plaintext)
 
 			expect(decryptedByBob).toBe(decryptedByAlice)
+		})
+
+		it('encrypted message to self can be decrypted by self', async () => {
+			const plaintext = 'Hey Bob!'
+			const encryptedMessage = await aliceEncryptToSelf(plaintext)
+			expect(encryptedMessage.combined().length).toBeLessThanOrEqual(
+				EncryptedMessage.maxLength,
+			)
+			const decryptedByAlice = await aliceDecryptWithHerOwnPubKey(
+				encryptedMessage,
+			)
+			expect(decryptedByAlice).toBe(plaintext)
 		})
 	})
 
