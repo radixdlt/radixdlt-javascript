@@ -1,5 +1,10 @@
 import { Byte } from '@radixdlt/util'
-import { PublicKey, Signature } from '@radixdlt/crypto'
+import {
+	ECPointOnCurve,
+	EncryptedMessageT,
+	PublicKey,
+	Signature,
+} from '@radixdlt/crypto'
 import { Observable } from 'rxjs'
 import { BIP32T } from './bip32/_types'
 import { Option } from 'prelude-ts'
@@ -17,44 +22,27 @@ export type PublicKeyDeriving = Readonly<{
 	derivePublicKey: () => Observable<PublicKey>
 }>
 
-export enum EncryptionSchemeName {
-	DO_NOT_ENCRYPT = 'DO_NOT_ENCRYPT',
-}
-
-export type MessageEncryption = Readonly<{
-	encryptionScheme: EncryptionSchemeName
-}>
-
-export type PlaintextMessageToEncrypt = MessageEncryption &
-	Readonly<{
-		plaintext: string
-		publicKeysOfReaders: PublicKey[]
-	}>
-
-export type EncryptedMessage = MessageEncryption &
-	Readonly<{
-		/* hex string of encrypted message buffer `(Cipher | Ephemeral Shared Secret | Nonce | Tag )` */
-		msg: string
-	}>
-
-export type EncryptedMessageToDecrypt = EncryptedMessage &
-	Readonly<{
-		publicKeysOfReaders: PublicKey[]
-	}>
-
 /* A reactive counterpart of `Signer` in '@radixdlt/crypto' package  */
 export type Signing = Readonly<{
 	sign: (hashedMessage: Buffer) => Observable<Signature>
 }>
 
-export type Decrypting = Readonly<{
-	decrypt: (encryptedMessage: EncryptedMessageToDecrypt) => Observable<string>
+export type AccountEncryptionInput = Readonly<{
+	plaintext: Buffer | string
+	publicKeyOfOtherParty: PublicKey
 }>
 
 export type Encrypting = Readonly<{
-	encrypt: (
-		plaintext: PlaintextMessageToEncrypt,
-	) => Observable<EncryptedMessage>
+	encrypt: (input: AccountEncryptionInput) => Observable<EncryptedMessageT>
+}>
+
+export type AccountDecryptionInput = Readonly<{
+	encryptedMessage: Buffer | EncryptedMessageT
+	publicKeyOfOtherParty: PublicKey
+}>
+
+export type Decrypting = Readonly<{
+	decrypt: (input: AccountDecryptionInput) => Observable<string>
 }>
 
 export type AccountT = PublicKeyDeriving &
@@ -72,6 +60,12 @@ export type AccountT = PublicKeyDeriving &
 /// dependent on this package, not the other way around, thus we need
 /// some kind of simple "interface" like type here.
 export type HardwareWalletSimpleT = Readonly<{
+	diffieHellman: (
+		input: Readonly<{
+			hdPath: BIP32T
+			publicKeyOfOtherParty: PublicKey
+		}>,
+	) => Observable<ECPointOnCurve>
 	derivePublicKey: (hdPath: BIP32T) => Observable<PublicKey>
 	sign: (
 		input: Readonly<{

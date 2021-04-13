@@ -48,11 +48,15 @@ export const Scrypt = {
 
 const create = (
 	input: Readonly<{
+		salt?: Buffer
 		secureRandom?: SecureRandom
 	}>,
 ): ScryptParamsT => {
 	const secureRandom = input.secureRandom ?? secureRandomGenerator
-	const salt = secureRandom.randomSecureBytes(32)
+	if (input.salt && input.salt.length !== 32)
+		throw new Error('Incorrect implementatin expected 32 bytes salt')
+	const salt =
+		input.salt?.toString('hex') ?? secureRandom.randomSecureBytes(32)
 
 	return {
 		costParameterN: 8192,

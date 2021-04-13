@@ -1,21 +1,26 @@
-import { PrivateKey, PublicKey, Signature } from '@radixdlt/crypto'
-import { mergeMap } from 'rxjs/operators'
-import { Observable, of, throwError } from 'rxjs'
+import {
+	DiffieHellman,
+	ECPointOnCurve,
+	EncryptedMessageT,
+	MessageEncryption,
+	PrivateKey,
+	PublicKey,
+	Signature,
+} from '@radixdlt/crypto'
+import { map, mergeMap } from 'rxjs/operators'
+import { Observable, of } from 'rxjs'
 import { toObservable } from './resultAsync_observable'
 import {
+	AccountDecryptionInput,
+	AccountEncryptionInput,
 	AccountT,
 	AddressT,
-	EncryptedMessage,
-	EncryptedMessageToDecrypt,
-	EncryptionSchemeName,
 	HardwareWalletSimpleT,
-	PlaintextMessageToEncrypt,
 } from './_types'
 import { HDMasterSeedT, HDNodeT } from './bip39/_types'
 import { HDPathRadixT } from './bip32/bip44/_types'
-
-const NO_ENCRYPTION_YET_PREFIX =
-	'PLAIN_TEXT_BECAUSE_ENCRYPTION_IS_NOT_YET_INPLEMENTED___'
+import { errAsync, okAsync, ResultAsync } from 'neverthrow'
+import { log } from '@radixdlt/util'
 
 const fromPrivateKey = (
 	input: Readonly<{
@@ -29,24 +34,31 @@ const fromPrivateKey = (
 	const sign = (hashedMessage: Buffer): Observable<Signature> =>
 		toObservable(privateKey.sign(hashedMessage))
 
+	const diffieHellman = privateKey.diffieHellman
+
 	return {
+		decrypt: (input: AccountDecryptionInput): Observable<string> => {
+			return toObservable(
+				MessageEncryption.decrypt({
+					...input,
+					diffieHellman,
+				}).map((buf: Buffer) => buf.toString('utf-8')),
+			)
+		},
+		encrypt: (
+			input: AccountEncryptionInput,
+		): Observable<EncryptedMessageT> => {
+			return toObservable(
+				MessageEncryption.encrypt({
+					...input,
+					diffieHellman,
+				}),
+			)
+		},
 		sign: sign,
 		hdPath,
 		derivePublicKey: () => of(publicKey),
 		deriveAddress: () => addressFromPublicKey(publicKey),
-		decrypt: (
-			_encryptedMessage: EncryptedMessageToDecrypt,
-		): Observable<string> => throwError(() => new Error('Imple me')),
-
-		encrypt: (
-			plaintext: PlaintextMessageToEncrypt,
-		): Observable<EncryptedMessage> =>
-			plaintext.encryptionScheme === EncryptionSchemeName.DO_NOT_ENCRYPT
-				? of<EncryptedMessage>({
-						encryptionScheme: plaintext.encryptionScheme,
-						msg: `${NO_ENCRYPTION_YET_PREFIX}${plaintext.plaintext}`,
-				  })
-				: throwError(() => new Error('Imple me')),
 	}
 }
 
@@ -57,36 +69,83 @@ const fromHDPathWithHardwareWallet = (
 		onHardwareWalletConnect: Observable<HardwareWalletSimpleT>
 	}>,
 ): AccountT => {
-	const hardwareWallet$ = input.onHardwareWalletConnect
+	const {
+		hdPath,
+		onHardwareWalletConnect: hardwareWallet$,
+		addressFromPublicKey,
+	} = input
 
 	const derivePublicKey = (): Observable<PublicKey> =>
 		hardwareWallet$.pipe(
-			mergeMap((hw: HardwareWalletSimpleT) =>
-				hw.derivePublicKey(input.hdPath),
+			mergeMap((hw: HardwareWalletSimpleT) => hw.derivePublicKey(hdPath)),
+		)
+
+	const dhObservable = (
+		publicKeyUsedInKeyExchange: PublicKey,
+	): Observable<DiffieHellman> =>
+		hardwareWallet$.pipe(
+			mergeMap((hw) =>
+				hw.diffieHellman({
+					hdPath,
+					publicKeyOfOtherParty: publicKeyUsedInKeyExchange,
+				}),
+			),
+			map(
+				(dhKey: ECPointOnCurve): DiffieHellman => {
+					const diffieHellman: DiffieHellman = (
+						publicKeyOfOtherParty: PublicKey,
+					): ResultAsync<ECPointOnCurve, Error> => {
+						if (
+							!publicKeyOfOtherParty.equals(
+								publicKeyUsedInKeyExchange,
+							)
+						) {
+							log.error(
+								`Mismatch betwen public key used in DH and input to this inlined DH function.`,
+							)
+							return errAsync(new Error('Key mismatch'))
+						}
+						return okAsync(dhKey)
+					}
+					return diffieHellman
+				},
 			),
 		)
 
 	return {
-		hdPath: input.hdPath,
+		hdPath,
 		sign: (hashedMessage): Observable<Signature> =>
 			hardwareWallet$.pipe(
 				mergeMap((hw: HardwareWalletSimpleT) =>
-					hw.sign({ hashedMessage, hdPath: input.hdPath }),
+					hw.sign({ hashedMessage, hdPath }),
 				),
 			),
 		derivePublicKey,
 		deriveAddress: () =>
 			derivePublicKey().pipe(
-				mergeMap((pubKey) => input.addressFromPublicKey(pubKey)),
+				mergeMap((pubKey) => addressFromPublicKey(pubKey)),
 			),
-		decrypt: (
-			_encryptedMessage: EncryptedMessageToDecrypt,
-		): Observable<string> => throwError(() => new Error('Imple me')),
-
+		decrypt: (input: AccountDecryptionInput): Observable<string> => {
+			return dhObservable(input.publicKeyOfOtherParty).pipe(
+				mergeMap((diffieHellman: DiffieHellman) =>
+					toObservable(
+						MessageEncryption.decrypt({ ...input, diffieHellman }),
+					),
+				),
+				map((b) => b.toString('utf8')),
+			)
+		},
 		encrypt: (
-			_plaintext: PlaintextMessageToEncrypt,
-		): Observable<EncryptedMessage> =>
-			throwError(() => new Error('Imple me')),
+			input: AccountEncryptionInput,
+		): Observable<EncryptedMessageT> => {
+			return dhObservable(input.publicKeyOfOtherParty).pipe(
+				mergeMap((diffieHellman: DiffieHellman) =>
+					toObservable(
+						MessageEncryption.encrypt({ ...input, diffieHellman }),
+					),
+				),
+			)
+		},
 	}
 }
 

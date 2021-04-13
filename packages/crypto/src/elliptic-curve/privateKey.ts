@@ -8,8 +8,15 @@ import { UInt256 } from '@radixdlt/uint256'
 
 import { signDataWithPrivateKey } from './wrap/sign'
 
-import { err, errAsync, ok, Result, ResultAsync } from 'neverthrow'
-import { Signature, PublicKey, PrivateKey, Hasher } from '../_types'
+import { err, errAsync, ok, okAsync, Result, ResultAsync } from 'neverthrow'
+import {
+	Signature,
+	PublicKey,
+	PrivateKey,
+	Hasher,
+	ECPointOnCurve,
+	DiffieHellman,
+} from '../_types'
 import { publicKeyFromPrivateKey } from './wrap/publicKeyWrapped'
 import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
 import { Secp256k1 } from './secp256k1'
@@ -32,9 +39,19 @@ const privateKeyFromValidatedScalar = (scalar: UInt256): PrivateKey => {
 		)
 	}
 
+	const diffieHellman: DiffieHellman = (
+		publicKeyOfOtherParty: PublicKey,
+	): ResultAsync<ECPointOnCurve, Error> => {
+		return okAsync(
+			publicKeyOfOtherParty
+				.decodeToPointOnCurve()
+				.multiplyWithPrivateKey(privateKey),
+		)
+	}
+
 	const privateKey = {
 		sign,
-
+		diffieHellman: diffieHellman,
 		signUnhashed: (
 			input: Readonly<{
 				msgToHash: Buffer | string

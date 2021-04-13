@@ -12,7 +12,6 @@ import { AmountT } from '@radixdlt/primitives'
 import { PublicKey, Signature } from '@radixdlt/crypto'
 import { Observable } from 'rxjs'
 import { Result } from 'neverthrow'
-import { EncryptedMessage } from '@radixdlt/account'
 
 export type StakePosition = Readonly<{
 	validator: AddressT
@@ -107,7 +106,7 @@ export type TransactionIntentBuilderT = Readonly<{
 export type TransactionIntent = PartOfMakeTransactionFlow &
 	Readonly<{
 		actions: IntendedAction[]
-		message?: EncryptedMessage
+		message?: Buffer
 	}>
 
 export type ValidatorsRequestInput = Readonly<{

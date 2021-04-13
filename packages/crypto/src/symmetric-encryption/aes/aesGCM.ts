@@ -1,148 +1,114 @@
 import { cipher as forgeCipher, util as forgeUtil } from 'node-forge'
-import { AES_GCM_SealedBoxT } from './_types'
-import { err, ok, Result, combine } from 'neverthrow'
-import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
-
-const tagLength = 16
-const nonceLength = 12
+import {
+	AES_GCM_OPEN_Input,
+	AES_GCM_SEAL_Input,
+	AES_GCM_SealedBoxT,
+} from './_types'
+import { Result } from 'neverthrow'
+import { secureRandomGenerator } from '@radixdlt/util'
+import { AES_GCM_SealedBox } from './aesGCMSealedBox'
 
 const AES_GCM_256_ALGORITHM = 'AES-GCM'
 
-export type AES_GCM_Input = Readonly<{
-	plaintext: Buffer
-	symmetricKey: Buffer
-	additionalAuthenticationData?: Buffer
-	nonce?: Buffer
-	secureRandom?: SecureRandom
-}>
+export const aesGCMSealDeterministic = (
+	input: Omit<AES_GCM_SEAL_Input, 'secureRandom'> & {
+		readonly nonce: Buffer
+	},
+): Result<AES_GCM_SealedBoxT, Error> => {
+	const { nonce } = input
 
-const _validateLength = (
-	expectedLength: number,
-	name: string,
-	buffer: Buffer,
-): Result<Buffer, Error> =>
-	buffer.length !== expectedLength
-		? err(
-				new Error(
-					`Incorrect length of ${name}, expected: #${expectedLength} bytes, but got: #${buffer.length}.`,
-				),
-		  )
-		: ok(buffer)
+	const aesCipher = forgeCipher.createCipher(
+		AES_GCM_256_ALGORITHM,
+		forgeUtil.createBuffer(input.symmetricKey),
+	)
 
-const validateNonce: (
-	buffer: Buffer,
-) => Result<Buffer, Error> = _validateLength.bind(
-	null,
-	nonceLength,
-	'nonce (IV)',
-)
-const validateTag: (
-	buffer: Buffer,
-) => Result<Buffer, Error> = _validateLength.bind(null, tagLength, 'auth tag')
+	const iv = forgeUtil.createBuffer(nonce)
+	const startOptions = { iv }
 
-const seal = (input: AES_GCM_Input): Result<AES_GCM_SealedBoxT, Error> => {
-	const secureRandom = input.secureRandom ?? secureRandomGenerator
-	const nonce =
-		input.nonce ??
-		Buffer.from(secureRandom.randomSecureBytes(nonceLength), 'hex')
+	if (input.additionalAuthenticationData) {
+		aesCipher.start({
+			...startOptions,
+			additionalData: forgeUtil.hexToBytes(
+				input.additionalAuthenticationData.toString('hex'),
+			),
+		})
+	} else {
+		aesCipher.start(startOptions)
+	}
 
-	return validateNonce(nonce).map((nonce) => {
-		const aesCipher = forgeCipher.createCipher(
-			AES_GCM_256_ALGORITHM,
-			forgeUtil.createBuffer(input.symmetricKey),
-		)
+	aesCipher.update(forgeUtil.createBuffer(input.plaintext))
 
-		const iv = forgeUtil.createBuffer(nonce)
-		const startOptions = { iv }
+	if (!aesCipher.finish()) {
+		throw new Error(`AES encryption failed, error unknown...`)
+	}
 
-		if (input.additionalAuthenticationData) {
-			aesCipher.start({
-				...startOptions,
-				additionalData: forgeUtil.hexToBytes(
-					input.additionalAuthenticationData.toString('hex'),
-				),
-			})
-		} else {
-			aesCipher.start(startOptions)
-		}
+	const ciphertext = Buffer.from(aesCipher.output.toHex(), 'hex')
+	const authTag = Buffer.from(aesCipher.mode.tag.toHex(), 'hex')
 
-		aesCipher.update(forgeUtil.createBuffer(input.plaintext))
-
-		if (!aesCipher.finish()) {
-			throw new Error(`AES encryption failed, error unknown...`)
-		}
-
-		const ciphertext = Buffer.from(aesCipher.output.toHex(), 'hex')
-		const authTag = Buffer.from(aesCipher.mode.tag.toHex(), 'hex')
-
-		return {
-			ciphertext,
-			authTag,
-			nonce,
-		}
+	return AES_GCM_SealedBox.create({
+		ciphertext,
+		authTag,
+		nonce,
 	})
 }
 
-const open = (
-	input: AES_GCM_SealedBoxT &
-		Readonly<{
-			symmetricKey: Buffer
-			additionalAuthenticationData?: Buffer
-		}>,
-): Result<Buffer, Error> => {
-	const {
-		ciphertext,
-		nonce,
-		authTag,
-		additionalAuthenticationData,
-		symmetricKey,
-	} = input
+const seal = (input: AES_GCM_SEAL_Input): Result<AES_GCM_SealedBoxT, Error> => {
+	const secureRandom = input.secureRandom ?? secureRandomGenerator
+	const nonce =
+		input.nonce ??
+		Buffer.from(
+			secureRandom.randomSecureBytes(AES_GCM_SealedBox.nonceLength),
+			'hex',
+		)
+	return aesGCMSealDeterministic({ ...input, nonce })
+}
 
-	return combine([validateNonce(nonce), validateTag(authTag)]).map(
-		(resultList) => {
-			const nonce = resultList[0]
-			const authTag = resultList[1]
+const open = (input: AES_GCM_OPEN_Input): Result<Buffer, Error> => {
+	const { ciphertext, additionalAuthenticationData, symmetricKey } = input
 
-			const decipher = forgeCipher.createDecipher(
-				AES_GCM_256_ALGORITHM,
-				forgeUtil.createBuffer(symmetricKey),
+	return AES_GCM_SealedBox.create(input).map((box: AES_GCM_SealedBoxT) => {
+		const nonce = box.nonce
+		const authTag = box.authTag
+
+		const decipher = forgeCipher.createDecipher(
+			AES_GCM_256_ALGORITHM,
+			forgeUtil.createBuffer(symmetricKey),
+		)
+
+		const iv = forgeUtil.createBuffer(nonce)
+		const tag = forgeUtil.createBuffer(authTag)
+
+		const startOptions = {
+			iv,
+			tag,
+		}
+
+		if (additionalAuthenticationData) {
+			const additionalData = forgeUtil.hexToBytes(
+				additionalAuthenticationData.toString('hex'),
 			)
+			decipher.start({
+				...startOptions,
+				additionalData,
+			})
+		} else {
+			decipher.start(startOptions)
+		}
 
-			const iv = forgeUtil.createBuffer(nonce)
-			const tag = forgeUtil.createBuffer(authTag)
+		decipher.update(forgeUtil.createBuffer(ciphertext))
 
-			const startOptions = {
-				iv,
-				tag,
-			}
+		if (!decipher.finish()) {
+			throw new Error(`AES decryption failed, error unknown...`)
+		}
 
-			if (additionalAuthenticationData) {
-				const additionalData = forgeUtil.hexToBytes(
-					additionalAuthenticationData.toString('hex'),
-				)
-				decipher.start({
-					...startOptions,
-					additionalData,
-				})
-			} else {
-				decipher.start(startOptions)
-			}
-
-			decipher.update(forgeUtil.createBuffer(ciphertext))
-
-			if (!decipher.finish()) {
-				throw new Error(`AES decryption failed, error unknown...`)
-			}
-
-			return Buffer.from(decipher.output.toHex(), 'hex')
-		},
-	)
+		return Buffer.from(decipher.output.toHex(), 'hex')
+	})
 }
 
 export const AES_GCM = {
 	seal,
 	open,
-	tagLength,
-	nonceLength,
+	tagLength: AES_GCM_SealedBox.tagLength,
+	nonceLength: AES_GCM_SealedBox.nonceLength,
 	algorithm: AES_GCM_256_ALGORITHM,
 }

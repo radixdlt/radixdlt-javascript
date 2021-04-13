@@ -1,8 +1,11 @@
 import { UInt256 } from '@radixdlt/uint256'
 
 import { ResultAsync } from 'neverthrow'
-
 export type Hasher = (input: Buffer | string) => Buffer
+
+export type DiffieHellman = (
+	publicKeyOfOtherParty: PublicKey,
+) => ResultAsync<ECPointOnCurve, Error>
 
 export type Signer = Readonly<{
 	sign: (hashedMessage: Buffer) => ResultAsync<Signature, Error>
@@ -33,6 +36,8 @@ export type ECPointOnCurve = Readonly<{
 	multiplyWithPrivateKey: (privateKey: PrivateKey) => ECPointOnCurve
 }>
 
+export const publicKeyCompressedByteCount = 33
+
 export type PublicKey = Readonly<{
 	asData: (input: { readonly compressed: boolean }) => Buffer
 	toString: (compressed?: boolean) => string
@@ -48,6 +53,7 @@ export type PublicKey = Readonly<{
 
 export type PrivateKey = Signer &
 	Readonly<{
+		diffieHellman: DiffieHellman
 		scalar: UInt256
 		publicKey: () => PublicKey
 		toString: () => string

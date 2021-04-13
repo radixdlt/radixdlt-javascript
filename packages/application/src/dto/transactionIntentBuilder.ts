@@ -20,8 +20,6 @@ import {
 import {
 	AccountT,
 	AddressT,
-	EncryptedMessage,
-	EncryptionSchemeName,
 	isAddress,
 	toObservableFromResult,
 } from '@radixdlt/account'
@@ -40,7 +38,7 @@ import {
 	isUnstakeTokensInput,
 } from '../actions/intendedUnstakeTokensAction'
 import { combine, err, Result } from 'neverthrow'
-import { PublicKey } from '@radixdlt/crypto'
+import { EncryptedMessageT, PublicKey } from '@radixdlt/crypto'
 import { Option } from 'prelude-ts'
 import { isResourceIdentifier } from './resourceIdentifier'
 import { isAmount } from '@radixdlt/primitives'
@@ -129,14 +127,7 @@ const isTransactionIntentBuilderDoNotEncryptInput = (
 	)
 }
 
-const create = (
-	input?: Readonly<{
-		encryptionSchemeName: EncryptionSchemeName
-	}>,
-): TransactionIntentBuilderT => {
-	const encryptionSchemeName: EncryptionSchemeName =
-		input?.encryptionSchemeName ?? EncryptionSchemeName.DO_NOT_ENCRYPT
-
+const create = (): TransactionIntentBuilderT => {
 	const intermediateActions: IntermediateAction[] = []
 	let maybePlaintextMsgToEncrypt: Option<string> = Option.none()
 	const snapshotState = (): TransactionIntentBuilderState => ({
@@ -232,52 +223,80 @@ const create = (
 
 	const syncBuildDoNotEncryptMessageIfAny = (
 		from: AddressT,
-	): Result<TransactionIntent, Error> =>
-		intendedActionsFromIntermediateActions(from).map(
+	): Result<TransactionIntent, Error> => {
+		return intendedActionsFromIntermediateActions(from).map(
 			({ intendedActions }) => ({
 				actions: intendedActions,
 				message: maybePlaintextMsgToEncrypt
-					.map((msg) => ({
-						encryptionScheme: EncryptionSchemeName.DO_NOT_ENCRYPT,
-						msg,
-					}))
+					.map((msg) => Buffer.from(msg))
 					.getOrUndefined(),
 			}),
 		)
+	}
 
 	type ActorsInEncryption = {
 		encryptingAccount: AccountT
-		publicKeysOfReaders: PublicKey[]
+		singleRecipientPublicKey: PublicKey
 	}
 
-	const gatherPublicKeysFromActions = (
+	type ActorsInEncryptionIntermediate = {
+		others: PublicKey[]
+		mine: PublicKey
+	}
+
+	const ensureSingleRecipient = (
 		input: Readonly<{
 			intendedActionsFrom: IntendedActionsFrom
 			encryptingAccount: AccountT
 		}>,
 	): Observable<ActorsInEncryption> => {
 		return input.encryptingAccount.derivePublicKey().pipe(
-			map((pk) => {
-				const setOfStrings = new Set<string>(pk.toString())
+			map(
+				(pk: PublicKey): ActorsInEncryptionIntermediate => {
+					const setOfStrings = new Set<string>()
+					setOfStrings.add(pk.toString())
 
-				const publicKeysOfReaders: PublicKey[] = input.intendedActionsFrom.intendedActions.reduce(
-					(acc: PublicKey[], action: IntendedAction) => {
-						getUniqueAddresses(action).forEach((a) => {
-							if (!setOfStrings.has(a.toString())) {
-								acc.push(a.publicKey)
-								setOfStrings.add(a.toString())
-							}
-						})
-						return acc
-					},
-					[] as PublicKey[],
-				)
+					const others = input.intendedActionsFrom.intendedActions.reduce(
+						(acc: PublicKey[], action: IntendedAction) => {
+							getUniqueAddresses(action).forEach((a) => {
+								const pkString = a.publicKey.toString()
+								if (!setOfStrings.has(pkString)) {
+									acc.push(a.publicKey)
+									setOfStrings.add(pkString)
+								}
+							})
+							return acc
+						},
+						[] as PublicKey[],
+					)
 
-				return {
-					encryptingAccount: input.encryptingAccount,
-					publicKeysOfReaders,
-				}
-			}),
+					return { others, mine: pk }
+				},
+			),
+			map(
+				(
+					publicKeysAndMine: ActorsInEncryptionIntermediate,
+				): ActorsInEncryption => {
+					if (publicKeysAndMine.others.length > 1) {
+						throw new Error(
+							`Cannot encrypt message for a transaction containing more than one recipient addresses.`,
+						)
+					}
+
+					const toSelf = publicKeysAndMine.others.length === 0
+					if (toSelf) {
+						log.debug(`Encrypting message to oneself.`)
+					}
+
+					const singleRecipientPublicKey: PublicKey = toSelf
+						? publicKeysAndMine.mine
+						: publicKeysAndMine.others[0]
+					return {
+						encryptingAccount: input.encryptingAccount,
+						singleRecipientPublicKey,
+					}
+				},
+			),
 		)
 	}
 
@@ -321,7 +340,7 @@ const create = (
 									(
 										encryptingAccount: AccountT,
 									): Observable<ActorsInEncryption> =>
-										gatherPublicKeysFromActions({
+										ensureSingleRecipient({
 											intendedActionsFrom,
 											encryptingAccount,
 										}),
@@ -329,20 +348,19 @@ const create = (
 								mergeMap(
 									(
 										actors: ActorsInEncryption,
-									): Observable<EncryptedMessage> => {
+									): Observable<EncryptedMessageT> => {
 										return actors.encryptingAccount.encrypt(
 											{
 												plaintext,
-												encryptionScheme: encryptionSchemeName,
-												publicKeysOfReaders:
-													actors.publicKeysOfReaders,
+												publicKeyOfOtherParty:
+													actors.singleRecipientPublicKey,
 											},
 										)
 									},
 								),
 								map(
 									(
-										enc: EncryptedMessage,
+										encryptedMessage: EncryptedMessageT,
 									): TransactionIntent => {
 										log.info(
 											`Successfully built transaction with encrypted message. Actions: ${intendedActionsFrom.intendedActions
@@ -352,7 +370,7 @@ const create = (
 										return {
 											actions:
 												intendedActionsFrom.intendedActions,
-											message: enc,
+											message: encryptedMessage.combined(),
 										}
 									},
 								),
