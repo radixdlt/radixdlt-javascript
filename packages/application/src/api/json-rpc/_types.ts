@@ -7,17 +7,17 @@ import {
 	PendingTransaction,
 	RawExecutedTransaction,
 	RawToken,
-	SignedUnconfirmedTransaction,
+	SubmittedTransaction,
 	StakePositions,
 	StatusOfTransaction,
 	Token,
-	TokenBalances,
 	TransactionHistory,
 	TransactionIntent,
 	TransactionStatus,
-	UnsignedTransaction,
+	BuiltTransaction,
 	UnstakePositions,
 	Validators,
+	SimpleTokenBalances,
 } from '../../dto/_types'
 
 type API_PREFIX = 'radix'
@@ -67,7 +67,7 @@ export namespace TokenBalancesEndpoint {
 		]
 	}
 
-	export type DecodedResponse = TokenBalances
+	export type DecodedResponse = SimpleTokenBalances
 }
 
 export namespace TransactionHistoryEndpoint {
@@ -197,7 +197,7 @@ export namespace BuildTransactionEndpoint {
 				failure: string
 		  }
 
-	export type DecodedResponse = UnsignedTransaction
+	export type DecodedResponse = BuiltTransaction
 }
 
 export namespace SubmitSignedTransactionEndpoint {
@@ -217,7 +217,7 @@ export namespace SubmitSignedTransactionEndpoint {
 				failure: string
 		  }
 
-	export type DecodedResponse = SignedUnconfirmedTransaction
+	export type DecodedResponse = SubmittedTransaction
 }
 
 export namespace FinalizeTransactionEndpoint {

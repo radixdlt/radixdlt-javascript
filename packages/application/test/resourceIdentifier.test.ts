@@ -35,37 +35,4 @@ describe('ResourceIdentifier (RRI)', () => {
 
 		expect(rriLowercase.equals(rriUppercase)).toBe(false)
 	})
-
-	it('should be able to DSON encode', () => {
-		const rri = ResourceIdentifier.fromString(
-			'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR',
-		)._unsafeUnwrap()
-		const dson = rri.toDSON()._unsafeUnwrap()
-		const expected =
-			'583d062f3953386b684c485a6136467379476f36333478516f3951774c67534847705848485737363444356d50594263726e665a563652542f464f4f424152'
-
-		expect(dson.toString('hex')).toBe(expected)
-	})
-
-	it('should be able to JSON encode', () => {
-		const rri = ResourceIdentifier.fromString(
-			'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR',
-		)._unsafeUnwrap()
-
-		const json = rri.toJSON()._unsafeUnwrap()
-		const expected = `${ResourceIdentifier.JSON_TAG}/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR`
-
-		expect(json).toEqual(expected)
-	})
-
-	it('should be able to JSON decode', () => {
-		const raw = `${ResourceIdentifier.JSON_TAG}/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR`
-
-		const result = ResourceIdentifier.fromJSON(raw)._unsafeUnwrap()
-		const expected = ResourceIdentifier.fromString(
-			'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR',
-		)._unsafeUnwrap()
-
-		expect(result.equals(expected)).toEqual(true)
-	})
 })

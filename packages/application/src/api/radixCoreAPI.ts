@@ -10,20 +10,20 @@ import {
 	NetworkTransactionThroughput,
 	PendingTransaction,
 	ResourceIdentifierT,
-	SignedUnconfirmedTransaction,
-	SignedUnsubmittedTransaction,
+	SubmittedTransaction,
+	SignedTransaction,
 	StakePositions,
 	StatusOfTransaction,
 	Token,
-	TokenBalances,
 	TransactionHistory,
 	TransactionHistoryRequestInput,
 	TransactionIdentifierT,
 	TransactionIntent,
-	UnsignedTransaction,
+	BuiltTransaction,
 	UnstakePositions,
 	Validators,
 	ValidatorsRequestInput,
+	SimpleTokenBalances,
 } from '../dto/_types'
 
 export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
@@ -62,7 +62,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 
 		tokenBalancesForAddress: (
 			address: AddressT,
-		): Observable<TokenBalances> =>
+		): Observable<SimpleTokenBalances> =>
 			toObs((a) => a.tokenBalances, address.toString()),
 
 		transactionHistory: (
@@ -98,12 +98,12 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 
 		buildTransaction: (
 			transactionIntent: TransactionIntent,
-		): Observable<UnsignedTransaction> =>
+		): Observable<BuiltTransaction> =>
 			toObs((a) => a.buildTransaction, transactionIntent),
 
 		submitSignedTransaction: (
-			signedTransaction: SignedUnsubmittedTransaction,
-		): Observable<SignedUnconfirmedTransaction> =>
+			signedTransaction: SignedTransaction,
+		): Observable<SubmittedTransaction> =>
 			toObs(
 				(a) => a.submitSignedTransaction,
 				{ blob: signedTransaction.transaction.blob },
@@ -112,7 +112,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 			),
 
 		finalizeTransaction: (
-			signedUnconfirmedTransaction: SignedUnconfirmedTransaction,
+			signedUnconfirmedTransaction: SubmittedTransaction,
 		): Observable<PendingTransaction> =>
 			toObs(
 				(a) => a.finalizeTransaction,

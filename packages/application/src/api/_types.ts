@@ -10,20 +10,20 @@ import {
 	NetworkTransactionThroughput,
 	PendingTransaction,
 	ResourceIdentifierT,
-	SignedUnconfirmedTransaction,
-	SignedUnsubmittedTransaction,
+	SubmittedTransaction,
+	SignedTransaction,
 	StakePositions,
 	StatusOfTransaction,
 	Token,
-	TokenBalances,
 	TransactionHistory,
 	TransactionHistoryRequestInput,
 	TransactionIdentifierT,
 	TransactionIntent,
-	UnsignedTransaction,
+	BuiltTransaction,
 	UnstakePositions,
 	Validators,
 	ValidatorsRequestInput,
+	SimpleTokenBalances,
 } from '../dto/_types'
 
 type JsonRpcAPI = {
@@ -39,7 +39,9 @@ export type NodeT = Readonly<{
 }>
 
 export type RadixAPI = Readonly<{
-	tokenBalancesForAddress: (address: AddressT) => Observable<TokenBalances>
+	tokenBalancesForAddress: (
+		address: AddressT,
+	) => Observable<SimpleTokenBalances>
 
 	transactionHistory: (
 		input: TransactionHistoryRequestInput,
@@ -68,14 +70,14 @@ export type RadixAPI = Readonly<{
 
 	buildTransaction: (
 		transactionIntent: TransactionIntent,
-	) => Observable<UnsignedTransaction>
+	) => Observable<BuiltTransaction>
 
 	submitSignedTransaction: (
-		signedTransaction: SignedUnsubmittedTransaction,
-	) => Observable<SignedUnconfirmedTransaction>
+		signedTransaction: SignedTransaction,
+	) => Observable<SubmittedTransaction>
 
 	finalizeTransaction: (
-		signedUnconfirmedTransaction: SignedUnconfirmedTransaction,
+		signedUnconfirmedTransaction: SubmittedTransaction,
 	) => Observable<PendingTransaction>
 
 	networkId: () => Observable<Magic>

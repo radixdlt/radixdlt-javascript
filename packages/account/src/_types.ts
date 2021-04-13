@@ -1,4 +1,3 @@
-import { DSONCodable, JSONEncodable } from '@radixdlt/data-formats'
 import { Byte } from '@radixdlt/util'
 import {
 	ECPointOnCurve,
@@ -12,14 +11,12 @@ import { Option } from 'prelude-ts'
 import { HDPathRadixT } from './bip32/_index'
 import { Magic } from '@radixdlt/primitives'
 
-export type AddressT = JSONEncodable &
-	DSONCodable &
-	Readonly<{
-		publicKey: PublicKey
-		magicByte: Byte
-		toString: () => string
-		equals: (other: AddressT) => boolean
-	}>
+export type AddressT = Readonly<{
+	publicKey: PublicKey
+	magicByte: Byte
+	toString: () => string
+	equals: (other: AddressT) => boolean
+}>
 
 export type PublicKeyDeriving = Readonly<{
 	derivePublicKey: () => Observable<PublicKey>

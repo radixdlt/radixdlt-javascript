@@ -1,27 +1,8 @@
 import { err, ok, Result } from 'neverthrow'
 import { Address, AddressT } from '@radixdlt/account'
-import {
-	DSONObjectEncoding,
-	JSONDecoding,
-	JSONEncoding,
-	serializerNotNeeded,
-	taggedStringDecoder,
-} from '@radixdlt/data-formats'
-import { Byte } from '@radixdlt/util'
 import { ResourceIdentifierT } from './_types'
 
 const separator = '/'
-
-const CBOR_BYTESTRING_PREFIX: Byte = 6
-const JSON_TAG = ':rri:'
-
-const JSONDecoder = taggedStringDecoder(JSON_TAG)((identifier: string) =>
-	fromString(identifier),
-)
-
-const jsonDecoding = JSONDecoding.withDecoders(
-	JSONDecoder,
-).create<ResourceIdentifierT>()
 
 const fromAddressAndName = (input: {
 	address: AddressT
@@ -33,11 +14,6 @@ const fromAddressAndName = (input: {
 	const identifier = ['', address.toString(), name].join(separator)
 
 	return {
-		...JSONEncoding(serializerNotNeeded)(() => `${JSON_TAG}${identifier}`),
-		...DSONObjectEncoding({
-			prefix: CBOR_BYTESTRING_PREFIX,
-			buffer: Buffer.from(identifier),
-		}),
 		address,
 		name,
 		toString: () => identifier,
@@ -56,13 +32,6 @@ const fromString = (
 
 	return Address.fromBase58String(components[1]).map(
 		(address): ResourceIdentifierT => ({
-			...JSONEncoding(serializerNotNeeded)(
-				() => `${JSON_TAG}${identifierString}`,
-			),
-			...DSONObjectEncoding({
-				prefix: CBOR_BYTESTRING_PREFIX,
-				buffer: Buffer.from(identifierString),
-			}),
 			address,
 			name,
 			toString: () => identifierString,
@@ -106,9 +75,6 @@ const fromUnsafe = (
 }
 
 export const ResourceIdentifier = {
-	JSON_TAG,
-	JSONDecoder,
-	...jsonDecoding,
 	fromAddressAndName,
 	fromUnsafe,
 	fromString,

@@ -1,4 +1,3 @@
-import { DSONCodable, JSONEncodable } from '@radixdlt/data-formats'
 import { AccountT, AddressT } from '@radixdlt/account'
 import {
 	ActionInput,
@@ -26,15 +25,13 @@ export type UnstakePosition = Readonly<{
 	epochsUntil: number
 }>
 
-export type TokenPermissions = JSONEncodable &
-	DSONCodable &
-	Readonly<{
-		permissions: Readonly<{ [key in TokenTransition]: TokenPermission }>
-		canBeMinted: (isOwnerOfToken: IsOwnerOfToken) => boolean
-		canBeBurned: (isOwnerOfToken: IsOwnerOfToken) => boolean
-		mintPermission: TokenPermission
-		equals: (other: TokenPermissions) => boolean
-	}>
+export type TokenPermissions = Readonly<{
+	permissions: Readonly<{ [key in TokenTransition]: TokenPermission }>
+	canBeMinted: (isOwnerOfToken: IsOwnerOfToken) => boolean
+	canBeBurned: (isOwnerOfToken: IsOwnerOfToken) => boolean
+	mintPermission: TokenPermission
+	equals: (other: TokenPermissions) => boolean
+}>
 
 /**
  * A Radix resource identifier is a human readable index into the Ledger which points to a name state machine
@@ -42,25 +39,22 @@ export type TokenPermissions = JSONEncodable &
  * On format: `/:address/:name`, e.g.
  * `"/JH1P8f3znbyrDj8F4RWpix7hRkgxqHjdW2fNnKpR3v6ufXnknor/XRD"`
  */
-export type ResourceIdentifierT = JSONEncodable &
-	DSONCodable &
-	Readonly<{
-		address: AddressT
-		name: string
-		toString: () => string
-		equals: (other: ResourceIdentifierT) => boolean
-	}>
+export type ResourceIdentifierT = Readonly<{
+	address: AddressT
+	name: string
+	toString: () => string
+	equals: (other: ResourceIdentifierT) => boolean
+}>
 
 /**
  * A transaction identifier, 32 bytes hash of signature + hashOfTxBlob.
  * Used to lookup transactions by ID.
  */
-export type TransactionIdentifierT = DSONCodable &
-	Readonly<{
-		__hex: string
-		toString: () => string
-		equals: (other: TransactionIdentifierT) => boolean
-	}>
+export type TransactionIdentifierT = Readonly<{
+	__hex: string
+	toString: () => string
+	equals: (other: TransactionIdentifierT) => boolean
+}>
 
 export type IsOwnerOfToken = () => boolean
 
@@ -127,8 +121,8 @@ export enum TransactionTrackingEventType {
 	BUILT_FROM_INTENT = 'BUILT_FROM_INTENT',
 	SIGNED = 'SIGNED',
 	SUBMITTED = 'SUBMITTED',
-	ASKING_USER_FOR_FINAL_CONFIRMATION = 'ASKING_USER_FOR_FINAL_CONFIRMATION',
-	USER_CONFIRMED_TX_BEFORE_FINALIZATION = 'USER_CONFIRMED_TX_BEFORE_FINALIZATION',
+	ASKED_FOR_CONFIRMATION = 'ASKED_FOR_CONFIRMATION',
+	CONFIRMED = 'CONFIRMED',
 	/* API has finished "finalizing" / "confirming" the transaction, which now is pending. */
 	FINALIZED_AND_IS_NOW_PENDING = 'FINALIZED_AND_IS_NOW_PENDING',
 	UPDATE_OF_STATUS_OF_PENDING_TX = 'UPDATE_OF_STATUS_OF_PENDING_TX',
@@ -173,11 +167,17 @@ export type ExecutedTransaction = Readonly<{
 }>
 
 export type TokenAmount = Readonly<{
+	// TODO rename `token` => `tokenIdentifier`
 	token: ResourceIdentifierT
 	amount: AmountT
 }>
 
-export type TokenBalance = TokenAmount
+export type SimpleTokenBalance = TokenAmount
+
+export type TokenBalance = Readonly<{
+	token: Token
+	amount: AmountT
+}>
 
 export type Token = Readonly<{
 	name: string
@@ -203,7 +203,7 @@ export type BuiltTransactionReadyToSign = Readonly<{
 	hashOfBlobToSign: string
 }>
 
-export type UnsignedTransaction = PartOfMakeTransactionFlow &
+export type BuiltTransaction = PartOfMakeTransactionFlow &
 	Readonly<{
 		transaction: BuiltTransactionReadyToSign
 		fee: AmountT
@@ -215,13 +215,13 @@ type SignedTXProps = Readonly<{
 	signature: Signature
 }>
 
-export type SignedUnsubmittedTransaction = PartOfMakeTransactionFlow &
+export type SignedTransaction = PartOfMakeTransactionFlow &
 	SignedTXProps &
 	Readonly<{
 		// nothing here
 	}>
 
-export type SignedUnconfirmedTransaction = PartOfMakeTransactionFlow &
+export type SubmittedTransaction = PartOfMakeTransactionFlow &
 	SignedTXProps &
 	Readonly<{
 		txID: TransactionIdentifierT
@@ -290,6 +290,11 @@ export type RawExecutedAction =
 	| RawStakesAction
 	| RawUnstakesAction
 	| RawOtherExecutedAction
+
+export type SimpleTokenBalances = Readonly<{
+	owner: AddressT
+	tokenBalances: SimpleTokenBalance[]
+}>
 
 export type TokenBalances = Readonly<{
 	owner: AddressT

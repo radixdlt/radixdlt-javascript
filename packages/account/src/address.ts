@@ -3,13 +3,6 @@ import { Magic } from '@radixdlt/primitives'
 import { Byte, byteToBuffer, firstByteFromBuffer } from '@radixdlt/util'
 import { Result, ok, err } from 'neverthrow'
 import {
-	DSONObjectEncoding,
-	JSONDecoding,
-	JSONEncoding,
-	serializerNotNeeded,
-	taggedStringDecoder,
-} from '@radixdlt/data-formats'
-import {
 	base58Decode,
 	base58Encode,
 	PublicKey,
@@ -19,8 +12,6 @@ import { sha256Twice } from '@radixdlt/crypto'
 import { publicKeyCompressedByteCount } from '@radixdlt/crypto'
 
 const checksumByteCount = 4
-const CBOR_BYTESTRING_PREFIX: Byte = 4
-const JSON_TAG = ':adr:'
 
 const fromPublicKeyAndMagic = (
 	input: Readonly<{
@@ -44,11 +35,6 @@ const fromPublicKeyAndMagicByte = (
 	const toString = (): string => base58Encode(buffer)
 
 	return {
-		...JSONEncoding(serializerNotNeeded)(() => `${JSON_TAG}${toString()}`),
-		...DSONObjectEncoding({
-			prefix: CBOR_BYTESTRING_PREFIX,
-			buffer,
-		}),
 		publicKey: input.publicKey,
 		magicByte: input.magicByte,
 		toString,
@@ -92,10 +78,6 @@ const addressFromBuffer = (buffer: Buffer): Result<AddressT, Error> => {
 		),
 	).andThen((publicKey: PublicKey) =>
 		ok({
-			...DSONObjectEncoding({ prefix: CBOR_BYTESTRING_PREFIX, buffer }),
-			...JSONEncoding(serializerNotNeeded)(
-				() => `${JSON_TAG}${toString()}`,
-			),
 			publicKey,
 			magicByte,
 			toString,
@@ -166,16 +148,7 @@ const fromUnsafe = (input: AddressOrUnsafeInput): Result<AddressT, Error> => {
 		: err(new Error('bad type'))
 }
 
-const JSONDecoder = taggedStringDecoder(JSON_TAG)((input: string) =>
-	fromBase58String(input),
-)
-
-const decoding = JSONDecoding.withDecoders(JSONDecoder).create<AddressT>()
-
 export const Address = {
-	JSON_TAG,
-	JSONDecoder,
-	...decoding,
 	fromUnsafe,
 	isAddress,
 	fromBase58String,

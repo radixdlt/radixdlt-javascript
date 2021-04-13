@@ -9,43 +9,43 @@ import {
 } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import { Address, AddressT } from '@radixdlt/account'
-import { Observable, of, throwError } from 'rxjs'
+import { Observable, of } from 'rxjs'
 import {
 	ExecutedTransaction,
 	NetworkTransactionDemand,
 	NetworkTransactionThroughput,
 	PendingTransaction,
 	ResourceIdentifierT,
-	SignedUnsubmittedTransaction,
+	SignedTransaction,
 	StakePositions,
 	StatusOfTransaction,
 	Token,
-	TokenBalance,
-	TokenBalances,
+	SimpleTokenBalance,
+	SimpleTokenBalances,
 	TransactionHistory,
 	TransactionHistoryRequestInput,
 	TransactionIdentifierT,
 	TransactionIntent,
 	TransactionStatus,
-	UnsignedTransaction,
+	BuiltTransaction,
 	UnstakePositions,
 	Validator,
 	Validators,
 	ValidatorsRequestInput,
-} from '../src/dto/_types'
-import { ResourceIdentifier } from '../src/dto/resourceIdentifier'
-import {
-	tokenOwnerOnly,
-	tokenPermissionsAll,
-} from '../src/dto/tokenPermissions'
-import { RadixCoreAPI } from '../src/api/_types'
+} from './dto/_types'
+import { ResourceIdentifier } from './dto/resourceIdentifier'
+import { tokenOwnerOnly, tokenPermissionsAll } from './dto/tokenPermissions'
+import { RadixCoreAPI } from './api/_types'
 import { delay, shareReplay } from 'rxjs/operators'
 import { privateKeyFromBuffer, PublicKey, sha256 } from '@radixdlt/crypto'
-import { ActionType, ExecutedAction } from '../src/actions/_types'
-import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
-import { toAddress } from '../../account/test/address.test'
-import { StakePosition, UnstakePosition } from '../src/dto/_types'
-import { SignedUnconfirmedTransaction } from '../src/dto/_types'
+import { ActionType, ExecutedAction } from './actions/_types'
+import { TransactionIdentifier } from './dto/transactionIdentifier'
+import { StakePosition, UnstakePosition } from './dto/_types'
+import { SubmittedTransaction } from './dto/_types'
+import { isNumber } from '@radixdlt/util'
+
+export const toAddress = (b58: string): AddressT =>
+	Address.fromBase58String(b58)._unsafeUnwrap()
 
 export const xrd: Token = {
 	name: 'Rad',
@@ -179,12 +179,14 @@ export const balanceOfFor = (
 		token: Token
 		amount: number | AmountT
 	}>,
-): TokenBalance => {
+): SimpleTokenBalance => {
 	const amt: AmountT = isAmount(input.amount)
 		? input.amount
 		: Amount.fromUInt256({
 				magnitude: input.token.granularity.magnitude.multiply(
-					UInt256.valueOf(input.amount),
+					isNumber(input.amount)
+						? UInt256.valueOf(input.amount)
+						: input.amount.magnitude,
 				),
 				denomination: Denomination.Atto,
 		  })._unsafeUnwrap()
@@ -200,7 +202,7 @@ export const balanceOfFor = (
 export const balancesFor = (
 	address: AddressT,
 	amount: number,
-): TokenBalances => {
+): SimpleTokenBalances => {
 	return {
 		owner: address,
 		tokenBalances: [
@@ -373,7 +375,7 @@ const randomValidatorList = (size: number) => {
 
 const randomUnsignedTransaction = (
 	transactionIntent: TransactionIntent,
-): UnsignedTransaction => {
+): BuiltTransaction => {
 	const transactionIntentDet = {
 		...transactionIntent,
 		actions: transactionIntent.actions.map((a) => ({
@@ -398,7 +400,7 @@ const randomUnsignedTransaction = (
 }
 
 const randomPendingTransaction = (
-	signedTx: SignedUnsubmittedTransaction,
+	signedTx: SignedTransaction,
 ): PendingTransaction => ({
 	txID: TransactionIdentifier.create(
 		sha256(Buffer.from(signedTx.transaction.blob)),
@@ -406,8 +408,8 @@ const randomPendingTransaction = (
 })
 
 const detRandomSignedUnconfirmedTransaction = (
-	signedTransaction: SignedUnsubmittedTransaction,
-): SignedUnconfirmedTransaction => {
+	signedTransaction: SignedTransaction,
+): SubmittedTransaction => {
 	const txID = randomPendingTransaction(signedTransaction).txID
 	return {
 		...signedTransaction,
@@ -472,7 +474,7 @@ const detRandBalanceOfTokenWithInfo = (
 
 export const deterministicRandomBalancesForAddress = (
 	address: AddressT,
-): TokenBalances => {
+): SimpleTokenBalances => {
 	const anInt = detPRNGWithPubKey(address.publicKey)
 
 	const tokenBalances = detRandBalanceOfTokenWithInfo(anInt).map((bti) =>
@@ -672,7 +674,7 @@ const deterministicRandomLookupTXUsingHist = (
 
 export const deterministicRandomBalances = (
 	address: AddressT,
-): Observable<TokenBalances> =>
+): Observable<SimpleTokenBalances> =>
 	of(deterministicRandomBalancesForAddress(address))
 
 export const deterministicRandomTXHistory = (
@@ -704,7 +706,7 @@ export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
 
 	tokenBalancesForAddress: (
 		_address: AddressT,
-	): Observable<TokenBalances> => {
+	): Observable<SimpleTokenBalances> => {
 		throw Error('Not implemented')
 	},
 
@@ -756,18 +758,18 @@ export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
 
 	buildTransaction: (
 		_transactionIntent: TransactionIntent,
-	): Observable<UnsignedTransaction> => {
+	): Observable<BuiltTransaction> => {
 		throw Error('Not implemented')
 	},
 
 	submitSignedTransaction: (
-		_signedTransaction: SignedUnsubmittedTransaction,
-	): Observable<SignedUnconfirmedTransaction> => {
+		_signedTransaction: SignedTransaction,
+	): Observable<SubmittedTransaction> => {
 		throw Error('Not implemented')
 	},
 
 	finalizeTransaction: (
-		_signedUnconfirmedTransaction: SignedUnconfirmedTransaction,
+		_signedUnconfirmedTransaction: SubmittedTransaction,
 	): Observable<PendingTransaction> => {
 		throw Error('Not implemented')
 	},
@@ -816,11 +818,11 @@ export const mockRadixCoreAPI = (
 			of(randomValidatorList(input.size)),
 		buildTransaction: (
 			transactionIntent: TransactionIntent,
-		): Observable<UnsignedTransaction> =>
+		): Observable<BuiltTransaction> =>
 			of(randomUnsignedTransaction(transactionIntent)).pipe(delay(50)),
 		submitSignedTransaction: (
-			signedTransaction: SignedUnsubmittedTransaction,
-		): Observable<SignedUnconfirmedTransaction> =>
+			signedTransaction: SignedTransaction,
+		): Observable<SubmittedTransaction> =>
 			of(detRandomSignedUnconfirmedTransaction(signedTransaction)).pipe(
 				delay(50),
 			),

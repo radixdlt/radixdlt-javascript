@@ -50,17 +50,6 @@ yarn build:ts -w
 
 To make VSCode format the files according to our linting rules, add the [_Prettier ESLint_ plugin by Rebecca Vest](https://marketplace.visualstudio.com/items?itemName=rvest.vs-code-prettier-eslint).
 
-# Radix make tx flow
-
-1. 🙋🏾‍♀️ `user`**`inputs`** transaction details (recipient, amount, token etc) and passes inputs to library.
-2. 💻 `wallet`**`transforms`** unsafe inputs into validated `TransactionIntent`, using `TransactionIntentBuilder`.
-3. 🛠 `library`**`requests`** Radix Core API to build transaction from transaction intent and returns unsigned transaction with human-readable fee to wallet.
-4. 🛠 `library`**`signs`** transaction
-5. 🛠 `library`**`submits`** signed transaction to Radix Core API which promtly returns initial OK/ERR response, wallet handles response. **Response contains `txID`.**
-6. 💻 `wallet`**`displays`** the `txID` (and correct tx fee) and waits for user to confirm transaction with PIN code. This step is **optional** from a GUI perspective, code can be written so tx is automatically confirmed.
-7.  🛠 `library`**`finalizes`** signed transaction with `txID` to Radix Core API which promtly returns initial OK/ERR response, wallet handles response.
-8. 💻 `wallet`**`polls`** status of transaction (using txID from step 5), using appropriate library api, and informs user of final CONFIRMED/REJECTED result.
-9. 🙋🏾‍♀️ `user`**`acts`** on any failures, e.g. presses "Retry"-button, if prompted with one because of network connection issues during step 7.
 
 
 # Packages
@@ -81,7 +70,7 @@ This git repository is a so called "monorepo" using [`yarn` *workspaces*](https:
 ||
 | [`@radixdlt/primitives`][primitives] | Shared common data types | `Base58`, `UInt256`, `Int64`, `Nonce` | [`@radixdlt/util`][util], [`@radixdlt/data-formats`][dataformats] | [uint256](https://github.com/radixdlt/uint256) |
 ||
-| [`@radixdlt/data-formats`][dataformats] | The binary data format [**CBOR**](https://cbor.io/) (de-)serialization (+Radix own *DSON*) | `DSONSerializable` | No dependencies | [`cbor`](https://www.npmjs.com/package/cbor) |
+| [`@radixdlt/data-formats`][dataformats] | Decoding JSON objects with raw values into Radix types | `Decoder` | No dependencies | NONE |
 ||
 | [`@radixdlt/util`][util] | Common shared utility functions | `SecureRandom` | No dependencies | [`sodium-native`](https://www.npmjs.com/package/sodium-native), [`randombytes`](https://www.npmjs.com/package/randombytes) |
 
@@ -104,9 +93,9 @@ This git repository is a so called "monorepo" using [`yarn` *workspaces*](https:
 
 # API outline
 
-Please see the [README of `@radixdlt/application`](packages/application/README.md) for a detail documentation.
+Please see the [README of `@radixdlt/application`](packages/application) for a detail documentation.
 
-Please see the [README of `@radixdlt/account`](packages/account/README.md) for info about setup of wallet.
+Please see the [README of `@radixdlt/account`](packages/account) for info about setup of wallet.
 
 # Design choices
 
