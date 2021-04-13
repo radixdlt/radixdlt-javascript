@@ -859,7 +859,6 @@ describe('Radix API', () => {
 		const expectedStakes = [
 			{ amount: 291, validator: 'jg', epochsUntil: 42 },
 			{ amount: 489, validator: 'pz', epochsUntil: 21 },
-			{ amount: 143, validator: 'NN', epochsUntil: 95 },
 		]
 		const expectedValues = [expectedStakes, expectedStakes] // should be unchanged between updates (deterministically mocked).
 		radix.__wallet
