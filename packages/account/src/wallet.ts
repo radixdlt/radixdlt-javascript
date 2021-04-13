@@ -31,10 +31,6 @@ const create = (
 		password: string
 	}>,
 ): WalletT => {
-	const doesPasswordMatchExpected = (inputtedPassword: string): boolean =>
-		input.password === inputtedPassword
-	// Even locally in memory we don't save the `masterSeed`, we just save
-	// a reference to the derivation function.
 	const masterSeed = HDMasterSeed.fromMnemonic({ mnemonic: input.mnemonic })
 	const hdNodeDeriverWithBip32Path = masterSeed.masterNode().derive
 
@@ -46,10 +42,7 @@ const create = (
 		new Map(),
 	)
 
-	const revealMnemonic = (password: string): Result<MnemomicT, Error> =>
-		doesPasswordMatchExpected(password)
-			? ok(input.mnemonic)
-			: err(new Error('Incorrect password'))
+	const revealMnemonic = (): MnemomicT => input.mnemonic
 
 	const numberOfAccounts = (): number => accountsSubject.getValue().size
 

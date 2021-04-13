@@ -105,33 +105,6 @@ export const keystoreForTest: KeystoreForTest = {
 }
 
 describe('Radix API', () => {
-	// it('CaN CrEaTe NeW KEYstOrE', async (done) => {
-	//
-	// 	const mnemonicPhrase = 'legal winner thank year wave sausage worth useful legal winner thank yellow'
-	//
-	// 	const mnemonic = Mnemonic.fromEnglishPhrase(mnemonicPhrase)._unsafeUnwrap()
-	// 	const expectedEntropy = '7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f'
-	// 	expect(mnemonic.entropy.toString('hex')).toBe(expectedEntropy)
-	// 	const password = 'my super strong passaword'
-	// 	const printKeyStorePassphrough = async (keystoreToSave: KeystoreT): Promise<void> => {
-	// 		console.log(`🔮 keystore:\n\n${JSON.stringify(keystoreToSave, null, 4)}\n\n✅`)
-	// 		return Promise.resolve(undefined)
-	// 	}
-	// 	await Wallet.byEncryptingMnemonicAndSavingKeystore({
-	// 		mnemonic, password, save: printKeyStorePassphrough
-	// 	}).match(
-	// 		((w) => {
-	// 			const revealedMnemonic = w.revealMnemonic(password)._unsafeUnwrap()
-	// 			expect(revealedMnemonic.phrase).toBe(mnemonicPhrase)
-	// 			expect(revealedMnemonic.entropy.toString('hex')).toBe(expectedEntropy)
-	// 			done()
-	// 		}),
-	// 		((e) => {
-	// 			done(e)
-	// 		}),
-	// 	)
-	// })
-
 	it('can load test keystore', async (done) => {
 		// keystoreForTest
 		await Wallet.byLoadingAndDecryptingKeystore({
@@ -139,9 +112,7 @@ describe('Radix API', () => {
 			load: () => Promise.resolve(keystoreForTest.keystore),
 		}).match(
 			(wallet) => {
-				const revealedMnemonic = wallet
-					.revealMnemonic(keystoreForTest.password)
-					._unsafeUnwrap()
+				const revealedMnemonic = wallet.revealMnemonic()
 				expect(revealedMnemonic.phrase).toBe(
 					'legal winner thank year wave sausage worth useful legal winner thank yellow',
 				)
@@ -916,7 +887,7 @@ describe('Radix API', () => {
 		const expectedStakes = [
 			{ amount: 396, validator: 'bc', epochsUntil: 60 },
 			{ amount: 878, validator: '7k', epochsUntil: 46 },
-			{ amount: 649, validator: 'Rb', epochsUntil: 59 }
+			{ amount: 649, validator: 'Rb', epochsUntil: 59 },
 		]
 		const expectedValues = [expectedStakes, expectedStakes] // should be unchanged between updates (deterministically mocked).
 		radix.__wallet

@@ -105,7 +105,7 @@ export type WalletT = PublicKeyDeriving &
 		// should only be used for testing
 		__unsafeGetAccount: () => AccountT
 
-		revealMnemonic: (password: string) => Result<MnemomicT, Error>
+		revealMnemonic: () => MnemomicT
 
 		// Call this once you can provide an observable providing magic.
 		provideNetworkId: (magic: Observable<Magic>) => void

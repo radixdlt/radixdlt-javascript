@@ -4,13 +4,7 @@ import {
 	AES_GCM,
 	aesGCMSealDeterministic,
 } from '../symmetric-encryption/aes/aesGCM'
-import {
-	combine,
-	errAsync,
-	okAsync,
-	Result,
-	ResultAsync,
-} from 'neverthrow'
+import { combine, errAsync, okAsync, Result, ResultAsync } from 'neverthrow'
 import {
 	EncryptedMessageT,
 	MessageDecryptionInput,

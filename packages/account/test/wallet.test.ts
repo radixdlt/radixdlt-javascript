@@ -80,7 +80,7 @@ describe('HD Wallet', () => {
 			mnemonicPhrase,
 		)._unsafeUnwrap()
 		const wallet = Wallet.create({ mnemonic, password })
-		const mnemonicRevealed = wallet.revealMnemonic(password)._unsafeUnwrap()
+		const mnemonicRevealed = wallet.revealMnemonic()
 		expect(mnemonicRevealed.equals(mnemonic)).toBe(true)
 		expect(mnemonicRevealed.phrase).toBe(mnemonicPhrase)
 	})
