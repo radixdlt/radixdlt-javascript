@@ -34,18 +34,6 @@ const create = (
 const sealedMessageNonceLength = AES_GCM.nonceLength
 const sealedMessageAuthTagLength = AES_GCM.tagLength
 
-// const sealedMessageCipherTextMaxLength =
-// 	(maxLengthEncryptedMessage -
-// 	sealedMessageNonceLength -
-// 	sealedMessageAuthTagLength -
-// 	encryptionSchemeLength -
-// 	publicKeyCompressedByteCount)
-
-// export const sealedMessageMinLegth =
-// 	(sealedMessageNonceLength +
-// 	sealedMessageAuthTagLength +
-// 	publicKeyCompressedByteCount)
-
 export const __validateTag: (
 	buffer: Buffer,
 ) => Result<Buffer, Error> = validateLength.bind(
@@ -61,41 +49,6 @@ export const __validateNonce: (
 	sealedMessageNonceLength,
 	'nonce',
 )
-
-// export const __validateCipherTextMax = (
-// 	buffer: Buffer,
-// ): Result<Buffer, Error> => {
-// 	console.log(
-// 		`👻 sealedMessageCipherTextMaxLength`,
-// 		sealedMessageCipherTextMaxLength,
-// 	)
-
-// 	const doValidate = validateMaxLength.bind(
-// 		null,
-// 		sealedMessageCipherTextMaxLength,
-// 		'Ciphertext',
-// 	)
-
-// 	return doValidate(buffer)
-// }
-
-// export const __validateCipherTextMin: (
-// 	buffer: Buffer,
-// ) => Result<Buffer, Error> = validateMinLength.bind(null, 1, 'Ciphertext')
-
-// export const __validateCipherText = (buffer: Buffer): Result<Buffer, Error> =>
-// 	combine([
-// 		__validateCipherTextMax(buffer),
-// 		__validateCipherTextMin(buffer),
-// 	]).map((_) => buffer)
-
-// export const __validateSealedMessageMaxLength: (
-// 	buffer: Buffer,
-// ) => Result<Buffer, Error> = validateMaxLength.bind(
-// 	null,
-// 	(maxLengthEncryptedMessage - encryptionSchemeLength),
-// 	'SealedMessageT',
-// )
 
 const sealedMessageFromBuffer = (
 	buffer: Buffer,
