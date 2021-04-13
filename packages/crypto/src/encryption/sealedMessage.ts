@@ -131,6 +131,8 @@ const sealedMsgFromAESSealedBox = (
 	create({ ...aesSealedBox, ephemeralPublicKey })
 
 export const SealedMessage = {
+	nonceByteCount: sealedMessageNonceLength,
+	authTagByteCount: sealedMessageAuthTagLength,
 	create,
 	fromAESSealedBox: sealedMsgFromAESSealedBox,
 	fromBuffer: sealedMessageFromBuffer,
