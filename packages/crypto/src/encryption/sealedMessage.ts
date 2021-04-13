@@ -19,17 +19,23 @@ const create = (
 		authTag: Buffer
 		ciphertext: Buffer
 	}>,
-): SealedMessageT => {
-	return {
-		...input,
-		combined: (): Buffer =>
-			Buffer.concat([
-				input.ephemeralPublicKey.asData({ compressed: true }),
-				input.nonce,
-				input.authTag,
-				input.ciphertext,
-			]),
-	}
+): Result<SealedMessageT, Error> => {
+	return combine([
+		validateNonce(input.nonce),
+		validateTag(input.authTag),
+		validateCipherText(input.ciphertext),
+	]).map((_) => {
+		return {
+			...input,
+			combined: (): Buffer =>
+				Buffer.concat([
+					input.ephemeralPublicKey.asData({ compressed: true }),
+					input.nonce,
+					input.authTag,
+					input.ciphertext,
+				]),
+		}
+	})
 }
 
 const sealedMessageNonceLength = AES_GCM.nonceLength
@@ -102,39 +108,27 @@ const sealedMessageFromBuffer = (
 			readNextBuffer(sealedMessageNonceLength),
 			readNextBuffer(sealedMessageAuthTagLength),
 			readNextBuffer(lengthOfCiphertext),
-		]).map(
-			(resultList): SealedMessageT => {
-				const ephemeralPublicKey = resultList[0] as PublicKey
-				const nonce = resultList[1] as Buffer
-				const authTag = resultList[2] as Buffer
-				const ciphertext = resultList[3] as Buffer
+		]).andThen((resultList) => {
+			const ephemeralPublicKey = resultList[0] as PublicKey
+			const nonce = resultList[1] as Buffer
+			const authTag = resultList[2] as Buffer
+			const ciphertext = resultList[3] as Buffer
 
-				return create({
-					ephemeralPublicKey,
-					nonce,
-					authTag,
-					ciphertext,
-				})
-			},
-		)
+			return create({
+				ephemeralPublicKey,
+				nonce,
+				authTag,
+				ciphertext,
+			})
+		})
 	})
 }
 
 const sealedMsgFromAESSealedBox = (
 	aesSealedBox: AES_GCM_SealedBoxT,
 	ephemeralPublicKey: PublicKey,
-): Result<SealedMessageT, Error> => {
-	return validateSealedMessage({ ...aesSealedBox, ephemeralPublicKey })
-}
-
-const validateSealedMessage = (
-	input: SealedMessageT,
 ): Result<SealedMessageT, Error> =>
-	combine([
-		validateNonce(input.nonce),
-		validateTag(input.authTag),
-		validateCipherText(input.ciphertext),
-	]).map((_) => create(input))
+	create({ ...aesSealedBox, ephemeralPublicKey })
 
 export const SealedMessage = {
 	create,

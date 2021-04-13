@@ -1,0 +1,3 @@
+describe('SealedMessage', () => {
+	it('works', () => {})
+})
