@@ -39,21 +39,19 @@ const privateKeyFromValidatedScalar = (scalar: UInt256): PrivateKey => {
 		)
 	}
 
-	const dh: DiffieHellman = {
-		diffieHellman: (
-			publicKeyOfOtherParty: PublicKey,
-		): ResultAsync<ECPointOnCurve, Error> => {
-			return okAsync(
-				publicKeyOfOtherParty
-					.decodeToPointOnCurve()
-					.multiplyWithPrivateKey(privateKey),
-			)
-		},
+	const diffieHellman: DiffieHellman = (
+		publicKeyOfOtherParty: PublicKey,
+	): ResultAsync<ECPointOnCurve, Error> => {
+		return okAsync(
+			publicKeyOfOtherParty
+				.decodeToPointOnCurve()
+				.multiplyWithPrivateKey(privateKey),
+		)
 	}
 
 	const privateKey = {
 		sign,
-		diffieHellman: dh,
+		diffieHellman: diffieHellman,
 		signUnhashed: (
 			input: Readonly<{
 				msgToHash: Buffer | string

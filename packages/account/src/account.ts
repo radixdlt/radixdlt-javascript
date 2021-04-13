@@ -34,14 +34,14 @@ const fromPrivateKey = (
 	const sign = (hashedMessage: Buffer): Observable<Signature> =>
 		toObservable(privateKey.sign(hashedMessage))
 
-	const dh: DiffieHellman = privateKey.diffieHellman
+	const diffieHellman = privateKey.diffieHellman
 
 	return {
 		decrypt: (input: AccountDecryptionInput): Observable<string> => {
 			return toObservable(
 				MessageEncryption.decrypt({
 					...input,
-					dh,
+					diffieHellman,
 				}).map((buf: Buffer) => buf.toString('utf-8')),
 			)
 		},
@@ -51,7 +51,7 @@ const fromPrivateKey = (
 			return toObservable(
 				MessageEncryption.encrypt({
 					...input,
-					dh,
+					diffieHellman,
 				}),
 			)
 		},
@@ -92,23 +92,22 @@ const fromHDPathWithHardwareWallet = (
 			),
 			map(
 				(dhKey: ECPointOnCurve): DiffieHellman => {
-					return {
-						diffieHellman: (
-							publicKeyOfOtherParty: PublicKey,
-						): ResultAsync<ECPointOnCurve, Error> => {
-							if (
-								!publicKeyOfOtherParty.equals(
-									publicKeyUsedInKeyExchange,
-								)
-							) {
-								log.error(
-									`Mismatch betwen public key used in DH and input to this inlined DH function.`,
-								)
-								return errAsync(new Error('Key mismatch'))
-							}
-							return okAsync(dhKey)
-						},
+					const diffieHellman: DiffieHellman = (
+						publicKeyOfOtherParty: PublicKey,
+					): ResultAsync<ECPointOnCurve, Error> => {
+						if (
+							!publicKeyOfOtherParty.equals(
+								publicKeyUsedInKeyExchange,
+							)
+						) {
+							log.error(
+								`Mismatch betwen public key used in DH and input to this inlined DH function.`,
+							)
+							return errAsync(new Error('Key mismatch'))
+						}
+						return okAsync(dhKey)
 					}
+					return diffieHellman
 				},
 			),
 		)
@@ -128,8 +127,10 @@ const fromHDPathWithHardwareWallet = (
 			),
 		decrypt: (input: AccountDecryptionInput): Observable<string> => {
 			return dhObservable(input.publicKeyOfOtherParty).pipe(
-				mergeMap((dh: DiffieHellman) =>
-					toObservable(MessageEncryption.decrypt({ ...input, dh })),
+				mergeMap((diffieHellman: DiffieHellman) =>
+					toObservable(
+						MessageEncryption.decrypt({ ...input, diffieHellman }),
+					),
 				),
 				map((b) => b.toString('utf8')),
 			)
@@ -138,8 +139,10 @@ const fromHDPathWithHardwareWallet = (
 			input: AccountEncryptionInput,
 		): Observable<EncryptedMessageT> => {
 			return dhObservable(input.publicKeyOfOtherParty).pipe(
-				mergeMap((dh: DiffieHellman) =>
-					toObservable(MessageEncryption.encrypt({ ...input, dh })),
+				mergeMap((diffieHellman: DiffieHellman) =>
+					toObservable(
+						MessageEncryption.encrypt({ ...input, diffieHellman }),
+					),
 				),
 			)
 		},

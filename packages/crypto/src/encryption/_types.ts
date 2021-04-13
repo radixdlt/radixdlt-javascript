@@ -4,14 +4,14 @@ import { PublicKey, DiffieHellman } from '../_types'
 export type MessageEncryptionInput = Readonly<{
 	plaintext: Buffer | string
 	publicKeyOfOtherParty: PublicKey
-	dh: DiffieHellman
+	diffieHellman: DiffieHellman
 	secureRandom?: SecureRandom
 }>
 
 export type MessageDecryptionInput = Readonly<{
 	encryptedMessage: Buffer | EncryptedMessageT
 	publicKeyOfOtherParty: PublicKey
-	dh: DiffieHellman
+	diffieHellman: DiffieHellman
 }>
 
 export type EncryptionSchemeT = Readonly<{

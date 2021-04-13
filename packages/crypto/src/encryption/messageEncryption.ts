@@ -30,13 +30,13 @@ import { EncryptionScheme } from './encryptionScheme'
 type CalculateSharedSecretInput = Readonly<{
 	ephemeralPublicKey: PublicKey
 	publicKeyOfOtherParty: PublicKey
-	dh: DiffieHellman
+	diffieHellman: DiffieHellman
 }>
 
 const calculateSharedSecret = (
 	input: CalculateSharedSecretInput,
 ): ResultAsync<Buffer, Error> => {
-	return input.dh.diffieHellman(input.publicKeyOfOtherParty).map(
+	return input.diffieHellman(input.publicKeyOfOtherParty).map(
 		(dhKey: ECPointOnCurve): Buffer => {
 			const ephemeralPoint = input.ephemeralPublicKey.decodeToPointOnCurve()
 			const sharedSecretPoint = dhKey.add(ephemeralPoint)
@@ -86,7 +86,7 @@ const decryptSealedMessageWithKeysOfParties = (
 	input: Readonly<{
 		sealedMessage: SealedMessageT
 		publicKeyOfOtherParty: PublicKey
-		dh: DiffieHellman
+		diffieHellman: DiffieHellman
 	}>,
 ): ResultAsync<Buffer, Error> => {
 	const ephemeralPublicKey = input.sealedMessage.ephemeralPublicKey
@@ -120,7 +120,7 @@ const decryptEncryptedMessage = (
 	input: Readonly<{
 		encryptedMessage: EncryptedMessageT
 		publicKeyOfOtherParty: PublicKey
-		dh: DiffieHellman
+		diffieHellman: DiffieHellman
 	}>,
 ): ResultAsync<Buffer, Error> => {
 	const { encryptedMessage } = input
@@ -136,7 +136,7 @@ const decryptEncryptedMessageBuffer = (
 	input: Readonly<{
 		encryptedMessageBuffer: Buffer
 		publicKeyOfOtherParty: PublicKey
-		dh: DiffieHellman
+		diffieHellman: DiffieHellman
 	}>,
 ): ResultAsync<Buffer, Error> =>
 	EncryptedMessage.fromBuffer(input.encryptedMessageBuffer)

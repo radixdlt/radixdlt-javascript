@@ -18,19 +18,19 @@ describe('message encryption', () => {
 			const res = await MessageEncryption.encrypt({
 				plaintext,
 				publicKeyOfOtherParty: bob.publicKey,
-				dh: alice.privateKey.diffieHellman,
+				diffieHellman: alice.privateKey.diffieHellman,
 			})
 			return res._unsafeUnwrap()
 		}
 
 		const decrypt = async (
-			dh: DiffieHellman,
+			diffieHellman: DiffieHellman,
 			publicKeyOfOtherParty: PublicKey,
 			encryptedMessage: EncryptedMessageT,
 		): Promise<string> => {
 			const res = await MessageEncryption.decrypt({
 				encryptedMessage,
-				dh,
+				diffieHellman,
 				publicKeyOfOtherParty,
 			}).map((b) => b.toString('utf-8'))
 			return res._unsafeUnwrap()
@@ -89,7 +89,7 @@ describe('message encryption', () => {
 			MessageEncryption.encrypt({
 				plaintext: tooLongMsg,
 				publicKeyOfOtherParty: bob,
-				dh: alicePrivateKey.diffieHellman,
+				diffieHellman: alicePrivateKey.diffieHellman,
 			}).match(
 				(_) => {
 					done(new Error('Expected failure.'))
@@ -133,12 +133,12 @@ describe('message encryption', () => {
 				decryptor === 'bob' ? alice : bob
 			const privKey: PrivateKey =
 				decryptor === 'bob' ? bobPrivateKey : alicePrivateKey
-			const dh = privKey.diffieHellman
+			const diffieHellman = privKey.diffieHellman
 
 			await MessageEncryption.decrypt({
 				encryptedMessage: encryptedMessageByAliceToBobBuf,
 				publicKeyOfOtherParty,
-				dh,
+				diffieHellman,
 			}).match(
 				(decrypted) => {
 					expect(decrypted.toString('utf8')).toBe(plaintext)

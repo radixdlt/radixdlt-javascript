@@ -3,12 +3,9 @@ import { UInt256 } from '@radixdlt/uint256'
 import { ResultAsync } from 'neverthrow'
 export type Hasher = (input: Buffer | string) => Buffer
 
-export type DiffieHellman = Readonly<{
-	// DiffieHellman key change with actors private key and some provided public key
-	diffieHellman: (
-		publicKeyOfOtherParty: PublicKey,
-	) => ResultAsync<ECPointOnCurve, Error>
-}>
+export type DiffieHellman = (
+	publicKeyOfOtherParty: PublicKey,
+) => ResultAsync<ECPointOnCurve, Error>
 
 export type Signer = Readonly<{
 	sign: (hashedMessage: Buffer) => ResultAsync<Signature, Error>
