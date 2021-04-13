@@ -16,7 +16,7 @@ const currentEncryptionSchemeIdentifier = 'DH_ADD_EPH_AESGCM256_SCRYPT_000'
 
 const supportedEncryptionSchemes = [currentEncryptionSchemeIdentifier]
 
-const encryptionSchemeIdentifierPadChar = '='
+export const encryptionSchemeIdentifierPadChar = '='
 
 export const encryptionSchemeLength = 32
 export const encryptionSchemeLengthSpecifyingByteCount = 1
@@ -36,12 +36,16 @@ const create = (
 	}
 }
 
-const encryptionSchemeNamed = (name: string): EncryptionSchemeT => {
+const encryptionSchemeNamed = (
+	name: string,
+): Result<EncryptionSchemeT, Error> => {
 	const actualLength = name.length
 	const lengthAsByte: Byte = firstByteOfNumber(actualLength)
 	if (actualLength > encryptionSchemeIdentifierLength) {
-		throw new Error(
-			'Encryption scheme identifier must be 31 chars or less.',
+		return err(
+			new Error(
+				`Encryption scheme identifier must be ${encryptionSchemeIdentifierLength} chars or less.`,
+			),
 		)
 	}
 	// pad if needed
@@ -57,10 +61,12 @@ const encryptionSchemeNamed = (name: string): EncryptionSchemeT => {
 		)
 	}
 
-	return create({
-		length: lengthAsByte,
-		identifier,
-	})
+	return ok(
+		create({
+			length: lengthAsByte,
+			identifier,
+		}),
+	)
 }
 
 const validateEncryptionSchemeLength: (
@@ -101,7 +107,7 @@ const encryptionSchemeFromBuffer = (
 
 const encryptionScheme = encryptionSchemeNamed(
 	currentEncryptionSchemeIdentifier,
-)
+)._unsafeUnwrap()
 
 const isSupported = (
 	scheme: EncryptionSchemeT,
