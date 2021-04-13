@@ -11,7 +11,7 @@ import { AddressT, HDMasterSeed, Wallet } from '@radixdlt/account'
 import { TransactionIntentBuilderT } from '../src/dto/_types'
 import { combineLatest, of, Subscription } from 'rxjs'
 import { IntendedStakeTokensAction } from '../src/actions/_types'
-import { EncryptedMessage } from '@radixdlt/crypto'
+import { EncryptedMessage, SealedMessage } from '@radixdlt/crypto'
 import { map } from 'rxjs/operators'
 
 describe('tx intent builder', () => {
@@ -311,5 +311,56 @@ describe('tx intent builder', () => {
 			expect(t.from.equals(alice)).toBe(true)
 			assertAddr(i, expectedAddresses[i])
 		})
+	})
+
+	it('an error is thrown when trying to encrypt message of a transaction with multiple recipients', (done) => {
+		const subs = new Subscription()
+
+		const builder = TransactionIntentBuilder.create()
+			.transferTokens(transfS(1, bob))
+			.transferTokens(transfS(1, carol))
+			.message(
+				'No one will be able to see this because we will get a crash',
+			)
+
+		builder
+			.build({ encryptMessageIfAnyWithAccount: of(aliceAccount) })
+			.subscribe({
+				next: (_) => {
+					done(new Error('Expected error'))
+				},
+				error: (error: Error) => {
+					expect(error.message).toBe(
+						'Cannot encrypt message for a transaction containing more than one recipient addresses.',
+					)
+					done()
+				},
+			})
+			.add(subs)
+	})
+
+	it('an error is thrown when trying to encrypt message of a transaction with zero recipients', (done) => {
+		const subs = new Subscription()
+
+		const builder = TransactionIntentBuilder.create()
+			.transferTokens(transfS(1, alice))
+			.message(
+				'No one will be able to see this because we will get a crash',
+			)
+
+		builder
+			.build({ encryptMessageIfAnyWithAccount: of(aliceAccount) })
+			.subscribe({
+				next: (_) => {
+					done(new Error('Expected error'))
+				},
+				error: (error: Error) => {
+					expect(error.message).toBe(
+						'Cannot encrypt message for a transaction containing zero recipient addresses.',
+					)
+					done()
+				},
+			})
+			.add(subs)
 	})
 })

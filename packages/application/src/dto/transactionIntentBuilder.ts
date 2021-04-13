@@ -267,8 +267,10 @@ const create = (): TransactionIntentBuilderT => {
 			map(
 				(publicKeys): ActorsInEncryption => {
 					if (publicKeys.length !== 1) {
+						const wrongCountMsg =
+							publicKeys.length === 0 ? 'zero' : 'more than one'
 						throw new Error(
-							'Cannot encrypt message for a transaction containing more than one (or zero) recipient addresses.',
+							`Cannot encrypt message for a transaction containing ${wrongCountMsg} recipient addresses.`,
 						)
 					}
 					const singleRecipientPublicKey: PublicKey = publicKeys[0]
