@@ -1,4 +1,4 @@
-import { MessageEncryption } from '../src/encryption/message-encryption'
+import { MessageEncryption } from '../src/encryption/messageEncryption'
 import { generateKeyPair } from '../src/elliptic-curve/keyPair'
 import { EncryptedMessageT } from '../src/encryption/_types'
 import { PublicKey, DiffieHellman } from '../src/_types'

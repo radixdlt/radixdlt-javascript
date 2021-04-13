@@ -1,6 +1,6 @@
 export * from './_types'
 
-export * from './message-encryption'
+export * from './messageEncryption'
 export * from './encryptedMessage'
 export * from './encryptionScheme'
 export * from './sealedMessage'
