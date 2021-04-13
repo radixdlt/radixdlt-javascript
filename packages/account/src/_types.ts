@@ -1,9 +1,8 @@
 import { DSONCodable, JSONEncodable } from '@radixdlt/data-formats'
 import { Byte } from '@radixdlt/util'
 import {
+	ECPointOnCurve,
 	EncryptedMessageT,
-	MessageDecryptionInput,
-	MessageEncryptionInput,
 	PublicKey,
 	Signature,
 } from '@radixdlt/crypto'
@@ -64,6 +63,12 @@ export type AccountT = PublicKeyDeriving &
 /// dependent on this package, not the other way around, thus we need
 /// some kind of simple "interface" like type here.
 export type HardwareWalletSimpleT = Readonly<{
+	diffieHellman: (
+		input: Readonly<{
+			hdPath: BIP32T
+			publicKeyOfOtherParty: PublicKey
+		}>,
+	) => Observable<ECPointOnCurve>
 	derivePublicKey: (hdPath: BIP32T) => Observable<PublicKey>
 	sign: (
 		input: Readonly<{

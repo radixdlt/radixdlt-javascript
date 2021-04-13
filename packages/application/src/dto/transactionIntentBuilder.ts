@@ -23,7 +23,7 @@ import {
 	isAddress,
 	toObservableFromResult,
 } from '@radixdlt/account'
-import { isObservable, Observable, of, throwError } from 'rxjs'
+import { isObservable, Observable, of } from 'rxjs'
 import { map, mergeMap } from 'rxjs/operators'
 import {
 	IntendedTransferTokens,
@@ -38,11 +38,7 @@ import {
 	isUnstakeTokensInput,
 } from '../actions/intendedUnstakeTokensAction'
 import { combine, err, Result } from 'neverthrow'
-import {
-	EncryptedMessage,
-	EncryptedMessageT,
-	PublicKey,
-} from '@radixdlt/crypto'
+import { EncryptedMessageT, PublicKey } from '@radixdlt/crypto'
 import { Option } from 'prelude-ts'
 import { isResourceIdentifier } from './resourceIdentifier'
 import { isAmount } from '@radixdlt/primitives'
@@ -131,12 +127,7 @@ const isTransactionIntentBuilderDoNotEncryptInput = (
 	)
 }
 
-const create = (
-	input?: Readonly<{
-		encryptionSchemeIdentifier: string
-	}>,
-): TransactionIntentBuilderT => {
-	const encryptionSchemeIdentifier = input?.encryptionSchemeIdentifier
+const create = (): TransactionIntentBuilderT => {
 	const intermediateActions: IntermediateAction[] = []
 	let maybePlaintextMsgToEncrypt: Option<string> = Option.none()
 	const snapshotState = (): TransactionIntentBuilderState => ({

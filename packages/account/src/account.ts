@@ -1,13 +1,14 @@
 import {
 	DiffieHellman,
+	ECPointOnCurve,
 	EncryptedMessageT,
 	MessageEncryption,
 	PrivateKey,
 	PublicKey,
 	Signature,
 } from '@radixdlt/crypto'
-import { mergeMap } from 'rxjs/operators'
-import { Observable, of, throwError } from 'rxjs'
+import { map, mergeMap } from 'rxjs/operators'
+import { Observable, of } from 'rxjs'
 import { toObservable } from './resultAsync_observable'
 import {
 	AccountDecryptionInput,
@@ -18,6 +19,8 @@ import {
 } from './_types'
 import { HDMasterSeedT, HDNodeT } from './bip39/_types'
 import { HDPathRadixT } from './bip32/bip44/_types'
+import { errAsync, okAsync, ResultAsync } from 'neverthrow'
+import { log } from '@radixdlt/util/dist/logging'
 
 const fromPrivateKey = (
 	input: Readonly<{
@@ -66,35 +69,79 @@ const fromHDPathWithHardwareWallet = (
 		onHardwareWalletConnect: Observable<HardwareWalletSimpleT>
 	}>,
 ): AccountT => {
-	const hardwareWallet$ = input.onHardwareWalletConnect
+	const {
+		hdPath,
+		onHardwareWalletConnect: hardwareWallet$,
+		addressFromPublicKey,
+	} = input
 
 	const derivePublicKey = (): Observable<PublicKey> =>
 		hardwareWallet$.pipe(
-			mergeMap((hw: HardwareWalletSimpleT) =>
-				hw.derivePublicKey(input.hdPath),
+			mergeMap((hw: HardwareWalletSimpleT) => hw.derivePublicKey(hdPath)),
+		)
+
+	const dhObservable = (
+		publicKeyUsedInKeyExchange: PublicKey,
+	): Observable<DiffieHellman> =>
+		hardwareWallet$.pipe(
+			mergeMap((hw) =>
+				hw.diffieHellman({
+					hdPath,
+					publicKeyOfOtherParty: publicKeyUsedInKeyExchange,
+				}),
+			),
+			map(
+				(dhKey: ECPointOnCurve): DiffieHellman => {
+					return {
+						diffieHellman: (
+							publicKeyOfOtherParty: PublicKey,
+						): ResultAsync<ECPointOnCurve, Error> => {
+							if (
+								!publicKeyOfOtherParty.equals(
+									publicKeyUsedInKeyExchange,
+								)
+							) {
+								log.error(
+									`Mismatch betwen public key used in DH and input to this inlined DH function.`,
+								)
+								return errAsync(new Error('Key mismatch'))
+							}
+							return okAsync(dhKey)
+						},
+					}
+				},
 			),
 		)
 
 	return {
-		hdPath: input.hdPath,
+		hdPath,
 		sign: (hashedMessage): Observable<Signature> =>
 			hardwareWallet$.pipe(
 				mergeMap((hw: HardwareWalletSimpleT) =>
-					hw.sign({ hashedMessage, hdPath: input.hdPath }),
+					hw.sign({ hashedMessage, hdPath }),
 				),
 			),
 		derivePublicKey,
 		deriveAddress: () =>
 			derivePublicKey().pipe(
-				mergeMap((pubKey) => input.addressFromPublicKey(pubKey)),
+				mergeMap((pubKey) => addressFromPublicKey(pubKey)),
 			),
 		decrypt: (input: AccountDecryptionInput): Observable<string> => {
-			return throwError(new Error('impl me'))
+			return dhObservable(input.publicKeyOfOtherParty).pipe(
+				mergeMap((dh: DiffieHellman) =>
+					toObservable(MessageEncryption.decrypt({ ...input, dh })),
+				),
+				map((b) => b.toString('utf8')),
+			)
 		},
 		encrypt: (
 			input: AccountEncryptionInput,
 		): Observable<EncryptedMessageT> => {
-			return throwError(new Error('impl me'))
+			return dhObservable(input.publicKeyOfOtherParty).pipe(
+				mergeMap((dh: DiffieHellman) =>
+					toObservable(MessageEncryption.encrypt({ ...input, dh })),
+				),
+			)
 		},
 	}
 }

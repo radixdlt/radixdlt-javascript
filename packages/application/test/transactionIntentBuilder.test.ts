@@ -44,7 +44,10 @@ describe('tx intent builder', () => {
 			bobAccount.deriveAddress(),
 		])
 			.pipe(
-				map(([aliceAddress, bobAddress]) => ({ aliceAddress: aliceAddress as AddressT, bobAddress: bobAddress as AddressT }))
+				map(([aliceAddress, bobAddress]) => ({
+					aliceAddress: aliceAddress as AddressT,
+					bobAddress: bobAddress as AddressT,
+				})),
 			)
 			.subscribe(({ aliceAddress, bobAddress }) => {
 				alice = aliceAddress

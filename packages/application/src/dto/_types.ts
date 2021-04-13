@@ -10,7 +10,7 @@ import {
 	UnstakeTokensInput,
 } from '../actions/_types'
 import { AmountT } from '@radixdlt/primitives'
-import { EncryptedMessageT, PublicKey, Signature } from '@radixdlt/crypto'
+import { PublicKey, Signature } from '@radixdlt/crypto'
 import { Observable } from 'rxjs'
 import { Result } from 'neverthrow'
 
