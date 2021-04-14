@@ -248,13 +248,13 @@ export type RawToken = Readonly<{
 	}
 }>
 
-export type RawExecutedActionBase = Readonly<{
-	type: ActionType
+export type RawExecutedActionBase<T extends ActionType> = Readonly<{
+	type: T
 }>
 
-export type RawOtherExecutedAction = RawExecutedActionBase
+export type RawOtherExecutedAction = RawExecutedActionBase<ActionType.OTHER>
 
-export type RawTransferAction = RawExecutedActionBase &
+export type RawTransferAction = RawExecutedActionBase<ActionType.TOKEN_TRANSFER> & 
 	Readonly<{
 		from: string
 		to: string
@@ -262,13 +262,13 @@ export type RawTransferAction = RawExecutedActionBase &
 		rri: string
 	}>
 
-export type RawStakesAction = RawExecutedActionBase &
+export type RawStakesAction = RawExecutedActionBase<ActionType.STAKE_TOKENS> &
 	Readonly<{
 		validator: string
 		amount: string
 	}>
 
-export type RawUnstakesAction = RawExecutedActionBase &
+export type RawUnstakesAction = RawExecutedActionBase<ActionType.UNSTAKE_TOKENS> &
 	Readonly<{
 		validator: string
 		amount: string

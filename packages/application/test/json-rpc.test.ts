@@ -8,6 +8,7 @@ import {
 	StakePositionsEndpoint,
 	SubmitSignedTransactionEndpoint,
 	TokenBalancesEndpoint,
+	TokenInfoEndpoint,
 	TransactionHistoryEndpoint,
 	TransactionStatusEndpoint,
 } from '../src/api/json-rpc/_types'
@@ -17,11 +18,14 @@ import { UInt256 } from '@radixdlt/uint256'
 import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
 import {
 	ActionType,
+	ExecutedOtherAction,
 	ExecutedStakeTokensAction,
 	ExecutedTransferTokensAction,
+	ExecutedUnstakeTokensAction,
 } from '../src/actions/_types'
 import {
 	ExecutedTransaction,
+	RawTransferAction,
 	TokenPermission,
 	TransactionStatus,
 } from '../src/dto/_types'
@@ -36,6 +40,7 @@ import { Subscription } from 'rxjs'
 import { signatureFromHexStrings } from '../../crypto/test/ellipticCurveCryptography.test'
 import { isArray, isObject, LogLevel } from '@radixdlt/util'
 import { MethodObject, OpenrpcDocument, ContentDescriptorObject } from '@open-rpc/meta-schema'
+import { Address } from '@radixdlt/account'
 const faker = require("json-schema-faker")
 
 let mockClientReturnValue: any
@@ -79,6 +84,23 @@ const expectedDecodedResponses = {
 		tokenPermission: makeTokenPermissions(response.tokenPermission)
 	}),
 
+	[rpcSpec.methods[2].name]: (response: TokenInfoEndpoint.Response) => (<TokenInfoEndpoint.DecodedResponse>{
+		name: response.name,
+		rri: ResourceIdentifier.fromString(response.rri)._unsafeUnwrap(),
+		symbol: response.symbol,
+		description: response.description,
+		granularity: Amount.inSmallestDenomination(
+			new UInt256(response.granularity),
+		),
+		isSupplyMutable: response.isSupplyMutable,
+		currentSupply: Amount.inSmallestDenomination(
+			new UInt256(response.currentSupply),
+		),
+		tokenInfoURL: new URL(response.tokenInfoURL),
+		iconURL: new URL(response.iconURL),
+		tokenPermission: makeTokenPermissions(response.tokenPermission)
+	}),
+
 	[rpcSpec.methods[3].name]: (response: TokenBalancesEndpoint.Response) => (<TokenBalancesEndpoint.DecodedResponse>{
 		owner: alice,
 		tokenBalances: [
@@ -91,6 +113,34 @@ const expectedDecodedResponses = {
 				),
 			},
 		],
+	}),
+
+	[rpcSpec.methods[4].name]: (response: TransactionHistoryEndpoint.Response) => (<TransactionHistoryEndpoint.DecodedResponse>{
+		cursor: response.cursor,
+		transactions: [
+			{
+				txID: TransactionIdentifier.create(response.transactions[0].txID)._unsafeUnwrap(),
+				sentAt: new Date(response.transactions[0].sentAt),
+				fee: Amount.fromUnsafe(response.transactions[0].fee)._unsafeUnwrap(),
+				message: response.transactions[0].message,
+				actions: response.transactions[0].actions.map(action => {
+					return action.type === ActionType.TOKEN_TRANSFER
+						? <ExecutedTransferTokensAction>{
+							from: Address.fromUnsafe(action.from)._unsafeUnwrap(),
+							to: Address.fromUnsafe(action.to)._unsafeUnwrap(),
+							rri: ResourceIdentifier.fromUnsafe(action.rri)._unsafeUnwrap(),
+							amount: Amount.fromUnsafe(action.amount)._unsafeUnwrap(),
+						}
+						: action.type === ActionType.STAKE_TOKENS || action.type === ActionType.UNSTAKE_TOKENS
+							? <ExecutedStakeTokensAction>{
+								from: Address.fromUnsafe(action.validator)._unsafeUnwrap(),
+								validator: Address.fromUnsafe(action.validator)._unsafeUnwrap(),
+								amount: Amount.fromUnsafe(action.amount)._unsafeUnwrap()
+							}
+							: action
+				})
+			}
+		]
 	})
 }
 
@@ -98,7 +148,7 @@ const client = nodeAPI(new URL('http://xyz'))
 
 const testRpcMethod = (method: MethodObject) => {
 	it(`should decode ${method.name} response`, async () => {
-		const mockedResult =
+ 		const mockedResult =
 			method.examples
 				? (method.examples[0] as any).result.value
 				: faker.generate(((method.result as ContentDescriptorObject).schema))

@@ -584,6 +584,7 @@ export const deterministicRandomTxHistoryWithInput = (
 										case ActionType.STAKE_TOKENS:
 											executedAction = {
 												type: ActionType.STAKE_TOKENS,
+												from: address,
 												amount: Amount.fromUnsafe(
 													anInt(),
 												)._unsafeUnwrap(),
@@ -593,6 +594,7 @@ export const deterministicRandomTxHistoryWithInput = (
 										case ActionType.UNSTAKE_TOKENS:
 											executedAction = {
 												type: ActionType.UNSTAKE_TOKENS,
+												from: address,
 												amount: Amount.fromUnsafe(
 													anInt(),
 												)._unsafeUnwrap(),
