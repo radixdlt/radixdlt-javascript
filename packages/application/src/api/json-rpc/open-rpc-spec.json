@@ -276,7 +276,46 @@
                 "schema": {
                     "$ref": "#/components/schemas/transaction"
                 }
-            }
+            },
+            "examples": [
+                {
+                    "name": "transactionHistoryExamples",
+                    "params": [],
+                    "result": {
+                        "name": "transactionHistoryExample",
+                        "value": {
+                            "txID": "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+                            "sentAt": "1995-12-17T03:24:00",
+                            "fee": "100",
+                            "message": "Example message",
+                            "actions": [
+                                {
+                                    "type": "TokenTransfer",
+                                    "from": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                    "to": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                    "amount": "100",
+                                    "rri": "/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD"
+                                },
+                                {
+                                    "type": "StakeTokens",
+                                    "from": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                    "validator": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                    "amount": "100"
+                                },
+                                {
+                                    "type": "UnstakeTokens",
+                                    "from": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                    "validator": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                    "amount": "100"
+                                },
+                                {
+                                    "type": "Other"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
         },
         {
             "name": "stakePositions",
@@ -313,7 +352,22 @@
                         }
                     ]
                 }
-            }
+            },
+            "examples": [
+                {
+                    "name": "stakePositionsExamples",
+                    "params": [],
+                    "result": {
+                        "name": "stakePositionsExample",
+                        "value": [
+                            {
+                                "validator": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                "amount": "100"
+                            }
+                        ]
+                    }
+                }
+            ]
         },
         {
             "name": "unstakePositions",

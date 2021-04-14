@@ -1,6 +1,7 @@
 import { nodeAPI } from '../src/api/api'
 import {
 	BuildTransactionEndpoint,
+	LookupTransactionEndpoint,
 	NativeTokenEndpoint,
 	NetworkIdEndpoint,
 	NetworkTransactionDemandEndpoint,
@@ -60,7 +61,7 @@ jest.mock('@open-rpc/client-js', () => ({
 }))
 
 // @ts-ignore
-let rpcSpec: OpenrpcDocument = process['rpcSpec']
+const rpcSpec: OpenrpcDocument = process['rpcSpec']
 
 const expectedDecodedResponses = {
 	[rpcSpec.methods[0].name]: (response: NetworkIdEndpoint.Response) => (<NetworkIdEndpoint.DecodedResponse>{
@@ -123,8 +124,8 @@ const expectedDecodedResponses = {
 				sentAt: new Date(response.transactions[0].sentAt),
 				fee: Amount.fromUnsafe(response.transactions[0].fee)._unsafeUnwrap(),
 				message: response.transactions[0].message,
-				actions: response.transactions[0].actions.map(action => {
-					return action.type === ActionType.TOKEN_TRANSFER
+				actions: response.transactions[0].actions.map(action =>
+					action.type === ActionType.TOKEN_TRANSFER
 						? <ExecutedTransferTokensAction>{
 							from: Address.fromUnsafe(action.from)._unsafeUnwrap(),
 							to: Address.fromUnsafe(action.to)._unsafeUnwrap(),
@@ -138,17 +139,47 @@ const expectedDecodedResponses = {
 								amount: Amount.fromUnsafe(action.amount)._unsafeUnwrap()
 							}
 							: action
-				})
+				)
 			}
 		]
-	})
+	}),
+
+	[rpcSpec.methods[5].name]: (response: LookupTransactionEndpoint.Response) => (<LookupTransactionEndpoint.DecodedResponse>{
+		txID: TransactionIdentifier.create(response.txID)._unsafeUnwrap(),
+		sentAt: new Date(response.sentAt),
+		fee: Amount.fromUnsafe(response.fee)._unsafeUnwrap(),
+		message: response.message,
+		actions: response.actions.map(action =>
+			action.type === ActionType.TOKEN_TRANSFER
+				? <ExecutedTransferTokensAction>{
+					from: Address.fromUnsafe(action.from)._unsafeUnwrap(),
+					to: Address.fromUnsafe(action.to)._unsafeUnwrap(),
+					rri: ResourceIdentifier.fromUnsafe(action.rri)._unsafeUnwrap(),
+					amount: Amount.fromUnsafe(action.amount)._unsafeUnwrap(),
+				}
+				: action.type === ActionType.STAKE_TOKENS || action.type === ActionType.UNSTAKE_TOKENS
+					? <ExecutedStakeTokensAction>{
+						from: Address.fromUnsafe(action.validator)._unsafeUnwrap(),
+						validator: Address.fromUnsafe(action.validator)._unsafeUnwrap(),
+						amount: Amount.fromUnsafe(action.amount)._unsafeUnwrap()
+					}
+					: action
+		)
+	}),
+
+	[rpcSpec.methods[6].name]: (response: StakePositionsEndpoint.Response) => (<StakePositionsEndpoint.DecodedResponse>[
+		{
+			validator: Address.fromUnsafe(response[0].validator)._unsafeUnwrap(),
+			amount: Amount.fromUnsafe(response[0].amount)._unsafeUnwrap()
+		}
+	])
 }
 
 const client = nodeAPI(new URL('http://xyz'))
 
-const testRpcMethod = (method: MethodObject) => {
+const testRpcMethod = (method: MethodObject, index: number) => {
 	it(`should decode ${method.name} response`, async () => {
- 		const mockedResult =
+		const mockedResult =
 			method.examples
 				? (method.examples[0] as any).result.value
 				: faker.generate(((method.result as ContentDescriptorObject).schema))
@@ -185,8 +216,6 @@ const testRpcMethod = (method: MethodObject) => {
 
 describe('networking', () => {
 	describe('json-rpc', () => {
-		rpcSpec.methods.forEach(method => {
-			testRpcMethod(method)
-		})
+		rpcSpec.methods.forEach((method, i) => testRpcMethod(method, i))
 	})
 })
