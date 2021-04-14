@@ -57,20 +57,37 @@ jest.mock('@open-rpc/client-js', () => ({
 // @ts-ignore
 let rpcSpec: OpenrpcDocument = process['rpcSpec']
 
-const decodedResponses = {
-	[rpcSpec.methods[0].name]: (result: NetworkIdEndpoint.Response) => (<NetworkIdEndpoint.DecodedResponse>{
-		networkId: magicFromNumber(result.networkId),
+const expectedDecodedResponses = {
+	[rpcSpec.methods[0].name]: (response: NetworkIdEndpoint.Response) => (<NetworkIdEndpoint.DecodedResponse>{
+		networkId: magicFromNumber(response.networkId),
 	}),
 
-	[rpcSpec.methods[3].name]: (result: TokenBalancesEndpoint.Response) => (<TokenBalancesEndpoint.DecodedResponse>{
+	[rpcSpec.methods[1].name]: (response: NativeTokenEndpoint.Response) => (<NativeTokenEndpoint.DecodedResponse>{
+		name: response.name,
+		rri: ResourceIdentifier.fromString(response.rri)._unsafeUnwrap(),
+		symbol: response.symbol,
+		description: response.description,
+		granularity: Amount.inSmallestDenomination(
+			new UInt256(response.granularity),
+		),
+		isSupplyMutable: response.isSupplyMutable,
+		currentSupply: Amount.inSmallestDenomination(
+			new UInt256(response.currentSupply),
+		),
+		tokenInfoURL: new URL(response.tokenInfoURL),
+		iconURL: new URL(response.iconURL),
+		tokenPermission: makeTokenPermissions(response.tokenPermission)
+	}),
+
+	[rpcSpec.methods[3].name]: (response: TokenBalancesEndpoint.Response) => (<TokenBalancesEndpoint.DecodedResponse>{
 		owner: alice,
 		tokenBalances: [
 			{
 				token: ResourceIdentifier.fromString(
-					result.tokenBalances[0].rri,
+					response.tokenBalances[0].rri,
 				)._unsafeUnwrap(),
 				amount: Amount.inSmallestDenomination(
-					new UInt256(result.tokenBalances[0].amount),
+					new UInt256(response.tokenBalances[0].amount),
 				),
 			},
 		],
@@ -88,7 +105,7 @@ const testRpcMethod = (method: MethodObject) => {
 
 		mockClientReturnValue = mockedResult
 
-		const expected = decodedResponses[method.name](mockedResult)
+		const expected = expectedDecodedResponses[method.name](mockedResult)
 
 		// @ts-ignore
 		const result = (await client[method.name](undefined))._unsafeUnwrap()
@@ -104,9 +121,9 @@ const testRpcMethod = (method: MethodObject) => {
 
 					isObject(value1)
 						? checkEquality(value1, value2)
-					: isArray(value1)
-						? value1.forEach((item, i) => checkEquality(item as any, value2[i]))
-					: expect(value1).toEqual(value2)
+						: isArray(value1)
+							? value1.forEach((item, i) => checkEquality(item as any, value2[i]))
+							: expect(value1).toEqual(value2)
 				}
 			}
 		}

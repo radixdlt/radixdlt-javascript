@@ -31,7 +31,31 @@
             "params": [],
             "result": {
                 "$ref": "#/components/responses/tokenInfo"
-            }
+            },
+            "examples": [
+                {
+                    "name": "nativeTokenExamples",
+                    "params": [],
+                    "result": {
+                        "name": "nativeTokenExample",
+                        "value": {
+                            "name": "Rad",
+                            "rri": "/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD",
+                            "symbol": "XRD",
+                            "description": "The native token of the Radix network",
+                            "granularity": "1",
+                            "isSupplyMutable": false,
+                            "currentSupply": "2147483648",
+                            "tokenInfoURL": "http://www.radixdlt.com",
+                            "iconURL": "http://www.image.radixdlt.com",
+                            "tokenPermission": {
+                                "burn": "all",
+                                "mint": "none"
+                            }
+                        }
+                    }
+                }
+            ]
         },
         {
             "name": "tokenInfo",
