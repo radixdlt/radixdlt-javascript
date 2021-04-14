@@ -655,60 +655,39 @@
             "result": {
                 "name": "transaction",
                 "schema": {
-                    "anyOf": [
-                        {
+                    "type": "object",
+                    "properties": {
+                        "transaction": {
                             "type": "object",
                             "properties": {
-                                "transaction": {
-                                    "type": "object",
-                                    "properties": {
-                                        "blob": {
-                                            "type": "string"
-                                        },
-                                        "hashOfBlobToSign": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "additionalProperties": false,
-                                    "required": [
-                                        "blob",
-                                        "hashOfBlobToSign"
-                                    ]
+                                "blob": {
+                                    "type": "string"
                                 },
-                                "fee": {
-                                    "$ref": "#/components/schemas/amount"
+                                "hashOfBlobToSign": {
+                                    "type": "string"
                                 }
                             },
                             "additionalProperties": false,
                             "required": [
-                                "transaction",
-                                "fee"
+                                "blob",
+                                "hashOfBlobToSign"
                             ]
                         },
-                        {
-                            "type": "object",
-                            "properties": {
-                                "failure": {
-                                    "type": "string",
-                                    "enum": [
-                                        "MALFORMED_TX",
-                                        "INSUFFICIENT_FUNDS",
-                                        "NOT_PERMITTED"
-                                    ]
-                                }
-                            },
-                            "required": [
-                                "failure"
-                            ],
-                            "additionalProperties": false
+                        "fee": {
+                            "$ref": "#/components/schemas/amount"
                         }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                        "transaction",
+                        "fee"
                     ]
                 }
             }
         },
         {
-            "name": "submitSignedTransaction",
-            "summary": "Submits a signed transaction before finalizing it.",
+            "name": "finalizeTransaction",
+            "summary": "Finalizes a signed transaction before submitting it.",
             "params": [
                 {
                     "name": "transaction",
@@ -741,40 +720,24 @@
                 }
             ],
             "result": {
-                "name": "submissionResult",
+                "name": "finalizeResult",
                 "schema": {
-                    "anyOf": [
-                        {
-                            "type": "object",
-                            "properties": {
-                                "txID": {
-                                    "$ref": "#/components/schemas/txID"
-                                }
-                            },
-                            "additionalProperties": false,
-                            "required": [
-                                "txID"
-                            ]
-                        },
-                        {
-                            "type": "object",
-                            "properties": {
-                                "failure": {
-                                    "type": "string"
-                                }
-                            },
-                            "additionalProperties": false,
-                            "required": [
-                                "failure"
-                            ]
+                    "type": "object",
+                    "properties": {
+                        "txID": {
+                            "$ref": "#/components/schemas/txID"
                         }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                        "txID"
                     ]
                 }
             }
         },
         {
-            "name": "finalizeTransaction",
-            "summary": "Finalizes a transaction to be dispatched to Radix network.",
+            "name": "submitSignedTransaction",
+            "summary": "Submits a transaction to be dispatched to Radix network.",
             "params": [
                 {
                     "name": "transaction",

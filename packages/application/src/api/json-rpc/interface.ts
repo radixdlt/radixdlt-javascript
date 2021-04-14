@@ -20,14 +20,14 @@ import {
 	ApiMethod,
 	BuildTransactionEndpoint,
 	Endpoint,
-	FinalizeTransactionEndpoint,
+	SubmitTransactionEndpoint,
 	LookupTransactionEndpoint,
 	NativeTokenEndpoint,
 	NetworkIdEndpoint,
 	NetworkTransactionDemandEndpoint,
 	NetworkTransactionThroughputEndpoint,
 	StakePositionsEndpoint,
-	SubmitSignedTransactionEndpoint,
+	FinalizeTransactionEndpoint,
 	TokenBalancesEndpoint,
 	TokenInfoEndpoint,
 	TransactionHistoryEndpoint,
@@ -132,15 +132,15 @@ export const getAPI = (
 		>(handleBuildTransactionResponse)('radix.buildTransaction'),
 
 		[ApiMethod.SUBMIT_SIGNED_TX]: setupAPIResponse<
-			SubmitSignedTransactionEndpoint.Input,
-			SubmitSignedTransactionEndpoint.DecodedResponse
+			FinalizeTransactionEndpoint.Input,
+			FinalizeTransactionEndpoint.DecodedResponse
 		>(handleSubmitSignedTransactionResponse)(
 			'radix.submitSignedTransaction',
 		),
 
 		[ApiMethod.FINALIZE_TX]: setupAPIResponse<
-			FinalizeTransactionEndpoint.Input,
-			FinalizeTransactionEndpoint.DecodedResponse
+			SubmitTransactionEndpoint.Input,
+			SubmitTransactionEndpoint.DecodedResponse
 		>(handleFinalizedTransactionResponse)('radix.finalizeTransaction'),
 	}
 }

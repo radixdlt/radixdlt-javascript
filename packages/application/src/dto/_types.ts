@@ -221,8 +221,7 @@ export type SignedTransaction = PartOfMakeTransactionFlow &
 		// nothing here
 	}>
 
-export type SubmittedTransaction = PartOfMakeTransactionFlow &
-	SignedTXProps &
+export type FinalizedTransaction = 
 	Readonly<{
 		txID: TransactionIdentifierT
 	}>

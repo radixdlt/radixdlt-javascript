@@ -7,13 +7,14 @@ import {
 	NetworkTransactionDemandEndpoint,
 	NetworkTransactionThroughputEndpoint,
 	StakePositionsEndpoint,
-	SubmitSignedTransactionEndpoint,
+	FinalizeTransactionEndpoint,
 	TokenBalancesEndpoint,
 	TokenInfoEndpoint,
 	TransactionHistoryEndpoint,
 	TransactionStatusEndpoint,
 	UnstakePositionsEndpoint,
-	ValidatorsEndpoint
+	ValidatorsEndpoint,
+	SubmitTransactionEndpoint
 } from '../src/api/json-rpc/_types'
 import { ResourceIdentifier } from '../src/dto/resourceIdentifier'
 import { Amount, magicFromNumber } from '@radixdlt/primitives'
@@ -212,6 +213,22 @@ const expectedDecodedResponses = {
 				isExternalStakeAccepted: response.validators[0].isExternalStakeAccepted
 			}
 		]
+	}),
+
+	[rpcSpec.methods[12].name]: (response: BuildTransactionEndpoint.Response): BuildTransactionEndpoint.DecodedResponse => ({
+		transaction: {
+			blob: response.transaction.blob,
+			hashOfBlobToSign: response.transaction.hashOfBlobToSign,
+		},
+		fee: Amount.fromUnsafe(response.fee)._unsafeUnwrap(),
+	}),
+
+	[rpcSpec.methods[13].name]: (response: FinalizeTransactionEndpoint.Response): FinalizeTransactionEndpoint.DecodedResponse => ({
+		txID: TransactionIdentifier.create(response.txID)._unsafeUnwrap(),
+	}),
+
+	[rpcSpec.methods[14].name]: (response: SubmitTransactionEndpoint.Response): SubmitTransactionEndpoint.DecodedResponse => ({
+		txID: TransactionIdentifier.create(response.txID)._unsafeUnwrap(),
 	})
 }
 

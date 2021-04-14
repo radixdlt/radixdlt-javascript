@@ -8,13 +8,13 @@ import { Address } from '@radixdlt/account'
 import { isObject, isString } from '@radixdlt/util'
 import {
 	BuildTransactionEndpoint,
-	FinalizeTransactionEndpoint,
+	SubmitTransactionEndpoint,
 	LookupTransactionEndpoint,
 	NetworkIdEndpoint,
 	NetworkTransactionDemandEndpoint,
 	NetworkTransactionThroughputEndpoint,
 	StakePositionsEndpoint,
-	SubmitSignedTransactionEndpoint,
+	FinalizeTransactionEndpoint,
 	TokenBalancesEndpoint,
 	TokenInfoEndpoint,
 	TransactionHistoryEndpoint,
@@ -182,20 +182,11 @@ export const handleNetworkTxDemandResponse = JSONDecoding.create<NetworkTransact
 export const handleBuildTransactionResponse = (
 	json: BuildTransactionEndpoint.Response,
 ): Result<BuildTransactionEndpoint.DecodedResponse, Error[]> =>
-	isRPCRequestFailureResponse(json)
-		? err([new Error(json.failure)])
-		: JSONDecoding.create<BuildTransactionEndpoint.Response, BuildTransactionEndpoint.DecodedResponse>()(json)
+	JSONDecoding.withDecoders(
+		amountDecoder('fee')
+	).create<BuildTransactionEndpoint.Response, BuildTransactionEndpoint.DecodedResponse>()(json)
 
 export const handleSubmitSignedTransactionResponse = (
-	json: SubmitSignedTransactionEndpoint.Response,
-): Result<SubmitSignedTransactionEndpoint.DecodedResponse, Error[]> =>
-	isRPCRequestFailureResponse(json)
-		? err([new Error(json.failure)])
-		: JSONDecoding.withDecoders(
-			transactionIdentifierDecoder('txID'),
-		).create<SubmitSignedTransactionEndpoint.Response, SubmitSignedTransactionEndpoint.DecodedResponse>()(json)
-
-export const handleFinalizedTransactionResponse = (
 	json: FinalizeTransactionEndpoint.Response,
 ): Result<FinalizeTransactionEndpoint.DecodedResponse, Error[]> =>
 	isRPCRequestFailureResponse(json)
@@ -203,3 +194,12 @@ export const handleFinalizedTransactionResponse = (
 		: JSONDecoding.withDecoders(
 			transactionIdentifierDecoder('txID'),
 		).create<FinalizeTransactionEndpoint.Response, FinalizeTransactionEndpoint.DecodedResponse>()(json)
+
+export const handleFinalizedTransactionResponse = (
+	json: SubmitTransactionEndpoint.Response,
+): Result<SubmitTransactionEndpoint.DecodedResponse, Error[]> =>
+	isRPCRequestFailureResponse(json)
+		? err([new Error(json.failure)])
+		: JSONDecoding.withDecoders(
+			transactionIdentifierDecoder('txID'),
+		).create<SubmitTransactionEndpoint.Response, SubmitTransactionEndpoint.DecodedResponse>()(json)

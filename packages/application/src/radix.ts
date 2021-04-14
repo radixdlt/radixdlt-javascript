@@ -70,7 +70,7 @@ import { isArray, log, LogLevel } from '@radixdlt/util'
 import {
 	PartOfMakeTransactionFlow,
 	PendingTransaction,
-	SubmittedTransaction,
+	FinalizedTransaction,
 	SignedTransaction,
 	TransactionHistory,
 	TransactionHistoryActiveAccountRequestInput,
@@ -194,12 +194,12 @@ const create = (): RadixT => {
 			(a) => a.buildTransaction,
 			(m) => buildTxFromIntentErr(m),
 		),
-		submitSignedTransaction: fwdAPICall(
-			(a) => a.submitSignedTransaction,
-			(m) => submitSignedTxErr(m),
-		),
 		finalizeTransaction: fwdAPICall(
 			(a) => a.finalizeTransaction,
+			(m) => submitSignedTxErr(m),
+		),
+		submitTransaction: fwdAPICall(
+			(a) => a.submitTransaction,
 			(m) => finalizeTxErr(m),
 		),
 	}
@@ -507,7 +507,7 @@ const create = (): RadixT => {
 				mergeMap(
 					(
 						signedTx: SignedTransaction,
-					): Observable<SubmittedTransaction> => {
+					): Observable<FinalizedTransaction> => {
 						log.debug(
 							`Finished signing tx => submitting it to 🛰  API.`,
 						)
@@ -516,7 +516,7 @@ const create = (): RadixT => {
 							eventUpdateType:
 								TransactionTrackingEventType.SIGNED,
 						})
-						return api.submitSignedTransaction(signedTx)
+						return api.finalizeTransaction(signedTx)
 					},
 				),
 				catchError((e: Error) => {
@@ -533,7 +533,7 @@ const create = (): RadixT => {
 					})
 					return EMPTY
 				}),
-				tap<SubmittedTransaction>((submitted) => {
+				tap<FinalizedTransaction>((submitted) => {
 					log.debug(
 						`Received submitted transaction with txID='${submitted.txID.toString()}' from API, calling finalize.`,
 					)
@@ -544,9 +544,9 @@ const create = (): RadixT => {
 				}),
 				mergeMap(
 					(
-						userConfirmedTX: SubmittedTransaction,
+						userConfirmedTX: FinalizedTransaction,
 					): Observable<PendingTransaction> => {
-						return api.finalizeTransaction(userConfirmedTX)
+						return api.submitTransaction(userConfirmedTX)
 					},
 				),
 				catchError((e: Error) => {

@@ -7,7 +7,7 @@ import {
 	PendingTransaction,
 	RawExecutedTransaction,
 	RawToken,
-	SubmittedTransaction,
+	FinalizedTransaction,
 	StakePositions,
 	StatusOfTransaction,
 	Token,
@@ -185,21 +185,18 @@ export namespace BuildTransactionEndpoint {
 	export type Input = [transactionIntent: TransactionIntent]
 
 	export type Response =
-		| {
+		{
 			transaction: Readonly<{
 				blob: string
 				hashOfBlobToSign: string
 			}>
 			fee: string
 		}
-		| {
-			failure: string
-		}
 
 	export type DecodedResponse = BuiltTransaction
 }
 
-export namespace SubmitSignedTransactionEndpoint {
+export namespace FinalizeTransactionEndpoint {
 	export type Input = [
 		transaction: Readonly<{
 			blob: string
@@ -208,18 +205,14 @@ export namespace SubmitSignedTransactionEndpoint {
 		signatureDER: string,
 	]
 
-	export type Response =
-		| {
-			txID: string
-		}
-		| {
-			failure: string
-		}
+	export type Response = {
+		txID: string
+	}
 
-	export type DecodedResponse = SubmittedTransaction
+	export type DecodedResponse = FinalizedTransaction
 }
 
-export namespace FinalizeTransactionEndpoint {
+export namespace SubmitTransactionEndpoint {
 	export type Input = [
 		transaction: Readonly<{
 			blob: string
@@ -230,11 +223,8 @@ export namespace FinalizeTransactionEndpoint {
 	]
 
 	export type Response =
-		| {
+		{
 			txID: string
-		}
-		| {
-			failure: string
 		}
 
 	export type DecodedResponse = PendingTransaction

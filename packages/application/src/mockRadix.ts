@@ -41,7 +41,7 @@ import { privateKeyFromBuffer, PublicKey, sha256 } from '@radixdlt/crypto'
 import { ActionType, ExecutedAction } from './actions/_types'
 import { TransactionIdentifier } from './dto/transactionIdentifier'
 import { StakePosition, UnstakePosition } from './dto/_types'
-import { SubmittedTransaction } from './dto/_types'
+import { FinalizedTransaction } from './dto/_types'
 import { isNumber } from '@radixdlt/util'
 
 export const toAddress = (b58: string): AddressT =>
@@ -409,7 +409,7 @@ const randomPendingTransaction = (
 
 const detRandomSignedUnconfirmedTransaction = (
 	signedTransaction: SignedTransaction,
-): SubmittedTransaction => {
+): FinalizedTransaction => {
 	const txID = randomPendingTransaction(signedTransaction).txID
 	return {
 		...signedTransaction,
@@ -766,12 +766,12 @@ export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
 
 	submitSignedTransaction: (
 		_signedTransaction: SignedTransaction,
-	): Observable<SubmittedTransaction> => {
+	): Observable<FinalizedTransaction> => {
 		throw Error('Not implemented')
 	},
 
 	finalizeTransaction: (
-		_signedUnconfirmedTransaction: SubmittedTransaction,
+		_signedUnconfirmedTransaction: FinalizedTransaction,
 	): Observable<PendingTransaction> => {
 		throw Error('Not implemented')
 	},
@@ -825,13 +825,13 @@ export const mockRadixCoreAPI = (
 			transactionIntent: TransactionIntent,
 		): Observable<BuiltTransaction> =>
 			of(randomUnsignedTransaction(transactionIntent)).pipe(delay(50)),
-		submitSignedTransaction: (
+		finalizeTransaction: (
 			signedTransaction: SignedTransaction,
-		): Observable<SubmittedTransaction> =>
+		): Observable<FinalizedTransaction> =>
 			of(detRandomSignedUnconfirmedTransaction(signedTransaction)).pipe(
 				delay(50),
 			),
-		finalizeTransaction: (signedUnconfirmedTX) =>
+		submitSignedTransaction: (signedUnconfirmedTX) =>
 			of(randomPendingTransaction(signedUnconfirmedTX)).pipe(delay(50)),
 		networkTransactionDemand: (): Observable<NetworkTransactionDemand> =>
 			of(randomDemand()),

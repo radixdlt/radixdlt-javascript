@@ -10,7 +10,7 @@ import {
 	NetworkTransactionThroughput,
 	PendingTransaction,
 	ResourceIdentifierT,
-	SubmittedTransaction,
+	FinalizedTransaction,
 	SignedTransaction,
 	StakePositions,
 	StatusOfTransaction,
@@ -101,9 +101,9 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 		): Observable<BuiltTransaction> =>
 			toObs((a) => a.buildTransaction, transactionIntent),
 
-		submitSignedTransaction: (
+		finalizeTransaction: (
 			signedTransaction: SignedTransaction,
-		): Observable<SubmittedTransaction> =>
+		): Observable<FinalizedTransaction> =>
 			toObs(
 				(a) => a.submitSignedTransaction,
 				{ blob: signedTransaction.transaction.blob },
@@ -111,8 +111,8 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 				signedTransaction.signature.toDER(),
 			),
 
-		finalizeTransaction: (
-			signedUnconfirmedTransaction: SubmittedTransaction,
+		submitTransaction: (
+			signedUnconfirmedTransaction: FinalizedTransaction,
 		): Observable<PendingTransaction> =>
 			toObs(
 				(a) => a.finalizeTransaction,
