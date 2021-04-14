@@ -1,7 +1,12 @@
 import { err, ResultAsync, ok, Result } from 'neverthrow'
 import { KeystoreCryptoT, KeystoreT } from './_types'
 import { AES_GCM } from '../symmetric-encryption/aes/aesGCM'
-import { SecureRandom, secureRandomGenerator, log } from '@radixdlt/util'
+import {
+	SecureRandom,
+	secureRandomGenerator,
+	log,
+	msgFromError,
+} from '@radixdlt/util'
 import { ScryptParamsT } from '../key-derivation-functions/_types'
 import { Scrypt, ScryptParams } from '../key-derivation-functions/scrypt'
 import { AES_GCM_SealedBox } from '../symmetric-encryption/aes/aesGCMSealedBox'
@@ -117,8 +122,9 @@ const fromBuffer = (keystoreBuffer: Buffer): Result<KeystoreT, Error> => {
 		const errMsg = 'Parse object, but is not a keystore'
 		log.error(errMsg)
 		return err(new Error(errMsg))
-	} catch (e) {
-		const errMsg = `Failed to parse keystore from JSON data, underlying error: ${e}`
+	} catch (e: unknown) {
+		const underlying = msgFromError(e)
+		const errMsg = `Failed to parse keystore from JSON data, underlying error: ${underlying}`
 		log.error(errMsg)
 		return err(new Error(errMsg))
 	}

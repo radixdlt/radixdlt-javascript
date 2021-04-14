@@ -52,6 +52,8 @@ module.exports = {
 		'@typescript-eslint/ban-ts-comment': 'off',
 		'@typescript-eslint/no-non-null-assertion': 'off',
 
+		'@typescript-eslint/no-inferrable-types': 'off',
+
 		// ESLint-Plugin-Functional RULES
 		'functional/immutable-data': 'error',
 		'functional/no-let': 'off',

@@ -12,6 +12,7 @@ import {
 	SecureRandom,
 	secureRandomGenerator,
 	ValidationWitness,
+	msgFromError,
 } from '@radixdlt/util'
 
 export const wordlistFromLanguage = (language: LanguageT): string[] => {
@@ -204,15 +205,13 @@ const fromPhraseInLanguage = (
 	try {
 		entropy = Buffer.from(mnemonicToEntropy(phrase, wordlist), 'hex')
 	} catch (e) {
-		type ErrorType = { message: string }
-		if (
-			(e as ErrorType).message !== undefined &&
-			(e as ErrorType).message === 'Invalid mnemonic checksum'
-		) {
+		const errMsg = msgFromError(e)
+		if (errMsg === 'Invalid mnemonic checksum') {
 			const notChecksummedErr = 'Invalid mnemonic, it is not checksummed.'
 			log.error(notChecksummedErr)
 			return err(new Error(notChecksummedErr))
 		}
+
 		return err(e)
 	}
 	const normalizedPhrase = phrase.normalize('NFKD')

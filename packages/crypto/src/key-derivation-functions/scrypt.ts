@@ -1,7 +1,11 @@
 import { scrypt } from 'scrypt-js'
 import { ResultAsync, errAsync } from 'neverthrow'
 import { ScryptParamsT } from './_types'
-import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
+import {
+	msgFromError,
+	SecureRandom,
+	secureRandomGenerator,
+} from '@radixdlt/util'
 
 const deriveKey = (
 	input: Readonly<{
@@ -26,15 +30,7 @@ const deriveKey = (
 			Buffer.from(uint8array),
 		),
 		(e: unknown) => {
-			type NodeCryptoErrorLike = {
-				code: string
-			}
-			const underlyingErrorMessage: string =
-				e instanceof Error
-					? e.message
-					: (e as NodeCryptoErrorLike).code !== undefined
-					? (e as NodeCryptoErrorLike).code
-					: JSON.stringify(e, null, 4)
+			const underlyingErrorMessage = msgFromError(e)
 			return new Error(
 				`Failed to derive data using scrypt, underlying error: '${underlyingErrorMessage}'`,
 			)
