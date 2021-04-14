@@ -510,7 +510,7 @@ export const deterministicRandomUnstakesForAddress = (
 					]),
 				)
 
-				const withdrawalTxID = TransactionIdentifier.create(
+				const withdrawTxID = TransactionIdentifier.create(
 					txIDBuffer,
 				)._unsafeUnwrap()
 
@@ -518,7 +518,7 @@ export const deterministicRandomUnstakesForAddress = (
 					amount,
 					validator,
 					epochsUntil: anInt() % 100,
-					withdrawalTxID,
+					withdrawTxID,
 				}
 			},
 		)

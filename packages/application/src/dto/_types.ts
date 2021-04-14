@@ -21,7 +21,7 @@ export type StakePosition = Readonly<{
 export type UnstakePosition = Readonly<{
 	validator: AddressT
 	amount: AmountT
-	withdrawalTxID: TransactionIdentifierT
+	withdrawTxID: TransactionIdentifierT
 	epochsUntil: number
 }>
 

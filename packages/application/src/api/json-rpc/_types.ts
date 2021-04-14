@@ -113,12 +113,12 @@ export namespace StakePositionsEndpoint {
 	export type DecodedResponse = StakePositions
 }
 
-export namespace UnstakesEndpoint {
+export namespace UnstakePositionsEndpoint {
 	export type Input = [address: string]
 
 	export type Response = {
-		validator: string
 		amount: string
+		validator: string
 		epochsUntil: number
 		withdrawTxID: string
 	}[]

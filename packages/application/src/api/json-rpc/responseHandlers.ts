@@ -19,7 +19,7 @@ import {
 	TokenInfoEndpoint,
 	TransactionHistoryEndpoint,
 	TransactionStatusEndpoint,
-	UnstakesEndpoint,
+	UnstakePositionsEndpoint,
 	ValidatorsEndpoint,
 } from './_types'
 import { TransactionIdentifier } from '../../dto/transactionIdentifier'
@@ -161,7 +161,8 @@ export const handleStakesResponse = JSONDecoding.withDecoders(
 export const handleUnstakesResponse = JSONDecoding.withDecoders(
 	addressDecoder('validator'),
 	amountDecoder('amount'),
-).create<UnstakesEndpoint.Response, UnstakesEndpoint.DecodedResponse>()
+	transactionIdentifierDecoder('withdrawTxID')
+).create<UnstakePositionsEndpoint.Response, UnstakePositionsEndpoint.DecodedResponse>()
 
 export const handleTransactionStatusResponse = (
 	json: TransactionStatusEndpoint.Response,

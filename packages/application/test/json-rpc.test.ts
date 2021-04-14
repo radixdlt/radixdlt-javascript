@@ -12,6 +12,7 @@ import {
 	TokenInfoEndpoint,
 	TransactionHistoryEndpoint,
 	TransactionStatusEndpoint,
+	UnstakePositionsEndpoint
 } from '../src/api/json-rpc/_types'
 import { ResourceIdentifier } from '../src/dto/resourceIdentifier'
 import { Amount, magicFromNumber } from '@radixdlt/primitives'
@@ -29,6 +30,7 @@ import {
 	RawTransferAction,
 	TokenPermission,
 	TransactionStatus,
+	UnstakePosition,
 } from '../src/dto/_types'
 import { makeTokenPermissions } from '../src/dto/tokenPermissions'
 import { Radix } from '../src/radix'
@@ -64,11 +66,11 @@ jest.mock('@open-rpc/client-js', () => ({
 const rpcSpec: OpenrpcDocument = process['rpcSpec']
 
 const expectedDecodedResponses = {
-	[rpcSpec.methods[0].name]: (response: NetworkIdEndpoint.Response) => (<NetworkIdEndpoint.DecodedResponse>{
+	[rpcSpec.methods[0].name]: (response: NetworkIdEndpoint.Response): NetworkIdEndpoint.DecodedResponse => ({
 		networkId: magicFromNumber(response.networkId),
 	}),
 
-	[rpcSpec.methods[1].name]: (response: NativeTokenEndpoint.Response) => (<NativeTokenEndpoint.DecodedResponse>{
+	[rpcSpec.methods[1].name]: (response: NativeTokenEndpoint.Response): NativeTokenEndpoint.DecodedResponse => ({
 		name: response.name,
 		rri: ResourceIdentifier.fromString(response.rri)._unsafeUnwrap(),
 		symbol: response.symbol,
@@ -85,7 +87,7 @@ const expectedDecodedResponses = {
 		tokenPermission: makeTokenPermissions(response.tokenPermission)
 	}),
 
-	[rpcSpec.methods[2].name]: (response: TokenInfoEndpoint.Response) => (<TokenInfoEndpoint.DecodedResponse>{
+	[rpcSpec.methods[2].name]: (response: TokenInfoEndpoint.Response): TokenInfoEndpoint.DecodedResponse => ({
 		name: response.name,
 		rri: ResourceIdentifier.fromString(response.rri)._unsafeUnwrap(),
 		symbol: response.symbol,
@@ -102,7 +104,7 @@ const expectedDecodedResponses = {
 		tokenPermission: makeTokenPermissions(response.tokenPermission)
 	}),
 
-	[rpcSpec.methods[3].name]: (response: TokenBalancesEndpoint.Response) => (<TokenBalancesEndpoint.DecodedResponse>{
+	[rpcSpec.methods[3].name]: (response: TokenBalancesEndpoint.Response): TokenBalancesEndpoint.DecodedResponse => ({
 		owner: alice,
 		tokenBalances: [
 			{
@@ -116,7 +118,7 @@ const expectedDecodedResponses = {
 		],
 	}),
 
-	[rpcSpec.methods[4].name]: (response: TransactionHistoryEndpoint.Response) => (<TransactionHistoryEndpoint.DecodedResponse>{
+	[rpcSpec.methods[4].name]: (response: TransactionHistoryEndpoint.Response): TransactionHistoryEndpoint.DecodedResponse => ({
 		cursor: response.cursor,
 		transactions: [
 			{
@@ -144,7 +146,7 @@ const expectedDecodedResponses = {
 		]
 	}),
 
-	[rpcSpec.methods[5].name]: (response: LookupTransactionEndpoint.Response) => (<LookupTransactionEndpoint.DecodedResponse>{
+	[rpcSpec.methods[5].name]: (response: LookupTransactionEndpoint.Response): LookupTransactionEndpoint.DecodedResponse => ({
 		txID: TransactionIdentifier.create(response.txID)._unsafeUnwrap(),
 		sentAt: new Date(response.sentAt),
 		fee: Amount.fromUnsafe(response.fee)._unsafeUnwrap(),
@@ -167,10 +169,19 @@ const expectedDecodedResponses = {
 		)
 	}),
 
-	[rpcSpec.methods[6].name]: (response: StakePositionsEndpoint.Response) => (<StakePositionsEndpoint.DecodedResponse>[
+	[rpcSpec.methods[6].name]: (response: StakePositionsEndpoint.Response): StakePositionsEndpoint.DecodedResponse => ([
 		{
 			validator: Address.fromUnsafe(response[0].validator)._unsafeUnwrap(),
 			amount: Amount.fromUnsafe(response[0].amount)._unsafeUnwrap()
+		}
+	]),
+
+	[rpcSpec.methods[7].name]: (response: UnstakePositionsEndpoint.Response): UnstakePositionsEndpoint.DecodedResponse => ([
+		{
+			amount: Amount.fromUnsafe(response[0].amount)._unsafeUnwrap(),
+			validator: Address.fromUnsafe(response[0].validator)._unsafeUnwrap(),
+			epochsUntil: response[0].epochsUntil,
+			withdrawTxID: TransactionIdentifier.create(response[0].withdrawTxID)._unsafeUnwrap(),
 		}
 	])
 }

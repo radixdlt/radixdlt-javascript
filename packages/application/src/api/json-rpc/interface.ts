@@ -32,7 +32,7 @@ import {
 	TokenInfoEndpoint,
 	TransactionHistoryEndpoint,
 	TransactionStatusEndpoint,
-	UnstakesEndpoint,
+	UnstakePositionsEndpoint,
 	ValidatorsEndpoint,
 } from './_types'
 
@@ -105,8 +105,8 @@ export const getAPI = (
 		>(handleStakesResponse)('radix.stakePositions'),
 
 		[ApiMethod.UNSTAKES]: setupAPIResponse<
-			UnstakesEndpoint.Input,
-			UnstakesEndpoint.DecodedResponse
+			UnstakePositionsEndpoint.Input,
+			UnstakePositionsEndpoint.DecodedResponse
 		>(handleUnstakesResponse)('radix.stakePositions'),
 
 		[ApiMethod.TX_STATUS]: setupAPIResponse<
