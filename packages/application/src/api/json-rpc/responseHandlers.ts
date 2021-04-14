@@ -143,7 +143,9 @@ export const handleTokenBalancesResponse = (json: TokenBalancesEndpoint.Response
 )(json)
 
 export const handleValidatorsResponse = JSONDecoding.withDecoders(
-	addressDecoder('owner'),
+	addressDecoder('address', 'ownerAddress'),
+	URLDecoder('infoURL'),
+	amountDecoder('totalDelegatedStake', 'ownerDelegation')
 ).create<ValidatorsEndpoint.Response, ValidatorsEndpoint.DecodedResponse>()
 
 export const handleTokenInfoResponse = JSONDecoding.withDecoders(

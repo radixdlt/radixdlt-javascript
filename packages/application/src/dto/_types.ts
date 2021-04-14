@@ -316,7 +316,10 @@ export type Validator = Readonly<{
 	isExternalStakeAccepted: boolean
 }>
 
-export type Validators = Validator[]
+export type Validators = Readonly<{
+	cursor: string,
+	validators: Validator[]
+}>
 
 export type RawExecutedTransaction = Readonly<{
 	txID: string

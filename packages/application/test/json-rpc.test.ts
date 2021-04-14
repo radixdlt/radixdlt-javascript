@@ -12,7 +12,8 @@ import {
 	TokenInfoEndpoint,
 	TransactionHistoryEndpoint,
 	TransactionStatusEndpoint,
-	UnstakePositionsEndpoint
+	UnstakePositionsEndpoint,
+	ValidatorsEndpoint
 } from '../src/api/json-rpc/_types'
 import { ResourceIdentifier } from '../src/dto/resourceIdentifier'
 import { Amount, magicFromNumber } from '@radixdlt/primitives'
@@ -169,21 +170,21 @@ const expectedDecodedResponses = {
 		)
 	}),
 
-	[rpcSpec.methods[6].name]: (response: StakePositionsEndpoint.Response): StakePositionsEndpoint.DecodedResponse => ([
+	[rpcSpec.methods[6].name]: (response: StakePositionsEndpoint.Response): StakePositionsEndpoint.DecodedResponse => [
 		{
 			validator: Address.fromUnsafe(response[0].validator)._unsafeUnwrap(),
 			amount: Amount.fromUnsafe(response[0].amount)._unsafeUnwrap()
 		}
-	]),
+	],
 
-	[rpcSpec.methods[7].name]: (response: UnstakePositionsEndpoint.Response): UnstakePositionsEndpoint.DecodedResponse => ([
+	[rpcSpec.methods[7].name]: (response: UnstakePositionsEndpoint.Response): UnstakePositionsEndpoint.DecodedResponse => [
 		{
 			amount: Amount.fromUnsafe(response[0].amount)._unsafeUnwrap(),
 			validator: Address.fromUnsafe(response[0].validator)._unsafeUnwrap(),
 			epochsUntil: response[0].epochsUntil,
 			withdrawTxID: TransactionIdentifier.create(response[0].withdrawTxID)._unsafeUnwrap(),
 		}
-	]),
+	],
 
 	[rpcSpec.methods[8].name]: (response: TransactionStatusEndpoint.Response): TransactionStatusEndpoint.DecodedResponse => ({
 		txID: TransactionIdentifier.create(response.txID)._unsafeUnwrap(),
@@ -197,6 +198,21 @@ const expectedDecodedResponses = {
 	[rpcSpec.methods[10].name]: (response: NetworkTransactionDemandEndpoint.Response): NetworkTransactionDemandEndpoint.DecodedResponse => ({
 		tps: response.tps
 	}),
+
+	[rpcSpec.methods[11].name]: (response: ValidatorsEndpoint.Response): ValidatorsEndpoint.DecodedResponse => ({
+		cursor: response.cursor,
+		validators: [
+			{
+				address: Address.fromUnsafe(response.validators[0].address)._unsafeUnwrap(),
+				ownerAddress: Address.fromUnsafe(response.validators[0].ownerAddress)._unsafeUnwrap(),
+				name: response.validators[0].name,
+				infoURL: new URL(response.validators[0].infoURL),
+				totalDelegatedStake: Amount.fromUnsafe(response.validators[0].totalDelegatedStake)._unsafeUnwrap(),
+				ownerDelegation: Amount.fromUnsafe(response.validators[0].ownerDelegation)._unsafeUnwrap(),
+				isExternalStakeAccepted: response.validators[0].isExternalStakeAccepted
+			}
+		]
+	})
 }
 
 const client = nodeAPI(new URL('http://xyz'))

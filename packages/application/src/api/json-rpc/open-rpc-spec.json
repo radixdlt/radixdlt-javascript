@@ -552,47 +552,83 @@
             "result": {
                 "name": "validatorsResponse",
                 "schema": {
-                    "type": "array",
-                    "items": [
-                        {
-                            "type": "object",
-                            "properties": {
-                                "address": {
-                                    "$ref": "#/components/schemas/address"
-                                },
-                                "ownerAddress": {
-                                    "$ref": "#/components/schemas/address"
-                                },
-                                "name": {
-                                    "type": "string"
-                                },
-                                "infoURL": {
-                                    "$ref": "#/components/schemas/url"
-                                },
-                                "totalDelegatedStake": {
-                                    "$ref": "#/components/schemas/amount"
-                                },
-                                "ownerDelegation": {
-                                    "$ref": "#/components/schemas/amount"
-                                },
-                                "isExternalStakeAccepted": {
-                                    "type": "boolean"
+                    "type": "object",
+                    "properties": {
+                        "cursor": {
+                            "type": "string"
+                        },
+                        "validators": {
+                            "type": "array",
+                            "items": [
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "address": {
+                                            "$ref": "#/components/schemas/address"
+                                        },
+                                        "ownerAddress": {
+                                            "$ref": "#/components/schemas/address"
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        },
+                                        "infoURL": {
+                                            "$ref": "#/components/schemas/url"
+                                        },
+                                        "totalDelegatedStake": {
+                                            "$ref": "#/components/schemas/amount"
+                                        },
+                                        "ownerDelegation": {
+                                            "$ref": "#/components/schemas/amount"
+                                        },
+                                        "isExternalStakeAccepted": {
+                                            "type": "boolean"
+                                        }
+                                    },
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "address",
+                                        "ownerAddress",
+                                        "name",
+                                        "infoURL",
+                                        "totalDelegatedStake",
+                                        "ownerDelegation",
+                                        "isExternalStakeAccepted"
+                                    ]
                                 }
-                            },
-                            "additionalProperties": false,
-                            "required": [
-                                "address",
-                                "ownerAddress",
-                                "name",
-                                "infoURL",
-                                "totalDelegatedStake",
-                                "ownerDelegation",
-                                "isExternalStakeAccepted"
                             ]
                         }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                        "cursor",
+                        "validators"
                     ]
                 }
-            }
+            },
+            "examples": [
+                {
+                    "name": "validatorsExamples",
+                    "params": [],
+                    "result": {
+                        "name": "validatorsExample",
+                        "value": {
+                            "cursor": "cursor",
+                            "validators": [
+                                {
+                                    "address": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                    "ownerAddress": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                    "name": "Cerby",
+                                    "infoURL": "http://www.radixdlt.com",
+                                    "totalDelegatedStake": "100",
+                                    "ownerDelegation": "100",
+                                    "isExternalStakeAccepted": true
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
         },
         {
             "name": "buildTransaction",
