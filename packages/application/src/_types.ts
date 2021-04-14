@@ -3,6 +3,7 @@ import {
 	AccountT,
 	AddressT,
 	DeriveNextAccountInput,
+	MnemomicT,
 	SwitchAccountInput,
 	WalletT,
 } from '@radixdlt/account'
@@ -72,6 +73,7 @@ export type RadixT = Readonly<{
 	// Wallet APIs
 	deriveNextAccount: (input?: DeriveNextAccountInput) => RadixT
 	switchAccount: (input: SwitchAccountInput) => RadixT
+	revealMnemonic: () => Observable<MnemomicT>
 
 	activeAddress: Observable<AddressT>
 	activeAccount: Observable<AccountT>

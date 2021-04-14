@@ -17,22 +17,22 @@ import { HDPathRadix, HDPathRadixT } from './bip32/_index'
 import { isAccount } from './account'
 import { Int32 } from './bip32/_types'
 import { arraysEqual } from '@radixdlt/util'
-import { HDMasterSeedT, MnemomicT } from './bip39/_types'
+import { MnemomicT } from './bip39/_types'
 import { Magic } from '@radixdlt/primitives'
 import { Address } from './address'
 import { ResultAsync } from 'neverthrow'
 import { HDMasterSeed } from './bip39/hdMasterSeed'
 import { log } from '@radixdlt/util'
+import { Mnemonic } from './bip39/mnemonic'
 
-// eslint-disable-next-line max-lines-per-function
 const create = (
 	input: Readonly<{
-		masterSeed: HDMasterSeedT
+		mnemonic: MnemomicT
+		password: string
 	}>,
 ): WalletT => {
-	// Even locally in memory we don't save the `masterSeed`, we just save
-	// a reference to the derivation function.
-	const hdNodeDeriverWithBip32Path = input.masterSeed.masterNode().derive
+	const masterSeed = HDMasterSeed.fromMnemonic({ mnemonic: input.mnemonic })
+	const hdNodeDeriverWithBip32Path = masterSeed.masterNode().derive
 
 	const subs = new Subscription()
 
@@ -41,6 +41,9 @@ const create = (
 	const accountsSubject = new BehaviorSubject<Map<HDPathRadixT, AccountT>>(
 		new Map(),
 	)
+
+	const revealMnemonic = (): MnemomicT => input.mnemonic
+
 	const numberOfAccounts = (): number => accountsSubject.getValue().size
 
 	const universeMagicSubject = new ReplaySubject<Magic>()
@@ -182,6 +185,7 @@ const create = (
 	)
 
 	return {
+		revealMnemonic,
 		// should only be used for testing
 		__unsafeGetAccount: (): AccountT => {
 			const accounts = accountsSubject.getValue()
@@ -241,11 +245,12 @@ const fromKeystore = (
 	}>,
 ): ResultAsync<WalletT, Error> =>
 	Keystore.decrypt(input)
-		.map(HDMasterSeed.fromSeed)
-		.map((m: HDMasterSeedT) => ({ masterSeed: m }))
+		.map((entropy) => ({ entropy }))
+		.andThen(Mnemonic.fromEntropy)
+		.map((mnemonic) => ({ mnemonic, password: input.password }))
 		.map(create)
 
-const byEncryptingSeedOfMnemonicAndSavingKeystore = (
+const byEncryptingMnemonicAndSavingKeystore = (
 	input: Readonly<{
 		mnemonic: MnemomicT
 		password: string
@@ -253,7 +258,6 @@ const byEncryptingSeedOfMnemonicAndSavingKeystore = (
 	}>,
 ): ResultAsync<WalletT, Error> => {
 	const { mnemonic, password } = input
-	const masterSeed = HDMasterSeed.fromMnemonic({ mnemonic })
 
 	const save = (keystoreToSave: KeystoreT): ResultAsync<KeystoreT, Error> =>
 		ResultAsync.fromPromise(input.save(keystoreToSave), (e: unknown) => {
@@ -271,7 +275,7 @@ const byEncryptingSeedOfMnemonicAndSavingKeystore = (
 		})
 
 	return Keystore.encryptSecret({
-		secret: masterSeed.seed,
+		secret: mnemonic.entropy,
 		password,
 	})
 		.andThen(save)
@@ -283,5 +287,5 @@ export const Wallet = {
 	create,
 	fromKeystore,
 	byLoadingAndDecryptingKeystore,
-	byEncryptingSeedOfMnemonicAndSavingKeystore,
+	byEncryptingMnemonicAndSavingKeystore,
 }

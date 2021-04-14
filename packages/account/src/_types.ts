@@ -10,6 +10,7 @@ import { BIP32T } from './bip32/_types'
 import { Option } from 'prelude-ts'
 import { HDPathRadixT } from './bip32/_index'
 import { Magic } from '@radixdlt/primitives'
+import { MnemomicT } from './bip39/_types'
 
 export type AddressT = Readonly<{
 	publicKey: PublicKey
@@ -102,6 +103,8 @@ export type WalletT = PublicKeyDeriving &
 	Readonly<{
 		// should only be used for testing
 		__unsafeGetAccount: () => AccountT
+
+		revealMnemonic: () => MnemomicT
 
 		// Call this once you can provide an observable providing magic.
 		provideNetworkId: (magic: Observable<Magic>) => void
