@@ -7,12 +7,12 @@ import {
 	wordlists,
 } from 'bip39'
 import {
+	log,
 	buffersEquals,
 	SecureRandom,
 	secureRandomGenerator,
 	ValidationWitness,
 } from '@radixdlt/util'
-import { log } from '@radixdlt/util/dist/logging'
 
 export const wordlistFromLanguage = (language: LanguageT): string[] => {
 	const key = LanguageT[language].toLowerCase()
@@ -103,11 +103,12 @@ const create = (input: MnemonicProps): Result<MnemomicT, Error> => {
 
 				for (const word of input.words) {
 					if (!wordlist.includes(word)) {
-						return err(
-							new Error(
-								`Mismatch between 'words' and 'language' (the word '${word}' was not found in word list for language '${languageName}')`,
-							),
+						const errMsg = `Mismatch between 'words' and 'language'`
+						log.error(errMsg)
+						log.debug(
+							`The word '${word}' was not found in mnemonic word list for language '${languageName}'`,
 						)
+						return err(new Error(errMsg))
 					}
 				}
 
@@ -122,6 +123,10 @@ const create = (input: MnemonicProps): Result<MnemomicT, Error> => {
 					buffersEquals(input.entropy, other.entropy),
 			}),
 		)
+		.map((mnemonic) => {
+			log.debug(`Successfully created mnemonic.`)
+			return mnemonic
+		})
 }
 
 const fromEntropyAndMaybeStrength = (
@@ -136,7 +141,7 @@ const fromEntropyAndMaybeStrength = (
 	const phrase = entropyToMnemonic(input.entropy, wordlist)
 	if (!validateMnemonic(phrase, wordlist))
 		throw new Error(
-			'Incorrect impl, should be able to always generate valid mnemonic',
+			'Incorrect implementation, should be able to always generate valid mnemonic',
 		)
 
 	const normalizedPhrase = phrase.normalize('NFKD')
@@ -204,7 +209,9 @@ const fromPhraseInLanguage = (
 			(e as ErrorType).message !== undefined &&
 			(e as ErrorType).message === 'Invalid mnemonic checksum'
 		) {
-			return err(new Error('Invalid mnemonic, it is not checksummed.'))
+			const notChecksummedErr = 'Invalid mnemonic, it is not checksummed.'
+			log.error(notChecksummedErr)
+			return err(new Error(notChecksummedErr))
 		}
 		return err(e)
 	}

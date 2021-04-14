@@ -2,7 +2,8 @@ import {
 	AccountsT,
 	AccountT,
 	AddressT,
-	DeriveNextAccountInput, MnemomicT,
+	DeriveNextAccountInput,
+	MnemomicT,
 	SwitchAccountInput,
 	WalletT,
 } from '@radixdlt/account'

@@ -212,9 +212,11 @@ const create = (): RadixT => {
 
 	const revealMnemonic = (): Observable<MnemomicT> =>
 		wallet$.pipe(
-			map((wallet: WalletT): MnemomicT  => {
-				return wallet.revealMnemonic()
-			}),
+			map(
+				(wallet: WalletT): MnemomicT => {
+					return wallet.revealMnemonic()
+				},
+			),
 		)
 
 	const activeAddressToAPIObservableWithTrigger = <O>(

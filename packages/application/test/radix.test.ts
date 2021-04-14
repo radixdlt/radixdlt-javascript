@@ -41,10 +41,11 @@ import { AmountT } from '@radixdlt/primitives'
 import { signatureFromHexStrings } from '@radixdlt/crypto/test/ellipticCurveCryptography.test'
 import { TransactionIntentBuilder } from '../src/dto/transactionIntentBuilder'
 import { TransactionTrackingEventType } from '../src/dto/_types'
-import { LogLevel } from '@radixdlt/util'
+import { LogLevel, restoreDefaultLogLevel } from '@radixdlt/util'
 import { TransferTokensInput } from '../src/actions/_types'
 import { TransferTokensOptions } from '../src/_types'
 import { APIError } from '../src/errors'
+import { log } from '@radixdlt/util/dist/logging'
 
 const createWallet = (): WalletT => {
 	const mnemonic = Mnemonic.fromEnglishPhrase(
@@ -68,7 +69,8 @@ export type KeystoreForTest = {
 
 export const keystoreForTest: KeystoreForTest = {
 	password: 'my super strong passaword',
-	expectedMnemonicPhrase: 'legal winner thank year wave sausage worth useful legal winner thank yellow',
+	expectedMnemonicPhrase:
+		'legal winner thank year wave sausage worth useful legal winner thank yellow',
 	expectedSecret: '7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f',
 	keystore: {
 		crypto: {
@@ -107,6 +109,7 @@ export const keystoreForTest: KeystoreForTest = {
 }
 
 describe('Radix API', () => {
+	
 	it('can load test keystore', async (done) => {
 		// keystoreForTest
 		await Wallet.byLoadingAndDecryptingKeystore({
@@ -310,19 +313,28 @@ describe('Radix API', () => {
 	})
 
 	it('radix can reveal mnemonic', (done) => {
-
 		const subs = new Subscription()
 
 		const radix = Radix.create()
 
-		radix.revealMnemonic().subscribe(m => {
-			expect(m.phrase).toBe(keystoreForTest.expectedMnemonicPhrase)
-			done()
-			},
-			(e) => { done(e)
-		}).add(subs)
+		radix
+			.revealMnemonic()
+			.subscribe(
+				(m) => {
+					expect(m.phrase).toBe(
+						keystoreForTest.expectedMnemonicPhrase,
+					)
+					done()
+				},
+				(e) => {
+					done(e)
+				},
+			)
+			.add(subs)
 
-		radix.login(keystoreForTest.password, () => Promise.resolve(keystoreForTest.keystore))
+		radix.login(keystoreForTest.password, () =>
+			Promise.resolve(keystoreForTest.keystore),
+		)
 	})
 
 	it('should handle wallet error', (done) => {

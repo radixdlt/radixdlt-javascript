@@ -1,7 +1,7 @@
 import { err, ResultAsync, ok, Result } from 'neverthrow'
 import { KeystoreCryptoT, KeystoreT } from './_types'
 import { AES_GCM } from '../symmetric-encryption/aes/aesGCM'
-import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
+import { SecureRandom, secureRandomGenerator, log } from '@radixdlt/util'
 import { ScryptParamsT } from '../key-derivation-functions/_types'
 import { Scrypt, ScryptParams } from '../key-derivation-functions/scrypt'
 import { AES_GCM_SealedBox } from '../symmetric-encryption/aes/aesGCMSealedBox'
@@ -18,7 +18,7 @@ const encryptSecret = (
 	input: Readonly<{
 		secret: Buffer
 		password: string
-		memo?: string
+		memo?: string // e.g. 'Business wallet' or 'My husbands wallet' etc.
 		kdf?: string
 		kdfParams?: ScryptParamsT
 		secureRandom?: SecureRandom
@@ -28,6 +28,7 @@ const encryptSecret = (
 
 	const kdf = input.kdf ?? 'scrypt'
 	const params = input.kdfParams ?? ScryptParams.create({ secureRandom })
+	const memo = input.memo ?? Date.now().toLocaleString()
 
 	return validatePassword(input.password)
 		.map((p) => ({ kdf, params, password: Buffer.from(p) }))
@@ -35,24 +36,19 @@ const encryptSecret = (
 		.map((derivedKey) => ({
 			plaintext: input.secret,
 			symmetricKey: derivedKey,
-			additionalAuthenticationData: input.memo
-				? Buffer.from(input.memo)
-				: undefined,
 		}))
 		.andThen((inp) => AES_GCM.seal(inp))
 		.map((sealedBox) => {
 			const cipherText = sealedBox.ciphertext
 			const mac = sealedBox.authTag
-			if (sealedBox.nonce.toString('hex') === params.salt) {
-				throw new Error(
-					'incorrect impl, salt and nonce should not equal',
-				)
-			}
 
 			const id = sha256(cipherText).toString('hex').slice(-16)
 
+			log.debug(
+				`Created Keystore with id='${id}' and memo='${memo}' (non of these are sensisitve).`,
+			)
 			return {
-				memo: input.memo,
+				memo,
 				crypto: {
 					cipher: AES_GCM.algorithm,
 					cipherparams: {
@@ -85,25 +81,31 @@ const decrypt = (
 		authTag: Buffer.from(keystore.crypto.mac, 'hex'),
 		ciphertext: encryptedPrivateKey,
 	}).asyncAndThen((aesSealBox: AES_GCM_SealedBoxT) => {
-		const additionalAuthenticationData: Buffer | undefined = keystore.memo
-			? Buffer.from(keystore.memo)
-			: undefined
-
 		const aesOpenInput: Omit<AES_GCM_OPEN_Input, 'symmetricKey'> = {
 			...aesSealBox,
-			additionalAuthenticationData,
 		}
 
 		return validatePassword(password)
 			.map((p: string) => ({ kdf, params, password: Buffer.from(p) }))
 			.asyncAndThen((inp) => Scrypt.deriveKey(inp))
 			.map(
-				(derivedKey: Buffer): AES_GCM_OPEN_Input => ({
-					...aesOpenInput,
-					symmetricKey: derivedKey,
-				}),
+				(derivedKey: Buffer): AES_GCM_OPEN_Input => {
+					log.trace(
+						`[Decrypting Keystore] successfully derived key using KDF ('${keystore.crypto.kdf}')`,
+					)
+					return {
+						...aesOpenInput,
+						symmetricKey: derivedKey,
+					}
+				},
 			)
 			.andThen((inp) => AES_GCM.open(inp))
+			.map((decrypted) => {
+				log.debug(
+					`Successfully decrypted Keystore with id='${keystore.id}'`,
+				)
+				return decrypted
+			})
 	})
 }
 
@@ -112,9 +114,13 @@ const fromBuffer = (keystoreBuffer: Buffer): Result<KeystoreT, Error> => {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
 		const keystore = JSON.parse(keystoreBuffer.toString())
 		if (isKeystore(keystore)) return ok(keystore)
-		return err(new Error('Parse object, but is not a keystore'))
-	} catch {
-		return err(new Error('Failed to parse keystore from JSON data'))
+		const errMsg = 'Parse object, but is not a keystore'
+		log.error(errMsg)
+		return err(new Error(errMsg))
+	} catch (e) {
+		const errMsg = `Failed to parse keystore from JSON data, underlying error: ${e}`
+		log.error(errMsg)
+		return err(new Error(errMsg))
 	}
 }
 

@@ -7,6 +7,7 @@ import {
 } from '../src/bip39/mnemonic'
 import { LanguageT, StrengthT } from '../src/bip39/_types'
 import { HDMasterSeed } from '../src/bip39/hdMasterSeed'
+import { log, restoreDefaultLogLevel } from '@radixdlt/util'
 
 describe('bip39', () => {
 	it('default strength is 12 words', () => {
@@ -50,20 +51,29 @@ describe('bip39', () => {
 			wordFromLastWordlist = someWord
 		})
 	})
+	describe('failing scenarios', () => {
+		beforeAll(() => {
+			log.setLevel('SILENT')
+		})
 
-	it('words must be checksummed', (done) => {
-		const abandonOnly = Array(12).fill('abandon') // last word should be e.g. 'about' to be checksummed.
-		Mnemonic.fromEnglishWords(abandonOnly).match(
-			(_) => {
-				done(new Error('Expected error'))
-			},
-			(error) => {
-				expect(error.message).toBe(
-					'Invalid mnemonic, it is not checksummed.',
-				)
-				done()
-			},
-		)
+		afterAll(() => {
+			restoreDefaultLogLevel()
+		})
+
+		it('words must be checksummed', (done) => {
+			const abandonOnly = Array(12).fill('abandon') // last word should be e.g. 'about' to be checksummed.
+			Mnemonic.fromEnglishWords(abandonOnly).match(
+				(_) => {
+					done(new Error('Expected error'))
+				},
+				(error) => {
+					expect(error.message).toBe(
+						'Invalid mnemonic, it is not checksummed.',
+					)
+					done()
+				},
+			)
+		})
 	})
 
 	it('from entropy results in expected phrase', () => {
