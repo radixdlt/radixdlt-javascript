@@ -59,12 +59,11 @@ export namespace TokenBalancesEndpoint {
 
 	export type Response = {
 		owner: string
-		tokenBalances: [
-			{
-				token: string
-				amount: string
-			},
-		]
+		tokenBalances:
+		{
+			rri: string
+			amount: string
+		}[]
 	}
 
 	export type DecodedResponse = SimpleTokenBalances
@@ -187,15 +186,15 @@ export namespace BuildTransactionEndpoint {
 
 	export type Response =
 		| {
-				transaction: Readonly<{
-					blob: string
-					hashOfBlobToSign: string
-				}>
-				fee: string
-		  }
+			transaction: Readonly<{
+				blob: string
+				hashOfBlobToSign: string
+			}>
+			fee: string
+		}
 		| {
-				failure: string
-		  }
+			failure: string
+		}
 
 	export type DecodedResponse = BuiltTransaction
 }
@@ -211,11 +210,11 @@ export namespace SubmitSignedTransactionEndpoint {
 
 	export type Response =
 		| {
-				txID: string
-		  }
+			txID: string
+		}
 		| {
-				failure: string
-		  }
+			failure: string
+		}
 
 	export type DecodedResponse = SubmittedTransaction
 }
@@ -232,11 +231,11 @@ export namespace FinalizeTransactionEndpoint {
 
 	export type Response =
 		| {
-				txID: string
-		  }
+			txID: string
+		}
 		| {
-				failure: string
-		  }
+			failure: string
+		}
 
 	export type DecodedResponse = PendingTransaction
 }

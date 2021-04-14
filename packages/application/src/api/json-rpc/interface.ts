@@ -55,7 +55,7 @@ const callAPI = <Params extends unknown[], DecodedResponse>(
 const setupAPICall = (
 	call: (endpoint: Endpoint, ...params: unknown[]) => Promise<unknown>,
 ) => <I extends unknown[], R>(
-	handleResponse: (response: unknown) => Result<R, Error[]>,
+	handleResponse: (response: any) => Result<R, Error[]>,
 ) => (endpoint: Endpoint) => callAPI<I, R>(endpoint)(call, handleResponse)
 
 export const getAPI = (

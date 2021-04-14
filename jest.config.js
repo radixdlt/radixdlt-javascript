@@ -33,6 +33,7 @@ const config = {
 		'jest-watch-typeahead/testname',
 	],
 	modulePathIgnorePatterns: [],
+	globalSetup: './packages/application/test/_load-rpc-spec.ts',
 }
 
 module.exports = config

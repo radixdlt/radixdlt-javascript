@@ -97,7 +97,25 @@
                     ],
                     "additionalProperties": false
                 }
-            }
+            },
+            "examples": [
+                {
+                    "name": "tokenBalancesExamples",
+                    "params": [],
+                    "result": {
+                        "name": "tokenBalancesExample",
+                        "value": {
+                            "owner": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                            "tokenBalances": [
+                                {
+                                    "rri": "/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD",
+                                    "amount": "100"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
         },
         {
             "name": "transactionHistory",
@@ -513,7 +531,7 @@
             "result": {
                 "name": "submissionResult",
                 "schema": {
-                    "anyOf":[
+                    "anyOf": [
                         {
                             "type": "object",
                             "properties": {
@@ -587,7 +605,7 @@
             "result": {
                 "name": "submissionResult",
                 "schema": {
-                    "anyOf":[
+                    "anyOf": [
                         {
                             "type": "object",
                             "properties": {
@@ -787,7 +805,7 @@
             },
             "rri": {
                 "type": "string",
-                "pattern": "^.+\/.+\/.+$"
+                "pattern": "^\/[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{52}\/.+$"
             },
             "url": {
                 "type": "string",
