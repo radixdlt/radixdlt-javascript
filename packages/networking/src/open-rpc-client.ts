@@ -19,7 +19,7 @@ export const RPCClient: Client = (url: URL): Transport => {
 		const response:
 			| Record<string, unknown>
 			| unknown[] = await client.request({ method: endpoint, params })
-		log.trace(`Response from call: ${JSON.stringify(response, null, 2)}`)
+		log.verbose(`Response from call: ${JSON.stringify(response, null, 2)}`)
 		return response
 	}
 

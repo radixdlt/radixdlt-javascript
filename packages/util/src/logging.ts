@@ -1,186 +1,263 @@
-// import log from 'loglevel'
-import chalk, { Chalk } from 'chalk'
-// import prefix from 'loglevel-plugin-prefix'
 import winston from 'winston'
 import {
 	AbstractConfigSetColors,
-	SyslogConfigSetColors,
-	SyslogConfigSetLevels,
+	AbstractConfigSetLevels,
 } from 'winston/lib/winston/config'
-import * as Config from 'winston/lib/winston/config'
+import * as Transport from 'winston-transport'
+const { format, createLogger } = winston
+const { combine, timestamp, json, colorize, simple, printf } = format
 
-// export enum LogLevel {
-// 	SILENT = 'silent',
-// 	TRACE = 'trace',
-// 	DEBUG = 'debug',
-// 	INFO = 'info',
-// 	WARN = 'warn',
-// 	ERROR = 'error',
-// }
-//
-// const defaultLogLevel = LogLevel.WARN
-//
-// const restoreDefaultLogLevel = (): void => {
-// 	log.setLevel(defaultLogLevel)
-// }
+type FontStyle =
+	| 'bold'
+	| 'dim'
+	| 'italic'
+	| 'underline'
+	| 'inverse'
+	| 'hidden'
+	| 'strikethrough'
+type ForegroundColor =
+	| 'black'
+	| 'red'
+	| 'green'
+	| 'yellow'
+	| 'blue'
+	| 'magenta'
+	| 'cyan'
+	| 'white'
+	| 'gray'
+type BackgroundColor =
+	| 'blackBG'
+	| 'redBG'
+	| 'greenBG'
+	| 'yellowBG'
+	| 'blueBG'
+	| 'magentaBG'
+	| 'cyanBG'
+	| 'whiteBG'
+	| 'grayBG'
 
-// restoreDefaultLogLevel()
-
-type RadixExtraLogLevels = Readonly<{
-	verbose: unknown
-	dev: unknown
+type LogLevelInfo = Readonly<{
+	foregroundColor: ForegroundColor
+	fontStyle?: FontStyle
+	backgroundColor?: BackgroundColor
+	emoji: string
+	priority: number
+	purpose: string
 }>
+
+type RadixLogLevel =
+	| 'emerg'
+	| 'alert'
+	| 'crit'
+	| 'error'
+	| 'warning'
+	| 'notice'
+	| 'info'
+	| 'debug'
+	| 'verbose'
+	| 'dev'
+	| 'silent'
 
 // Inspired by RFC 5424: https://tools.ietf.org/html/rfc5424#section-6.2.1
-// eslint-disable-next-line functional/prefer-type-literal
-type RadixLogLevels = RadixExtraLogLevels &
-	SyslogConfigSetLevels &
-	Readonly<{
-		// // system is unusable
-		// emergency: 0,
-		//
-		// // action must be taken immediately
-		// alert: 1,
-		//
-		// // critical conditions
-		// critical: 2,
-		//
-		// // error conditions
-		// error: 3,
-		//
-		// // warning conditions
-		// warn: 4,
-		//
-		// // normal but significant condition
-		// notice: 5,
-		//
-		// // informational messages
-		// info: 6,
-		//
-		// // debug-level messages
-		// debug: 7,
-
-		// useful for following a flow of events
-		verbose: number //8,
-
-		// used by developer during development
-		dev: number //9,
-	}>
-
-type LogLevelOrnament = Readonly<{
-	color: chalk.Chalk
-	emoji: string
-}>
-
-type LevelKey = keyof RadixLogLevels
-
-type MetaMapish = {
-	[key in LevelKey]: LogLevelOrnament
-}
-const meta: MetaMapish = {
-	emergency: {
-		color: chalk.bold.redBright,
+type LogLevelsInfo = { [key in RadixLogLevel]: LogLevelInfo }
+const logLevelsInfo: LogLevelsInfo = {
+	emerg: {
+		foregroundColor: 'red',
+		backgroundColor: 'yellowBG',
 		emoji: '☣️',
+		priority: 0,
+		purpose: 'For when system is unusable',
 	},
 
 	alert: {
-		color: chalk.bold.red,
+		foregroundColor: 'red',
+		backgroundColor: 'whiteBG',
 		emoji: '🚨',
+		priority: 1,
+		purpose: 'For when action must be taken immediately',
 	},
 
-	critical: {
-		color: chalk.bold.red,
+	crit: {
+		foregroundColor: 'red',
+		fontStyle: 'bold',
 		emoji: '⛔️',
+		priority: 2,
+		purpose: 'For critical conditions',
 	},
 
 	error: {
-		color: chalk.red,
+		foregroundColor: 'red',
 		emoji: '❤️',
+		priority: 3,
+		purpose: 'For error conditions',
 	},
 
 	warning: {
-		color: chalk.yellow,
+		foregroundColor: 'yellow',
 		emoji: '💛',
+		priority: 4,
+		purpose: 'For warning conditions',
 	},
 
 	notice: {
-		color: chalk.magenta,
+		foregroundColor: 'magenta',
 		emoji: '💟',
+		priority: 5,
+		purpose: 'For normal but significant condition',
 	},
 
 	info: {
-		color: chalk.blue,
+		foregroundColor: 'blue',
 		emoji: '💙',
+		priority: 6,
+		purpose: 'Informational messages',
 	},
 
 	debug: {
-		color: chalk.cyan,
+		foregroundColor: 'cyan',
 		emoji: '💚',
+		priority: 7,
+		purpose: 'For debug-level messages',
 	},
 
 	verbose: {
-		color: chalk.italic.white,
+		foregroundColor: 'white',
+		fontStyle: 'italic',
 		emoji: '🤍',
+		priority: 8,
+		purpose: 'For following a flow of events',
 	},
 
 	dev: {
-		color: chalk.italic.cyanBright,
+		foregroundColor: 'cyan',
+		fontStyle: 'italic',
 		emoji: '🔮',
+		priority: 9,
+		purpose: 'Used by developer during development',
+	},
+
+	silent: {
+		foregroundColor: 'black',
+		emoji: '🖤',
+		priority: 255,
+		purpose: 'If you want to disable all logging',
 	},
 }
 
-const radixLogLevels: RadixLogLevels = {
-	...winston.config.syslog.levels,
-	verbose: 8,
-	dev: 9,
+type Dictionary<T> = {
+	[key: string]: T
 }
 
-type RadixLogLevelColors = RadixExtraLogLevels &
-	SyslogConfigSetColors &
-	Readonly<{
-		verbose: string | string[]
-		dev: string | string[]
-	}>
-
-const radixLogLevelColors: RadixLogLevelColors = {
-	...winston.config.syslog.colors,
-	verbose: 'apa',
-	dev: 'banan',
+const objectMap = <TValue, TResult>(
+	obj: Dictionary<TValue>,
+	valSelector: (val: TValue, obj: Dictionary<TValue>) => TResult,
+	keySelector?: (key: string, obj: Dictionary<TValue>) => string,
+	ctx?: Dictionary<TValue>,
+): Dictionary<TResult> => {
+	const ret = {} as Dictionary<TResult>
+	for (const key of Object.keys(obj)) {
+		const retKey = keySelector
+			? keySelector.call(ctx || null, key, obj)
+			: key
+		ret[retKey] = valSelector.call(ctx || null, obj[key], obj)
+	}
+	return ret
 }
 
-// syslog: { levels: SyslogConfigSetLevels, colors: SyslogConfigSetColors };
+const extractValueOfInfo = <T>(
+	extract: (info: LogLevelInfo) => T,
+): { [key in RadixLogLevel]: T } => {
+	// @ts-ignore
+	return objectMap(
+		logLevelsInfo,
+		(val) => extract(val),
+		(key) => key,
+	)
+}
 
-const makeRadixLogger = (): winston.Logger => {
-	const logger = winston.createLogger({
-		level: 'info',
-		levels: radixLogLevels,
-		// levels: winston.config.syslog.levels,
-		format: winston.format.json(),
-		defaultMeta: { service: 'user-service' },
-		transports: [
-			//
-			// - Write all logs with level `error` and below to `error.log`
-			// - Write all logs with level `info` and below to `combined.log`
-			//
-			new winston.transports.Console(),
-			new winston.transports.File({ filename: 'error.log', level: 'error' }),
-			new winston.transports.File({ filename: 'combined.log' }),
-		],
+type RadixLogLevels = AbstractConfigSetLevels & {
+	verbose: number
+	dev: number
+	silent: number
+}
+
+type RadixLogger = winston.Logger
+
+const extractLevels = (): RadixLogLevels =>
+	extractValueOfInfo((i: LogLevelInfo): number => i.priority)
+
+const extractColorsOfLevels = (): AbstractConfigSetColors =>
+	extractValueOfInfo((i: LogLevelInfo): string => {
+		return [i.fontStyle ?? '', i.foregroundColor, i.backgroundColor ?? '']
+			.join(' ')
+			.trim()
+	})
+
+const defaultLogLevel: RadixLogLevel = 'warning'
+
+const setLogLevel = (newLevel: RadixLogLevel): RadixLogger => {
+	const shouldSilent = newLevel === 'silent'
+	log.configure({ level: newLevel, silent: shouldSilent })
+	return log
+}
+
+const restoreDefaultLogLevel = (): RadixLogger => setLogLevel(defaultLogLevel)
+
+const makeRadixLogger = (): RadixLogger => {
+	const colorizedEmojiFormat = combine(
+		timestamp(),
+		simple(),
+		printf((msg) => {
+			const level: RadixLogLevel = msg.level as RadixLogLevel
+			const logLevelInfo: LogLevelInfo = logLevelsInfo[level]!
+			const msgWithEmoji = `${logLevelInfo.emoji}: ${msg.message}`
+			return colorize().colorize(
+				msg.level,
+				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+				`${msg.timestamp} - ${msg.level}: ${msgWithEmoji}`,
+			)
+		}),
+	)
+
+	const transports: Transport[] = [
+		//
+		// - Write all logs with level `error` and below to `error.log`
+		// - Write all logs with level `info` and below to `combined.log`
+		//
+		new winston.transports.File({
+			format: colorizedEmojiFormat,
+			filename: 'error.log',
+			level: 'error',
+		}),
+		new winston.transports.File({
+			format: colorizedEmojiFormat,
+			filename: 'combined.log',
+		}),
+	]
+
+	if (
+		process.env.NODE_ENV === 'development' ||
+		process.env.NODE_ENV === 'test'
+	) {
+		transports.push(
+			new winston.transports.Console({
+				format: colorizedEmojiFormat,
+			}),
+		)
+	}
+
+	const logger: winston.Logger = createLogger({
+		level: defaultLogLevel,
+		levels: extractLevels(),
+		format: colorizedEmojiFormat,
+		transports: transports,
 		exitOnError: false,
 	})
-	winston.addColors(radixLogLevelColors)
+	winston.addColors(extractColorsOfLevels())
+	winston.add(logger)
 	return logger
 }
 
 const log = makeRadixLogger()
 
-prefix.reg(log)
-
-prefix.apply(log, {
-	format: (level, name, timestamp) =>
-		`${chalk.gray(`[${timestamp.toString()}]`)} ${
-			meta[level.toLowerCase()].emoji
-		} ${meta[level.toLowerCase()].color(level)}`,
-})
-
-export { log, restoreDefaultLogLevel }
+export { RadixLogLevel, log, restoreDefaultLogLevel, setLogLevel }

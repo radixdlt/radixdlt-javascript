@@ -7,17 +7,15 @@ import {
 	WalletT,
 } from '@radixdlt/account'
 import {
-	from,
 	interval,
 	Observable,
 	of,
 	Subject,
 	Subscription,
 	throwError,
-	zip,
 } from 'rxjs'
-import { map, mergeMap, take, toArray } from 'rxjs/operators'
-import { Keystore, KeystoreT } from '@radixdlt/crypto'
+import { map, take, toArray } from 'rxjs/operators'
+import { KeystoreT } from '@radixdlt/crypto'
 import { ManualUserConfirmTX, RadixT } from '../src/_types'
 import { APIErrorCause, ErrorCategory, ErrorCause } from '../src/errors'
 import {
@@ -29,8 +27,6 @@ import {
 } from '../src/mockRadix'
 import { NodeT, RadixCoreAPI } from '../src/api/_types'
 import {
-	Token,
-	TokenBalance,
 	TokenBalances,
 	SimpleTokenBalances,
 	TransactionIdentifierT,
@@ -41,11 +37,11 @@ import { AmountT } from '@radixdlt/primitives'
 import { signatureFromHexStrings } from '@radixdlt/crypto/test/ellipticCurveCryptography.test'
 import { TransactionIntentBuilder } from '../src/dto/transactionIntentBuilder'
 import { TransactionTrackingEventType } from '../src/dto/_types'
-import { LogLevel, restoreDefaultLogLevel } from '@radixdlt/util'
+import { setLogLevel } from '@radixdlt/util'
 import { TransferTokensInput } from '../src/actions/_types'
 import { TransferTokensOptions } from '../src/_types'
 import { APIError } from '../src/errors'
-import { log } from '@radixdlt/util/dist/logging'
+import { Token } from '../dist/dto/_types'
 
 const createWallet = (): WalletT => {
 	const mnemonic = Mnemonic.fromEnglishPhrase(
@@ -109,6 +105,11 @@ export const keystoreForTest: KeystoreForTest = {
 }
 
 describe('Radix API', () => {
+
+	beforeAll(() => {
+		setLogLevel('verbose')
+	})
+
 	it('can load test keystore', async (done) => {
 		// keystoreForTest
 		await Wallet.byLoadingAndDecryptingKeystore({
@@ -250,7 +251,7 @@ describe('Radix API', () => {
 		radix.__withAPI(mockedAPI)
 
 		radix.ledger.nativeToken().subscribe(
-			(token) => {
+			(token: Token) => {
 				expect(token.symbol).toBe('XRD')
 				done()
 			},
@@ -1194,7 +1195,7 @@ describe('Radix API', () => {
 							},
 						}),
 					)
-					.logLevel(LogLevel.SILENT)
+					.logLevel('silent')
 
 				const transactionTracking = radix.transferTokens(
 					transferTokens(),

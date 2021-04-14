@@ -8,7 +8,7 @@ import {
 	WalletT,
 } from '@radixdlt/account'
 import { KeystoreT } from '@radixdlt/crypto'
-import { LogLevel } from '@radixdlt/util'
+import { RadixLogLevel, setLogLevel } from '@radixdlt/util'
 import { Observable, Subject } from 'rxjs'
 import { NodeT, RadixAPI, RadixCoreAPI } from './api/_types'
 import { ErrorNotification } from './errors'
@@ -84,7 +84,7 @@ export type RadixT = Readonly<{
 	stakingPositions: Observable<StakePositions>
 	unstakingPositions: Observable<UnstakePositions>
 
-	logLevel: (level: LogLevel) => RadixT
+	logLevel: (level: RadixLogLevel) => RadixT
 
 	/**
 	 * Specify a trigger for when to fetch the token balances for the active address.
