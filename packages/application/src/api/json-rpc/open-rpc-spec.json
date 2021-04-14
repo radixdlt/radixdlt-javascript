@@ -472,7 +472,20 @@
                         "status"
                     ]
                 }
-            }
+            },
+            "examples": [
+                {
+                    "name": "txStatusExamples",
+                    "params": [],
+                    "result": {
+                        "name": "txStatusExample",
+                        "value": {
+                            "txID": "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+                            "status": "CONFIRMED"
+                        }
+                    }
+                }
+            ]
         },
         {
             "name": "networkTransactionThroughput",

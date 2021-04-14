@@ -183,7 +183,20 @@ const expectedDecodedResponses = {
 			epochsUntil: response[0].epochsUntil,
 			withdrawTxID: TransactionIdentifier.create(response[0].withdrawTxID)._unsafeUnwrap(),
 		}
-	])
+	]),
+
+	[rpcSpec.methods[8].name]: (response: TransactionStatusEndpoint.Response): TransactionStatusEndpoint.DecodedResponse => ({
+		txID: TransactionIdentifier.create(response.txID)._unsafeUnwrap(),
+		status: response.status
+	}),
+
+	[rpcSpec.methods[9].name]: (response: NetworkTransactionThroughputEndpoint.Response): NetworkTransactionThroughputEndpoint.DecodedResponse => ({
+		tps: response.tps
+	}),
+
+	[rpcSpec.methods[10].name]: (response: NetworkTransactionDemandEndpoint.Response): NetworkTransactionDemandEndpoint.DecodedResponse => ({
+		tps: response.tps
+	}),
 }
 
 const client = nodeAPI(new URL('http://xyz'))

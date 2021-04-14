@@ -28,7 +28,7 @@ export enum ApiMethod {
 	TRANSACTION_HISTORY = 'transactionHistory',
 	STAKES = 'stakePositions',
 	UNSTAKES = 'unstakePositions',
-	TX_STATUS = 'transactionStatus',
+	TX_STATUS = 'statusOfTransaction',
 	NETWORK_TX_THROUGHPUT = 'networkTransactionThroughput',
 	NETWORK_TX_DEMAND = 'networkTransactionDemand',
 	VALIDATORS = 'validators',

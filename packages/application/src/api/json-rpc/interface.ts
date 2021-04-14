@@ -112,7 +112,7 @@ export const getAPI = (
 		[ApiMethod.TX_STATUS]: setupAPIResponse<
 			TransactionStatusEndpoint.Input,
 			TransactionStatusEndpoint.DecodedResponse
-		>(handleTransactionStatusResponse)('radix.transactionStatus'),
+		>(handleTransactionStatusResponse)('radix.statusOfTransaction'),
 
 		[ApiMethod.NETWORK_TX_THROUGHPUT]: setupAPIResponse<
 			NetworkTransactionThroughputEndpoint.Input,
