@@ -109,6 +109,7 @@ export const keystoreForTest: KeystoreForTest = {
 }
 
 describe('Radix API', () => {
+
 	it('can load test keystore', async (done) => {
 		// keystoreForTest
 		await Wallet.byLoadingAndDecryptingKeystore({
