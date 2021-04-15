@@ -37,11 +37,9 @@ import { AmountT } from '@radixdlt/primitives'
 import { signatureFromHexStrings } from '@radixdlt/crypto/test/ellipticCurveCryptography.test'
 import { TransactionIntentBuilder } from '../src/dto/transactionIntentBuilder'
 import { TransactionTrackingEventType } from '../src/dto/_types'
-import { setLogLevel } from '@radixdlt/util'
 import { TransferTokensInput } from '../src/actions/_types'
 import { TransferTokensOptions } from '../src/_types'
 import { APIError } from '../src/errors'
-import { Token } from '../dist/dto/_types'
 
 const createWallet = (): WalletT => {
 	const mnemonic = Mnemonic.fromEnglishPhrase(
@@ -105,10 +103,6 @@ export const keystoreForTest: KeystoreForTest = {
 }
 
 describe('Radix API', () => {
-
-	beforeAll(() => {
-		setLogLevel('verbose')
-	})
 
 	it('can load test keystore', async (done) => {
 		// keystoreForTest
@@ -251,7 +245,7 @@ describe('Radix API', () => {
 		radix.__withAPI(mockedAPI)
 
 		radix.ledger.nativeToken().subscribe(
-			(token: Token) => {
+			(token) => {
 				expect(token.symbol).toBe('XRD')
 				done()
 			},

@@ -5,7 +5,7 @@ import {
 } from 'winston/lib/winston/config'
 import * as Transport from 'winston-transport'
 const { format, createLogger } = winston
-const { combine, timestamp, json, colorize, simple, printf } = format
+const { combine, timestamp, colorize, simple, printf } = format
 
 type FontStyle =
 	| 'bold'
@@ -62,8 +62,9 @@ type RadixLogLevel =
 type LogLevelsInfo = { [key in RadixLogLevel]: LogLevelInfo }
 const logLevelsInfo: LogLevelsInfo = {
 	emerg: {
-		foregroundColor: 'red',
-		backgroundColor: 'yellowBG',
+		foregroundColor: 'white',
+		backgroundColor: 'redBG',
+		fontStyle: 'bold',
 		emoji: '☣️',
 		priority: 0,
 		purpose: 'For when system is unusable',
@@ -235,10 +236,8 @@ const makeRadixLogger = (): RadixLogger => {
 		}),
 	]
 
-	if (
-		process.env.NODE_ENV === 'development' ||
-		process.env.NODE_ENV === 'test'
-	) {
+	const maybeNodeEnv = process?.env?.NODE_ENV
+	if (maybeNodeEnv === 'development' || maybeNodeEnv === 'test') {
 		transports.push(
 			new winston.transports.Console({
 				format: colorizedEmojiFormat,
