@@ -131,10 +131,10 @@ export enum TransactionTrackingEventType {
 
 export type TransactionTrackingEvent<
 	Value extends PartOfMakeTransactionFlow
-> = Readonly<{
-	eventUpdateType: TransactionTrackingEventType
-	value: Value
-}>
+	> = Readonly<{
+		eventUpdateType: TransactionTrackingEventType
+		value: Value
+	}>
 
 // Marker protocol
 export type PartOfMakeTransactionFlow = unknown
@@ -221,7 +221,8 @@ export type SignedTransaction = PartOfMakeTransactionFlow &
 		// nothing here
 	}>
 
-export type FinalizedTransaction = 
+export type FinalizedTransaction = PartOfMakeTransactionFlow &
+	SignedTXProps &
 	Readonly<{
 		txID: TransactionIdentifierT
 	}>
@@ -253,7 +254,7 @@ export type RawExecutedActionBase<T extends ActionType> = Readonly<{
 
 export type RawOtherExecutedAction = RawExecutedActionBase<ActionType.OTHER>
 
-export type RawTransferAction = RawExecutedActionBase<ActionType.TOKEN_TRANSFER> & 
+export type RawTransferAction = RawExecutedActionBase<ActionType.TOKEN_TRANSFER> &
 	Readonly<{
 		from: string
 		to: string
@@ -316,7 +317,7 @@ export type Validator = Readonly<{
 }>
 
 export type Validators = Readonly<{
-	cursor: string,
+	cursor: string
 	validators: Validator[]
 }>
 

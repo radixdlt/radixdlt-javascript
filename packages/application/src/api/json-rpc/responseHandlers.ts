@@ -60,13 +60,13 @@ const tokenPermissionsDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
 		key !== undefined && keys.includes(key) && isObject(value)
 			? ok(
-				makeTokenPermissions(
-					value as Readonly<{
-						mint: TokenPermission
-						burn: TokenPermission
-					}>,
-				),
-			)
+					makeTokenPermissions(
+						value as Readonly<{
+							mint: TokenPermission
+							burn: TokenPermission
+						}>,
+					),
+			  )
 			: undefined,
 	)
 
@@ -110,42 +110,53 @@ const isRPCRequestFailureResponse = (
 	return inspection.failure !== undefined
 }
 
-export const handleTransactionHistoryResponse = executedTXDecoders.create<TransactionHistoryEndpoint.Response, TransactionHistoryEndpoint.DecodedResponse>()
+export const handleTransactionHistoryResponse = executedTXDecoders.create<
+	TransactionHistoryEndpoint.Response,
+	TransactionHistoryEndpoint.DecodedResponse
+>()
 
-export const handleLookupTXResponse = executedTXDecoders.create<LookupTransactionEndpoint.Response, LookupTransactionEndpoint.DecodedResponse>()
+export const handleLookupTXResponse = executedTXDecoders.create<
+	LookupTransactionEndpoint.Response,
+	LookupTransactionEndpoint.DecodedResponse
+>()
 
 export const handleNetworkIdResponse = JSONDecoding.withDecoders(
 	magicDecoder('networkId'),
 ).create<NetworkIdEndpoint.Response, NetworkIdEndpoint.DecodedResponse>()
 
-export const handleTokenBalancesResponse = (json: TokenBalancesEndpoint.Response): Result<TokenBalancesEndpoint.DecodedResponse, Error[]> => pipe(
-	(json: TokenBalancesEndpoint.Response) => ({
-		owner: json.owner,
-		tokenBalances: [
+export const handleTokenBalancesResponse = (
+	json: TokenBalancesEndpoint.Response,
+): Result<TokenBalancesEndpoint.DecodedResponse, Error[]> =>
+	pipe(
+		(json: TokenBalancesEndpoint.Response) => ({
+			owner: json.owner,
+			tokenBalances: [
+				{
+					token: json.tokenBalances[0].rri,
+					amount: json.tokenBalances[0].amount,
+				},
+			],
+		}),
+		JSONDecoding.withDecoders(
+			addressDecoder('owner'),
+			RRIDecoder('token'),
+			amountDecoder('amount'),
+		).create<
 			{
-				token: json.tokenBalances[0].rri,
-				amount: json.tokenBalances[0].amount
-			}
-		]
-	}),
-	JSONDecoding.withDecoders(
-		addressDecoder('owner'),
-		RRIDecoder('token'),
-		amountDecoder('amount'),
-	).create<{
-		owner: string,
-		tokenBalances:
-		{
-			token: string,
-			amount: string
-		}[]
-	}, TokenBalancesEndpoint.DecodedResponse>()
-)(json)
+				owner: string
+				tokenBalances: {
+					token: string
+					amount: string
+				}[]
+			},
+			TokenBalancesEndpoint.DecodedResponse
+		>(),
+	)(json)
 
 export const handleValidatorsResponse = JSONDecoding.withDecoders(
 	addressDecoder('address', 'ownerAddress'),
 	URLDecoder('infoURL'),
-	amountDecoder('totalDelegatedStake', 'ownerDelegation')
+	amountDecoder('totalDelegatedStake', 'ownerDelegation'),
 ).create<ValidatorsEndpoint.Response, ValidatorsEndpoint.DecodedResponse>()
 
 export const handleTokenInfoResponse = JSONDecoding.withDecoders(
@@ -158,13 +169,19 @@ export const handleTokenInfoResponse = JSONDecoding.withDecoders(
 export const handleStakesResponse = JSONDecoding.withDecoders(
 	addressDecoder('validator'),
 	amountDecoder('amount'),
-).create<StakePositionsEndpoint.Response, StakePositionsEndpoint.DecodedResponse>()
+).create<
+	StakePositionsEndpoint.Response,
+	StakePositionsEndpoint.DecodedResponse
+>()
 
 export const handleUnstakesResponse = JSONDecoding.withDecoders(
 	addressDecoder('validator'),
 	amountDecoder('amount'),
-	transactionIdentifierDecoder('withdrawTxID')
-).create<UnstakePositionsEndpoint.Response, UnstakePositionsEndpoint.DecodedResponse>()
+	transactionIdentifierDecoder('withdrawTxID'),
+).create<
+	UnstakePositionsEndpoint.Response,
+	UnstakePositionsEndpoint.DecodedResponse
+>()
 
 export const handleTransactionStatusResponse = (
 	json: TransactionStatusEndpoint.Response,
@@ -172,19 +189,29 @@ export const handleTransactionStatusResponse = (
 	isRPCRequestFailureResponse(json)
 		? err([new Error(json.failure)])
 		: JSONDecoding.withDecoders(
-			transactionIdentifierDecoder('txID'),
-		).create<TransactionStatusEndpoint.Response, TransactionStatusEndpoint.DecodedResponse>()(json)
+				transactionIdentifierDecoder('txID'),
+		  ).create<
+				TransactionStatusEndpoint.Response,
+				TransactionStatusEndpoint.DecodedResponse
+		  >()(json)
 
-export const handleNetworkTxThroughputResponse = JSONDecoding.create<NetworkTransactionThroughputEndpoint.Response, NetworkTransactionThroughputEndpoint.DecodedResponse>()
+export const handleNetworkTxThroughputResponse = JSONDecoding.create<
+	NetworkTransactionThroughputEndpoint.Response,
+	NetworkTransactionThroughputEndpoint.DecodedResponse
+>()
 
-export const handleNetworkTxDemandResponse = JSONDecoding.create<NetworkTransactionDemandEndpoint.Response, NetworkTransactionDemandEndpoint.DecodedResponse>()
+export const handleNetworkTxDemandResponse = JSONDecoding.create<
+	NetworkTransactionDemandEndpoint.Response,
+	NetworkTransactionDemandEndpoint.DecodedResponse
+>()
 
 export const handleBuildTransactionResponse = (
 	json: BuildTransactionEndpoint.Response,
 ): Result<BuildTransactionEndpoint.DecodedResponse, Error[]> =>
-	JSONDecoding.withDecoders(
-		amountDecoder('fee')
-	).create<BuildTransactionEndpoint.Response, BuildTransactionEndpoint.DecodedResponse>()(json)
+	JSONDecoding.withDecoders(amountDecoder('fee')).create<
+		BuildTransactionEndpoint.Response,
+		BuildTransactionEndpoint.DecodedResponse
+	>()(json)
 
 export const handleSubmitSignedTransactionResponse = (
 	json: FinalizeTransactionEndpoint.Response,
@@ -192,8 +219,11 @@ export const handleSubmitSignedTransactionResponse = (
 	isRPCRequestFailureResponse(json)
 		? err([new Error(json.failure)])
 		: JSONDecoding.withDecoders(
-			transactionIdentifierDecoder('txID'),
-		).create<FinalizeTransactionEndpoint.Response, FinalizeTransactionEndpoint.DecodedResponse>()(json)
+				transactionIdentifierDecoder('txID'),
+		  ).create<
+				FinalizeTransactionEndpoint.Response,
+				FinalizeTransactionEndpoint.DecodedResponse
+		  >()(json)
 
 export const handleFinalizedTransactionResponse = (
 	json: SubmitTransactionEndpoint.Response,
@@ -201,5 +231,8 @@ export const handleFinalizedTransactionResponse = (
 	isRPCRequestFailureResponse(json)
 		? err([new Error(json.failure)])
 		: JSONDecoding.withDecoders(
-			transactionIdentifierDecoder('txID'),
-		).create<SubmitTransactionEndpoint.Response, SubmitTransactionEndpoint.DecodedResponse>()(json)
+				transactionIdentifierDecoder('txID'),
+		  ).create<
+				SubmitTransactionEndpoint.Response,
+				SubmitTransactionEndpoint.DecodedResponse
+		  >()(json)

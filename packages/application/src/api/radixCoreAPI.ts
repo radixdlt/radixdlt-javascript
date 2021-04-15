@@ -80,15 +80,15 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 			toObs((a) => a.tokenInfo, rri.toString()),
 
 		stakesForAddress: (address: AddressT): Observable<StakePositions> =>
-			toObs((a) => a.stakes, address.toString()),
+			toObs((a) => a.stakePositions, address.toString()),
 
 		unstakesForAddress: (address: AddressT): Observable<UnstakePositions> =>
-			toObs((a) => a.unstakes, address.toString()),
+			toObs((a) => a.unstakePositions, address.toString()),
 
 		transactionStatus: (
 			txID: TransactionIdentifierT,
 		): Observable<StatusOfTransaction> =>
-			toObs((a) => a.transactionStatus, txID.toString()),
+			toObs((a) => a.statusOfTransaction, txID.toString()),
 
 		networkTransactionThroughput: (): Observable<NetworkTransactionThroughput> =>
 			toObs((a) => a.networkTransactionThroughput),

@@ -183,13 +183,13 @@ export const balanceOfFor = (
 	const amt: AmountT = isAmount(input.amount)
 		? input.amount
 		: Amount.fromUInt256({
-			magnitude: input.token.granularity.magnitude.multiply(
-				isNumber(input.amount)
-					? UInt256.valueOf(input.amount)
-					: input.amount.magnitude,
-			),
-			denomination: Denomination.Atto,
-		})._unsafeUnwrap()
+				magnitude: input.token.granularity.magnitude.multiply(
+					isNumber(input.amount)
+						? UInt256.valueOf(input.amount)
+						: input.amount.magnitude,
+				),
+				denomination: Denomination.Atto,
+		  })._unsafeUnwrap()
 
 	return {
 		token: input.token.rri,
@@ -564,10 +564,10 @@ export const deterministicRandomTxHistoryWithInput = (
 										v === 0
 											? ActionType.TOKEN_TRANSFER
 											: v === 1
-												? ActionType.STAKE_TOKENS
-												: v === 2
-													? ActionType.UNSTAKE_TOKENS
-													: ActionType.OTHER
+											? ActionType.STAKE_TOKENS
+											: v === 2
+											? ActionType.UNSTAKE_TOKENS
+											: ActionType.OTHER
 
 									let executedAction: ExecutedAction
 
@@ -819,7 +819,7 @@ export const mockRadixCoreAPI = (
 		validators: (input: ValidatorsRequestInput): Observable<Validators> =>
 			of({
 				cursor: 'cursor',
-				validators: randomValidatorList(input.size)
+				validators: randomValidatorList(input.size),
 			}),
 		buildTransaction: (
 			transactionIntent: TransactionIntent,
