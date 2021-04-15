@@ -233,6 +233,7 @@ const makeRadixLogger = (): RadixLogger => {
 		new winston.transports.File({
 			format: colorizedEmojiFormat,
 			filename: 'combined.log',
+			level: 'info',
 		}),
 	]
 

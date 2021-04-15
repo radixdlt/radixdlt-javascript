@@ -92,7 +92,6 @@ import {
 } from './dto/_types'
 import { nodeAPI } from './api/api'
 import { TransactionIntentBuilder } from './dto/transactionIntentBuilder'
-import { v4 as uuidv4 } from 'uuid'
 
 const shouldConfirmTransactionAutomatically = (
 	confirmationScheme: TransactionConfirmationBeforeFinalization,
@@ -100,7 +99,7 @@ const shouldConfirmTransactionAutomatically = (
 
 const create = (): RadixT => {
 	const subs = new Subscription()
-	const radixLog = log.child({ requestId: 'Radix' })
+	const radixLog = log // TODO configure child loggers
 
 	const nodeSubject = new ReplaySubject<NodeT>()
 	const coreAPISubject = new ReplaySubject<RadixCoreAPI>()
@@ -341,7 +340,7 @@ const create = (): RadixT => {
 	const _withNode = (node: Observable<NodeT>): void => {
 		node.subscribe(
 			(n) => {
-				radixLog.info(`Using node ${n.url.toString()}`)
+				radixLog.debug(`Using node ${n.url.toString()}`)
 				nodeSubject.next(n)
 			},
 			(error: Error) => {
@@ -361,7 +360,7 @@ const create = (): RadixT => {
 		transactionIntent$: Observable<TransactionIntent>,
 		options: MakeTransactionOptions,
 	): TransactionTracking => {
-		const txLog = radixLog.child({ txUUID: uuidv4() })
+		const txLog = radixLog // TODO configure child loggers
 
 		txLog.verbose(
 			`Start of transaction flow, inside constructor of 'TransactionTracking'.`,
