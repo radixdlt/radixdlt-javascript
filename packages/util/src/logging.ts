@@ -1,9 +1,9 @@
-import winston from 'winston'
+import winston from '@radixdlt/winston'
+import * as Transport from 'winston-transport'
 import {
 	AbstractConfigSetColors,
 	AbstractConfigSetLevels,
-} from 'winston/lib/winston/config'
-import * as Transport from 'winston-transport'
+} from '@radixdlt/winston/lib/winston/config'
 const { format, createLogger } = winston
 const { combine, timestamp, colorize, simple, printf } = format
 
@@ -194,7 +194,7 @@ const extractColorsOfLevels = (): AbstractConfigSetColors =>
 			.trim()
 	})
 
-const defaultLogLevel: RadixLogLevel = 'warning'
+const defaultLogLevel: RadixLogLevel = 'error'
 
 const setLogLevel = (newLevel: RadixLogLevel): RadixLogger => {
 	const shouldSilent = newLevel === 'silent'
