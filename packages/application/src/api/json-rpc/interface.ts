@@ -131,16 +131,14 @@ export const getAPI = (
 			BuildTransactionEndpoint.DecodedResponse
 		>(handleBuildTransactionResponse)('radix.buildTransaction'),
 
-		[ApiMethod.SUBMIT_SIGNED_TX]: setupAPIResponse<
+		[ApiMethod.FINALIZE_TX]: setupAPIResponse<
 			FinalizeTransactionEndpoint.Input,
 			FinalizeTransactionEndpoint.DecodedResponse
-		>(handleSubmitSignedTransactionResponse)(
-			'radix.submitSignedTransaction',
-		),
+		>(handleSubmitSignedTransactionResponse)('radix.finalizeTransaction'),
 
-		[ApiMethod.FINALIZE_TX]: setupAPIResponse<
+		[ApiMethod.SUBMIT_SIGNED_TX]: setupAPIResponse<
 			SubmitTransactionEndpoint.Input,
 			SubmitTransactionEndpoint.DecodedResponse
-		>(handleFinalizedTransactionResponse)('radix.finalizeTransaction'),
+		>(handleFinalizedTransactionResponse)('radix.submitSignedTransaction'),
 	}
 }

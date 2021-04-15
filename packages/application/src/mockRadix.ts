@@ -765,14 +765,14 @@ export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
 	},
 
 	submitSignedTransaction: (
-		_signedTransaction: SignedTransaction,
+		_signedTransaction: FinalizedTransaction,
 	): Observable<FinalizedTransaction> => {
 		throw Error('Not implemented')
 	},
 
 	finalizeTransaction: (
-		_signedUnconfirmedTransaction: FinalizedTransaction,
-	): Observable<PendingTransaction> => {
+		_signedUnconfirmedTransaction: SignedTransaction,
+	): Observable<FinalizedTransaction> => {
 		throw Error('Not implemented')
 	},
 })

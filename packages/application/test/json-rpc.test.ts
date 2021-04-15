@@ -286,6 +286,12 @@ const expectedDecodedResponses = {
 	[rpcSpec.methods[13].name]: (
 		response: FinalizeTransactionEndpoint.Response,
 	): FinalizeTransactionEndpoint.DecodedResponse => ({
+		transaction: {
+			blob: response.transaction.blob,
+			hashOfBlobToSign: response.transaction.hashOfBlobToSign,
+		},
+		publicKeyOfSigner: '',
+		signature: '',
 		txID: TransactionIdentifier.create(response.txID)._unsafeUnwrap(),
 	}),
 

@@ -124,17 +124,17 @@ export enum TransactionTrackingEventType {
 	ASKED_FOR_CONFIRMATION = 'ASKED_FOR_CONFIRMATION',
 	CONFIRMED = 'CONFIRMED',
 	/* API has finished "finalizing" / "confirming" the transaction, which now is pending. */
-	FINALIZED_AND_IS_NOW_PENDING = 'FINALIZED_AND_IS_NOW_PENDING',
+	FINALIZED = 'FINALIZED',
 	UPDATE_OF_STATUS_OF_PENDING_TX = 'UPDATE_OF_STATUS_OF_PENDING_TX',
 	COMPLETED = 'COMPLETED',
 }
 
 export type TransactionTrackingEvent<
 	Value extends PartOfMakeTransactionFlow
-	> = Readonly<{
-		eventUpdateType: TransactionTrackingEventType
-		value: Value
-	}>
+> = Readonly<{
+	eventUpdateType: TransactionTrackingEventType
+	value: Value
+}>
 
 // Marker protocol
 export type PartOfMakeTransactionFlow = unknown

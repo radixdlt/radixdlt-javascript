@@ -196,11 +196,11 @@ const create = (): RadixT => {
 		),
 		finalizeTransaction: fwdAPICall(
 			(a) => a.finalizeTransaction,
-			(m) => submitSignedTxErr(m),
-		),
-		submitTransaction: fwdAPICall(
-			(a) => a.submitTransaction,
 			(m) => finalizeTxErr(m),
+		),
+		submitSignedTransaction: fwdAPICall(
+			(a) => a.submitSignedTransaction,
+			(m) => submitSignedTxErr(m),
 		),
 	}
 
@@ -508,45 +508,13 @@ const create = (): RadixT => {
 					(
 						signedTx: SignedTransaction,
 					): Observable<FinalizedTransaction> => {
-						log.debug(
-							`Finished signing tx => submitting it to 🛰  API.`,
-						)
+						log.debug(`Finished signing tx => finalizing it.`)
 						track({
 							value: signedTx,
 							eventUpdateType:
 								TransactionTrackingEventType.SIGNED,
 						})
 						return api.finalizeTransaction(signedTx)
-					},
-				),
-				catchError((e: Error) => {
-					log.error(
-						`API failed to submit transaction, error: ${JSON.stringify(
-							e,
-							null,
-							4,
-						)}`,
-					)
-					trackError({
-						error: e,
-						inStep: TransactionTrackingEventType.SUBMITTED,
-					})
-					return EMPTY
-				}),
-				tap<FinalizedTransaction>((submitted) => {
-					log.debug(
-						`Received submitted transaction with txID='${submitted.txID.toString()}' from API, calling finalize.`,
-					)
-					track({
-						value: submitted,
-						eventUpdateType: TransactionTrackingEventType.SUBMITTED,
-					})
-				}),
-				mergeMap(
-					(
-						userConfirmedTX: FinalizedTransaction,
-					): Observable<PendingTransaction> => {
-						return api.submitTransaction(userConfirmedTX)
 					},
 				),
 				catchError((e: Error) => {
@@ -559,20 +527,50 @@ const create = (): RadixT => {
 					)
 					trackError({
 						error: e,
+						inStep: TransactionTrackingEventType.FINALIZED,
+					})
+					return EMPTY
+				}),
+				tap<FinalizedTransaction>((finalizedTx) => {
+					log.debug(
+						`Received finalized transaction with txID='${finalizedTx.txID.toString()}' from API, calling submit.`,
+					)
+					track({
+						value: finalizedTx,
+						eventUpdateType: TransactionTrackingEventType.FINALIZED,
+					})
+				}),
+				mergeMap(
+					(
+						finalizedTx: FinalizedTransaction,
+					): Observable<PendingTransaction> => {
+						return api.submitSignedTransaction(finalizedTx)
+					},
+				),
+				catchError((e: Error) => {
+					log.error(
+						`API failed to submit transaction, error: ${JSON.stringify(
+							e,
+							null,
+							4,
+						)}`,
+					)
+					trackError({
+						error: e,
 						inStep:
-							TransactionTrackingEventType.FINALIZED_AND_IS_NOW_PENDING,
+							TransactionTrackingEventType.SUBMITTED,
 					})
 					return EMPTY
 				}),
 				tap({
 					next: (pendingTx: PendingTransaction) => {
 						log.debug(
-							`Finalized transaction with txID='${pendingTx.txID.toString()}', it is now pending.`,
+							`Submitted transaction with txID='${pendingTx.txID.toString()}', it is now pending.`,
 						)
 						track({
 							value: pendingTx,
 							eventUpdateType:
-								TransactionTrackingEventType.FINALIZED_AND_IS_NOW_PENDING,
+								TransactionTrackingEventType.SUBMITTED,
 						})
 						pendingTXSubject.next(pendingTx)
 					},

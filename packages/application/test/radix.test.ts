@@ -721,7 +721,7 @@ describe('Radix API', () => {
 				cursor: '',
 			})
 			.subscribe((validators) => {
-				expect(validators.length).toEqual(10)
+				expect(validators.validators.length).toEqual(10)
 				done()
 			})
 			.add(subs)
@@ -752,13 +752,13 @@ describe('Radix API', () => {
 			.add(subs)
 	})
 
-	it('should get submitSignedTransaction response', (done) => {
+	it('should get finalizeTransaction response', (done) => {
 		const subs = new Subscription()
 
 		const radix = Radix.create().__withAPI(mockedAPI)
 
 		radix.ledger
-			.submitSignedTransaction({
+			.finalizeTransaction({
 				publicKeyOfSigner: alice.publicKey,
 				transaction: {
 					blob: 'xyz',
@@ -948,8 +948,8 @@ describe('Radix API', () => {
 				TransactionTrackingEventType.ASKED_FOR_CONFIRMATION,
 				TransactionTrackingEventType.CONFIRMED,
 				TransactionTrackingEventType.SIGNED,
+				TransactionTrackingEventType.FINALIZED,
 				TransactionTrackingEventType.SUBMITTED,
-				TransactionTrackingEventType.FINALIZED_AND_IS_NOW_PENDING,
 				TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
 				TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
 				TransactionTrackingEventType.COMPLETED,
