@@ -192,7 +192,7 @@ export const balanceOfFor = (
 		  })._unsafeUnwrap()
 
 	return {
-		token: input.token.rri,
+		tokenIdentifier: input.token.rri,
 		amount: amt.lessThan(input.token.currentSupply)
 			? amt
 			: input.token.currentSupply,

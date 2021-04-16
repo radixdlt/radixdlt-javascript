@@ -252,7 +252,7 @@ const create = (): RadixT => {
 	const decorateSimpleTokenBalanceWithTokenInfo = (
 		simpleTokenBalance: SimpleTokenBalance,
 	): Observable<TokenBalance> => {
-		return api.tokenInfo(simpleTokenBalance.token).pipe(
+		return api.tokenInfo(simpleTokenBalance.tokenIdentifier).pipe(
 			map(
 				(tokenInfo: Token): TokenBalance => ({
 					amount: simpleTokenBalance.amount,
