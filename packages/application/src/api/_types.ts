@@ -73,7 +73,7 @@ export type RadixAPI = Readonly<{
 	) => Observable<BuiltTransaction>
 
 	submitSignedTransaction: (
-		signedTransaction: FinalizedTransaction,
+		signedTransaction: FinalizedTransaction & SignedTransaction,
 	) => Observable<PendingTransaction>
 
 	finalizeTransaction: (

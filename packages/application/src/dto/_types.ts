@@ -103,11 +103,10 @@ export type TransactionIntentBuilderT = Readonly<{
 	) => Observable<TransactionIntent>
 }>
 
-export type TransactionIntent = PartOfMakeTransactionFlow &
-	Readonly<{
-		actions: IntendedAction[]
-		message?: Buffer
-	}>
+export type TransactionIntent = Readonly<{
+	actions: IntendedAction[]
+	message?: Buffer
+}>
 
 export type ValidatorsRequestInput = Readonly<{
 	size: number
@@ -129,20 +128,15 @@ export enum TransactionTrackingEventType {
 	COMPLETED = 'COMPLETED',
 }
 
-export type TransactionTrackingEvent<
-	Value extends PartOfMakeTransactionFlow
-> = Readonly<{
+export type TransactionTrackingEvent<Value> = Readonly<{
 	eventUpdateType: TransactionTrackingEventType
 	value: Value
 }>
 
-// Marker protocol
-export type PartOfMakeTransactionFlow = unknown
-
-export type TXError = PartOfMakeTransactionFlow & Error
+export type TXError = Error
 
 export type TransactionTracking = Readonly<{
-	events: Observable<TransactionTrackingEvent<PartOfMakeTransactionFlow>>
+	events: Observable<TransactionTrackingEvent<unknown>>
 	completion: Observable<TransactionIdentifierT>
 }>
 
@@ -203,34 +197,24 @@ export type BuiltTransactionReadyToSign = Readonly<{
 	hashOfBlobToSign: string
 }>
 
-export type BuiltTransaction = PartOfMakeTransactionFlow &
-	Readonly<{
-		transaction: BuiltTransactionReadyToSign
-		fee: AmountT
-	}>
+export type BuiltTransaction = Readonly<{
+	transaction: BuiltTransactionReadyToSign
+	fee: AmountT
+}>
 
-type SignedTXProps = Readonly<{
+export type SignedTransaction = Readonly<{
 	transaction: BuiltTransactionReadyToSign
 	publicKeyOfSigner: PublicKey
 	signature: Signature
 }>
 
-export type SignedTransaction = PartOfMakeTransactionFlow &
-	SignedTXProps &
-	Readonly<{
-		// nothing here
-	}>
+export type FinalizedTransaction = Readonly<{
+	txID: TransactionIdentifierT
+}>
 
-export type FinalizedTransaction = PartOfMakeTransactionFlow &
-	SignedTXProps &
-	Readonly<{
-		txID: TransactionIdentifierT
-	}>
-
-export type PendingTransaction = PartOfMakeTransactionFlow &
-	Readonly<{
-		txID: TransactionIdentifierT
-	}>
+export type PendingTransaction = Readonly<{
+	txID: TransactionIdentifierT
+}>
 
 export type RawToken = Readonly<{
 	name: string

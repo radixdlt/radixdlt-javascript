@@ -112,7 +112,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 			),
 
 		submitSignedTransaction: (
-			finalizedTx: FinalizedTransaction,
+			finalizedTx: FinalizedTransaction & SignedTransaction,
 		): Observable<PendingTransaction> =>
 			toObs(
 				(a) => a.submitSignedTransaction,

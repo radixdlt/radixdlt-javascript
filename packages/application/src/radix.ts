@@ -12,6 +12,7 @@ import {
 	catchError,
 	distinctUntilChanged,
 	filter,
+	first,
 	map,
 	mergeMap,
 	shareReplay,
@@ -68,7 +69,6 @@ import {
 } from './errors'
 import { isArray, log, LogLevel } from '@radixdlt/util'
 import {
-	PartOfMakeTransactionFlow,
 	PendingTransaction,
 	FinalizedTransaction,
 	SignedTransaction,
@@ -123,18 +123,18 @@ const create = (): RadixT => {
 		pickFn: (api: RadixCoreAPI) => (...input: I) => Observable<O>,
 		errorFn: (message: string | Error[]) => ErrorNotification,
 	) => (...input: I) =>
-		coreAPI$.pipe(
-			mergeMap((a) => pickFn(a)(...input)),
+			coreAPI$.pipe(
+				mergeMap((a) => pickFn(a)(...input)),
 
-			// We do NOT omit/supress error, we merely DECORATE the error
-			catchError((errors: unknown) => {
-				const errorsToPropagate: unknown[] = isArray(errors)
-					? errors
-					: [errors]
+				// We do NOT omit/supress error, we merely DECORATE the error
+				catchError((errors: unknown) => {
+					const errorsToPropagate: unknown[] = isArray(errors)
+						? errors
+						: [errors]
 
-				throw errorFn(errorsToPropagate as Error[])
-			}),
-		)
+					throw errorFn(errorsToPropagate as Error[])
+				}),
+			)
 
 	const networkId: () => Observable<Magic> = fwdAPICall(
 		(a) => a.networkId,
@@ -360,8 +360,8 @@ const create = (): RadixT => {
 								publicKeyOfSigner,
 							]): SignedTransaction => {
 								/* log.trace */ log.debug(
-									`Finished signing transaction`,
-								)
+								`Finished signing transaction`,
+							)
 								return {
 									transaction: unsignedTx.transaction,
 									signature,
@@ -379,8 +379,8 @@ const create = (): RadixT => {
 		transactionIntent$: Observable<TransactionIntent>,
 		options: MakeTransactionOptions,
 	): TransactionTracking => {
-		/* log.trace */ log.debug(
-			`Start of transaction flow, inside constructor of 'TransactionTracking'.`,
+		log.debug(
+			`Start of transaction flow, inside constructor of 'TransactionTracking'.`
 		)
 
 		const pendingTXSubject = new Subject<PendingTransaction>()
@@ -390,8 +390,8 @@ const create = (): RadixT => {
 
 		if (shouldConfirmTransactionAutomatically(options.userConfirmation)) {
 			/* log.trace */ log.debug(
-				'Transaction has been setup to be automatically confirmed, requiring no final confirmation input from user.',
-			)
+			'Transaction has been setup to be automatically confirmed, requiring no final confirmation input from user.',
+		)
 			askUserToConfirmSubject
 				.subscribe(() => {
 					log.debug(
@@ -402,16 +402,16 @@ const create = (): RadixT => {
 				.add(subs)
 		} else {
 			/* log.trace */ log.debug(
-				`Transaction has been setup so that it requires a manual final confirmation from user before being finalized.`,
-			)
+			`Transaction has been setup so that it requires a manual final confirmation from user before being finalized.`,
+		)
 			const twoWayConfirmationSubject: Subject<ManualUserConfirmTX> =
 				options.userConfirmation
 
 			askUserToConfirmSubject
 				.subscribe((ux) => {
 					/* log.trace */ log.debug(
-						`Forwarding signedUnconfirmedTX and 'userDidConfirmTransactionSubject' to subject 'twoWayConfirmationSubject' now (inside subscribe to 'askUserToConfirmSubject')`,
-					)
+					`Forwarding signedUnconfirmedTX and 'userDidConfirmTransactionSubject' to subject 'twoWayConfirmationSubject' now (inside subscribe to 'askUserToConfirmSubject')`,
+				)
 
 					const confirmation: ManualUserConfirmTX = {
 						txToConfirm: ux,
@@ -423,12 +423,10 @@ const create = (): RadixT => {
 		}
 
 		const trackingSubject = new ReplaySubject<
-			TransactionTrackingEvent<PartOfMakeTransactionFlow>
+			TransactionTrackingEvent<unknown>
 		>()
 
-		const track = (
-			event: TransactionTrackingEvent<PartOfMakeTransactionFlow>,
-		): void => {
+		const track = (event: TransactionTrackingEvent<unknown>): void => {
 			trackingSubject.next(event)
 		}
 
@@ -450,18 +448,16 @@ const create = (): RadixT => {
 		}
 
 		const builtTransaction = transactionIntent$.pipe(
-			switchMap(
-				(intent: TransactionIntent): Observable<BuiltTransaction> => {
-					log.debug(
-						'Transaction intent created => requesting 🛰 API to build it now.',
-					)
-					track({
-						value: intent,
-						eventUpdateType: TransactionTrackingEventType.INITIATED,
-					})
-					return api.buildTransaction(intent)
-				},
-			),
+			switchMap((intent: TransactionIntent): Observable<BuiltTransaction> => {
+				log.debug(
+					'Transaction intent created => requesting 🛰 API to build it now.',
+				)
+				track({
+					value: intent,
+					eventUpdateType: TransactionTrackingEventType.INITIATED,
+				})
+				return api.buildTransaction(intent)
+			}),
 			catchError((e: Error) => {
 				log.error(
 					`API failed to build transaction, error: ${JSON.stringify(
@@ -491,19 +487,22 @@ const create = (): RadixT => {
 					eventUpdateType:
 						TransactionTrackingEventType.ASKED_FOR_CONFIRMATION,
 				})
-			}),
+			})
 		)
 
-		combineLatest([builtTransaction, userDidConfirmTransactionSubject])
+		const signedTransaction = combineLatest([builtTransaction, userDidConfirmTransactionSubject]).pipe(
+			tap((unsignedTx) => {
+				track({
+					value: unsignedTx,
+					eventUpdateType: TransactionTrackingEventType.CONFIRMED,
+				})
+			}),
+			map(([signedTx, _]) => signedTx),
+			mergeMap((unsignedTx) => signUnsignedTx(unsignedTx)),
+		)
+
+		const finalizedTx = signedTransaction
 			.pipe(
-				map(([unsignedTx, _]) => unsignedTx),
-				tap((unsignedTx) => {
-					track({
-						value: unsignedTx,
-						eventUpdateType: TransactionTrackingEventType.CONFIRMED,
-					})
-				}),
-				mergeMap((unsignedTx) => signUnsignedTx(unsignedTx)),
 				mergeMap(
 					(
 						signedTx: SignedTransaction,
@@ -539,50 +538,56 @@ const create = (): RadixT => {
 						value: finalizedTx,
 						eventUpdateType: TransactionTrackingEventType.FINALIZED,
 					})
-				}),
-				mergeMap(
-					(
-						finalizedTx: FinalizedTransaction,
-					): Observable<PendingTransaction> => {
-						return api.submitSignedTransaction(finalizedTx)
-					},
-				),
-				catchError((e: Error) => {
-					log.error(
-						`API failed to submit transaction, error: ${JSON.stringify(
-							e,
-							null,
-							4,
-						)}`,
+				})
+			)
+
+
+		combineLatest([finalizedTx, signedTransaction]).pipe(
+			mergeMap(
+				(
+					[finalizedTx, signedTx],
+				): Observable<PendingTransaction> => {
+					return api.submitSignedTransaction({
+						...finalizedTx,
+						...signedTx
+					})
+				},
+			),
+			catchError((e: Error) => {
+				log.error(
+					`API failed to submit transaction, error: ${JSON.stringify(
+						e,
+						null,
+						4,
+					)}`,
+				)
+				trackError({
+					error: e,
+					inStep: TransactionTrackingEventType.SUBMITTED,
+				})
+				return EMPTY
+			}),
+			tap({
+				next: (pendingTx: PendingTransaction) => {
+					log.debug(
+						`Submitted transaction with txID='${pendingTx.txID.toString()}', it is now pending.`,
 					)
-					trackError({
-						error: e,
-						inStep:
+					track({
+						value: pendingTx,
+						eventUpdateType:
 							TransactionTrackingEventType.SUBMITTED,
 					})
-					return EMPTY
-				}),
-				tap({
-					next: (pendingTx: PendingTransaction) => {
-						log.debug(
-							`Submitted transaction with txID='${pendingTx.txID.toString()}', it is now pending.`,
-						)
-						track({
-							value: pendingTx,
-							eventUpdateType:
-								TransactionTrackingEventType.SUBMITTED,
-						})
-						pendingTXSubject.next(pendingTx)
-					},
-					error: (submitTXError: Error) => {
-						// TODO would be great to have access to txID here, hopefully API includes it in error msg?
-						log.error(
-							`Submission of signed transaction to API failed with error: ${submitTXError.message}`,
-						)
-						pendingTXSubject.error(submitTXError)
-					},
-				}),
-			)
+					pendingTXSubject.next(pendingTx)
+				},
+				error: (submitTXError: Error) => {
+					// TODO would be great to have access to txID here, hopefully API includes it in error msg?
+					log.error(
+						`Submission of signed transaction to API failed with error: ${submitTXError.message}`,
+					)
+					pendingTXSubject.error(submitTXError)
+				},
+			}),
+		)
 			.subscribe()
 			.add(subs)
 
@@ -660,7 +665,13 @@ const create = (): RadixT => {
 	): TransactionTracking => {
 		log.debug(`make transaction from builder`)
 		const intent$ = transactionIntentBuilderT.build({
-			encryptMessageIfAnyWithAccount: activeAccount,
+			encryptMessageIfAnyWithAccount: activeAccount.pipe(
+				take(1),
+				shareReplay(1),
+				tap(x => {
+					console.log('should only happen once!')
+				}),
+			),
 		})
 		return __makeTransactionFromIntent(intent$, options)
 	}
