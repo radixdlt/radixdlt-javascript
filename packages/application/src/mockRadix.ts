@@ -41,7 +41,7 @@ import { privateKeyFromBuffer, PublicKey, sha256 } from '@radixdlt/crypto'
 import { ActionType, ExecutedAction } from './actions/_types'
 import { TransactionIdentifier } from './dto/transactionIdentifier'
 import { StakePosition, UnstakePosition } from './dto/_types'
-import { SubmittedTransaction } from './dto/_types'
+import { FinalizedTransaction } from './dto/_types'
 import { isNumber } from '@radixdlt/util'
 
 export const toAddress = (b58: string): AddressT =>
@@ -192,7 +192,7 @@ export const balanceOfFor = (
 		  })._unsafeUnwrap()
 
 	return {
-		token: input.token.rri,
+		tokenIdentifier: input.token.rri,
 		amount: amt.lessThan(input.token.currentSupply)
 			? amt
 			: input.token.currentSupply,
@@ -409,7 +409,7 @@ const randomPendingTransaction = (
 
 const detRandomSignedUnconfirmedTransaction = (
 	signedTransaction: SignedTransaction,
-): SubmittedTransaction => {
+): FinalizedTransaction => {
 	const txID = randomPendingTransaction(signedTransaction).txID
 	return {
 		...signedTransaction,
@@ -510,7 +510,7 @@ export const deterministicRandomUnstakesForAddress = (
 					]),
 				)
 
-				const withdrawalTxID = TransactionIdentifier.create(
+				const withdrawTxID = TransactionIdentifier.create(
 					txIDBuffer,
 				)._unsafeUnwrap()
 
@@ -519,7 +519,7 @@ export const deterministicRandomUnstakesForAddress = (
 					amount,
 					validator,
 					epochsUntil: epochsUntil > 70 ? 0 : epochsUntil,
-					withdrawalTxID,
+					withdrawTxID,
 				}
 			},
 		)
@@ -585,6 +585,7 @@ export const deterministicRandomTxHistoryWithInput = (
 										case ActionType.STAKE_TOKENS:
 											executedAction = {
 												type: ActionType.STAKE_TOKENS,
+												from: address,
 												amount: Amount.fromUnsafe(
 													anInt(),
 												)._unsafeUnwrap(),
@@ -594,6 +595,7 @@ export const deterministicRandomTxHistoryWithInput = (
 										case ActionType.UNSTAKE_TOKENS:
 											executedAction = {
 												type: ActionType.UNSTAKE_TOKENS,
+												from: address,
 												amount: Amount.fromUnsafe(
 													anInt(),
 												)._unsafeUnwrap(),
@@ -764,14 +766,14 @@ export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
 	},
 
 	submitSignedTransaction: (
-		_signedTransaction: SignedTransaction,
-	): Observable<SubmittedTransaction> => {
+		_signedTransaction: FinalizedTransaction,
+	): Observable<FinalizedTransaction> => {
 		throw Error('Not implemented')
 	},
 
 	finalizeTransaction: (
-		_signedUnconfirmedTransaction: SubmittedTransaction,
-	): Observable<PendingTransaction> => {
+		_signedUnconfirmedTransaction: SignedTransaction,
+	): Observable<FinalizedTransaction> => {
 		throw Error('Not implemented')
 	},
 })
@@ -816,16 +818,19 @@ export const mockRadixCoreAPI = (
 			})
 		},
 		validators: (input: ValidatorsRequestInput): Observable<Validators> =>
-			of(randomValidatorList(input.size)),
+			of({
+				cursor: 'cursor',
+				validators: randomValidatorList(input.size),
+			}),
 		buildTransaction: (
 			transactionIntent: TransactionIntent,
 		): Observable<BuiltTransaction> =>
 			of(randomUnsignedTransaction(transactionIntent)),
-		submitSignedTransaction: (
+		finalizeTransaction: (
 			signedTransaction: SignedTransaction,
-		): Observable<SubmittedTransaction> =>
+		): Observable<FinalizedTransaction> =>
 			of(detRandomSignedUnconfirmedTransaction(signedTransaction)),
-		finalizeTransaction: (signedUnconfirmedTX) =>
+		submitSignedTransaction: (signedUnconfirmedTX) =>
 			of(randomPendingTransaction(signedUnconfirmedTX)),
 		networkTransactionDemand: (): Observable<NetworkTransactionDemand> =>
 			of(randomDemand()),

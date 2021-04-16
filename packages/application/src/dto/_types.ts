@@ -21,7 +21,7 @@ export type StakePosition = Readonly<{
 export type UnstakePosition = Readonly<{
 	validator: AddressT
 	amount: AmountT
-	withdrawalTxID: TransactionIdentifierT
+	withdrawTxID: TransactionIdentifierT
 	epochsUntil: number
 }>
 
@@ -103,11 +103,10 @@ export type TransactionIntentBuilderT = Readonly<{
 	) => Observable<TransactionIntent>
 }>
 
-export type TransactionIntent = PartOfMakeTransactionFlow &
-	Readonly<{
-		actions: IntendedAction[]
-		message?: Buffer
-	}>
+export type TransactionIntent = Readonly<{
+	actions: IntendedAction[]
+	message?: Buffer
+}>
 
 export type ValidatorsRequestInput = Readonly<{
 	size: number
@@ -124,25 +123,36 @@ export enum TransactionTrackingEventType {
 	ASKED_FOR_CONFIRMATION = 'ASKED_FOR_CONFIRMATION',
 	CONFIRMED = 'CONFIRMED',
 	/* API has finished "finalizing" / "confirming" the transaction, which now is pending. */
-	FINALIZED_AND_IS_NOW_PENDING = 'FINALIZED_AND_IS_NOW_PENDING',
+	FINALIZED = 'FINALIZED',
 	UPDATE_OF_STATUS_OF_PENDING_TX = 'UPDATE_OF_STATUS_OF_PENDING_TX',
 	COMPLETED = 'COMPLETED',
 }
 
-export type TransactionTrackingEvent<
-	Value extends PartOfMakeTransactionFlow
+export type TransactionStateSuccess<
+	T extends TransactionState = TransactionState
 > = Readonly<{
 	eventUpdateType: TransactionTrackingEventType
-	value: Value
+	transactionState: T
 }>
 
-// Marker protocol
-export type PartOfMakeTransactionFlow = unknown
+export type TransactionStateError = Readonly<{
+	eventUpdateType: TransactionTrackingEventType
+	error: Error
+}>
 
-export type TXError = PartOfMakeTransactionFlow & Error
+export type TransactionStateUpdate<
+	T extends TransactionState = TransactionState
+> = TransactionStateSuccess<T> | TransactionStateError
+
+export type TransactionState =
+	| TransactionIntent
+	| BuiltTransaction
+	| SignedTransaction
+	| FinalizedTransaction
+	| PendingTransaction
 
 export type TransactionTracking = Readonly<{
-	events: Observable<TransactionTrackingEvent<PartOfMakeTransactionFlow>>
+	events: Observable<TransactionStateUpdate>
 	completion: Observable<TransactionIdentifierT>
 }>
 
@@ -167,8 +177,7 @@ export type ExecutedTransaction = Readonly<{
 }>
 
 export type TokenAmount = Readonly<{
-	// TODO rename `token` => `tokenIdentifier`
-	token: ResourceIdentifierT
+	tokenIdentifier: ResourceIdentifierT
 	amount: AmountT
 }>
 
@@ -203,34 +212,24 @@ export type BuiltTransactionReadyToSign = Readonly<{
 	hashOfBlobToSign: string
 }>
 
-export type BuiltTransaction = PartOfMakeTransactionFlow &
-	Readonly<{
-		transaction: BuiltTransactionReadyToSign
-		fee: AmountT
-	}>
+export type BuiltTransaction = Readonly<{
+	transaction: BuiltTransactionReadyToSign
+	fee: AmountT
+}>
 
-type SignedTXProps = Readonly<{
+export type SignedTransaction = Readonly<{
 	transaction: BuiltTransactionReadyToSign
 	publicKeyOfSigner: PublicKey
 	signature: Signature
 }>
 
-export type SignedTransaction = PartOfMakeTransactionFlow &
-	SignedTXProps &
-	Readonly<{
-		// nothing here
-	}>
+export type FinalizedTransaction = Readonly<{
+	txID: TransactionIdentifierT
+}>
 
-export type SubmittedTransaction = PartOfMakeTransactionFlow &
-	SignedTXProps &
-	Readonly<{
-		txID: TransactionIdentifierT
-	}>
-
-export type PendingTransaction = PartOfMakeTransactionFlow &
-	Readonly<{
-		txID: TransactionIdentifierT
-	}>
+export type PendingTransaction = Readonly<{
+	txID: TransactionIdentifierT
+}>
 
 export type RawToken = Readonly<{
 	name: string
@@ -248,13 +247,13 @@ export type RawToken = Readonly<{
 	}
 }>
 
-export type RawExecutedActionBase = Readonly<{
-	type: ActionType
+export type RawExecutedActionBase<T extends ActionType> = Readonly<{
+	type: T
 }>
 
-export type RawOtherExecutedAction = RawExecutedActionBase
+export type RawOtherExecutedAction = RawExecutedActionBase<ActionType.OTHER>
 
-export type RawTransferAction = RawExecutedActionBase &
+export type RawTransferAction = RawExecutedActionBase<ActionType.TOKEN_TRANSFER> &
 	Readonly<{
 		from: string
 		to: string
@@ -262,13 +261,13 @@ export type RawTransferAction = RawExecutedActionBase &
 		rri: string
 	}>
 
-export type RawStakesAction = RawExecutedActionBase &
+export type RawStakesAction = RawExecutedActionBase<ActionType.STAKE_TOKENS> &
 	Readonly<{
 		validator: string
 		amount: string
 	}>
 
-export type RawUnstakesAction = RawExecutedActionBase &
+export type RawUnstakesAction = RawExecutedActionBase<ActionType.UNSTAKE_TOKENS> &
 	Readonly<{
 		validator: string
 		amount: string
@@ -316,7 +315,10 @@ export type Validator = Readonly<{
 	isExternalStakeAccepted: boolean
 }>
 
-export type Validators = Validator[]
+export type Validators = Readonly<{
+	cursor: string
+	validators: Validator[]
+}>
 
 export type RawExecutedTransaction = Readonly<{
 	txID: string

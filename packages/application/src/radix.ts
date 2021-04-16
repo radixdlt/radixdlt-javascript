@@ -69,9 +69,8 @@ import {
 } from './errors'
 import { isArray, log, RadixLogLevel, setLogLevel } from '@radixdlt/util'
 import {
-	PartOfMakeTransactionFlow,
 	PendingTransaction,
-	SubmittedTransaction,
+	FinalizedTransaction,
 	SignedTransaction,
 	TransactionHistory,
 	TransactionHistoryActiveAccountRequestInput,
@@ -80,15 +79,15 @@ import {
 	TransactionIntentBuilderT,
 	TransactionStatus,
 	TransactionTracking,
-	TransactionTrackingEvent,
 	TransactionTrackingEventType,
-	TXError,
 	BuiltTransaction,
 	SimpleTokenBalances,
 	TokenBalances,
 	SimpleTokenBalance,
 	TokenBalance,
 	Token,
+	TransactionStateUpdate,
+	TransactionStateError,
 } from './dto/_types'
 import { nodeAPI } from './api/api'
 import { TransactionIntentBuilder } from './dto/transactionIntentBuilder'
@@ -196,13 +195,13 @@ const create = (): RadixT => {
 			(a) => a.buildTransaction,
 			(m) => buildTxFromIntentErr(m),
 		),
-		submitSignedTransaction: fwdAPICall(
-			(a) => a.submitSignedTransaction,
-			(m) => submitSignedTxErr(m),
-		),
 		finalizeTransaction: fwdAPICall(
 			(a) => a.finalizeTransaction,
 			(m) => finalizeTxErr(m),
+		),
+		submitSignedTransaction: fwdAPICall(
+			(a) => a.submitSignedTransaction,
+			(m) => submitSignedTxErr(m),
 		),
 	}
 
@@ -253,7 +252,7 @@ const create = (): RadixT => {
 	const decorateSimpleTokenBalanceWithTokenInfo = (
 		simpleTokenBalance: SimpleTokenBalance,
 	): Observable<TokenBalance> => {
-		return api.tokenInfo(simpleTokenBalance.token).pipe(
+		return api.tokenInfo(simpleTokenBalance.tokenIdentifier).pipe(
 			map(
 				(tokenInfo: Token): TokenBalance => ({
 					amount: simpleTokenBalance.amount,
@@ -439,13 +438,9 @@ const create = (): RadixT => {
 				.add(subs)
 		}
 
-		const trackingSubject = new ReplaySubject<
-			TransactionTrackingEvent<PartOfMakeTransactionFlow>
-		>()
+		const trackingSubject = new ReplaySubject<TransactionStateUpdate>()
 
-		const track = (
-			event: TransactionTrackingEvent<PartOfMakeTransactionFlow>,
-		): void => {
+		const track = (event: TransactionStateUpdate): void => {
 			trackingSubject.next(event)
 		}
 
@@ -457,23 +452,23 @@ const create = (): RadixT => {
 				inStep: TransactionTrackingEventType
 			}>,
 		): void => {
-			const errorEvent: TransactionTrackingEvent<TXError> = {
+			const errorEvent: TransactionStateError = {
 				eventUpdateType: input.inStep,
-				value: input.error,
+				error: input.error,
 			}
 			txLog.verbose(`Forwarding error to 'errorSubject'`)
 			track(errorEvent)
-			completionSubject.error(errorEvent.value)
+			completionSubject.error(errorEvent.error)
 		}
 
-		const builtTransaction = transactionIntent$.pipe(
+		const builtTransaction$ = transactionIntent$.pipe(
 			switchMap(
 				(intent: TransactionIntent): Observable<BuiltTransaction> => {
 					txLog.debug(
 						'Transaction intent created => requesting 🛰 API to build it now.',
 					)
 					track({
-						value: intent,
+						transactionState: intent,
 						eventUpdateType: TransactionTrackingEventType.INITIATED,
 					})
 					return api.buildTransaction(intent)
@@ -494,9 +489,11 @@ const create = (): RadixT => {
 				return EMPTY
 			}),
 			tap((builtTx) => {
-				txLog.debug('TX built by API => asking for confirmation to sign...')
+				txLog.debug(
+					'TX built by API => asking for confirmation to sign...',
+				)
 				track({
-					value: builtTx,
+					transactionState: builtTx,
 					eventUpdateType:
 						TransactionTrackingEventType.BUILT_FROM_INTENT,
 				})
@@ -504,37 +501,79 @@ const create = (): RadixT => {
 			}),
 			tap((builtTx) => {
 				track({
-					value: builtTx,
+					transactionState: builtTx,
 					eventUpdateType:
 						TransactionTrackingEventType.ASKED_FOR_CONFIRMATION,
 				})
 			}),
+		)
+
+		const signedTransaction$ = combineLatest([
+			builtTransaction$,
+			userDidConfirmTransactionSubject,
+		]).pipe(
+			map(([signedTx, _]) => signedTx),
+			tap((unsignedTx) => {
+				track({
+					transactionState: unsignedTx,
+					eventUpdateType: TransactionTrackingEventType.CONFIRMED,
+				})
+			}),
+			mergeMap((unsignedTx) => signUnsignedTx(unsignedTx)),
 			shareReplay(1),
 		)
 
-		combineLatest([builtTransaction, userDidConfirmTransactionSubject])
-			.pipe(
-				map(([unsignedTx, _]) => unsignedTx),
-				tap((unsignedTx) => {
+		const finalizedTx$ = signedTransaction$.pipe(
+			mergeMap(
+				(
+					signedTx: SignedTransaction,
+				): Observable<FinalizedTransaction> => {
+					txLog.debug(
+						`Finished signing tx => submitting it to 🛰  API.`,
+					)
 					track({
-						value: unsignedTx,
-						eventUpdateType: TransactionTrackingEventType.CONFIRMED,
+						transactionState: signedTx,
+						eventUpdateType: TransactionTrackingEventType.SIGNED,
 					})
-				}),
-				mergeMap((unsignedTx) => signUnsignedTx(unsignedTx)),
+					return api.finalizeTransaction(signedTx)
+				},
+			),
+			catchError((e: Error) => {
+				txLog.error(
+					`API failed to submit transaction, error: ${JSON.stringify(
+						e,
+						null,
+						4,
+					)}`,
+				)
+				trackError({
+					error: e,
+					inStep: TransactionTrackingEventType.FINALIZED,
+				})
+				return EMPTY
+			}),
+			tap<FinalizedTransaction>((finalizedTx) => {
+				txLog.debug(
+					`Received finalized transaction with txID='${finalizedTx.txID.toString()}' from API, calling submit.`,
+				)
+				track({
+					transactionState: finalizedTx,
+					eventUpdateType: TransactionTrackingEventType.FINALIZED,
+				})
+			}),
+		)
+
+		combineLatest([finalizedTx$, signedTransaction$])
+			.pipe(
 				mergeMap(
-					(
-						signedTx: SignedTransaction,
-					): Observable<SubmittedTransaction> => {
-						txLog.debug(
-							`Finished signing tx => submitting it to 🛰  API.`,
-						)
-						track({
-							value: signedTx,
-							eventUpdateType:
-								TransactionTrackingEventType.SIGNED,
+					([
+						finalizedTx,
+						signedTx,
+					]): Observable<PendingTransaction> => {
+						return api.submitSignedTransaction({
+							...finalizedTx,
+							...signedTx,
 						})
-						return api.submitSignedTransaction(signedTx)
 					},
 				),
 				catchError((e: Error) => {
@@ -551,46 +590,15 @@ const create = (): RadixT => {
 					})
 					return EMPTY
 				}),
-				tap<SubmittedTransaction>((submitted) => {
-					txLog.debug(
-						`Received submitted transaction with txID='${submitted.txID.toString()}' from API, calling finalize.`,
-					)
-					track({
-						value: submitted,
-						eventUpdateType: TransactionTrackingEventType.SUBMITTED,
-					})
-				}),
-				mergeMap(
-					(
-						userConfirmedTX: SubmittedTransaction,
-					): Observable<PendingTransaction> => {
-						return api.finalizeTransaction(userConfirmedTX)
-					},
-				),
-				catchError((e: Error) => {
-					txLog.error(
-						`API failed to finalize transaction, error: ${JSON.stringify(
-							e,
-							null,
-							4,
-						)}`,
-					)
-					trackError({
-						error: e,
-						inStep:
-							TransactionTrackingEventType.FINALIZED_AND_IS_NOW_PENDING,
-					})
-					return EMPTY
-				}),
 				tap({
 					next: (pendingTx: PendingTransaction) => {
 						txLog.debug(
-							`Finalized transaction with txID='${pendingTx.txID.toString()}', it is now pending.`,
+							`Submitted transaction with txID='${pendingTx.txID.toString()}', it is now pending.`,
 						)
 						track({
-							value: pendingTx,
+							transactionState: pendingTx,
 							eventUpdateType:
-								TransactionTrackingEventType.FINALIZED_AND_IS_NOW_PENDING,
+								TransactionTrackingEventType.SUBMITTED,
 						})
 						pendingTXSubject.next(pendingTx)
 					},
@@ -636,7 +644,7 @@ const create = (): RadixT => {
 						`Status ${status.toString()} of transaction with txID='${txID.toString()}'`,
 					)
 					track({
-						value: statusOfTransaction,
+						transactionState: statusOfTransaction,
 						eventUpdateType:
 							TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
 					})
@@ -658,7 +666,7 @@ const create = (): RadixT => {
 						`Transaction with txID='${txID.toString()}' has completed succesfully.`,
 					)
 					track({
-						value: statusOfTransaction,
+						transactionState: statusOfTransaction,
 						eventUpdateType: TransactionTrackingEventType.COMPLETED,
 					})
 

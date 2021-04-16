@@ -92,10 +92,7 @@ export type IntendedAction =
 
 // An executed action stored in the Radix Ledger, part
 // of transaction history. Marker type.
-export type ExecutedActionBase<T extends ActionType> = Action<T> &
-	Readonly<{
-		// Nothing here.
-	}>
+export type ExecutedActionBase<T extends ActionType> = Action<T>
 
 export type ExecutedTransferTokensAction = ExecutedActionBase<ActionType.TOKEN_TRANSFER> &
 	// 'tokenIdentifier' is called 'rri' in history...
@@ -105,10 +102,10 @@ export type ExecutedTransferTokensAction = ExecutedActionBase<ActionType.TOKEN_T
 	}>
 
 export type ExecutedStakeTokensAction = ExecutedActionBase<ActionType.STAKE_TOKENS> &
-	Omit<IntendedStakeTokensAction, 'uuid' | 'from'>
+	Omit<IntendedStakeTokensAction, 'uuid'>
 
 export type ExecutedUnstakeTokensAction = ExecutedActionBase<ActionType.UNSTAKE_TOKENS> &
-	Omit<IntendedUnstakeTokensAction, 'uuid' | 'from'>
+	Omit<IntendedUnstakeTokensAction, 'uuid'>
 
 // OTHER (Only "Executed")
 export type ExecutedOtherAction = ExecutedActionBase<ActionType.OTHER>

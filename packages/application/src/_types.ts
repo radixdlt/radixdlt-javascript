@@ -8,8 +8,8 @@ import {
 	WalletT,
 } from '@radixdlt/account'
 import { KeystoreT } from '@radixdlt/crypto'
-import { RadixLogLevel, setLogLevel } from '@radixdlt/util'
-import { Observable, ReplaySubject, Subject } from 'rxjs'
+import { RadixLogLevel } from '@radixdlt/util'
+import { Observable, ReplaySubject } from 'rxjs'
 import { NodeT, RadixAPI, RadixCoreAPI } from './api/_types'
 import { ErrorNotification } from './errors'
 import {

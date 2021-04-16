@@ -10,7 +10,7 @@ import {
 	NetworkTransactionThroughput,
 	PendingTransaction,
 	ResourceIdentifierT,
-	SubmittedTransaction,
+	FinalizedTransaction,
 	SignedTransaction,
 	StakePositions,
 	StatusOfTransaction,
@@ -80,15 +80,15 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 			toObs((a) => a.tokenInfo, rri.toString()),
 
 		stakesForAddress: (address: AddressT): Observable<StakePositions> =>
-			toObs((a) => a.stakes, address.toString()),
+			toObs((a) => a.stakePositions, address.toString()),
 
 		unstakesForAddress: (address: AddressT): Observable<UnstakePositions> =>
-			toObs((a) => a.unstakes, address.toString()),
+			toObs((a) => a.unstakePositions, address.toString()),
 
 		transactionStatus: (
 			txID: TransactionIdentifierT,
 		): Observable<StatusOfTransaction> =>
-			toObs((a) => a.transactionStatus, txID.toString()),
+			toObs((a) => a.statusOfTransaction, txID.toString()),
 
 		networkTransactionThroughput: (): Observable<NetworkTransactionThroughput> =>
 			toObs((a) => a.networkTransactionThroughput),
@@ -101,25 +101,25 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 		): Observable<BuiltTransaction> =>
 			toObs((a) => a.buildTransaction, transactionIntent),
 
-		submitSignedTransaction: (
+		finalizeTransaction: (
 			signedTransaction: SignedTransaction,
-		): Observable<SubmittedTransaction> =>
+		): Observable<FinalizedTransaction> =>
 			toObs(
-				(a) => a.submitSignedTransaction,
+				(a) => a.finalizeTransaction,
 				{ blob: signedTransaction.transaction.blob },
 				signedTransaction.publicKeyOfSigner.toString(true),
 				signedTransaction.signature.toDER(),
 			),
 
-		finalizeTransaction: (
-			signedUnconfirmedTransaction: SubmittedTransaction,
+		submitSignedTransaction: (
+			finalizedTx: FinalizedTransaction & SignedTransaction,
 		): Observable<PendingTransaction> =>
 			toObs(
-				(a) => a.finalizeTransaction,
-				{ blob: signedUnconfirmedTransaction.transaction.blob },
-				signedUnconfirmedTransaction.publicKeyOfSigner.toString(true),
-				signedUnconfirmedTransaction.signature.toDER(),
-				signedUnconfirmedTransaction.txID.toString(),
+				(a) => a.submitSignedTransaction,
+				{ blob: finalizedTx.transaction.blob },
+				finalizedTx.publicKeyOfSigner.toString(true),
+				finalizedTx.signature.toDER(),
+				finalizedTx.txID.toString(),
 			),
 	}
 }

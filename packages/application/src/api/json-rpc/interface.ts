@@ -20,19 +20,19 @@ import {
 	ApiMethod,
 	BuildTransactionEndpoint,
 	Endpoint,
-	FinalizeTransactionEndpoint,
+	SubmitTransactionEndpoint,
 	LookupTransactionEndpoint,
 	NativeTokenEndpoint,
 	NetworkIdEndpoint,
 	NetworkTransactionDemandEndpoint,
 	NetworkTransactionThroughputEndpoint,
 	StakePositionsEndpoint,
-	SubmitSignedTransactionEndpoint,
+	FinalizeTransactionEndpoint,
 	TokenBalancesEndpoint,
 	TokenInfoEndpoint,
 	TransactionHistoryEndpoint,
 	TransactionStatusEndpoint,
-	UnstakesEndpoint,
+	UnstakePositionsEndpoint,
 	ValidatorsEndpoint,
 } from './_types'
 
@@ -55,7 +55,7 @@ const callAPI = <Params extends unknown[], DecodedResponse>(
 const setupAPICall = (
 	call: (endpoint: Endpoint, ...params: unknown[]) => Promise<unknown>,
 ) => <I extends unknown[], R>(
-	handleResponse: (response: unknown) => Result<R, Error[]>,
+	handleResponse: (response: any) => Result<R, Error[]>,
 ) => (endpoint: Endpoint) => callAPI<I, R>(endpoint)(call, handleResponse)
 
 export const getAPI = (
@@ -102,17 +102,17 @@ export const getAPI = (
 		[ApiMethod.STAKES]: setupAPIResponse<
 			StakePositionsEndpoint.Input,
 			StakePositionsEndpoint.DecodedResponse
-		>(handleStakesResponse)('radix.stakes'),
+		>(handleStakesResponse)('radix.stakePositions'),
 
 		[ApiMethod.UNSTAKES]: setupAPIResponse<
-			UnstakesEndpoint.Input,
-			UnstakesEndpoint.DecodedResponse
-		>(handleUnstakesResponse)('radix.unstakes'),
+			UnstakePositionsEndpoint.Input,
+			UnstakePositionsEndpoint.DecodedResponse
+		>(handleUnstakesResponse)('radix.stakePositions'),
 
 		[ApiMethod.TX_STATUS]: setupAPIResponse<
 			TransactionStatusEndpoint.Input,
 			TransactionStatusEndpoint.DecodedResponse
-		>(handleTransactionStatusResponse)('radix.transactionStatus'),
+		>(handleTransactionStatusResponse)('radix.statusOfTransaction'),
 
 		[ApiMethod.NETWORK_TX_THROUGHPUT]: setupAPIResponse<
 			NetworkTransactionThroughputEndpoint.Input,
@@ -131,16 +131,14 @@ export const getAPI = (
 			BuildTransactionEndpoint.DecodedResponse
 		>(handleBuildTransactionResponse)('radix.buildTransaction'),
 
-		[ApiMethod.SUBMIT_SIGNED_TX]: setupAPIResponse<
-			SubmitSignedTransactionEndpoint.Input,
-			SubmitSignedTransactionEndpoint.DecodedResponse
-		>(handleSubmitSignedTransactionResponse)(
-			'radix.submitSignedTransaction',
-		),
-
 		[ApiMethod.FINALIZE_TX]: setupAPIResponse<
 			FinalizeTransactionEndpoint.Input,
 			FinalizeTransactionEndpoint.DecodedResponse
-		>(handleFinalizedTransactionResponse)('radix.finalizeTransaction'),
+		>(handleSubmitSignedTransactionResponse)('radix.finalizeTransaction'),
+
+		[ApiMethod.SUBMIT_SIGNED_TX]: setupAPIResponse<
+			SubmitTransactionEndpoint.Input,
+			SubmitTransactionEndpoint.DecodedResponse
+		>(handleFinalizedTransactionResponse)('radix.submitSignedTransaction'),
 	}
 }

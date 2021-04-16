@@ -31,7 +31,31 @@
             "params": [],
             "result": {
                 "$ref": "#/components/responses/tokenInfo"
-            }
+            },
+            "examples": [
+                {
+                    "name": "nativeTokenExamples",
+                    "params": [],
+                    "result": {
+                        "name": "nativeTokenExample",
+                        "value": {
+                            "name": "Rad",
+                            "rri": "/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD",
+                            "symbol": "XRD",
+                            "description": "The native token of the Radix network",
+                            "granularity": "1",
+                            "isSupplyMutable": false,
+                            "currentSupply": "2147483648",
+                            "tokenInfoURL": "http://www.radixdlt.com",
+                            "iconURL": "http://www.image.radixdlt.com",
+                            "tokenPermission": {
+                                "burn": "all",
+                                "mint": "none"
+                            }
+                        }
+                    }
+                }
+            ]
         },
         {
             "name": "tokenInfo",
@@ -47,7 +71,31 @@
             ],
             "result": {
                 "$ref": "#/components/responses/tokenInfo"
-            }
+            },
+            "examples": [
+                {
+                    "name": "tokenInfoExamples",
+                    "params": [],
+                    "result": {
+                        "name": "tokenInfoExample",
+                        "value": {
+                            "name": "Rad",
+                            "rri": "/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD",
+                            "symbol": "XRD",
+                            "description": "The native token of the Radix network",
+                            "granularity": "1",
+                            "isSupplyMutable": false,
+                            "currentSupply": "2147483648",
+                            "tokenInfoURL": "http://www.radixdlt.com",
+                            "iconURL": "http://www.image.radixdlt.com",
+                            "tokenPermission": {
+                                "burn": "all",
+                                "mint": "none"
+                            }
+                        }
+                    }
+                }
+            ]
         },
         {
             "name": "tokenBalances",
@@ -97,7 +145,25 @@
                     ],
                     "additionalProperties": false
                 }
-            }
+            },
+            "examples": [
+                {
+                    "name": "tokenBalancesExamples",
+                    "params": [],
+                    "result": {
+                        "name": "tokenBalancesExample",
+                        "value": {
+                            "owner": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                            "tokenBalances": [
+                                {
+                                    "rri": "/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD",
+                                    "amount": "100"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
         },
         {
             "name": "transactionHistory",
@@ -115,7 +181,7 @@
                     "required": true,
                     "schema": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 1
                     }
                 },
                 {
@@ -147,7 +213,51 @@
                     ],
                     "additionalProperties": false
                 }
-            }
+            },
+            "examples": [
+                {
+                    "name": "transactionHistoryExamples",
+                    "params": [],
+                    "result": {
+                        "name": "transactionHistoryExample",
+                        "value": {
+                            "cursor": "cursor",
+                            "transactions": [
+                                {
+                                    "txID": "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+                                    "sentAt": "1995-12-17T03:24:00",
+                                    "fee": "100",
+                                    "message": "Example message",
+                                    "actions": [
+                                        {
+                                            "type": "TokenTransfer",
+                                            "from": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                            "to": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                            "amount": "100",
+                                            "rri": "/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD"
+                                        },
+                                        {
+                                            "type": "StakeTokens",
+                                            "from": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                            "validator": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                            "amount": "100"
+                                        },
+                                        {
+                                            "type": "UnstakeTokens",
+                                            "from": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                            "validator": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                            "amount": "100"
+                                        },
+                                        {
+                                            "type": "Other"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
         },
         {
             "name": "lookupTransaction",
@@ -157,7 +267,7 @@
                     "name": "txID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "$ref": "#/components/schemas/txID"
                     }
                 }
             ],
@@ -166,7 +276,46 @@
                 "schema": {
                     "$ref": "#/components/schemas/transaction"
                 }
-            }
+            },
+            "examples": [
+                {
+                    "name": "transactionHistoryExamples",
+                    "params": [],
+                    "result": {
+                        "name": "transactionHistoryExample",
+                        "value": {
+                            "txID": "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+                            "sentAt": "1995-12-17T03:24:00",
+                            "fee": "100",
+                            "message": "Example message",
+                            "actions": [
+                                {
+                                    "type": "TokenTransfer",
+                                    "from": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                    "to": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                    "amount": "100",
+                                    "rri": "/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD"
+                                },
+                                {
+                                    "type": "StakeTokens",
+                                    "from": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                    "validator": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                    "amount": "100"
+                                },
+                                {
+                                    "type": "UnstakeTokens",
+                                    "from": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                    "validator": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                    "amount": "100"
+                                },
+                                {
+                                    "type": "Other"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
         },
         {
             "name": "stakePositions",
@@ -203,7 +352,22 @@
                         }
                     ]
                 }
-            }
+            },
+            "examples": [
+                {
+                    "name": "stakePositionsExamples",
+                    "params": [],
+                    "result": {
+                        "name": "stakePositionsExample",
+                        "value": [
+                            {
+                                "validator": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                "amount": "100"
+                            }
+                        ]
+                    }
+                }
+            ]
         },
         {
             "name": "unstakePositions",
@@ -228,27 +392,44 @@
                                 "amount": {
                                     "$ref": "#/components/schemas/amount"
                                 },
-                                "fromValidator": {
+                                "validator": {
                                     "$ref": "#/components/schemas/address"
                                 },
                                 "epochsUntil": {
                                     "type": "integer"
                                 },
                                 "withdrawTxID": {
-                                    "type": "string"
+                                    "$ref": "#/components/schemas/txID"
                                 }
                             },
                             "additionalProperties": false,
                             "required": [
                                 "amount",
-                                "fromValidator",
+                                "validator",
                                 "epochsUntil",
                                 "withdrawTxID"
                             ]
                         }
                     ]
                 }
-            }
+            },
+            "examples": [
+                {
+                    "name": "unstakePositionsExamples",
+                    "params": [],
+                    "result": {
+                        "name": "unstakePositionsExample",
+                        "value": [
+                            {
+                                "amount": "100",
+                                "validator": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                "epochsUntil": 1000,
+                                "withdrawTxID": "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+                            }
+                        ]
+                    }
+                }
+            ]
         },
         {
             "name": "statusOfTransaction",
@@ -258,7 +439,7 @@
                     "name": "txID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "$ref": "#/components/schemas/txID"
                     }
                 }
             ],
@@ -291,7 +472,20 @@
                         "status"
                     ]
                 }
-            }
+            },
+            "examples": [
+                {
+                    "name": "txStatusExamples",
+                    "params": [],
+                    "result": {
+                        "name": "txStatusExample",
+                        "value": {
+                            "txID": "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+                            "status": "CONFIRMED"
+                        }
+                    }
+                }
+            ]
         },
         {
             "name": "networkTransactionThroughput",
@@ -344,11 +538,11 @@
                     "required": true,
                     "schema": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 1
                     }
                 },
                 {
-                    "name": "pageNbr",
+                    "name": "cursor",
                     "required": true,
                     "schema": {
                         "type": "integer"
@@ -358,47 +552,83 @@
             "result": {
                 "name": "validatorsResponse",
                 "schema": {
-                    "type": "array",
-                    "items": [
-                        {
-                            "type": "object",
-                            "properties": {
-                                "address": {
-                                    "$ref": "#/components/schemas/address"
-                                },
-                                "ownerAddress": {
-                                    "$ref": "#/components/schemas/address"
-                                },
-                                "name": {
-                                    "type": "string"
-                                },
-                                "infoURL": {
-                                    "$ref": "#/components/schemas/url"
-                                },
-                                "totalDelegatedStake": {
-                                    "$ref": "#/components/schemas/amount"
-                                },
-                                "ownerDelegation": {
-                                    "$ref": "#/components/schemas/amount"
-                                },
-                                "isExternalStakeAccepted": {
-                                    "type": "boolean"
+                    "type": "object",
+                    "properties": {
+                        "cursor": {
+                            "type": "string"
+                        },
+                        "validators": {
+                            "type": "array",
+                            "items": [
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "address": {
+                                            "$ref": "#/components/schemas/address"
+                                        },
+                                        "ownerAddress": {
+                                            "$ref": "#/components/schemas/address"
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        },
+                                        "infoURL": {
+                                            "$ref": "#/components/schemas/url"
+                                        },
+                                        "totalDelegatedStake": {
+                                            "$ref": "#/components/schemas/amount"
+                                        },
+                                        "ownerDelegation": {
+                                            "$ref": "#/components/schemas/amount"
+                                        },
+                                        "isExternalStakeAccepted": {
+                                            "type": "boolean"
+                                        }
+                                    },
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "address",
+                                        "ownerAddress",
+                                        "name",
+                                        "infoURL",
+                                        "totalDelegatedStake",
+                                        "ownerDelegation",
+                                        "isExternalStakeAccepted"
+                                    ]
                                 }
-                            },
-                            "additionalProperties": false,
-                            "required": [
-                                "address",
-                                "ownerAddress",
-                                "name",
-                                "infoURL",
-                                "totalDelegatedStake",
-                                "ownerDelegation",
-                                "isExternalStakeAccepted"
                             ]
                         }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                        "cursor",
+                        "validators"
                     ]
                 }
-            }
+            },
+            "examples": [
+                {
+                    "name": "validatorsExamples",
+                    "params": [],
+                    "result": {
+                        "name": "validatorsExample",
+                        "value": {
+                            "cursor": "cursor",
+                            "validators": [
+                                {
+                                    "address": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                    "ownerAddress": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                    "name": "Cerby",
+                                    "infoURL": "http://www.radixdlt.com",
+                                    "totalDelegatedStake": "100",
+                                    "ownerDelegation": "100",
+                                    "isExternalStakeAccepted": true
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
         },
         {
             "name": "buildTransaction",
@@ -425,60 +655,68 @@
             "result": {
                 "name": "transaction",
                 "schema": {
-                    "anyOf": [
-                        {
+                    "type": "object",
+                    "properties": {
+                        "transaction": {
                             "type": "object",
                             "properties": {
-                                "transaction": {
-                                    "type": "object",
-                                    "properties": {
-                                        "blob": {
-                                            "type": "string"
-                                        },
-                                        "hashOfBlobToSign": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "additionalProperties": false,
-                                    "required": [
-                                        "blob",
-                                        "hashOfBlobToSign"
-                                    ]
+                                "blob": {
+                                    "type": "string"
                                 },
-                                "fee": {
-                                    "$ref": "#/components/schemas/amount"
+                                "hashOfBlobToSign": {
+                                    "type": "string"
                                 }
                             },
                             "additionalProperties": false,
                             "required": [
-                                "transaction",
-                                "fee"
+                                "blob",
+                                "hashOfBlobToSign"
                             ]
                         },
-                        {
-                            "type": "object",
-                            "properties": {
-                                "failure": {
-                                    "type": "string",
-                                    "enum": [
-                                        "MALFORMED_TX",
-                                        "INSUFFICIENT_FUNDS",
-                                        "NOT_PERMITTED"
-                                    ]
-                                }
-                            },
-                            "required": [
-                                "failure"
-                            ],
-                            "additionalProperties": false
+                        "fee": {
+                            "$ref": "#/components/schemas/amount"
                         }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                        "transaction",
+                        "fee"
                     ]
                 }
-            }
+            },
+            "errors": [
+                {
+                    "code": 290,
+                    "message": "MALFORMED_TX",
+                    "data": {
+                        "message": {
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "code": 291,
+                    "message": "INSUFFICIENT_FUNDS",
+                    "data": {
+                        "message": {
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "code": 292,
+                    "message": "NOT_PERMITTED",
+                    "data": {
+                        "message": {
+                            "type": "string"
+                        }
+                    }
+                }
+            ]
         },
         {
-            "name": "submitSignedTransaction",
-            "summary": "Submits a signed transaction before finalizing it.",
+            "name": "finalizeTransaction",
+            "summary": "Finalizes a signed transaction before submitting it.",
             "params": [
                 {
                     "name": "transaction",
@@ -511,40 +749,24 @@
                 }
             ],
             "result": {
-                "name": "submissionResult",
+                "name": "finalizeResult",
                 "schema": {
-                    "anyOf":[
-                        {
-                            "type": "object",
-                            "properties": {
-                                "txID": {
-                                    "type": "string"
-                                }
-                            },
-                            "additionalProperties": false,
-                            "required": [
-                                "txID"
-                            ]
-                        },
-                        {
-                            "type": "object",
-                            "properties": {
-                                "failure": {
-                                    "type": "string"
-                                }
-                            },
-                            "additionalProperties": false,
-                            "required": [
-                                "failure"
-                            ]
+                    "type": "object",
+                    "properties": {
+                        "txID": {
+                            "$ref": "#/components/schemas/txID"
                         }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                        "txID"
                     ]
                 }
             }
         },
         {
-            "name": "finalizeTransaction",
-            "summary": "Finalizes a transaction to be dispatched to Radix network.",
+            "name": "submitSignedTransaction",
+            "summary": "Submits a transaction to be dispatched to Radix network.",
             "params": [
                 {
                     "name": "transaction",
@@ -580,41 +802,36 @@
                     "name": "txID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "$ref": "#/components/schemas/txID"
                     }
                 }
             ],
             "result": {
                 "name": "submissionResult",
                 "schema": {
-                    "anyOf":[
-                        {
-                            "type": "object",
-                            "properties": {
-                                "txID": {
-                                    "type": "string"
-                                }
-                            },
-                            "additionalProperties": false,
-                            "required": [
-                                "txID"
-                            ]
-                        },
-                        {
-                            "type": "object",
-                            "properties": {
-                                "failure": {
-                                    "type": "string"
-                                }
-                            },
-                            "additionalProperties": false,
-                            "required": [
-                                "failure"
-                            ]
+                    "type": "object",
+                    "properties": {
+                        "txID": {
+                            "$ref": "#/components/schemas/txID"
                         }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                        "txID"
                     ]
                 }
-            }
+            },
+            "errors": [
+                {
+                    "code": 310,
+                    "message": "SUBMISSION_FAILURE",
+                    "data": {
+                        "message": {
+                            "type": "string"
+                        }
+                    }
+                }
+            ]
         }
     ],
     "components": {
@@ -750,7 +967,7 @@
                 "type": "object",
                 "properties": {
                     "txID": {
-                        "type": "string"
+                        "$ref": "#/components/schemas/txID"
                     },
                     "sentAt": {
                         "type": "string",
@@ -787,7 +1004,7 @@
             },
             "rri": {
                 "type": "string",
-                "pattern": "^.+\/.+\/.+$"
+                "pattern": "^\/[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{52}\/.+$"
             },
             "url": {
                 "type": "string",
@@ -795,8 +1012,13 @@
             },
             "address": {
                 "type": "string",
-                "maxLength": 52,
-                "minLength": 52
+                "pattern": "^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{52}$"
+            },
+            "txID": {
+                "type": "string",
+                "pattern": "^[0123456789abcfed]{64}$",
+                "maxLength": 64,
+                "minLength": 64
             }
         },
         "responses": {

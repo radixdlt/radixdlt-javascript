@@ -10,7 +10,6 @@ import {
 	NetworkTransactionThroughput,
 	PendingTransaction,
 	ResourceIdentifierT,
-	SubmittedTransaction,
 	SignedTransaction,
 	StakePositions,
 	StatusOfTransaction,
@@ -24,6 +23,7 @@ import {
 	Validators,
 	ValidatorsRequestInput,
 	SimpleTokenBalances,
+	FinalizedTransaction,
 } from '../dto/_types'
 
 type JsonRpcAPI = {
@@ -73,12 +73,12 @@ export type RadixAPI = Readonly<{
 	) => Observable<BuiltTransaction>
 
 	submitSignedTransaction: (
-		signedTransaction: SignedTransaction,
-	) => Observable<SubmittedTransaction>
+		signedTransaction: FinalizedTransaction & SignedTransaction,
+	) => Observable<PendingTransaction>
 
 	finalizeTransaction: (
-		signedUnconfirmedTransaction: SubmittedTransaction,
-	) => Observable<PendingTransaction>
+		signedUnconfirmedTransaction: SignedTransaction,
+	) => Observable<FinalizedTransaction>
 
 	networkId: () => Observable<Magic>
 }>

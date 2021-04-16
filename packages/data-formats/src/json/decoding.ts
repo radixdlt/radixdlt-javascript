@@ -52,15 +52,15 @@ const applyDecoders = (
 		: ok(unwrappedValue)
 }
 
-const JSONDecode = <T>(...decoders: Decoder[]) => (
-	json: unknown,
-): Result<T, Error[]> => {
+const JSONDecode = <Input, Decoded>(...decoders: Decoder[]) => (
+	json: Input,
+): Result<Decoded, Error[]> => {
 	const decode = JSONDecodeUnflattened(...decoders)
 
 	return pipe(
 		//applyDecoders.bind(null, decoders),
 		flattenResultsObject,
-	)(decode(json)) as Result<T, Error[]>
+	)(decode(json)) as Result<Decoded, Error[]>
 }
 
 /**
@@ -93,10 +93,10 @@ const JSONDecodeUnflattened = (...decoders: Decoder[]) => (
 		: err([Error('JSON decoding failed. Unknown data type.')])
 
 const withDecoders = (...decoders: Decoder[]) => ({
-	create: <T>() => JSONDecode<T>(...decoders),
+	create: <Input, Decoded>() => JSONDecode<Input, Decoded>(...decoders),
 })
 
 export const JSONDecoding = {
 	withDecoders,
-	create: <T>() => JSONDecode<T>(...[]),
+	create: <Input, Decoded>() => JSONDecode<Input, Decoded>(...[]),
 }

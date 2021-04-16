@@ -7,7 +7,7 @@ import {
 	PendingTransaction,
 	RawExecutedTransaction,
 	RawToken,
-	SubmittedTransaction,
+	FinalizedTransaction,
 	StakePositions,
 	StatusOfTransaction,
 	Token,
@@ -26,9 +26,9 @@ export enum ApiMethod {
 	NETWORK_ID = 'networkId',
 	TOKEN_BALANCES = 'tokenBalances',
 	TRANSACTION_HISTORY = 'transactionHistory',
-	STAKES = 'stakes',
-	UNSTAKES = 'unstakes',
-	TX_STATUS = 'transactionStatus',
+	STAKES = 'stakePositions',
+	UNSTAKES = 'unstakePositions',
+	TX_STATUS = 'statusOfTransaction',
 	NETWORK_TX_THROUGHPUT = 'networkTransactionThroughput',
 	NETWORK_TX_DEMAND = 'networkTransactionDemand',
 	VALIDATORS = 'validators',
@@ -59,12 +59,10 @@ export namespace TokenBalancesEndpoint {
 
 	export type Response = {
 		owner: string
-		tokenBalances: [
-			{
-				token: string
-				amount: string
-			},
-		]
+		tokenBalances: {
+			rri: string
+			amount: string
+		}[]
 	}
 
 	export type DecodedResponse = SimpleTokenBalances
@@ -114,12 +112,12 @@ export namespace StakePositionsEndpoint {
 	export type DecodedResponse = StakePositions
 }
 
-export namespace UnstakesEndpoint {
+export namespace UnstakePositionsEndpoint {
 	export type Input = [address: string]
 
 	export type Response = {
-		validator: string
 		amount: string
+		validator: string
 		epochsUntil: number
 		withdrawTxID: string
 	}[]
@@ -185,39 +183,15 @@ export namespace BuildTransactionEndpoint {
 
 	export type Input = [transactionIntent: TransactionIntent]
 
-	export type Response =
-		| {
-				transaction: Readonly<{
-					blob: string
-					hashOfBlobToSign: string
-				}>
-				fee: string
-		  }
-		| {
-				failure: string
-		  }
-
-	export type DecodedResponse = BuiltTransaction
-}
-
-export namespace SubmitSignedTransactionEndpoint {
-	export type Input = [
+	export type Response = {
 		transaction: Readonly<{
 			blob: string
-		}>,
-		publicKeyOfSigner: string,
-		signatureDER: string,
-	]
+			hashOfBlobToSign: string
+		}>
+		fee: string
+	}
 
-	export type Response =
-		| {
-				txID: string
-		  }
-		| {
-				failure: string
-		  }
-
-	export type DecodedResponse = SubmittedTransaction
+	export type DecodedResponse = BuiltTransaction
 }
 
 export namespace FinalizeTransactionEndpoint {
@@ -227,16 +201,28 @@ export namespace FinalizeTransactionEndpoint {
 		}>,
 		publicKeyOfSigner: string,
 		signatureDER: string,
+	]
+
+	export type Response = {
+		txID: string
+	}
+
+	export type DecodedResponse = FinalizedTransaction
+}
+
+export namespace SubmitTransactionEndpoint {
+	export type Input = [
+		transaction: Readonly<{
+			blob: string
+		}>,
+		publicKeyOfSigner: string,
+		signatureDER: string,
 		txID: string,
 	]
 
-	export type Response =
-		| {
-				txID: string
-		  }
-		| {
-				failure: string
-		  }
+	export type Response = {
+		txID: string
+	}
 
 	export type DecodedResponse = PendingTransaction
 }
