@@ -9,7 +9,7 @@ import {
 import {
 	interval,
 	Observable,
-	of,
+	of, ReplaySubject,
 	Subject,
 	Subscription,
 	throwError,
@@ -1081,12 +1081,19 @@ describe('Radix API', () => {
 			//@ts-ignore
 			let userHasBeenAskedToConfirmTX
 
+			const confirmTransaction = () => {
+				// Check that pin is valid
+				//@ts-ignore
+				transaction.confirm()
+			}
+
+
 			const shouldShowConfirmation = () => {
 				userHasBeenAskedToConfirmTX = true
 				confirmTransaction()
 			}
 
-			const userConfirmation = new Subject<ManualUserConfirmTX>()
+			const userConfirmation = new ReplaySubject<ManualUserConfirmTX>()
 
 			const transactionTracking = radix.transferTokens({
 				...transferTokens(),
@@ -1104,11 +1111,6 @@ describe('Radix API', () => {
 				})
 				.add(subs)
 
-			const confirmTransaction = () => {
-				// Check that pin is valid
-				//@ts-ignore
-				transaction.confirm()
-			}
 
 			transactionTracking.completion
 				.subscribe({

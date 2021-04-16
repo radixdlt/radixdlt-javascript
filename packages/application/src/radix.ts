@@ -15,7 +15,6 @@ import {
 	filter,
 	map,
 	mergeMap,
-	mergeMap, share,
 	shareReplay,
 	skipWhile,
 	switchMap,
@@ -403,7 +402,7 @@ const create = (): RadixT => {
 
 		const pendingTXSubject = new Subject<PendingTransaction>()
 
-		const askUserToConfirmSubject = new Subject<BuiltTransaction>()
+		const askUserToConfirmSubject = new ReplaySubject<BuiltTransaction>()
 		const userDidConfirmTransactionSubject = new ReplaySubject<0>()
 
 		if (shouldConfirmTransactionAutomatically(options.userConfirmation)) {
@@ -495,7 +494,7 @@ const create = (): RadixT => {
 				return EMPTY
 			}),
 			tap((builtTx) => {
-				txLog.debug('TX built by API => starting signing of it now.')
+				txLog.debug('TX built by API => asking for confirmation to sign...')
 				track({
 					value: builtTx,
 					eventUpdateType:

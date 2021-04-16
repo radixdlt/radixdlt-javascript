@@ -9,7 +9,7 @@ import {
 } from '@radixdlt/account'
 import { KeystoreT } from '@radixdlt/crypto'
 import { RadixLogLevel, setLogLevel } from '@radixdlt/util'
-import { Observable, Subject } from 'rxjs'
+import { Observable, ReplaySubject, Subject } from 'rxjs'
 import { NodeT, RadixAPI, RadixCoreAPI } from './api/_types'
 import { ErrorNotification } from './errors'
 import {
@@ -36,7 +36,7 @@ export type ManualUserConfirmTX = {
 
 export type TransactionConfirmationBeforeFinalization =
 	| 'skip'
-	| Subject<ManualUserConfirmTX>
+	| ReplaySubject<ManualUserConfirmTX>
 
 export type MakeTransactionOptions = Readonly<{
 	userConfirmation: TransactionConfirmationBeforeFinalization
