@@ -438,9 +438,7 @@ const create = (): RadixT => {
 				.add(subs)
 		}
 
-		const trackingSubject = new ReplaySubject<
-			TransactionStateUpdate
-		>()
+		const trackingSubject = new ReplaySubject<TransactionStateUpdate>()
 
 		const track = (event: TransactionStateUpdate): void => {
 			trackingSubject.next(event)
@@ -463,7 +461,7 @@ const create = (): RadixT => {
 			completionSubject.error(errorEvent.error)
 		}
 
-		const builtTransaction = transactionIntent$.pipe(
+		const builtTransaction$ = transactionIntent$.pipe(
 			switchMap(
 				(intent: TransactionIntent): Observable<BuiltTransaction> => {
 					txLog.debug(
@@ -510,8 +508,8 @@ const create = (): RadixT => {
 			}),
 		)
 
-		const signedTransaction = combineLatest([
-			builtTransaction,
+		const signedTransaction$ = combineLatest([
+			builtTransaction$,
 			userDidConfirmTransactionSubject,
 		]).pipe(
 			map(([signedTx, _]) => signedTx),
@@ -525,7 +523,7 @@ const create = (): RadixT => {
 			shareReplay(1),
 		)
 
-		const finalizedTx = signedTransaction.pipe(
+		const finalizedTx$ = signedTransaction$.pipe(
 			mergeMap(
 				(
 					signedTx: SignedTransaction,
@@ -565,7 +563,7 @@ const create = (): RadixT => {
 			}),
 		)
 
-		combineLatest([finalizedTx, signedTransaction])
+		combineLatest([finalizedTx$, signedTransaction$])
 			.pipe(
 				mergeMap(
 					([
