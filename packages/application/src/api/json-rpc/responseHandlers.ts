@@ -3,7 +3,7 @@ import { err, ok, Result } from 'neverthrow'
 import { UInt256 } from '@radixdlt/uint256'
 import { Amount, magicFromNumber } from '@radixdlt/primitives'
 
-import { Address } from '@radixdlt/account'
+import { Address, ValidatorAddress } from '@radixdlt/account'
 
 import { isObject, isString } from '@radixdlt/util'
 import {
@@ -21,6 +21,7 @@ import {
 	TransactionStatusEndpoint,
 	UnstakePositionsEndpoint,
 	ValidatorsEndpoint,
+	LookupValidatorEndpoint,
 } from './_types'
 import { TransactionIdentifier } from '../../dto/transactionIdentifier'
 import { makeTokenPermissions } from '../../dto/tokenPermissions'
@@ -91,10 +92,18 @@ const addressDecoder = (...keys: string[]) =>
 			: undefined,
 	)
 
+const validatorAddressDecoder = (...keys: string[]) =>
+	decoder((value, key) =>
+		key !== undefined && keys.includes(key) && isString(value)
+			? ValidatorAddress.fromUnsafe(value)
+			: undefined,
+	)
+
 const executedTXDecoders = JSONDecoding.withDecoders(
 	amountDecoder('amount', 'fee'),
 	dateDecoder('sentAt'),
-	addressDecoder('from', 'to', 'validator'),
+	addressDecoder('from', 'to'),
+	validatorAddressDecoder('validator'),
 	transactionIdentifierDecoder('txID'),
 	RRIDecoder('rri'),
 )
@@ -153,11 +162,22 @@ export const handleTokenBalancesResponse = (
 		>(),
 	)(json)
 
-export const handleValidatorsResponse = JSONDecoding.withDecoders(
-	addressDecoder('address', 'ownerAddress'),
+const validatorDecoders = JSONDecoding.withDecoders(
+	validatorAddressDecoder('address'),
+	addressDecoder('ownerAddress'),
 	URLDecoder('infoURL'),
 	amountDecoder('totalDelegatedStake', 'ownerDelegation'),
-).create<ValidatorsEndpoint.Response, ValidatorsEndpoint.DecodedResponse>()
+)
+
+export const handleValidatorsResponse = validatorDecoders.create<
+	ValidatorsEndpoint.Response,
+	ValidatorsEndpoint.DecodedResponse
+>()
+
+export const handleLookupValidatorResponse = validatorDecoders.create<
+	LookupValidatorEndpoint.Response,
+	LookupValidatorEndpoint.DecodedResponse
+>()
 
 export const handleTokenInfoResponse = JSONDecoding.withDecoders(
 	RRIDecoder('rri'),
@@ -167,7 +187,7 @@ export const handleTokenInfoResponse = JSONDecoding.withDecoders(
 ).create<TokenInfoEndpoint.Response, TokenInfoEndpoint.DecodedResponse>()
 
 export const handleStakesResponse = JSONDecoding.withDecoders(
-	addressDecoder('validator'),
+	validatorAddressDecoder('validator'),
 	amountDecoder('amount'),
 ).create<
 	StakePositionsEndpoint.Response,
@@ -175,7 +195,7 @@ export const handleStakesResponse = JSONDecoding.withDecoders(
 >()
 
 export const handleUnstakesResponse = JSONDecoding.withDecoders(
-	addressDecoder('validator'),
+	validatorAddressDecoder('validator'),
 	amountDecoder('amount'),
 	transactionIdentifierDecoder('withdrawTxID'),
 ).create<

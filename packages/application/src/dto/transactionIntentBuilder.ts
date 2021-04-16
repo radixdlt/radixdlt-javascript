@@ -93,9 +93,9 @@ const getUniqueAddresses = (action: IntendedAction): AddressT[] => {
 	if (isIntendedTransferTokensAction(action)) {
 		return [action.to, action.from]
 	} else if (isIntendedStakeTokensAction(action)) {
-		return [action.validator, action.from]
+		return [action.from]
 	} else if (isIntendedUnstakeTokensAction(action)) {
-		return [action.validator, action.from]
+		return [action.from]
 	} else {
 		throw new Error('Incorrect impl')
 	}

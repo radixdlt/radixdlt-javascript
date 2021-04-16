@@ -1,18 +1,34 @@
 import { TransactionIntentBuilder } from '../src/dto/transactionIntentBuilder'
 import { Amount, DenominationOutputFormat } from '@radixdlt/primitives'
-import { carol, dan, erin, xrd } from '../src/mockRadix'
+import { carol, erin, xrd } from '../src/mockRadix'
 import {
 	ActionType,
 	IntendedTransferTokensAction,
 	StakeTokensInput,
 	TransferTokensInput,
 } from '../src/actions/_types'
-import { AddressT, Mnemonic, Wallet, WalletT } from '@radixdlt/account'
+import {
+	AddressT,
+	isAddress,
+	isValidatorAddress,
+	Mnemonic,
+	ValidatorAddress,
+	ValidatorAddressT,
+	Wallet,
+	WalletT,
+} from '@radixdlt/account'
 import { TransactionIntentBuilderT } from '../src/dto/_types'
 import { combineLatest, merge, of, Subscription } from 'rxjs'
 import { IntendedStakeTokensAction } from '../src/actions/_types'
 
 import { map, mergeMap, take, toArray } from 'rxjs/operators'
+
+const validatorCarol: ValidatorAddressT = ValidatorAddress.fromUnsafe(
+	'validator_carol',
+)._unsafeUnwrap()
+const validatorDan: ValidatorAddressT = ValidatorAddress.fromUnsafe(
+	'validator_dan',
+)._unsafeUnwrap()
 
 describe('tx intent builder', () => {
 	const one = Amount.fromUnsafe(1)._unsafeUnwrap()
@@ -65,16 +81,19 @@ describe('tx intent builder', () => {
 	const transfS = (amount: number, to: AddressT): TransferTokensInput =>
 		transfT({ amount, to })
 
-	const stakeS = (amount: number, validator: AddressT): StakeTokensInput => ({
-		validator: validator,
+	const stakeS = (
+		amount: number,
+		validatorAddress: ValidatorAddressT,
+	): StakeTokensInput => ({
+		validator: validatorAddress,
 		amount: Amount.fromUnsafe(amount)._unsafeUnwrap(),
 	})
 
 	const unstakeS = (
 		amount: number,
-		validator: AddressT,
+		validatorAddress: ValidatorAddressT,
 	): StakeTokensInput => ({
-		validator: validator,
+		validator: validatorAddress,
 		amount: Amount.fromUnsafe(amount)._unsafeUnwrap(),
 	})
 
@@ -282,8 +301,8 @@ describe('tx intent builder', () => {
 	it('can add transfer, stake, unstake then transfer', () => {
 		const builder = TransactionIntentBuilder.create()
 			.transferTokens(transfS(3, bob))
-			.stakeTokens(stakeS(4, carol))
-			.unstakeTokens(unstakeS(5, dan))
+			.stakeTokens(stakeS(4, validatorCarol))
+			.unstakeTokens(unstakeS(5, validatorDan))
 			.transferTokens(transfS(6, erin))
 
 		const txIntent = builder
@@ -301,23 +320,43 @@ describe('tx intent builder', () => {
 			),
 		).toStrictEqual([3, 4, 5, 6])
 
-		const assertAddr = (index: number, expectedAddress: AddressT): void => {
+		type AnyAddress = ValidatorAddressT | AddressT
+
+		const assertAddr = (
+			index: number,
+			expectedAddress: AnyAddress,
+		): void => {
 			const action = txIntent.actions[index]
-			const actualAddress =
+			const actualAddressMaybe: AnyAddress | undefined =
 				action.type === ActionType.TOKEN_TRANSFER
 					? action.to
 					: action.type === ActionType.UNSTAKE_TOKENS ||
 					  action.type === ActionType.STAKE_TOKENS
 					? action.validator
 					: undefined
-			if (!actualAddress) {
+			if (!actualAddressMaybe) {
 				throw new Error('Expected property TO or VALIDATOR')
 			} else {
-				expect(actualAddress.equals(expectedAddress)).toBe(true)
+				const actualAddress: AnyAddress = actualAddressMaybe
+				if (isAddress(expectedAddress) && isAddress(actualAddress)) {
+					expect(actualAddress.equals(expectedAddress)).toBe(true)
+				} else if (
+					isValidatorAddress(expectedAddress) &&
+					isValidatorAddress(actualAddress)
+				) {
+					expect(actualAddress.equals(expectedAddress)).toBe(true)
+				} else {
+					throw new Error('address type mismatch')
+				}
 			}
 		}
 
-		const expectedAddresses = [bob, carol, dan, erin]
+		const expectedAddresses: AnyAddress[] = [
+			bob,
+			validatorCarol,
+			validatorDan,
+			erin,
+		]
 
 		txIntent.actions.forEach((t, i) => {
 			expect(t.from.equals(alice)).toBe(true)

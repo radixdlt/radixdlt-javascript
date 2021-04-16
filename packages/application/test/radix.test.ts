@@ -3,6 +3,7 @@ import {
 	AddressT,
 	HDMasterSeed,
 	Mnemonic,
+	ValidatorAddress,
 	Wallet,
 	WalletT,
 } from '@radixdlt/account'
@@ -11,7 +12,6 @@ import {
 	Observable,
 	of,
 	ReplaySubject,
-	Subject,
 	Subscription,
 	throwError,
 } from 'rxjs'
@@ -776,6 +776,37 @@ describe('Radix API', () => {
 			.add(subs)
 	})
 
+	it('can lookup validator', (done) => {
+		const subs = new Subscription()
+
+		const radix = Radix.create().__withAPI(mockedAPI)
+
+		const loadKeystore = (): Promise<KeystoreT> =>
+			Promise.resolve(keystoreForTest.keystore)
+
+		radix.login(keystoreForTest.password, loadKeystore)
+
+		const mockedValidatorAddr = ValidatorAddress.fromUnsafe(
+			'validator_address_mocked',
+		)._unsafeUnwrap()
+
+		radix.__wallet
+			.subscribe((_w) => {
+				radix.ledger
+					.lookupValidator(mockedValidatorAddr)
+					.subscribe((validator) => {
+						expect(
+							validator.address.equals(mockedValidatorAddr),
+						).toBe(true)
+						expect(
+							validator.ownerAddress.toString().slice(-4),
+						).toBe('D9Rb')
+						done()
+					})
+			})
+			.add(subs)
+	})
+
 	it('should get validators', (done) => {
 		const subs = new Subscription()
 
@@ -811,7 +842,7 @@ describe('Radix API', () => {
 			.buildTransaction(transactionIntent)
 			.subscribe((unsignedTx) => {
 				expect((unsignedTx as { fee: AmountT }).fee.toString()).toEqual(
-					'56479',
+					'40294',
 				)
 				done()
 			})
@@ -923,9 +954,9 @@ describe('Radix API', () => {
 		radix.login(keystoreForTest.password, loadKeystore)
 
 		const expectedStakes = [
-			{ amount: 396, validator: 'bc', epochsUntil: 60 },
-			{ amount: 878, validator: '7k', epochsUntil: 46 },
-			{ amount: 649, validator: 'Rb', epochsUntil: 59 },
+			{ amount: 396, validator: 'b2', epochsUntil: 60 },
+			{ amount: 878, validator: '33', epochsUntil: 46 },
+			{ amount: 649, validator: '7a', epochsUntil: 59 },
 		]
 		const expectedValues = [expectedStakes, expectedStakes] // should be unchanged between updates (deterministically mocked).
 		radix.__wallet

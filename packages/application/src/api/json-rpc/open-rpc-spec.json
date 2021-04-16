@@ -279,10 +279,10 @@
             },
             "examples": [
                 {
-                    "name": "transactionHistoryExamples",
+                    "name": "lookupTransactionExamples",
                     "params": [],
                     "result": {
-                        "name": "transactionHistoryExample",
+                        "name": "lookupTransactionExample",
                         "value": {
                             "txID": "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
                             "sentAt": "1995-12-17T03:24:00",
@@ -559,44 +559,9 @@
                         },
                         "validators": {
                             "type": "array",
-                            "items": [
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "address": {
-                                            "$ref": "#/components/schemas/address"
-                                        },
-                                        "ownerAddress": {
-                                            "$ref": "#/components/schemas/address"
-                                        },
-                                        "name": {
-                                            "type": "string"
-                                        },
-                                        "infoURL": {
-                                            "$ref": "#/components/schemas/url"
-                                        },
-                                        "totalDelegatedStake": {
-                                            "$ref": "#/components/schemas/amount"
-                                        },
-                                        "ownerDelegation": {
-                                            "$ref": "#/components/schemas/amount"
-                                        },
-                                        "isExternalStakeAccepted": {
-                                            "type": "boolean"
-                                        }
-                                    },
-                                    "additionalProperties": false,
-                                    "required": [
-                                        "address",
-                                        "ownerAddress",
-                                        "name",
-                                        "infoURL",
-                                        "totalDelegatedStake",
-                                        "ownerDelegation",
-                                        "isExternalStakeAccepted"
-                                    ]
-                                }
-                            ]
+                            "items": {
+                                "$ref": "#/components/schemas/validator"
+                            }
                         }
                     },
                     "additionalProperties": false,
@@ -616,7 +581,7 @@
                             "cursor": "cursor",
                             "validators": [
                                 {
-                                    "address": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                    "address": "validator_address_goes_here",
                                     "ownerAddress": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
                                     "name": "Cerby",
                                     "infoURL": "http://www.radixdlt.com",
@@ -625,6 +590,43 @@
                                     "isExternalStakeAccepted": true
                                 }
                             ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "lookupValidator",
+            "summary": "Lookup a single validator by its validator address.",
+            "params": [
+                {
+                    "name": "validatorAddress",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/validatorAddress"
+                    }
+                }
+            ],
+            "result": {
+                "name": "lookupValidatorResponse",
+                "schema": {
+                    "$ref": "#/components/schemas/validator"
+                }
+            },
+            "examples": [
+                {
+                    "name": "lookupValidatorExample",
+                    "params": [],
+                    "result": {
+                        "name": "lookupValidatorExample",
+                        "value": {
+                            "address": "validator_address_goes_here",
+                            "ownerAddress": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                            "name": "Cerby",
+                            "infoURL": "http://www.radixdlt.com",
+                            "totalDelegatedStake": "100",
+                            "ownerDelegation": "100",
+                            "isExternalStakeAccepted": true
                         }
                     }
                 }
@@ -905,7 +907,7 @@
                                 "$ref": "#/components/schemas/address"
                             },
                             "validator": {
-                                "$ref": "#/components/schemas/address"
+                                "$ref": "#/components/schemas/validatorAddress"
                             },
                             "amount": {
                                 "$ref": "#/components/schemas/amount"
@@ -932,7 +934,7 @@
                                 "$ref": "#/components/schemas/address"
                             },
                             "validator": {
-                                "$ref": "#/components/schemas/address"
+                                "$ref": "#/components/schemas/validatorAddress"
                             },
                             "amount": {
                                 "$ref": "#/components/schemas/amount"
@@ -993,6 +995,42 @@
                     "actions"
                 ]
             },
+            "validator": {
+                "type": "object",
+                "properties": {
+                    "address": {
+                        "$ref": "#/components/schemas/validatorAddress"
+                    },
+                    "ownerAddress": {
+                        "$ref": "#/components/schemas/address"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "infoURL": {
+                        "$ref": "#/components/schemas/url"
+                    },
+                    "totalDelegatedStake": {
+                        "$ref": "#/components/schemas/amount"
+                    },
+                    "ownerDelegation": {
+                        "$ref": "#/components/schemas/amount"
+                    },
+                    "isExternalStakeAccepted": {
+                        "type": "boolean"
+                    }
+                },
+                "additionalProperties": false,
+                "required": [
+                    "address",
+                    "ownerAddress",
+                    "name",
+                    "infoURL",
+                    "totalDelegatedStake",
+                    "ownerDelegation",
+                    "isExternalStakeAccepted"
+                ]
+            },
             "int32": {
                 "type": "integer",
                 "minimum": -2147483648,
@@ -1013,6 +1051,10 @@
             "address": {
                 "type": "string",
                 "pattern": "^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{52}$"
+            },
+            "validatorAddress": {
+                "type": "string",
+                "pattern": "^[abcdefghijkmnopqrstuvwxyz123456789ABCDEFGHJKLMNPQRSTUVWXYZ]{3}$"
             },
             "txID": {
                 "type": "string",

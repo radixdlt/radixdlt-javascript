@@ -8,7 +8,12 @@ import {
 	maxAmount,
 } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
-import { Address, AddressT } from '@radixdlt/account'
+import {
+	Address,
+	AddressT,
+	ValidatorAddress,
+	ValidatorAddressT,
+} from '@radixdlt/account'
 import { Observable, of } from 'rxjs'
 import {
 	ExecutedTransaction,
@@ -346,22 +351,37 @@ const detPRNGWithBuffer = (buffer: Buffer): (() => number) => {
 	}
 }
 
-const randomValidatorList = (size: number) => {
+const detRandomValidatorAddressWithPRNG = (
+	anInt: () => number,
+) => (): ValidatorAddressT =>
+	ValidatorAddress.fromUnsafe(
+		sha256(anInt().toString(16)).slice(-20).toString('hex'),
+	)._unsafeUnwrap()
+
+const randomValidatorList = (
+	size: number,
+	validatorAddress?: ValidatorAddressT,
+): Validator[] => {
 	const validatorList: Validator[] = []
-	const prng = detPRNGWithBuffer(Buffer.from('validators'))
+	const randomBuf =
+		validatorAddress !== undefined
+			? sha256(validatorAddress.toString())
+			: sha256(size.toString(16))
+	const prng = detPRNGWithBuffer(randomBuf)
+
+	const detRandomValidatorAddress = detRandomValidatorAddressWithPRNG(prng)
+
 	const listSize = prng() % 5 === 1 ? size - Math.round(size / 2) : size
 
 	for (let i = 0; i < listSize; i++) {
 		const random = prng()
-		const address = castOfCharacters[random % castOfCharacters.length]
-		const ownerAddress =
-			castOfCharacters[(random + 1) % castOfCharacters.length]
+		const ownerAddress = castOfCharacters[random % castOfCharacters.length]
 		const name = characterNames[random % characterNames.length]
 		const amount = Amount.fromUnsafe(random)._unsafeUnwrap()
 		const bool = random % 2 === 0
 
 		validatorList.push({
-			address,
+			address: detRandomValidatorAddress(),
 			ownerAddress,
 			name,
 			infoURL: new URL('https://example.com'),
@@ -496,9 +516,11 @@ export const deterministicRandomUnstakesForAddress = (
 		.fill(undefined)
 		.map(
 			(_, index): UnstakePosition => {
-				const detRandomAddress = (): AddressT =>
-					castOfCharacters[anInt() % castOfCharacters.length]
-				const validator = detRandomAddress()
+				const detRandomValidatorAddress = detRandomValidatorAddressWithPRNG(
+					anInt,
+				)
+
+				const validator: ValidatorAddressT = detRandomValidatorAddress()
 				const amount = Amount.fromUnsafe(anInt())._unsafeUnwrap()
 
 				const bytesFromIndex = Buffer.allocUnsafe(2)
@@ -545,7 +567,7 @@ export const deterministicRandomTxHistoryWithInput = (
 		.slice(1, 33)
 	const detRandomAddress = (): AddressT =>
 		castOfCharacters[anInt() % castOfCharacters.length]
-
+	const detRandomValidatorAddress = detRandomValidatorAddressWithPRNG(anInt)
 	const tokenAndAmounts = detRandBalanceOfTokenWithInfo(anInt)
 
 	const deterministicRandomExecutedTransactions = (): ExecutedTransaction[] => {
@@ -589,7 +611,7 @@ export const deterministicRandomTxHistoryWithInput = (
 												amount: Amount.fromUnsafe(
 													anInt(),
 												)._unsafeUnwrap(),
-												validator: detRandomAddress(),
+												validator: detRandomValidatorAddress(),
 											}
 											break
 										case ActionType.UNSTAKE_TOKENS:
@@ -599,7 +621,7 @@ export const deterministicRandomTxHistoryWithInput = (
 												amount: Amount.fromUnsafe(
 													anInt(),
 												)._unsafeUnwrap(),
-												validator: detRandomAddress(),
+												validator: detRandomValidatorAddress(),
 											}
 											break
 										case ActionType.TOKEN_TRANSFER:
@@ -723,6 +745,10 @@ export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
 		throw Error('Not implemented')
 	},
 
+	lookupValidator: (_input: ValidatorAddressT): Observable<Validator> => {
+		throw Error('Not implemented')
+	},
+
 	transactionHistory: (
 		_input: TransactionHistoryRequestInput,
 	): Observable<TransactionHistory> => {
@@ -822,6 +848,16 @@ export const mockRadixCoreAPI = (
 				cursor: 'cursor',
 				validators: randomValidatorList(input.size),
 			}),
+		lookupValidator: (
+			validatorAddress: ValidatorAddressT,
+		): Observable<Validator> => {
+			const validatorRnd = randomValidatorList(1, validatorAddress)[0]
+			const validator: Validator = {
+				...validatorRnd,
+				address: validatorAddress,
+			}
+			return of(validator)
+		},
 		buildTransaction: (
 			transactionIntent: TransactionIntent,
 		): Observable<BuiltTransaction> =>
