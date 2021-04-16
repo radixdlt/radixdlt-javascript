@@ -1,4 +1,9 @@
-import { AddressOrUnsafeInput, AddressT, ValidatorAddressT, ValidatorAddressOrUnsafeInput } from '@radixdlt/account'
+import {
+	AddressOrUnsafeInput,
+	AddressT,
+	ValidatorAddressT,
+	ValidatorAddressOrUnsafeInput,
+} from '@radixdlt/account'
 import { AmountOrUnsafeInput, AmountT } from '@radixdlt/primitives'
 import { ResourceIdentifierT } from '../dto/_types'
 import { ResourceIdentifierOrUnsafeInput } from '../dto/resourceIdentifier'

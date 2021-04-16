@@ -8,7 +8,12 @@ import {
 	maxAmount,
 } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
-import { Address, AddressT, ValidatorAddress, ValidatorAddressT } from '@radixdlt/account'
+import {
+	Address,
+	AddressT,
+	ValidatorAddress,
+	ValidatorAddressT,
+} from '@radixdlt/account'
 import { Observable, of } from 'rxjs'
 import {
 	ExecutedTransaction,
@@ -494,10 +499,12 @@ export const deterministicRandomBalancesForAddress = (
 	}
 }
 
-
-const detRandomValidatorAddressWithPRNG = (anInt: () => number) => (): ValidatorAddressT =>
-	ValidatorAddress.fromUnsafe(sha256(anInt().toString(16)).slice(-20).toString('hex'))._unsafeUnwrap()
-
+const detRandomValidatorAddressWithPRNG = (
+	anInt: () => number,
+) => (): ValidatorAddressT =>
+	ValidatorAddress.fromUnsafe(
+		sha256(anInt().toString(16)).slice(-20).toString('hex'),
+	)._unsafeUnwrap()
 
 export const deterministicRandomUnstakesForAddress = (
 	address: AddressT,
@@ -511,7 +518,9 @@ export const deterministicRandomUnstakesForAddress = (
 				const detRandomAddress = (): AddressT =>
 					castOfCharacters[anInt() % castOfCharacters.length]
 
-				const detRandomValidatorAddress = detRandomValidatorAddressWithPRNG(anInt)
+				const detRandomValidatorAddress = detRandomValidatorAddressWithPRNG(
+					anInt,
+				)
 
 				const validator: ValidatorAddressT = detRandomValidatorAddress()
 				const amount = Amount.fromUnsafe(anInt())._unsafeUnwrap()
@@ -549,7 +558,6 @@ export const deterministicRandomStakesForAddress = (
 		}),
 	)
 }
-
 
 export const deterministicRandomTxHistoryWithInput = (
 	input: TransactionHistoryRequestInput,

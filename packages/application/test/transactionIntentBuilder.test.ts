@@ -23,8 +23,12 @@ import { IntendedStakeTokensAction } from '../src/actions/_types'
 
 import { map, mergeMap, take, toArray } from 'rxjs/operators'
 
-const validatorCarol: ValidatorAddressT = ValidatorAddress.fromUnsafe('validator_carol')._unsafeUnwrap()
-const validatorDan: ValidatorAddressT = ValidatorAddress.fromUnsafe('validator_dan')._unsafeUnwrap()
+const validatorCarol: ValidatorAddressT = ValidatorAddress.fromUnsafe(
+	'validator_carol',
+)._unsafeUnwrap()
+const validatorDan: ValidatorAddressT = ValidatorAddress.fromUnsafe(
+	'validator_dan',
+)._unsafeUnwrap()
 
 describe('tx intent builder', () => {
 	const one = Amount.fromUnsafe(1)._unsafeUnwrap()
@@ -77,7 +81,10 @@ describe('tx intent builder', () => {
 	const transfS = (amount: number, to: AddressT): TransferTokensInput =>
 		transfT({ amount, to })
 
-	const stakeS = (amount: number, validatorAddress: ValidatorAddressT): StakeTokensInput => ({
+	const stakeS = (
+		amount: number,
+		validatorAddress: ValidatorAddressT,
+	): StakeTokensInput => ({
 		validator: validatorAddress,
 		amount: Amount.fromUnsafe(amount)._unsafeUnwrap(),
 	})
@@ -315,7 +322,10 @@ describe('tx intent builder', () => {
 
 		type AnyAddress = ValidatorAddressT | AddressT
 
-		const assertAddr = (index: number, expectedAddress: AnyAddress): void => {
+		const assertAddr = (
+			index: number,
+			expectedAddress: AnyAddress,
+		): void => {
 			const action = txIntent.actions[index]
 			const actualAddressMaybe: AnyAddress | undefined =
 				action.type === ActionType.TOKEN_TRANSFER
@@ -330,7 +340,10 @@ describe('tx intent builder', () => {
 				const actualAddress: AnyAddress = actualAddressMaybe
 				if (isAddress(expectedAddress) && isAddress(actualAddress)) {
 					expect(actualAddress.equals(expectedAddress)).toBe(true)
-				} else if (isValidatorAddress(expectedAddress) && isValidatorAddress(actualAddress)) {
+				} else if (
+					isValidatorAddress(expectedAddress) &&
+					isValidatorAddress(actualAddress)
+				) {
 					expect(actualAddress.equals(expectedAddress)).toBe(true)
 				} else {
 					throw new Error('address type mismatch')
@@ -338,7 +351,12 @@ describe('tx intent builder', () => {
 			}
 		}
 
-		const expectedAddresses: AnyAddress[] = [bob, validatorCarol, validatorDan, erin]
+		const expectedAddresses: AnyAddress[] = [
+			bob,
+			validatorCarol,
+			validatorDan,
+			erin,
+		]
 
 		txIntent.actions.forEach((t, i) => {
 			expect(t.from.equals(alice)).toBe(true)
