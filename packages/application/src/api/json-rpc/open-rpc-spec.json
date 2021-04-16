@@ -683,7 +683,36 @@
                         "fee"
                     ]
                 }
-            }
+            },
+            "errors": [
+                {
+                    "code": 290,
+                    "message": "MALFORMED_TX",
+                    "data": {
+                        "message": {
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "code": 291,
+                    "message": "INSUFFICIENT_FUNDS",
+                    "data": {
+                        "message": {
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "code": 292,
+                    "message": "NOT_PERMITTED",
+                    "data": {
+                        "message": {
+                            "type": "string"
+                        }
+                    }
+                }
+            ]
         },
         {
             "name": "finalizeTransaction",
@@ -780,34 +809,29 @@
             "result": {
                 "name": "submissionResult",
                 "schema": {
-                    "anyOf": [
-                        {
-                            "type": "object",
-                            "properties": {
-                                "txID": {
-                                    "$ref": "#/components/schemas/txID"
-                                }
-                            },
-                            "additionalProperties": false,
-                            "required": [
-                                "txID"
-                            ]
-                        },
-                        {
-                            "type": "object",
-                            "properties": {
-                                "failure": {
-                                    "type": "string"
-                                }
-                            },
-                            "additionalProperties": false,
-                            "required": [
-                                "failure"
-                            ]
+                    "type": "object",
+                    "properties": {
+                        "txID": {
+                            "$ref": "#/components/schemas/txID"
                         }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                        "txID"
                     ]
                 }
-            }
+            },
+            "errors": [
+                {
+                    "code": 310,
+                    "message": "SUBMISSION_FAILURE",
+                    "data": {
+                        "message": {
+                            "type": "string"
+                        }
+                    }
+                }
+            ]
         }
     ],
     "components": {
