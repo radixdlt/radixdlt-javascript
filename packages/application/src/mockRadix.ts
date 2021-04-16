@@ -36,7 +36,7 @@ import {
 import { ResourceIdentifier } from './dto/resourceIdentifier'
 import { tokenOwnerOnly, tokenPermissionsAll } from './dto/tokenPermissions'
 import { RadixCoreAPI } from './api/_types'
-import { delay, shareReplay } from 'rxjs/operators'
+import { shareReplay } from 'rxjs/operators'
 import { privateKeyFromBuffer, PublicKey, sha256 } from '@radixdlt/crypto'
 import { ActionType, ExecutedAction } from './actions/_types'
 import { TransactionIdentifier } from './dto/transactionIdentifier'
@@ -815,7 +815,7 @@ export const mockRadixCoreAPI = (
 			return of({
 				txID,
 				status, // when TransactionStatus.FAIL ?
-			}).pipe(delay(50))
+			})
 		},
 		validators: (input: ValidatorsRequestInput): Observable<Validators> =>
 			of({
@@ -825,15 +825,13 @@ export const mockRadixCoreAPI = (
 		buildTransaction: (
 			transactionIntent: TransactionIntent,
 		): Observable<BuiltTransaction> =>
-			of(randomUnsignedTransaction(transactionIntent)).pipe(delay(50)),
+			of(randomUnsignedTransaction(transactionIntent)),
 		finalizeTransaction: (
 			signedTransaction: SignedTransaction,
 		): Observable<FinalizedTransaction> =>
-			of(detRandomSignedUnconfirmedTransaction(signedTransaction)).pipe(
-				delay(50),
-			),
+			of(detRandomSignedUnconfirmedTransaction(signedTransaction)),
 		submitSignedTransaction: (signedUnconfirmedTX) =>
-			of(randomPendingTransaction(signedUnconfirmedTX)).pipe(delay(50)),
+			of(randomPendingTransaction(signedUnconfirmedTX)),
 		networkTransactionDemand: (): Observable<NetworkTransactionDemand> =>
 			of(randomDemand()),
 		networkTransactionThroughput: (): Observable<NetworkTransactionThroughput> =>

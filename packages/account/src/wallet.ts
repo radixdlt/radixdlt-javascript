@@ -16,7 +16,7 @@ import { Option } from 'prelude-ts'
 import { HDPathRadix, HDPathRadixT } from './bip32/_index'
 import { isAccount } from './account'
 import { Int32 } from './bip32/_types'
-import { arraysEqual } from '@radixdlt/util'
+import { arraysEqual, msgFromError } from '@radixdlt/util'
 import { MnemomicT } from './bip39/_types'
 import { Magic } from '@radixdlt/primitives'
 import { Address } from './address'
@@ -221,14 +221,10 @@ const byLoadingAndDecryptingKeystore = (
 ): ResultAsync<WalletT, Error> => {
 	const loadKeystore = (): ResultAsync<KeystoreT, Error> =>
 		ResultAsync.fromPromise(input.load(), (e: unknown) => {
-			type ErrMgs = { message?: string }
-			const underlyingError =
-				(e as ErrMgs).message !== undefined
-					? (e as ErrMgs).message!
-					: JSON.stringify(e, null, 4)
-			return new Error(
-				`Failed to load keystore, underlying error: '${underlyingError}'`,
-			)
+			const underlyingError = msgFromError(e)
+			const errMsg = `Failed to load keystore, underlying error: '${underlyingError}'`
+			log.alert(errMsg)
+			return new Error(errMsg)
 		})
 	return loadKeystore()
 		.map((k: KeystoreT) => {
@@ -261,14 +257,10 @@ const byEncryptingMnemonicAndSavingKeystore = (
 
 	const save = (keystoreToSave: KeystoreT): ResultAsync<KeystoreT, Error> =>
 		ResultAsync.fromPromise(input.save(keystoreToSave), (e: unknown) => {
-			type ErrMgs = { message?: string }
-			const underlyingError =
-				(e as ErrMgs).message !== undefined
-					? (e as ErrMgs).message!
-					: JSON.stringify(e, null, 4)
-			return new Error(
-				`Failed to save keystore, underlying error: '${underlyingError}'`,
-			)
+			const underlyingError = msgFromError(e)
+			const errMsg = `Failed to save keystore, underlying error: '${underlyingError}'`
+			log.alert(errMsg)
+			return new Error(errMsg)
 		}).map(() => {
 			log.info('Keystore successfully saved.')
 			return keystoreToSave
