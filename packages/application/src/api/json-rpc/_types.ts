@@ -18,6 +18,8 @@ import {
 	UnstakePositions,
 	Validators,
 	SimpleTokenBalances,
+	Validator,
+	RawValidatorResponse,
 } from '../../dto/_types'
 
 type API_PREFIX = 'radix'
@@ -33,6 +35,7 @@ export enum ApiMethod {
 	NETWORK_TX_DEMAND = 'networkTransactionDemand',
 	VALIDATORS = 'validators',
 	LOOKUP_TX = 'lookupTransaction',
+	LOOKUP_VALIDATOR = 'lookupValidator',
 	NATIVE_TOKEN = 'nativeToken',
 	TOKEN_INFO = 'tokenInfo',
 	BUILD_TX_FROM_INTENT = 'buildTransaction',
@@ -162,17 +165,15 @@ export namespace ValidatorsEndpoint {
 
 	export type Response = Readonly<{
 		cursor: string
-		validators: {
-			address: string
-			ownerAddress: string
-			name: string
-			infoURL: string
-			totalDelegatedStake: string
-			ownerDelegation: string
-			isExternalStakeAccepted: boolean
-		}[]
+		validators: RawValidatorResponse[]
 	}>
 	export type DecodedResponse = Validators
+}
+
+export namespace LookupValidatorEndpoint {
+	export type Input = [validatorAddress: string]
+	export type Response = RawValidatorResponse
+	export type DecodedResponse = Validator
 }
 
 export namespace BuildTransactionEndpoint {

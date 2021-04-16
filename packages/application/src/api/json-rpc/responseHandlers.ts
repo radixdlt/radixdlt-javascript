@@ -21,6 +21,7 @@ import {
 	TransactionStatusEndpoint,
 	UnstakePositionsEndpoint,
 	ValidatorsEndpoint,
+	LookupValidatorEndpoint,
 } from './_types'
 import { TransactionIdentifier } from '../../dto/transactionIdentifier'
 import { makeTokenPermissions } from '../../dto/tokenPermissions'
@@ -153,11 +154,21 @@ export const handleTokenBalancesResponse = (
 		>(),
 	)(json)
 
-export const handleValidatorsResponse = JSONDecoding.withDecoders(
+const validatorDecoders = JSONDecoding.withDecoders(
 	addressDecoder('address', 'ownerAddress'),
 	URLDecoder('infoURL'),
 	amountDecoder('totalDelegatedStake', 'ownerDelegation'),
-).create<ValidatorsEndpoint.Response, ValidatorsEndpoint.DecodedResponse>()
+)
+
+export const handleValidatorsResponse = validatorDecoders.create<
+	ValidatorsEndpoint.Response,
+	ValidatorsEndpoint.DecodedResponse
+>()
+
+export const handleLookupValidatorResponse = validatorDecoders.create<
+	LookupValidatorEndpoint.Response,
+	LookupValidatorEndpoint.DecodedResponse
+>()
 
 export const handleTokenInfoResponse = JSONDecoding.withDecoders(
 	RRIDecoder('rri'),

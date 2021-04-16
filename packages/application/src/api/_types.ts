@@ -2,7 +2,7 @@ import { getAPI } from './json-rpc/interface'
 
 import { Magic } from '@radixdlt/primitives'
 import { Observable } from 'rxjs'
-import { AddressT } from '@radixdlt/account'
+import { AddressT, ValidatorAddressT } from '@radixdlt/account'
 
 import {
 	ExecutedTransaction,
@@ -24,6 +24,7 @@ import {
 	ValidatorsRequestInput,
 	SimpleTokenBalances,
 	FinalizedTransaction,
+	Validator,
 } from '../dto/_types'
 
 type JsonRpcAPI = {
@@ -63,6 +64,8 @@ export type RadixAPI = Readonly<{
 	) => Observable<ExecutedTransaction>
 
 	validators: (input: ValidatorsRequestInput) => Observable<Validators>
+
+	lookupValidator: (input: ValidatorAddressT) => Observable<Validator>
 
 	networkTransactionThroughput: () => Observable<NetworkTransactionThroughput>
 

@@ -14,6 +14,7 @@ import {
 	handleUnstakesResponse,
 	handleValidatorsResponse,
 	handleFinalizedTransactionResponse,
+	handleLookupValidatorResponse,
 } from './responseHandlers'
 import { andThen, pipe } from 'ramda'
 import {
@@ -34,6 +35,7 @@ import {
 	TransactionStatusEndpoint,
 	UnstakePositionsEndpoint,
 	ValidatorsEndpoint,
+	LookupValidatorEndpoint,
 } from './_types'
 
 const callAPI = <Params extends unknown[], DecodedResponse>(
@@ -83,6 +85,11 @@ export const getAPI = (
 			LookupTransactionEndpoint.Input,
 			LookupTransactionEndpoint.DecodedResponse
 		>(handleLookupTXResponse)('radix.lookupTransaction'),
+
+		[ApiMethod.LOOKUP_VALIDATOR]: setupAPIResponse<
+			LookupValidatorEndpoint.Input,
+			LookupValidatorEndpoint.DecodedResponse
+		>(handleLookupValidatorResponse)('radix.lookupValidator'),
 
 		[ApiMethod.TRANSACTION_HISTORY]: setupAPIResponse<
 			TransactionHistoryEndpoint.Input,

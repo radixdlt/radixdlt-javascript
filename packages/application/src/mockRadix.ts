@@ -8,7 +8,7 @@ import {
 	maxAmount,
 } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
-import { Address, AddressT } from '@radixdlt/account'
+import { Address, AddressT, ValidatorAddressT } from '@radixdlt/account'
 import { Observable, of } from 'rxjs'
 import {
 	ExecutedTransaction,
@@ -346,9 +346,16 @@ const detPRNGWithBuffer = (buffer: Buffer): (() => number) => {
 	}
 }
 
-const randomValidatorList = (size: number) => {
+const randomValidatorList = (
+	size: number,
+	validatorAddress?: ValidatorAddressT,
+): Validator[] => {
 	const validatorList: Validator[] = []
-	const prng = detPRNGWithBuffer(Buffer.from('validators'))
+	const randomBuf =
+		validatorAddress !== undefined
+			? sha256(validatorAddress.toString())
+			: sha256(size.toString(16))
+	const prng = detPRNGWithBuffer(randomBuf)
 	const listSize = prng() % 5 === 1 ? size - Math.round(size / 2) : size
 
 	for (let i = 0; i < listSize; i++) {
@@ -723,6 +730,10 @@ export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
 		throw Error('Not implemented')
 	},
 
+	lookupValidator: (_input: ValidatorAddressT): Observable<Validator> => {
+		throw Error('Not implemented')
+	},
+
 	transactionHistory: (
 		_input: TransactionHistoryRequestInput,
 	): Observable<TransactionHistory> => {
@@ -822,6 +833,10 @@ export const mockRadixCoreAPI = (
 				cursor: 'cursor',
 				validators: randomValidatorList(input.size),
 			}),
+		lookupValidator: (
+			validatorAddress: ValidatorAddressT,
+		): Observable<Validator> =>
+			of(randomValidatorList(1, validatorAddress)[0]),
 		buildTransaction: (
 			transactionIntent: TransactionIntent,
 		): Observable<BuiltTransaction> =>

@@ -312,6 +312,16 @@ export type RawExecutedTransaction = Readonly<{
 	actions: RawExecutedAction[]
 }>
 
+export type RawValidatorResponse = Readonly<{
+	address: string
+	ownerAddress: string
+	name: string
+	infoURL: string
+	totalDelegatedStake: string
+	ownerDelegation: string
+	isExternalStakeAccepted: boolean
+}>
+
 export type StakePositions = StakePosition[]
 
 export type UnstakePositions = UnstakePosition[]

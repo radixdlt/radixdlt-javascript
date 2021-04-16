@@ -54,6 +54,7 @@ import {
 	getNodeErr,
 	loadKeystoreErr,
 	lookupTxErr,
+	lookupValidatorErr,
 	nativeTokenErr,
 	networkIdErr,
 	networkTxDemandErr,
@@ -172,6 +173,11 @@ const create = (): RadixT => {
 		validators: fwdAPICall(
 			(a) => a.validators,
 			(m) => validatorsErr(m),
+		),
+
+		lookupValidator: fwdAPICall(
+			(a) => a.lookupValidator,
+			(m) => lookupValidatorErr(m),
 		),
 
 		lookupTransaction: fwdAPICall(
