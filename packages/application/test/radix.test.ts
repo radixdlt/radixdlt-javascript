@@ -2,7 +2,7 @@ import { Radix } from '../src/radix'
 import {
 	AddressT,
 	HDMasterSeed,
-	Mnemonic,
+	Mnemonic, ValidatorAddress,
 	Wallet,
 	WalletT,
 } from '@radixdlt/account'
@@ -11,7 +11,6 @@ import {
 	Observable,
 	of,
 	ReplaySubject,
-	Subject,
 	Subscription,
 	throwError,
 } from 'rxjs'
@@ -770,6 +769,29 @@ describe('Radix API', () => {
 				radix.ledger.lookupTransaction(mockedTXId).subscribe((tx) => {
 					expect(tx.txID.equals(mockedTXId)).toBe(true)
 					expect(tx.actions.length).toBeGreaterThan(0)
+					done()
+				})
+			})
+			.add(subs)
+	})
+
+	it('can lookup validator', (done) => {
+		const subs = new Subscription()
+
+		const radix = Radix.create().__withAPI(mockedAPI)
+
+		const loadKeystore = (): Promise<KeystoreT> =>
+			Promise.resolve(keystoreForTest.keystore)
+
+		radix.login(keystoreForTest.password, loadKeystore)
+
+		const mockedValidatorAddr = ValidatorAddress.fromUnsafe('validator_address_mocked')._unsafeUnwrap()
+
+		radix.__wallet
+			.subscribe((_w) => {
+				radix.ledger.lookupValidator(mockedValidatorAddr).subscribe((validator) => {
+					expect(validator.address.equals(mockedValidatorAddr)).toBe(true)
+					expect(validator.ownerAddress.toString().slice(-4)).toBe('D9Rb')
 					done()
 				})
 			})

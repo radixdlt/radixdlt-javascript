@@ -351,6 +351,14 @@ const detPRNGWithBuffer = (buffer: Buffer): (() => number) => {
 	}
 }
 
+const detRandomValidatorAddressWithPRNG = (
+	anInt: () => number,
+) => (): ValidatorAddressT =>
+	ValidatorAddress.fromUnsafe(
+		sha256(anInt().toString(16)).slice(-20).toString('hex'),
+	)._unsafeUnwrap()
+
+
 const randomValidatorList = (
 	size: number,
 	validatorAddress?: ValidatorAddressT,
@@ -361,19 +369,20 @@ const randomValidatorList = (
 			? sha256(validatorAddress.toString())
 			: sha256(size.toString(16))
 	const prng = detPRNGWithBuffer(randomBuf)
+
+	const detRandomValidatorAddress = detRandomValidatorAddressWithPRNG(prng)
+
 	const listSize = prng() % 5 === 1 ? size - Math.round(size / 2) : size
 
 	for (let i = 0; i < listSize; i++) {
 		const random = prng()
-		const address = castOfCharacters[random % castOfCharacters.length]
-		const ownerAddress =
-			castOfCharacters[(random + 1) % castOfCharacters.length]
+		const ownerAddress = castOfCharacters[random % castOfCharacters.length]
 		const name = characterNames[random % characterNames.length]
 		const amount = Amount.fromUnsafe(random)._unsafeUnwrap()
 		const bool = random % 2 === 0
 
 		validatorList.push({
-			address,
+			address: detRandomValidatorAddress(),
 			ownerAddress,
 			name,
 			infoURL: new URL('https://example.com'),
@@ -499,12 +508,6 @@ export const deterministicRandomBalancesForAddress = (
 	}
 }
 
-const detRandomValidatorAddressWithPRNG = (
-	anInt: () => number,
-) => (): ValidatorAddressT =>
-	ValidatorAddress.fromUnsafe(
-		sha256(anInt().toString(16)).slice(-20).toString('hex'),
-	)._unsafeUnwrap()
 
 export const deterministicRandomUnstakesForAddress = (
 	address: AddressT,
@@ -515,9 +518,6 @@ export const deterministicRandomUnstakesForAddress = (
 		.fill(undefined)
 		.map(
 			(_, index): UnstakePosition => {
-				const detRandomAddress = (): AddressT =>
-					castOfCharacters[anInt() % castOfCharacters.length]
-
 				const detRandomValidatorAddress = detRandomValidatorAddressWithPRNG(
 					anInt,
 				)
@@ -852,8 +852,14 @@ export const mockRadixCoreAPI = (
 			}),
 		lookupValidator: (
 			validatorAddress: ValidatorAddressT,
-		): Observable<Validator> =>
-			of(randomValidatorList(1, validatorAddress)[0]),
+		): Observable<Validator> => {
+			const validatorRnd = randomValidatorList(1, validatorAddress)[0]
+			const validator: Validator = {
+				...validatorRnd,
+				address: validatorAddress,
+			}
+			return of(validator)
+		},
 		buildTransaction: (
 			transactionIntent: TransactionIntent,
 		): Observable<BuiltTransaction> =>

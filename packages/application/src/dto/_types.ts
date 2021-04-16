@@ -306,7 +306,7 @@ export type TransactionHistory = Readonly<{
 }>
 
 export type Validator = Readonly<{
-	address: AddressT
+	address: ValidatorAddressT
 	ownerAddress: AddressT
 	name: string
 	infoURL: URL
