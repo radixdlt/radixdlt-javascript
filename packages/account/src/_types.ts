@@ -19,6 +19,11 @@ export type AddressT = Readonly<{
 	equals: (other: AddressT) => boolean
 }>
 
+export type ValidatorAddressT = Readonly<{
+	toString: () => string
+	equals: (other: ValidatorAddressT) => boolean
+}>
+
 export type PublicKeyDeriving = Readonly<{
 	derivePublicKey: () => Observable<PublicKey>
 }>
