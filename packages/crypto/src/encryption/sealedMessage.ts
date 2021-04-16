@@ -1,7 +1,7 @@
 import { combine, err, Result } from 'neverthrow'
 import { readBuffer } from '@radixdlt/util'
 import { publicKeyFromBytes } from '../elliptic-curve/publicKey'
-import { AES_GCM, AES_GCM_SealedBoxT } from '../symmetric-encryption/_index'
+import { AES_GCM, AES_GCM_SealedBoxT } from '../symmetric-encryption'
 import { PublicKey, publicKeyCompressedByteCount } from '../_types'
 import { SealedMessageT } from './_types'
 import { validateLength } from '../utils'

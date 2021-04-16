@@ -8,7 +8,7 @@ import {
 import { Observable } from 'rxjs'
 import { BIP32T } from './bip32/_types'
 import { Option } from 'prelude-ts'
-import { HDPathRadixT } from './bip32/_index'
+import { HDPathRadixT } from './bip32'
 import { Magic } from '@radixdlt/primitives'
 import { MnemomicT } from './bip39/_types'
 

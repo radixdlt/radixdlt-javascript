@@ -7,7 +7,7 @@ import {
 	generatePrivateKey,
 	generateKeyPair,
 	sha256,
-} from '../src/_index'
+} from '../src/index'
 
 import { UInt256 } from '@radixdlt/uint256'
 import { publicKeyFromPrivateKeyScalar } from '../src/elliptic-curve/wrap/publicKeyWrapped'

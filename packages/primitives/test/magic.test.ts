@@ -1,4 +1,4 @@
-import { magicFromNumber } from '../src/_index'
+import { magicFromNumber } from '../src'
 
 const vectors = [
 	{ magic: 0, expectedByte: 0 },
