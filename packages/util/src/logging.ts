@@ -189,7 +189,7 @@ const extractColorsOfLevels = (): AbstractConfigSetColors =>
 			.trim()
 	})
 
-const defaultLogLevel: RadixLogLevel = 'dev'
+const defaultLogLevel: RadixLogLevel = 'warning'
 
 const setLogLevel = (newLevel: RadixLogLevel | 'silent'): RadixLogger => {
 	const shouldSilent = newLevel === 'silent'
@@ -228,7 +228,7 @@ const makeRadixLogger = (): RadixLogger => {
 		new winston.transports.File({
 			format: colorizedEmojiFormat,
 			filename: 'combined.log',
-			level: 'info',
+			level: 'dev',
 		}),
 	]
 
