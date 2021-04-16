@@ -9,6 +9,4 @@ coverage
 jest.*.js
 jest*.js
 *.test.ts
-
-// very temporary
-dson.ts
+**/_load-rpc.ts

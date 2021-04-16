@@ -9,7 +9,8 @@ import {
 import {
 	interval,
 	Observable,
-	of, ReplaySubject,
+	of,
+	ReplaySubject,
 	Subject,
 	Subscription,
 	throwError,
@@ -1087,7 +1088,6 @@ describe('Radix API', () => {
 				transaction.confirm()
 			}
 
-
 			const shouldShowConfirmation = () => {
 				userHasBeenAskedToConfirmTX = true
 				confirmTransaction()
@@ -1110,7 +1110,6 @@ describe('Radix API', () => {
 					// txn.confirm()
 				})
 				.add(subs)
-
 
 			transactionTracking.completion
 				.subscribe({

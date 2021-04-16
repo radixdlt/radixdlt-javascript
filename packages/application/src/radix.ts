@@ -13,7 +13,6 @@ import {
 	catchError,
 	distinctUntilChanged,
 	filter,
-	first,
 	map,
 	mergeMap,
 	shareReplay,
@@ -125,18 +124,18 @@ const create = (): RadixT => {
 		pickFn: (api: RadixCoreAPI) => (...input: I) => Observable<O>,
 		errorFn: (message: string | Error[]) => ErrorNotification,
 	) => (...input: I) =>
-			coreAPI$.pipe(
-				mergeMap((a) => pickFn(a)(...input)),
+		coreAPI$.pipe(
+			mergeMap((a) => pickFn(a)(...input)),
 
-				// We do NOT omit/supress error, we merely DECORATE the error
-				catchError((errors: unknown) => {
-					const errorsToPropagate: unknown[] = isArray(errors)
-						? errors
-						: [errors]
+			// We do NOT omit/supress error, we merely DECORATE the error
+			catchError((errors: unknown) => {
+				const errorsToPropagate: unknown[] = isArray(errors)
+					? errors
+					: [errors]
 
-					throw errorFn(errorsToPropagate as Error[])
-				}),
-			)
+				throw errorFn(errorsToPropagate as Error[])
+			}),
+		)
 
 	const networkId: () => Observable<Magic> = fwdAPICall(
 		(a) => a.networkId,
@@ -356,40 +355,6 @@ const create = (): RadixT => {
 		walletSubject.next(wallet)
 	}
 
-	const signUnsignedTx = (
-		unsignedTx: BuiltTransaction,
-	): Observable<SignedTransaction> => {
-		/* log.trace */ log.debug('Starting signing transaction (async).')
-		return activeAccount.pipe(
-			mergeMap(
-				(account: AccountT): Observable<SignedTransaction> => {
-					const msgToSignFromTx = Buffer.from(
-						unsignedTx.transaction.hashOfBlobToSign,
-						'hex',
-					)
-					return account.sign(msgToSignFromTx).pipe(
-						withLatestFrom(account.derivePublicKey()),
-						map(
-							([
-								signature,
-								publicKeyOfSigner,
-							]): SignedTransaction => {
-								/* log.trace */ log.debug(
-								`Finished signing transaction`,
-							)
-								return {
-									transaction: unsignedTx.transaction,
-									signature,
-									publicKeyOfSigner,
-								}
-							},
-						),
-					)
-				},
-			),
-		)
-	}
-
 	const __makeTransactionFromIntent = (
 		transactionIntent$: Observable<TransactionIntent>,
 		options: MakeTransactionOptions,
@@ -526,7 +491,9 @@ const create = (): RadixT => {
 				return EMPTY
 			}),
 			tap((builtTx) => {
-				txLog.debug('TX built by API => asking for confirmation to sign...')
+				txLog.debug(
+					'TX built by API => asking for confirmation to sign...',
+				)
 				track({
 					value: builtTx,
 					eventUpdateType:
@@ -540,10 +507,13 @@ const create = (): RadixT => {
 					eventUpdateType:
 						TransactionTrackingEventType.ASKED_FOR_CONFIRMATION,
 				})
-			})
+			}),
 		)
 
-		const signedTransaction = combineLatest([builtTransaction, userDidConfirmTransactionSubject]).pipe(
+		const signedTransaction = combineLatest([
+			builtTransaction,
+			userDidConfirmTransactionSubject,
+		]).pipe(
 			tap((unsignedTx) => {
 				track({
 					value: unsignedTx,
@@ -555,58 +525,19 @@ const create = (): RadixT => {
 			shareReplay(1),
 		)
 
-		const finalizedTx = signedTransaction
-			.pipe(
-				mergeMap(
-					(
-						signedTx: SignedTransaction,
-					): Observable<FinalizedTransaction> => {
-						txLog.debug(
-							`Finished signing tx => submitting it to 🛰  API.`,
-						)
-						track({
-							value: signedTx,
-							eventUpdateType:
-								TransactionTrackingEventType.SIGNED,
-						})
-						return api.finalizeTransaction(signedTx)
-					},
-				),
-				catchError((e: Error) => {
-					txLog.error(
-						`API failed to submit transaction, error: ${JSON.stringify(
-							e,
-							null,
-							4,
-						)}`,
-					)
-					trackError({
-						error: e,
-						inStep: TransactionTrackingEventType.FINALIZED,
-					})
-					return EMPTY
-				}),
-				tap<FinalizedTransaction>((finalizedTx) => {
-					txLog.debug(
-						`Received finalized transaction with txID='${finalizedTx.txID.toString()}' from API, calling submit.`,
-					)
-					track({
-						value: finalizedTx,
-						eventUpdateType: TransactionTrackingEventType.FINALIZED,
-					})
-				})
-			)
-
-
-		combineLatest([finalizedTx, signedTransaction]).pipe(
+		const finalizedTx = signedTransaction.pipe(
 			mergeMap(
 				(
-					[finalizedTx, signedTx],
-				): Observable<PendingTransaction> => {
-					return api.submitSignedTransaction({
-						...finalizedTx,
-						...signedTx
+					signedTx: SignedTransaction,
+				): Observable<FinalizedTransaction> => {
+					txLog.debug(
+						`Finished signing tx => submitting it to 🛰  API.`,
+					)
+					track({
+						value: signedTx,
+						eventUpdateType: TransactionTrackingEventType.SIGNED,
 					})
+					return api.finalizeTransaction(signedTx)
 				},
 			),
 			catchError((e: Error) => {
@@ -619,31 +550,69 @@ const create = (): RadixT => {
 				)
 				trackError({
 					error: e,
-					inStep: TransactionTrackingEventType.SUBMITTED,
+					inStep: TransactionTrackingEventType.FINALIZED,
 				})
 				return EMPTY
 			}),
-			tap({
-				next: (pendingTx: PendingTransaction) => {
-					txLog.debug(
-						`Submitted transaction with txID='${pendingTx.txID.toString()}', it is now pending.`,
-					)
-					track({
-						value: pendingTx,
-						eventUpdateType:
-							TransactionTrackingEventType.SUBMITTED,
-					})
-					pendingTXSubject.next(pendingTx)
-				},
-				error: (submitTXError: Error) => {
-					// TODO would be great to have access to txID here, hopefully API includes it in error msg?
-					txLog.error(
-						`Submission of signed transaction to API failed with error: ${submitTXError.message}`,
-					)
-					pendingTXSubject.error(submitTXError)
-				},
+			tap<FinalizedTransaction>((finalizedTx) => {
+				txLog.debug(
+					`Received finalized transaction with txID='${finalizedTx.txID.toString()}' from API, calling submit.`,
+				)
+				track({
+					value: finalizedTx,
+					eventUpdateType: TransactionTrackingEventType.FINALIZED,
+				})
 			}),
 		)
+
+		combineLatest([finalizedTx, signedTransaction])
+			.pipe(
+				mergeMap(
+					([
+						finalizedTx,
+						signedTx,
+					]): Observable<PendingTransaction> => {
+						return api.submitSignedTransaction({
+							...finalizedTx,
+							...signedTx,
+						})
+					},
+				),
+				catchError((e: Error) => {
+					txLog.error(
+						`API failed to submit transaction, error: ${JSON.stringify(
+							e,
+							null,
+							4,
+						)}`,
+					)
+					trackError({
+						error: e,
+						inStep: TransactionTrackingEventType.SUBMITTED,
+					})
+					return EMPTY
+				}),
+				tap({
+					next: (pendingTx: PendingTransaction) => {
+						txLog.debug(
+							`Submitted transaction with txID='${pendingTx.txID.toString()}', it is now pending.`,
+						)
+						track({
+							value: pendingTx,
+							eventUpdateType:
+								TransactionTrackingEventType.SUBMITTED,
+						})
+						pendingTXSubject.next(pendingTx)
+					},
+					error: (submitTXError: Error) => {
+						// TODO would be great to have access to txID here, hopefully API includes it in error msg?
+						txLog.error(
+							`Submission of signed transaction to API failed with error: ${submitTXError.message}`,
+						)
+						pendingTXSubject.error(submitTXError)
+					},
+				}),
+			)
 			.subscribe()
 			.add(subs)
 
@@ -721,7 +690,7 @@ const create = (): RadixT => {
 	): TransactionTracking => {
 		radixLog.debug(`make transaction from builder`)
 		const intent$ = transactionIntentBuilderT.build({
-			encryptMessageIfAnyWithAccount: activeAccount
+			encryptMessageIfAnyWithAccount: activeAccount,
 		})
 		return __makeTransactionFromIntent(intent$, options)
 	}

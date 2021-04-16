@@ -1,6 +1,5 @@
-
 /**
- * @jest-environment ./packages/application/test/load-rpc.ts
+ * @jest-environment ./packages/application/test/_load-rpc.ts
  */
 import { nodeAPI } from '../src/api/api'
 import {
