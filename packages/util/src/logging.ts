@@ -1,4 +1,4 @@
-import winston from '@radixdlt/winston'
+import winston, { LeveledLogMethod } from '@radixdlt/winston'
 import * as Transport from 'winston-transport'
 import {
 	AbstractConfigSetColors,
@@ -56,7 +56,6 @@ type RadixLogLevel =
 	| 'debug'
 	| 'verbose'
 	| 'dev'
-	| 'silent'
 
 // Inspired by RFC 5424: https://tools.ietf.org/html/rfc5424#section-6.2.1
 type LogLevelsInfo = { [key in RadixLogLevel]: LogLevelInfo }
@@ -136,13 +135,6 @@ const logLevelsInfo: LogLevelsInfo = {
 		priority: 9,
 		purpose: 'Used by developer during development',
 	},
-
-	silent: {
-		foregroundColor: 'black',
-		emoji: '🖤',
-		priority: 255,
-		purpose: 'If you want to disable all logging',
-	},
 }
 
 type Dictionary<T> = {
@@ -179,10 +171,13 @@ const extractValueOfInfo = <T>(
 type RadixLogLevels = AbstractConfigSetLevels & {
 	verbose: number
 	dev: number
-	silent: number
 }
 
-type RadixLogger = winston.Logger
+type RadixLogger = winston.Logger &
+	Readonly<{
+		verbose: LeveledLogMethod
+		dev: LeveledLogMethod
+	}>
 
 const extractLevels = (): RadixLogLevels =>
 	extractValueOfInfo((i: LogLevelInfo): number => i.priority)
@@ -194,9 +189,9 @@ const extractColorsOfLevels = (): AbstractConfigSetColors =>
 			.trim()
 	})
 
-const defaultLogLevel: RadixLogLevel = 'error'
+const defaultLogLevel: RadixLogLevel = 'dev'
 
-const setLogLevel = (newLevel: RadixLogLevel): RadixLogger => {
+const setLogLevel = (newLevel: RadixLogLevel | 'silent'): RadixLogger => {
 	const shouldSilent = newLevel === 'silent'
 	log.configure({ level: newLevel, silent: shouldSilent })
 	return log
@@ -246,13 +241,15 @@ const makeRadixLogger = (): RadixLogger => {
 		)
 	}
 
-	const logger: winston.Logger = createLogger({
+	//@ts-ignore
+	const logger: RadixLogger = createLogger({
 		level: defaultLogLevel,
 		levels: extractLevels(),
 		format: colorizedEmojiFormat,
 		transports: transports,
 		exitOnError: false,
 	})
+
 	winston.addColors(extractColorsOfLevels())
 	winston.add(logger)
 	return logger

@@ -794,7 +794,7 @@ const create = (): RadixT => {
 			return this
 		},
 
-		logLevel: function (level: RadixLogLevel) {
+		logLevel: function (level: RadixLogLevel | 'silent') {
 			setLogLevel(level)
 			return this
 		},

@@ -84,7 +84,7 @@ export type RadixT = Readonly<{
 	stakingPositions: Observable<StakePositions>
 	unstakingPositions: Observable<UnstakePositions>
 
-	logLevel: (level: RadixLogLevel) => RadixT
+	logLevel: (level: RadixLogLevel | 'silent') => RadixT
 
 	/**
 	 * Specify a trigger for when to fetch the token balances for the active address.
