@@ -2,7 +2,8 @@ import { Radix } from '../src/radix'
 import {
 	AddressT,
 	HDMasterSeed,
-	Mnemonic, ValidatorAddress,
+	Mnemonic,
+	ValidatorAddress,
 	Wallet,
 	WalletT,
 } from '@radixdlt/account'
@@ -785,15 +786,23 @@ describe('Radix API', () => {
 
 		radix.login(keystoreForTest.password, loadKeystore)
 
-		const mockedValidatorAddr = ValidatorAddress.fromUnsafe('validator_address_mocked')._unsafeUnwrap()
+		const mockedValidatorAddr = ValidatorAddress.fromUnsafe(
+			'validator_address_mocked',
+		)._unsafeUnwrap()
 
 		radix.__wallet
 			.subscribe((_w) => {
-				radix.ledger.lookupValidator(mockedValidatorAddr).subscribe((validator) => {
-					expect(validator.address.equals(mockedValidatorAddr)).toBe(true)
-					expect(validator.ownerAddress.toString().slice(-4)).toBe('D9Rb')
-					done()
-				})
+				radix.ledger
+					.lookupValidator(mockedValidatorAddr)
+					.subscribe((validator) => {
+						expect(
+							validator.address.equals(mockedValidatorAddr),
+						).toBe(true)
+						expect(
+							validator.ownerAddress.toString().slice(-4),
+						).toBe('D9Rb')
+						done()
+					})
 			})
 			.add(subs)
 	})

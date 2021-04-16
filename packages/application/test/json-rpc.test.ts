@@ -37,7 +37,8 @@ import {
 	OpenrpcDocument,
 	ContentDescriptorObject,
 } from '@open-rpc/meta-schema'
-import { Address } from '@radixdlt/account'
+import { Address, ValidatorAddress } from '@radixdlt/account'
+import { LookupValidatorEndpoint } from '../dist/api/json-rpc/_types'
 const faker = require('json-schema-faker')
 
 let mockClientReturnValue: any
@@ -156,7 +157,7 @@ const expectedDecodedResponses = {
 								from: Address.fromUnsafe(
 									action.validator,
 								)._unsafeUnwrap(),
-								validator: Address.fromUnsafe(
+								validator: ValidatorAddress.fromUnsafe(
 									action.validator,
 								)._unsafeUnwrap(),
 								amount: Amount.fromUnsafe(
@@ -194,7 +195,7 @@ const expectedDecodedResponses = {
 						from: Address.fromUnsafe(
 							action.validator,
 						)._unsafeUnwrap(),
-						validator: Address.fromUnsafe(
+						validator: ValidatorAddress.fromUnsafe(
 							action.validator,
 						)._unsafeUnwrap(),
 						amount: Amount.fromUnsafe(
@@ -209,7 +210,7 @@ const expectedDecodedResponses = {
 		response: StakePositionsEndpoint.Response,
 	): StakePositionsEndpoint.DecodedResponse => [
 		{
-			validator: Address.fromUnsafe(
+			validator: ValidatorAddress.fromUnsafe(
 				response[0].validator,
 			)._unsafeUnwrap(),
 			amount: Amount.fromUnsafe(response[0].amount)._unsafeUnwrap(),
@@ -221,7 +222,7 @@ const expectedDecodedResponses = {
 	): UnstakePositionsEndpoint.DecodedResponse => [
 		{
 			amount: Amount.fromUnsafe(response[0].amount)._unsafeUnwrap(),
-			validator: Address.fromUnsafe(
+			validator: ValidatorAddress.fromUnsafe(
 				response[0].validator,
 			)._unsafeUnwrap(),
 			epochsUntil: response[0].epochsUntil,
@@ -256,7 +257,7 @@ const expectedDecodedResponses = {
 		cursor: response.cursor,
 		validators: [
 			{
-				address: Address.fromUnsafe(
+				address: ValidatorAddress.fromUnsafe(
 					response.validators[0].address,
 				)._unsafeUnwrap(),
 				ownerAddress: Address.fromUnsafe(
@@ -277,6 +278,22 @@ const expectedDecodedResponses = {
 	}),
 
 	[rpcSpec.methods[12].name]: (
+		response: LookupValidatorEndpoint.Response,
+	): LookupValidatorEndpoint.DecodedResponse => ({
+		address: ValidatorAddress.fromUnsafe(response.address)._unsafeUnwrap(),
+		ownerAddress: Address.fromUnsafe(response.ownerAddress)._unsafeUnwrap(),
+		name: response.name,
+		infoURL: new URL(response.infoURL),
+		totalDelegatedStake: Amount.fromUnsafe(
+			response.totalDelegatedStake,
+		)._unsafeUnwrap(),
+		ownerDelegation: Amount.fromUnsafe(
+			response.ownerDelegation,
+		)._unsafeUnwrap(),
+		isExternalStakeAccepted: response.isExternalStakeAccepted,
+	}),
+
+	[rpcSpec.methods[13].name]: (
 		response: BuildTransactionEndpoint.Response,
 	): BuildTransactionEndpoint.DecodedResponse => ({
 		transaction: {
@@ -286,13 +303,13 @@ const expectedDecodedResponses = {
 		fee: Amount.fromUnsafe(response.fee)._unsafeUnwrap(),
 	}),
 
-	[rpcSpec.methods[13].name]: (
+	[rpcSpec.methods[14].name]: (
 		response: FinalizeTransactionEndpoint.Response,
 	): FinalizeTransactionEndpoint.DecodedResponse => ({
 		txID: TransactionIdentifier.create(response.txID)._unsafeUnwrap(),
 	}),
 
-	[rpcSpec.methods[14].name]: (
+	[rpcSpec.methods[15].name]: (
 		response: SubmitTransactionEndpoint.Response,
 	): SubmitTransactionEndpoint.DecodedResponse => ({
 		txID: TransactionIdentifier.create(response.txID)._unsafeUnwrap(),

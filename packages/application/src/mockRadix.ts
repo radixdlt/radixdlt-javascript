@@ -358,7 +358,6 @@ const detRandomValidatorAddressWithPRNG = (
 		sha256(anInt().toString(16)).slice(-20).toString('hex'),
 	)._unsafeUnwrap()
 
-
 const randomValidatorList = (
 	size: number,
 	validatorAddress?: ValidatorAddressT,
@@ -507,7 +506,6 @@ export const deterministicRandomBalancesForAddress = (
 		tokenBalances,
 	}
 }
-
 
 export const deterministicRandomUnstakesForAddress = (
 	address: AddressT,
