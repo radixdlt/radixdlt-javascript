@@ -7,17 +7,15 @@ import {
 	WalletT,
 } from '@radixdlt/account'
 import {
-	from,
 	interval,
 	Observable,
-	of,
+	of, ReplaySubject,
 	Subject,
 	Subscription,
 	throwError,
-	zip,
 } from 'rxjs'
-import { map, mergeMap, take, toArray } from 'rxjs/operators'
-import { Keystore, KeystoreT } from '@radixdlt/crypto'
+import { map, take, toArray } from 'rxjs/operators'
+import { KeystoreT } from '@radixdlt/crypto'
 import { ManualUserConfirmTX, RadixT } from '../src/_types'
 import { APIErrorCause, ErrorCategory, ErrorCause } from '../src/errors'
 import {
@@ -29,8 +27,6 @@ import {
 } from '../src/mockRadix'
 import { NodeT, RadixCoreAPI } from '../src/api/_types'
 import {
-	Token,
-	TokenBalance,
 	TokenBalances,
 	SimpleTokenBalances,
 	TransactionIdentifierT,
@@ -41,11 +37,11 @@ import { AmountT } from '@radixdlt/primitives'
 import { signatureFromHexStrings } from '@radixdlt/crypto/test/ellipticCurveCryptography.test'
 import { TransactionIntentBuilder } from '../src/dto/transactionIntentBuilder'
 import { TransactionTrackingEventType } from '../src/dto/_types'
-import { LogLevel, restoreDefaultLogLevel } from '@radixdlt/util'
 import { TransferTokensInput } from '../src/actions/_types'
 import { TransferTokensOptions } from '../src/_types'
 import { APIError } from '../src/errors'
-import { log } from '@radixdlt/util/dist/logging'
+import { restoreDefaultLogLevel, setLogLevel } from '@radixdlt/util'
+import { mockErrorMsg } from '../../util/test/util.test'
 
 const createWallet = (): WalletT => {
 	const mnemonic = Mnemonic.fromEnglishPhrase(
@@ -336,37 +332,49 @@ describe('Radix API', () => {
 		)
 	})
 
-	it('should handle wallet error', (done) => {
-		const radix = Radix.create()
+	describe('failing scenarios', () => {
+		beforeAll(() => {
+			setLogLevel('silent')
+		})
 
-		radix.__wallet.subscribe((wallet: WalletT) => {
-			const account = wallet.__unsafeGetAccount()
-			expect(account.hdPath.addressIndex.value()).toBe(0)
-			account.derivePublicKey().subscribe(
-				(pubKey) => {
-					expect(pubKey.toString(true)).toBe(
-						keystoreForTest.publicKeysCompressed[0],
-					)
-					done()
+		afterAll(() => {
+			restoreDefaultLogLevel()
+		})
+
+		it('should handle wallet error', (done) => {
+			const radix = Radix.create()
+
+			radix.__wallet.subscribe((wallet: WalletT) => {
+				const account = wallet.__unsafeGetAccount()
+				expect(account.hdPath.addressIndex.value()).toBe(0)
+				account.derivePublicKey().subscribe(
+					(pubKey) => {
+						expect(pubKey.toString(true)).toBe(
+							keystoreForTest.publicKeysCompressed[0],
+						)
+						done()
+					},
+					(error) => done(error),
+				)
+			})
+
+			radix.errors.subscribe({
+				next: (error) => {
+					expect(error.category).toEqual(ErrorCategory.WALLET)
 				},
-				(error) => done(error),
-			)
+			})
+
+			const errMsg = mockErrorMsg('LoadError')
+
+			const loadKeystoreError = (): Promise<KeystoreT> =>
+				Promise.reject(new Error(errMsg))
+
+			const loadKeystoreSuccess = (): Promise<KeystoreT> =>
+				Promise.resolve(keystoreForTest.keystore)
+
+			radix.login(keystoreForTest.password, loadKeystoreError)
+			radix.login(keystoreForTest.password, loadKeystoreSuccess)
 		})
-
-		radix.errors.subscribe({
-			next: (error) => {
-				expect(error.category).toEqual(ErrorCategory.WALLET)
-			},
-		})
-
-		const loadKeystoreError = (): Promise<KeystoreT> =>
-			Promise.reject('Error!')
-
-		const loadKeystoreSuccess = (): Promise<KeystoreT> =>
-			Promise.resolve(keystoreForTest.keystore)
-
-		radix.login(keystoreForTest.password, loadKeystoreError)
-		radix.login(keystoreForTest.password, loadKeystoreSuccess)
 	})
 
 	it('radix can derive accounts', async (done) => {
@@ -1073,12 +1081,19 @@ describe('Radix API', () => {
 			//@ts-ignore
 			let userHasBeenAskedToConfirmTX
 
+			const confirmTransaction = () => {
+				// Check that pin is valid
+				//@ts-ignore
+				transaction.confirm()
+			}
+
+
 			const shouldShowConfirmation = () => {
 				userHasBeenAskedToConfirmTX = true
 				confirmTransaction()
 			}
 
-			const userConfirmation = new Subject<ManualUserConfirmTX>()
+			const userConfirmation = new ReplaySubject<ManualUserConfirmTX>()
 
 			const transactionTracking = radix.transferTokens({
 				...transferTokens(),
@@ -1096,11 +1111,6 @@ describe('Radix API', () => {
 				})
 				.add(subs)
 
-			const confirmTransaction = () => {
-				// Check that pin is valid
-				//@ts-ignore
-				transaction.confirm()
-			}
 
 			transactionTracking.completion
 				.subscribe({
@@ -1194,7 +1204,7 @@ describe('Radix API', () => {
 							},
 						}),
 					)
-					.logLevel(LogLevel.SILENT)
+					.logLevel('silent')
 
 				const transactionTracking = radix.transferTokens(
 					transferTokens(),

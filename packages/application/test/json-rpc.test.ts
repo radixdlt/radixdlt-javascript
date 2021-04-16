@@ -34,7 +34,6 @@ import { alice, bob } from '../src/mockRadix'
 import { PublicKey, Signature } from '@radixdlt/crypto'
 import { Subscription } from 'rxjs'
 import { signatureFromHexStrings } from '../../crypto/test/ellipticCurveCryptography.test'
-import { LogLevel } from '@radixdlt/util'
 
 let mockClientReturnValue: any
 
@@ -421,7 +420,7 @@ describe('networking', () => {
 						),
 					),
 				)
-				.logLevel(LogLevel.SILENT)
+				.logLevel('silent')
 
 			radix.ledger
 				.buildTransaction({} as any)
@@ -463,7 +462,7 @@ describe('networking', () => {
 						),
 					),
 				)
-				.logLevel(LogLevel.SILENT)
+				.logLevel('silent')
 
 			radix.ledger
 				.submitSignedTransaction({

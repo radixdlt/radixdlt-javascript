@@ -26,9 +26,7 @@
     "node": ">=15.5.0 <16"
   },
   "dependencies": {
-    "chalk": "^4.1.0",
-    "loglevel": "^1.7.1",
-    "loglevel-plugin-prefix": "^0.8.4",
+    "@radixdlt/winston": "^3.3.4",
     "neverthrow": "^4.0.1",
     "ramda": "^0.27.1",
     "randombytes": "^2.1.0",

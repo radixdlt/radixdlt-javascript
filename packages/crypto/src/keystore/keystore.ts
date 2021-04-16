@@ -95,7 +95,7 @@ const decrypt = (
 			.asyncAndThen((inp) => Scrypt.deriveKey(inp))
 			.map(
 				(derivedKey: Buffer): AES_GCM_OPEN_Input => {
-					log.trace(
+					log.verbose(
 						`[Decrypting Keystore] successfully derived key using KDF ('${keystore.crypto.kdf}')`,
 					)
 					return {

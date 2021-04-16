@@ -5,6 +5,8 @@ import { map, take, toArray } from 'rxjs/operators'
 import { KeystoreT, PublicKey } from '@radixdlt/crypto'
 import { combineLatest, of, Subject } from 'rxjs'
 import { Magic, magicFromNumber } from '@radixdlt/primitives'
+import { restoreDefaultLogLevel, setLogLevel } from '@radixdlt/util'
+import { mockErrorMsg } from '../../util/test/util.test'
 
 const createWallet = (password: string = 'radixdlt'): WalletT => {
 	const mnemonic = Mnemonic.generateNew()
@@ -85,44 +87,54 @@ describe('HD Wallet', () => {
 		expect(mnemonicRevealed.phrase).toBe(mnemonicPhrase)
 	})
 
-	it('save errors are propagated', async (done) => {
-		const mnemonic = Mnemonic.generateNew()
-		const password = 'super secret password'
+	describe('failing wallet scenarios', () => {
+		beforeAll(() => {
+			setLogLevel('silent')
+		})
 
-		const errMsg = 'ERROR_FROM_TEST'
+		afterAll(() => {
+			restoreDefaultLogLevel()
+		})
 
-		await Wallet.byEncryptingMnemonicAndSavingKeystore({
-			mnemonic,
-			password,
-			save: (_) => Promise.reject(new Error(errMsg)),
-		}).match(
-			(_) => done(new Error('Expected error but got none')),
-			(error) => {
-				expect(error.message).toBe(
-					`Failed to save keystore, underlying error: '${errMsg}'`,
-				)
-				done()
-			},
-		)
-	})
+		it('save errors are propagated', async (done) => {
+			const mnemonic = Mnemonic.generateNew()
+			const password = 'super secret password'
 
-	it('load errors are propagated', async (done) => {
-		const password = 'super secret password'
+			const errMsg = mockErrorMsg('SaveError')
 
-		const errMsg = 'ERROR_FROM_TEST'
+			await Wallet.byEncryptingMnemonicAndSavingKeystore({
+				mnemonic,
+				password,
+				save: (_) => Promise.reject(new Error(errMsg)),
+			}).match(
+				(_) => done(new Error('Expected error but got none')),
+				(error) => {
+					expect(error.message).toBe(
+						`Failed to save keystore, underlying error: '${errMsg}'`,
+					)
+					done()
+				},
+			)
+		})
 
-		await Wallet.byLoadingAndDecryptingKeystore({
-			password,
-			load: () => Promise.reject(new Error(errMsg)),
-		}).match(
-			(_) => done(new Error('Expected error but got none')),
-			(error) => {
-				expect(error.message).toBe(
-					`Failed to load keystore, underlying error: '${errMsg}'`,
-				)
-				done()
-			},
-		)
+		it('load errors are propagated', async (done) => {
+			const password = 'super secret password'
+
+			const errMsg = mockErrorMsg('LoadError')
+
+			await Wallet.byLoadingAndDecryptingKeystore({
+				password,
+				load: () => Promise.reject(new Error(errMsg)),
+			}).match(
+				(_) => done(new Error('Expected error but got none')),
+				(error) => {
+					expect(error.message).toBe(
+						`Failed to load keystore, underlying error: '${errMsg}'`,
+					)
+					done()
+				},
+			)
+		})
 	})
 
 	it('can observe accounts', (done) => {
