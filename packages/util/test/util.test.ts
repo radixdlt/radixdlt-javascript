@@ -1,4 +1,4 @@
-import { secureRandomGenerator } from '../src/_index'
+import { secureRandomGenerator } from '../src'
 
 export const mockErrorMsg = (msg: string): string => {
 	const testFilePath = expect.getState().testPath

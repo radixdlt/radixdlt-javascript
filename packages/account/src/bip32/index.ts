@@ -1,4 +1,4 @@
-export * from './bip44/_index'
+export * from './bip44'
 
 export * from './_types'
 

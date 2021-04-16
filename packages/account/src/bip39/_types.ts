@@ -1,4 +1,4 @@
-import { BIP32T } from '../_index'
+import { BIP32T } from '../'
 import { PublicKey, PrivateKey } from '@radixdlt/crypto'
 
 export type HDNodeT = Readonly<{

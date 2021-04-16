@@ -13,7 +13,7 @@ import {
 import { mergeMap, map, distinctUntilChanged } from 'rxjs/operators'
 import { Keystore, KeystoreT, PublicKey, Signature } from '@radixdlt/crypto'
 import { Option } from 'prelude-ts'
-import { HDPathRadix, HDPathRadixT } from './bip32/_index'
+import { HDPathRadix, HDPathRadixT } from './bip32'
 import { isAccount } from './account'
 import { Int32 } from './bip32/_types'
 import { arraysEqual, msgFromError } from '@radixdlt/util'

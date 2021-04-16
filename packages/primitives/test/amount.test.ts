@@ -26,7 +26,7 @@ import {
 	Granularity,
 	isUInt256,
 	maxAmount,
-} from '../src/_index'
+} from '../src'
 
 describe('Amount', () => {
 	it('have correct values and equal itself', () => {

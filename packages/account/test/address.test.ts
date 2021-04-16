@@ -1,5 +1,5 @@
 import { UInt256 } from '@radixdlt/uint256'
-import { AddressT, Address } from '../src/_index'
+import { AddressT, Address } from '../src'
 
 import { magicFromNumber } from '@radixdlt/primitives'
 import { generatePrivateKey, privateKeyFromScalar } from '@radixdlt/crypto'

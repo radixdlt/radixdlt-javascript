@@ -1,5 +1,5 @@
 import { secureRandomGenerator } from '@radixdlt/util'
-import { Keystore, KeystoreT } from '../src/_index'
+import { Keystore, KeystoreT } from '../src'
 
 describe('keystore', () => {
 	it('should be able to decrypt recently encrypted', async () => {
