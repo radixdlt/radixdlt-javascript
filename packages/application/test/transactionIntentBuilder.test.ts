@@ -7,32 +7,25 @@ import {
 	StakeTokensInput,
 	TransferTokensInput,
 } from '../src/actions/_types'
-import { AddressT, HDMasterSeed, Wallet } from '@radixdlt/account'
+import { AddressT, Mnemonic, Wallet, WalletT } from '@radixdlt/account'
 import { TransactionIntentBuilderT } from '../src/dto/_types'
 import { combineLatest, merge, of, Subscription } from 'rxjs'
 import { IntendedStakeTokensAction } from '../src/actions/_types'
-import {
-	EncryptedMessage,
-	EncryptedMessageT,
-	MessageEncryption,
-	PublicKey,
-	SealedMessage,
-} from '@radixdlt/crypto'
+
 import { map, mergeMap, take, toArray } from 'rxjs/operators'
-import { ExecutedTransferTokensAction } from '../dist/actions/_types'
 
 describe('tx intent builder', () => {
 	const one = Amount.fromUnsafe(1)._unsafeUnwrap()
 	const xrdRRI = xrd.rri
 
-	const wallet = Wallet.create({
-		masterSeed: HDMasterSeed.fromSeed(
-			Buffer.from(
-				'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
-				'hex',
-			),
-		),
-	})
+	const createSpecificWallet = (password: string = 'radixdlt'): WalletT => {
+		const mnemonic = Mnemonic.fromEnglishPhrase(
+			'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
+		)._unsafeUnwrap()
+		return Wallet.create({ mnemonic, password })
+	}
+	const wallet = createSpecificWallet()
+
 	wallet.provideNetworkId(of({ byte: 237 }))
 	const aliceAccount = wallet.deriveNext()
 	const bobAccount = wallet.deriveNext()

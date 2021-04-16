@@ -7,6 +7,7 @@ import {
 } from '../src/bip39/mnemonic'
 import { LanguageT, StrengthT } from '../src/bip39/_types'
 import { HDMasterSeed } from '../src/bip39/hdMasterSeed'
+import { log, restoreDefaultLogLevel } from '@radixdlt/util'
 
 describe('bip39', () => {
 	it('default strength is 12 words', () => {
@@ -50,6 +51,38 @@ describe('bip39', () => {
 			wordFromLastWordlist = someWord
 		})
 	})
+	describe('failing scenarios', () => {
+		beforeAll(() => {
+			log.setLevel('SILENT')
+		})
+
+		afterAll(() => {
+			restoreDefaultLogLevel()
+		})
+
+		it('words must be checksummed', (done) => {
+			const abandonOnly = Array(12).fill('abandon') // last word should be e.g. 'about' to be checksummed.
+			Mnemonic.fromEnglishWords(abandonOnly).match(
+				(_) => {
+					done(new Error('Expected error'))
+				},
+				(error) => {
+					expect(error.message).toBe(
+						'Invalid mnemonic, it is not checksummed.',
+					)
+					done()
+				},
+			)
+		})
+	})
+
+	it('from entropy results in expected phrase', () => {
+		const entropy = Buffer.from('7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f', 'hex')
+		const phrase =
+			'legal winner thank year wave sausage worth useful legal winner thank yellow'
+		const mnemonic = Mnemonic.fromEntropy({ entropy })._unsafeUnwrap()
+		expect(mnemonic.phrase).toBe(phrase)
+	})
 
 	it('should work with Trezor test vectors', () => {
 		languages.forEach((vectors, language) => {
@@ -59,8 +92,18 @@ describe('bip39', () => {
 					phrase,
 					language,
 				})._unsafeUnwrap()
+
+				const normalizedPhrase = phrase.normalize('NFKD')
+				const mnemonicFromNormalizedPhrase = Mnemonic.fromPhraseInLanguage(
+					{
+						phrase: normalizedPhrase,
+						language,
+					},
+				)._unsafeUnwrap()
+				expect(mnemonicFromNormalizedPhrase.equals(mnemonic)).toBe(true)
+
 				expect(mnemonic.language).toBe(language)
-				expect(mnemonic.phrase).toBe(vector.mnemonic)
+				expect(mnemonic.phrase).toBe(normalizedPhrase)
 
 				expect(mnemonic.entropy.toString('hex')).toBe(vector.entropy)
 
@@ -72,6 +115,14 @@ describe('bip39', () => {
 
 				const hdMasterNode = hdMasterSeed.masterNode()
 				expect(hdMasterNode.toJSON().xpriv).toBe(vector.bip32_xprv)
+
+				const mnemonicFromEntropy = Mnemonic.fromEntropy({
+					entropy: Buffer.from(vector.entropy, 'hex'),
+					language,
+				})._unsafeUnwrap()
+
+				expect(mnemonicFromEntropy.phrase).toBe(normalizedPhrase)
+				expect(mnemonicFromEntropy.equals(mnemonic)).toBe(true)
 			})
 		})
 	})

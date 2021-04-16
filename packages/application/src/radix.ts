@@ -2,6 +2,7 @@ import {
 	AccountT,
 	AddressT,
 	DeriveNextAccountInput,
+	MnemomicT,
 	SwitchAccountInput,
 	Wallet,
 	WalletT,
@@ -209,6 +210,15 @@ const create = (): RadixT => {
 		shareReplay(1),
 	)
 
+	const revealMnemonic = (): Observable<MnemomicT> =>
+		wallet$.pipe(
+			map(
+				(wallet: WalletT): MnemomicT => {
+					return wallet.revealMnemonic()
+				},
+			),
+		)
+
 	const activeAddressToAPIObservableWithTrigger = <O>(
 		trigger: Observable<number>,
 		pickFn: (api: RadixCoreAPI) => (address: AddressT) => Observable<O>,
@@ -285,6 +295,10 @@ const create = (): RadixT => {
 		stakingFetchSubject,
 		(a) => a.unstakesForAddress,
 		unstakesForAddressErr,
+	).pipe(
+		map((positions) =>
+			positions.filter((position) => position.epochsUntil > 0),
+		),
 	)
 
 	const transactionHistory = (
@@ -816,6 +830,7 @@ const create = (): RadixT => {
 		},
 
 		// Wallet APIs
+		revealMnemonic,
 		activeAddress,
 		activeAccount,
 		accounts,

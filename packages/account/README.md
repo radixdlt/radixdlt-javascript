@@ -12,7 +12,7 @@ Here follows the generation of a new mnemonic and the creation of a wallet, via 
 
 ### Simple wallet creation
 
-This outlines the most convenient wallet creation flow using `byEncryptingSeedOfMnemonicAndSavingKeystore`.
+This outlines the most convenient wallet creation flow using `byEncryptingMnemonicAndSavingKeystore`.
 
 ```typescript
 import { Mnemonic, Strength, Language } from '@radixdlt/account'
@@ -37,7 +37,7 @@ const saveKeystoreOnDisk = (keystore: KeystoreT): Promise<void> => {
 
 // `walletResult` has type `ResultAsync<WalletT, Error>`
 // `ResultAsync`: github.com/supermacro/neverthrow (2️⃣)
-const walletResult = await Wallet.byEncryptingSeedOfMnemonicAndSavingKeystore({
+const walletResult = await Wallet.byEncryptingMnemonicAndSavingKeystore({
 	mnemonic,
 	password: keystoreEncryptionPassword,
 	save: saveKeystoreOnDisk,
@@ -56,7 +56,7 @@ if (walletResult.isErr()) {
 
 
 ### Alternative wallet creation
-Alternatively you can use a flow where you have a bit more control. This is basically exactly what `Wallet.byEncryptingSeedOfMnemonicAndSavingKeystore` above does. 
+Alternatively you can use a flow where you have a bit more control. This is basically exactly what `Wallet.byEncryptingMnemonicAndSavingKeystore` above does. 
 
 ```typescript
 const mnemonic = Mnemonic.generateNew()

@@ -491,7 +491,7 @@ export const deterministicRandomUnstakesForAddress = (
 	address: AddressT,
 ): UnstakePositions => {
 	const anInt = detPRNGWithPubKey(address.publicKey)
-	const size = anInt() % 5
+	const size = anInt() % 10
 	return Array(size)
 		.fill(undefined)
 		.map(
@@ -514,10 +514,11 @@ export const deterministicRandomUnstakesForAddress = (
 					txIDBuffer,
 				)._unsafeUnwrap()
 
+				const epochsUntil = anInt() % 100
 				return {
 					amount,
 					validator,
-					epochsUntil: anInt() % 100,
+					epochsUntil: epochsUntil > 70 ? 0 : epochsUntil,
 					withdrawTxID,
 				}
 			},

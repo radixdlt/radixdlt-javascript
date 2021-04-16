@@ -11,7 +11,13 @@ export enum LogLevel {
 	ERROR = 'error',
 }
 
-log.setLevel(LogLevel.WARN)
+const defaultLogLevel = LogLevel.WARN
+
+const restoreDefaultLogLevel = (): void => {
+	log.setLevel(defaultLogLevel)
+}
+
+restoreDefaultLogLevel()
 
 const meta = {
 	trace: {
@@ -47,4 +53,4 @@ prefix.apply(log, {
 		)}`,
 })
 
-export { log }
+export { log, restoreDefaultLogLevel }
