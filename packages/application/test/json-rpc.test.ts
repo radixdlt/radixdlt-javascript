@@ -110,7 +110,7 @@ const expectedDecodedResponses = {
 		owner: alice,
 		tokenBalances: [
 			{
-				token: ResourceIdentifier.fromString(
+				tokenIdentifier: ResourceIdentifier.fromString(
 					response.tokenBalances[0].rri,
 				)._unsafeUnwrap(),
 				amount: Amount.inSmallestDenomination(

@@ -132,20 +132,20 @@ export const handleTokenBalancesResponse = (
 			owner: json.owner,
 			tokenBalances: [
 				{
-					token: json.tokenBalances[0].rri,
+					tokenIdentifier: json.tokenBalances[0].rri,
 					amount: json.tokenBalances[0].amount,
 				},
 			],
 		}),
 		JSONDecoding.withDecoders(
 			addressDecoder('owner'),
-			RRIDecoder('token'),
+			RRIDecoder('tokenIdentifier'),
 			amountDecoder('amount'),
 		).create<
 			{
 				owner: string
 				tokenBalances: {
-					token: string
+					tokenIdentifier: string
 					amount: string
 				}[]
 			},

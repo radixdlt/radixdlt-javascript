@@ -161,8 +161,7 @@ export type ExecutedTransaction = Readonly<{
 }>
 
 export type TokenAmount = Readonly<{
-	// TODO rename `token` => `tokenIdentifier`
-	token: ResourceIdentifierT
+	tokenIdentifier: ResourceIdentifierT
 	amount: AmountT
 }>
 
