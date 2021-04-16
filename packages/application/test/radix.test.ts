@@ -811,7 +811,7 @@ describe('Radix API', () => {
 			.buildTransaction(transactionIntent)
 			.subscribe((unsignedTx) => {
 				expect((unsignedTx as { fee: AmountT }).fee.toString()).toEqual(
-					'56479',
+					'40294',
 				)
 				done()
 			})
@@ -923,9 +923,9 @@ describe('Radix API', () => {
 		radix.login(keystoreForTest.password, loadKeystore)
 
 		const expectedStakes = [
-			{ amount: 396, validator: 'bc', epochsUntil: 60 },
-			{ amount: 878, validator: '7k', epochsUntil: 46 },
-			{ amount: 649, validator: 'Rb', epochsUntil: 59 },
+			{ amount: 396, validator: 'b2', epochsUntil: 60 },
+			{ amount: 878, validator: '33', epochsUntil: 46 },
+			{ amount: 649, validator: '7a', epochsUntil: 59 },
 		]
 		const expectedValues = [expectedStakes, expectedStakes] // should be unchanged between updates (deterministically mocked).
 		radix.__wallet

@@ -1,4 +1,4 @@
-import { AccountT, AddressT } from '@radixdlt/account'
+import { AccountT, AddressT, ValidatorAddressT } from '@radixdlt/account'
 import {
 	ActionInput,
 	ActionType,
@@ -14,12 +14,12 @@ import { Observable } from 'rxjs'
 import { Result } from 'neverthrow'
 
 export type StakePosition = Readonly<{
-	validator: AddressT
+	validator: ValidatorAddressT
 	amount: AmountT
 }>
 
 export type UnstakePosition = Readonly<{
-	validator: AddressT
+	validator: ValidatorAddressT
 	amount: AmountT
 	withdrawTxID: TransactionIdentifierT
 	epochsUntil: number

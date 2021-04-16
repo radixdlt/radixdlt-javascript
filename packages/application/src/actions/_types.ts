@@ -1,4 +1,4 @@
-import { AddressOrUnsafeInput, AddressT } from '@radixdlt/account'
+import { AddressOrUnsafeInput, AddressT, ValidatorAddressT, ValidatorAddressOrUnsafeInput } from '@radixdlt/account'
 import { AmountOrUnsafeInput, AmountT } from '@radixdlt/primitives'
 import { ResourceIdentifierT } from '../dto/_types'
 import { ResourceIdentifierOrUnsafeInput } from '../dto/resourceIdentifier'
@@ -28,7 +28,7 @@ export type TransferTokensInput = Readonly<{
 
 // Same input for stake/unstake for now
 export type StakeAndUnstakeTokensInput = Readonly<{
-	validator: AddressOrUnsafeInput
+	validator: ValidatorAddressOrUnsafeInput
 	amount: AmountOrUnsafeInput
 }>
 
@@ -52,7 +52,7 @@ export type TransferTokensProps = Readonly<{
 }>
 
 export type StakeAndUnstakeTokensProps = Readonly<{
-	validator: AddressT
+	validator: ValidatorAddressT
 	amount: AmountT
 }>
 

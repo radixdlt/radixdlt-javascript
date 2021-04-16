@@ -8,7 +8,7 @@ import {
 	maxAmount,
 } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
-import { Address, AddressT, ValidatorAddressT } from '@radixdlt/account'
+import { Address, AddressT, ValidatorAddress, ValidatorAddressT } from '@radixdlt/account'
 import { Observable, of } from 'rxjs'
 import {
 	ExecutedTransaction,
@@ -494,6 +494,11 @@ export const deterministicRandomBalancesForAddress = (
 	}
 }
 
+
+const detRandomValidatorAddressWithPRNG = (anInt: () => number) => (): ValidatorAddressT =>
+	ValidatorAddress.fromUnsafe(sha256(anInt().toString(16)).slice(-20).toString('hex'))._unsafeUnwrap()
+
+
 export const deterministicRandomUnstakesForAddress = (
 	address: AddressT,
 ): UnstakePositions => {
@@ -505,7 +510,10 @@ export const deterministicRandomUnstakesForAddress = (
 			(_, index): UnstakePosition => {
 				const detRandomAddress = (): AddressT =>
 					castOfCharacters[anInt() % castOfCharacters.length]
-				const validator = detRandomAddress()
+
+				const detRandomValidatorAddress = detRandomValidatorAddressWithPRNG(anInt)
+
+				const validator: ValidatorAddressT = detRandomValidatorAddress()
 				const amount = Amount.fromUnsafe(anInt())._unsafeUnwrap()
 
 				const bytesFromIndex = Buffer.allocUnsafe(2)
@@ -542,6 +550,7 @@ export const deterministicRandomStakesForAddress = (
 	)
 }
 
+
 export const deterministicRandomTxHistoryWithInput = (
 	input: TransactionHistoryRequestInput,
 ): TransactionHistory => {
@@ -552,7 +561,7 @@ export const deterministicRandomTxHistoryWithInput = (
 		.slice(1, 33)
 	const detRandomAddress = (): AddressT =>
 		castOfCharacters[anInt() % castOfCharacters.length]
-
+	const detRandomValidatorAddress = detRandomValidatorAddressWithPRNG(anInt)
 	const tokenAndAmounts = detRandBalanceOfTokenWithInfo(anInt)
 
 	const deterministicRandomExecutedTransactions = (): ExecutedTransaction[] => {
@@ -596,7 +605,7 @@ export const deterministicRandomTxHistoryWithInput = (
 												amount: Amount.fromUnsafe(
 													anInt(),
 												)._unsafeUnwrap(),
-												validator: detRandomAddress(),
+												validator: detRandomValidatorAddress(),
 											}
 											break
 										case ActionType.UNSTAKE_TOKENS:
@@ -606,7 +615,7 @@ export const deterministicRandomTxHistoryWithInput = (
 												amount: Amount.fromUnsafe(
 													anInt(),
 												)._unsafeUnwrap(),
-												validator: detRandomAddress(),
+												validator: detRandomValidatorAddress(),
 											}
 											break
 										case ActionType.TOKEN_TRANSFER:
