@@ -15,6 +15,7 @@ import {
 	filter,
 	map,
 	mergeMap,
+	mergeMap, share,
 	shareReplay,
 	skipWhile,
 	switchMap,
@@ -403,7 +404,7 @@ const create = (): RadixT => {
 		const pendingTXSubject = new Subject<PendingTransaction>()
 
 		const askUserToConfirmSubject = new Subject<BuiltTransaction>()
-		const userDidConfirmTransactionSubject = new Subject<0>()
+		const userDidConfirmTransactionSubject = new ReplaySubject<0>()
 
 		if (shouldConfirmTransactionAutomatically(options.userConfirmation)) {
 			txLog.verbose(
@@ -509,6 +510,7 @@ const create = (): RadixT => {
 						TransactionTrackingEventType.ASKED_FOR_CONFIRMATION,
 				})
 			}),
+			shareReplay(1),
 		)
 
 		combineLatest([builtTransaction, userDidConfirmTransactionSubject])
