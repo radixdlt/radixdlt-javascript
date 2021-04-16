@@ -1,4 +1,4 @@
-import { Hasher, sha256 } from '../src/_index'
+import { Hasher, sha256 } from '../src'
 import { sha256Twice } from '../src/hash/sha'
 
 const testHash = (testVector: {

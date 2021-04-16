@@ -1,5 +1,5 @@
 import { secureRandomGenerator } from '@radixdlt/util'
-import { AES_GCM } from '../src/symmetric-encryption/_index'
+import { AES_GCM } from '../src/symmetric-encryption'
 
 describe('aes gcm', () => {
 	it('should decrypt message from Swift lib', () => {
