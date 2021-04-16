@@ -1,3 +1,7 @@
+
+/**
+ * @jest-environment ./packages/application/test/load-rpc.ts
+ */
 import { nodeAPI } from '../src/api/api'
 import {
 	BuildTransactionEndpoint,
@@ -54,7 +58,7 @@ jest.mock('@open-rpc/client-js', () => ({
 }))
 
 // @ts-ignore
-const rpcSpec: OpenrpcDocument = process['rpcSpec']
+const rpcSpec: OpenrpcDocument = global.rpcSpec
 
 const expectedDecodedResponses = {
 	[rpcSpec.methods[0].name]: (

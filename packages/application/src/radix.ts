@@ -721,13 +721,7 @@ const create = (): RadixT => {
 	): TransactionTracking => {
 		radixLog.debug(`make transaction from builder`)
 		const intent$ = transactionIntentBuilderT.build({
-			encryptMessageIfAnyWithAccount: activeAccount.pipe(
-				take(1),
-				shareReplay(1),
-				tap(x => {
-					console.log('should only happen once!')
-				}),
-			),
+			encryptMessageIfAnyWithAccount: activeAccount
 		})
 		return __makeTransactionFromIntent(intent$, options)
 	}
