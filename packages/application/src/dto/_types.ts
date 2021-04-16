@@ -128,15 +128,31 @@ export enum TransactionTrackingEventType {
 	COMPLETED = 'COMPLETED',
 }
 
-export type TransactionTrackingEvent<Value> = Readonly<{
+export type TransactionStateSuccess<
+	T extends TransactionState = TransactionState
+> = Readonly<{
 	eventUpdateType: TransactionTrackingEventType
-	value: Value
+	transactionState: T
 }>
 
-export type TXError = Error
+export type TransactionStateError = Readonly<{
+	eventUpdateType: TransactionTrackingEventType
+	error: Error
+}>
+
+export type TransactionStateUpdate<
+	T extends TransactionState = TransactionState
+> = TransactionStateSuccess<T> | TransactionStateError
+
+export type TransactionState =
+	| TransactionIntent
+	| BuiltTransaction
+	| SignedTransaction
+	| FinalizedTransaction
+	| PendingTransaction
 
 export type TransactionTracking = Readonly<{
-	events: Observable<TransactionTrackingEvent<unknown>>
+	events: Observable<TransactionStateUpdate>
 	completion: Observable<TransactionIdentifierT>
 }>
 

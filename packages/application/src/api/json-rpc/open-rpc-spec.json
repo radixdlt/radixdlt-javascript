@@ -181,7 +181,7 @@
                     "required": true,
                     "schema": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 1
                     }
                 },
                 {
@@ -538,11 +538,11 @@
                     "required": true,
                     "schema": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 1
                     }
                 },
                 {
-                    "name": "pageNbr",
+                    "name": "cursor",
                     "required": true,
                     "schema": {
                         "type": "integer"
