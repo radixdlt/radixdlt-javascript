@@ -60,6 +60,14 @@ type RadixLogLevel =
 // Inspired by RFC 5424: https://tools.ietf.org/html/rfc5424#section-6.2.1
 type LogLevelsInfo = { [key in RadixLogLevel]: LogLevelInfo }
 const logLevelsInfo: LogLevelsInfo = {
+	dev: {
+		foregroundColor: 'cyan',
+		fontStyle: 'italic',
+		emoji: '🔮',
+		priority: -1,
+		purpose: 'Used by developer during development',
+	},
+
 	emerg: {
 		foregroundColor: 'white',
 		backgroundColor: 'redBG',
@@ -126,14 +134,6 @@ const logLevelsInfo: LogLevelsInfo = {
 		emoji: '🤍',
 		priority: 8,
 		purpose: 'For following a flow of events',
-	},
-
-	dev: {
-		foregroundColor: 'cyan',
-		fontStyle: 'italic',
-		emoji: '🔮',
-		priority: 9,
-		purpose: 'Used by developer during development',
 	},
 }
 
@@ -228,6 +228,11 @@ const makeRadixLogger = (): RadixLogger => {
 		new winston.transports.File({
 			format: colorizedEmojiFormat,
 			filename: 'combined.log',
+			level: 'verbose',
+		}),
+		new winston.transports.File({
+			format: colorizedEmojiFormat,
+			filename: 'dev.log',
 			level: 'dev',
 		}),
 	]

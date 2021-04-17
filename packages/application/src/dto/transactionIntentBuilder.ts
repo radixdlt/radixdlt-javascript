@@ -1,6 +1,7 @@
 import {
 	ActionInput,
 	ActionType,
+	ExecutedAction,
 	IntendedAction,
 	IntendedStakeTokensAction,
 	IntendedTransferTokensAction,
@@ -37,12 +38,94 @@ import {
 	IntendedUnstakeTokens,
 	isUnstakeTokensInput,
 } from '../actions/intendedUnstakeTokensAction'
-import { combine, err, Result } from 'neverthrow'
+import { combine, err, ok, Result } from 'neverthrow'
 import { EncryptedMessageT, PublicKey } from '@radixdlt/crypto'
 import { Option } from 'prelude-ts'
 import { isResourceIdentifier } from './resourceIdentifier'
 import { isAmount } from '@radixdlt/primitives'
-import log from 'loglevel'
+import { log } from '@radixdlt/util'
+
+type IntendedActionsFrom = Readonly<{
+	intendedActions: IntendedAction[]
+	from: AddressT
+}>
+
+export const singleRecipientFromActions = (
+	mine: PublicKey,
+	actions: UserAction[],
+): Result<PublicKey, Error> => {
+	const setOfStrings = new Set<string>()
+	setOfStrings.add(mine.toString())
+
+	const others: PublicKey[] = actions.reduce(
+		(acc: PublicKey[], action: UserAction) => {
+			const uniqueAddressesOfAction = getUniqueAddresses(action)
+			uniqueAddressesOfAction.forEach((a) => {
+				const pkString = a.publicKey.toString()
+				if (!setOfStrings.has(pkString)) {
+					acc.push(a.publicKey)
+					setOfStrings.add(pkString)
+				}
+			})
+			return acc
+		},
+		[] as PublicKey[],
+	)
+
+	if (others.length > 1) {
+		const errMsg = `Cannot encrypt/decrypt message for a transaction containing more than one recipient addresses.`
+		log.dev(
+			`
+			🚨🚨🚨
+			${errMsg}
+			mine: ${mine.toString()},
+			others: ${JSON.stringify(others, null, 4)}
+			actions: ${JSON.stringify(actions, null, 4)}
+			setOfStrings: ${JSON.stringify(setOfStrings, null, 4)}
+			🚨🚨🚨
+			`,
+		)
+		log.alert(errMsg)
+		throw new Error(errMsg)
+	}
+
+	const toSelf = others.length === 0
+	if (toSelf) {
+		log.debug(`Encrypted message is to oneself.`)
+	}
+
+	return ok(toSelf ? mine : others[0])
+}
+
+type ActorsInEncryption = {
+	encryptingAccount: AccountT
+	singleRecipientPublicKey: PublicKey
+}
+
+const ensureSingleRecipient = (
+	input: Readonly<{
+		intendedActionsFrom: IntendedActionsFrom
+		encryptingAccount: AccountT
+	}>,
+): Observable<ActorsInEncryption> => {
+	return input.encryptingAccount.derivePublicKey().pipe(
+		mergeMap((pk: PublicKey) => {
+			return toObservableFromResult(
+				singleRecipientFromActions(
+					pk,
+					input.intendedActionsFrom.intendedActions,
+				),
+			).pipe(
+				map((singleRecipientPublicKey) => {
+					return {
+						encryptingAccount: input.encryptingAccount,
+						singleRecipientPublicKey: singleRecipientPublicKey,
+					}
+				}),
+			)
+		}),
+	)
+}
 
 type IntermediateAction = ActionInput & {
 	type: 'transfer' | 'stake' | 'unstake'
@@ -89,7 +172,8 @@ export const isIntendedUnstakeTokensAction = (
 	)
 }
 
-const getUniqueAddresses = (action: IntendedAction): AddressT[] => {
+type UserAction = IntendedAction | ExecutedAction
+const getUniqueAddresses = (action: UserAction): AddressT[] => {
 	if (isIntendedTransferTokensAction(action)) {
 		return [action.to, action.from]
 	} else if (isIntendedStakeTokensAction(action)) {
@@ -176,11 +260,6 @@ const create = (): TransactionIntentBuilderT => {
 		}
 	}
 
-	type IntendedActionsFrom = Readonly<{
-		intendedActions: IntendedAction[]
-		from: AddressT
-	}>
-
 	const intendedActionsFromIntermediateActions = (
 		from: AddressT,
 	): Result<IntendedActionsFrom, Error> => {
@@ -231,72 +310,6 @@ const create = (): TransactionIntentBuilderT => {
 					.map((msg) => Buffer.from(msg))
 					.getOrUndefined(),
 			}),
-		)
-	}
-
-	type ActorsInEncryption = {
-		encryptingAccount: AccountT
-		singleRecipientPublicKey: PublicKey
-	}
-
-	type ActorsInEncryptionIntermediate = {
-		others: PublicKey[]
-		mine: PublicKey
-	}
-
-	const ensureSingleRecipient = (
-		input: Readonly<{
-			intendedActionsFrom: IntendedActionsFrom
-			encryptingAccount: AccountT
-		}>,
-	): Observable<ActorsInEncryption> => {
-		return input.encryptingAccount.derivePublicKey().pipe(
-			map(
-				(pk: PublicKey): ActorsInEncryptionIntermediate => {
-					const setOfStrings = new Set<string>()
-					setOfStrings.add(pk.toString())
-
-					const others = input.intendedActionsFrom.intendedActions.reduce(
-						(acc: PublicKey[], action: IntendedAction) => {
-							getUniqueAddresses(action).forEach((a) => {
-								const pkString = a.publicKey.toString()
-								if (!setOfStrings.has(pkString)) {
-									acc.push(a.publicKey)
-									setOfStrings.add(pkString)
-								}
-							})
-							return acc
-						},
-						[] as PublicKey[],
-					)
-
-					return { others, mine: pk }
-				},
-			),
-			map(
-				(
-					publicKeysAndMine: ActorsInEncryptionIntermediate,
-				): ActorsInEncryption => {
-					if (publicKeysAndMine.others.length > 1) {
-						throw new Error(
-							`Cannot encrypt message for a transaction containing more than one recipient addresses.`,
-						)
-					}
-
-					const toSelf = publicKeysAndMine.others.length === 0
-					if (toSelf) {
-						log.debug(`Encrypting message to oneself.`)
-					}
-
-					const singleRecipientPublicKey: PublicKey = toSelf
-						? publicKeysAndMine.mine
-						: publicKeysAndMine.others[0]
-					return {
-						encryptingAccount: input.encryptingAccount,
-						singleRecipientPublicKey,
-					}
-				},
-			),
 		)
 	}
 

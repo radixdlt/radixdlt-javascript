@@ -39,6 +39,7 @@ export type ECPointOnCurve = Readonly<{
 export const publicKeyCompressedByteCount = 33
 
 export type PublicKey = Readonly<{
+	__hex: string // debug print
 	asData: (input: { readonly compressed: boolean }) => Buffer
 	toString: (compressed?: boolean) => string
 	isValidSignature: (

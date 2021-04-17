@@ -44,10 +44,13 @@ const publicKeyFromEllipticKey = (
 		return comparePubKeyBytes(true) && comparePubKeyBytes(false)
 	}
 
+	const toString = (compressed?: boolean): string =>
+		newKeyAsData({ compressed: compressed ?? true }).toString('hex')
+
 	const publicKey: PublicKey = {
+		__hex: toString(),
 		asData: newKeyAsData,
-		toString: (compressed?: boolean): string =>
-			newKeyAsData({ compressed: compressed ?? true }).toString('hex'),
+		toString,
 		isValidSignature: isValidSignature,
 		equals: equals,
 		decodeToPointOnCurve: (): ECPointOnCurve => {

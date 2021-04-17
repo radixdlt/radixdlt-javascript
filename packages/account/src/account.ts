@@ -19,7 +19,7 @@ import {
 } from './_types'
 import { HDMasterSeedT, HDNodeT } from './bip39/_types'
 import { HDPathRadixT } from './bip32/bip44/_types'
-import { errAsync, okAsync, ResultAsync } from 'neverthrow'
+import { err, errAsync, okAsync, ResultAsync } from 'neverthrow'
 import { log } from '@radixdlt/util'
 
 const fromPrivateKey = (
@@ -58,6 +58,7 @@ const fromPrivateKey = (
 		sign: sign,
 		hdPath,
 		derivePublicKey: () => of(publicKey),
+		__unsafeGetPublicKey: (): PublicKey => publicKey,
 		deriveAddress: () => addressFromPublicKey(publicKey),
 	}
 }
@@ -134,6 +135,11 @@ const fromHDPathWithHardwareWallet = (
 				),
 				map((b) => b.toString('utf8')),
 			)
+		},
+		__unsafeGetPublicKey: (): PublicKey => {
+			const errMsg = `Tried to unsafely sync access public key of a hardware account, which is not possible. Crashing application now.`
+			log.error(errMsg)
+			throw new Error(errMsg)
 		},
 		encrypt: (
 			input: AccountEncryptionInput,

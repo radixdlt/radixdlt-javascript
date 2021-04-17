@@ -59,6 +59,7 @@ export type AccountT = PublicKeyDeriving &
 	Readonly<{
 		hdPath: HDPathRadixT
 		deriveAddress: () => Observable<AddressT>
+		__unsafeGetPublicKey: () => PublicKey
 	}>
 
 /// A simple "interface" like type that this `account` package recognizes.

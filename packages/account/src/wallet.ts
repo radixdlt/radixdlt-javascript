@@ -61,6 +61,12 @@ const create = (
 			alsoSwitchTo?: boolean // defaults to false
 		}>,
 	): AccountT => {
+		log.dev(
+			`Deriving new account, hdPath: ${input.hdPath.toString()}, alsoSwitchTo: ${
+				input.alsoSwitchTo
+			} `,
+		)
+
 		const newAccount = Account.byDerivingNodeAtPath({
 			hdPath: input.hdPath,
 			deriveNodeAtPath: () => hdNodeDeriverWithBip32Path(input.hdPath),
