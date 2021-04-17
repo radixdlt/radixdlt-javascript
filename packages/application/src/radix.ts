@@ -37,12 +37,7 @@ import {
 } from 'rxjs'
 import { radixCoreAPI } from './api/radixCoreAPI'
 import { Magic } from '@radixdlt/primitives'
-import {
-	EncryptedMessage,
-	EncryptedMessageT,
-	KeystoreT,
-	PublicKey,
-} from '@radixdlt/crypto'
+import { EncryptedMessage, KeystoreT } from '@radixdlt/crypto'
 import {
 	MakeTransactionOptions,
 	ManualUserConfirmTX,
@@ -747,11 +742,11 @@ const create = (): RadixT => {
 		input: ExecutedTransaction,
 	): Observable<string> => {
 		radixLog.verbose(
-			`Trying to decrypt transaction with txID=${input.txID}`,
+			`Trying to decrypt transaction with txID=${input.txID.toString()}`,
 		)
 
 		if (!input.message) {
-			const noMsg = `TX contains no message, nothing to decrypt (txID=${input.txID}).`
+			const noMsg = `TX contains no message, nothing to decrypt (txID=${input.txID.toString()}).`
 			radixLog.info(noMsg)
 			return throwError(() => new Error(noMsg))
 		}
@@ -763,7 +758,9 @@ const create = (): RadixT => {
 		)
 
 		if (!encryptedMessageResult.isOk()) {
-			const errMessage = `Failed to parse message as 'EncryptedMessage' type, underlying error: '${msgFromError(encryptedMessageResult.error)}'. Might not have been encrypted? Try decode string as UTF-8 string.`
+			const errMessage = `Failed to parse message as 'EncryptedMessage' type, underlying error: '${msgFromError(
+				encryptedMessageResult.error,
+			)}'. Might not have been encrypted? Try decode string as UTF-8 string.`
 			log.warning(errMessage)
 			return throwError(new Error(errMessage))
 		}

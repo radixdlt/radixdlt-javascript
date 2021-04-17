@@ -57,6 +57,7 @@ const callAPI = <Params extends unknown[], DecodedResponse>(
 const setupAPICall = (
 	call: (endpoint: Endpoint, ...params: unknown[]) => Promise<unknown>,
 ) => <I extends unknown[], R>(
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	handleResponse: (response: any) => Result<R, Error[]>,
 ) => (endpoint: Endpoint) => callAPI<I, R>(endpoint)(call, handleResponse)
 

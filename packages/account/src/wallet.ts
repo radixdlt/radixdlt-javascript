@@ -61,9 +61,10 @@ const create = (
 			alsoSwitchTo?: boolean // defaults to false
 		}>,
 	): AccountT => {
-		log.dev(
+		const alsoSwitchTo = input.alsoSwitchTo ?? false
+		log.verbose(
 			`Deriving new account, hdPath: ${input.hdPath.toString()}, alsoSwitchTo: ${
-				input.alsoSwitchTo
+				alsoSwitchTo ? 'YES' : 'NO'
 			} `,
 		)
 
@@ -84,7 +85,7 @@ const create = (
 		accounts.set(newAccount.hdPath, newAccount)
 		accountsSubject.next(accounts)
 
-		if (input.alsoSwitchTo === true) {
+		if (alsoSwitchTo) {
 			activeAccountSubject.next(newAccount)
 		}
 		return newAccount
