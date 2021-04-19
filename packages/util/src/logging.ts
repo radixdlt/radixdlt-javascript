@@ -4,6 +4,7 @@ import {
 	AbstractConfigSetColors,
 	AbstractConfigSetLevels,
 } from '@radixdlt/winston/lib/winston/config'
+import { isNode } from './isNode'
 const { format, createLogger } = winston
 const { combine, timestamp, colorize, simple, printf } = format
 
@@ -215,27 +216,35 @@ const makeRadixLogger = (): RadixLogger => {
 		}),
 	)
 
-	const transports: Transport[] = [
-		//
-		// - Write all logs with level `error` and below to `error.log`
-		// - Write all logs with level `info` and below to `combined.log`
-		//
-		new winston.transports.File({
-			format: colorizedEmojiFormat,
-			filename: 'error.log',
-			level: 'error',
-		}),
-		new winston.transports.File({
-			format: colorizedEmojiFormat,
-			filename: 'combined.log',
-			level: 'verbose',
-		}),
-		new winston.transports.File({
-			format: colorizedEmojiFormat,
-			filename: 'dev.log',
-			level: 'dev',
-		}),
-	]
+	const transports: Transport[] = []
+
+	if (isNode) {
+		// can access `fs` which winstons File transports depend on.
+		const fileTransports = [
+			//
+			// - Write all logs with level `error` and below to `error.log`
+			// - Write all logs with level `info` and below to `combined.log`
+			//
+			new winston.transports.File({
+				format: colorizedEmojiFormat,
+				filename: 'error.log',
+				level: 'error',
+			}),
+			new winston.transports.File({
+				format: colorizedEmojiFormat,
+				filename: 'combined.log',
+				level: 'verbose',
+			}),
+			new winston.transports.File({
+				format: colorizedEmojiFormat,
+				filename: 'dev.log',
+				level: 'dev',
+			}),
+		]
+		fileTransports.forEach((fileTransport) =>
+			transports.push(fileTransport),
+		)
+	}
 
 	const maybeNodeEnv = process?.env?.NODE_ENV
 	if (maybeNodeEnv === 'development' || maybeNodeEnv === 'test') {
