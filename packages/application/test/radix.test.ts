@@ -1,5 +1,7 @@
 import { Radix } from '../src/radix'
 import {
+	AccountT,
+	Address,
 	AddressT,
 	HDMasterSeed,
 	Mnemonic,
@@ -15,10 +17,28 @@ import {
 	Subscription,
 	throwError,
 } from 'rxjs'
-import { map, take, toArray } from 'rxjs/operators'
-import { KeystoreT } from '@radixdlt/crypto'
-import { ManualUserConfirmTX, RadixT } from '../src/_types'
-import { APIErrorCause, ErrorCategory, ErrorCause } from '../src/errors'
+import {
+	delay,
+	map,
+	mergeMap,
+	skipWhile,
+	take,
+	takeLast,
+	tap,
+	toArray,
+} from 'rxjs/operators'
+import { KeystoreT, PublicKey, publicKeyFromBytes } from '@radixdlt/crypto'
+import {
+	ManualUserConfirmTX,
+	RadixT,
+	TransferTokensOptions,
+} from '../src/_types'
+import {
+	APIError,
+	APIErrorCause,
+	ErrorCategory,
+	ErrorCause,
+} from '../src/errors'
 import {
 	alice,
 	balancesFor,
@@ -28,21 +48,91 @@ import {
 } from '../src/mockRadix'
 import { NodeT, RadixCoreAPI } from '../src/api/_types'
 import {
-	TokenBalances,
 	SimpleTokenBalances,
+	TokenBalances,
 	TransactionIdentifierT,
 	TransactionStatus,
+	TransactionTrackingEventType,
 } from '../src/dto/_types'
 import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
-import { AmountT } from '@radixdlt/primitives'
+import { AmountT, one } from '@radixdlt/primitives'
 import { signatureFromHexStrings } from '@radixdlt/crypto/test/ellipticCurveCryptography.test'
 import { TransactionIntentBuilder } from '../src/dto/transactionIntentBuilder'
-import { TransactionTrackingEventType } from '../src/dto/_types'
 import { TransferTokensInput } from '../src/actions/_types'
-import { TransferTokensOptions } from '../src/_types'
-import { APIError } from '../src/errors'
-import { restoreDefaultLogLevel, setLogLevel } from '@radixdlt/util'
+import {
+	log,
+	msgFromError,
+	restoreDefaultLogLevel,
+	setLogLevel,
+} from '@radixdlt/util'
 import { mockErrorMsg } from '../../util/test/util.test'
+import {
+	ActionType,
+	ExecutedAction,
+	ExecutedStakeTokensAction,
+	ExecutedTransaction,
+	ExecutedTransferTokensAction,
+	ExecutedUnstakeTokensAction,
+	IntendedAction,
+	TransactionIntent,
+} from '../dist'
+import {
+	isIntendedStakeTokensAction,
+	isIntendedTransferTokensAction,
+	isIntendedUnstakeTokensAction,
+} from '../dist/dto/transactionIntentBuilder'
+
+const mockTransformIntentToExecutedTX = (
+	txIntent: TransactionIntent,
+): ExecutedTransaction => {
+	const mockTransformIntendedActionToExecutedAction = (
+		intendedAction: IntendedAction,
+	): ExecutedAction => {
+		if (isIntendedTransferTokensAction(intendedAction)) {
+			const tokenTransfer: ExecutedTransferTokensAction = {
+				...intendedAction,
+				rri: intendedAction.tokenIdentifier,
+			}
+			return tokenTransfer
+		} else if (isIntendedStakeTokensAction(intendedAction)) {
+			const stake: ExecutedStakeTokensAction = {
+				...intendedAction,
+			}
+			return stake
+		} else if (isIntendedUnstakeTokensAction(intendedAction)) {
+			const unstake: ExecutedUnstakeTokensAction = {
+				...intendedAction,
+			}
+			return unstake
+		} else {
+			throw new Error('Missed some action type...')
+		}
+	}
+
+	const msg = txIntent.message
+
+	if (!msg) {
+		log.info(`TX intent contains no message.`)
+	}
+
+	const executedTx: ExecutedTransaction = {
+		txID: TransactionIdentifier.create(
+			'deadbeef'.repeat(8),
+		)._unsafeUnwrap(),
+		sentAt: new Date(Date.now()),
+		fee: one,
+		message: msg?.toString('hex'),
+		actions: txIntent.actions.map(
+			mockTransformIntendedActionToExecutedAction,
+		),
+	}
+
+	if (executedTx.message) {
+		log.info(`Mocked executed TX contains a message.`)
+	}
+
+	return executedTx
+}
 
 const createWallet = (): WalletT => {
 	const mnemonic = Mnemonic.fromEnglishPhrase(
@@ -842,7 +932,7 @@ describe('Radix API', () => {
 			.buildTransaction(transactionIntent)
 			.subscribe((unsignedTx) => {
 				expect((unsignedTx as { fee: AmountT }).fee.toString()).toEqual(
-					'40294',
+					'48164',
 				)
 				done()
 			})
@@ -979,6 +1069,131 @@ describe('Radix API', () => {
 					})
 			})
 			.add(subs)
+	})
+
+	it('can decrypt encrypted message in transaction', (done) => {
+		const subs = new Subscription()
+
+		const radix = Radix.create().__withAPI(mockedAPI)
+
+		const loadKeystore = (): Promise<KeystoreT> =>
+			Promise.resolve(keystoreForTest.keystore)
+
+		type SystemUnderTest = {
+			plaintext: string
+			pkOfActiveAccount0: PublicKey
+			pkOfActiveAccount1: PublicKey
+			recipient: PublicKey
+			tx: ExecutedTransaction
+			decrypted0: string
+			decrypted1: string
+		}
+
+		const recipientPK = publicKeyFromBytes(
+			Buffer.from(keystoreForTest.publicKeysCompressed[1], 'hex'),
+		)._unsafeUnwrap()
+		const recipientAddress = Address.fromPublicKeyAndMagicByte({
+			publicKey: recipientPK,
+			magicByte: 237,
+		})
+		const tokenTransferInput: TransferTokensInput = {
+			to: recipientAddress,
+			amount: 1,
+			tokenIdentifier:
+				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD',
+		}
+
+		const plaintext = 'Hey Bob, this is Alice.'
+
+		let sut: SystemUnderTest = ({
+			plaintext,
+			recipient: recipientPK,
+		} as unknown) as SystemUnderTest
+
+		const txIntentBuilder = TransactionIntentBuilder.create()
+
+		// @ts-ignore
+		radix.__wallet
+			.pipe(
+				map(
+					(w: WalletT): AccountT => {
+						const account = w.__unsafeGetAccount()
+						sut.pkOfActiveAccount0 = account.__unsafeGetPublicKey()
+						return account
+					},
+				),
+				mergeMap(
+					(account: AccountT): Observable<TransactionIntent> => {
+						return txIntentBuilder
+							.transferTokens(tokenTransferInput)
+							.message(plaintext)
+							.build({
+								encryptMessageIfAnyWithAccount: of(account),
+							})
+					},
+				),
+				map(
+					(intent: TransactionIntent): ExecutedTransaction =>
+						mockTransformIntentToExecutedTX(intent),
+				),
+				tap(
+					(tx: ExecutedTransaction): ExecutedTransaction => {
+						sut.tx = tx
+						return tx
+					},
+				),
+				mergeMap((tx) => radix.decryptTransaction(tx)),
+				tap((decrypted: string) => (sut.decrypted0 = decrypted)),
+				mergeMap((_) => {
+					radix.deriveNextAccount({ alsoSwitchTo: true })
+					return radix.activeAccount
+				}),
+				tap((a) => (sut.pkOfActiveAccount1 = a.__unsafeGetPublicKey())),
+				mergeMap((_) => radix.decryptTransaction(sut.tx)),
+				tap((decrypted) => (sut.decrypted1 = decrypted)),
+			)
+			.subscribe({
+				next: (_) => {
+					expect(sut).toBeDefined()
+					expect(sut.plaintext).toBeDefined()
+					expect(sut.decrypted0).toBeDefined()
+					expect(sut.decrypted1).toBeDefined()
+					expect(sut.pkOfActiveAccount0).toBeDefined()
+					expect(sut.pkOfActiveAccount1).toBeDefined()
+					expect(sut.recipient).toBeDefined()
+					expect(sut.tx).toBeDefined()
+					expect(sut.tx.message).toBeDefined()
+
+					expect(sut.tx.actions.length).toBe(1)
+					const transferTokensAction = sut.tx
+						.actions[0] as ExecutedTransferTokensAction
+					expect(
+						transferTokensAction.to.publicKey.equals(sut.recipient),
+					).toBe(true)
+
+					expect(
+						sut.pkOfActiveAccount0.equals(sut.pkOfActiveAccount1),
+					).toBe(false)
+					expect(sut.pkOfActiveAccount1.equals(sut.recipient)).toBe(
+						true,
+					)
+
+					expect(sut.tx.message).not.toBe(sut.plaintext) // because encrypted
+
+					expect(sut.decrypted0).toBe(sut.plaintext)
+					expect(sut.decrypted1).toBe(sut.plaintext)
+					expect(sut.decrypted1).toBe(sut.decrypted0)
+
+					done()
+				},
+				error: (error) => {
+					const errMsg = msgFromError(error)
+					done(new Error(errMsg))
+				},
+			})
+			.add(subs)
+
+		radix.login(keystoreForTest.password, loadKeystore)
 	})
 
 	it('should be able to handle error on API call', (done) => {

@@ -22,6 +22,7 @@ import { combineLatest, merge, of, Subscription } from 'rxjs'
 import { IntendedStakeTokensAction } from '../src/actions/_types'
 
 import { map, mergeMap, take, toArray } from 'rxjs/operators'
+import { restoreDefaultLogLevel, setLogLevel } from '@radixdlt/util'
 
 const validatorCarol: ValidatorAddressT = ValidatorAddress.fromUnsafe(
 	'validator_carol',
@@ -364,30 +365,40 @@ describe('tx intent builder', () => {
 		})
 	})
 
-	it('an error is thrown when trying to encrypt message of a transaction with multiple recipients', (done) => {
-		const subs = new Subscription()
+	describe('failing scenarios', () => {
+		beforeAll(() => {
+			setLogLevel('silent')
+		})
 
-		const builder = TransactionIntentBuilder.create()
-			.transferTokens(transfS(1, bob))
-			.transferTokens(transfS(1, carol))
-			.message(
-				'No one will be able to see this because we will get a crash',
-			)
+		afterAll(() => {
+			restoreDefaultLogLevel()
+		})
 
-		builder
-			.build({ encryptMessageIfAnyWithAccount: of(aliceAccount) })
-			.subscribe({
-				next: (_) => {
-					done(new Error('Expected error'))
-				},
-				error: (error: Error) => {
-					expect(error.message).toBe(
-						'Cannot encrypt message for a transaction containing more than one recipient addresses.',
-					)
-					done()
-				},
-			})
-			.add(subs)
+		it('an error is thrown when trying to encrypt message of a transaction with multiple recipients', (done) => {
+			const subs = new Subscription()
+
+			const builder = TransactionIntentBuilder.create()
+				.transferTokens(transfS(1, bob))
+				.transferTokens(transfS(1, carol))
+				.message(
+					'No one will be able to see this because we will get a crash',
+				)
+
+			builder
+				.build({ encryptMessageIfAnyWithAccount: of(aliceAccount) })
+				.subscribe({
+					next: (_) => {
+						done(new Error('Expected error'))
+					},
+					error: (error: Error) => {
+						expect(error.message).toBe(
+							'Cannot encrypt/decrypt message for a transaction containing more than one recipient addresses.',
+						)
+						done()
+					},
+				})
+				.add(subs)
+		})
 	})
 
 	it('can encrypt message of a transaction with oneself as recipient', (done) => {

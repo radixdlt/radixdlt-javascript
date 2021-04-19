@@ -61,6 +61,13 @@ const create = (
 			alsoSwitchTo?: boolean // defaults to false
 		}>,
 	): AccountT => {
+		const alsoSwitchTo = input.alsoSwitchTo ?? false
+		log.verbose(
+			`Deriving new account, hdPath: ${input.hdPath.toString()}, alsoSwitchTo: ${
+				alsoSwitchTo ? 'YES' : 'NO'
+			} `,
+		)
+
 		const newAccount = Account.byDerivingNodeAtPath({
 			hdPath: input.hdPath,
 			deriveNodeAtPath: () => hdNodeDeriverWithBip32Path(input.hdPath),
@@ -78,7 +85,7 @@ const create = (
 		accounts.set(newAccount.hdPath, newAccount)
 		accountsSubject.next(accounts)
 
-		if (input.alsoSwitchTo === true) {
+		if (alsoSwitchTo) {
 			activeAccountSubject.next(newAccount)
 		}
 		return newAccount

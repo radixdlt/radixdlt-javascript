@@ -58,6 +58,7 @@ const fromPrivateKey = (
 		sign: sign,
 		hdPath,
 		derivePublicKey: () => of(publicKey),
+		__unsafeGetPublicKey: (): PublicKey => publicKey,
 		deriveAddress: () => addressFromPublicKey(publicKey),
 	}
 }
@@ -134,6 +135,11 @@ const fromHDPathWithHardwareWallet = (
 				),
 				map((b) => b.toString('utf8')),
 			)
+		},
+		__unsafeGetPublicKey: (): PublicKey => {
+			const errMsg = `Tried to unsafely sync access public key of a hardware account, which is not possible. Crashing application now.`
+			log.error(errMsg)
+			throw new Error(errMsg)
 		},
 		encrypt: (
 			input: AccountEncryptionInput,
