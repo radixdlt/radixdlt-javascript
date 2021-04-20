@@ -7,8 +7,8 @@ describe('ResourceIdentifier (RRI)', () => {
 			'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
 		)._unsafeUnwrap()
 		const name = 'FOOBAR'
-		const rri = ResourceIdentifier.fromAddressAndName({
-			address: address,
+		const rri = ResourceIdentifier.create({
+			hash: address.publicKey.asData({ compressed: true }),
 			name: name,
 		})
 
@@ -21,7 +21,14 @@ describe('ResourceIdentifier (RRI)', () => {
 			rriString,
 		)._unsafeUnwrap()
 
-		expect(rriFromString.address)
+		expect(rriFromString.toString()).toBe('apa')
+	})
+
+	it('legacy rri works', () => {
+		const rri = ResourceIdentifier.fromString(
+			'/9S8LZFHXHTSJqNQ86ZeGKtFMJtqZbYPtgHWSC4LyYjSbduNRpDNN/ALEX',
+		)._unsafeUnwrap()
+		expect(rri).toBeDefined()
 	})
 
 	it('should consider two RRIs with same address and name letters but different case as inequal', () => {

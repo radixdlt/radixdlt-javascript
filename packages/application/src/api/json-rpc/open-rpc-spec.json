@@ -581,7 +581,7 @@
                             "cursor": "cursor",
                             "validators": [
                                 {
-                                    "address": "validator_address_goes_here",
+                                    "address": "vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazy",
                                     "ownerAddress": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
                                     "name": "Cerby",
                                     "infoURL": "http://www.radixdlt.com",
@@ -620,7 +620,7 @@
                     "result": {
                         "name": "lookupValidatorExample",
                         "value": {
-                            "address": "validator_address_goes_here",
+                            "address": "vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazy",
                             "ownerAddress": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
                             "name": "Cerby",
                             "infoURL": "http://www.radixdlt.com",

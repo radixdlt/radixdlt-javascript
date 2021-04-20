@@ -80,7 +80,7 @@ import {
 	isIntendedStakeTokensAction,
 	isIntendedTransferTokensAction,
 	isIntendedUnstakeTokensAction,
-} from '../dist/dto/transactionIntentBuilder'
+} from '../src/dto/transactionIntentBuilder'
 
 const mockTransformIntentToExecutedTX = (
 	txIntent: TransactionIntent,
@@ -922,7 +922,7 @@ describe('Radix API', () => {
 		const transactionIntent = TransactionIntentBuilder.create()
 			.stakeTokens({
 				validator:
-					'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+					'vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazy',
 				amount: 10000,
 			})
 			.__syncBuildDoNotEncryptMessageIfAny(alice)
@@ -1381,7 +1381,7 @@ describe('Radix API', () => {
 					stakeInput: {
 						amount: 1,
 						validator:
-							'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+							'vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazy',
 					},
 					userConfirmation: 'skip',
 					pollTXStatusTrigger: pollTXStatusTrigger,
@@ -1411,7 +1411,7 @@ describe('Radix API', () => {
 					unstakeInput: {
 						amount: 1,
 						validator:
-							'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+							'vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazy',
 					},
 					userConfirmation: 'skip',
 					pollTXStatusTrigger: pollTXStatusTrigger,

@@ -26,7 +26,7 @@ const fromPublicKey = (publicKey: PublicKey): ValidatorAddressT => {
 	const encodingResult = Bech32.encode({ hrp, data, encoding, maxLength })
 
 	if (!encodingResult.isOk()) {
-		const errMsg = `Incorrect implemetnation, failed to Bech32 encode validator pubkey, underlying error: ${msgFromError(
+		const errMsg = `Incorrect implementation, failed to Bech32 encode validator pubkey, underlying error: ${msgFromError(
 			encodingResult.error,
 		)}, but expect to always be able to.`
 		console.log(errMsg)

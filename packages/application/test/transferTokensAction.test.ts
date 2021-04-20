@@ -14,8 +14,8 @@ describe('TransferTokensActions', () => {
 		'9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
 	)._unsafeUnwrap()
 
-	const resourceIdentifier = ResourceIdentifier.fromAddressAndName({
-		address: alice,
+	const resourceIdentifier = ResourceIdentifier.create({
+		hash: alice.publicKey.asData({ compressed: true }),
 		name: 'FOOBAR',
 	})
 	const amount = Amount.fromUnsafe(6, Denomination.Atto)._unsafeUnwrap()

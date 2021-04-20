@@ -38,7 +38,7 @@ import {
 	ContentDescriptorObject,
 } from '@open-rpc/meta-schema'
 import { Address, ValidatorAddress } from '@radixdlt/account'
-import { LookupValidatorEndpoint } from '../dist/api/json-rpc/_types'
+import { LookupValidatorEndpoint } from '../src/api/json-rpc/_types'
 const faker = require('json-schema-faker')
 
 let mockClientReturnValue: any

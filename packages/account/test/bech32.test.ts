@@ -35,6 +35,15 @@ describe('bech32', () => {
 		)
 	})
 
+	it('legacy rri', () => {
+		const rriLegacyStr =
+			'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD'
+		const rri = ResourceIdentifier.fromString(rriLegacyStr)._unsafeUnwrap()
+		expect(rri.toString()).toBe(
+			'xrd_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtesv2yq5l',
+		)
+	})
+
 	it('rri bech32', () => {
 		const doTest = (
 			name: string,

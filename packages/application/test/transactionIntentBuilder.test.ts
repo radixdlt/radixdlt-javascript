@@ -136,7 +136,8 @@ describe('tx intent builder', () => {
 
 	it('can stake from unsafe inputs', () => {
 		const builder = TransactionIntentBuilder.create().stakeTokens({
-			validator: '9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
+			validator:
+				'vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazy',
 			amount: 1234567890,
 		})
 

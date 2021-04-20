@@ -17,7 +17,7 @@ const create = (input: { hash: Buffer; name: string }): ResourceIdentifierT => {
 		const bech32Result = Bech32.encode({ hrp, data, encoding, maxLength })
 
 		if (!bech32Result.isOk()) {
-			const errMsg = `Incorrect implemetnation, failed to Bech32 encode RRI, underlying error: ${msgFromError(
+			const errMsg = `Incorrect implementation, failed to Bech32 encode RRI, underlying error: ${msgFromError(
 				bech32Result.error,
 			)}, but expect to always be able to.`
 			console.log(errMsg)
@@ -73,11 +73,11 @@ const fromBech32String = (
 	const decodingResult = Bech32.decode({ bechString, encoding, maxLength })
 
 	if (!decodingResult.isOk()) {
-		const errMsg = `Incorrect implemetnation, failed to Bech32 decode RRI, underlying error: ${msgFromError(
+		const errMsg = `Failed to Bech32 decode RRI, underlying error: ${msgFromError(
 			decodingResult.error,
 		)}, but expect to always be able to.`
 		console.log(errMsg)
-		throw new Error(errMsg)
+		return err(new Error(errMsg))
 	}
 	const d = decodingResult.value
 	let hash = d.data
@@ -91,13 +91,13 @@ const fromBech32String = (
 				'hex',
 			)}'`
 			console.log(errMsg)
-			throw new Error(errMsg)
+			return err(new Error(errMsg))
 		}
 	}
 	if (!hrp.endsWith(hrpSuffix)) {
 		const errMsg = `The prefix (HRP: Human Readable Part) of a Resource identifier must end with suffix ${hrpSuffix}`
 		console.log(errMsg)
-		throw new Error(errMsg)
+		return err(new Error(errMsg))
 	}
 
 	const name = hrp.slice(0, hrp.length - 3)
@@ -132,15 +132,22 @@ export const isResourceIdentifierOrUnsafeInput = (
 	isResourceIdentifier(something) ||
 	isResourceIdentifierUnsafeInput(something)
 
+const fromString = (string: string): Result<ResourceIdentifierT, Error> => {
+	const bechStringResult = fromBech32String(string)
+	if (bechStringResult.isOk()) return ok(bechStringResult.value)
+
+	return fromSpecString(string)
+}
+
 const fromUnsafe = (
 	input: ResourceIdentifierOrUnsafeInput,
 ): Result<ResourceIdentifierT, Error> => {
-	return isResourceIdentifier(input) ? ok(input) : fromBech32String(input)
+	return isResourceIdentifier(input) ? ok(input) : fromString(input)
 }
 
 export const ResourceIdentifier = {
 	create,
 	fromUnsafe,
-	fromString: fromSpecString,
+	fromString,
 	fromBech32String,
 }
