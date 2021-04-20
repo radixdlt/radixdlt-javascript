@@ -1,8 +1,8 @@
 import { ValidatorAddressT } from './_types'
 import { ok, Result } from 'neverthrow'
 import { isPublicKey, PublicKey, publicKeyFromBytes } from '@radixdlt/crypto'
-import { Bech32, encbech32 } from './bech32'
-import { log } from '@radixdlt/util'
+import { Bech32, encbech32, Encoding } from './bech32'
+import { log, msgFromError } from '@radixdlt/util'
 
 export const isValidatorAddress = (
 	something: unknown,
@@ -17,12 +17,20 @@ export const isValidatorAddress = (
 }
 
 const hrp = 'vb'
+const maxLength = 300 // arbitrarily chosen
+const encoding: Encoding = encbech32
 
 const fromPublicKey = (publicKey: PublicKey): ValidatorAddressT => {
 	const bytes = publicKey.asData({ compressed: true })
-	// const data = Buffer.from(bech32.toWords(bytes))
 	const data = Bech32.convertDataToBech32(bytes)
-	const encoded = Bech32.encode({ hrp, data })._unsafeUnwrap()
+	const encodingResult = Bech32.encode({ hrp, data, encoding, maxLength })
+
+	if (!encodingResult.isOk()) {
+		const errMsg = `Incorrect implemetnation, failed to Bech32 encode validator pubkey, underlying error: ${msgFromError(encodingResult.error)}, but expect to always be able to.`
+		console.log(errMsg)
+		throw new Error(errMsg)
+	}
+	const encoded = encodingResult.value
 	const toString = (): string => encoded.toString()
 	return {
 		toString,
@@ -40,7 +48,7 @@ type ValidatorAddressInput = string
 const fromString = (
 	bechString: ValidatorAddressInput,
 ): Result<ValidatorAddressT, Error> => {
-	return Bech32.decode({ bechString, encoding: encbech32 })
+	return Bech32.decode({ bechString, encoding, maxLength })
 		.andThen((decoded) => publicKeyFromBytes(decoded.data))
 		.map(fromPublicKey)
 		.map((va) => {

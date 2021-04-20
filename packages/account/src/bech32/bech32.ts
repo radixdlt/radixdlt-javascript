@@ -41,20 +41,19 @@ export type Bech32EncodeInput = Readonly<{
 }>
 
 const encode = (input: Bech32EncodeInput): Result<Bech32T, Error> => {
-	const { hrp, data: rawData, maxLength } = input
+	const { hrp, data, maxLength } = input
 	const encoding = input.encoding ?? defaultEncoding
 
 	const impl: BechLib = encoding === encbech32 ? bech32 : bech32m
-	const bech32Data = convertDataToBech32(rawData) //impl.toWords(rawData)
 
 	try {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
-		const bech32String: string = impl.encode(hrp, bech32Data, maxLength)
+		const bech32String: string = impl.encode(hrp, data, maxLength)
 		return ok(
 			__unsafeCreate({
 				bech32String: bech32String.toLowerCase(),
 				hrp,
-				data: bech32Data,
+				data,
 			}),
 		)
 	} catch (e) {
