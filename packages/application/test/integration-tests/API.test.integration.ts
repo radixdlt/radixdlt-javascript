@@ -127,6 +127,12 @@ export const keystoreForTest: KeystoreForTest = {
 }
 
 describe('Radix API', () => {
+    const subs = new Subscription()
+
+    afterAll(() => {
+        subs.unsubscribe()
+    })
+
     it('can connect and is chainable', () => {
         const radix = Radix.create().connect(`${NODE_URL}/rpc`)
         expect(radix).toBeDefined()
@@ -139,11 +145,11 @@ describe('Radix API', () => {
 
         radix.__node.subscribe(
             (node) => {
-                expect(node.url.host).toBe('localhost:8080')
+                expect(node.url.host).toBe(new URL(NODE_URL).host)
                 done()
             },
             (error) => done(error),
-        )
+        ).add(subs)
     })
 
     it('provides magic for wallets', async (done) => {
@@ -158,7 +164,7 @@ describe('Radix API', () => {
                 done()
             },
             (error) => done(error),
-        )
+        ).add(subs)
     })
 
     it('returns native token without wallet', async (done) => {
@@ -171,12 +177,10 @@ describe('Radix API', () => {
                 done()
             },
             (error) => done(error),
-        )
+        ).add(subs)
     })
 
     it('deriveNextAccount method on radix updates accounts', (done) => {
-        const subs = new Subscription()
-
         const radix = Radix.create()
             .withWallet(createWallet())
             .connect(`${NODE_URL}/rpc`)
@@ -200,8 +204,6 @@ describe('Radix API', () => {
     })
 
     it('deriveNextAccount alsoSwitchTo method on radix updates activeAccount', (done) => {
-        const subs = new Subscription()
-
         const radix = Radix.create()
             .withWallet(createWallet())
             .connect(`${NODE_URL}/rpc`)
@@ -226,8 +228,6 @@ describe('Radix API', () => {
     })
 
     it('deriveNextAccount alsoSwitchTo method on radix updates activeAddress', (done) => {
-        const subs = new Subscription()
-
         const radix = Radix.create()
             .withWallet(createWallet())
             .connect(`${NODE_URL}/rpc`)
@@ -248,8 +248,6 @@ describe('Radix API', () => {
     })
 
     it('tokenBalances with tokeninfo', (done) => {
-        const subs = new Subscription()
-
         const radix = Radix.create().connect(`${NODE_URL}/rpc`)
 
         const loadKeystore = (): Promise<KeystoreT> =>
@@ -261,16 +259,15 @@ describe('Radix API', () => {
 
         radix.activeAddress.subscribe(async address => {
             await requestFaucet(address.toString())
-            radix.tokenBalances.subscribe(balance => {
-                expect(balance.tokenBalances[0].amount).toBeDefined()
-                done()
-            }).add(subs)
+        }).add(subs)
+
+        radix.tokenBalances.subscribe(balance => {
+            expect(balance.tokenBalances[0].amount).toBeDefined()
+            done()
         }).add(subs)
     })
 
     it('API returns different but deterministic transaction history per account', (done) => {
-        const subs = new Subscription()
-
         const radix = Radix.create().connect(`${NODE_URL}/rpc`)
 
         radix.ledger.transactionHistory({
@@ -279,7 +276,7 @@ describe('Radix API', () => {
         }).subscribe(txHistory => {
             expect(txHistory.transactions).toEqual([])
             done()
-        })
+        }).add(subs)
     })
 
     it('should handle transaction status updates', (done) => {
@@ -289,23 +286,6 @@ describe('Radix API', () => {
             TransactionStatus.PENDING,
             TransactionStatus.CONFIRMED,
         ]
-
-        radix
-            .transactionStatus(
-                TransactionIdentifier.create(
-                    'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
-                )._unsafeUnwrap(),
-                interval(10),
-            ).subscribe(() => { }, (e: APIError) => {
-                expect(e.cause === 'TX_STATUS_FAILED')
-                done()
-            })
-    })
-
-    it.only('can lookup tx', async (done) => { // unknown error from buildTransaction
-        const subs = new Subscription()
-
-        const radix = Radix.create().connect(`${NODE_URL}/rpc`)
 
         const loadKeystore = (): Promise<KeystoreT> =>
             Promise.resolve(keystoreForTest.keystore)
@@ -327,11 +307,53 @@ describe('Radix API', () => {
 
             txTracking.events.subscribe(event => {
                 if (event.eventUpdateType === TransactionTrackingEventType.FINALIZED) {
-                    console.log((event as any).transactionState)
-                    done()
+                    const txID: TransactionIdentifierT = (event as any).transactionState.txID
+
+                    radix
+                        .transactionStatus(
+                            txID,
+                            interval(10),
+                        ).subscribe((status) => {
+                            console.log(status)
+                        }).add(subs)
                 }
             })
-        })
+        }).add(subs)
+    })
+
+    it.only('can lookup tx', async (done) => { // error with finalize
+        const radix = Radix.create().connect(`${NODE_URL}/rpc`)
+
+        const loadKeystore = (): Promise<KeystoreT> =>
+            Promise.resolve(keystoreForTest.keystore)
+
+        radix.login(keystoreForTest.password, loadKeystore)
+        radix.activeAddress.subscribe(async address => {
+            await requestFaucet(address.toString())
+
+            const txTracking = radix.transferTokens(({
+                transferInput: {
+                    to: bob,
+                    amount: 1,
+                    tokenIdentifier:
+                        `//XRD`,
+                },
+                userConfirmation: 'skip',
+                pollTXStatusTrigger: timer(1000),
+            }))
+
+            txTracking.events.subscribe(event => {
+                if (event.eventUpdateType === TransactionTrackingEventType.SUBMITTED) {
+                    const txID: TransactionIdentifierT = (event as any).transactionState.txID
+
+                    radix.ledger.lookupTransaction(txID).subscribe((tx) => {
+                        expect(tx.txID.equals(txID)).toBe(true)
+                        expect(tx.actions.length).toBeGreaterThan(0)
+                        done()
+                    })
+                }
+            })
+        }).add(subs)
 
 
         /*
@@ -348,8 +370,6 @@ describe('Radix API', () => {
     })
 
     it.skip('can lookup validator', (done) => { // not implemented in core
-        const subs = new Subscription()
-
         const radix = Radix.create().connect(`${NODE_URL}/rpc`)
 
         const loadKeystore = (): Promise<KeystoreT> =>
@@ -379,8 +399,6 @@ describe('Radix API', () => {
     })
 
     it.skip('should get validators', (done) => { // not implemented in core
-        const subs = new Subscription()
-
         const radix = Radix.create().connect(`${NODE_URL}/rpc`)
 
         radix.ledger
@@ -396,8 +414,6 @@ describe('Radix API', () => {
     })
 
     it.skip('should get build transaction response', (done) => { // needs fix to handle arrays params
-        const subs = new Subscription()
-
         const radix = Radix.create().connect(`${NODE_URL}/rpc`)
 
         const transactionIntent = TransactionIntentBuilder.create()
@@ -421,8 +437,6 @@ describe('Radix API', () => {
     })
 
     it.skip('should get finalizeTransaction response', (done) => {  // not implemented in core
-        const subs = new Subscription()
-
         const radix = Radix.create().connect(`${NODE_URL}/rpc`)
 
         radix.ledger
@@ -453,8 +467,6 @@ describe('Radix API', () => {
     })
 
     it.skip('should get network transaction demand response', (done) => { // not implemented in core
-        const subs = new Subscription()
-
         const radix = Radix.create().connect(`${NODE_URL}/rpc`)
 
         radix.ledger
@@ -467,8 +479,6 @@ describe('Radix API', () => {
     })
 
     it.skip('should get network transaction throughput response', (done) => { // not implemented in core
-        const subs = new Subscription()
-
         const radix = Radix.create().connect(`${NODE_URL}/rpc`)
 
         radix.ledger
@@ -481,8 +491,6 @@ describe('Radix API', () => {
     })
 
     it.skip('can fetch stake positions', (done) => { // not implemented in core
-        const subs = new Subscription()
-
         const radix = Radix.create()
             .connect(`${NODE_URL}/rpc`)
             .withStakingFetchTrigger(interval(100))
@@ -510,8 +518,6 @@ describe('Radix API', () => {
     })
 
     it.skip('can fetch unstake positions', (done) => {  // not implemented in core
-        const subs = new Subscription()
-
         const radix = Radix.create()
             .connect(`${NODE_URL}/rpc`)
             .withStakingFetchTrigger(interval(100))

@@ -23,7 +23,7 @@ export const RPCClient: Client = (url: URL): Transport => {
 			| unknown[] = await client.request({ method: endpoint, params })
 		log.verbose(`Response from call: ${JSON.stringify(response, null, 2)}`)
 
-		console.log(response)
+		//console.log(response)
 		// TODO validate response
 
 		return response

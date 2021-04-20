@@ -782,7 +782,7 @@
             "paramStructure": "by-position"
         },
         {
-            "name": "submitSignedTransaction",
+            "name": "submitTransaction",
             "summary": "Submits a transaction to be dispatched to Radix network.",
             "params": [
                 {

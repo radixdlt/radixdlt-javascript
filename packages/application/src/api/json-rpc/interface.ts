@@ -146,6 +146,6 @@ export const getAPI = (
 		[ApiMethod.SUBMIT_SIGNED_TX]: setupAPIResponse<
 			SubmitTransactionEndpoint.Input,
 			SubmitTransactionEndpoint.DecodedResponse
-		>(handleFinalizedTransactionResponse)('radix.submitSignedTransaction'),
+		>(handleFinalizedTransactionResponse)('radix.submitTransaction'),
 	}
 }
