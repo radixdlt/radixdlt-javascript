@@ -12,19 +12,17 @@ import {
 	timer,
 } from 'rxjs'
 import { map, take, toArray } from 'rxjs/operators'
-import { KeystoreT } from '@radixdlt/crypto'
 import { ManualUserConfirmTX } from '../../src/_types'
 import { alice, bob } from '../../src/mockRadix'
 import { NodeT } from '../../src/api/_types'
 import { TransactionIdentifierT, TransactionStatus } from '../../src/dto/_types'
 import { AmountT } from '@radixdlt/primitives'
-import { signatureFromHexStrings } from '@radixdlt/crypto/test/ellipticCurveCryptography.test'
+import { signatureFromHexStrings } from '@radixdlt/crypto/test/utils'
 import { TransactionIntentBuilder } from '../../src/dto/transactionIntentBuilder'
 import { TransactionTrackingEventType } from '../../src/dto/_types'
 import { TransferTokensInput } from '../../src/actions/_types'
 import { TransferTokensOptions } from '../../src/_types'
-import { makeWalletWithFunds } from '../../../account/test/wallet.test'
-import { add } from 'ramda'
+import { makeWalletWithFunds } from '../../../account/test/utils'
 const fetch = require('node-fetch')
 
 const NODE_URL = 'https://54.73.253.49'
@@ -176,7 +174,7 @@ describe('integration API tests', () => {
 		radix.deriveNextAccount({ alsoSwitchTo: true })
 	})
 
-	it('tokenBalances with tokeninfo', (done) => {
+	it.only('tokenBalances with tokeninfo', (done) => {
 		const radix = Radix.create()
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
@@ -241,13 +239,14 @@ describe('integration API tests', () => {
 					.transactionStatus(txID, interval(10))
 					.subscribe((status) => {
 						console.log(status)
+						done()
 					})
 					.add(subs)
 			}
 		})
 	})
 
-	it.only('can lookup tx', async (done) => {
+	it('can lookup tx', async (done) => {
 		// error with finalize
 		const radix = Radix.create()
 			.withWallet(makeWalletWithFunds())
@@ -276,408 +275,396 @@ describe('integration API tests', () => {
 					done()
 				})
 			}
+		})
+	})
 
-			/*
-        radix.__wallet
-            .subscribe((_w) => {
-                radix.ledger.lookupTransaction(mockedTXId).subscribe((tx) => {
-                    expect(tx.txID.equals(mockedTXId)).toBe(true)
-                    expect(tx.actions.length).toBeGreaterThan(0)
-                    done()
-                })
-            })
-            .add(subs)
-            */
+	it.skip('can lookup validator', (done) => {
+		// not implemented in core
+		const radix = Radix.create()
+			.withWallet(makeWalletWithFunds())
+			.connect(`${NODE_URL}/rpc`)
+
+		const mockedValidatorAddr = ValidatorAddress.fromUnsafe(
+			'validator_address_mocked',
+		)._unsafeUnwrap()
+
+		radix.__wallet
+			.subscribe((_w) => {
+				radix.ledger
+					.lookupValidator(mockedValidatorAddr)
+					.subscribe((validator) => {
+						expect(
+							validator.address.equals(mockedValidatorAddr),
+						).toBe(true)
+						expect(
+							validator.ownerAddress.toString().slice(-4),
+						).toBe('D9Rb')
+						done()
+					})
+			})
+			.add(subs)
+	})
+
+	it.skip('should get validators', (done) => {
+		// not implemented in core
+		const radix = Radix.create()
+			.withWallet(makeWalletWithFunds())
+			.connect(`${NODE_URL}/rpc`)
+
+		radix.ledger
+			.validators({
+				size: 10,
+				cursor: '',
+			})
+			.subscribe((validators) => {
+				expect(validators.validators.length).toEqual(10)
+				done()
+			})
+			.add(subs)
+	})
+
+	it.skip('should get build transaction response', (done) => {
+		// needs fix to handle arrays params
+		const radix = Radix.create()
+			.withWallet(makeWalletWithFunds())
+			.connect(`${NODE_URL}/rpc`)
+
+		const transactionIntent = TransactionIntentBuilder.create()
+			.stakeTokens({
+				validator:
+					'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+				amount: 10000,
+			})
+			.__syncBuildDoNotEncryptMessageIfAny(alice)
+			._unsafeUnwrap()
+
+		radix.ledger
+			.buildTransaction(transactionIntent)
+			.subscribe((unsignedTx) => {
+				expect(
+					(unsignedTx as { fee: AmountT }).fee.toString(),
+				).toEqual('40294')
+				done()
+			})
+			.add(subs)
+	})
+
+	it.skip('should get finalizeTransaction response', (done) => {
+		// not implemented in core
+		const radix = Radix.create()
+			.withWallet(makeWalletWithFunds())
+			.connect(`${NODE_URL}/rpc`)
+
+		radix.ledger
+			.finalizeTransaction({
+				publicKeyOfSigner: alice.publicKey,
+				transaction: {
+					blob: 'xyz',
+					hashOfBlobToSign: 'deadbeef',
+				},
+				signature: signatureFromHexStrings({
+					r:
+						'934b1ea10a4b3c1757e2b0c017d0b6143ce3c9a7e6a4a49860d7a6ab210ee3d8',
+					s:
+						'2442ce9d2b916064108014783e923ec36b49743e2ffa1c4496f01a512aafd9e5',
+				}),
+			})
+			.subscribe((pendingTx) => {
+				expect(
+					(pendingTx as {
+						txID: TransactionIdentifierT
+					}).txID.toString(),
+				).toEqual(
+					'3608bca1e44ea6c4d268eb6db02260269892c0b42b86bbf1e77a6fa16c3c9282',
+				)
+				done()
+			})
+			.add(subs)
+	})
+
+	it.skip('should get network transaction demand response', (done) => {
+		// not implemented in core
+		const radix = Radix.create()
+			.withWallet(makeWalletWithFunds())
+			.connect(`${NODE_URL}/rpc`)
+
+		radix.ledger
+			.networkTransactionDemand()
+			.subscribe((result) => {
+				expect(result.tps).toEqual(109)
+				done()
+			})
+			.add(subs)
+	})
+
+	it.skip('should get network transaction throughput response', (done) => {
+		// not implemented in core
+		const radix = Radix.create()
+			.withWallet(makeWalletWithFunds())
+			.connect(`${NODE_URL}/rpc`)
+
+		radix.ledger
+			.networkTransactionThroughput()
+			.subscribe((result) => {
+				expect(result.tps).toEqual(10)
+				done()
+			})
+			.add(subs)
+	})
+
+	it.skip('can fetch stake positions', (done) => {
+		// not implemented in core
+		const radix = Radix.create()
+			.withWallet(makeWalletWithFunds())
+			.connect(`${NODE_URL}/rpc`)
+			.withStakingFetchTrigger(interval(100))
+
+		radix.stakingPositions
+			.pipe(
+				map((sp) =>
+					sp.map((p) => p.amount.magnitude.valueOf() % 100),
+				),
+				toArray(),
+			)
+			.subscribe((values) => {
+				console.log(values)
+				done()
+			})
+	})
+
+	it.skip('can fetch unstake positions', (done) => {
+		// not implemented in core
+		const radix = Radix.create()
+			.connect(`${NODE_URL}/rpc`)
+			.withWallet(makeWalletWithFunds())
+			.withStakingFetchTrigger(interval(100))
+
+		// radix.unstakingPositions
+		// 	.pipe(
+		// 		map((sp) =>
+		// 			sp.map((p) => ({
+		// 				amount: p.amount.magnitude.valueOf() % 1000,
+		// 				validator: p.validator.toString().slice(-2),
+		// 				epochsUntil: p.epochsUntil,
+		// 			})),
+		// 		),
+		// 		take(expectedValues.length),
+		// 		toArray(),
+		// 	)
+		// 	.subscribe((values) => {
+		// 		expect(values).toStrictEqual(expectedValues)
+		// 		done()
+		// 	})
+	})
+
+	describe.skip('make tx single transfer', () => {
+		// needs fix to handle arrays params
+		const tokenTransferInput: TransferTokensInput = {
+			to: bob,
+			amount: 1,
+			tokenIdentifier:
+				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD',
+		}
+
+		let pollTXStatusTrigger: Observable<unknown>
+
+		const transferTokens = (): TransferTokensOptions => ({
+			transferInput: tokenTransferInput,
+			userConfirmation: 'skip',
+			pollTXStatusTrigger: pollTXStatusTrigger,
 		})
 
-		it.skip('can lookup validator', (done) => {
-			// not implemented in core
+		let subs: Subscription
+
+		beforeEach(() => {
+			subs = new Subscription()
+			pollTXStatusTrigger = interval(50)
+		})
+
+		afterEach(() => {
+			subs.unsubscribe()
+		})
+
+		it('events emits expected values', (done) => {
 			const radix = Radix.create()
 				.withWallet(makeWalletWithFunds())
 				.connect(`${NODE_URL}/rpc`)
 
-			const mockedValidatorAddr = ValidatorAddress.fromUnsafe(
-				'validator_address_mocked',
-			)._unsafeUnwrap()
+			const expectedValues = [
+				TransactionTrackingEventType.INITIATED,
+				TransactionTrackingEventType.BUILT_FROM_INTENT,
+				TransactionTrackingEventType.ASKED_FOR_CONFIRMATION,
+				TransactionTrackingEventType.CONFIRMED,
+				TransactionTrackingEventType.SIGNED,
+				TransactionTrackingEventType.FINALIZED,
+				TransactionTrackingEventType.SUBMITTED,
+				TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
+				TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
+				TransactionTrackingEventType.COMPLETED,
+			]
 
-			radix.__wallet
-				.subscribe((_w) => {
-					radix.ledger
-						.lookupValidator(mockedValidatorAddr)
-						.subscribe((validator) => {
-							expect(
-								validator.address.equals(mockedValidatorAddr),
-							).toBe(true)
-							expect(
-								validator.ownerAddress.toString().slice(-4),
-							).toBe('D9Rb')
-							done()
-						})
-				})
-				.add(subs)
-		})
-
-		it.skip('should get validators', (done) => {
-			// not implemented in core
-			const radix = Radix.create()
-				.withWallet(makeWalletWithFunds())
-				.connect(`${NODE_URL}/rpc`)
-
-			radix.ledger
-				.validators({
-					size: 10,
-					cursor: '',
-				})
-				.subscribe((validators) => {
-					expect(validators.validators.length).toEqual(10)
-					done()
-				})
-				.add(subs)
-		})
-
-		it.skip('should get build transaction response', (done) => {
-			// needs fix to handle arrays params
-			const radix = Radix.create()
-				.withWallet(makeWalletWithFunds())
-				.connect(`${NODE_URL}/rpc`)
-
-			const transactionIntent = TransactionIntentBuilder.create()
-				.stakeTokens({
-					validator:
-						'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
-					amount: 10000,
-				})
-				.__syncBuildDoNotEncryptMessageIfAny(alice)
-				._unsafeUnwrap()
-
-			radix.ledger
-				.buildTransaction(transactionIntent)
-				.subscribe((unsignedTx) => {
-					expect(
-						(unsignedTx as { fee: AmountT }).fee.toString(),
-					).toEqual('40294')
-					done()
-				})
-				.add(subs)
-		})
-
-		it.skip('should get finalizeTransaction response', (done) => {
-			// not implemented in core
-			const radix = Radix.create()
-				.withWallet(makeWalletWithFunds())
-				.connect(`${NODE_URL}/rpc`)
-
-			radix.ledger
-				.finalizeTransaction({
-					publicKeyOfSigner: alice.publicKey,
-					transaction: {
-						blob: 'xyz',
-						hashOfBlobToSign: 'deadbeef',
-					},
-					signature: signatureFromHexStrings({
-						r:
-							'934b1ea10a4b3c1757e2b0c017d0b6143ce3c9a7e6a4a49860d7a6ab210ee3d8',
-						s:
-							'2442ce9d2b916064108014783e923ec36b49743e2ffa1c4496f01a512aafd9e5',
-					}),
-				})
-				.subscribe((pendingTx) => {
-					expect(
-						(pendingTx as {
-							txID: TransactionIdentifierT
-						}).txID.toString(),
-					).toEqual(
-						'3608bca1e44ea6c4d268eb6db02260269892c0b42b86bbf1e77a6fa16c3c9282',
-					)
-					done()
-				})
-				.add(subs)
-		})
-
-		it.skip('should get network transaction demand response', (done) => {
-			// not implemented in core
-			const radix = Radix.create()
-				.withWallet(makeWalletWithFunds())
-				.connect(`${NODE_URL}/rpc`)
-
-			radix.ledger
-				.networkTransactionDemand()
-				.subscribe((result) => {
-					expect(result.tps).toEqual(109)
-					done()
-				})
-				.add(subs)
-		})
-
-		it.skip('should get network transaction throughput response', (done) => {
-			// not implemented in core
-			const radix = Radix.create()
-				.withWallet(makeWalletWithFunds())
-				.connect(`${NODE_URL}/rpc`)
-
-			radix.ledger
-				.networkTransactionThroughput()
-				.subscribe((result) => {
-					expect(result.tps).toEqual(10)
-					done()
-				})
-				.add(subs)
-		})
-
-		it.skip('can fetch stake positions', (done) => {
-			// not implemented in core
-			const radix = Radix.create()
-				.withWallet(makeWalletWithFunds())
-				.connect(`${NODE_URL}/rpc`)
-				.withStakingFetchTrigger(interval(100))
-
-			radix.stakingPositions
-				.pipe(
-					map((sp) =>
-						sp.map((p) => p.amount.magnitude.valueOf() % 100),
-					),
+			radix
+				.transferTokens(transferTokens())
+				.events.pipe(
+					map((e) => e.eventUpdateType),
+					take(expectedValues.length),
 					toArray(),
 				)
-				.subscribe((values) => {
-					console.log(values)
-					done()
+				.subscribe({
+					next: (values) => {
+						expect(values).toStrictEqual(expectedValues)
+						done()
+					},
+					error: (e) => {
+						done(
+							new Error(
+								`Tx failed, even though we expected it to succeed, error: ${e.toString()}`,
+							),
+						)
+					},
 				})
+				.add(subs)
 		})
 
-		it.skip('can fetch unstake positions', (done) => {
-			// not implemented in core
+		it('automatic confirmation', (done) => {
 			const radix = Radix.create()
-				.connect(`${NODE_URL}/rpc`)
 				.withWallet(makeWalletWithFunds())
-				.withStakingFetchTrigger(interval(100))
+				.connect(`${NODE_URL}/rpc`)
 
-			// radix.unstakingPositions
-			// 	.pipe(
-			// 		map((sp) =>
-			// 			sp.map((p) => ({
-			// 				amount: p.amount.magnitude.valueOf() % 1000,
-			// 				validator: p.validator.toString().slice(-2),
-			// 				epochsUntil: p.epochsUntil,
-			// 			})),
-			// 		),
-			// 		take(expectedValues.length),
-			// 		toArray(),
-			// 	)
-			// 	.subscribe((values) => {
-			// 		expect(values).toStrictEqual(expectedValues)
-			// 		done()
-			// 	})
+			let gotTXId = false
+
+			radix
+				.transferTokens(transferTokens())
+				.completion.subscribe({
+					next: (_txID) => {
+						gotTXId = true
+					},
+					complete: () => {
+						done()
+					},
+					error: (e) => {
+						done(
+							new Error(
+								`Tx failed, but expected to succeed. Error ${e}`,
+							),
+						)
+					},
+				})
+				.add(subs)
 		})
 
-		describe.skip('make tx single transfer', () => {
-			// needs fix to handle arrays params
-			const tokenTransferInput: TransferTokensInput = {
-				to: bob,
-				amount: 1,
-				tokenIdentifier:
-					'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD',
+		it('manual confirmation', (done) => {
+			const radix = Radix.create()
+				.withWallet(makeWalletWithFunds())
+				.connect(`${NODE_URL}/rpc`)
+
+			// Store these values in a way that vue can read and write to it
+			//@ts-ignore
+			let transaction
+			//@ts-ignore
+			let userHasBeenAskedToConfirmTX
+
+			const confirmTransaction = () => {
+				// Check that pin is valid
+				//@ts-ignore
+				transaction.confirm()
 			}
 
-			let pollTXStatusTrigger: Observable<unknown>
+			const shouldShowConfirmation = () => {
+				userHasBeenAskedToConfirmTX = true
+				confirmTransaction()
+			}
 
-			const transferTokens = (): TransferTokensOptions => ({
-				transferInput: tokenTransferInput,
-				userConfirmation: 'skip',
-				pollTXStatusTrigger: pollTXStatusTrigger,
+			const userConfirmation = new ReplaySubject<ManualUserConfirmTX>()
+
+			const transactionTracking = radix.transferTokens({
+				...transferTokens(),
+				userConfirmation,
 			})
 
-			let subs: Subscription
-
-			beforeEach(() => {
-				subs = new Subscription()
-				pollTXStatusTrigger = interval(50)
-			})
-
-			afterEach(() => {
-				subs.unsubscribe()
-			})
-
-			it('events emits expected values', (done) => {
-				const radix = Radix.create()
-					.withWallet(makeWalletWithFunds())
-					.connect(`${NODE_URL}/rpc`)
-
-				const expectedValues = [
-					TransactionTrackingEventType.INITIATED,
-					TransactionTrackingEventType.BUILT_FROM_INTENT,
-					TransactionTrackingEventType.ASKED_FOR_CONFIRMATION,
-					TransactionTrackingEventType.CONFIRMED,
-					TransactionTrackingEventType.SIGNED,
-					TransactionTrackingEventType.FINALIZED,
-					TransactionTrackingEventType.SUBMITTED,
-					TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
-					TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
-					TransactionTrackingEventType.COMPLETED,
-				]
-
-				radix
-					.transferTokens(transferTokens())
-					.events.pipe(
-						map((e) => e.eventUpdateType),
-						take(expectedValues.length),
-						toArray(),
-					)
-					.subscribe({
-						next: (values) => {
-							expect(values).toStrictEqual(expectedValues)
-							done()
-						},
-						error: (e) => {
-							done(
-								new Error(
-									`Tx failed, even though we expected it to succeed, error: ${e.toString()}`,
-								),
-							)
-						},
-					})
-					.add(subs)
-			})
-
-			it('automatic confirmation', (done) => {
-				const radix = Radix.create()
-					.withWallet(makeWalletWithFunds())
-					.connect(`${NODE_URL}/rpc`)
-
-				let gotTXId = false
-
-				radix
-					.transferTokens(transferTokens())
-					.completion.subscribe({
-						next: (_txID) => {
-							gotTXId = true
-						},
-						complete: () => {
-							done()
-						},
-						error: (e) => {
-							done(
-								new Error(
-									`Tx failed, but expected to succeed. Error ${e}`,
-								),
-							)
-						},
-					})
-					.add(subs)
-			})
-
-			it('manual confirmation', (done) => {
-				const radix = Radix.create()
-					.withWallet(makeWalletWithFunds())
-					.connect(`${NODE_URL}/rpc`)
-
-				// Store these values in a way that vue can read and write to it
-				//@ts-ignore
-				let transaction
-				//@ts-ignore
-				let userHasBeenAskedToConfirmTX
-
-				const confirmTransaction = () => {
-					// Check that pin is valid
+			userConfirmation
+				.subscribe((txn) => {
+					// Opens a modal where the user clicks 'confirm'
 					//@ts-ignore
-					transaction.confirm()
-				}
-
-				const shouldShowConfirmation = () => {
-					userHasBeenAskedToConfirmTX = true
-					confirmTransaction()
-				}
-
-				const userConfirmation = new ReplaySubject<ManualUserConfirmTX>()
-
-				const transactionTracking = radix.transferTokens({
-					...transferTokens(),
-					userConfirmation,
+					transaction = txn
+					shouldShowConfirmation()
+					// If I just call txn.confirm() it works but the user has no input
+					// txn.confirm()
 				})
+				.add(subs)
 
-				userConfirmation
-					.subscribe((txn) => {
-						// Opens a modal where the user clicks 'confirm'
+			transactionTracking.completion
+				.subscribe({
+					next: (_txID) => {
 						//@ts-ignore
-						transaction = txn
-						shouldShowConfirmation()
-						// If I just call txn.confirm() it works but the user has no input
-						// txn.confirm()
-					})
-					.add(subs)
+						expect(userHasBeenAskedToConfirmTX).toBe(true)
+						done()
+					},
+					error: (e) => {
+						done(e)
+					},
+				})
+				.add(subs)
+		})
 
-				transactionTracking.completion
-					.subscribe({
-						next: (_txID) => {
-							//@ts-ignore
-							expect(userHasBeenAskedToConfirmTX).toBe(true)
-							done()
-						},
-						error: (e) => {
-							done(e)
-						},
-					})
-					.add(subs)
-			})
+		it('should be able to call stake tokens', (done) => {
+			const radix = Radix.create()
+				.withWallet(makeWalletWithFunds())
+				.connect(`${NODE_URL}/rpc`)
 
-			it('should be able to call stake tokens', (done) => {
-				const radix = Radix.create()
-					.withWallet(makeWalletWithFunds())
-					.connect(`${NODE_URL}/rpc`)
+			radix
+				.stakeTokens({
+					stakeInput: {
+						amount: 1,
+						validator:
+							'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+					},
+					userConfirmation: 'skip',
+					pollTXStatusTrigger: pollTXStatusTrigger,
+				})
+				.completion.subscribe({
+					complete: () => {
+						done()
+					},
+					error: (e) => {
+						done(
+							new Error(
+								`Tx failed, but expected to succeed. Error ${e}`,
+							),
+						)
+					},
+				})
+				.add(subs)
+		})
 
-				radix
-					.stakeTokens({
-						stakeInput: {
-							amount: 1,
-							validator:
-								'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
-						},
-						userConfirmation: 'skip',
-						pollTXStatusTrigger: pollTXStatusTrigger,
-					})
-					.completion.subscribe({
-						complete: () => {
-							done()
-						},
-						error: (e) => {
-							done(
-								new Error(
-									`Tx failed, but expected to succeed. Error ${e}`,
-								),
-							)
-						},
-					})
-					.add(subs)
-			})
+		it('should be able to call unstake tokens', (done) => {
+			const radix = Radix.create()
+				.withWallet(makeWalletWithFunds())
+				.connect(`${NODE_URL}/rpc`)
 
-			it('should be able to call unstake tokens', (done) => {
-				const radix = Radix.create()
-					.withWallet(makeWalletWithFunds())
-					.connect(`${NODE_URL}/rpc`)
-
-				radix
-					.unstakeTokens({
-						unstakeInput: {
-							amount: 1,
-							validator:
-								'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
-						},
-						userConfirmation: 'skip',
-						pollTXStatusTrigger: pollTXStatusTrigger,
-					})
-					.completion.subscribe({
-						complete: () => {
-							done()
-						},
-						error: (e) => {
-							done(
-								new Error(
-									`Tx failed, but expected to succeed. Error ${e}`,
-								),
-							)
-						},
-					})
-					.add(subs)
-			})
+			radix
+				.unstakeTokens({
+					unstakeInput: {
+						amount: 1,
+						validator:
+							'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+					},
+					userConfirmation: 'skip',
+					pollTXStatusTrigger: pollTXStatusTrigger,
+				})
+				.completion.subscribe({
+					complete: () => {
+						done()
+					},
+					error: (e) => {
+						done(
+							new Error(
+								`Tx failed, but expected to succeed. Error ${e}`,
+							),
+						)
+					},
+				})
+				.add(subs)
 		})
 	})
 })

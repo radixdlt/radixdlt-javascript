@@ -12,25 +12,10 @@ import { combineLatest, of, Subject } from 'rxjs'
 import { Magic, magicFromNumber } from '@radixdlt/primitives'
 import { restoreDefaultLogLevel, setLogLevel } from '@radixdlt/util'
 import { mockErrorMsg } from '../../util/test/util.test'
-import { HDPathRadixT } from '../dist'
-import { UInt256 } from '@radixdlt/uint256'
 
 const createWallet = (password: string = 'radixdlt'): WalletT => {
 	const mnemonic = Mnemonic.generateNew()
 	return Wallet.create({ mnemonic })
-}
-
-export const makeWalletWithFunds = (): WalletT => {
-	return Wallet.__unsafeCreateWithPrivateKeyProvider({
-		mnemonic: Mnemonic.generateNew(), // not used,
-		__privateKeyProvider: (hdPath: HDPathRadixT): PrivateKey => {
-			const privateKeyScalar: number =
-				(hdPath.addressIndex.value() % 10000) + 1 // `0` is not a valid key.
-			return privateKeyFromScalar(
-				UInt256.valueOf(privateKeyScalar),
-			)._unsafeUnwrap()
-		},
-	})
 }
 
 const createSpecificWallet = (): WalletT => {
