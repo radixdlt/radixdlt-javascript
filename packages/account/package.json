@@ -33,6 +33,7 @@
     "@radixdlt/primitives": "^1.0.15",
     "@radixdlt/uint256": "^1.1.0",
     "@radixdlt/util": "^1.0.12",
+    "bech32": "^2.0.0",
     "bip39": "^3.0.3",
     "hdkey": "^2.0.1",
     "long": "^4.0.0",
