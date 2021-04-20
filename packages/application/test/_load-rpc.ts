@@ -4,7 +4,7 @@
 // https://github.com/facebook/jest/issues/2235
 
 const NodeEnvironment = require('jest-environment-node')
-const RPC_SPEC = require('../src/api/json-rpc/open-rpc-spec.json')
+const RPC_SPEC = require('../../networking/src/open-rpc-spec.json')
 const parseOpenRPCDocument = require('@open-rpc/schema-utils-js')
 	.parseOpenRPCDocument
 

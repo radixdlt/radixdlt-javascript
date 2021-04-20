@@ -52,13 +52,12 @@ const addressFromBuffer = (buffer: Buffer): Result<AddressT, Error> => {
 	const addressByteCount =
 		magicByteCount + publicKeyCompressedByteCount + checksumByteCount
 
-	if (buffer.length != addressByteCount) 
+	if (buffer.length != addressByteCount)
 		return err(
 			new Error(
 				`Expected ${addressByteCount} bytes, but got ${buffer.length}`,
 			),
 		)
-	
 
 	const checksumDropped = buffer.slice(
 		0,
@@ -145,8 +144,8 @@ const fromUnsafe = (input: AddressOrUnsafeInput): Result<AddressT, Error> => {
 	return isAddress(input)
 		? ok(input)
 		: isAddressUnsafeInput(input)
-			? fromBase58String(input)
-			: err(new Error('bad type'))
+		? fromBase58String(input)
+		: err(new Error('bad type'))
 }
 
 export const Address = {

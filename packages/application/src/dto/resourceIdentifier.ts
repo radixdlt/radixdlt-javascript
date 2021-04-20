@@ -32,21 +32,22 @@ const fromString = (
 
 	const isNativeToken = components[1] === '' ? true : false
 
-	return isNativeToken ? ok({
-		address: undefined as any,
-		name,
-		toString: () => identifierString,
-		equals: (other: any) =>
-			other.name === name
-	}) : Address.fromBase58String(components[1]).map(
-		(address): ResourceIdentifierT => ({
-			address,
-			name,
-			toString: () => identifierString,
-			equals: (other) =>
-				other.address.equals(address) && other.name === name,
-		}),
-	)
+	return isNativeToken
+		? ok({
+				address: undefined as any,
+				name,
+				toString: () => identifierString,
+				equals: (other: any) => other.name === name,
+		  })
+		: Address.fromBase58String(components[1]).map(
+				(address): ResourceIdentifierT => ({
+					address,
+					name,
+					toString: () => identifierString,
+					equals: (other) =>
+						other.address.equals(address) && other.name === name,
+				}),
+		  )
 }
 
 export const isResourceIdentifier = (

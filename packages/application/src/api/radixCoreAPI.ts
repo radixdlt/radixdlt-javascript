@@ -104,22 +104,28 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 		buildTransaction: (
 			transactionIntent: TransactionIntent,
 		): Observable<BuiltTransaction> =>
-			toObs((a) => a.buildTransaction, transactionIntent.actions.map(
-				action => action.type === ActionType.TOKEN_TRANSFER
-					? {
-						type: action.type,
-						from: action.from.toString(),
-						to: action.to.toString(),
-						amount: action.amount.toString(),
-						tokenIdentifier: action.tokenIdentifier.toString()
-					}
-					: {
-						type: action.type,
-						from: action.from.toString(),
-						validator: action.validator.toString(),
-						amount: action.amount.toString()
-					}
-			), transactionIntent.message ? transactionIntent.message.toString('hex') : undefined),
+			toObs(
+				(a) => a.buildTransaction,
+				transactionIntent.actions.map((action) =>
+					action.type === ActionType.TOKEN_TRANSFER
+						? {
+								type: action.type,
+								from: action.from.toString(),
+								to: action.to.toString(),
+								amount: action.amount.toString(),
+								tokenIdentifier: action.tokenIdentifier.toString(),
+						  }
+						: {
+								type: action.type,
+								from: action.from.toString(),
+								validator: action.validator.toString(),
+								amount: action.amount.toString(),
+						  },
+				),
+				transactionIntent.message
+					? transactionIntent.message.toString('hex')
+					: undefined,
+			),
 
 		finalizeTransaction: (
 			signedTransaction: SignedTransaction,
@@ -128,7 +134,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 				(a) => a.finalizeTransaction,
 				{ blob: signedTransaction.transaction.blob },
 				signedTransaction.signature.toDER(),
-				signedTransaction.publicKeyOfSigner.toString(true)
+				signedTransaction.publicKeyOfSigner.toString(true),
 			),
 
 		submitSignedTransaction: (
@@ -139,7 +145,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 				{ blob: finalizedTx.transaction.blob },
 				finalizedTx.signature.toDER(),
 				finalizedTx.publicKeyOfSigner.toString(true),
-				finalizedTx.txID.toString()
+				finalizedTx.txID.toString(),
 			),
 	}
 }

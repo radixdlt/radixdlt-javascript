@@ -30,7 +30,7 @@ const config = {
 		'jest-watch-typeahead/filename',
 		'jest-watch-typeahead/testname',
 	],
-	modulePathIgnorePatterns: []
+	modulePathIgnorePatterns: [],
 }
 
 module.exports = config

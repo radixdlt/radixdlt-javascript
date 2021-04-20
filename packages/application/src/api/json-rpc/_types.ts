@@ -184,25 +184,28 @@ export namespace BuildTransactionEndpoint {
 		| 'NOT_PERMITTED'
 
 	export type Input = [
-		actions:
-		({
-			type: ActionType.TOKEN_TRANSFER,
-			from: string,
-			to: string,
-			amount: string,
-			tokenIdentifier: string
-		} | {
-			type: ActionType.STAKE_TOKENS,
-			from: string,
-			validator: string,
-			amount: string
-		} | {
-			type: ActionType.UNSTAKE_TOKENS,
-			from: string,
-			validator: string,
-			amount: string
-		})[],
-		message?: string
+		actions: (
+			| {
+					type: ActionType.TOKEN_TRANSFER
+					from: string
+					to: string
+					amount: string
+					tokenIdentifier: string
+			  }
+			| {
+					type: ActionType.STAKE_TOKENS
+					from: string
+					validator: string
+					amount: string
+			  }
+			| {
+					type: ActionType.UNSTAKE_TOKENS
+					from: string
+					validator: string
+					amount: string
+			  }
+		)[],
+		message?: string,
 	]
 
 	export type Response = {

@@ -2,7 +2,9 @@ const config = {
 	transform: {
 		'^.+\\.ts$': 'ts-jest',
 	},
-	testMatch: ['<rootDir>/packages/**/test/integration-tests/?(*.)+(spec|test).integration.ts'],
+	testMatch: [
+		'<rootDir>/packages/**/test/integration-tests/?(*.)+(spec|test).integration.ts',
+	],
 	moduleDirectories: [
 		'packages/*/src',
 		'<rootDir>/includes',

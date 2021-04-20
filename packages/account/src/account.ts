@@ -193,6 +193,7 @@ export const isAccount = (something: unknown): something is AccountT => {
 }
 
 export const Account = {
+	__unsafeFromPrivateKey: fromPrivateKey,
 	byDerivingNodeAtPath,
 	fromHDPathWithHardwareWallet,
 	fromHDPathWithHDMasterNode,

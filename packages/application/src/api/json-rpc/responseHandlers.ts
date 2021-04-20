@@ -139,12 +139,14 @@ export const handleTokenBalancesResponse = (
 	pipe(
 		(json: TokenBalancesEndpoint.Response) => ({
 			owner: json.owner,
-			tokenBalances: json.tokenBalances[0] ? [
-				{
-					tokenIdentifier: json.tokenBalances[0].rri,
-					amount: json.tokenBalances[0].amount,
-				},
-			] : [],
+			tokenBalances: json.tokenBalances[0]
+				? [
+						{
+							tokenIdentifier: json.tokenBalances[0].rri,
+							amount: json.tokenBalances[0].amount,
+						},
+				  ]
+				: [],
 		}),
 		JSONDecoding.withDecoders(
 			addressDecoder('owner'),
