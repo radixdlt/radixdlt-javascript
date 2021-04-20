@@ -23,6 +23,7 @@ const log = {
 	data: (input: any) => { },
 	info: (input: any) => { },
 	alert: (input: any) => { },
+	warning: (input: any) => { },
 }
 
 const restoreDefaultLogLevel = () => { }
