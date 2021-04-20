@@ -25,7 +25,6 @@ import { map, mergeMap, take, toArray } from 'rxjs/operators'
 import { restoreDefaultLogLevel, setLogLevel } from '@radixdlt/util'
 
 describe('tx intent builder', () => {
-
 	const validatorCarol: ValidatorAddressT = ValidatorAddress.fromUnsafe(
 		'vb1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtes8rfsld',
 	)._unsafeUnwrap()
@@ -33,7 +32,6 @@ describe('tx intent builder', () => {
 	const validatorDan: ValidatorAddressT = ValidatorAddress.fromUnsafe(
 		'validator_dan',
 	)._unsafeUnwrap()
-
 
 	const one = Amount.fromUnsafe(1)._unsafeUnwrap()
 	const xrdRRI = xrd.rri

@@ -1,5 +1,4 @@
-import { bech32 } from 'bech32'
-import { Bech32 } from '../dist/bech32'
+import { Bech32 } from '../src/bech32'
 
 describe('bech32', () => {
 	it('works', () => {
@@ -9,7 +8,9 @@ describe('bech32', () => {
 		const decodedBech32Data = Bech32.convertDataFromBech32(bech32Data)
 		expect(decodedBech32Data.toString('utf8')).toBe(plaintext)
 
-		const convertedToBech32Data = Bech32.convertDataToBech32(Buffer.from(plaintext, 'utf8'))
+		const convertedToBech32Data = Bech32.convertDataToBech32(
+			Buffer.from(plaintext, 'utf8'),
+		)
 
 		expect(convertedToBech32Data.toString('hex')).toBe(bech32DataHex)
 	})
