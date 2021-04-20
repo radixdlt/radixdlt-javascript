@@ -12,6 +12,7 @@ import {
 import { UInt256 } from '@radixdlt/uint256'
 import { publicKeyFromPrivateKeyScalar } from '../src/elliptic-curve/wrap/publicKeyWrapped'
 import { pointOnCurve } from '../src/elliptic-curve/wrap/ecPointOnCurve'
+import { signatureFromHexStrings } from './utils'
 
 describe('elliptic curve cryptography', () => {
 	it('knows the order of secp256l1', () => {
