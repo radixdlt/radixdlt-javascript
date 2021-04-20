@@ -1,5 +1,6 @@
 export * from './bip32'
 export * from './bip39'
+export * from './bech32'
 
 export * from './_types'
 

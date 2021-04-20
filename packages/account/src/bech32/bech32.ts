@@ -12,12 +12,10 @@ export type HRP = string
 export type Data = Buffer
 
 const convertDataFromBech32 = (bech32Data: Buffer): Buffer => {
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
 	return Buffer.from(bech32.fromWords(bech32Data))
 }
 
 const convertDataToBech32 = (data: Buffer): Buffer => {
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
 	return Buffer.from(bech32.toWords(data))
 }
 
@@ -76,17 +74,12 @@ const decode = (input: Bech32DecodeInput): Result<Bech32T, Error> => {
 	const impl: BechLib = encoding === encbech32 ? bech32 : bech32m
 
 	try {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
 		const decoded: Decoded = impl.decode(bechString, maxLength)
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
-		const data = Buffer.from(impl.fromWords(decoded.words))
-
 		return ok(
 			__unsafeCreate({
 				bech32String: bechString,
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 				hrp: decoded.prefix,
-				data,
+				data: Buffer.from(decoded.words),
 			}),
 		)
 	} catch (e) {

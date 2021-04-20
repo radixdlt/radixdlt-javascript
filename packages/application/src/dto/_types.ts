@@ -33,14 +33,8 @@ export type TokenPermissions = Readonly<{
 	equals: (other: TokenPermissions) => boolean
 }>
 
-/**
- * A Radix resource identifier is a human readable index into the Ledger which points to a name state machine
- *
- * On format: `/:address/:name`, e.g.
- * `"/JH1P8f3znbyrDj8F4RWpix7hRkgxqHjdW2fNnKpR3v6ufXnknor/XRD"`
- */
 export type ResourceIdentifierT = Readonly<{
-	address: AddressT
+	hash: Buffer
 	name: string
 	toString: () => string
 	equals: (other: ResourceIdentifierT) => boolean
