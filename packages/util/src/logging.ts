@@ -158,15 +158,17 @@ const objectMap = <TValue, TResult>(
 	return ret
 }
 
-const extractValueOfInfo = <T>(
-	extract: (info: LogLevelInfo) => T,
-): { [key in RadixLogLevel]: T } => {
-	// @ts-ignore
-	return objectMap(
-		logLevelsInfo,
-		(val) => extract(val),
-		(key) => key,
-	)
+const log = {
+	verbose: (input: any) => { },
+	dev: (input: any) => { },
+	silent: (input: any) => { },
+	debug: (input: any) => { },
+	error: (input: any) => { },
+	warn: (input: any) => { },
+	help: (input: any) => { },
+	data: (input: any) => { },
+	info: (input: any) => { },
+	alert: (input: any) => { },
 }
 
 type RadixLogLevels = AbstractConfigSetLevels & {
@@ -269,6 +271,6 @@ const makeRadixLogger = (): RadixLogger => {
 	return logger
 }
 
-const log = makeRadixLogger()
+const setLogLevel = (input: any) => { }
 
 export { RadixLogLevel, log, restoreDefaultLogLevel, setLogLevel }
