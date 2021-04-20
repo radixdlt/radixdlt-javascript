@@ -1,10 +1,16 @@
-import { Bech32, encbech32m } from '../src/bech32'
+import { bech32 } from 'bech32'
+import { Bech32 } from '../dist/bech32'
 
 describe('bech32', () => {
 	it('works', () => {
-		const hrp = 'usdc_rr'
-		const data = Buffer.from('4d6qejxtdg4y5r3zarvary0c5test', 'utf8')
-		const bech32 = Bech32.encode({ hrp, data, encoding: encbech32m })._unsafeUnwrap()
-		expect(bech32.toString()).toBe('usdc_rr14d6qejxtdg4y5r3zarvary0c5testxpjzsx')
+		const plaintext = 'Hello Radix!'
+		const bech32DataHex = '09011216181b030f04010906021903090f001010'
+		const bech32Data = Buffer.from(bech32DataHex, 'hex')
+		const decodedBech32Data = Bech32.convertDataFromBech32(bech32Data)
+		expect(decodedBech32Data.toString('utf8')).toBe(plaintext)
+
+		const convertedToBech32Data = Bech32.convertDataToBech32(Buffer.from(plaintext, 'utf8'))
+
+		expect(convertedToBech32Data.toString('hex')).toBe(bech32DataHex)
 	})
 })

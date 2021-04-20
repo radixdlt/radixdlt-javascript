@@ -1,4 +1,4 @@
-import { bech32, bech32m, Decoded } from 'bech32'
+import { bech32, bech32m, BechLib, Decoded } from 'bech32'
 import { log, msgFromError } from '@radixdlt/util'
 import { err, ok, Result } from 'neverthrow'
 import { Bech32T } from './_types'
@@ -10,6 +10,16 @@ export type Encoding = typeof encbech32 | typeof encbech32m
 
 export type HRP = string
 export type Data = Buffer
+
+const convertDataFromBech32 = (bech32Data: Buffer): Buffer => {
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
+	return Buffer.from(bech32.fromWords(bech32Data))
+}
+
+const convertDataToBech32 = (data: Buffer): Buffer => {
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
+	return Buffer.from(bech32.toWords(data))
+}
 
 const __unsafeCreate = (
 	input: Readonly<{
@@ -34,26 +44,24 @@ const encode = (input: Bech32EncodeInput): Result<Bech32T, Error> => {
 	const { hrp, data: rawData, maxLength } = input
 	const encoding = input.encoding ?? defaultEncoding
 
-	const impl = encoding === encbech32 ? bech32 : bech32m
-	const words = impl.toWords(rawData)
+	const impl: BechLib = encoding === encbech32 ? bech32 : bech32m
+	const bech32Data = convertDataToBech32(rawData) //impl.toWords(rawData)
 
-	let bech32String: string
 	try {
-		bech32String = impl.encode(hrp, words, maxLength)
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
+		const bech32String: string = impl.encode(hrp, bech32Data, maxLength)
+		return ok(
+			__unsafeCreate({
+				bech32String: bech32String.toLowerCase(),
+				hrp,
+				data: bech32Data,
+			}),
+		)
 	} catch (e) {
 		const errMsg = msgFromError(e)
 		log.error(errMsg)
 		return err(new Error(errMsg))
 	}
-
-	const data = Buffer.from(words)
-	return ok(
-		__unsafeCreate({
-			bech32String: bech32String.toLowerCase(),
-			hrp,
-			data,
-		}),
-	)
 }
 
 export type Bech32DecodeInput = Readonly<{
@@ -66,27 +74,32 @@ const decode = (input: Bech32DecodeInput): Result<Bech32T, Error> => {
 	const { bechString, maxLength } = input
 	const encoding = input.encoding ?? defaultEncoding
 
-	const impl = encoding === encbech32 ? bech32 : bech32m
+	const impl: BechLib = encoding === encbech32 ? bech32 : bech32m
 
-	let decoded: Decoded
 	try {
-		decoded = impl.decode(bechString, maxLength)
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
+		const decoded: Decoded = impl.decode(bechString, maxLength)
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
+		const data = Buffer.from(impl.fromWords(decoded.words))
+
+		return ok(
+			__unsafeCreate({
+				bech32String: bechString,
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+				hrp: decoded.prefix,
+				data,
+			}),
+		)
 	} catch (e) {
 		const errMsg = msgFromError(e)
 		log.error(errMsg)
 		return err(new Error(errMsg))
 	}
-
-	return ok(
-		__unsafeCreate({
-			bech32String: bechString,
-			hrp: decoded.prefix,
-			data: Buffer.from(decoded.words),
-		}),
-	)
 }
 
 export const Bech32 = {
+	convertDataToBech32,
+	convertDataFromBech32,
 	decode,
 	encode,
 }
