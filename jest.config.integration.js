@@ -2,7 +2,7 @@ const config = {
 	transform: {
 		'^.+\\.ts$': 'ts-jest',
 	},
-	testMatch: ['<rootDir>/packages/**/test/?(*.)+(spec|test).ts'],
+	testMatch: ['<rootDir>/packages/**/test/integration-tests/?(*.)+(spec|test).integration.ts'],
 	moduleDirectories: [
 		'packages/*/src',
 		'<rootDir>/includes',
@@ -21,16 +21,11 @@ const config = {
 		},
 	},
 	testURL: 'http://localhost',
-	collectCoverage: true,
-	collectCoverageFrom: [
-		'<rootDir>/packages/*/src/**/*.{ts,js}',
-		'!**/node_modules/**',
-	],
 	watchPlugins: [
 		'jest-watch-typeahead/filename',
 		'jest-watch-typeahead/testname',
 	],
-	modulePathIgnorePatterns: []
+	modulePathIgnorePatterns: [],
 }
 
 module.exports = config

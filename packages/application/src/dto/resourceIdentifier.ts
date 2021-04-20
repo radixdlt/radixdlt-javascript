@@ -30,7 +30,15 @@ const fromString = (
 	const name = components[2]
 	if (name.length === 0) return err(new Error('Expected non empty name'))
 
-	return Address.fromBase58String(components[1]).map(
+	const isNativeToken = components[1] === '' ? true : false
+
+	return isNativeToken ? ok({
+		address: undefined as any,
+		name,
+		toString: () => identifierString,
+		equals: (other: any) =>
+			other.name === name
+	}) : Address.fromBase58String(components[1]).map(
 		(address): ResourceIdentifierT => ({
 			address,
 			name,

@@ -61,7 +61,7 @@ export type UnstakeOptions = MakeTransactionOptions &
 export type RadixT = Readonly<{
 	ledger: RadixAPI
 	// Input
-	connect: (url: URL) => RadixT
+	connect: (url: string) => RadixT
 
 	// Primiarily useful for testing.
 	__withAPI: (radixCoreAPI$: Observable<RadixCoreAPI>) => RadixT

@@ -140,7 +140,7 @@ describe('Radix API', () => {
 	})
 
 	it('can connect and is chainable', () => {
-		const radix = Radix.create().connect(new URL('http://www.my.node.com'))
+		const radix = Radix.create().connect('http://www.my.node.com')
 		expect(radix).toBeDefined()
 		expect(radix.ledger.nativeToken).toBeDefined()
 		expect(radix.ledger.tokenBalancesForAddress).toBeDefined() // etc
@@ -198,8 +198,8 @@ describe('Radix API', () => {
 		const n2 = 'http://www.node2.com/'
 
 		await testChangeNode([n1, n2], done, (radix: RadixT) => {
-			radix.connect(new URL(n1))
-			radix.connect(new URL(n2))
+			radix.connect(n1)
+			radix.connect(n2)
 		})
 	})
 

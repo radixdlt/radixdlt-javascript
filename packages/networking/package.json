@@ -27,6 +27,8 @@
   },
   "dependencies": {
     "@open-rpc/client-js": "^1.6.2",
-    "@radixdlt/util": "^1.0.10"
+    "@open-rpc/schema-utils-js": "^1.14.3",
+    "@radixdlt/util": "^1.0.10",
+    "neverthrow": "^4.0.1"
   }
 }

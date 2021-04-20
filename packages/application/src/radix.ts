@@ -763,8 +763,8 @@ const create = (): RadixT => {
 			return this
 		},
 
-		connect: function (url: URL): RadixT {
-			_withNode(of({ url }))
+		connect: function (url: string): RadixT {
+			_withNode(of({ url: new URL(url) }))
 			return this
 		},
 
