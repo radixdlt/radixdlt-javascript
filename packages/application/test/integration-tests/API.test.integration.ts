@@ -25,22 +25,23 @@ import { TransferTokensOptions } from '../../src/_types'
 import { makeWalletWithFunds } from '../../../account/test/utils'
 const fetch = require('node-fetch')
 
+//const NODE_URL = 'http://localhost:8080'
 const NODE_URL = 'https://54.73.253.49'
 
-// const requestFaucet = async (address: string) => {
-//     let request = {
-//         params: {
-//             address
-//         }
-//     }
-//
-//     await fetch(`${NODE_URL}/faucet/request`, {
-//         method: 'POST',
-//         body: JSON.stringify(request),
-//         headers: { 'Content-Type': 'application/json' }
-//     })
-// }
-//
+const requestFaucet = async (address: string) => {
+	let request = {
+		params: {
+			address
+		}
+	}
+
+	await fetch(`${NODE_URL}/faucet/request`, {
+		method: 'POST',
+		body: JSON.stringify(request),
+		headers: { 'Content-Type': 'application/json' }
+	})
+}
+
 
 const dummyNode = (urlString: string): Observable<NodeT> =>
 	of({
@@ -174,19 +175,26 @@ describe('integration API tests', () => {
 		radix.deriveNextAccount({ alsoSwitchTo: true })
 	})
 
-	it.only('tokenBalances with tokeninfo', (done) => {
+	it('tokenBalances with tokeninfo', (done) => {
 		const radix = Radix.create()
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		radix.withTokenBalanceFetchTrigger(interval(300))
 
-		radix.tokenBalances
-			.subscribe((balance) => {
-				expect(balance.tokenBalances[0].amount).toBeDefined()
-				done()
-			})
-			.add(subs)
+		radix.activeAddress.subscribe(async address => {
+			console.log('address', address.toString())
+			await requestFaucet(address.toString())
+
+			radix.tokenBalances
+				.subscribe((balance) => {
+					expect(balance.tokenBalances[0].amount).toBeDefined()
+					done()
+				})
+				.add(subs)
+		})
+
+
 	})
 
 	it('API returns different but deterministic transaction history per account', (done) => {
@@ -218,36 +226,40 @@ describe('integration API tests', () => {
 			TransactionStatus.CONFIRMED,
 		]
 
-		const txTracking = radix.transferTokens({
-			transferInput: {
-				to: bob,
-				amount: 1,
-				tokenIdentifier: `//XRD`,
-			},
-			userConfirmation: 'skip',
-			pollTXStatusTrigger: timer(1000),
-		})
+		radix.activeAddress.subscribe(async address => {
+			await requestFaucet(address.toString())
 
-		txTracking.events.subscribe((event) => {
-			if (
-				event.eventUpdateType === TransactionTrackingEventType.FINALIZED
-			) {
-				const txID: TransactionIdentifierT = (event as any)
-					.transactionState.txID
+			const txTracking = radix.transferTokens({
+				transferInput: {
+					to: bob,
+					amount: 1,
+					tokenIdentifier: `//XRD`,
+				},
+				userConfirmation: 'skip',
+				pollTXStatusTrigger: timer(1000),
+			})
 
-				radix
-					.transactionStatus(txID, interval(10))
-					.subscribe((status) => {
-						console.log(status)
-						done()
-					})
-					.add(subs)
-			}
+			txTracking.events.subscribe((event) => {
+				if (
+					event.eventUpdateType === TransactionTrackingEventType.SUBMITTED
+				) {
+					const txID: TransactionIdentifierT = (event as any)
+						.transactionState.txID
+
+					radix
+						.transactionStatus(txID, interval(10))
+						.subscribe((status) => {
+							console.log(status)
+							//expect(values).toStrictEqual(expectedValues)
+							done()
+						})
+						.add(subs)
+				}
+			})
 		})
 	})
 
-	it('can lookup tx', async (done) => {
-		// error with finalize
+	it.only('can lookup tx', async (done) => {
 		const radix = Radix.create()
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
@@ -323,30 +335,34 @@ describe('integration API tests', () => {
 			.add(subs)
 	})
 
-	it.skip('should get build transaction response', (done) => {
+	it('should get build transaction response', (done) => {
 		// needs fix to handle arrays params
 		const radix = Radix.create()
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		const transactionIntent = TransactionIntentBuilder.create()
-			.stakeTokens({
-				validator:
-					'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+			.transferTokens({
+				to: bob,
+				tokenIdentifier: '//XRD',
 				amount: 10000,
 			})
 			.__syncBuildDoNotEncryptMessageIfAny(alice)
 			._unsafeUnwrap()
 
-		radix.ledger
-			.buildTransaction(transactionIntent)
-			.subscribe((unsignedTx) => {
-				expect(
-					(unsignedTx as { fee: AmountT }).fee.toString(),
-				).toEqual('40294')
-				done()
-			})
-			.add(subs)
+		radix.activeAddress.subscribe(async address => {
+			console.log('address', address.toString())
+			await requestFaucet(address.toString())
+			radix.ledger
+				.buildTransaction(transactionIntent)
+				.subscribe((unsignedTx) => {
+					expect(
+						(unsignedTx as { fee: AmountT }).fee.toString(),
+					).toEqual('40294')
+					done()
+				})
+				.add(subs)
+		})
 	})
 
 	it.skip('should get finalizeTransaction response', (done) => {
