@@ -699,12 +699,13 @@ const create = (): RadixT => {
 			.add(subs)
 
 		transactionCompletedWithStatusFailed$
-			.subscribe(status => {
+			.subscribe((status) => {
 				const errMsg = `API status of tx with id=${status.txID.toString()} returned 'FAILED'`
 				txLog.error(errMsg)
 				trackError({
 					error: new Error(errMsg),
-					inStep: TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
+					inStep:
+						TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
 				})
 			})
 			.add(subs)
