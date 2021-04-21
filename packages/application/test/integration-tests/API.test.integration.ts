@@ -336,66 +336,31 @@ describe('integration API tests', () => {
 	})
 
 	it('should get build transaction response', (done) => {
-		// needs fix to handle arrays params
 		const radix = Radix.create()
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
-		const transactionIntent = TransactionIntentBuilder.create()
+		TransactionIntentBuilder.create()
 			.transferTokens({
 				to: bob,
 				tokenIdentifier: '//XRD',
-				amount: 10000,
-			})
-			.__syncBuildDoNotEncryptMessageIfAny(alice)
-			._unsafeUnwrap()
-
-		radix.activeAddress.subscribe(async address => {
-			console.log('address', address.toString())
-			await requestFaucet(address.toString())
-			radix.ledger
-				.buildTransaction(transactionIntent)
-				.subscribe((unsignedTx) => {
-					expect(
-						(unsignedTx as { fee: AmountT }).fee.toString(),
-					).toEqual('40294')
-					done()
+				amount: 1,
+			}).build({
+				spendingSender: radix.activeAddress
+			}).subscribe(intent => {
+				radix.activeAddress.subscribe(async address => {
+					await requestFaucet(address.toString())
+					radix.ledger
+						.buildTransaction(intent)
+						.subscribe((unsignedTx) => {
+							expect(
+								(unsignedTx as { fee: AmountT }).fee.toString(),
+							).toEqual('50')
+							done()
+						})
+						.add(subs)
 				})
-				.add(subs)
-		})
-	})
-
-	it.skip('should get finalizeTransaction response', (done) => {
-		// not implemented in core
-		const radix = Radix.create()
-			.withWallet(makeWalletWithFunds())
-			.connect(`${NODE_URL}/rpc`)
-
-		radix.ledger
-			.finalizeTransaction({
-				publicKeyOfSigner: alice.publicKey,
-				transaction: {
-					blob: 'xyz',
-					hashOfBlobToSign: 'deadbeef',
-				},
-				signature: signatureFromHexStrings({
-					r:
-						'934b1ea10a4b3c1757e2b0c017d0b6143ce3c9a7e6a4a49860d7a6ab210ee3d8',
-					s:
-						'2442ce9d2b916064108014783e923ec36b49743e2ffa1c4496f01a512aafd9e5',
-				}),
 			})
-			.subscribe((pendingTx) => {
-				expect(
-					(pendingTx as {
-						txID: TransactionIdentifierT
-					}).txID.toString(),
-				).toEqual(
-					'3608bca1e44ea6c4d268eb6db02260269892c0b42b86bbf1e77a6fa16c3c9282',
-				)
-				done()
-			})
-			.add(subs)
 	})
 
 	it.skip('should get network transaction demand response', (done) => {
@@ -473,13 +438,13 @@ describe('integration API tests', () => {
 		// 	})
 	})
 
-	describe.skip('make tx single transfer', () => {
+	describe('make tx single transfer', () => {
 		// needs fix to handle arrays params
 		const tokenTransferInput: TransferTokensInput = {
 			to: bob,
 			amount: 1,
 			tokenIdentifier:
-				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD',
+				'//XRD',
 		}
 
 		let pollTXStatusTrigger: Observable<unknown>
