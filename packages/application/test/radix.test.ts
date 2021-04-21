@@ -69,7 +69,7 @@ import {
 	isIntendedStakeTokensAction,
 	isIntendedTransferTokensAction,
 	isIntendedUnstakeTokensAction,
-} from '../dist/dto/transactionIntentBuilder'
+} from '../src/dto/transactionIntentBuilder'
 import { signatureFromHexStrings } from '@radixdlt/crypto/test/utils'
 import { makeWalletWithFunds } from '@radixdlt/account/test/utils'
 
@@ -515,88 +515,100 @@ describe('Radix API', () => {
 			.switchAccount('last')
 	})
 
-	it('should forward an error when calling api', (done) => {
-		const subs = new Subscription()
-
-		const radix = Radix.create().__withAPI(
-			of({
-				...mockRadixCoreAPI(),
-				tokenBalancesForAddress: () =>
-					throwError(
-						() =>
-							new Error(
-								'error that should trigger expected failure.',
-							),
-					),
-			}),
-		)
-
-		radix.tokenBalances
-			.subscribe({
-				next: (_n) => {
-					done(
-						new Error(
-							'Unexpectedly got tokenBalance, but expected error.',
-						),
-					)
-				},
-			})
-			.add(subs)
-
-		radix.errors
-			.subscribe((error) => {
-				expect(error.category).toEqual(ErrorCategory.API)
-				expect(error.cause).toEqual(APIErrorCause.TOKEN_BALANCES_FAILED)
-				done()
-			})
-			.add(subs)
-
-		radix.withWallet(createWallet())
-	})
-
-	it('does not kill property observables when rpc requests fail', async (done) => {
-		const subs = new Subscription()
-		let amountVal = 100
-		let counter = 0
-
-		const api = of(<RadixCoreAPI>{
-			...mockRadixCoreAPI(),
-			tokenBalancesForAddress: (
-				a: AddressT,
-			): Observable<SimpleTokenBalances> => {
-				if (counter > 2 && counter < 5) {
-					counter++
-					return throwError(() => new Error('Manual error'))
-				} else {
-					const observableBalance = of(balancesFor(a, amountVal))
-					counter++
-					amountVal += 100
-					return observableBalance
-				}
-			},
+	describe('radix unhappy paths', () => {
+		beforeAll(() => {
+			jest.spyOn(console, 'error').mockImplementation(() => {})
 		})
 
-		const radix = Radix.create()
-		radix.withWallet(createWallet())
-		radix.__withAPI(api).withTokenBalanceFetchTrigger(interval(300))
+		afterAll(() => {
+			jest.clearAllMocks()
+		})
 
-		const expectedValues = [
-			100000000000000000000,
-			200000000000000000000,
-			300000000000000000000,
-		]
+		it('should forward an error when calling api', (done) => {
+			const subs = new Subscription()
 
-		radix.tokenBalances
-			.pipe(
-				map((tb) => tb.tokenBalances[0].amount.magnitude.valueOf()),
-				take(expectedValues.length),
-				toArray(),
+			const radix = Radix.create().__withAPI(
+				of({
+					...mockRadixCoreAPI(),
+					tokenBalancesForAddress: () =>
+						throwError(
+							() =>
+								new Error(
+									'error that should trigger expected failure.',
+								),
+						),
+				}),
 			)
-			.subscribe((amounts) => {
-				expect(amounts).toEqual(expectedValues)
-				done()
+
+			radix.tokenBalances
+				.subscribe({
+					next: (_n) => {
+						done(
+							new Error(
+								'Unexpectedly got tokenBalance, but expected error.',
+							),
+						)
+					},
+				})
+				.add(subs)
+
+			radix.errors
+				.subscribe((error) => {
+					expect(error.category).toEqual(ErrorCategory.API)
+					expect(error.cause).toEqual(
+						APIErrorCause.TOKEN_BALANCES_FAILED,
+					)
+					done()
+				})
+				.add(subs)
+
+			radix.withWallet(createWallet())
+		})
+
+		it('does not kill property observables when rpc requests fail', async (done) => {
+			const subs = new Subscription()
+			let amountVal = 100
+			let counter = 0
+
+			const api = of(<RadixCoreAPI>{
+				...mockRadixCoreAPI(),
+				tokenBalancesForAddress: (
+					a: AddressT,
+				): Observable<SimpleTokenBalances> => {
+					if (counter > 2 && counter < 5) {
+						counter++
+						return throwError(() => new Error('Manual error'))
+					} else {
+						const observableBalance = of(balancesFor(a, amountVal))
+						counter++
+						amountVal += 100
+						return observableBalance
+					}
+				},
 			})
-			.add(subs)
+
+			const radix = Radix.create()
+			radix.withWallet(createWallet())
+			radix.__withAPI(api).withTokenBalanceFetchTrigger(interval(300))
+
+			const expectedValues = [
+				100000000000000000000,
+				200000000000000000000,
+				300000000000000000000,
+			]
+
+			radix.tokenBalances
+				.pipe(
+					map((tb) => tb.tokenBalances[0].amount.magnitude.valueOf()),
+					take(expectedValues.length),
+					toArray(),
+				)
+				.subscribe((amounts) => {
+					expect(amounts).toEqual(expectedValues)
+					done()
+				})
+				.add(subs)
+		})
 	})
 
 	it('deriveNextAccount method on radix updates accounts', (done) => {
@@ -868,7 +880,7 @@ describe('Radix API', () => {
 		radix.login(keystoreForTest.password, loadKeystore)
 
 		const mockedValidatorAddr = ValidatorAddress.fromUnsafe(
-			'validator_address_mocked',
+			'vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazy',
 		)._unsafeUnwrap()
 
 		radix.__wallet
@@ -881,7 +893,7 @@ describe('Radix API', () => {
 						).toBe(true)
 						expect(
 							validator.ownerAddress.toString().slice(-4),
-						).toBe('D9Rb')
+						).toBe('CXpz')
 						done()
 					})
 			})
@@ -913,7 +925,7 @@ describe('Radix API', () => {
 		const transactionIntent = TransactionIntentBuilder.create()
 			.stakeTokens({
 				validator:
-					'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+					'vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazy',
 				amount: 10000,
 			})
 			.__syncBuildDoNotEncryptMessageIfAny(alice)
@@ -923,7 +935,7 @@ describe('Radix API', () => {
 			.buildTransaction(transactionIntent)
 			.subscribe((unsignedTx) => {
 				expect((unsignedTx as { fee: AmountT }).fee.toString()).toEqual(
-					'48164',
+					'63140',
 				)
 				done()
 			})
@@ -1035,9 +1047,9 @@ describe('Radix API', () => {
 		radix.login(keystoreForTest.password, loadKeystore)
 
 		const expectedStakes = [
-			{ amount: 396, validator: 'b2', epochsUntil: 60 },
-			{ amount: 878, validator: '33', epochsUntil: 46 },
-			{ amount: 649, validator: '7a', epochsUntil: 59 },
+			{ amount: 396, validator: 'ld', epochsUntil: 60 },
+			{ amount: 878, validator: 'jq', epochsUntil: 46 },
+			{ amount: 649, validator: '6t', epochsUntil: 59 },
 		]
 		const expectedValues = [expectedStakes, expectedStakes] // should be unchanged between updates (deterministically mocked).
 		radix.__wallet
@@ -1091,7 +1103,7 @@ describe('Radix API', () => {
 			to: recipientAddress,
 			amount: 1,
 			tokenIdentifier:
-				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD',
+				'xrd_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtesv2yq5l',
 		}
 
 		const plaintext = 'Hey Bob, this is Alice.'
@@ -1218,7 +1230,7 @@ describe('Radix API', () => {
 			to: bob,
 			amount: 1,
 			tokenIdentifier:
-				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD',
+				'xrd_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtesv2yq5l',
 		}
 
 		let pollTXStatusTrigger: Observable<unknown>
@@ -1372,7 +1384,7 @@ describe('Radix API', () => {
 					stakeInput: {
 						amount: 1,
 						validator:
-							'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+							'vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazy',
 					},
 					userConfirmation: 'skip',
 					pollTXStatusTrigger: pollTXStatusTrigger,
@@ -1402,7 +1414,7 @@ describe('Radix API', () => {
 					unstakeInput: {
 						amount: 1,
 						validator:
-							'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+							'vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazy',
 					},
 					userConfirmation: 'skip',
 					pollTXStatusTrigger: pollTXStatusTrigger,
@@ -1423,12 +1435,20 @@ describe('Radix API', () => {
 		})
 
 		describe('transaction flow errors', () => {
+			beforeAll(() => {
+				jest.spyOn(console, 'error').mockImplementation(() => {})
+			})
+
+			afterAll(() => {
+				jest.clearAllMocks()
+			})
+
 			const testFailure = (
 				method: string,
 				cause: ErrorCause,
 				done: any,
 			) => {
-				const errorMsg = `Failure`
+				const errorMsg = mockErrorMsg(`TXFlow`)
 
 				const radix = Radix.create()
 					.withWallet(createWallet())

@@ -2,7 +2,7 @@ import { err, ok, Result } from 'neverthrow'
 import { curve, ec } from 'elliptic'
 import BN from 'bn.js'
 import { ECPointOnCurve, PrivateKey, PublicKey, Signature } from '../../_types'
-import { buffersEquals } from '@radixdlt/util'
+import { buffersEquals, msgFromError } from '@radixdlt/util'
 import { bnFromUInt256 } from '@radixdlt/primitives'
 import { pointOnCurveFromEllipticShortPoint } from './ecPointOnCurve'
 import { UInt256 } from '@radixdlt/uint256'
@@ -99,7 +99,17 @@ export const publicKeyFromPrivateKeyScalar = (
 export const publicKeyFromBytesValidated = (
 	publicKeyBytes: Buffer,
 ): Result<PublicKey, Error> => {
-	return publicKeyFromEllipticKey(
-		thirdPartyLibEllipticSecp256k1.keyFromPublic(publicKeyBytes),
-	)
+	try {
+		const ecKeyPairElliptic = thirdPartyLibEllipticSecp256k1.keyFromPublic(
+			publicKeyBytes,
+		)
+		return publicKeyFromEllipticKey(ecKeyPairElliptic)
+	} catch (e) {
+		const underlyingError = msgFromError(e)
+		const errMsg = `Failed to decode bytes into public key, underlying error: ${underlyingError}. bytes: '${publicKeyBytes.toString(
+			'hex',
+		)}'`
+		console.log(errMsg)
+		return err(new Error(errMsg))
+	}
 }

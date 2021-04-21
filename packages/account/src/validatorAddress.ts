@@ -1,33 +1,70 @@
 import { ValidatorAddressT } from './_types'
-import { err, ok, Result } from 'neverthrow'
-import { log, ValidationWitness } from '@radixdlt/util'
-
-const validatedValidatorAddress = 'validated validator address'
+import { ok, Result } from 'neverthrow'
+import { isPublicKey, PublicKey, publicKeyFromBytes } from '@radixdlt/crypto'
+import { Bech32, Encoding } from './bech32'
+import { log, msgFromError } from '@radixdlt/util'
 
 export const isValidatorAddress = (
 	something: unknown,
 ): something is ValidatorAddressT => {
 	const inspection = something as ValidatorAddressT
 	return (
-		inspection.__isValidatorAddressWitness === validatedValidatorAddress &&
+		inspection.publicKey !== undefined &&
+		isPublicKey(inspection.publicKey) &&
 		inspection.equals !== undefined &&
 		inspection.toString !== undefined
 	)
 }
 
-type ValidatorAddressInput = string
-const create = (addressString: ValidatorAddressInput): ValidatorAddressT => {
-	const toString = (): string => addressString
+const hrp = 'vb'
+const maxLength = 300 // arbitrarily chosen
+const encoding = Encoding.BECH32
+
+const fromPublicKey = (publicKey: PublicKey): ValidatorAddressT => {
+	const bytes = publicKey.asData({ compressed: true })
+	const data = Bech32.convertDataToBech32(bytes)
+	const encodingResult = Bech32.encode({ hrp, data, encoding, maxLength })
+
+	if (!encodingResult.isOk()) {
+		const errMsg = `Incorrect implementation, failed to Bech32 encode validator pubkey, underlying error: ${msgFromError(
+			encodingResult.error,
+		)}, but expect to always be able to.`
+		console.log(errMsg)
+		throw new Error(errMsg)
+	}
+	const encoded = encodingResult.value
+	const toString = (): string => encoded.toString()
 	return {
-		__isValidatorAddressWitness: validatedValidatorAddress,
 		toString,
+		publicKey,
 		equals: (other: ValidatorAddressT): boolean => {
 			if (!isValidatorAddress(other)) {
 				return false
 			}
-			return other.toString() === toString()
+			return other.publicKey.equals(publicKey)
 		},
 	}
+}
+
+type ValidatorAddressInput = string
+const fromString = (
+	bechString: ValidatorAddressInput,
+): Result<ValidatorAddressT, Error> => {
+	return Bech32.decode({ bechString, encoding, maxLength })
+		.andThen((decoded) =>
+			publicKeyFromBytes(Bech32.convertDataFromBech32(decoded.data)),
+		)
+		.map(fromPublicKey)
+		.map((va) => {
+			if (va.toString().toLowerCase() !== bechString.toLowerCase()) {
+				const errMsg = `Incorrect implementation, ValidatorAddress mismatch, passed in: ${bechString.toLowerCase()}, created: ${va
+					.toString()
+					.toLowerCase()}`
+				log.error(errMsg)
+				throw new Error(errMsg)
+			}
+			return va
+		})
 }
 
 export type ValidatorAddressUnsafeInput = string
@@ -47,25 +84,12 @@ export const isValidatorAddressOrUnsafeInput = (
 ): something is ValidatorAddressOrUnsafeInput =>
 	isValidatorAddress(something) || isValidatorAddressUnsafeInput(something)
 
-const validateAddressInput = (
-	input: ValidatorAddressInput,
-): Result<ValidationWitness, Error> => {
-	const completelyArbitrarilyChosenMinLength = 3
-	if (input.length < completelyArbitrarilyChosenMinLength) {
-		const errMsg = `Validator address must not be shorter than ${completelyArbitrarilyChosenMinLength}`
-		log.error(errMsg)
-		return err(new Error(errMsg))
-	}
-	return ok({ witness: 'Validator address input is ok.' })
-}
-
 const fromUnsafe = (
 	input: ValidatorAddressOrUnsafeInput,
 ): Result<ValidatorAddressT, Error> =>
-	isValidatorAddress(input)
-		? ok(input)
-		: validateAddressInput(input).map((_) => create(input))
+	isValidatorAddress(input) ? ok(input) : fromString(input)
 
 export const ValidatorAddress = {
 	fromUnsafe,
+	fromPublicKey,
 }

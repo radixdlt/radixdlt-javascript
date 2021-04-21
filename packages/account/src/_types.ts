@@ -20,7 +20,7 @@ export type AddressT = Readonly<{
 }>
 
 export type ValidatorAddressT = Readonly<{
-	__isValidatorAddressWitness: string
+	publicKey: PublicKey
 	toString: () => string
 	equals: (other: ValidatorAddressT) => boolean
 }>

@@ -24,14 +24,15 @@ import { IntendedStakeTokensAction } from '../src/actions/_types'
 import { map, mergeMap, take, toArray } from 'rxjs/operators'
 import { restoreDefaultLogLevel, setLogLevel } from '@radixdlt/util'
 
-const validatorCarol: ValidatorAddressT = ValidatorAddress.fromUnsafe(
-	'validator_carol',
-)._unsafeUnwrap()
-const validatorDan: ValidatorAddressT = ValidatorAddress.fromUnsafe(
-	'validator_dan',
-)._unsafeUnwrap()
-
 describe('tx intent builder', () => {
+	const validatorCarol: ValidatorAddressT = ValidatorAddress.fromUnsafe(
+		'vb1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtes8rfsld',
+	)._unsafeUnwrap()
+
+	const validatorDan: ValidatorAddressT = ValidatorAddress.fromUnsafe(
+		'vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazy',
+	)._unsafeUnwrap()
+
 	const one = Amount.fromUnsafe(1)._unsafeUnwrap()
 	const xrdRRI = xrd.rri
 
@@ -127,7 +128,7 @@ describe('tx intent builder', () => {
 			amount: 1,
 			to: bob.toString(),
 			tokenIdentifier:
-				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD',
+				'xrd_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtesv2yq5l',
 		})
 
 		validateOneToBob(builder)
@@ -135,7 +136,8 @@ describe('tx intent builder', () => {
 
 	it('can stake from unsafe inputs', () => {
 		const builder = TransactionIntentBuilder.create().stakeTokens({
-			validator: '9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
+			validator:
+				'vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazy',
 			amount: 1234567890,
 		})
 

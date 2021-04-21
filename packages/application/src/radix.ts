@@ -139,19 +139,16 @@ const create = (): RadixT => {
 		pickFn: (api: RadixCoreAPI) => (...input: I) => Observable<O>,
 		errorFn: (message: string | Error[]) => ErrorNotification,
 	) => (...input: I) =>
-			coreAPI$.pipe(
-				mergeMap((a) => pickFn(a)(...input)),
+		coreAPI$.pipe(
+			mergeMap((a) => pickFn(a)(...input)),
 
-				// We do NOT omit/supress error, we merely DECORATE the error
-				catchError((errors: unknown) => {
-					console.error('🚗: ', (errors as any).message)
-					const errorsToPropagate: unknown[] = isArray(errors)
-						? errors
-						: [errors]
-
-					throw errorFn(errorsToPropagate as Error[])
-				}),
-			)
+			// We do NOT omit/supress error, we merely DECORATE the error
+			catchError((errors: unknown) => {
+				const underlyingError = msgFromError(errors)
+				console.error(`🚗: ${underlyingError}`)
+				throw errorFn(underlyingError)
+			}),
+		)
 
 	const networkId: () => Observable<Magic> = fwdAPICall(
 		(a) => a.networkId,
@@ -702,12 +699,13 @@ const create = (): RadixT => {
 			.add(subs)
 
 		transactionCompletedWithStatusFailed$
-			.subscribe(status => {
+			.subscribe((status) => {
 				const errMsg = `API status of tx with id=${status.txID.toString()} returned 'FAILED'`
 				txLog.error(errMsg)
 				trackError({
 					error: new Error(errMsg),
-					inStep: TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
+					inStep:
+						TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
 				})
 			})
 			.add(subs)
