@@ -17,7 +17,7 @@ describe('TransferTokensActions', () => {
 	const resourceIdentifier = ResourceIdentifier.create({
 		hash: alice.publicKey.asData({ compressed: true }),
 		name: 'FOOBAR',
-	})
+	})._unsafeUnwrap()
 	const amount = Amount.fromUnsafe(6, Denomination.Atto)._unsafeUnwrap()
 
 	const input = <TransferTokensInput>{

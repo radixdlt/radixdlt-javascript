@@ -10,10 +10,10 @@ describe('ResourceIdentifier (RRI)', () => {
 		const rri = ResourceIdentifier.create({
 			hash: address.publicKey.asData({ compressed: true }),
 			name: name,
-		})
+		})._unsafeUnwrap()
 
 		const rriString =
-			'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/FOOBAR'
+			'foobar_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqteshmvuln'
 
 		expect(rri.toString()).toBe(rriString)
 
@@ -21,13 +21,13 @@ describe('ResourceIdentifier (RRI)', () => {
 			rriString,
 		)._unsafeUnwrap()
 
-		expect(rriFromString.toString()).toBe('apa')
+		expect(rriFromString.toString()).toBe('foobar_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqteshmvuln')
 	})
 
 	it('legacy rri works', () => {
 		const rri = ResourceIdentifier.fromString(
 			'/9S8LZFHXHTSJqNQ86ZeGKtFMJtqZbYPtgHWSC4LyYjSbduNRpDNN/ALEX',
 		)._unsafeUnwrap()
-		expect(rri).toBeDefined()
+		expect(rri.toString()).toBe('alex_rr1qfpwaflah2809h2rk834nepjeuduen6tgzlaleg4nlu2sx078rpzy8au6an')
 	})
 })

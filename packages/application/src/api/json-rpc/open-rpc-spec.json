@@ -40,7 +40,7 @@
                         "name": "nativeTokenExample",
                         "value": {
                             "name": "Rad",
-                            "rri": "/xrd_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtesv2yq5l",
+                            "rri": "xrd_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtesv2yq5l",
                             "symbol": "XRD",
                             "description": "The native token of the Radix network",
                             "granularity": "1",
