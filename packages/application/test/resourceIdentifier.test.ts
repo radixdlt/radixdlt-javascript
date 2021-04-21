@@ -1,7 +1,7 @@
 import { Address } from '@radixdlt/account'
 import { ResourceIdentifier } from '../src/dto/resourceIdentifier'
 import { Result } from 'neverthrow'
-import { ResourceIdentifierT } from '../dist'
+import { ResourceIdentifierT } from '..'
 
 describe('ResourceIdentifier (RRI)', () => {
 	it('can be created from address+name AND from id-string', () => {

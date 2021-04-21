@@ -64,7 +64,7 @@ import {
 	ExecutedUnstakeTokensAction,
 	IntendedAction,
 	TransactionIntent,
-} from '../dist'
+} from '..'
 import {
 	isIntendedStakeTokensAction,
 	isIntendedTransferTokensAction,
