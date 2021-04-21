@@ -121,7 +121,7 @@ const __unsafeCreateWithPrivateKeyProvider = (
 		accounts.set(newAccount.hdPath, newAccount)
 		accountsSubject.next(accounts)
 
-		if (input.alsoSwitchTo === true) {
+		if (alsoSwitchTo) {
 			activeAccountSubject.next(newAccount)
 		}
 		return newAccount
