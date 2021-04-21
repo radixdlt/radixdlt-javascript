@@ -184,7 +184,6 @@ describe('integration API tests', () => {
 
 		radix.activeAddress.subscribe(async (address) => {
 			console.log('address', address.toString())
-			await requestFaucet(address.toString())
 
 			radix.tokenBalances
 				.subscribe((balance) => {
@@ -356,7 +355,6 @@ describe('integration API tests', () => {
 			})
 			.subscribe((intent) => {
 				radix.activeAddress.subscribe(async (address) => {
-					await requestFaucet(address.toString())
 					radix.ledger
 						.buildTransaction(intent)
 						.subscribe((unsignedTx) => {
