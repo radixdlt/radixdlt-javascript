@@ -3,10 +3,12 @@ import { log, msgFromError } from '@radixdlt/util'
 import { err, ok, Result } from 'neverthrow'
 import { Bech32T } from './_types'
 
-export const encbech32 = 'bech32' as const
-export const encbech32m = 'bech32m' as const
-export const defaultEncoding: Encoding = encbech32
-export type Encoding = typeof encbech32 | typeof encbech32m
+export enum Encoding {
+	BECH32 = 'bech32',
+	BECH32m = 'bech32m',
+}
+
+export const defaultEncoding = Encoding.BECH32
 
 export type HRP = string
 export type Data = Buffer
@@ -42,7 +44,7 @@ const encode = (input: Bech32EncodeInput): Result<Bech32T, Error> => {
 	const { hrp, data, maxLength } = input
 	const encoding = input.encoding ?? defaultEncoding
 
-	const impl: BechLib = encoding === encbech32 ? bech32 : bech32m
+	const impl: BechLib = encoding === Encoding.BECH32 ? bech32 : bech32m
 
 	try {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
@@ -71,7 +73,7 @@ const decode = (input: Bech32DecodeInput): Result<Bech32T, Error> => {
 	const { bechString, maxLength } = input
 	const encoding = input.encoding ?? defaultEncoding
 
-	const impl: BechLib = encoding === encbech32 ? bech32 : bech32m
+	const impl: BechLib = encoding === Encoding.BECH32 ? bech32 : bech32m
 
 	try {
 		const decoded: Decoded = impl.decode(bechString, maxLength)

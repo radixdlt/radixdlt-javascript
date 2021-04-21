@@ -1,9 +1,9 @@
 import { err, ok, Result } from 'neverthrow'
 import { ResourceIdentifierT } from './_types'
 import { buffersEquals, msgFromError } from '@radixdlt/util'
-import { Address, Bech32, encbech32, Encoding } from '@radixdlt/account'
+import { Address, Bech32, Encoding } from '@radixdlt/account'
 
-const encoding: Encoding = encbech32
+const encoding = Encoding.BECH32
 const maxLength: number | undefined = undefined // arbitrarily chosen
 
 const hrpSuffix = '_rr'

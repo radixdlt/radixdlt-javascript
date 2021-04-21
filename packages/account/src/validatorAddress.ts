@@ -1,7 +1,7 @@
 import { ValidatorAddressT } from './_types'
 import { ok, Result } from 'neverthrow'
 import { isPublicKey, PublicKey, publicKeyFromBytes } from '@radixdlt/crypto'
-import { Bech32, encbech32, Encoding } from './bech32'
+import { Bech32, Encoding } from './bech32'
 import { log, msgFromError } from '@radixdlt/util'
 
 export const isValidatorAddress = (
@@ -18,7 +18,7 @@ export const isValidatorAddress = (
 
 const hrp = 'vb'
 const maxLength = 300 // arbitrarily chosen
-const encoding: Encoding = encbech32
+const encoding = Encoding.BECH32
 
 const fromPublicKey = (publicKey: PublicKey): ValidatorAddressT => {
 	const bytes = publicKey.asData({ compressed: true })
