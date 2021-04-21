@@ -30,7 +30,7 @@ describe('tx intent builder', () => {
 	)._unsafeUnwrap()
 
 	const validatorDan: ValidatorAddressT = ValidatorAddress.fromUnsafe(
-		'validator_dan',
+		'vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazy',
 	)._unsafeUnwrap()
 
 	const one = Amount.fromUnsafe(1)._unsafeUnwrap()
@@ -128,7 +128,7 @@ describe('tx intent builder', () => {
 			amount: 1,
 			to: bob.toString(),
 			tokenIdentifier:
-				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD',
+				'xrd_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtesv2yq5l',
 		})
 
 		validateOneToBob(builder)

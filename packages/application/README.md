@@ -16,7 +16,7 @@ const radix = Radix.create()
 				to: bob,
 				amount: 1,
 				tokenIdentifier:
-					'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD',
+					'xrd_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtesv2yq5l',
 			},
 			userConfirmation: 'skip'
 		}
@@ -529,7 +529,7 @@ const radix = Radix.create()
 				to: bob,
 				amount: 1,
 				tokenIdentifier:
-					'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD',
+					'xrd_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtesv2yq5l',
 			},
 			userConfirmation: 'skip'
 		}

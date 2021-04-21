@@ -877,7 +877,7 @@ describe('Radix API', () => {
 		radix.login(keystoreForTest.password, loadKeystore)
 
 		const mockedValidatorAddr = ValidatorAddress.fromUnsafe(
-			'validator_address_mocked',
+			'vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazy',
 		)._unsafeUnwrap()
 
 		radix.__wallet
@@ -1100,7 +1100,7 @@ describe('Radix API', () => {
 			to: recipientAddress,
 			amount: 1,
 			tokenIdentifier:
-				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD',
+				'xrd_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtesv2yq5l',
 		}
 
 		const plaintext = 'Hey Bob, this is Alice.'
@@ -1227,7 +1227,7 @@ describe('Radix API', () => {
 			to: bob,
 			amount: 1,
 			tokenIdentifier:
-				'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD',
+				'xrd_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtesv2yq5l',
 		}
 
 		let pollTXStatusTrigger: Observable<unknown>

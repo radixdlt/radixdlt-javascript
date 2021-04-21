@@ -44,6 +44,16 @@ describe('bech32', () => {
 		)
 	})
 
+	it('can parse validator bech32 string', () => {
+		const validatorString = 'vb1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtes8rfsld'
+		ValidatorAddress.fromUnsafe(validatorString).match(
+			(decoded) => {
+				expect(decoded.publicKey.asData({ compressed: true }).toString('hex')).toBe('0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798')
+			},
+			(error) => { throw error }
+		)
+	})
+
 	it('rri bech32', () => {
 		const doTest = (
 			name: string,
@@ -57,7 +67,7 @@ describe('bech32', () => {
 				)
 				expect(rriToCheck.name).toBe(name)
 			}
-			const rri = ResourceIdentifier.create({ hash, name })
+			const rri = ResourceIdentifier.create({ hash, name })._unsafeUnwrap()
 			doTestRRI(rri)
 			const rriFromString = ResourceIdentifier.fromBech32String(
 				expectedRRI,

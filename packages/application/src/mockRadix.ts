@@ -54,8 +54,8 @@ export const toAddress = (b58: string): AddressT =>
 
 export const xrd: Token = {
 	name: 'Rad',
-	rri: ResourceIdentifier.fromString(
-		'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD',
+	rri: ResourceIdentifier.fromBech32String(
+		'xrd_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtesv2yq5l',
 	)._unsafeUnwrap(),
 	symbol: 'XRD',
 	description: 'The native coin of Radix network',

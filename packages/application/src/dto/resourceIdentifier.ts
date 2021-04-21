@@ -8,10 +8,10 @@ const maxLength: number | undefined = undefined // arbitrarily chosen
 
 const hrpSuffix = '_rr'
 
-const create = (input: { hash: Buffer; name: string }): ResourceIdentifierT => {
+const create = (input: { hash: Buffer; name: string }): Result<ResourceIdentifierT, Error> => {
 	const { hash, name } = input
 
-	const toString = (): string => {
+	const toStringMaybe = (): Result<string, Error> => {
 		const data = hash.length !== 0 ? Bech32.convertDataToBech32(hash) : hash
 		const hrp = `${name}${hrpSuffix}`
 		const bech32Result = Bech32.encode({ hrp, data, encoding, maxLength })
@@ -21,24 +21,31 @@ const create = (input: { hash: Buffer; name: string }): ResourceIdentifierT => {
 				bech32Result.error,
 			)}, but expect to always be able to.`
 			console.log(errMsg)
-			throw new Error(errMsg)
+			return err(new Error(errMsg))
 		}
 
-		return bech32Result.value.toString()
+		return ok(bech32Result.value.toString())
 	}
 
-	return {
+	const bech32StringResult = toStringMaybe()
+	if (!bech32StringResult.isOk()) {
+		return err(bech32StringResult.error)
+	}
+
+	const bech32String = bech32StringResult.value
+
+	return ok({
 		hash,
 		name,
-		toString,
+		toString: () => bech32String,
 		equals: (other): boolean => {
 			if (!isResourceIdentifier(other)) return false
 			return other.name === name && buffersEquals(other.hash, hash)
 		},
-	}
+	})
 }
 
-const systemRRI = (name: string): ResourceIdentifierT =>
+const systemRRI = (name: string): Result<ResourceIdentifierT, Error> =>
 	create({ hash: Buffer.alloc(0), name })
 
 const fromSpecString = (
@@ -56,13 +63,13 @@ const fromSpecString = (
 	const regExp = new RegExp(regExpStr)
 	if (!regExp.test(name)) {
 		const errMsg = `RRI name is invalid, got ${name}, which does not match regexp: ${regExpStr}`
-		console.log(errMsg)
+		// console.log(errMsg)
 		throw new Error(errMsg)
 	}
 	if (components[1].length === 0) {
-		return ok(systemRRI(name))
+		return systemRRI(name)
 	} else {
-		return Address.fromBase58String(components[1]).map((a) =>
+		return Address.fromBase58String(components[1]).andThen((a) =>
 			create({ hash: a.publicKey.asData({ compressed: true }), name }),
 		)
 	}
@@ -76,7 +83,7 @@ const fromBech32String = (
 		const errMsg = `Failed to Bech32 decode RRI, underlying error: ${msgFromError(
 			decodingResult.error,
 		)}, but expect to always be able to.`
-		console.log(errMsg)
+		// console.log(errMsg)
 		return err(new Error(errMsg))
 	}
 	const d = decodingResult.value
@@ -90,19 +97,19 @@ const fromBech32String = (
 			const errMsg = `Failed to convert data from bech32 data, underlying error: ${underlyingErrorMsg}, hash: '${hash.toString(
 				'hex',
 			)}'`
-			console.log(errMsg)
+			// console.log(errMsg)
 			return err(new Error(errMsg))
 		}
 	}
 	if (!hrp.endsWith(hrpSuffix)) {
 		const errMsg = `The prefix (HRP: Human Readable Part) of a Resource identifier must end with suffix ${hrpSuffix}`
-		console.log(errMsg)
+		// console.log(errMsg)
 		return err(new Error(errMsg))
 	}
 
 	const name = hrp.slice(0, hrp.length - 3)
 
-	return ok(create({ hash, name }))
+	return create({ hash, name })
 }
 
 export const isResourceIdentifier = (
@@ -133,10 +140,10 @@ export const isResourceIdentifierOrUnsafeInput = (
 	isResourceIdentifierUnsafeInput(something)
 
 const fromString = (string: string): Result<ResourceIdentifierT, Error> => {
-	const bechStringResult = fromBech32String(string)
-	if (bechStringResult.isOk()) return ok(bechStringResult.value)
+	const legacyResult = fromSpecString(string)
+	if (legacyResult.isOk()) return ok(legacyResult.value)
 
-	return fromSpecString(string)
+	return fromBech32String(string)
 }
 
 const fromUnsafe = (

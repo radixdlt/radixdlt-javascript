@@ -30,16 +30,4 @@ describe('ResourceIdentifier (RRI)', () => {
 		)._unsafeUnwrap()
 		expect(rri).toBeDefined()
 	})
-
-	it('should consider two RRIs with same address and name letters but different case as inequal', () => {
-		const rriLowercase = ResourceIdentifier.fromString(
-			'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/case',
-		)._unsafeUnwrap()
-
-		const rriUppercase = ResourceIdentifier.fromString(
-			'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/CASE',
-		)._unsafeUnwrap()
-
-		expect(rriLowercase.equals(rriUppercase)).toBe(false)
-	})
 })
