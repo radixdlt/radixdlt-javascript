@@ -105,7 +105,7 @@ const executedTXDecoders = JSONDecoding.withDecoders(
 	addressDecoder('from', 'to'),
 	validatorAddressDecoder('validator'),
 	transactionIdentifierDecoder('txID'),
-	transactionIdentifierDecoder('txId'), // temp
+	transactionIdentifierDecoder('txId'), // TODO remove
 	RRIDecoder('rri'),
 )
 
