@@ -1,6 +1,8 @@
 /**
  * @group integration
  */
+
+/* eslint-disable */
 import { Radix } from '../../src/radix'
 import { Address, ValidatorAddress } from '@radixdlt/account'
 import {
@@ -31,17 +33,16 @@ const NODE_URL = 'https://54.73.253.49'
 const requestFaucet = async (address: string) => {
 	let request = {
 		params: {
-			address
-		}
+			address,
+		},
 	}
 
 	await fetch(`${NODE_URL}/faucet/request`, {
 		method: 'POST',
 		body: JSON.stringify(request),
-		headers: { 'Content-Type': 'application/json' }
+		headers: { 'Content-Type': 'application/json' },
 	})
 }
-
 
 const dummyNode = (urlString: string): Observable<NodeT> =>
 	of({
@@ -182,7 +183,7 @@ describe('integration API tests', () => {
 
 		radix.withTokenBalanceFetchTrigger(interval(300))
 
-		radix.activeAddress.subscribe(async address => {
+		radix.activeAddress.subscribe(async (address) => {
 			console.log('address', address.toString())
 			await requestFaucet(address.toString())
 
@@ -193,8 +194,6 @@ describe('integration API tests', () => {
 				})
 				.add(subs)
 		})
-
-
 	})
 
 	it('API returns different but deterministic transaction history per account', (done) => {
@@ -226,7 +225,7 @@ describe('integration API tests', () => {
 			TransactionStatus.CONFIRMED,
 		]
 
-		radix.activeAddress.subscribe(async address => {
+		radix.activeAddress.subscribe(async (address) => {
 			await requestFaucet(address.toString())
 
 			const txTracking = radix.transferTokens({
@@ -241,7 +240,8 @@ describe('integration API tests', () => {
 
 			txTracking.events.subscribe((event) => {
 				if (
-					event.eventUpdateType === TransactionTrackingEventType.SUBMITTED
+					event.eventUpdateType ===
+					TransactionTrackingEventType.SUBMITTED
 				) {
 					const txID: TransactionIdentifierT = (event as any)
 						.transactionState.txID
@@ -345,10 +345,12 @@ describe('integration API tests', () => {
 				to: bob,
 				tokenIdentifier: '//XRD',
 				amount: 1,
-			}).build({
-				spendingSender: radix.activeAddress
-			}).subscribe(intent => {
-				radix.activeAddress.subscribe(async address => {
+			})
+			.build({
+				spendingSender: radix.activeAddress,
+			})
+			.subscribe((intent) => {
+				radix.activeAddress.subscribe(async (address) => {
 					await requestFaucet(address.toString())
 					radix.ledger
 						.buildTransaction(intent)
@@ -402,9 +404,7 @@ describe('integration API tests', () => {
 
 		radix.stakingPositions
 			.pipe(
-				map((sp) =>
-					sp.map((p) => p.amount.magnitude.valueOf() % 100),
-				),
+				map((sp) => sp.map((p) => p.amount.magnitude.valueOf() % 100)),
 				toArray(),
 			)
 			.subscribe((values) => {
@@ -443,8 +443,7 @@ describe('integration API tests', () => {
 		const tokenTransferInput: TransferTokensInput = {
 			to: bob,
 			amount: 1,
-			tokenIdentifier:
-				'//XRD',
+			tokenIdentifier: '//XRD',
 		}
 
 		let pollTXStatusTrigger: Observable<unknown>

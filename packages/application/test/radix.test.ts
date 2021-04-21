@@ -44,7 +44,6 @@ import {
 } from '../src/dto/_types'
 import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
 import { AmountT, Magic, magicFromNumber, one } from '@radixdlt/primitives'
-import { signatureFromHexStrings } from '@radixdlt/crypto/test/ellipticCurveCryptography.test'
 import { TransactionIntentBuilder } from '../src/dto/transactionIntentBuilder'
 import { TransactionTrackingEventType } from '../src/dto/_types'
 import { TransferTokensInput } from '../src/actions/_types'
@@ -64,7 +63,8 @@ import {
 	isIntendedTransferTokensAction,
 	isIntendedUnstakeTokensAction,
 } from '../dist/dto/transactionIntentBuilder'
-import { makeWalletWithFunds } from '../../account/test/wallet.test'
+import { signatureFromHexStrings } from '@radixdlt/crypto/test/utils'
+import { makeWalletWithFunds } from '@radixdlt/account/test/utils'
 
 const mockTransformIntentToExecutedTX = (
 	txIntent: TransactionIntent,
