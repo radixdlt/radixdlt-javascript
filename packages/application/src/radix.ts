@@ -105,6 +105,7 @@ import {
 	singleRecipientFromActions,
 	TransactionIntentBuilder,
 } from './dto/transactionIntentBuilder'
+import { add } from 'ramda'
 
 const shouldConfirmTransactionAutomatically = (
 	confirmationScheme: TransactionConfirmationBeforeFinalization,
@@ -138,19 +139,19 @@ const create = (): RadixT => {
 		pickFn: (api: RadixCoreAPI) => (...input: I) => Observable<O>,
 		errorFn: (message: string | Error[]) => ErrorNotification,
 	) => (...input: I) =>
-		coreAPI$.pipe(
-			mergeMap((a) => pickFn(a)(...input)),
+			coreAPI$.pipe(
+				mergeMap((a) => pickFn(a)(...input)),
 
-			// We do NOT omit/supress error, we merely DECORATE the error
-			catchError((errors: unknown) => {
-				console.error('🚗: ', (errors as any).message)
-				const errorsToPropagate: unknown[] = isArray(errors)
-					? errors
-					: [errors]
+				// We do NOT omit/supress error, we merely DECORATE the error
+				catchError((errors: unknown) => {
+					console.error('🚗: ', (errors as any).message)
+					const errorsToPropagate: unknown[] = isArray(errors)
+						? errors
+						: [errors]
 
-				throw errorFn(errorsToPropagate as Error[])
-			}),
-		)
+					throw errorFn(errorsToPropagate as Error[])
+				}),
+			)
 
 	const networkId: () => Observable<Magic> = fwdAPICall(
 		(a) => a.networkId,
@@ -655,6 +656,11 @@ const create = (): RadixT => {
 			take(1),
 		)
 
+		const transactionCompletedWithStatusFailed$ = transactionStatus$.pipe(
+			skipWhile(({ status }) => status !== TransactionStatus.FAILED),
+			take(1),
+		)
+
 		transactionStatus$
 			.subscribe({
 				next: (statusOfTransaction) => {
@@ -692,6 +698,17 @@ const create = (): RadixT => {
 					completionSubject.next(txID)
 					completionSubject.complete()
 				},
+			})
+			.add(subs)
+
+		transactionCompletedWithStatusFailed$
+			.subscribe(status => {
+				const errMsg = `API status of tx with id=${status.txID.toString()} returned 'FAILED'`
+				txLog.error(errMsg)
+				trackError({
+					error: new Error(errMsg),
+					inStep: TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
+				})
 			})
 			.add(subs)
 
