@@ -356,14 +356,67 @@ const detPRNGWithBuffer = (buffer: Buffer): (() => number) => {
 	}
 }
 
+const makeListOfValidatorAddresses = (): ValidatorAddressT[] => {
+	const stringAddresses = [
+		'vb1qgfqnj34dn7qp9wvf4l6rhw6hu3l82rcqh3rjtk080t75t888u98wkh3gjq',
+		'vb1q2hjzctnunty0g2e39qpg7mawkmv4k4ep733p7khxdzdjfkmlfhp2phu80q',
+		'vb1qv8yvu0266mj996nqdk5skj7r88udjx4wpsagg7x64fsggs0s9hz5f8wtld',
+		'vb1qgppq78aq420903ndag4un4mccuskzl0fmv7nx5xpnrjq43ry6rtw26mqek',
+		'vb1qdyekkzm7n5h4yppdaw9hl3rzjc29vtul4ptm0agskjw5esuqy77usz5vm2',
+		'vb1q2p582qlnwjq42d8xrxqdah2kutds0f3tyfnnkqanjyyn742rzl35t7wy52',
+		'vb1qw59u3e0l5zh52rlnuf3gdche8rtaclq75u03lr6rga6hyrxfytngr64v62',
+		'vb1q0qdqu93fj35qvdtfz96wetce04x4q84qk6v5p06nz9axah294rfzc9xqsu',
+		'vb1q2j4298q80yxs4nnx7uc6ats3jmtmpxc2d8ae3n6rhkeakd2chrgzt6dje8',
+		'vb1qw2kkxsp2uga40hmfr405s4khx2k0etw4vttlvhaqa0vqaragvaegmeu7ml',
+		'vb1qvzzmu6c23hsa286ujmlydzclzpq9uuxm0qevf4yzr0xgu3cc5q86zjt4rw',
+		'vb1qfdvz6frcf65y2x7xtdsw2865atjzn8phgf3f05mdsxcx2zkryv6v42ya23',
+		'vb1q2y8deq8tqn5en37jcaxfyap4e20je448v87yttuzzvlztcylud46s2zhs9',
+		'vb1q2hs5wdeaq7sf6u6s7d7fchnlp8wmgm4ns7mzqyje58dlmt3mvyfkq73y9h',
+		'vb1qtqhujwqnly3xnkr8pjgmlupnnswwuxpc982enzwqcf7l9c06ghqy2veqmp',
+		'vb1q2wqas50dev0w78tzh06pghkvmjcakqhlwru6stawjwcvf20t8srymp07e7',
+		'vb1qwqsxvvd0djcvnnfkxu3p0jdq0wejvd3ndz56ucr0j69ahqj0gjlv2x7zc9',
+		'vb1qdwz0sgu94n6dpmltg3fye6gmldg8zd8u4rmwzp7f7sce3qzu2k769ff3f2',
+		'vb1qdpmnqtzkuqp857j9h65mh3zr8cwjwhtezas69featrqt72z0mfysrn6w4q',
+		'vb1qw7cg95sjccyjrc9hsm0hp6nmxxxqffcqyk98q9yvfg8kqdjav4kquahme3',
+		'vb1q2u3asfddcyhqu5r444rmk6u2v4nzrx8urqa8rpnkg68krulwqyd5mpd4t7',
+		'vb1qfd68uzg9pnxuvps75ps2739ay3g6ljjygvnjq5gz5e48x3z9f5ekum9ete',
+		'vb1q222920dw34vmm7z2je3l7z2npdfujrd2zzf3aplzmwsqfsasrth5xwadth',
+		'vb1qdy58u6hec2dfcjl6u8e9pnz07dtzpxym58rw8a4sa2c30mxxlyvwy8rp4t',
+		'vb1q2dv2vts2xgtcm0rqakpjv7sztxk2q0tmwqt54h434da0fuv9yg5v4w2yu8',
+		'vb1qtgu78y7cq04m3r82kzyfwr8669ax62wg0n0ddj62tvnfklms7flxtlvxqy',
+		'vb1qthrved6r0s2609k6lw55n8yl7vq709zx72uunawuy96le6z5xxxx94kt0c',
+		'vb1qvvjydy0gqt9wu32h8drm2ly4sjtcav0tt9nhnwvyjhgwtekmp37w06tegw',
+		'vb1qtjskjnzmdaa4k7s209l530cuc2smwpdt7ndf9dalueard3p90gpxjmyqen',
+		'vb1qtqtksw26jcqqzqaa59955jhxn4asw7hlzl92q66fj7fr0tf8sq85327ull',
+		'vb1q0yjnqs8adkqk3w2zzvqpq8qc2ejvz8tsxh9vejvg3d3np26atk25w24qdm',
+		'vb1qf8660tsghyxu5p9sfyul9urvemag8laktknxu3lyrqld566gh02ghrsdum',
+		'vb1q0w8dh43evpkw29t24aj98akzl6qeq3za7rx568grvz3kw0nchh520tyznw',
+		'vb1q20g62apnpwvz3cf86v5adc5ukvkm8x5qaf4wc04wjxhwpddruu7609wrs4',
+		'vb1qw2dwpmw8vg5qzg5m0htkl7gfjrc630xn4cuwn65n29k58skjl9hx8uqw3a',
+		'vb1qfcsanpjz4rs9kefaj2dzrrrt97l0lddxek2yp6nnu56sljuwgdpujwtadd',
+		'vb1q0l89534zvsddk0ww92963hgnjzx5h4lse2mx5q09psc96c4gga62uzlwwk',
+		'vb1qwseqk8cpcprf6g39uw7xjns5kua46hy4w0ekxa0tn99dmc4uu7wg5dc0mc',
+		'vb1qdspy3d6n54yg7jth6fg696zpkftnsz6vs6tn533glf4gz4kardrsa0e9gj',
+		'vb1qd7zm8a7jcya5qgua6nwphe64338rrk9vzhgg6ddkcsq0r40emjmqm5ynd3',
+		'vb1q0jqfcyyxf4a6jl00v27r4hwhcrerq7qnx93p8fglqgfsf5ykt30qgthv6t',
+		'vb1qv9yf9emtcfwvdmms0zwxjjkevr3dawmwlvnhld2346ylr3g8ldmzx56a70',
+		'vb1qg9l7vdfx430n2p0qktuxh8nv4anhvhjlqzd8yecn6krnx7jqqq7jyv2vjz',
+	]
+
+	return stringAddresses.map((s) =>
+		ValidatorAddress.fromUnsafe(s)._unsafeUnwrap({ withStackTrace: true }),
+	)
+}
+
+const listOfValidatorAddresses: ValidatorAddressT[] = makeListOfValidatorAddresses()
+
 const detRandomValidatorAddressWithPRNG = (
 	anInt: () => number,
-) => (): ValidatorAddressT =>
-	ValidatorAddress.fromPublicKey(
-		privateKeyFromHex(sha256(anInt().toString()).toString('hex'))
-			._unsafeUnwrap()
-			.publicKey(),
-	)
+) => (): ValidatorAddressT => {
+	const randomInt = anInt()
+	const index = randomInt % (listOfValidatorAddresses.length - 1)
+	return listOfValidatorAddresses[index]
+}
 
 const randomValidatorList = (
 	size: number,

@@ -1,3 +1,5 @@
+import { isArray } from '../src'
+
 type MessageOwner = {
 	message: string
 }
@@ -65,6 +67,7 @@ const isNestedErrorOwner = (
 		isErrorCodeOwner(err)
 	)
 }
+
 export const msgFromError = (e: unknown, dumpJSON: boolean = true): string => {
 	if (isNonEmptyString(e)) return e as string
 	if (isMessageOwner(e)) return e.message
@@ -74,6 +77,9 @@ export const msgFromError = (e: unknown, dumpJSON: boolean = true): string => {
 	if (isNestedErrorOwner(e)) {
 		const inner = e.error
 		return msgFromError(inner)
+	}
+	if (isArray(e)) {
+		return e.map((inner) => msgFromError(inner)).join(`, `)
 	} else {
 		if (dumpJSON) {
 			const dump = JSON.stringify(e, null, 4)
