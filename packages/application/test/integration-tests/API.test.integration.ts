@@ -19,7 +19,6 @@ import { alice, bob } from '../../src/mockRadix'
 import { NodeT } from '../../src/api/_types'
 import { TransactionIdentifierT, TransactionStatus } from '../../src/dto/_types'
 import { AmountT } from '@radixdlt/primitives'
-import { signatureFromHexStrings } from '@radixdlt/crypto/test/utils'
 import { TransactionIntentBuilder } from '../../src/dto/transactionIntentBuilder'
 import { TransactionTrackingEventType } from '../../src/dto/_types'
 import { TransferTokensInput } from '../../src/actions/_types'
@@ -185,7 +184,6 @@ describe('integration API tests', () => {
 
 		radix.activeAddress.subscribe(async (address) => {
 			console.log('address', address.toString())
-			await requestFaucet(address.toString())
 
 			radix.tokenBalances
 				.subscribe((balance) => {
@@ -226,7 +224,7 @@ describe('integration API tests', () => {
 		]
 
 		radix.activeAddress.subscribe(async (address) => {
-			await requestFaucet(address.toString())
+			//await requestFaucet(address.toString())
 
 			const txTracking = radix.transferTokens({
 				transferInput: {
@@ -247,10 +245,14 @@ describe('integration API tests', () => {
 						.transactionState.txID
 
 					radix
-						.transactionStatus(txID, interval(10))
-						.subscribe((status) => {
-							console.log(status)
-							//expect(values).toStrictEqual(expectedValues)
+						.transactionStatus(txID, interval(300))
+						.pipe(
+							map(({ status }) => status),
+							take(expectedValues.length),
+							toArray(),
+						)
+						.subscribe((values) => {
+							expect(values).toStrictEqual(expectedValues)
 							done()
 						})
 						.add(subs)
@@ -259,7 +261,7 @@ describe('integration API tests', () => {
 		})
 	})
 
-	it.only('can lookup tx', async (done) => {
+	it('can lookup tx', async (done) => {
 		const radix = Radix.create()
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
@@ -271,7 +273,7 @@ describe('integration API tests', () => {
 				tokenIdentifier: `//XRD`,
 			},
 			userConfirmation: 'skip',
-			pollTXStatusTrigger: timer(1000),
+			pollTXStatusTrigger: timer(500),
 		})
 
 		txTracking.events.subscribe((event) => {
@@ -281,11 +283,13 @@ describe('integration API tests', () => {
 				const txID: TransactionIdentifierT = (event as any)
 					.transactionState.txID
 
-				radix.ledger.lookupTransaction(txID).subscribe((tx) => {
-					expect(tx.txID.equals(txID)).toBe(true)
-					expect(tx.actions.length).toBeGreaterThan(0)
-					done()
-				})
+				setTimeout(() => {
+					radix.ledger.lookupTransaction(txID).subscribe((tx) => {
+						expect((tx as any).txId.equals(txID)).toBe(true)
+						expect(tx.actions.length).toBeGreaterThan(0)
+						done()
+					})
+				}, 1000)
 			}
 		})
 	})
@@ -351,7 +355,6 @@ describe('integration API tests', () => {
 			})
 			.subscribe((intent) => {
 				radix.activeAddress.subscribe(async (address) => {
-					await requestFaucet(address.toString())
 					radix.ledger
 						.buildTransaction(intent)
 						.subscribe((unsignedTx) => {
@@ -458,7 +461,7 @@ describe('integration API tests', () => {
 
 		beforeEach(() => {
 			subs = new Subscription()
-			pollTXStatusTrigger = interval(50)
+			pollTXStatusTrigger = interval(500)
 		})
 
 		afterEach(() => {
@@ -587,7 +590,8 @@ describe('integration API tests', () => {
 				.add(subs)
 		})
 
-		it('should be able to call stake tokens', (done) => {
+		it.skip('should be able to call stake tokens', (done) => {
+			// not implemented in core
 			const radix = Radix.create()
 				.withWallet(makeWalletWithFunds())
 				.connect(`${NODE_URL}/rpc`)
@@ -617,7 +621,8 @@ describe('integration API tests', () => {
 				.add(subs)
 		})
 
-		it('should be able to call unstake tokens', (done) => {
+		it.skip('should be able to call unstake tokens', (done) => {
+			// not implemented in core
 			const radix = Radix.create()
 				.withWallet(makeWalletWithFunds())
 				.connect(`${NODE_URL}/rpc`)
