@@ -15,6 +15,7 @@ import {
 	filter,
 	map,
 	mergeMap,
+	share,
 	shareReplay,
 	skipWhile,
 	switchMap,
@@ -34,6 +35,7 @@ import {
 	Subject,
 	Subscription,
 	throwError,
+	timer,
 } from 'rxjs'
 import { radixCoreAPI } from './api/radixCoreAPI'
 import { Magic } from '@radixdlt/primitives'
@@ -136,19 +138,19 @@ const create = (): RadixT => {
 		pickFn: (api: RadixCoreAPI) => (...input: I) => Observable<O>,
 		errorFn: (message: string | Error[]) => ErrorNotification,
 	) => (...input: I) =>
-		coreAPI$.pipe(
-			mergeMap((a) => pickFn(a)(...input)),
+			coreAPI$.pipe(
+				mergeMap((a) => pickFn(a)(...input)),
 
-			// We do NOT omit/supress error, we merely DECORATE the error
-			catchError((errors: unknown) => {
-				console.error('🚗: ', (errors as any).message)
-				const errorsToPropagate: unknown[] = isArray(errors)
-					? errors
-					: [errors]
+				// We do NOT omit/supress error, we merely DECORATE the error
+				catchError((errors: unknown) => {
+					console.error('🚗: ', (errors as any).message)
+					const errorsToPropagate: unknown[] = isArray(errors)
+						? errors
+						: [errors]
 
-				throw errorFn(errorsToPropagate as Error[])
-			}),
-		)
+					throw errorFn(errorsToPropagate as Error[])
+				}),
+			)
 
 	const networkId: () => Observable<Magic> = fwdAPICall(
 		(a) => a.networkId,
@@ -633,7 +635,7 @@ const create = (): RadixT => {
 			.add(subs)
 
 		const pollTxStatusTrigger =
-			options.pollTXStatusTrigger ?? interval(5 * 1_000) // every 5 seconds
+			(options.pollTXStatusTrigger ?? timer(1_000)).pipe(share())
 
 		const transactionStatus$ = pollTxStatusTrigger.pipe(
 			withLatestFrom(pendingTXSubject),
@@ -643,14 +645,12 @@ const create = (): RadixT => {
 				)
 				return api.transactionStatus(pendingTx.txID)
 			}),
-			takeWhile(
-				({ status }) => status === TransactionStatus.PENDING,
-				true,
-			),
+			distinctUntilChanged((prev, cur) => prev.status === cur.status),
+			share()
 		)
 
 		const transactionCompletedWithStatusConfirmed$ = transactionStatus$.pipe(
-			skipWhile(({ status }) => status === TransactionStatus.PENDING),
+			skipWhile(({ status }) => status !== TransactionStatus.CONFIRMED),
 			take(1),
 		)
 
