@@ -285,7 +285,7 @@ describe('integration API tests', () => {
 
 				setTimeout(() => {
 					radix.ledger.lookupTransaction(txID).subscribe((tx) => {
-						expect((tx as any).txId.equals(txID)).toBe(true)
+						expect(txID.equals(txID)).toBe(true)
 						expect(tx.actions.length).toBeGreaterThan(0)
 						done()
 					})
@@ -541,14 +541,12 @@ describe('integration API tests', () => {
 				.withWallet(makeWalletWithFunds())
 				.connect(`${NODE_URL}/rpc`)
 
-			// Store these values in a way that vue can read and write to it
 			//@ts-ignore
 			let transaction
 			//@ts-ignore
 			let userHasBeenAskedToConfirmTX
 
 			const confirmTransaction = () => {
-				// Check that pin is valid
 				//@ts-ignore
 				transaction.confirm()
 			}
