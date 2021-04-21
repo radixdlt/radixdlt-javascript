@@ -138,19 +138,19 @@ const create = (): RadixT => {
 		pickFn: (api: RadixCoreAPI) => (...input: I) => Observable<O>,
 		errorFn: (message: string | Error[]) => ErrorNotification,
 	) => (...input: I) =>
-			coreAPI$.pipe(
-				mergeMap((a) => pickFn(a)(...input)),
+		coreAPI$.pipe(
+			mergeMap((a) => pickFn(a)(...input)),
 
-				// We do NOT omit/supress error, we merely DECORATE the error
-				catchError((errors: unknown) => {
-					console.error('🚗: ', (errors as any).message)
-					const errorsToPropagate: unknown[] = isArray(errors)
-						? errors
-						: [errors]
+			// We do NOT omit/supress error, we merely DECORATE the error
+			catchError((errors: unknown) => {
+				console.error('🚗: ', (errors as any).message)
+				const errorsToPropagate: unknown[] = isArray(errors)
+					? errors
+					: [errors]
 
-					throw errorFn(errorsToPropagate as Error[])
-				}),
-			)
+				throw errorFn(errorsToPropagate as Error[])
+			}),
+		)
 
 	const networkId: () => Observable<Magic> = fwdAPICall(
 		(a) => a.networkId,
@@ -634,8 +634,9 @@ const create = (): RadixT => {
 			.subscribe()
 			.add(subs)
 
-		const pollTxStatusTrigger =
-			(options.pollTXStatusTrigger ?? timer(1_000)).pipe(share())
+		const pollTxStatusTrigger = (
+			options.pollTXStatusTrigger ?? timer(1_000)
+		).pipe(share())
 
 		const transactionStatus$ = pollTxStatusTrigger.pipe(
 			withLatestFrom(pendingTXSubject),
@@ -646,7 +647,7 @@ const create = (): RadixT => {
 				return api.transactionStatus(pendingTx.txID)
 			}),
 			distinctUntilChanged((prev, cur) => prev.status === cur.status),
-			share()
+			share(),
 		)
 
 		const transactionCompletedWithStatusConfirmed$ = transactionStatus$.pipe(

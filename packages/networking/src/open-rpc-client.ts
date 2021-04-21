@@ -17,7 +17,7 @@ export const RPCClient: Client = (url: URL): Transport => {
 	): Promise<unknown> => {
 		log.info(`Sending RPC request with endpoint ${endpoint}.`)
 		const filteredParams = params.filter((item) => !!item)
-		
+
 		/*
 		console.log(
 			`sending to ${endpoint}: ${JSON.stringify(filteredParams, null, 2)}`,

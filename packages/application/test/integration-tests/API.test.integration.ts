@@ -592,7 +592,8 @@ describe('integration API tests', () => {
 				.add(subs)
 		})
 
-		it.skip('should be able to call stake tokens', (done) => { // not implemented in core
+		it.skip('should be able to call stake tokens', (done) => {
+			// not implemented in core
 			const radix = Radix.create()
 				.withWallet(makeWalletWithFunds())
 				.connect(`${NODE_URL}/rpc`)
@@ -622,7 +623,8 @@ describe('integration API tests', () => {
 				.add(subs)
 		})
 
-		it.skip('should be able to call unstake tokens', (done) => { // not implemented in core
+		it.skip('should be able to call unstake tokens', (done) => {
+			// not implemented in core
 			const radix = Radix.create()
 				.withWallet(makeWalletWithFunds())
 				.connect(`${NODE_URL}/rpc`)
