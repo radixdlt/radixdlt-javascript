@@ -3,6 +3,7 @@ import { AddressT, Address } from '../src'
 
 import { magicFromNumber } from '@radixdlt/primitives'
 import { generatePrivateKey, privateKeyFromScalar } from '@radixdlt/crypto'
+import { log } from '@radixdlt/util'
 
 // TODO CODE DUPLICATION remove to separate test package...
 export const toAddress = (b58: string): AddressT =>
@@ -68,5 +69,58 @@ describe('Address', () => {
 		)
 		expect(alice.magicByte).toBe(bob.magicByte)
 		expect(alice.equals(bob)).toBe(false)
+	})
+
+	// You can delete this...
+	describe('localnetjson address', () => {
+		const make = (privateKeyScalar: number): AddressT => {
+			const privateKey = privateKeyFromScalar(
+				UInt256.valueOf(privateKeyScalar),
+			)._unsafeUnwrap()
+			const publicKey = privateKey.publicKey()
+			const magic = magicFromNumber(1803288578)
+			return Address.fromPublicKeyAndMagic({ publicKey, magic })
+		}
+
+		type Vector = {
+			pk: number
+			addr: string
+		}
+
+		const vectors: Vector[] = [
+			{
+				pk: 1,
+				addr: 'JF5FTU5wdsKNp4qcuFJ1aD9enPQMocJLCqvHE2ZPDjUNag8MKun',
+			},
+			{
+				pk: 2,
+				addr: 'JFeqmatdMyjxNce38w3pEfDeJ9CV6NCkygDt3kXtivHLsP3p846',
+			},
+			{
+				pk: 3,
+				addr: 'JG3Ntbhj144hpz2ZooKsQG3Hq7UkCMwmFMwXfaYQgKFzNXAQvo5',
+			},
+			{
+				pk: 4,
+				addr: 'JFtJPDGvw4NDQyqCk7P5pWudNMeT8TFGCSvY9pTEqiyVhUGM9R9',
+			},
+			{
+				pk: 5,
+				addr: 'JEWaBeWxn9cju3i6SA5A41FWkBUn8hvRYHCtPh26rCRnumyVCfP',
+			},
+		]
+
+		const doTestVector = (vector: Vector): void => {
+			it('should produce correct addr', () => {
+				if (make(vector.pk).toString() === vector.addr) {
+					log.dev(`🚀 match for ${JSON.stringify(vector, null, 4)}`)
+				}
+				expect(make(vector.pk).toString()).toBe(vector.addr)
+			})
+		}
+
+		vectors.forEach((v) => {
+			doTestVector(v)
+		})
 	})
 })

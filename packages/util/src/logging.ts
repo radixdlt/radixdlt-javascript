@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 type RadixLogLevel =
 	| 'emerg'
 	| 'alert'

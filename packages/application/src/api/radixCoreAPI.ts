@@ -26,6 +26,7 @@ import {
 	SimpleTokenBalances,
 	Validator,
 } from '../dto/_types'
+import { ActionType } from '../actions'
 
 export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 	const toObs = <I extends unknown[], E, O>(
@@ -103,7 +104,28 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 		buildTransaction: (
 			transactionIntent: TransactionIntent,
 		): Observable<BuiltTransaction> =>
-			toObs((a) => a.buildTransaction, transactionIntent),
+			toObs(
+				(a) => a.buildTransaction,
+				transactionIntent.actions.map((action) =>
+					action.type === ActionType.TOKEN_TRANSFER
+						? {
+								type: action.type,
+								from: action.from.toString(),
+								to: action.to.toString(),
+								amount: action.amount.toString(),
+								tokenIdentifier: action.tokenIdentifier.toString(),
+						  }
+						: {
+								type: action.type,
+								from: action.from.toString(),
+								validator: action.validator.toString(),
+								amount: action.amount.toString(),
+						  },
+				),
+				transactionIntent.message
+					? transactionIntent.message.toString('hex')
+					: undefined,
+			),
 
 		finalizeTransaction: (
 			signedTransaction: SignedTransaction,
@@ -111,18 +133,18 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 			toObs(
 				(a) => a.finalizeTransaction,
 				{ blob: signedTransaction.transaction.blob },
-				signedTransaction.publicKeyOfSigner.toString(true),
 				signedTransaction.signature.toDER(),
+				signedTransaction.publicKeyOfSigner.toString(true),
 			),
 
 		submitSignedTransaction: (
 			finalizedTx: FinalizedTransaction & SignedTransaction,
 		): Observable<PendingTransaction> =>
 			toObs(
-				(a) => a.submitSignedTransaction,
+				(a) => a.submitTransaction,
 				{ blob: finalizedTx.transaction.blob },
-				finalizedTx.publicKeyOfSigner.toString(true),
 				finalizedTx.signature.toDER(),
+				finalizedTx.publicKeyOfSigner.toString(true),
 				finalizedTx.txID.toString(),
 			),
 	}

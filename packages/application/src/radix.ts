@@ -141,6 +141,7 @@ const create = (): RadixT => {
 
 			// We do NOT omit/supress error, we merely DECORATE the error
 			catchError((errors: unknown) => {
+				console.error('🚗: ', (errors as any).message)
 				const errorsToPropagate: unknown[] = isArray(errors)
 					? errors
 					: [errors]
@@ -839,8 +840,8 @@ const create = (): RadixT => {
 			return this
 		},
 
-		connect: function (url: URL): RadixT {
-			_withNode(of({ url }))
+		connect: function (url: string): RadixT {
+			_withNode(of({ url: new URL(url) }))
 			return this
 		},
 
