@@ -1070,7 +1070,7 @@
             },
             "validatorAddress": {
                 "type": "string",
-                "pattern": "^[abcdefghijkmnopqrstuvwxyz123456789ABCDEFGHJKLMNPQRSTUVWXYZ]{3}$"
+                "pattern": "^vb1[023456789ABCDEFGHIJKLMNOPQRSTUVWXYZacdefghjklmnpqrstuvwxyz]{6,90}$"
             },
             "txID": {
                 "type": "string",
