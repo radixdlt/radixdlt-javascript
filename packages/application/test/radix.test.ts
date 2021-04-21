@@ -516,7 +516,6 @@ describe('Radix API', () => {
 	})
 
 	describe('radix unhappy paths', () => {
-
 		beforeAll(() => {
 			jest.spyOn(console, 'error').mockImplementation(() => {})
 		})
@@ -556,7 +555,9 @@ describe('Radix API', () => {
 			radix.errors
 				.subscribe((error) => {
 					expect(error.category).toEqual(ErrorCategory.API)
-					expect(error.cause).toEqual(APIErrorCause.TOKEN_BALANCES_FAILED)
+					expect(error.cause).toEqual(
+						APIErrorCause.TOKEN_BALANCES_FAILED,
+					)
 					done()
 				})
 				.add(subs)
@@ -1434,7 +1435,6 @@ describe('Radix API', () => {
 		})
 
 		describe('transaction flow errors', () => {
-
 			beforeAll(() => {
 				jest.spyOn(console, 'error').mockImplementation(() => {})
 			})
