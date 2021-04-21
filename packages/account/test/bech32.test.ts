@@ -20,16 +20,18 @@ describe('bech32', () => {
 	})
 
 	it('validator address', () => {
-		const pubKey = publicKeyFromBytes(
+		const publicKey = publicKeyFromBytes(
 			Buffer.from(
 				'030cfcefa07af9dd6dbe770b87d7dbdd2c31ba7f4fcf8f3a1196d502f13561b046',
 				'hex',
 			),
 		)._unsafeUnwrap()
 
-		const validatorAddress = ValidatorAddress.fromPublicKey(pubKey)
+		const validatorAddress = ValidatorAddress.fromPublicKeyAndNetwork({
+			publicKey,
+		})
 
-		expect(validatorAddress.publicKey.equals(pubKey)).toBe(true)
+		expect(validatorAddress.publicKey.equals(publicKey)).toBe(true)
 		expect(validatorAddress.toString()).toBe(
 			'vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazy',
 		)

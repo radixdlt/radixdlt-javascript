@@ -6,23 +6,46 @@ import {
 	Signature,
 } from '@radixdlt/crypto'
 import { Observable } from 'rxjs'
-import { BIP32T } from './bip32/_types'
 import { Option } from 'prelude-ts'
-import { HDPathRadixT } from './bip32'
+import { HDPathRadixT, BIP32T } from './bip32'
 import { Magic } from '@radixdlt/primitives'
-import { MnemomicT } from './bip39/_types'
+import { MnemomicT } from './bip39'
+
+export enum NetworkT {
+	MAINNET = 'MAINNET',
+	BETANET = 'BETANET',
+}
+
+export enum AddressTypeT {
+	VALIDATOR = 'VALIDATOR_ADDRESS',
+	ACCOUNT = 'ACCOUNT_ADDRESS',
+}
+
+export type AbstractAddressT = Readonly<{
+	addressType: AddressTypeT
+	network: NetworkT
+	publicKey: PublicKey
+	toString: () => string
+	equals: (other: AbstractAddressT) => boolean
+}>
+
+export type AddressT2 = AbstractAddressT &
+	Readonly<{
+		addressType: AddressTypeT.ACCOUNT
+		equals: (other: AddressT2) => boolean
+	}>
+
+export type ValidatorAddressT = AbstractAddressT &
+	Readonly<{
+		addressType: AddressTypeT.VALIDATOR
+		equals: (other: ValidatorAddressT) => boolean
+	}>
 
 export type AddressT = Readonly<{
 	publicKey: PublicKey
 	magicByte: Byte
 	toString: () => string
 	equals: (other: AddressT) => boolean
-}>
-
-export type ValidatorAddressT = Readonly<{
-	publicKey: PublicKey
-	toString: () => string
-	equals: (other: ValidatorAddressT) => boolean
 }>
 
 export type PublicKeyDeriving = Readonly<{
