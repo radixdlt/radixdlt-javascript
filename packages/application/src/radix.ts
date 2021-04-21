@@ -15,6 +15,7 @@ import {
 	filter,
 	map,
 	mergeMap,
+	share,
 	shareReplay,
 	skipWhile,
 	switchMap,
@@ -34,6 +35,7 @@ import {
 	Subject,
 	Subscription,
 	throwError,
+	timer,
 } from 'rxjs'
 import { radixCoreAPI } from './api/radixCoreAPI'
 import { Magic } from '@radixdlt/primitives'
@@ -103,6 +105,7 @@ import {
 	singleRecipientFromActions,
 	TransactionIntentBuilder,
 } from './dto/transactionIntentBuilder'
+import { add } from 'ramda'
 
 const shouldConfirmTransactionAutomatically = (
 	confirmationScheme: TransactionConfirmationBeforeFinalization,
@@ -629,8 +632,9 @@ const create = (): RadixT => {
 			.subscribe()
 			.add(subs)
 
-		const pollTxStatusTrigger =
-			options.pollTXStatusTrigger ?? interval(5 * 1_000) // every 5 seconds
+		const pollTxStatusTrigger = (
+			options.pollTXStatusTrigger ?? timer(1_000)
+		).pipe(share())
 
 		const transactionStatus$ = pollTxStatusTrigger.pipe(
 			withLatestFrom(pendingTXSubject),
@@ -640,14 +644,17 @@ const create = (): RadixT => {
 				)
 				return api.transactionStatus(pendingTx.txID)
 			}),
-			takeWhile(
-				({ status }) => status === TransactionStatus.PENDING,
-				true,
-			),
+			distinctUntilChanged((prev, cur) => prev.status === cur.status),
+			share(),
 		)
 
 		const transactionCompletedWithStatusConfirmed$ = transactionStatus$.pipe(
-			skipWhile(({ status }) => status === TransactionStatus.PENDING),
+			skipWhile(({ status }) => status !== TransactionStatus.CONFIRMED),
+			take(1),
+		)
+
+		const transactionCompletedWithStatusFailed$ = transactionStatus$.pipe(
+			skipWhile(({ status }) => status !== TransactionStatus.FAILED),
 			take(1),
 		)
 
@@ -688,6 +695,17 @@ const create = (): RadixT => {
 					completionSubject.next(txID)
 					completionSubject.complete()
 				},
+			})
+			.add(subs)
+
+		transactionCompletedWithStatusFailed$
+			.subscribe(status => {
+				const errMsg = `API status of tx with id=${status.txID.toString()} returned 'FAILED'`
+				txLog.error(errMsg)
+				trackError({
+					error: new Error(errMsg),
+					inStep: TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
+				})
 			})
 			.add(subs)
 
