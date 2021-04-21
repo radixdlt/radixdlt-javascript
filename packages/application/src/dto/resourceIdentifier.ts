@@ -8,7 +8,10 @@ const maxLength: number | undefined = undefined // arbitrarily chosen
 
 const hrpSuffix = '_rr'
 
-const create = (input: { hash: Buffer; name: string }): Result<ResourceIdentifierT, Error> => {
+const create = (input: {
+	hash: Buffer
+	name: string
+}): Result<ResourceIdentifierT, Error> => {
 	const { hash, name } = input
 
 	const toStringMaybe = (): Result<string, Error> => {
@@ -64,7 +67,7 @@ const fromSpecString = (
 	if (!regExp.test(name)) {
 		const errMsg = `RRI name is invalid, got ${name}, which does not match regexp: ${regExpStr}`
 		// console.log(errMsg)
-		throw new Error(errMsg)
+		return err(new Error(errMsg))
 	}
 	if (components[1].length === 0) {
 		return systemRRI(name)

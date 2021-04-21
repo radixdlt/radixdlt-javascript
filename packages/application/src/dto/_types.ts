@@ -257,12 +257,14 @@ export type RawTransferAction = RawExecutedActionBase<ActionType.TOKEN_TRANSFER>
 
 export type RawStakesAction = RawExecutedActionBase<ActionType.STAKE_TOKENS> &
 	Readonly<{
+		from: string
 		validator: string
 		amount: string
 	}>
 
 export type RawUnstakesAction = RawExecutedActionBase<ActionType.UNSTAKE_TOKENS> &
 	Readonly<{
+		from: string
 		validator: string
 		amount: string
 	}>

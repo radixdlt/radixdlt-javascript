@@ -51,7 +51,9 @@ const fromString = (
 	bechString: ValidatorAddressInput,
 ): Result<ValidatorAddressT, Error> => {
 	return Bech32.decode({ bechString, encoding, maxLength })
-		.andThen((decoded) => publicKeyFromBytes(Bech32.convertDataFromBech32(decoded.data)))
+		.andThen((decoded) =>
+			publicKeyFromBytes(Bech32.convertDataFromBech32(decoded.data)),
+		)
 		.map(fromPublicKey)
 		.map((va) => {
 			if (va.toString().toLowerCase() !== bechString.toLowerCase()) {

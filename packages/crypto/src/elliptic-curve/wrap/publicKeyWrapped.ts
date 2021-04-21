@@ -99,16 +99,17 @@ export const publicKeyFromPrivateKeyScalar = (
 export const publicKeyFromBytesValidated = (
 	publicKeyBytes: Buffer,
 ): Result<PublicKey, Error> => {
-
 	try {
-		const ecKeyPairElliptic = thirdPartyLibEllipticSecp256k1.keyFromPublic(publicKeyBytes)
+		const ecKeyPairElliptic = thirdPartyLibEllipticSecp256k1.keyFromPublic(
+			publicKeyBytes,
+		)
 		return publicKeyFromEllipticKey(ecKeyPairElliptic)
 	} catch (e) {
 		const underlyingError = msgFromError(e)
-		const errMsg = `Failed to decode bytes into public key, underlying error: ${underlyingError}. bytes: '${publicKeyBytes.toString('hex')}'`
+		const errMsg = `Failed to decode bytes into public key, underlying error: ${underlyingError}. bytes: '${publicKeyBytes.toString(
+			'hex',
+		)}'`
 		console.log(errMsg)
 		return err(new Error(errMsg))
 	}
-
-
 }

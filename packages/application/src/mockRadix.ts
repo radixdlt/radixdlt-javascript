@@ -42,7 +42,12 @@ import { ResourceIdentifier } from './dto/resourceIdentifier'
 import { tokenOwnerOnly, tokenPermissionsAll } from './dto/tokenPermissions'
 import { RadixCoreAPI } from './api/_types'
 import { shareReplay } from 'rxjs/operators'
-import { privateKeyFromBuffer, privateKeyFromHex, PublicKey, sha256 } from '@radixdlt/crypto'
+import {
+	privateKeyFromBuffer,
+	privateKeyFromHex,
+	PublicKey,
+	sha256,
+} from '@radixdlt/crypto'
 import { ActionType, ExecutedAction } from './actions/_types'
 import { TransactionIdentifier } from './dto/transactionIdentifier'
 import { StakePosition, UnstakePosition } from './dto/_types'
@@ -355,9 +360,9 @@ const detRandomValidatorAddressWithPRNG = (
 	anInt: () => number,
 ) => (): ValidatorAddressT =>
 	ValidatorAddress.fromPublicKey(
-		privateKeyFromHex(
-			sha256(anInt().toString()).toString('hex')
-		)._unsafeUnwrap().publicKey()
+		privateKeyFromHex(sha256(anInt().toString()).toString('hex'))
+			._unsafeUnwrap()
+			.publicKey(),
 	)
 
 const randomValidatorList = (

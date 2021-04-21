@@ -71,7 +71,9 @@ const expectedDecodedResponses = {
 		response: NativeTokenEndpoint.Response,
 	): NativeTokenEndpoint.DecodedResponse => ({
 		name: response.name,
-		rri: ResourceIdentifier.fromString(response.rri)._unsafeUnwrap(),
+		rri: ResourceIdentifier.fromString(response.rri)._unsafeUnwrap({
+			withStackTrace: true,
+		}),
 		symbol: response.symbol,
 		description: response.description,
 		granularity: Amount.inSmallestDenomination(
@@ -90,7 +92,9 @@ const expectedDecodedResponses = {
 		response: TokenInfoEndpoint.Response,
 	): TokenInfoEndpoint.DecodedResponse => ({
 		name: response.name,
-		rri: ResourceIdentifier.fromString(response.rri)._unsafeUnwrap(),
+		rri: ResourceIdentifier.fromString(response.rri)._unsafeUnwrap({
+			withStackTrace: true,
+		}),
 		symbol: response.symbol,
 		description: response.description,
 		granularity: Amount.inSmallestDenomination(
@@ -113,7 +117,7 @@ const expectedDecodedResponses = {
 			{
 				tokenIdentifier: ResourceIdentifier.fromString(
 					response.tokenBalances[0].rri,
-				)._unsafeUnwrap(),
+				)._unsafeUnwrap({ withStackTrace: true }),
 				amount: Amount.inSmallestDenomination(
 					new UInt256(response.tokenBalances[0].amount),
 				),
@@ -129,40 +133,40 @@ const expectedDecodedResponses = {
 			{
 				txID: TransactionIdentifier.create(
 					response.transactions[0].txID,
-				)._unsafeUnwrap(),
+				)._unsafeUnwrap({ withStackTrace: true }),
 				sentAt: new Date(response.transactions[0].sentAt),
 				fee: Amount.fromUnsafe(
 					response.transactions[0].fee,
-				)._unsafeUnwrap(),
+				)._unsafeUnwrap({ withStackTrace: true }),
 				message: response.transactions[0].message,
 				actions: response.transactions[0].actions.map((action) =>
 					action.type === ActionType.TOKEN_TRANSFER
 						? <ExecutedTransferTokensAction>{
 								from: Address.fromUnsafe(
 									action.from,
-								)._unsafeUnwrap(),
+								)._unsafeUnwrap({ withStackTrace: true }),
 								to: Address.fromUnsafe(
 									action.to,
-								)._unsafeUnwrap(),
+								)._unsafeUnwrap({ withStackTrace: true }),
 								rri: ResourceIdentifier.fromUnsafe(
 									action.rri,
-								)._unsafeUnwrap(),
+								)._unsafeUnwrap({ withStackTrace: true }),
 								amount: Amount.fromUnsafe(
 									action.amount,
-								)._unsafeUnwrap(),
+								)._unsafeUnwrap({ withStackTrace: true }),
 						  }
 						: action.type === ActionType.STAKE_TOKENS ||
 						  action.type === ActionType.UNSTAKE_TOKENS
 						? <ExecutedStakeTokensAction>{
 								from: Address.fromUnsafe(
-									action.validator,
-								)._unsafeUnwrap(),
+									action.from,
+								)._unsafeUnwrap({ withStackTrace: true }),
 								validator: ValidatorAddress.fromUnsafe(
 									action.validator,
-								)._unsafeUnwrap(),
+								)._unsafeUnwrap({ withStackTrace: true }),
 								amount: Amount.fromUnsafe(
 									action.amount,
-								)._unsafeUnwrap(),
+								)._unsafeUnwrap({ withStackTrace: true }),
 						  }
 						: action,
 				),
@@ -173,34 +177,42 @@ const expectedDecodedResponses = {
 	[rpcSpec.methods[5].name]: (
 		response: LookupTransactionEndpoint.Response,
 	): LookupTransactionEndpoint.DecodedResponse => ({
-		txID: TransactionIdentifier.create(response.txID)._unsafeUnwrap(),
+		txID: TransactionIdentifier.create(response.txID)._unsafeUnwrap({
+			withStackTrace: true,
+		}),
 		sentAt: new Date(response.sentAt),
-		fee: Amount.fromUnsafe(response.fee)._unsafeUnwrap(),
+		fee: Amount.fromUnsafe(response.fee)._unsafeUnwrap({
+			withStackTrace: true,
+		}),
 		message: response.message,
 		actions: response.actions.map((action) =>
 			action.type === ActionType.TOKEN_TRANSFER
 				? <ExecutedTransferTokensAction>{
-						from: Address.fromUnsafe(action.from)._unsafeUnwrap(),
-						to: Address.fromUnsafe(action.to)._unsafeUnwrap(),
+						from: Address.fromUnsafe(action.from)._unsafeUnwrap({
+							withStackTrace: true,
+						}),
+						to: Address.fromUnsafe(action.to)._unsafeUnwrap({
+							withStackTrace: true,
+						}),
 						rri: ResourceIdentifier.fromUnsafe(
 							action.rri,
-						)._unsafeUnwrap(),
-						amount: Amount.fromUnsafe(
-							action.amount,
-						)._unsafeUnwrap(),
+						)._unsafeUnwrap({ withStackTrace: true }),
+						amount: Amount.fromUnsafe(action.amount)._unsafeUnwrap({
+							withStackTrace: true,
+						}),
 				  }
 				: action.type === ActionType.STAKE_TOKENS ||
 				  action.type === ActionType.UNSTAKE_TOKENS
 				? <ExecutedStakeTokensAction>{
 						from: Address.fromUnsafe(
 							action.validator,
-						)._unsafeUnwrap(),
+						)._unsafeUnwrap({ withStackTrace: true }),
 						validator: ValidatorAddress.fromUnsafe(
 							action.validator,
-						)._unsafeUnwrap(),
-						amount: Amount.fromUnsafe(
-							action.amount,
-						)._unsafeUnwrap(),
+						)._unsafeUnwrap({ withStackTrace: true }),
+						amount: Amount.fromUnsafe(action.amount)._unsafeUnwrap({
+							withStackTrace: true,
+						}),
 				  }
 				: action,
 		),
@@ -212,8 +224,10 @@ const expectedDecodedResponses = {
 		{
 			validator: ValidatorAddress.fromUnsafe(
 				response[0].validator,
-			)._unsafeUnwrap(),
-			amount: Amount.fromUnsafe(response[0].amount)._unsafeUnwrap(),
+			)._unsafeUnwrap({ withStackTrace: true }),
+			amount: Amount.fromUnsafe(response[0].amount)._unsafeUnwrap({
+				withStackTrace: true,
+			}),
 		},
 	],
 
@@ -221,21 +235,25 @@ const expectedDecodedResponses = {
 		response: UnstakePositionsEndpoint.Response,
 	): UnstakePositionsEndpoint.DecodedResponse => [
 		{
-			amount: Amount.fromUnsafe(response[0].amount)._unsafeUnwrap(),
+			amount: Amount.fromUnsafe(response[0].amount)._unsafeUnwrap({
+				withStackTrace: true,
+			}),
 			validator: ValidatorAddress.fromUnsafe(
 				response[0].validator,
-			)._unsafeUnwrap(),
+			)._unsafeUnwrap({ withStackTrace: true }),
 			epochsUntil: response[0].epochsUntil,
 			withdrawTxID: TransactionIdentifier.create(
 				response[0].withdrawTxID,
-			)._unsafeUnwrap(),
+			)._unsafeUnwrap({ withStackTrace: true }),
 		},
 	],
 
 	[rpcSpec.methods[8].name]: (
 		response: TransactionStatusEndpoint.Response,
 	): TransactionStatusEndpoint.DecodedResponse => ({
-		txID: TransactionIdentifier.create(response.txID)._unsafeUnwrap(),
+		txID: TransactionIdentifier.create(response.txID)._unsafeUnwrap({
+			withStackTrace: true,
+		}),
 		status: response.status,
 	}),
 
@@ -259,18 +277,18 @@ const expectedDecodedResponses = {
 			{
 				address: ValidatorAddress.fromUnsafe(
 					response.validators[0].address,
-				)._unsafeUnwrap(),
+				)._unsafeUnwrap({ withStackTrace: true }),
 				ownerAddress: Address.fromUnsafe(
 					response.validators[0].ownerAddress,
-				)._unsafeUnwrap(),
+				)._unsafeUnwrap({ withStackTrace: true }),
 				name: response.validators[0].name,
 				infoURL: new URL(response.validators[0].infoURL),
 				totalDelegatedStake: Amount.fromUnsafe(
 					response.validators[0].totalDelegatedStake,
-				)._unsafeUnwrap(),
+				)._unsafeUnwrap({ withStackTrace: true }),
 				ownerDelegation: Amount.fromUnsafe(
 					response.validators[0].ownerDelegation,
-				)._unsafeUnwrap(),
+				)._unsafeUnwrap({ withStackTrace: true }),
 				isExternalStakeAccepted:
 					response.validators[0].isExternalStakeAccepted,
 			},
@@ -280,16 +298,20 @@ const expectedDecodedResponses = {
 	[rpcSpec.methods[12].name]: (
 		response: LookupValidatorEndpoint.Response,
 	): LookupValidatorEndpoint.DecodedResponse => ({
-		address: ValidatorAddress.fromUnsafe(response.address)._unsafeUnwrap(),
-		ownerAddress: Address.fromUnsafe(response.ownerAddress)._unsafeUnwrap(),
+		address: ValidatorAddress.fromUnsafe(response.address)._unsafeUnwrap({
+			withStackTrace: true,
+		}),
+		ownerAddress: Address.fromUnsafe(response.ownerAddress)._unsafeUnwrap({
+			withStackTrace: true,
+		}),
 		name: response.name,
 		infoURL: new URL(response.infoURL),
 		totalDelegatedStake: Amount.fromUnsafe(
 			response.totalDelegatedStake,
-		)._unsafeUnwrap(),
+		)._unsafeUnwrap({ withStackTrace: true }),
 		ownerDelegation: Amount.fromUnsafe(
 			response.ownerDelegation,
-		)._unsafeUnwrap(),
+		)._unsafeUnwrap({ withStackTrace: true }),
 		isExternalStakeAccepted: response.isExternalStakeAccepted,
 	}),
 
@@ -300,19 +322,25 @@ const expectedDecodedResponses = {
 			blob: response.transaction.blob,
 			hashOfBlobToSign: response.transaction.hashOfBlobToSign,
 		},
-		fee: Amount.fromUnsafe(response.fee)._unsafeUnwrap(),
+		fee: Amount.fromUnsafe(response.fee)._unsafeUnwrap({
+			withStackTrace: true,
+		}),
 	}),
 
 	[rpcSpec.methods[14].name]: (
 		response: FinalizeTransactionEndpoint.Response,
 	): FinalizeTransactionEndpoint.DecodedResponse => ({
-		txID: TransactionIdentifier.create(response.txID)._unsafeUnwrap(),
+		txID: TransactionIdentifier.create(response.txID)._unsafeUnwrap({
+			withStackTrace: true,
+		}),
 	}),
 
 	[rpcSpec.methods[15].name]: (
 		response: SubmitTransactionEndpoint.Response,
 	): SubmitTransactionEndpoint.DecodedResponse => ({
-		txID: TransactionIdentifier.create(response.txID)._unsafeUnwrap(),
+		txID: TransactionIdentifier.create(response.txID)._unsafeUnwrap({
+			withStackTrace: true,
+		}),
 	}),
 }
 
@@ -329,7 +357,9 @@ const testRpcMethod = (method: MethodObject, index: number) => {
 		const expected = expectedDecodedResponses[method.name](mockedResult)
 
 		// @ts-ignore
-		const result = (await client[method.name](undefined))._unsafeUnwrap()
+		const result = (await client[method.name](undefined))._unsafeUnwrap({
+			withStackTrace: true,
+		})
 
 		const checkEquality = (
 			obj1: Record<string, any>,
@@ -359,8 +389,6 @@ const testRpcMethod = (method: MethodObject, index: number) => {
 	})
 }
 
-describe('networking', () => {
-	describe('json-rpc', () => {
-		rpcSpec.methods.forEach((method, i) => testRpcMethod(method, i))
-	})
+describe('json-rpc spec', () => {
+	rpcSpec.methods.slice(3, 5).forEach((method, i) => testRpcMethod(method, i))
 })
