@@ -68,60 +68,31 @@ const __unsafeCreateWithPrivateKeyProvider = (
 			alsoSwitchTo?: boolean // defaults to false
 		}>,
 	): AccountT => {
-		const { hdPath } = input
 		const alsoSwitchTo = input.alsoSwitchTo ?? false
 		log.verbose(
-			`Deriving new account, hdPath: ${hdPath.toString()}, alsoSwitchTo: ${
+			`Deriving new account, hdPath: ${input.hdPath.toString()}, alsoSwitchTo: ${
 				alsoSwitchTo ? 'YES' : 'NO'
 			} `,
 		)
 
-		const newAccount =
-			__privateKeyProvider !== undefined
-				? Account.__unsafeFromPrivateKey({
-						privateKey: __privateKeyProvider(hdPath),
-						addressFromPublicKey: (
-							publicKey: PublicKey,
-						): Observable<AddressT> => {
-							if (
-								!publicKey.equals(
-									__privateKeyProvider(hdPath).publicKey(),
-								)
-							) {
-								const errMsg = `Incorrect implementation: PublicKey does not match that of private key`
-								log.error(errMsg)
-								throw new Error(errMsg)
-							}
-							return magic$.pipe(
-								map((magic) =>
-									Address.fromPublicKeyAndMagic({
-										publicKey,
-										magic,
-									}),
-								),
-							)
-						},
-						hdPath,
-				  })
-				: Account.byDerivingNodeAtPath({
-						hdPath,
-						deriveNodeAtPath: () =>
-							hdNodeDeriverWithBip32Path(hdPath),
-						addressFromPublicKey: (publicKey: PublicKey) =>
-							magic$.pipe(
-								map((magic) =>
-									Address.fromPublicKeyAndMagic({
-										publicKey,
-										magic,
-									}),
-								),
-							),
-				  })
+		const newAccount = Account.byDerivingNodeAtPath({
+			hdPath: input.hdPath,
+			deriveNodeAtPath: () => hdNodeDeriverWithBip32Path(input.hdPath),
+			addressFromPublicKey: (publicKey: PublicKey) =>
+				magic$.pipe(
+					map((magic) =>
+						Address.fromPublicKeyAndMagic({
+							publicKey,
+							magic,
+						}),
+					),
+				),
+		})
 		const accounts = accountsSubject.getValue()
 		accounts.set(newAccount.hdPath, newAccount)
 		accountsSubject.next(accounts)
 
-		if (input.alsoSwitchTo === true) {
+		if (alsoSwitchTo) {
 			activeAccountSubject.next(newAccount)
 		}
 		return newAccount

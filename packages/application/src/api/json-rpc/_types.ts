@@ -40,7 +40,7 @@ export enum ApiMethod {
 	NATIVE_TOKEN = 'nativeToken',
 	TOKEN_INFO = 'tokenInfo',
 	BUILD_TX_FROM_INTENT = 'buildTransaction',
-	SUBMIT_SIGNED_TX = 'submitTransaction',
+	SUBMIT_TX = 'submitTransaction',
 	FINALIZE_TX = 'finalizeTransaction',
 }
 

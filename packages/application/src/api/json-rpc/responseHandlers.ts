@@ -235,7 +235,7 @@ export const handleBuildTransactionResponse = (
 		BuildTransactionEndpoint.DecodedResponse
 	>()(json)
 
-export const handleSubmitSignedTransactionResponse = (
+export const handleFinalizeTransactionResponse = (
 	json: FinalizeTransactionEndpoint.Response,
 ): Result<FinalizeTransactionEndpoint.DecodedResponse, Error[]> =>
 	isRPCRequestFailureResponse(json)
@@ -247,7 +247,7 @@ export const handleSubmitSignedTransactionResponse = (
 				FinalizeTransactionEndpoint.DecodedResponse
 		  >()(json)
 
-export const handleFinalizedTransactionResponse = (
+export const handleSubmitTransactionResponse = (
 	json: SubmitTransactionEndpoint.Response,
 ): Result<SubmitTransactionEndpoint.DecodedResponse, Error[]> =>
 	isRPCRequestFailureResponse(json)

@@ -33,10 +33,11 @@ import {
 	ReplaySubject,
 	Subject,
 	Subscription,
+	throwError,
 } from 'rxjs'
 import { radixCoreAPI } from './api/radixCoreAPI'
 import { Magic } from '@radixdlt/primitives'
-import { KeystoreT } from '@radixdlt/crypto'
+import { EncryptedMessage, KeystoreT } from '@radixdlt/crypto'
 import {
 	MakeTransactionOptions,
 	ManualUserConfirmTX,
@@ -68,7 +69,13 @@ import {
 	unstakesForAddressErr,
 	validatorsErr,
 } from './errors'
-import { isArray, log, RadixLogLevel, setLogLevel } from '@radixdlt/util'
+import {
+	isArray,
+	log,
+	msgFromError,
+	RadixLogLevel,
+	setLogLevel,
+} from '@radixdlt/util'
 import {
 	PendingTransaction,
 	FinalizedTransaction,
@@ -89,9 +96,13 @@ import {
 	Token,
 	TransactionStateUpdate,
 	TransactionStateError,
+	ExecutedTransaction,
 } from './dto/_types'
 import { nodeAPI } from './api/api'
-import { TransactionIntentBuilder } from './dto/transactionIntentBuilder'
+import {
+	singleRecipientFromActions,
+	TransactionIntentBuilder,
+} from './dto/transactionIntentBuilder'
 
 const shouldConfirmTransactionAutomatically = (
 	confirmationScheme: TransactionConfirmationBeforeFinalization,
@@ -728,6 +739,71 @@ const create = (): RadixT => {
 		)
 	}
 
+	const decryptTransaction = (
+		input: ExecutedTransaction,
+	): Observable<string> => {
+		radixLog.verbose(
+			`Trying to decrypt transaction with txID=${input.txID.toString()}`,
+		)
+
+		if (!input.message) {
+			const noMsg = `TX contains no message, nothing to decrypt (txID=${input.txID.toString()}).`
+			radixLog.info(noMsg)
+			return throwError(() => new Error(noMsg))
+		}
+
+		const messageBuffer = Buffer.from(input.message, 'hex')
+
+		const encryptedMessageResult = EncryptedMessage.fromBuffer(
+			messageBuffer,
+		)
+
+		if (!encryptedMessageResult.isOk()) {
+			const errMessage = `Failed to parse message as 'EncryptedMessage' type, underlying error: '${msgFromError(
+				encryptedMessageResult.error,
+			)}'. Might not have been encrypted? Try decode string as UTF-8 string.`
+			log.warning(errMessage)
+			return throwError(new Error(errMessage))
+		}
+
+		const encryptedMessage = encryptedMessageResult.value
+
+		return activeAccount.pipe(
+			mergeMap((account) => {
+				return account.derivePublicKey().pipe(
+					mergeMap((myPublicKey) => {
+						log.verbose(
+							`Trying to decrypt message with activeAccount with pubKey=${myPublicKey.toString()}`,
+						)
+						const publicKeyOfOtherPartyResult = singleRecipientFromActions(
+							myPublicKey,
+							input.actions,
+						)
+						if (!publicKeyOfOtherPartyResult.isOk()) {
+							return throwError(
+								new Error(
+									msgFromError(
+										publicKeyOfOtherPartyResult.error,
+									),
+								),
+							)
+						}
+						log.verbose(
+							`Trying to decrypt message with publicKeyOfOtherPartyResult=${publicKeyOfOtherPartyResult.toString()}`,
+						)
+
+						return account.decrypt({
+							encryptedMessage,
+							publicKeyOfOtherParty:
+								publicKeyOfOtherPartyResult.value,
+						})
+					}),
+				)
+			}),
+			take(1),
+		)
+	}
+
 	deriveAccountSubject
 		.pipe(
 			withLatestFrom(wallet$),
@@ -807,6 +883,8 @@ const create = (): RadixT => {
 			switchAccountSubject.next(input)
 			return this
 		},
+
+		decryptTransaction: decryptTransaction,
 
 		logLevel: function (level: RadixLogLevel | 'silent') {
 			setLogLevel(level)

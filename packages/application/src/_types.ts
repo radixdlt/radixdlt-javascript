@@ -22,6 +22,7 @@ import {
 	TransactionIdentifierT,
 	TransactionTracking,
 	BuiltTransaction,
+	ExecutedTransaction,
 } from './dto/_types'
 import {
 	StakeTokensInput,
@@ -121,6 +122,8 @@ export type RadixT = Readonly<{
 	stakeTokens: (input: StakeOptions) => TransactionTracking
 
 	unstakeTokens: (input: UnstakeOptions) => TransactionTracking
+
+	decryptTransaction: (input: ExecutedTransaction) => Observable<string>
 
 	errors: Observable<ErrorNotification>
 

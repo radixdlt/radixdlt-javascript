@@ -1,5 +1,5 @@
 import { UInt256 } from '@radixdlt/uint256'
-import { Signature } from '../dist'
+import { Signature } from '../'
 
 export const signatureFromHexStrings = (input: {
 	r: string

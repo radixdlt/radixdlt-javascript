@@ -5,7 +5,7 @@ import {
 	handleNetworkTxDemandResponse,
 	handleNetworkTxThroughputResponse,
 	handleStakesResponse,
-	handleSubmitSignedTransactionResponse,
+	handleFinalizeTransactionResponse,
 	handleTokenBalancesResponse,
 	handleTokenInfoResponse,
 	handleTransactionHistoryResponse,
@@ -13,7 +13,7 @@ import {
 	handleNetworkIdResponse,
 	handleUnstakesResponse,
 	handleValidatorsResponse,
-	handleFinalizedTransactionResponse,
+	handleSubmitTransactionResponse,
 	handleLookupValidatorResponse,
 } from './responseHandlers'
 import { andThen, pipe } from 'ramda'
@@ -57,6 +57,7 @@ const callAPI = <Params extends unknown[], DecodedResponse>(
 const setupAPICall = (
 	call: (endpoint: Endpoint, ...params: unknown[]) => Promise<unknown>,
 ) => <I extends unknown[], R>(
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	handleResponse: (response: any) => Result<R, Error[]>,
 ) => (endpoint: Endpoint) => callAPI<I, R>(endpoint)(call, handleResponse)
 
@@ -141,11 +142,11 @@ export const getAPI = (
 		[ApiMethod.FINALIZE_TX]: setupAPIResponse<
 			FinalizeTransactionEndpoint.Input,
 			FinalizeTransactionEndpoint.DecodedResponse
-		>(handleSubmitSignedTransactionResponse)('radix.finalizeTransaction'),
+		>(handleFinalizeTransactionResponse)('radix.finalizeTransaction'),
 
-		[ApiMethod.SUBMIT_SIGNED_TX]: setupAPIResponse<
+		[ApiMethod.SUBMIT_TX]: setupAPIResponse<
 			SubmitTransactionEndpoint.Input,
 			SubmitTransactionEndpoint.DecodedResponse
-		>(handleFinalizedTransactionResponse)('radix.submitTransaction'),
+		>(handleSubmitTransactionResponse)('radix.submitTransaction'),
 	}
 }

@@ -11,7 +11,7 @@ import {
 import { combineLatest, of, Subject } from 'rxjs'
 import { Magic, magicFromNumber } from '@radixdlt/primitives'
 import { restoreDefaultLogLevel, setLogLevel } from '@radixdlt/util'
-import { mockErrorMsg } from '../../util/test/util.test'
+import { mockErrorMsg } from '../../util/test/util'
 
 const createWallet = (password: string = 'radixdlt'): WalletT => {
 	const mnemonic = Mnemonic.generateNew()
