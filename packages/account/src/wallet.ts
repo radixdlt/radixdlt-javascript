@@ -11,7 +11,13 @@ import {
 	WalletT,
 } from './_types'
 import { mergeMap, map, distinctUntilChanged } from 'rxjs/operators'
-import { Keystore, KeystoreT, PublicKey, Signature } from '@radixdlt/crypto'
+import {
+	Keystore,
+	KeystoreT,
+	PrivateKey,
+	PublicKey,
+	Signature,
+} from '@radixdlt/crypto'
 import { Option } from 'prelude-ts'
 import { HDPathRadix, HDPathRadixT } from './bip32'
 import { isAccount } from './account'
@@ -25,13 +31,14 @@ import { HDMasterSeed } from './bip39/hdMasterSeed'
 import { log } from '@radixdlt/util'
 import { Mnemonic } from './bip39/mnemonic'
 
-const create = (
+const __unsafeCreateWithPrivateKeyProvider = (
 	input: Readonly<{
 		mnemonic: MnemomicT
-		password: string
+		__privateKeyProvider?: (hdpath: HDPathRadixT) => PrivateKey
 	}>,
 ): WalletT => {
-	const masterSeed = HDMasterSeed.fromMnemonic({ mnemonic: input.mnemonic })
+	const { __privateKeyProvider, mnemonic } = input
+	const masterSeed = HDMasterSeed.fromMnemonic({ mnemonic })
 	const hdNodeDeriverWithBip32Path = masterSeed.masterNode().derive
 
 	const subs = new Subscription()
@@ -42,7 +49,7 @@ const create = (
 		new Map(),
 	)
 
-	const revealMnemonic = (): MnemomicT => input.mnemonic
+	const revealMnemonic = (): MnemomicT => mnemonic
 
 	const numberOfAccounts = (): number => accountsSubject.getValue().size
 
@@ -61,26 +68,55 @@ const create = (
 			alsoSwitchTo?: boolean // defaults to false
 		}>,
 	): AccountT => {
+		const { hdPath } = input
 		const alsoSwitchTo = input.alsoSwitchTo ?? false
 		log.verbose(
-			`Deriving new account, hdPath: ${input.hdPath.toString()}, alsoSwitchTo: ${
+			`Deriving new account, hdPath: ${hdPath.toString()}, alsoSwitchTo: ${
 				alsoSwitchTo ? 'YES' : 'NO'
 			} `,
 		)
 
-		const newAccount = Account.byDerivingNodeAtPath({
-			hdPath: input.hdPath,
-			deriveNodeAtPath: () => hdNodeDeriverWithBip32Path(input.hdPath),
-			addressFromPublicKey: (publicKey: PublicKey) =>
-				magic$.pipe(
-					map((magic) =>
-						Address.fromPublicKeyAndMagic({
-							publicKey,
-							magic,
-						}),
-					),
-				),
-		})
+		const newAccount =
+			__privateKeyProvider !== undefined
+				? Account.__unsafeFromPrivateKey({
+						privateKey: __privateKeyProvider(hdPath),
+						addressFromPublicKey: (
+							publicKey: PublicKey,
+						): Observable<AddressT> => {
+							if (
+								!publicKey.equals(
+									__privateKeyProvider(hdPath).publicKey(),
+								)
+							) {
+								const errMsg = `Incorrect implementation: PublicKey does not match that of private key`
+								log.error(errMsg)
+								throw new Error(errMsg)
+							}
+							return magic$.pipe(
+								map((magic) =>
+									Address.fromPublicKeyAndMagic({
+										publicKey,
+										magic,
+									}),
+								),
+							)
+						},
+						hdPath,
+				  })
+				: Account.byDerivingNodeAtPath({
+						hdPath,
+						deriveNodeAtPath: () =>
+							hdNodeDeriverWithBip32Path(hdPath),
+						addressFromPublicKey: (publicKey: PublicKey) =>
+							magic$.pipe(
+								map((magic) =>
+									Address.fromPublicKeyAndMagic({
+										publicKey,
+										magic,
+									}),
+								),
+							),
+				  })
 		const accounts = accountsSubject.getValue()
 		accounts.set(newAccount.hdPath, newAccount)
 		accountsSubject.next(accounts)
@@ -220,6 +256,12 @@ const create = (
 	}
 }
 
+const create = (
+	input: Readonly<{
+		mnemonic: MnemomicT
+	}>,
+): WalletT => __unsafeCreateWithPrivateKeyProvider({ mnemonic: input.mnemonic })
+
 const byLoadingAndDecryptingKeystore = (
 	input: Readonly<{
 		password: string
@@ -283,6 +325,7 @@ const byEncryptingMnemonicAndSavingKeystore = (
 }
 
 export const Wallet = {
+	__unsafeCreateWithPrivateKeyProvider,
 	create,
 	fromKeystore,
 	byLoadingAndDecryptingKeystore,

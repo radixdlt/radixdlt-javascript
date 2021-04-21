@@ -2,22 +2,27 @@ import { WalletT, AddressT } from '../src/_types'
 import { Wallet } from '../src/wallet'
 import { Mnemonic } from '../src/bip39/mnemonic'
 import { map, take, toArray } from 'rxjs/operators'
-import { KeystoreT, PublicKey } from '@radixdlt/crypto'
+import {
+	KeystoreT,
+	PrivateKey,
+	privateKeyFromScalar,
+	PublicKey,
+} from '@radixdlt/crypto'
 import { combineLatest, of, Subject } from 'rxjs'
 import { Magic, magicFromNumber } from '@radixdlt/primitives'
 import { restoreDefaultLogLevel, setLogLevel } from '@radixdlt/util'
-import { mockErrorMsg } from '../../util/test/util.test'
+import { mockErrorMsg } from '../../util/test/util'
 
 const createWallet = (password: string = 'radixdlt'): WalletT => {
 	const mnemonic = Mnemonic.generateNew()
-	return Wallet.create({ mnemonic, password })
+	return Wallet.create({ mnemonic })
 }
 
-const createSpecificWallet = (password: string = 'radixdlt'): WalletT => {
+const createSpecificWallet = (): WalletT => {
 	const mnemonic = Mnemonic.fromEnglishPhrase(
 		'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
 	)._unsafeUnwrap()
-	return Wallet.create({ mnemonic, password })
+	return Wallet.create({ mnemonic })
 }
 
 const expectWalletsEqual = (
@@ -75,13 +80,12 @@ describe('HD Wallet', () => {
 	})
 
 	it('mnemonic can be retrieved with password', () => {
-		const password = 'super strong secret password'
 		const mnemonicPhrase =
 			'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
 		const mnemonic = Mnemonic.fromEnglishPhrase(
 			mnemonicPhrase,
 		)._unsafeUnwrap()
-		const wallet = Wallet.create({ mnemonic, password })
+		const wallet = Wallet.create({ mnemonic })
 		const mnemonicRevealed = wallet.revealMnemonic()
 		expect(mnemonicRevealed.equals(mnemonic)).toBe(true)
 		expect(mnemonicRevealed.phrase).toBe(mnemonicPhrase)

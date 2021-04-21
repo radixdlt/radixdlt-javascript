@@ -1,5 +1,6 @@
 import { Int32 } from '@radixdlt/account'
 import { Magic } from '@radixdlt/primitives'
+import { ActionType } from '../../actions'
 import {
 	ExecutedTransaction,
 	NetworkTransactionDemand,
@@ -39,7 +40,7 @@ export enum ApiMethod {
 	NATIVE_TOKEN = 'nativeToken',
 	TOKEN_INFO = 'tokenInfo',
 	BUILD_TX_FROM_INTENT = 'buildTransaction',
-	SUBMIT_SIGNED_TX = 'submitSignedTransaction',
+	SUBMIT_TX = 'submitTransaction',
 	FINALIZE_TX = 'finalizeTransaction',
 }
 
@@ -182,7 +183,30 @@ export namespace BuildTransactionEndpoint {
 		| 'INSUFFICIENT_FUNDS'
 		| 'NOT_PERMITTED'
 
-	export type Input = [transactionIntent: TransactionIntent]
+	export type Input = [
+		actions: (
+			| {
+					type: ActionType.TOKEN_TRANSFER
+					from: string
+					to: string
+					amount: string
+					tokenIdentifier: string
+			  }
+			| {
+					type: ActionType.STAKE_TOKENS
+					from: string
+					validator: string
+					amount: string
+			  }
+			| {
+					type: ActionType.UNSTAKE_TOKENS
+					from: string
+					validator: string
+					amount: string
+			  }
+		)[],
+		message?: string,
+	]
 
 	export type Response = {
 		transaction: Readonly<{

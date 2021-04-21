@@ -35,11 +35,11 @@ describe('tx intent builder', () => {
 	const one = Amount.fromUnsafe(1)._unsafeUnwrap()
 	const xrdRRI = xrd.rri
 
-	const createSpecificWallet = (password: string = 'radixdlt'): WalletT => {
+	const createSpecificWallet = (): WalletT => {
 		const mnemonic = Mnemonic.fromEnglishPhrase(
 			'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
 		)._unsafeUnwrap()
-		return Wallet.create({ mnemonic, password })
+		return Wallet.create({ mnemonic })
 	}
 	const wallet = createSpecificWallet()
 

@@ -17,16 +17,7 @@ import {
 	Subscription,
 	throwError,
 } from 'rxjs'
-import {
-	delay,
-	map,
-	mergeMap,
-	skipWhile,
-	take,
-	takeLast,
-	tap,
-	toArray,
-} from 'rxjs/operators'
+import { map, mergeMap, shareReplay, take, tap, toArray } from 'rxjs/operators'
 import { KeystoreT, PublicKey, publicKeyFromBytes } from '@radixdlt/crypto'
 import {
 	ManualUserConfirmTX,
@@ -55,8 +46,7 @@ import {
 	TransactionTrackingEventType,
 } from '../src/dto/_types'
 import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
-import { AmountT, one } from '@radixdlt/primitives'
-import { signatureFromHexStrings } from '@radixdlt/crypto/test/ellipticCurveCryptography.test'
+import { AmountT, Magic, magicFromNumber, one } from '@radixdlt/primitives'
 import { TransactionIntentBuilder } from '../src/dto/transactionIntentBuilder'
 import { TransferTokensInput } from '../src/actions/_types'
 import {
@@ -65,9 +55,8 @@ import {
 	restoreDefaultLogLevel,
 	setLogLevel,
 } from '@radixdlt/util'
-import { mockErrorMsg } from '../../util/test/util.test'
+import { mockErrorMsg } from '../../util/test/util'
 import {
-	ActionType,
 	ExecutedAction,
 	ExecutedStakeTokensAction,
 	ExecutedTransaction,
@@ -81,6 +70,8 @@ import {
 	isIntendedTransferTokensAction,
 	isIntendedUnstakeTokensAction,
 } from '../dist/dto/transactionIntentBuilder'
+import { signatureFromHexStrings } from '@radixdlt/crypto/test/utils'
+import { makeWalletWithFunds } from '@radixdlt/account/test/utils'
 
 const mockTransformIntentToExecutedTX = (
 	txIntent: TransactionIntent,
@@ -138,7 +129,7 @@ const createWallet = (): WalletT => {
 	const mnemonic = Mnemonic.fromEnglishPhrase(
 		'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
 	)._unsafeUnwrap()
-	return Wallet.create({ mnemonic, password: 'radixdlt' })
+	return Wallet.create({ mnemonic })
 }
 
 const dummyNode = (urlString: string): Observable<NodeT> =>
@@ -230,7 +221,7 @@ describe('Radix API', () => {
 	})
 
 	it('can connect and is chainable', () => {
-		const radix = Radix.create().connect(new URL('http://www.my.node.com'))
+		const radix = Radix.create().connect('http://www.my.node.com')
 		expect(radix).toBeDefined()
 		expect(radix.ledger.nativeToken).toBeDefined()
 		expect(radix.ledger.tokenBalancesForAddress).toBeDefined() // etc
@@ -288,8 +279,8 @@ describe('Radix API', () => {
 		const n2 = 'http://www.node2.com/'
 
 		await testChangeNode([n1, n2], done, (radix: RadixT) => {
-			radix.connect(new URL(n1))
-			radix.connect(new URL(n2))
+			radix.connect(n1)
+			radix.connect(n2)
 		})
 	})
 
@@ -1496,6 +1487,57 @@ describe('Radix API', () => {
 					done,
 				)
 			})
+		})
+	})
+
+	describe('special wallet with preallocated funds', () => {
+		it('hardcoded funds', (done) => {
+			const subs = new Subscription()
+
+			const walletWithFunds = makeWalletWithFunds()
+
+			const radix = Radix.create()
+				.__withAPI(
+					of({
+						...mockRadixCoreAPI(),
+						networkId: (): Observable<Magic> => {
+							return of(magicFromNumber(1803288578)).pipe(
+								shareReplay(1),
+							)
+						},
+					}),
+				)
+				.withWallet(walletWithFunds)
+
+			const expectedAddresses: string[] = [
+				'JF5FTU5wdsKNp4qcuFJ1aD9enPQMocJLCqvHE2ZPDjUNag8MKun',
+				'JFeqmatdMyjxNce38w3pEfDeJ9CV6NCkygDt3kXtivHLsP3p846',
+				'JG3Ntbhj144hpz2ZooKsQG3Hq7UkCMwmFMwXfaYQgKFzNXAQvo5',
+				'JFtJPDGvw4NDQyqCk7P5pWudNMeT8TFGCSvY9pTEqiyVhUGM9R9',
+				'JEWaBeWxn9cju3i6SA5A41FWkBUn8hvRYHCtPh26rCRnumyVCfP',
+			]
+
+			radix.activeAddress
+				.pipe(
+					map((a: AddressT) => a.toString()),
+					take(expectedAddresses.length),
+					toArray(),
+				)
+				.subscribe(
+					(values) => {
+						expect(values).toStrictEqual(expectedAddresses)
+						done()
+					},
+					(error) => {
+						done(error)
+					},
+				)
+				.add(subs)
+
+			radix.deriveNextAccount({ alsoSwitchTo: true })
+			radix.deriveNextAccount({ alsoSwitchTo: true })
+			radix.deriveNextAccount({ alsoSwitchTo: true })
+			radix.deriveNextAccount({ alsoSwitchTo: true })
 		})
 	})
 })

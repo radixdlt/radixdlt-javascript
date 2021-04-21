@@ -23,7 +23,8 @@
                     ],
                     "additionalProperties": false
                 }
-            }
+            },
+            "paramStructure": "by-position"
         },
         {
             "name": "nativeToken",
@@ -55,7 +56,8 @@
                         }
                     }
                 }
-            ]
+            ],
+            "paramStructure": "by-position"
         },
         {
             "name": "tokenInfo",
@@ -95,7 +97,8 @@
                         }
                     }
                 }
-            ]
+            ],
+            "paramStructure": "by-position"
         },
         {
             "name": "tokenBalances",
@@ -163,7 +166,8 @@
                         }
                     }
                 }
-            ]
+            ],
+            "paramStructure": "by-position"
         },
         {
             "name": "transactionHistory",
@@ -257,7 +261,8 @@
                         }
                     }
                 }
-            ]
+            ],
+            "paramStructure": "by-position"
         },
         {
             "name": "lookupTransaction",
@@ -315,7 +320,8 @@
                         }
                     }
                 }
-            ]
+            ],
+            "paramStructure": "by-position"
         },
         {
             "name": "stakePositions",
@@ -367,7 +373,8 @@
                         ]
                     }
                 }
-            ]
+            ],
+            "paramStructure": "by-position"
         },
         {
             "name": "unstakePositions",
@@ -429,7 +436,8 @@
                         ]
                     }
                 }
-            ]
+            ],
+            "paramStructure": "by-position"
         },
         {
             "name": "statusOfTransaction",
@@ -485,7 +493,8 @@
                         }
                     }
                 }
-            ]
+            ],
+            "paramStructure": "by-position"
         },
         {
             "name": "networkTransactionThroughput",
@@ -506,7 +515,8 @@
                         "tps"
                     ]
                 }
-            }
+            },
+            "paramStructure": "by-position"
         },
         {
             "name": "networkTransactionDemand",
@@ -527,7 +537,8 @@
                         "tps"
                     ]
                 }
-            }
+            },
+            "paramStructure": "by-position"
         },
         {
             "name": "validators",
@@ -593,7 +604,8 @@
                         }
                     }
                 }
-            ]
+            ],
+            "paramStructure": "by-position"
         },
         {
             "name": "lookupValidator",
@@ -630,7 +642,8 @@
                         }
                     }
                 }
-            ]
+            ],
+            "paramStructure": "by-position"
         },
         {
             "name": "buildTransaction",
@@ -714,7 +727,8 @@
                         }
                     }
                 }
-            ]
+            ],
+            "paramStructure": "by-position"
         },
         {
             "name": "finalizeTransaction",
@@ -764,10 +778,11 @@
                         "txID"
                     ]
                 }
-            }
+            },
+            "paramStructure": "by-position"
         },
         {
-            "name": "submitSignedTransaction",
+            "name": "submitTransaction",
             "summary": "Submits a transaction to be dispatched to Radix network.",
             "params": [
                 {
@@ -833,7 +848,8 @@
                         }
                     }
                 }
-            ]
+            ],
+            "paramStructure": "by-position"
         }
     ],
     "components": {
