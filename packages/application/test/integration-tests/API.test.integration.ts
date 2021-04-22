@@ -76,7 +76,7 @@ describe('integration API tests', () => {
 			.add(subs)
 	})
 
-	it('provides magic for wallets', async (done) => {
+	it('provides network for wallets', async (done) => {
 		const radix = Radix.create()
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
@@ -599,7 +599,7 @@ describe('integration API tests', () => {
 					stakeInput: {
 						amount: 1,
 						validator:
-							'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+							'brx1yqfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqteszew0sc',
 					},
 					userConfirmation: 'skip',
 					pollTXStatusTrigger: pollTXStatusTrigger,
@@ -630,7 +630,7 @@ describe('integration API tests', () => {
 					unstakeInput: {
 						amount: 1,
 						validator:
-							'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+							'brx1yqfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqteszew0sc',
 					},
 					userConfirmation: 'skip',
 					pollTXStatusTrigger: pollTXStatusTrigger,

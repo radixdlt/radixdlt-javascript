@@ -281,7 +281,7 @@ describe('Radix API', () => {
 		)
 	})
 
-	it('provides magic for wallets', async (done) => {
+	it('provides network for wallets', async (done) => {
 		const radix = Radix.create()
 		const wallet = createWallet()
 		radix.withWallet(wallet)

@@ -1,24 +1,14 @@
-import { Address } from '@radixdlt/account'
 import { Denomination } from '@radixdlt/primitives'
 import { Amount, zero } from '@radixdlt/primitives/src/amount'
-import { ResourceIdentifier } from '../src/dto/resourceIdentifier'
-import { TransferTokensInput } from '../src/actions/_types'
-import { IntendedTransferTokens } from '../src/actions/intendedTransferTokensAction'
+import { ResourceIdentifier, IntendedTransferTokens, TransferTokensInput, alice , bob } from '../src'
 
 describe('TransferTokensActions', () => {
-	const alice = Address.fromUnsafe(
-		'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
-	)._unsafeUnwrap()
-
-	const bob = Address.fromUnsafe(
-		'9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
-	)._unsafeUnwrap()
 
 	const resourceIdentifier = ResourceIdentifier.create({
 		hash: alice.publicKey.asData({ compressed: true }),
 		name: 'FOOBAR',
-	})._unsafeUnwrap()
-	const amount = Amount.fromUnsafe(6, Denomination.Atto)._unsafeUnwrap()
+	})._unsafeUnwrap({ withStackTrace: true })
+	const amount = Amount.fromUnsafe(6, Denomination.Atto)._unsafeUnwrap({ withStackTrace: true })
 
 	const input = <TransferTokensInput>{
 		to: bob,
@@ -30,7 +20,7 @@ describe('TransferTokensActions', () => {
 		const tokenTransfer = IntendedTransferTokens.create(
 			input,
 			alice,
-		)._unsafeUnwrap()
+		)._unsafeUnwrap({ withStackTrace: true })
 		expect(tokenTransfer.to.equals(bob)).toBe(true)
 	})
 
@@ -38,7 +28,7 @@ describe('TransferTokensActions', () => {
 		const tokenTransfer = IntendedTransferTokens.create(
 			input,
 			alice,
-		)._unsafeUnwrap()
+		)._unsafeUnwrap({ withStackTrace: true })
 		expect(tokenTransfer.amount.equals(amount)).toBe(true)
 	})
 
@@ -46,7 +36,7 @@ describe('TransferTokensActions', () => {
 		const tokenTransfer = IntendedTransferTokens.create(
 			input,
 			alice,
-		)._unsafeUnwrap()
+		)._unsafeUnwrap({ withStackTrace: true })
 		expect(tokenTransfer.from.equals(alice)).toBe(true)
 	})
 
@@ -54,7 +44,7 @@ describe('TransferTokensActions', () => {
 		const tokenTransfer = IntendedTransferTokens.create(
 			input,
 			alice,
-		)._unsafeUnwrap()
+		)._unsafeUnwrap({ withStackTrace: true })
 		expect(tokenTransfer.uuid).toBeDefined()
 	})
 
@@ -62,7 +52,7 @@ describe('TransferTokensActions', () => {
 		const tokenTransfer = IntendedTransferTokens.create(
 			{ ...input, amount: zero },
 			alice,
-		)._unsafeUnwrap()
+		)._unsafeUnwrap({ withStackTrace: true })
 
 		expect(tokenTransfer.amount.equals(zero)).toBe(true)
 	})

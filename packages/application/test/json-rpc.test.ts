@@ -20,7 +20,7 @@ import {
 	SubmitTransactionEndpoint,
 } from '../src/api/json-rpc/_types'
 import { ResourceIdentifier } from '../src/dto/resourceIdentifier'
-import { Amount, magicFromNumber } from '@radixdlt/primitives'
+import { Amount } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
 import {
@@ -37,7 +37,7 @@ import {
 	OpenrpcDocument,
 	ContentDescriptorObject,
 } from '@open-rpc/meta-schema'
-import { Address, ValidatorAddress } from '@radixdlt/account'
+import { Address, NetworkT, ValidatorAddress } from '@radixdlt/account'
 import { LookupValidatorEndpoint } from '../src/api/json-rpc/_types'
 const faker = require('json-schema-faker')
 
@@ -64,7 +64,7 @@ const expectedDecodedResponses = {
 	[rpcSpec.methods[0].name]: (
 		response: NetworkIdEndpoint.Response,
 	): NetworkIdEndpoint.DecodedResponse => ({
-		networkId: magicFromNumber(response.networkId),
+		networkId: response.networkId === 0 ? NetworkT.MAINNET : NetworkT.BETANET,
 	}),
 
 	[rpcSpec.methods[1].name]: (
@@ -344,7 +344,7 @@ const expectedDecodedResponses = {
 	}),
 }
 
-const client = nodeAPI(new URL('http://xyz'))
+const client = nodeAPI(new URL('https://xyz'))
 
 const testRpcMethod = (method: MethodObject, index: number) => {
 	it(`should decode ${method.name} response`, async () => {
@@ -390,5 +390,5 @@ const testRpcMethod = (method: MethodObject, index: number) => {
 }
 
 describe('json-rpc spec', () => {
-	rpcSpec.methods.slice(3, 5).forEach((method, i) => testRpcMethod(method, i))
+	rpcSpec.methods.forEach((method, i) => testRpcMethod(method, i))
 })

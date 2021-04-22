@@ -7,7 +7,7 @@ import { msgFromError } from '@radixdlt/util'
 describe('ResourceIdentifier (RRI)', () => {
 	it('can be created from address+name AND from id-string', () => {
 		const address = Address.fromUnsafe(
-			'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+			'brx1yqfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqteszew0sc',
 		)._unsafeUnwrap()
 		const name = 'FOOBAR'
 		const rri = ResourceIdentifier.create({
@@ -50,23 +50,15 @@ describe('ResourceIdentifier (RRI)', () => {
 		doTest(ResourceIdentifier.fromBech32String)
 	})
 
-	it('legacy rri 1', () => {
-		const rri = ResourceIdentifier.fromString(
-			'/9S8LZFHXHTSJqNQ86ZeGKtFMJtqZbYPtgHWSC4LyYjSbduNRpDNN/ALEX',
-		)._unsafeUnwrap()
-		expect(rri.toString()).toBe(
-			'alex_rr1qfpwaflah2809h2rk834nepjeuduen6tgzlaleg4nlu2sx078rpzy8au6an',
-		)
-	})
 
-	it('legacy rri 2', () => {
-		const rriLegacyStr =
-			'/9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT/XRD'
-		const rri = ResourceIdentifier.fromString(rriLegacyStr)._unsafeUnwrap()
-		expect(rri.toString()).toBe(
-			'xrd_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtesv2yq5l',
-		)
-	})
+	// it('create rris for mocked tokens', () => {
+	// 	const doTest = (symbol: string, address?: string): void => {
+	// 		const hash = address === undefined ? Buffer.alloc(0) : Address.fromUnsafe(address).map(a => Buffer.from()) _unsafeUnwrap({ withStackTrace: true })
+	// 		const rri = ResourceIdentifier.create({ hash, name: symbol })
+	// 		const rriString =
+	// 	}
+	//
+	// })
 
 	it('rri bech32', () => {
 		const doTest = (

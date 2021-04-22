@@ -20,17 +20,13 @@ import {
 	Signature,
 } from '@radixdlt/crypto'
 import { Option } from 'prelude-ts'
-import { HDPathRadix, HDPathRadixT } from './bip32'
+import { HDPathRadix, HDPathRadixT, Int32 } from './bip32'
 import { isAccount } from './account'
-import { Int32 } from './bip32/_types'
 import { arraysEqual, msgFromError } from '@radixdlt/util'
-import { MnemomicT } from './bip39/_types'
-import { Magic } from '@radixdlt/primitives'
-import { Address } from './addresses/address'
+import { MnemomicT, HDMasterSeed, Mnemonic } from './bip39'
+import { Address } from './addresses'
 import { ResultAsync } from 'neverthrow'
-import { HDMasterSeed } from './bip39/hdMasterSeed'
 import { log } from '@radixdlt/util'
-import { Mnemonic } from './bip39/mnemonic'
 
 const __unsafeCreateWithPrivateKeyProvider = (
 	input: Readonly<{

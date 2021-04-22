@@ -235,20 +235,20 @@
                                     "actions": [
                                         {
                                             "type": "TokenTransfer",
-                                            "from": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
-                                            "to": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                            "from": "brx1yqfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqteszew0sc",
+                                            "to": "brx1yqvh7yh5jvysjxrge27fwsg0rfktcztlurs43er4zyz4fe0jxa2uk6hhlalx",
                                             "amount": "100",
                                             "rri": "xrd_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtesv2yq5l"
                                         },
                                         {
                                             "type": "StakeTokens",
-                                            "from": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                            "from": "brx1yqfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqteszew0sc",
                                             "validator": "vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazy",
                                             "amount": "100"
                                         },
                                         {
                                             "type": "UnstakeTokens",
-                                            "from": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                            "from": "brx1yqfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqteszew0sc",
                                             "validator": "vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazy",
                                             "amount": "100"
                                         },
@@ -296,20 +296,20 @@
                             "actions": [
                                 {
                                     "type": "TokenTransfer",
-                                    "from": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
-                                    "to": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                    "from": "brx1yqfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqteszew0sc",
+                                    "to": "brx1yqvh7yh5jvysjxrge27fwsg0rfktcztlurs43er4zyz4fe0jxa2uk6hhlalx",
                                     "amount": "100",
                                     "rri": "xrd_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtesv2yq5l"
                                 },
                                 {
                                     "type": "StakeTokens",
-                                    "from": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                    "from": "brx1yqfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqteszew0sc",
                                     "validator": "vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazy",
                                     "amount": "100"
                                 },
                                 {
                                     "type": "UnstakeTokens",
-                                    "from": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                    "from": "brx1yqfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqteszew0sc",
                                     "validator": "vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazy",
                                     "amount": "100"
                                 },
@@ -593,7 +593,7 @@
                             "validators": [
                                 {
                                     "address": "vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazy",
-                                    "ownerAddress": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                                    "ownerAddress": "brx1yqfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqteszew0sc",
                                     "name": "Cerby",
                                     "infoURL": "http://www.radixdlt.com",
                                     "totalDelegatedStake": "100",
@@ -633,7 +633,7 @@
                         "name": "lookupValidatorExample",
                         "value": {
                             "address": "vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazy",
-                            "ownerAddress": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
+                            "ownerAddress": "brx1yqfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqteszew0sc",
                             "name": "Cerby",
                             "infoURL": "http://www.radixdlt.com",
                             "totalDelegatedStake": "100",

@@ -2,35 +2,36 @@ import { UInt256 } from '@radixdlt/uint256'
 import { Address, AddressT } from '../src'
 
 import { generatePrivateKey, privateKeyFromScalar } from '@radixdlt/crypto'
-import { log } from '@radixdlt/util'
 import { NetworkT } from '../dist'
 
 // TODO CODE DUPLICATION remove to separate test package...
 export const toAddress = (bech32String: string): AddressT =>
 	Address.fromUnsafe(bech32String)._unsafeUnwrap()
 
-describe('Address', () => {
+describe('AccountAddress', () => {
 	it('can generate new account address', () => {
 		const doGenerate = (): string => {
+			const privateKey = generatePrivateKey()
+			const publicKey = privateKey.publicKey()
 
+			const address = Address.fromPublicKeyAndNetwork({
+				publicKey: publicKey,
+				network: NetworkT.BETANET
+			})
 
-		const privateKey = generatePrivateKey()
-		const publicKey = privateKey.publicKey()
-
-		const address = Address.fromPublicKeyAndNetwork({
-			publicKey: publicKey,
-			network: NetworkT.MAINNET
-		})
-
-		expect(Address.isAccountAddress(address)).toBe(true)
-			return address.toString()
+			expect(Address.isAccountAddress(address)).toBe(true)
+			const addressString = address.toString()
+			Address.fromUnsafe(addressString).match(
+				(a) => {
+					expect(a.equals(address)).toBe(true)
+				},
+				(e) => {
+					throw e
+				}
+			)
+			return addressString
 		}
-		const addresses: string[] = []
-		for (let i = 0; i < 100; i++) {
-			addresses.push(doGenerate())
-		}
-		const addreString = addresses.map(a => `'${a}',`).join('\n')
-		console.log(`✅ \n${addreString}`)
+		doGenerate()
 	})
 
 	it('can be created from a publicKey and network id', async () => {
@@ -41,13 +42,13 @@ describe('Address', () => {
 
 		const address = Address.fromPublicKeyAndNetwork({
 			publicKey: publicKey,
-			network: NetworkT.MAINNET
+			network: NetworkT.BETANET
 		})
 
 		expect(Address.isAccountAddress(address)).toBe(true)
 
 		const expctedAddressBase58 =
-			'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT'
+			'brx1yqfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqteszew0sc'
 		expect(address.toString()).toBe(expctedAddressBase58)
 
 		const addressFromString = Address.fromUnsafe(
@@ -61,16 +62,16 @@ describe('Address', () => {
 
 	it('should consider the same address to be equal itself', () => {
 		const makeAddress = (): AddressT =>
-			toAddress('9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT')
+			toAddress('brx1yqfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqteszew0sc')
 		expect(makeAddress().equals(makeAddress())).toBe(true)
 	})
 
-	it('should consider two different address with the same magic but different publicKeys as inequal', async () => {
+	it('should consider two different address with the same networkId but different publicKeys as inequal', async () => {
 		const alice = toAddress(
-			'9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
+			'brx1yqfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqteszew0sc',
 		)
 		const bob = toAddress(
-			'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+			'brx1yqvh7yh5jvysjxrge27fwsg0rfktcztlurs43er4zyz4fe0jxa2uk6hhlalx',
 		)
 		expect(alice.network).toBe(bob.network)
 		expect(alice.equals(bob)).toBe(false)

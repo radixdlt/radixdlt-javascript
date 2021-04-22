@@ -7,14 +7,14 @@ import { mockErrorMsg } from '../../util/test/util'
 
 const createWallet = (network?: NetworkT): WalletT => {
 	const mnemonic = Mnemonic.generateNew()
-	return Wallet.create({ mnemonic, network: network ?? NetworkT.BETANET })
+	return Wallet.create({ mnemonic })
 }
 
 const createSpecificWallet = (network?: NetworkT): WalletT => {
 	const mnemonic = Mnemonic.fromEnglishPhrase(
 		'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
 	)._unsafeUnwrap()
-	return Wallet.create({ mnemonic, network: network ?? NetworkT.BETANET })
+	return Wallet.create({ mnemonic })
 }
 
 const expectWalletsEqual = (
@@ -46,10 +46,8 @@ describe('HD Wallet', () => {
 		const password = 'super secret password'
 
 		let load: () => Promise<KeystoreT>
-		const network = NetworkT.BETANET
 		await Wallet.byEncryptingMnemonicAndSavingKeystore({
 			mnemonic,
-			network,
 			password,
 			save: (keystoreToSave: KeystoreT) => {
 				load = () => Promise.resolve(keystoreToSave)
@@ -57,7 +55,7 @@ describe('HD Wallet', () => {
 			},
 		})
 			.andThen((wallet1) =>
-				Wallet.byLoadingAndDecryptingKeystore({ password, load, network }).map(
+				Wallet.byLoadingAndDecryptingKeystore({ password, load }).map(
 					(wallet2) => ({
 						wallet1,
 						wallet2,
@@ -78,7 +76,7 @@ describe('HD Wallet', () => {
 		const mnemonic = Mnemonic.fromEnglishPhrase(
 			mnemonicPhrase,
 		)._unsafeUnwrap()
-		const wallet = Wallet.create({ mnemonic, network: NetworkT.MAINNET })
+		const wallet = Wallet.create({ mnemonic })
 		const mnemonicRevealed = wallet.revealMnemonic()
 		expect(mnemonicRevealed.equals(mnemonic)).toBe(true)
 		expect(mnemonicRevealed.phrase).toBe(mnemonicPhrase)
@@ -101,7 +99,6 @@ describe('HD Wallet', () => {
 
 			await Wallet.byEncryptingMnemonicAndSavingKeystore({
 				mnemonic,
-				network: NetworkT.BETANET,
 				password,
 				save: (_) => Promise.reject(new Error(errMsg)),
 			}).match(
@@ -122,7 +119,6 @@ describe('HD Wallet', () => {
 
 			await Wallet.byLoadingAndDecryptingKeystore({
 				password,
-				network: NetworkT.BETANET,
 				load: () => Promise.reject(new Error(errMsg)),
 			}).match(
 				(_) => done(new Error('Expected error but got none')),
@@ -253,8 +249,8 @@ describe('HD Wallet', () => {
 				toArray(),
 			)
 			.subscribe(
-				(magic) => {
-					expect(magic).toStrictEqual(expectedValues)
+				(networks: NetworkT[]) => {
+					expect(networks).toStrictEqual(expectedValues)
 					done()
 				},
 				(error) => done(error),

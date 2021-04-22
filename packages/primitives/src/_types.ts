@@ -1,13 +1,7 @@
 import { Long } from 'long'
 import { UInt256 } from '@radixdlt/uint256'
 import { Result } from 'neverthrow'
-import { Byte } from '@radixdlt/util'
-
 export type Int64 = Long
-
-export type Magic = Readonly<{
-	byte: Byte
-}>
 
 export enum DenominationOutputFormat {
 	OMIT,

@@ -127,8 +127,8 @@ export type WalletT = PublicKeyDeriving &
 
 		revealMnemonic: () => MnemomicT
 
-		// Call this once you can provide an observable providing magic.
-		provideNetworkId: (magic: Observable<NetworkT>) => void
+		// Call this once you can provide an observable providing network.
+		provideNetworkId: (network: Observable<NetworkT>) => void
 		deriveNext: (input?: DeriveNextAccountInput) => AccountT
 
 		switchAccount: (input: SwitchAccountInput) => AccountT

@@ -1,7 +1,7 @@
 import { err, ok, Result } from 'neverthrow'
 import { PublicKey } from '@radixdlt/crypto'
 import { AddressT, AddressTypeT, NetworkT } from '../_types'
-import { Encoding } from '../bech32'
+import { Bech32, Encoding } from '../bech32'
 import {
 	AbstractAddress,
 	FormatDataToBech32Convert,
@@ -39,9 +39,25 @@ const networkFromHRP: NetworkFromHRP = (hrp) => {
 	return err(new Error(errMsg))
 }
 
-const formatDataToBech32Convert: FormatDataToBech32Convert = (pubKey) =>
-	Buffer.concat([versionByte, pubKey])
+const formatDataToBech32Convert: FormatDataToBech32Convert = (data) =>
+	Buffer.concat([versionByte, data])
 
+// FORMER
+// const validateDataAndExtractPubKeyBytes: ValidateDataAndExtractPubKeyBytes = (
+// 	data: Buffer,
+// ): Result<Buffer, Error> => {
+// 	const receivedVersionByte = data.slice(0, 1)
+// 	if (!buffersEquals(versionByte, receivedVersionByte)) {
+// 		const errMsg = `Wrong version byte, expected '${versionByte.toString(
+// 			'hex',
+// 		)}', but got: '${receivedVersionByte.toString('hex')}'`
+// 		console.error(errMsg)
+// 		return err(new Error(errMsg))
+// 	}
+// 	return ok(data.slice(1, data.length))
+// }
+
+// LATTER
 const validateDataAndExtractPubKeyBytes: ValidateDataAndExtractPubKeyBytes = (
 	data: Buffer,
 ): Result<Buffer, Error> => {
@@ -53,7 +69,9 @@ const validateDataAndExtractPubKeyBytes: ValidateDataAndExtractPubKeyBytes = (
 		console.error(errMsg)
 		return err(new Error(errMsg))
 	}
-	return ok(data.slice(1, data.length))
+	const bech32Data = data.slice(1, data.length)
+	const publicKeyBytes = Bech32.convertDataFromBech32(bech32Data)
+	return ok(publicKeyBytes)
 }
 
 const fromPublicKeyAndNetwork = (

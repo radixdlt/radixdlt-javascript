@@ -3,8 +3,6 @@ import {
 	AmountT,
 	Denomination,
 	isAmount,
-	Magic,
-	magicFromNumber,
 	maxAmount,
 } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
@@ -79,7 +77,7 @@ export const xrd: Token = {
 export const fooToken: Token = {
 	name: 'Foo token',
 	rri: ResourceIdentifier.fromString(
-		'/9SAGS7iVkjLDa2uoqzvybBJZP5RJd6XLzoeSmqur9WWXoKs7hPqz/FOO',
+		'foo_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtespu84ew',
 	)._unsafeUnwrap(),
 	symbol: 'FOO',
 	description: 'FOOest token.',
@@ -97,7 +95,7 @@ export const fooToken: Token = {
 export const barToken: Token = {
 	name: 'Bar token',
 	rri: ResourceIdentifier.fromString(
-		'/9S8toEsjy7bLLVYwenrygbEiQDBiSYen4GDEGan5y6nGMXzKT22G/BAR',
+		'bar_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtespudl5s',
 	)._unsafeUnwrap(),
 	symbol: 'BAR',
 	description: 'Bar token. Granularity E-3.',
@@ -115,7 +113,7 @@ export const barToken: Token = {
 export const goldToken: Token = {
 	name: 'Gold token',
 	rri: ResourceIdentifier.fromString(
-		'/9SAihkYQDBKvHfhvwEw4QBfx1rpjvta2TvmWibyXixVzX2JHHHWf/BAR',
+		'apa',
 	)._unsafeUnwrap(),
 	symbol: 'GOLD',
 	description: 'Gold token. Granularity E-12.',
@@ -236,55 +234,55 @@ const differentTokens: Token[] = [
 
 // PLEASE KEEP - used as Cast of characters: https://en.wikipedia.org/wiki/Alice_and_Bob#Cast_of_characters
 export const alice = toAddress(
-	'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+	'brx1yqfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqteszew0sc',
 )
 export const bob = toAddress(
-	'9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
+	'brx1yqvh7yh5jvysjxrge27fwsg0rfktcztlurs43er4zyz4fe0jxa2uk6hhlalx',
 )
 export const carol = toAddress(
-	'9S8sKfN3wGyJdfyu9RwWvGKtZqq3R1NaxwT63VXi5dEZ6dUJXLyR',
+	'brx1yq0f8uqcac5tgnny384sezcshg80elwymwtzukntyv3ghuge8wv7lv5h0gs7',
 )
 export const dan = toAddress(
-	'9SBFdPAkvquf9XX82D2Z9DzL2WdmNQGcrxFUnKpVytpkMjZWD9Rb',
+	'brx1yqv9af50essj3y40u6afyfr9hf8f3j8tg9v5rcefls8kja5lnqq306r7mj5m',
 )
 export const erin = toAddress(
-	'9S8LZFHXHTSJqNQ86ZeGKtFMJtqZbYPtgHWSC4LyYjSbduNRpDNN',
+	'brx1yqdsgcdceq95uvrf6gntvuqtgt3eumpdvt8hyajtqxpw4ww8xhqqqguqrjma',
 )
 export const frank = toAddress(
-	'9SBRR1Xa3RRw1M7juwLTHfL1T2Y7XMZJJM6YyJjqddSLGaH2dk9c',
+	'brx1yqwd674yltctxqsa8qz49pkugecmrt2m9yjvzaupzsu900fm2yjeuy0hukqy',
 )
 export const grace = toAddress(
-	'9S9AtsDC1eR6QSLwrTRi2vteWCg2C1VDMySStFaZVRpMrvErXzBV',
+	'brx1yqvczlmklu2dfemly7nqu96ylyv3z0ndexkldp5jmvtqe8klu4jlu5dhyu7w',
 )
 export const heidi = toAddress(
-	'9S9y4d9owF7kuRk7b14VhfwrBxHe3w9ukbAcbnoLtBFvjWhTCXpz',
+	'brx1yqfwylgyvu74ahelly6s7x5ntz8guyq72p9af89s9ur6y7y5yphfhvtq95u4',
 )
 export const ivan = toAddress(
-	'9SBRrNSxu6zacM8qyuUpDh4gNqou8QX6QEu53LKVsT4FXjvD77ou',
+	'brx1yqgrnxrxuwa6327q0ghwrpvyc5wahyp92nn43mg474tfgcpkw4p4l5zt33pd',
 )
 export const judy = toAddress(
-	'9S9tQA7v1jSEUTvLk3hTp9fTmWNsA1ppJ3D6dHLxoqnPcYayAmQf',
+	'brx1yq2ll62yc88uumhc4yaecdsscqx37qfc0j4sfv428hnfmfwlmlk9yueyse57',
 )
 export const klara = toAddress(
-	'9S8np84gn7skz8U2Vd7GwkvSMzSksMLqAq7nrpu2hA2a31M2rmfD',
+	'brx1yqdg0de8mtzmpwfp4v3gmdgnxn47zvpmdfra8hf4q546dravl3pdpx4rvqy5',
 )
 export const leonard = toAddress(
-	'9S8toEsjy7bLLVYwenrygbEiQDBiSYen4GDEGan5y6nGMXzKT22G',
+	'brx1yqtckcfsyw9ss6cvxtzu2upu6fck0hy3l50nqzmsmusyqure7gskq2fvvl28',
 )
 export const mallory = toAddress(
-	'9SBZ9kzpXKAQ9oHHZngahVUQrLwU6DssiPbtCj5Qb6cxqxPC6stb',
+	'brx1yqgyj7g3ylz3k4zfv7gj2p4ap3kt633vm89jcdrd9mmqk8s8zy6ayzv822jj',
 )
 export const niaj = toAddress(
-	'9S9X7DFSGTbfiQpSw1Dv9DHK67K1qHtz1Kjwd2uFtty7Yz8dmZbc',
+	'brx1yqgmqtcv34xd5c37rz9mjrnkjageg8m5pq0khwsmussyx76sv4acnv89g8er',
 )
 export const olivia = toAddress(
-	'9S81XtkW3H9XZrmnzWqYSuTFPhWXdRnnpL3XXk7h5XxAM6zMdH7k',
+	'brx1yqd9zasd8yq6hawjmy2tjkjzql5hxzmstxeegw7t3hcw0zuf0y5ds6dy5tj6',
 )
 export const peggy = toAddress(
-	'9SAGS7iVkjLDa2uoqzvybBJZP5RJd6XLzoeSmqur9WWXoKs7hPqz',
+	'brx1yqv7pssssrzujs3sw059qpemmcew0jnr3nmghh5gr6zjy5k2hcfd5cp3h9z4',
 )
 export const quentin = toAddress(
-	'9SB4Hvi9sudHncGXhUhuvUYNWziMYYcXXiDZ6i7fpSvRUDCA3rjg',
+	'brx1yqwafkm3ez2qau344p4mauulrwk0jztx8gkqekazc7l0szd9k9qupw4zu2dk',
 )
 
 const characterNames: string[] = [
@@ -874,7 +872,7 @@ let txStatusMapCounter: Map<
 export const mockRadixCoreAPI = (
 	input?: Readonly<{
 		nodeUrl?: string
-		magic?: number
+		network?: NetworkT
 	}>,
 ): RadixCoreAPI => {
 	txStatusMapCounter = new Map<TransactionIdentifierT, number>()
@@ -882,7 +880,7 @@ export const mockRadixCoreAPI = (
 		node: { url: new URL(input?.nodeUrl ?? 'http://www.example.com') },
 
 		networkId: (): Observable<NetworkT> => {
-			return of(NetworkT.BETANET).pipe(shareReplay(1))
+			return of(input?.network ?? NetworkT.BETANET).pipe(shareReplay(1))
 		},
 		nativeToken: (): Observable<Token> => of(xrd),
 		tokenInfo: (rri: ResourceIdentifierT): Observable<Token> =>

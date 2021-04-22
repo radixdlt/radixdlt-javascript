@@ -1,12 +1,14 @@
-import { TransactionIntentBuilder } from '../src/dto/transactionIntentBuilder'
 import { Amount, DenominationOutputFormat } from '@radixdlt/primitives'
-import { carol, erin, xrd } from '../src/mockRadix'
 import {
 	ActionType,
 	IntendedTransferTokensAction,
 	StakeTokensInput,
 	TransferTokensInput,
-} from '../src/actions/_types'
+	TransactionIntentBuilderT,
+	TransactionIntentBuilder,
+	IntendedStakeTokensAction,
+	carol, erin, xrd
+} from '../src'
 import {
 	AddressT,
 	isAccountAddress,
@@ -17,9 +19,7 @@ import {
 	Wallet,
 	WalletT,
 } from '@radixdlt/account'
-import { TransactionIntentBuilderT } from '../src/dto/_types'
 import { combineLatest, merge, of, Subscription } from 'rxjs'
-import { IntendedStakeTokensAction } from '../src/actions/_types'
 
 import { map, mergeMap, take, toArray } from 'rxjs/operators'
 import { restoreDefaultLogLevel, setLogLevel } from '@radixdlt/util'

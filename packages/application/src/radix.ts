@@ -372,7 +372,7 @@ const create = (
 	}
 
 	const _withWallet = (wallet: WalletT): void => {
-		// Important! We must provide wallet with `magic`,
+		// Important! We must provide wallet with `networkId`,
 		// so that it can derive addresses for its accounts.
 		wallet.provideNetworkId(networkId())
 		walletSubject.next(wallet)

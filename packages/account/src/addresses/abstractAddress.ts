@@ -54,9 +54,16 @@ const create = <A extends AbstractAddressT>(
 	const formatDataToBech32Convert =
 		input.formatDataToBech32Convert ?? ((b) => b)
 
+	// FORMER
+	// const publicKeyBytes = publicKey.asData({ compressed: true })
+	// const bytes = formatDataToBech32Convert(publicKeyBytes)
+	// const data = Bech32.convertDataToBech32(bytes)
+
+	// LATTER
 	const publicKeyBytes = publicKey.asData({ compressed: true })
-	const bytes = formatDataToBech32Convert(publicKeyBytes)
-	const data = Bech32.convertDataToBech32(bytes)
+	const bytes = Bech32.convertDataToBech32(publicKeyBytes)
+	const data = formatDataToBech32Convert(bytes)
+
 	const hrp = hrpFromNetwork(network)
 	const encodingResult = Bech32.encode({ hrp, data, encoding, maxLength })
 
@@ -118,15 +125,29 @@ const fromString = <A extends AbstractAddressT>(
 		addressType,
 	} = input
 
-	const validateDataAndExtractPubKeyBytes =
-		input.validateDataAndExtractPubKeyBytes ?? ((data: Buffer) => ok(data))
-
 	return Bech32.decode({ bechString, encoding, maxLength })
 		.andThen(
 			({ hrp, data: bech32Data }): Result<A, Error> => {
-				const data = Bech32.convertDataFromBech32(bech32Data)
+				// FORMER
+				// const validateDataAndExtractPubKeyBytes =
+				// 	input.validateDataAndExtractPubKeyBytes ?? ((data: Buffer) => ok(data))
+				// const data = Bech32.convertDataFromBech32(bech32Data)
+				// return validateDataAndExtractPubKeyBytes(data).andThen(
+				// 	(publicKeyBytes) => {
+				// 		return combine([
+				// 			networkFromHRP(hrp),
+				// 			publicKeyFromBytes(publicKeyBytes),
+				// 		]).map(
+				// 			(resultList): A => {
+				// 				const network = resultList[0] as NetworkT
+				// 				const publicKey = resultList[1] as PublicKey
 
-				return validateDataAndExtractPubKeyBytes(data).andThen(
+				// LATTER
+				const validateDataAndExtractPubKeyBytes =
+					input.validateDataAndExtractPubKeyBytes ??
+					((data: Buffer) => ok(Bech32.convertDataFromBech32(data)))
+
+				return validateDataAndExtractPubKeyBytes(bech32Data).andThen(
 					(publicKeyBytes) => {
 						return combine([
 							networkFromHRP(hrp),
