@@ -10,8 +10,8 @@ const maxLength: number | undefined = undefined // arbitrarily chosen
 const hrpBetanetSuffix = '_rb'
 const hrpMainnetSuffix = '_rr'
 
-const versionByteNativeToken = 0x01 //Buffer.from([0x01])
-const versionByteNonNativeToken = 0x03 //Buffer.from([0x03])
+const versionByteNativeToken = 0x01
+const versionByteNonNativeToken = 0x03
 
 const __create = (input: {
 	hash: Buffer
@@ -23,7 +23,6 @@ const __create = (input: {
 		__witness: 'isRRI',
 		equals: (other): boolean => {
 			if (!isResourceIdentifier(other)) return false
-			// return input.toString() === other.toString()
 			const same =
 				other.name === input.name &&
 				buffersEquals(other.hash, input.hash)
@@ -50,7 +49,6 @@ const fromBech32String = (
 		const errMsg = `Failed to Bech32 decode RRI, underlying error: ${msgFromError(
 			decodingResult.error,
 		)}, but expect to always be able to.`
-		// console.error(errMsg)
 		return err(new Error(errMsg))
 	}
 	const decoded = decodingResult.value
@@ -58,7 +56,6 @@ const fromBech32String = (
 
 	if (!hrp.endsWith(hrpSuffix)) {
 		const errMsg = `The prefix (HRP: Human Readable Part) of a Resource identifier must end with suffix ${hrpSuffix}`
-		// console.error(errMsg)
 		return err(new Error(errMsg))
 	}
 
@@ -139,20 +136,6 @@ const fromBech32String = (
 	)
 }
 
-// const withNameAndHash = (
-// 	input: Readonly<{
-// 		hash: Buffer
-// 		name: string
-// 	}>,
-// ): Result<ResourceIdentifierT, Error> => {
-// 	const { name, hash } = input
-// 	return withNameRawDataAndVersionByte({
-// 		name,
-// 		hash: hash.slice(-(hash.length - 1)), // remove first
-// 		versionByte: hash[0],
-// 	})
-// }
-
 const validateCharsInName = (name: string): Result<string, Error> => {
 	const regexLowerAlphaNumerics = new RegExp('^[a-z0-9]+$')
 	if (!regexLowerAlphaNumerics.test(name)) {
@@ -179,18 +162,8 @@ const withNameRawDataAndVersionByte = (
 
 		const combinedData = Buffer.concat([Buffer.from([versionByte]), hash])
 
-		console.log(
-			`🔮 fromRawDataAndName: combinedData ${combinedData.toString('hex')}, `,
-		)
-
 		return Bech32.convertDataToBech32(combinedData)
 			.andThen((processed) => {
-
-				console.log(
-					`🔮 fromRawDataAndName: processed ${processed.toString('hex')}, `,
-				)
-
-
 				return Bech32.encode({
 					data: processed,
 					hrp,
@@ -199,40 +172,13 @@ const withNameRawDataAndVersionByte = (
 				})
 			})
 			.map((bech32) => {
-
-				console.log(
-					`🔮 fromRawDataAndName: bech32.data ${bech32.data.toString('hex')}, `,
-				)
-
-				console.log(
-					`🔮 fromRawDataAndName: toString ${bech32.toString()}, `,
-				)
 				return __create({
-					hash, //: rawData, //processedData,
+					hash,
 					name,
 					toString: () => bech32.toString(),
 				})
 			})
-			.map((rri) => {
-				// soundness check
-				console.log(`🔮 soundness check from string ${rri.toString()}, `)
-				const roundtrip = fromUnsafe(rri.toString())
-				if (!roundtrip.isOk()) {
-					const errMsg = `Soundness check failed, error ${msgFromError(
-						roundtrip.error,
-					)}`
-					console.log(errMsg)
-					throw new Error(errMsg)
-				}
-				if (roundtrip.value.toString() !== rri.toString()) {
-					const errMsg = `Soundness check failed strings differ...`
-					console.log(errMsg)
-					throw new Error(errMsg)
-				}
-				return rri
-			})
 	})
-
 }
 
 const systemRRI = (name: string): Result<ResourceIdentifierT, Error> =>
@@ -255,22 +201,7 @@ const pkToHash = (
 	const pubKeyBytes = publicKey.asData({ compressed: true })
 	const dataToHash = Buffer.concat([pubKeyBytes, nameBytes])
 	const hash = sha256Twice(dataToHash)
-	const result = hash.slice(-hashByteCount) // last bytes
-
-
-	console.log(
-		`🔮 pkToHash: dataToHash ${dataToHash.toString('hex')}, `,
-	)
-
-	console.log(
-		`🔮 pkToHash: hash ${hash.toString('hex')}, `,
-	)
-
-	console.log(
-		`🔮 pkToHash: result ${result.toString('hex')}, `,
-	)
-
-	return result
+	return hash.slice(-hashByteCount) // last bytes
 }
 
 const fromPublicKeyAndName = (
@@ -323,6 +254,5 @@ const fromUnsafe = (
 export const ResourceIdentifier = {
 	systemRRI,
 	fromPublicKeyAndName,
-	// withNameAndHash,
 	fromUnsafe,
 }

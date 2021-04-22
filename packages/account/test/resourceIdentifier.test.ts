@@ -19,7 +19,6 @@ describe('rri_on_bech32_format', () => {
 		)
 	})
 
-
 	describe('rri from publicKey and name', () => {
 
 		type PKAneNameVector = {
@@ -122,12 +121,7 @@ describe('rri_on_bech32_format', () => {
 
 	})
 
-
-
-
-
 	describe('rri system', () => {
-
 		type SystemRRIVector = {
 			name: string
 			expectedRRI: string
@@ -165,38 +159,25 @@ describe('rri_on_bech32_format', () => {
 
 		const doTest = (vector: SystemRRIVector, index: number): void => {
 			it(`vector_index${index}`, () => {
-				console.log(`🤡 vector index: ${index}`)
 				const rri = ResourceIdentifier.systemRRI(vector.name)._unsafeUnwrap()
 
 				expect(rri.name).toBe(vector.name)
 				expect(rri.toString()).toBe(vector.expectedRRI)
 			})
 		}
-
 		privateKeyAndNameToRri.forEach((v, i) => doTest(v, i))
 	})
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	describe('test non happy paths', () => {
+
+		beforeAll(() => {
+			jest.spyOn(console, 'error').mockImplementation(() => {})
+		})
+
+		afterAll(() => {
+			jest.clearAllMocks()
+		})
+
 		it('rri checksum invalid bech32 string', () => {
 			const rri = 'xrd_rb1qya85pw1' // "w1" should have been "wq";
 			ResourceIdentifier.fromUnsafe(rri).match(
@@ -251,7 +232,6 @@ describe('rri_on_bech32_format', () => {
 
 		const doTest = (invalidVector: InvalidVector, index: number): void => {
 			it(`invalid_vector_index${index}`, () => {
-				console.log(`🚀 invalidVector: ${index} `)
 				ResourceIdentifier.fromUnsafe(invalidVector.invalidRRI).match(
 					(_) => { throw new Error(`Got success, but expected failure, rri: ${invalidVector.invalidRRI}`) },
 					(e) => {
@@ -260,7 +240,6 @@ describe('rri_on_bech32_format', () => {
 				)
 			})
 		}
-
 		invalidVectors.forEach((v, i) => doTest(v, i))
 
 	})
