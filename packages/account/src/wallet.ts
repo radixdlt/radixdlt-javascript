@@ -27,6 +27,7 @@ import { MnemomicT, HDMasterSeed, Mnemonic } from './bip39'
 import { Address } from './addresses'
 import { ResultAsync } from 'neverthrow'
 import { log } from '@radixdlt/util'
+import { sub } from '@radixdlt/uint256/dist/arithmetic'
 
 const __unsafeCreateWithPrivateKeyProvider = (
 	input: Readonly<{
@@ -54,7 +55,7 @@ const __unsafeCreateWithPrivateKeyProvider = (
 	const networkId$ = networkIdSubject.asObservable()
 
 	const provideNetworkId = (networkIdSource: Observable<NetworkT>): void => {
-		networkIdSource.subscribe(networkIdSubject).add(subs)
+		networkIdSource.subscribe((n) => networkIdSubject.next(n)).add(subs)
 	}
 
 	const _deriveWithPath = (

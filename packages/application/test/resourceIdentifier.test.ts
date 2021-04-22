@@ -1,53 +1,42 @@
 import { Address, Bech32 } from '@radixdlt/account'
-import { ResourceIdentifier } from '../src/dto/resourceIdentifier'
-import { Result } from 'neverthrow'
-import { ResourceIdentifierT } from '..'
+import { ResourceIdentifier } from '../src'
 import { msgFromError } from '@radixdlt/util'
 
 describe('ResourceIdentifier (RRI)', () => {
-	it('can be created from address+name AND from id-string', () => {
-		const address = Address.fromUnsafe(
-			'brx1qspqljn9rg7x97s3rcvyzal2uxr5q22d9xn8nc4rpq8vq08kg4ch8yqhs9dq6',
-		)._unsafeUnwrap()
-		const name = 'FOOBAR'
-		const rri = ResourceIdentifier.create({
-			hash: address.publicKey.asData({ compressed: true }),
-			name: name,
-		})._unsafeUnwrap()
+	// it('can be created from address+name AND from id-string', () => {
+	// 	const address = Address.fromUnsafe(
+	// 		'brx1qspqljn9rg7x97s3rcvyzal2uxr5q22d9xn8nc4rpq8vq08kg4ch8yqhs9dq6',
+	// 	)._unsafeUnwrap()
+	// 	const name = 'FOOBAR'
+	// 	const rri = ResourceIdentifier.fromPublicKeyAndName({
+	// 		publicKey: address.publicKey,
+	// 		name: name,
+	// 	})._unsafeUnwrap()
+	//
+	// 	const rriString =
+	// 		'foobar_rr1qwlxrr6ffhqzkp7axjz0yscsf47taazk22x5zpk5hyasn5w6mm'
+	//
+	// 	expect(rri.toString()).toBe(rriString)
+	//
+	// 	const rriFromString = ResourceIdentifier.fromUnsafe(
+	// 		rriString,
+	// 	)._unsafeUnwrap()
+	//
+	// 	expect(rriFromString.toString()).toBe(rriString)
+	// })
 
-		const rriString =
-			'foobar_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqteshmvuln'
+	it('system rri', () => {
+		const xrd = ResourceIdentifier.systemRRI('xrd')._unsafeUnwrap()
+		expect(xrd.name).toBe('xrd')
+		const xrdRriString = xrd.toString()
 
-		expect(rri.toString()).toBe(rriString)
+		const expectedRriString = 'xrd_rr1qy5wfsfh'
+		expect(xrdRriString).toBe(expectedRriString)
+		const xrdFromString = ResourceIdentifier.fromUnsafe(expectedRriString)._unsafeUnwrap()
 
-		const rriFromString = ResourceIdentifier.fromString(
-			rriString,
-		)._unsafeUnwrap()
-
-		expect(rriFromString.toString()).toBe(
-			'foobar_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqteshmvuln',
-		)
-	})
-
-	it('rri any constructor', () => {
-		const rriString =
-			'xrd_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtesv2yq5l'
-		const doTest = <T>(
-			makeRRI: (input: T) => Result<ResourceIdentifierT, Error>,
-		): void => {
-			// @ts-ignore
-			makeRRI(rriString).match(
-				(rri) => {
-					expect(rri.name).toBe('xrd')
-				},
-				(e) => {
-					throw e
-				},
-			)
-		}
-		doTest(ResourceIdentifier.fromUnsafe)
-		doTest(ResourceIdentifier.fromString)
-		doTest(ResourceIdentifier.fromBech32String)
+		expect(xrdFromString.name).toBe('xrd')
+		expect(xrdFromString.equals(xrd)).toBe(true)
+		expect(xrdFromString.toString()).toBe(xrd.toString())
 	})
 
 
@@ -60,56 +49,21 @@ describe('ResourceIdentifier (RRI)', () => {
 	//
 	// })
 
-	it('rri bech32', () => {
-		const doTest = (
-			name: string,
-			expectedRRI: string,
-			hash: Buffer,
-		): void => {
-			const doTestRRI = (rriToCheck: ResourceIdentifierT): void => {
-				expect(rriToCheck.toString()).toBe(expectedRRI)
-				expect(rriToCheck.hash.toString('hex')).toBe(
-					hash.toString('hex'),
-				)
-				expect(rriToCheck.name).toBe(name)
-			}
-			const rri = ResourceIdentifier.create({
-				hash,
-				name,
-			})._unsafeUnwrap()
-			doTestRRI(rri)
-			const rriFromString = ResourceIdentifier.fromBech32String(
-				expectedRRI,
-			)._unsafeUnwrap()
-			doTestRRI(rriFromString)
-			expect(rriFromString.equals(rri)).toBe(true)
-		}
-		doTest(
-			'foobar',
-			'foobar_rr1m6kmamckpjzlw',
-			Buffer.from('deadbeef', 'hex'),
-		)
-		doTest(
-			'hello',
-			'hello_rr1w3jhxar5v4ehguwx8gq',
-			Buffer.from('testtest', 'utf8'),
-		)
-	})
 
 
-	describe('test non happy paths', () => {
-		it('rri checksum invalid bech32 string', () => {
-			const bechString = 'hello_rr1w3jhxar5v4ehguwx8g3' // "8g3" should have been "8gq";
-			Bech32.decode({ bechString }).match(
-				(s) => {
-					throw new Error('Expected failure')
-				},
-				(e) => {
-					expect(msgFromError(e)).toBe(
-						`Invalid checksum for ${bechString}`,
-					)
-				},
-			)
-		})
-	})
+	// describe('test non happy paths', () => {
+	// 	it('rri checksum invalid bech32 string', () => {
+	// 		const bechString = 'hello_rr1w3jhxar5v4ehguwx8g3' // "8g3" should have been "8gq";
+	// 		Bech32.decode({ bechString }).match(
+	// 			(s) => {
+	// 				throw new Error('Expected failure')
+	// 			},
+	// 			(e) => {
+	// 				expect(msgFromError(e)).toBe(
+	// 					`Invalid checksum for ${bechString}`,
+	// 				)
+	// 			},
+	// 		)
+	// 	})
+	// })
 })

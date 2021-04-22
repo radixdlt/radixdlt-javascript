@@ -46,7 +46,7 @@ const dateDecoder = (...keys: string[]) =>
 const RRIDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
 		key !== undefined && keys.includes(key) && isString(value)
-			? ResourceIdentifier.fromString(value)
+			? ResourceIdentifier.fromUnsafe(value)
 			: undefined,
 	)
 
