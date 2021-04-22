@@ -122,6 +122,80 @@ describe('rri_on_bech32_format', () => {
 
 	})
 
+
+
+
+
+	describe('rri system', () => {
+
+		type SystemRRIVector = {
+			name: string
+			expectedRRI: string
+		}
+		const privateKeyAndNameToRri: SystemRRIVector[] = [
+			{
+				name: 'xrd',
+				expectedRRI: 'xrd_rb1qya85pwq',
+			},
+			{
+				name: 'foo',
+				expectedRRI: 'foo_rb1qy3q706k',
+			},
+			{
+				name: 'bar',
+				expectedRRI: 'bar_rb1qy6gq5vc',
+			},
+			{
+				name: 'alex',
+				expectedRRI: 'alex_rb1qy7s58lc',
+			},
+			{
+				name: 'gold',
+				expectedRRI: 'gold_rb1qydtpdac',
+			},
+			{
+				name: 'btcrw',
+				expectedRRI: 'btcrw_rb1qyerpvjk',
+			},
+			{
+				name: 'ethrw',
+				expectedRRI: 'ethrw_rb1qyeev2v5',
+			},
+		]
+
+		const doTest = (vector: SystemRRIVector, index: number): void => {
+			it(`vector_index${index}`, () => {
+				console.log(`🤡 vector index: ${index}`)
+				const rri = ResourceIdentifier.systemRRI(vector.name)._unsafeUnwrap()
+
+				expect(rri.name).toBe(vector.name)
+				expect(rri.toString()).toBe(vector.expectedRRI)
+			})
+		}
+
+		privateKeyAndNameToRri.forEach((v, i) => doTest(v, i))
+	})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	describe('test non happy paths', () => {
 		it('rri checksum invalid bech32 string', () => {
 			const rri = 'xrd_rb1qya85pw1' // "w1" should have been "wq";
