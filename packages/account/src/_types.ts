@@ -12,6 +12,14 @@ import { HDPathRadixT } from './bip32'
 import { Magic } from '@radixdlt/primitives'
 import { MnemomicT } from './bip39/_types'
 
+export type ResourceIdentifierT = Readonly<{
+	__witness: 'isRRI'
+	hash: Buffer
+	name: string
+	toString: () => string
+	equals: (other: ResourceIdentifierT) => boolean
+}>
+
 export type AddressT = Readonly<{
 	publicKey: PublicKey
 	magicByte: Byte

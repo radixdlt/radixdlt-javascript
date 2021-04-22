@@ -3,10 +3,10 @@ import {
 	AddressT,
 	ValidatorAddressT,
 	ValidatorAddressOrUnsafeInput,
+	ResourceIdentifierOrUnsafeInput,
+	ResourceIdentifierT,
 } from '@radixdlt/account'
 import { AmountOrUnsafeInput, AmountT } from '@radixdlt/primitives'
-import { ResourceIdentifierT } from '../dto/_types'
-import { ResourceIdentifierOrUnsafeInput } from '../dto/resourceIdentifier'
 
 export enum ActionType {
 	TOKEN_TRANSFER = 'TokenTransfer',
