@@ -112,9 +112,7 @@ export const barToken: Token = {
 
 export const goldToken: Token = {
 	name: 'Gold token',
-	rri: ResourceIdentifier.fromString(
-		'apa',
-	)._unsafeUnwrap(),
+	rri: ResourceIdentifier.fromString('apa')._unsafeUnwrap(),
 	symbol: 'GOLD',
 	description: 'Gold token. Granularity E-12.',
 	granularity: Amount.fromUInt256({
@@ -233,57 +231,38 @@ const differentTokens: Token[] = [
 ]
 
 // PLEASE KEEP - used as Cast of characters: https://en.wikipedia.org/wiki/Alice_and_Bob#Cast_of_characters
-export const alice = toAddress(
-	'brx1yqfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqteszew0sc',
-)
-export const bob = toAddress(
-	'brx1yqvh7yh5jvysjxrge27fwsg0rfktcztlurs43er4zyz4fe0jxa2uk6hhlalx',
-)
-export const carol = toAddress(
-	'brx1yq0f8uqcac5tgnny384sezcshg80elwymwtzukntyv3ghuge8wv7lv5h0gs7',
-)
-export const dan = toAddress(
-	'brx1yqv9af50essj3y40u6afyfr9hf8f3j8tg9v5rcefls8kja5lnqq306r7mj5m',
-)
-export const erin = toAddress(
-	'brx1yqdsgcdceq95uvrf6gntvuqtgt3eumpdvt8hyajtqxpw4ww8xhqqqguqrjma',
-)
-export const frank = toAddress(
-	'brx1yqwd674yltctxqsa8qz49pkugecmrt2m9yjvzaupzsu900fm2yjeuy0hukqy',
-)
-export const grace = toAddress(
-	'brx1yqvczlmklu2dfemly7nqu96ylyv3z0ndexkldp5jmvtqe8klu4jlu5dhyu7w',
-)
-export const heidi = toAddress(
-	'brx1yqfwylgyvu74ahelly6s7x5ntz8guyq72p9af89s9ur6y7y5yphfhvtq95u4',
-)
-export const ivan = toAddress(
-	'brx1yqgrnxrxuwa6327q0ghwrpvyc5wahyp92nn43mg474tfgcpkw4p4l5zt33pd',
-)
-export const judy = toAddress(
-	'brx1yq2ll62yc88uumhc4yaecdsscqx37qfc0j4sfv428hnfmfwlmlk9yueyse57',
-)
-export const klara = toAddress(
-	'brx1yqdg0de8mtzmpwfp4v3gmdgnxn47zvpmdfra8hf4q546dravl3pdpx4rvqy5',
-)
-export const leonard = toAddress(
-	'brx1yqtckcfsyw9ss6cvxtzu2upu6fck0hy3l50nqzmsmusyqure7gskq2fvvl28',
-)
-export const mallory = toAddress(
-	'brx1yqgyj7g3ylz3k4zfv7gj2p4ap3kt633vm89jcdrd9mmqk8s8zy6ayzv822jj',
-)
-export const niaj = toAddress(
-	'brx1yqgmqtcv34xd5c37rz9mjrnkjageg8m5pq0khwsmussyx76sv4acnv89g8er',
-)
-export const olivia = toAddress(
-	'brx1yqd9zasd8yq6hawjmy2tjkjzql5hxzmstxeegw7t3hcw0zuf0y5ds6dy5tj6',
-)
-export const peggy = toAddress(
-	'brx1yqv7pssssrzujs3sw059qpemmcew0jnr3nmghh5gr6zjy5k2hcfd5cp3h9z4',
-)
-export const quentin = toAddress(
-	'brx1yqwafkm3ez2qau344p4mauulrwk0jztx8gkqekazc7l0szd9k9qupw4zu2dk',
-)
+const addressesString: string[] = [
+	'brx1qspqljn9rg7x97s3rcvyzal2uxr5q22d9xn8nc4rpq8vq08kg4ch8yqhs9dq6',
+	'brx1qsp0mejfswrmcy5xf9up2ve7zez7w2th0fw4ne8js0u0q22vya7kg8getv7av',
+	'brx1qspvp5dklh3psxxegmrxvcxf657zfnh6z3t3snlh3qsa9twk56zlz3qyx6lhz',
+	'brx1qsppfpt0shel54s245fsk576tpcck3588qd32nknp5tghln93ltvl2q9ytt32',
+	'brx1qspp5vgf0l05ftl2qsu58u7zcel2gznfe9qduf0sfz20kt348fm8h6g0rs8g2',
+	'brx1qsplvk5mts5unklcmdlgzuyr4nm3ez4lkax9g99mhdzv60lv52wdlnqc2zk90',
+	'brx1qsp4mzazl97ynj37pud86e9l6ycam29qjtj89gl0j3ngs44wpf726gc2m9gwm',
+	'brx1qspdcmak8mq5w359sjayu7rr6umsmechxjpj5jtdy3jku3zj9p8n8fqza8lzg',
+	'brx1qsph24szj4jhl5ysefd8lma4el2lgpuhga7azwd9062r5hx98jw9mvssxl9cx',
+	'brx1qspavumjx92gcetz2klgc23fr28s2pf9q0nfssdxf2cnsjhxt3k8q5qzt2jme',
+	'brx1qspmk4lcn48p776g0djruqxyuy8f3l9639fpams8kuv0fwxsm9rqcsqfaw3rd',
+	'brx1qsp6g9ey8erzare0kedr0ymw9x00xnspksnkmvkczwg9tqea490n8qcypnzq4',
+	'brx1qspvrkaccvzd2cmh2w8awl4naxln5ssjuzarejl6fhakedhnkqn7d6qpflpty',
+	'brx1qspte4df856phvm8zq3ns37g7ax6qj9sc2ud559pa9vlque30nuxlgq9hwucz',
+	'brx1qsp4yj8ypkda0lt90yds8v8gknal0wwp4w8zzst5mtj7w6dr9gmlxdghckufj',
+	'brx1qspshc06mfs9d4hp4n696s3kapal8sck4nyxzl38mufvz3kw8cgktvs7wvfem',
+	'brx1qspvk7dj2af7x2nrccw58pe789a9s9hz6wyg9yqd6mnqetllr64gfdshs0adp',
+	'brx1qspwmz963arljtpte327hw04axj9pkeav5r8gkdvx6jpyxtmd0esfwgsczr92',
+	'brx1qspj2gpcnkc46x4t0lzqm6sxa0md42tfuwvshnuc0kg2zyt5mz5fs3saun8n2',
+	'brx1qspmv3m7c70mdegm4dkwmlnekzdas58g8fp83snmf0wz9yqpkepf43gjhan7g',
+	'brx1qspks7jgg0uksy8n7zvd6y93dpgy82653kq79mnk39eacyrjcnsy48ss8v8s3',
+	'brx1qsp6s2epnqhgnshjvktkz7j8ycf948xvcgmwcde04a8pcrzeqfe7z3qmakp5k',
+	'brx1qsp07ca60zv3heutkrguvd5j0f3a0y2785kynn9cfqrq2n4z962jxksthv4qp',
+	'brx1qsplvt0dkj7494mqk4pu2m9j2v68h0w8t8l0z2xj2kl09x7a5ssnz6se4thng',
+	'brx1qspc8cm2x2466x9n9tvurnvedqq9ukn95zjsfmhv2w04qkhgdx2dcrct7z9d2',
+	'brx1qsp68th9ywzwdzq0vsnkqr07sa6hdflg0jzerk7x535ekxjrvzsk07szync20',
+	'brx1qspxkq70fnkerexlfxeznkg2plxm4g25msu889t9z6pr3fqwyadev8gdn58en',
+	'brx1qspk03jsd52z7pqtxh80rhcx8ej8ee9dz4skc3kx7vymztfed3cpttgdfwg37',
+	'brx1qspp3ycx66gsm3r8vsycs04p9delgpu9h4y9agaw3v99rtd2fdyqh5cw4hquv',
+	'brx1qspgp2ce5lfmvqj2zp4ky6nef0wh24us2gp2rrxzjxrmzvgvvs53kzgzscgad',
+]
 
 const characterNames: string[] = [
 	'alice',
@@ -314,25 +293,21 @@ const characterNames: string[] = [
 	'zelda',
 ]
 
-export const castOfCharacters: AddressT[] = [
-	alice,
-	bob,
-	carol,
-	dan,
-	erin,
-	frank,
-	grace,
-	heidi,
-	ivan,
-	judy,
-	klara,
-	leonard,
-	mallory,
-	niaj,
-	olivia,
-	peggy,
-	quentin,
-]
+/*
+* [Property in keyof ReturnType<typeof getAPI>]: ReturnType<
+		typeof getAPI
+	>[Property]
+* */
+
+export const castOfCharacters: AddressT[] = addressesString
+	.map((s) => Address.fromUnsafe(s)._unsafeUnwrap({ withStackTrace: true }))
+	.slice(0, characterNames.length)
+
+export const alice = castOfCharacters[0]
+export const bob = castOfCharacters[1]
+export const carol = castOfCharacters[2]
+export const dan = castOfCharacters[3]
+export const erin = castOfCharacters[4]
 
 export const tokenByRRIMap: Map<
 	ResourceIdentifierT,

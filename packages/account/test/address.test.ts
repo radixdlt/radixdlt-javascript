@@ -31,7 +31,11 @@ describe('AccountAddress', () => {
 			)
 			return addressString
 		}
+
 		doGenerate()
+		// const str = Array(30).fill(undefined).map((_) => `'${doGenerate()}',`).join('\n')
+		// console.log(`Addresses:\n${str}`)
+
 	})
 
 	it('can be created from a publicKey and network id', async () => {
@@ -48,7 +52,7 @@ describe('AccountAddress', () => {
 		expect(Address.isAccountAddress(address)).toBe(true)
 
 		const expctedAddressBase58 =
-			'brx1yqfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqteszew0sc'
+			'brx1qsp8n0nx0muaewav2ksx99wwsu9swq5mlndjmn3gm9vl9q2mzmup0xqmhf7fh'
 		expect(address.toString()).toBe(expctedAddressBase58)
 
 		const addressFromString = Address.fromUnsafe(
@@ -62,16 +66,16 @@ describe('AccountAddress', () => {
 
 	it('should consider the same address to be equal itself', () => {
 		const makeAddress = (): AddressT =>
-			toAddress('brx1yqfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqteszew0sc')
+			toAddress('brx1qsp8n0nx0muaewav2ksx99wwsu9swq5mlndjmn3gm9vl9q2mzmup0xqmhf7fh')
 		expect(makeAddress().equals(makeAddress())).toBe(true)
 	})
 
 	it('should consider two different address with the same networkId but different publicKeys as inequal', async () => {
 		const alice = toAddress(
-			'brx1yqfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqteszew0sc',
+			'brx1qsp8n0nx0muaewav2ksx99wwsu9swq5mlndjmn3gm9vl9q2mzmup0xqmhf7fh',
 		)
 		const bob = toAddress(
-			'brx1yqvh7yh5jvysjxrge27fwsg0rfktcztlurs43er4zyz4fe0jxa2uk6hhlalx',
+			'brx1qspnn7enq9a0yhnppx50gz2njjt8p0gvns7x3uzvpdnvuhy7nwt3gpce2qk0c',
 		)
 		expect(alice.network).toBe(bob.network)
 		expect(alice.equals(bob)).toBe(false)

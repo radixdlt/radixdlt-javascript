@@ -13,12 +13,26 @@ export const defaultEncoding = Encoding.BECH32
 export type HRP = string
 export type Data = Buffer
 
-const convertDataFromBech32 = (bech32Data: Buffer): Buffer => {
-	return Buffer.from(bech32.fromWords(bech32Data))
+const convertDataFromBech32 = (bech32Data: Buffer): Result<Buffer, Error> => {
+	try {
+		const data = bech32.fromWords(bech32Data)
+		return ok(Buffer.from(data))
+	} catch (e) {
+		const underlyingError = msgFromError(e)
+		const errMsg = `Failed to converted bech32 data to Buffer, underlying error: '${underlyingError}'`
+		return err(new Error(errMsg))
+	}
 }
 
-const convertDataToBech32 = (data: Buffer): Buffer => {
-	return Buffer.from(bech32.toWords(data))
+const convertDataToBech32 = (data: Buffer): Result<Buffer, Error> => {
+	try {
+		const bech32Data = bech32.toWords(data)
+		return ok(Buffer.from(bech32Data))
+	} catch (e) {
+		const underlyingError = msgFromError(e)
+		const errMsg = `Failed to converted buffer to bech32 data, underlying error: '${underlyingError}'`
+		return err(new Error(errMsg))
+	}
 }
 
 const __unsafeCreate = (

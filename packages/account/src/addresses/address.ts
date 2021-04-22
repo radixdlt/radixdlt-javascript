@@ -42,22 +42,6 @@ const networkFromHRP: NetworkFromHRP = (hrp) => {
 const formatDataToBech32Convert: FormatDataToBech32Convert = (data) =>
 	Buffer.concat([versionByte, data])
 
-// FORMER
-// const validateDataAndExtractPubKeyBytes: ValidateDataAndExtractPubKeyBytes = (
-// 	data: Buffer,
-// ): Result<Buffer, Error> => {
-// 	const receivedVersionByte = data.slice(0, 1)
-// 	if (!buffersEquals(versionByte, receivedVersionByte)) {
-// 		const errMsg = `Wrong version byte, expected '${versionByte.toString(
-// 			'hex',
-// 		)}', but got: '${receivedVersionByte.toString('hex')}'`
-// 		console.error(errMsg)
-// 		return err(new Error(errMsg))
-// 	}
-// 	return ok(data.slice(1, data.length))
-// }
-
-// LATTER
 const validateDataAndExtractPubKeyBytes: ValidateDataAndExtractPubKeyBytes = (
 	data: Buffer,
 ): Result<Buffer, Error> => {
@@ -69,9 +53,7 @@ const validateDataAndExtractPubKeyBytes: ValidateDataAndExtractPubKeyBytes = (
 		console.error(errMsg)
 		return err(new Error(errMsg))
 	}
-	const bech32Data = data.slice(1, data.length)
-	const publicKeyBytes = Bech32.convertDataFromBech32(bech32Data)
-	return ok(publicKeyBytes)
+	return ok(data.slice(1, data.length))
 }
 
 const fromPublicKeyAndNetwork = (
@@ -80,7 +62,7 @@ const fromPublicKeyAndNetwork = (
 		network: NetworkT
 	}>,
 ): AddressT =>
-	AbstractAddress.create({
+	AbstractAddress.byFormattingPublicKeyDataAndBech32ConvertingIt({
 		...input,
 		network: input.network,
 		hrpFromNetwork,
@@ -90,6 +72,12 @@ const fromPublicKeyAndNetwork = (
 		encoding,
 		maxLength,
 	})
+		.orElse((e) => {
+			throw new Error(
+				`Expected to always be able to create account address from publicKey and network, but got error: ${e.message}`,
+			)
+		})
+		._unsafeUnwrap({ withStackTrace: true })
 
 const fromString = (bechString: string): Result<AddressT, Error> =>
 	AbstractAddress.fromString({

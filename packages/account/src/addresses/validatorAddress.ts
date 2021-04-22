@@ -2,7 +2,12 @@ import { err, ok, Result } from 'neverthrow'
 import { PublicKey } from '@radixdlt/crypto'
 import { AddressTypeT, NetworkT, ValidatorAddressT } from '../_types'
 import { Encoding } from '../bech32'
-import { AbstractAddress, HRPFromNetwork, isAbstractAddress, NetworkFromHRP } from './abstractAddress'
+import {
+	AbstractAddress,
+	HRPFromNetwork,
+	isAbstractAddress,
+	NetworkFromHRP,
+} from './abstractAddress'
 
 export const isValidatorAddress = (
 	something: unknown,
@@ -38,7 +43,7 @@ const fromPublicKeyAndNetwork = (
 		network: NetworkT
 	}>,
 ): ValidatorAddressT =>
-	AbstractAddress.create({
+	AbstractAddress.byFormattingPublicKeyDataAndBech32ConvertingIt({
 		...input,
 		network: input.network,
 		hrpFromNetwork,
@@ -47,6 +52,12 @@ const fromPublicKeyAndNetwork = (
 		encoding,
 		maxLength,
 	})
+		.orElse((e) => {
+			throw new Error(
+				`Expected to always be able to create validator address from publicKey and network, but got error: ${e.message}`,
+			)
+		})
+		._unsafeUnwrap({ withStackTrace: true })
 
 const fromString = (bechString: string): Result<ValidatorAddressT, Error> =>
 	AbstractAddress.fromString({
