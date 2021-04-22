@@ -140,7 +140,7 @@ const validateCharsInName = (name: string): Result<string, Error> => {
 	const regexLowerAlphaNumerics = new RegExp('^[a-z0-9]+$')
 	if (!regexLowerAlphaNumerics.test(name)) {
 		const errMsg = `Illegal characters found in name`
-		console.log(errMsg)
+		// console.error(errMsg)
 		return err(new Error(errMsg))
 	}
 	return ok(name)
