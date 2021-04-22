@@ -9,14 +9,13 @@ import { Radix } from '@radixdlt/application'
 
 const radix = Radix.create()
 	.login('my strong password', loadKeystore)
-	.connect(new URL('https://api.radixdlt.com'))
+	.connect(new URL('https://api.radixdlt.com/rpc'))
 	.transferTokens(
 		{
 			transferInput: {
 				to: bob,
 				amount: 1,
-				tokenIdentifier:
-					'xrd_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtesv2yq5l',
+				tokenIdentifier: 'xrd_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtesv2yq5l',
 			},
 			userConfirmation: 'skip'
 		}
@@ -48,11 +47,13 @@ However, we can also interact with the [Radix Core API](https://youtu.be/dQw4w9W
 const subs = new Subscription()
 
 const radix = Radix.create()
-	.connect(new URL('https://api.radixdlt.com'))
+	.connect(new URL('https://api.radixdlt.com/rpc'))
 	.setLogLevel(LogLevel.INFO)
 	.ledger // accessing all RPC methods
 	.nativeToken() // get token info about "XRD"
-	.subscribe()
+	.subscribe(nativeToken => {
+		console.log(`💙 got nativeToken response: ${nativeToken}`)
+	})
 	.add(subs)
 
 /* In the near future... */
@@ -70,7 +71,7 @@ const radix = Radix.create()
 // } "
 ```
 
-In the code block above we did not provide any wallet and notice we access the property `ledger`, on which we called the method `nativeToken()` which observable stream we subsequently subscribe to. Lastly we handle the subscription. If we were to set the log level to `INFO` (from default of `WARNING`), we would not have seen the output `"💙 got nativeToken response..."`, neither would we if we wouldn't have called `subscribe()`, since all observables returned by _function calls_ are **lazy** (using [`defer`](https://rxjs-dev.firebaseapp.com/api/index/function/defer)).
+In the code block above we did not provide any wallet, and we accessed the property `ledger` on which we called the method `nativeToken()` which observable stream we subsequently subscribe to. Lastly we handle the subscription.
 
 > 💡 Everytime you'll see a heart emoji 💜💚💙💛❤️ it's a message logged from within this library (inspired by [SwiftBeaver](https://github.com/SwiftyBeaver/SwiftyBeaver#during-development-colored-logging-to-xcode-console)), representing `VERBOSE`, `DEBUG`, `INFO`, `WARNING` and `ERROR` log levels respectively.
 
@@ -157,26 +158,35 @@ In [the intro](#intro) we subscribed to the `tokenBalances`. This will get updat
 ```typescript
 radix
 	.tokenBalances
-	.subscribe((tokenBalances) => {
-		console.log(`💎: ${tokenBalances.toString()}`)
+	.subscribe(({ tokenBalances }) => {
+		console.log('💎 My token balances:')
+		console.log(
+			tokenBalances.map(
+				balance => 
+				`
+				${balance.amount.toString()}
+				${balance.token.toString()}
+				`
+			)
+		)
 	}
 ).add(subs)
 
 /* In the near future... */
-// "💎 My token balances:
+// 💎 My token balances:
 // [ 
-//      5.37 'rwBTC' ("Radix-Wrapped Bitcoin")
-// ]"
+//      5.37 rwBTC
+// ]
 
 // Later
 radix
 	.deriveNextAccount({ alsoSwitchTo: true })
 
 /* In the near future... */
-// "💎 My token balances:
+// 💎 My token balances:
 // [ 
-//      8541.37 'rwETH' ("Radix-Wrapped Ether")
-// ]"
+//      8541.37 rwETH
+// ]
 ```
 
 See (Fetch Trigger)[#fetchTrigger] for a way either scheduling fetching of token balances at a regular interval ("polling"), or triggering a single fetch when user presses a "Fetch Now" button in GUI.
@@ -193,7 +203,7 @@ Apart from logging (controlled with the `setLogLevel` method as seen in [intro](
 radix.errors.subscribe(
 	(errorNotification) => { 
 		console.log(`☣️ error ${error.toString()}`)
-		// Maybe tot only log, but also act upon...	
+		// Maybe not only log, but also act upon...	
 	},
 )
 

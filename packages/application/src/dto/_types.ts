@@ -103,7 +103,7 @@ export type TransactionIntent = Readonly<{
 export type ValidatorsRequestInput = Readonly<{
 	size: number
 	// Address of last seen validator in list
-	cursor: string
+	cursor?: string
 }>
 
 export enum TransactionTrackingEventType {

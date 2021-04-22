@@ -53,7 +53,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 		node,
 
 		validators: (input: ValidatorsRequestInput): Observable<Validators> =>
-			toObs((a) => a.validators, input.size, input.cursor.toString()),
+			toObs((a) => a.validators, input.size, input.cursor?.toString()),
 
 		lookupValidator: (input: ValidatorAddressT): Observable<Validator> =>
 			toObs((a) => a.lookupValidator, input.toString()),

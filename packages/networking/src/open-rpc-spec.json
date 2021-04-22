@@ -554,7 +554,7 @@
                 },
                 {
                     "name": "cursor",
-                    "required": true,
+                    "required": false,
                     "schema": {
                         "type": "integer"
                     }
