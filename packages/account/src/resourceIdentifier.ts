@@ -124,12 +124,26 @@ const fromBech32String = (
 
 	return ok(
 		__create({
-			hash,
+			hash: combinedData,
 			name,
 			toString: () => bechString,
 		}),
 	)
 }
+
+// const withNameAndHash = (
+// 	input: Readonly<{
+// 		hash: Buffer
+// 		name: string
+// 	}>,
+// ): Result<ResourceIdentifierT, Error> => {
+// 	const { name, hash } = input
+// 	return withNameRawDataAndVersionByte({
+// 		name,
+// 		hash: hash.slice(-(hash.length - 1)), // remove first
+// 		versionByte: hash[0],
+// 	})
+// }
 
 const withNameRawDataAndVersionByte = (
 	input: Readonly<{
@@ -145,8 +159,18 @@ const withNameRawDataAndVersionByte = (
 
 	const combinedData = Buffer.concat([Buffer.from([versionByte]), hash])
 
+	console.log(
+		`🔮 fromRawDataAndName: combinedData ${combinedData.toString('hex')}, `,
+	)
+
 	return Bech32.convertDataToBech32(combinedData)
 		.andThen((processed) => {
+
+			console.log(
+				`🔮 fromRawDataAndName: processed ${processed.toString('hex')}, `,
+			)
+
+
 			return Bech32.encode({
 				data: processed,
 				hrp,
@@ -155,6 +179,11 @@ const withNameRawDataAndVersionByte = (
 			})
 		})
 		.map((bech32) => {
+
+			console.log(
+				`🔮 fromRawDataAndName: bech32.data ${bech32.data.toString('hex')}, `,
+			)
+
 			console.log(
 				`🔮 fromRawDataAndName: toString ${bech32.toString()}, `,
 			)
@@ -202,9 +231,24 @@ const pkToHash = (
 	const { name, publicKey } = input
 	const nameBytes = Buffer.from(name, 'utf8')
 	const pubKeyBytes = publicKey.asData({ compressed: true })
-	const dataToHash = Buffer.concat([nameBytes, pubKeyBytes])
+	const dataToHash = Buffer.concat([pubKeyBytes, nameBytes])
 	const hash = sha256Twice(dataToHash)
-	return hash.slice(-hashByteCount) // last bytes
+	const result = hash.slice(-hashByteCount) // last bytes
+
+
+	console.log(
+		`🔮 pkToHash: dataToHash ${dataToHash.toString('hex')}, `,
+	)
+
+	console.log(
+		`🔮 pkToHash: hash ${hash.toString('hex')}, `,
+	)
+
+	console.log(
+		`🔮 pkToHash: result ${result.toString('hex')}, `,
+	)
+
+	return result
 }
 
 const fromPublicKeyAndName = (
@@ -257,5 +301,6 @@ const fromUnsafe = (
 export const ResourceIdentifier = {
 	systemRRI,
 	fromPublicKeyAndName,
+	// withNameAndHash,
 	fromUnsafe,
 }
