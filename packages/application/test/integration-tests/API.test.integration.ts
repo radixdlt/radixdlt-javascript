@@ -199,7 +199,12 @@ describe('integration API tests', () => {
 				if (transferDone) {
 					balanceAfterTransfer = balance.tokenBalances[0].amount
 
-					expect(initialBalance.subtracting(balanceAfterTransfer)._unsafeUnwrap().equals(amountToSend.adding(fee)._unsafeUnwrap())).toEqual(true)
+					expect(
+						initialBalance
+							.subtracting(balanceAfterTransfer)
+							._unsafeUnwrap()
+							.equals(amountToSend.adding(fee)._unsafeUnwrap()),
+					).toEqual(true)
 					done()
 				} else {
 					initialBalance = balance.tokenBalances[0].amount
@@ -207,22 +212,27 @@ describe('integration API tests', () => {
 			})
 			.add(subs)
 
-		radix.transferTokens({
-			transferInput: {
-				to: bob,
-				amount: amountToSend,
-				tokenIdentifier: `//XRD`,
-			},
-			userConfirmation: 'skip',
-			pollTXStatusTrigger: timer(500),
-		}).completion.subscribe(txID => {
-			transferDone = true
-			radix.ledger.lookupTransaction(txID).subscribe(tx => {
-				fee = tx.fee
-				getTokenBalanceSubject.next(1)
-			}).add(subs)
-		}).add(subs)
-
+		radix
+			.transferTokens({
+				transferInput: {
+					to: bob,
+					amount: amountToSend,
+					tokenIdentifier: `//XRD`,
+				},
+				userConfirmation: 'skip',
+				pollTXStatusTrigger: timer(500),
+			})
+			.completion.subscribe((txID) => {
+				transferDone = true
+				radix.ledger
+					.lookupTransaction(txID)
+					.subscribe((tx) => {
+						fee = tx.fee
+						getTokenBalanceSubject.next(1)
+					})
+					.add(subs)
+			})
+			.add(subs)
 	})
 
 	it('should increment transaction history with a new transaction after transfer', (done) => {
@@ -237,23 +247,30 @@ describe('integration API tests', () => {
 			.subscribe((txHistory) => {
 				const countBeforeTransfer = txHistory.transactions.length
 
-				radix.transferTokens({
-					transferInput: {
-						to: bob,
-						amount: 1,
-						tokenIdentifier: `//XRD`,
-					},
-					userConfirmation: 'skip',
-					pollTXStatusTrigger: timer(500),
-				}).completion.subscribe(tx => {
-					radix
-						.transactionHistory({
-							size: 1000000,
-						}).subscribe(newTxHistory => {
-							expect(newTxHistory.transactions.length - 1).toEqual(countBeforeTransfer)
-							done()
-						}).add(subs)
-				}).add(subs)
+				radix
+					.transferTokens({
+						transferInput: {
+							to: bob,
+							amount: 1,
+							tokenIdentifier: `//XRD`,
+						},
+						userConfirmation: 'skip',
+						pollTXStatusTrigger: timer(500),
+					})
+					.completion.subscribe((tx) => {
+						radix
+							.transactionHistory({
+								size: 1000000,
+							})
+							.subscribe((newTxHistory) => {
+								expect(
+									newTxHistory.transactions.length - 1,
+								).toEqual(countBeforeTransfer)
+								done()
+							})
+							.add(subs)
+					})
+					.add(subs)
 			})
 			.add(subs)
 	})
@@ -263,65 +280,64 @@ describe('integration API tests', () => {
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
-
-		radix.transferTokens({
-			transferInput: {
-				to: bob,
-				amount: 1,
-				tokenIdentifier: `//XRD`,
-			},
-			userConfirmation: 'skip',
-			pollTXStatusTrigger: timer(500),
-		}).completion.subscribe(txID1 => {
-			radix.transferTokens({
+		radix
+			.transferTokens({
 				transferInput: {
 					to: bob,
 					amount: 1,
 					tokenIdentifier: `//XRD`,
 				},
 				userConfirmation: 'skip',
-				pollTXStatusTrigger: timer(500),
-			}).completion.subscribe(txID2 => {
-
+			})
+			.completion.subscribe((txID1) => {
 				radix
-					.transactionHistory({
-						size: 2,
+					.transferTokens({
+						transferInput: {
+							to: bob,
+							amount: 1,
+							tokenIdentifier: `//XRD`,
+						},
+						userConfirmation: 'skip',
 					})
-					.subscribe((txHistory) => {
-
+					.completion.subscribe((txID2) => {
 						radix
 							.transactionHistory({
-								size: 1
-							}).subscribe(firstTxHistory => {
-
-								const cursor = firstTxHistory.cursor
-
-								
-								expect(
-									txHistory.transactions[0].txID.toString()
-								).toEqual(
-									firstTxHistory.transactions[0].txID.toString()
-								)
-
+								size: 2,
+							})
+							.subscribe((txHistory) => {
 								radix
 									.transactionHistory({
 										size: 1,
-										cursor
-									}).subscribe(secondTxHistory => {
-										
+									})
+									.subscribe((firstTxHistory) => {
+										const cursor = firstTxHistory.cursor
+
 										expect(
-											txHistory.transactions[1].txID.toString()
+											txHistory.transactions[0].txID.toString(),
 										).toEqual(
-											secondTxHistory.transactions[0].txID.toString()
+											firstTxHistory.transactions[0].txID.toString(),
 										)
-										done()
-									}).add(subs)
-							}).add(subs)
 
-					}).add(subs)
-
+										radix
+											.transactionHistory({
+												size: 1,
+												cursor,
+											})
+											.subscribe((secondTxHistory) => {
+												expect(
+													txHistory.transactions[1].txID.toString(),
+												).toEqual(
+													secondTxHistory.transactions[0].txID.toString(),
+												)
+												done()
+											})
+											.add(subs)
+									})
+									.add(subs)
+							})
+							.add(subs)
+					})
 			})
-		})
 	})
 
 	it('should handle transaction status updates', (done) => {
@@ -345,7 +361,7 @@ describe('integration API tests', () => {
 				pollTXStatusTrigger: interval(200),
 			})
 
-			radix.activeAddress.subscribe(address => {
+			radix.activeAddress.subscribe((address) => {
 				txTracking.events.subscribe((event) => {
 					if (
 						event.eventUpdateType ===
@@ -368,9 +384,7 @@ describe('integration API tests', () => {
 							.add(subs)
 					}
 				})
-
 			})
-
 		})
 	})
 
@@ -413,22 +427,26 @@ describe('integration API tests', () => {
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
-		radix.ledger.validators({
-			size: 1
-		}).subscribe(validators => {
-			const validator = validators.validators[0]
+		radix.ledger
+			.validators({
+				size: 1,
+			})
+			.subscribe((validators) => {
+				const validator = validators.validators[0]
 
-			radix.ledger
-				.lookupValidator(validator.address)
-				.subscribe((validatorFromLookup) => {
-					expect(
-						validatorFromLookup.address.equals(validator.address),
-					).toBe(true)
-					done()
-				})
-		}).add(subs)
+				radix.ledger
+					.lookupValidator(validator.address)
+					.subscribe((validatorFromLookup) => {
+						expect(
+							validatorFromLookup.address.equals(
+								validator.address,
+							),
+						).toBe(true)
+						done()
+					})
+			})
+			.add(subs)
 	})
-
 
 	it.skip('should get validators', (done) => {
 		// not implemented in core
@@ -532,11 +550,10 @@ describe('integration API tests', () => {
 			.withWallet(makeWalletWithFunds())
 			.withStakingFetchTrigger(interval(500))
 
-		radix.unstakingPositions
-			.subscribe((values) => {
-				expect(values[0]).toBeDefined()
-				done()
-			})
+		radix.unstakingPositions.subscribe((values) => {
+			expect(values[0]).toBeDefined()
+			done()
+		})
 	})
 
 	describe('make tx single transfer', () => {
@@ -584,7 +601,7 @@ describe('integration API tests', () => {
 				TransactionTrackingEventType.COMPLETED,
 			]
 
-			radix.activeAddress.subscribe(address => {
+			radix.activeAddress.subscribe((address) => {
 				console.log('ADDRESS:', address.toString())
 
 				radix
@@ -698,25 +715,27 @@ describe('integration API tests', () => {
 					size: 1,
 				})
 				.subscribe((validators) => {
-					radix.stakeTokens({
-						stakeInput: {
-							amount: 1,
-							validator: validators.validators[0].address,
-						},
-						userConfirmation: 'skip',
-						pollTXStatusTrigger: pollTXStatusTrigger,
-					}).completion.subscribe({
-						complete: () => {
-							done()
-						},
-						error: (e) => {
-							done(
-								new Error(
-									`Tx failed, but expected to succeed. Error ${e}`,
-								),
-							)
-						},
-					})
+					radix
+						.stakeTokens({
+							stakeInput: {
+								amount: 1,
+								validator: validators.validators[0].address,
+							},
+							userConfirmation: 'skip',
+							pollTXStatusTrigger: pollTXStatusTrigger,
+						})
+						.completion.subscribe({
+							complete: () => {
+								done()
+							},
+							error: (e) => {
+								done(
+									new Error(
+										`Tx failed, but expected to succeed. Error ${e}`,
+									),
+								)
+							},
+						})
 						.add(subs)
 				})
 				.add(subs)
@@ -737,8 +756,7 @@ describe('integration API tests', () => {
 						.unstakeTokens({
 							unstakeInput: {
 								amount: 1,
-								validator:
-									validators.validators[0].address,
+								validator: validators.validators[0].address,
 							},
 							userConfirmation: 'skip',
 							pollTXStatusTrigger: pollTXStatusTrigger,
