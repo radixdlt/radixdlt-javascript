@@ -1,4 +1,4 @@
-import { AccountT, AddressT, ValidatorAddressT } from '@radixdlt/account'
+import { AccountT, AddressT, ResourceIdentifierT, ValidatorAddressT } from '@radixdlt/account'
 import {
 	ActionInput,
 	ActionType,
@@ -31,13 +31,6 @@ export type TokenPermissions = Readonly<{
 	canBeBurned: (isOwnerOfToken: IsOwnerOfToken) => boolean
 	mintPermission: TokenPermission
 	equals: (other: TokenPermissions) => boolean
-}>
-
-export type ResourceIdentifierT = Readonly<{
-	hash: Buffer
-	name: string
-	toString: () => string
-	equals: (other: ResourceIdentifierT) => boolean
 }>
 
 /**

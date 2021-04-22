@@ -1,14 +1,13 @@
 import { NodeAPI, NodeT, RadixCoreAPI } from './_types'
 import { ResultAsync } from 'neverthrow'
 import { defer, Observable } from 'rxjs'
-import { AddressT, toObservable, ValidatorAddressT, NetworkT } from '@radixdlt/account'
+import { AddressT, toObservable, ValidatorAddressT, NetworkT, ResourceIdentifierT } from '@radixdlt/account'
 import { map } from 'rxjs/operators'
 import {
 	ExecutedTransaction,
 	NetworkTransactionDemand,
 	NetworkTransactionThroughput,
 	PendingTransaction,
-	ResourceIdentifierT,
 	FinalizedTransaction,
 	SignedTransaction,
 	StakePositions,

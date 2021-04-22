@@ -26,7 +26,7 @@ import {
 import { TransactionIdentifier } from '../../dto/transactionIdentifier'
 import { makeTokenPermissions } from '../../dto/tokenPermissions'
 import { TokenPermission } from '../../dto/_types'
-import { ResourceIdentifier } from '../../dto/resourceIdentifier'
+import { ResourceIdentifier } from '@radixdlt/account/dist/addresses/resourceIdentifier'
 import { pipe } from 'ramda'
 
 const amountDecoder = (...keys: string[]) =>

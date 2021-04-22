@@ -1,8 +1,8 @@
 import { err, ok, Result } from 'neverthrow'
-import { ResourceIdentifierT } from './_types'
 import { buffersEquals, msgFromError } from '@radixdlt/util'
-import { Bech32, Encoding } from '@radixdlt/account'
 import { PublicKey, sha256Twice } from '@radixdlt/crypto'
+import { ResourceIdentifierT } from '../_types'
+import { Bech32, Encoding } from '../bech32'
 
 const encoding = Encoding.BECH32
 const maxLength: number | undefined = undefined // arbitrarily chosen
@@ -19,8 +19,10 @@ const __create = (input: {
 }): ResourceIdentifierT => {
 	return {
 		...input,
+		__witness: 'isRRI',
 		equals: (other): boolean => {
 			if (!isResourceIdentifier(other)) return false
+			// return input.toString() === other.toString()
 			const same =
 				other.name === input.name &&
 				buffersEquals(other.hash, input.hash)
@@ -58,26 +60,26 @@ const fromBech32String = (
 	}
 
 	const name = hrp.slice(0, hrp.length - hrpSuffix.length)
+	const processed = decoded.data
+	const combinedDataResult = Bech32.convertDataFromBech32(processed)
 
-	const hashWithPrefixResult = Bech32.convertDataFromBech32(decoded.data)
-
-	if (!hashWithPrefixResult.isOk()) {
+	if (!combinedDataResult.isOk()) {
 		const errMsg = `Failed to convertDataFromBech32 data, underlying error: ${msgFromError(
-			hashWithPrefixResult.error,
+			combinedDataResult.error,
 		)}`
 		console.error(errMsg)
 		return err(new Error(errMsg))
 	}
 
-	const hashWithPrefix = hashWithPrefixResult.value
+	const combinedData = combinedDataResult.value
 
-	if (hashWithPrefix.length === 0) {
+	if (combinedData.length === 0) {
 		const errMsg = `The data part of RRI should NEVER be empty, must at least contain 1 version byte ('${versionByteNativeToken}' for native token, or '${versionByteNonNativeToken}' for other tokens)`
 		console.error(errMsg)
 		return err(new Error(errMsg))
 	}
 
-	const versionByte = hashWithPrefix[0]
+	const versionByte = combinedData[0]
 
 	if (
 		!(
@@ -95,9 +97,9 @@ const fromBech32String = (
 	let hash: Buffer
 
 	if (isNativeToken) {
-		if (hashWithPrefix.length > 1) {
+		if (combinedData.length > 1) {
 			const errMsg = `Expected data to be empty for native token, but got: #${
-				hashWithPrefix.length - 1 // minus 1 because we substract the 'versionByte'
+				combinedData.length - 1 // minus 1 because we substract the 'versionByte'
 			} bytes`
 			console.error(errMsg)
 			return err(new Error(errMsg))
@@ -105,58 +107,61 @@ const fromBech32String = (
 
 		hash = Buffer.alloc(0)
 	} else {
-		if (hashWithPrefix.length <= 1) {
+		if (combinedData.length <= 1) {
 			const errMsg = `Expected data to be non empty for non native token`
 			console.error(errMsg)
 			return err(new Error(errMsg))
 		}
 
-		const data = hashWithPrefix.slice(1, hashWithPrefix.length)
-		if (data.length !== hashWithPrefix.length - 1) {
+		hash = combinedData.slice(1, combinedData.length)
+		if (hash.length !== combinedData.length - 1) {
 			throw new Error('incorrect impl, bad slice of data')
 		}
-
-		const hashResult = Bech32.convertDataFromBech32(data)
-
-		if (!hashResult.isOk()) {
-			return err(hashResult.error)
-		}
-		hash = hashResult.value
 	}
 
-	return ok(__create({ hash, name, toString: () => bechString }))
+	return ok(
+		__create({
+			hash,
+			name,
+			toString: () => bechString,
+		}),
+	)
 }
 
 const withNameRawDataAndVersionByte = (
 	input: Readonly<{
-		rawData: Buffer
+		hash: Buffer
 		versionByte: number
 		name: string
 	}>,
 ): Result<ResourceIdentifierT, Error> => {
-	const { versionByte, name, rawData } = input
+	const { versionByte, name, hash } = input
 	const hrp = `${name}${hrpSuffix}`
 
-	const dataToConvert = Buffer.concat([Buffer.from([versionByte]), rawData])
+	const combinedData = Buffer.concat([Buffer.from([versionByte]), hash])
 
-	return Bech32.convertDataToBech32(dataToConvert)
-		.andThen((data) => {
+	return Bech32.convertDataToBech32(combinedData)
+		.andThen((processed) => {
 			return Bech32.encode({
-				data,
+				data: processed,
 				hrp,
 				encoding,
 				maxLength,
 			})
 		})
 		.map((bech32) => {
+			console.log(
+				`🔮 fromRawDataAndName: toString ${bech32.toString()}, `,
+			)
 			return __create({
-				hash: rawData,
+				hash, //: rawData, //processedData,
 				name,
 				toString: () => bech32.toString(),
 			})
 		})
 		.map((rri) => {
 			// soundness check
+			console.log(`🔮 soundness check from string ${rri.toString()}, `)
 			const roundtrip = fromUnsafe(rri.toString())
 			if (!roundtrip.isOk()) {
 				const errMsg = `Soundness check failed, error ${msgFromError(
@@ -178,7 +183,7 @@ const systemRRI = (name: string): Result<ResourceIdentifierT, Error> =>
 	withNameRawDataAndVersionByte({
 		name,
 		versionByte: versionByteNativeToken,
-		rawData: Buffer.alloc(0),
+		hash: Buffer.alloc(0),
 	})
 
 const hashByteCount = 26
@@ -206,7 +211,7 @@ const fromPublicKeyAndName = (
 	withNameRawDataAndVersionByte({
 		name: input.name,
 		versionByte: versionByteNonNativeToken,
-		rawData: pkToHash(input),
+		hash: pkToHash(input),
 	})
 
 export const isResourceIdentifier = (
@@ -214,7 +219,9 @@ export const isResourceIdentifier = (
 ): something is ResourceIdentifierT => {
 	const inspection = something as ResourceIdentifierT
 	return (
-		inspection.hash !== undefined &&
+		// inspection.hash !== undefined &&
+		inspection.__witness !== undefined &&
+		inspection.__witness === 'isRRI' &&
 		inspection.name !== undefined &&
 		inspection.toString !== undefined &&
 		inspection.equals !== undefined

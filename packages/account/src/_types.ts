@@ -13,6 +13,13 @@ export enum NetworkT {
 	MAINNET = 'MAINNET',
 	BETANET = 'BETANET',
 }
+export type ResourceIdentifierT = Readonly<{
+	hash: Buffer
+	__witness: 'isRRI'
+	name: string
+	toString: () => string
+	equals: (other: ResourceIdentifierT) => boolean
+}>
 
 export enum AddressTypeT {
 	VALIDATOR = 'VALIDATOR_ADDRESS',

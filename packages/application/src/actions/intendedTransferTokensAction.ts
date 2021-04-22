@@ -4,14 +4,13 @@ import {
 	TransferTokensInput,
 } from './_types'
 import { v4 as uuidv4 } from 'uuid'
-import { Address, AddressT, isAccountAddressOrUnsafeInput } from '@radixdlt/account'
+import { Address, AddressT, isAccountAddressOrUnsafeInput, ResourceIdentifierT } from '@radixdlt/account'
 import { Amount, AmountT, isAmountOrUnsafeInput } from '@radixdlt/primitives'
 import {
 	isResourceIdentifierOrUnsafeInput,
 	ResourceIdentifier,
-} from '../dto/resourceIdentifier'
+} from '@radixdlt/account/dist/addresses/resourceIdentifier'
 import { combine, Result } from 'neverthrow'
-import { ResourceIdentifierT } from '../dto/_types'
 
 export const isTransferTokensInput = (
 	something: unknown,

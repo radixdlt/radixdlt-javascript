@@ -41,7 +41,7 @@ import {
 import { combine, err, ok, Result } from 'neverthrow'
 import { EncryptedMessageT, PublicKey } from '@radixdlt/crypto'
 import { Option } from 'prelude-ts'
-import { isResourceIdentifier } from './resourceIdentifier'
+import { isResourceIdentifier } from '@radixdlt/account/dist/addresses/resourceIdentifier'
 import { isAmount } from '@radixdlt/primitives'
 import { log } from '@radixdlt/util'
 
