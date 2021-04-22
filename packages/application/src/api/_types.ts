@@ -2,7 +2,11 @@ import { getAPI } from './json-rpc/interface'
 
 import { Magic } from '@radixdlt/primitives'
 import { Observable } from 'rxjs'
-import { AddressT, ResourceIdentifierT, ValidatorAddressT } from '@radixdlt/account'
+import {
+	AddressT,
+	ResourceIdentifierT,
+	ValidatorAddressT,
+} from '@radixdlt/account'
 
 import {
 	ExecutedTransaction,

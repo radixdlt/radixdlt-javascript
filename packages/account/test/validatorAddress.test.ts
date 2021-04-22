@@ -18,7 +18,6 @@ describe('validator addresses', () => {
 		)
 	})
 
-
 	it('can parse validator bech32 string', () => {
 		const validatorString =
 			'vb1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtes8rfsld'

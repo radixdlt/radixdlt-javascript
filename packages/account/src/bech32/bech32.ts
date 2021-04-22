@@ -22,7 +22,6 @@ const convertDataFromBech32 = (bech32Data: Buffer): Result<Buffer, Error> => {
 		const errMsg = `Failed to converted bech32 data to Buffer, underlying error: '${underlyingError}'`
 		return err(new Error(errMsg))
 	}
-
 }
 
 const convertDataToBech32 = (data: Buffer): Result<Buffer, Error> => {

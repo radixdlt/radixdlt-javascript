@@ -36,7 +36,11 @@ import {
 	OpenrpcDocument,
 	ContentDescriptorObject,
 } from '@open-rpc/meta-schema'
-import { Address, ResourceIdentifier, ValidatorAddress } from '@radixdlt/account'
+import {
+	Address,
+	ResourceIdentifier,
+	ValidatorAddress,
+} from '@radixdlt/account'
 import { LookupValidatorEndpoint } from '../src/api/json-rpc/_types'
 const faker = require('json-schema-faker')
 
@@ -111,7 +115,9 @@ const expectedDecodedResponses = {
 	[rpcSpec.methods[3].name]: (
 		response: TokenBalancesEndpoint.Response,
 	): TokenBalancesEndpoint.DecodedResponse => ({
-		owner: Address.fromUnsafe('9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT')._unsafeUnwrap(),
+		owner: Address.fromUnsafe(
+			'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+		)._unsafeUnwrap(),
 		tokenBalances: [
 			{
 				tokenIdentifier: ResourceIdentifier.fromUnsafe(

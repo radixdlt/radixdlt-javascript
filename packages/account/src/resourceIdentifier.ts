@@ -154,7 +154,6 @@ const withNameRawDataAndVersionByte = (
 	}>,
 ): Result<ResourceIdentifierT, Error> => {
 	return validateCharsInName(input.name).andThen((name) => {
-
 		const hrpSuffix = hrpBetanetSuffix // TODO make dependent on Network!
 
 		const { versionByte, hash } = input

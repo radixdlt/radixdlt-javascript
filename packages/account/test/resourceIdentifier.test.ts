@@ -4,7 +4,6 @@ import { privateKeyFromScalar } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
 
 describe('rri_on_bech32_format', () => {
-
 	it('xrd rri can be parsed from string', () => {
 		const rriString = 'xrd_rb1qya85pwq'
 
@@ -15,12 +14,11 @@ describe('rri_on_bech32_format', () => {
 			},
 			(e) => {
 				throw e
-			}
+			},
 		)
 	})
 
 	describe('rri from publicKey and name', () => {
-
 		type PKAneNameVector = {
 			pkScalar: number
 			name: string
@@ -30,32 +28,40 @@ describe('rri_on_bech32_format', () => {
 			{
 				pkScalar: 1,
 				name: 'foo',
-				expectedRRI: 'foo_rb1qv9ee5j4qun9frqj2mcg79maqq55n46u5ypn2j0g9c3q32j6y3',
+				expectedRRI:
+					'foo_rb1qv9ee5j4qun9frqj2mcg79maqq55n46u5ypn2j0g9c3q32j6y3',
 			},
 			{
 				pkScalar: 1,
 				name: 'bar',
-				expectedRRI: 'bar_rb1qwaa87cznx0nmeq08dya2ae43u92g4g0nkfktd9u9lpq6hgjca',
+				expectedRRI:
+					'bar_rb1qwaa87cznx0nmeq08dya2ae43u92g4g0nkfktd9u9lpq6hgjca',
 			},
 			{
 				pkScalar: 2,
 				name: 'foo',
-				expectedRRI: 'foo_rb1qvmf6ak360gxjfhxeh0x5tn99gjzzh5d7u3kvktj26rsu5qa3u',
+				expectedRRI:
+					'foo_rb1qvmf6ak360gxjfhxeh0x5tn99gjzzh5d7u3kvktj26rsu5qa3u',
 			},
 			{
 				pkScalar: 2,
 				name: 'bar',
-				expectedRRI: 'bar_rb1qd3t7gnvwxddj2wxg5dl4adr7er9uw62g7x0ku6hyw4qfk0pfz',
+				expectedRRI:
+					'bar_rb1qd3t7gnvwxddj2wxg5dl4adr7er9uw62g7x0ku6hyw4qfk0pfz',
 			},
 		]
 
 		const doTest = (vector: PKAneNameVector, index: number): void => {
 			it(`vector_index${index}`, () => {
-				const publicKey = privateKeyFromScalar(UInt256.valueOf(vector.pkScalar))._unsafeUnwrap().publicKey()
+				const publicKey = privateKeyFromScalar(
+					UInt256.valueOf(vector.pkScalar),
+				)
+					._unsafeUnwrap()
+					.publicKey()
 
 				const rri = ResourceIdentifier.fromPublicKeyAndName({
 					publicKey,
-					name: vector.name
+					name: vector.name,
 				})._unsafeUnwrap()
 
 				expect(rri.name).toBe(vector.name)
@@ -77,22 +83,24 @@ describe('rri_on_bech32_format', () => {
 			{
 				rri: 'xrd_rb1qya85pwq',
 				name: 'xrd',
-				data: '01'
+				data: '01',
 			},
 			{
 				rri: 'xrd2_rb1qy557l44',
 				name: 'xrd2',
-				data: '01'
+				data: '01',
 			},
 			{
-				rri: 'usdc_rb1qvqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq6gwwwd',
+				rri:
+					'usdc_rb1qvqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq6gwwwd',
 				name: 'usdc',
-				data: `03${'00'.repeat(26)}`
+				data: `03${'00'.repeat(26)}`,
 			},
 			{
-				rri: 't2t2t2_rb1qvpsxqcrqvpsxqcrqvpsxqcrqvpsxqcrqvpsxqcrqvpsmr9n0r',
+				rri:
+					't2t2t2_rb1qvpsxqcrqvpsxqcrqvpsxqcrqvpsxqcrqvpsxqcrqvpsmr9n0r',
 				name: 't2t2t2',
-				data: `03${'03'.repeat(26)}`
+				data: `03${'03'.repeat(26)}`,
 			},
 		]
 		const doTest = (vector: RRIDesVector, index: number): void => {
@@ -107,7 +115,9 @@ describe('rri_on_bech32_format', () => {
 			// 	expect(rri.hash.toString('hex')).toBe(vector.data)
 			// })
 			it(`rri_deserialization_vector_index${index}`, () => {
-				const rri = ResourceIdentifier.fromUnsafe(vector.rri)._unsafeUnwrap()
+				const rri = ResourceIdentifier.fromUnsafe(
+					vector.rri,
+				)._unsafeUnwrap()
 
 				expect(rri.hash.toString('hex')).toBe(vector.data)
 
@@ -117,8 +127,6 @@ describe('rri_on_bech32_format', () => {
 		}
 
 		reAddressToRri.forEach((v, i) => doTest(v, i))
-
-
 	})
 
 	describe('rri system', () => {
@@ -159,7 +167,9 @@ describe('rri_on_bech32_format', () => {
 
 		const doTest = (vector: SystemRRIVector, index: number): void => {
 			it(`vector_index${index}`, () => {
-				const rri = ResourceIdentifier.systemRRI(vector.name)._unsafeUnwrap()
+				const rri = ResourceIdentifier.systemRRI(
+					vector.name,
+				)._unsafeUnwrap()
 
 				expect(rri.name).toBe(vector.name)
 				expect(rri.toString()).toBe(vector.expectedRRI)
@@ -169,7 +179,6 @@ describe('rri_on_bech32_format', () => {
 	})
 
 	describe('test non happy paths', () => {
-
 		beforeAll(() => {
 			jest.spyOn(console, 'error').mockImplementation(() => {})
 		})
@@ -181,66 +190,62 @@ describe('rri_on_bech32_format', () => {
 		it('rri checksum invalid bech32 string', () => {
 			const rri = 'xrd_rb1qya85pw1' // "w1" should have been "wq";
 			ResourceIdentifier.fromUnsafe(rri).match(
-				(_) => { throw new Error('Expected error but got none') },
+				(_) => {
+					throw new Error('Expected error but got none')
+				},
 				(e) => {
 					expect(msgFromError(e).length).toBeGreaterThan(0)
-				}
+				},
 			)
 		})
 
-		/*
-		* 	private final Map<String, String> invalidRris = Map.of(
-		"xrd1pzdsczc", "no _rb suffix",
-		"xrd_rb1avu205I", "invalid address type (0)",
-		"usdc_rb1qg8vs72e", "invalid address type (2)",
-		"usdc_rb1qqqsqs6ztc", "invalid length for address type 1",
-		"usdc_rb1qvgxjc9r", "invalid length for address type 3",
-		"xrd_2_rb1qvpsxqcrqvpsxqcrqvpsxqcrqvpsxqcrqvpsxqcrqvpszyaqyw", "invalid characters in hrp"
-	);*/
-
 		type InvalidVector = {
-			invalidRRI: string,
+			invalidRRI: string
 			failureReason: string
 		}
 
 		const invalidVectors: InvalidVector[] = [
 			{
 				invalidRRI: 'xrd1pzdsczc',
-				failureReason: 'no _rb suffix'
+				failureReason: 'no _rb suffix',
 			},
 			{
 				invalidRRI: 'xrd_rb1avu205I',
-				failureReason: 'invalid address type (0)'
+				failureReason: 'invalid address type (0)',
 			},
 			{
 				invalidRRI: 'usdc_rb1qg8vs72e',
-				failureReason: 'invalid address type (2)'
+				failureReason: 'invalid address type (2)',
 			},
 			{
 				invalidRRI: 'usdc_rb1qqqsqs6ztc',
-				failureReason: 'invalid length for address type 1'
+				failureReason: 'invalid length for address type 1',
 			},
 			{
 				invalidRRI: 'usdc_rb1qvgxjc9r',
-				failureReason: 'invalid length for address type 3'
+				failureReason: 'invalid length for address type 3',
 			},
 			{
-				invalidRRI: 'xrd_2_rb1qvpsxqcrqvpsxqcrqvpsxqcrqvpsxqcrqvpsxqcrqvpszyaqyw',
-				failureReason: 'invalid characters in hrp'
+				invalidRRI:
+					'xrd_2_rb1qvpsxqcrqvpsxqcrqvpsxqcrqvpsxqcrqvpsxqcrqvpszyaqyw',
+				failureReason: 'invalid characters in hrp',
 			},
 		]
 
 		const doTest = (invalidVector: InvalidVector, index: number): void => {
 			it(`invalid_vector_index${index}`, () => {
 				ResourceIdentifier.fromUnsafe(invalidVector.invalidRRI).match(
-					(_) => { throw new Error(`Got success, but expected failure, rri: ${invalidVector.invalidRRI}`) },
+					(_) => {
+						throw new Error(
+							`Got success, but expected failure, rri: ${invalidVector.invalidRRI}`,
+						)
+					},
 					(e) => {
 						expect(msgFromError(e).length).toBeGreaterThan(1)
-					}
+					},
 				)
 			})
 		}
 		invalidVectors.forEach((v, i) => doTest(v, i))
-
 	})
 })

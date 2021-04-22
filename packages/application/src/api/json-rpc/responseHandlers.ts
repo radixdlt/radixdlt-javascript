@@ -3,7 +3,11 @@ import { err, ok, Result } from 'neverthrow'
 import { UInt256 } from '@radixdlt/uint256'
 import { Amount, magicFromNumber } from '@radixdlt/primitives'
 
-import { Address, ValidatorAddress, ResourceIdentifier } from '@radixdlt/account'
+import {
+	Address,
+	ValidatorAddress,
+	ResourceIdentifier,
+} from '@radixdlt/account'
 
 import { isObject, isString } from '@radixdlt/util'
 import {

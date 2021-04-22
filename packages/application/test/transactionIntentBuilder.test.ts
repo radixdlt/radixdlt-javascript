@@ -1,9 +1,6 @@
 describe('skipped', () => {
-	it('is skipped', () => {
-
-	})
+	it('is skipped', () => {})
 })
-
 
 // import { TransactionIntentBuilder } from '../src/dto/transactionIntentBuilder'
 // import { Amount, DenominationOutputFormat } from '@radixdlt/primitives'
