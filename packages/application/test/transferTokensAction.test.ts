@@ -1,7 +1,6 @@
-import { Address } from '@radixdlt/account'
+import { Address, ResourceIdentifier } from '@radixdlt/account'
 import { Denomination } from '@radixdlt/primitives'
 import { Amount, zero } from '@radixdlt/primitives/src/amount'
-import { ResourceIdentifier } from '../src/dto/resourceIdentifier'
 import { TransferTokensInput } from '../src/actions/_types'
 import { IntendedTransferTokens } from '../src/actions/intendedTransferTokensAction'
 
@@ -14,9 +13,9 @@ describe('TransferTokensActions', () => {
 		'9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
 	)._unsafeUnwrap()
 
-	const resourceIdentifier = ResourceIdentifier.create({
-		hash: alice.publicKey.asData({ compressed: true }),
-		name: 'FOOBAR',
+	const resourceIdentifier = ResourceIdentifier.fromPublicKeyAndName({
+		publicKey: alice.publicKey,
+		name: 'foobar',
 	})._unsafeUnwrap()
 	const amount = Amount.fromUnsafe(6, Denomination.Atto)._unsafeUnwrap()
 

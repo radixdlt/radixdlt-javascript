@@ -11,6 +11,8 @@ import { UInt256 } from '@radixdlt/uint256'
 import {
 	Address,
 	AddressT,
+	ResourceIdentifierT,
+	ResourceIdentifier,
 	ValidatorAddress,
 	ValidatorAddressT,
 } from '@radixdlt/account'
@@ -20,7 +22,6 @@ import {
 	NetworkTransactionDemand,
 	NetworkTransactionThroughput,
 	PendingTransaction,
-	ResourceIdentifierT,
 	SignedTransaction,
 	StakePositions,
 	StatusOfTransaction,
@@ -38,7 +39,6 @@ import {
 	Validators,
 	ValidatorsRequestInput,
 } from './dto/_types'
-import { ResourceIdentifier } from './dto/resourceIdentifier'
 import { tokenOwnerOnly, tokenPermissionsAll } from './dto/tokenPermissions'
 import { RadixCoreAPI } from './api/_types'
 import { shareReplay } from 'rxjs/operators'
@@ -59,9 +59,7 @@ export const toAddress = (b58: string): AddressT =>
 
 export const xrd: Token = {
 	name: 'Rad',
-	rri: ResourceIdentifier.fromBech32String(
-		'xrd_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtesv2yq5l',
-	)._unsafeUnwrap(),
+	rri: ResourceIdentifier.fromUnsafe('xrd_rb1qya85pwq')._unsafeUnwrap(),
 	symbol: 'XRD',
 	description: 'The native coin of Radix network',
 	granularity: Amount.fromUInt256({
@@ -77,9 +75,7 @@ export const xrd: Token = {
 
 export const fooToken: Token = {
 	name: 'Foo token',
-	rri: ResourceIdentifier.fromString(
-		'/9SAGS7iVkjLDa2uoqzvybBJZP5RJd6XLzoeSmqur9WWXoKs7hPqz/FOO',
-	)._unsafeUnwrap(),
+	rri: ResourceIdentifier.fromUnsafe('foo_rb1qy3q706k')._unsafeUnwrap(),
 	symbol: 'FOO',
 	description: 'FOOest token.',
 	granularity: Amount.fromUInt256({
@@ -95,9 +91,7 @@ export const fooToken: Token = {
 
 export const barToken: Token = {
 	name: 'Bar token',
-	rri: ResourceIdentifier.fromString(
-		'/9S8toEsjy7bLLVYwenrygbEiQDBiSYen4GDEGan5y6nGMXzKT22G/BAR',
-	)._unsafeUnwrap(),
+	rri: ResourceIdentifier.fromUnsafe('bar_rb1qy6gq5vc')._unsafeUnwrap(),
 	symbol: 'BAR',
 	description: 'Bar token. Granularity E-3.',
 	granularity: Amount.fromUInt256({
@@ -113,9 +107,7 @@ export const barToken: Token = {
 
 export const goldToken: Token = {
 	name: 'Gold token',
-	rri: ResourceIdentifier.fromString(
-		'/9SAihkYQDBKvHfhvwEw4QBfx1rpjvta2TvmWibyXixVzX2JHHHWf/BAR',
-	)._unsafeUnwrap(),
+	rri: ResourceIdentifier.fromUnsafe('gold_rb1qydtpdac')._unsafeUnwrap(),
 	symbol: 'GOLD',
 	description: 'Gold token. Granularity E-12.',
 	granularity: Amount.fromUInt256({
@@ -131,9 +123,7 @@ export const goldToken: Token = {
 
 export const radixWrappedBitcoinToken: Token = {
 	name: 'Bitcoin (wrapped on Radix)',
-	rri: ResourceIdentifier.fromString(
-		'/9SBaXGCwn8HcyPsbu4ymzNVCXtvogf3vSqnH39ihqt5RyDFq9hsv/BTCRW',
-	)._unsafeUnwrap(),
+	rri: ResourceIdentifier.fromUnsafe('btcrw_rb1qyerpvjk')._unsafeUnwrap(),
 	symbol: 'BTCRW',
 	description: 'Radix wrapped Bitcoin. Granularity E-18.',
 	granularity: Amount.fromUInt256({
@@ -149,9 +139,7 @@ export const radixWrappedBitcoinToken: Token = {
 
 export const radixWrappedEtherToken: Token = {
 	name: 'Ether (wrapped on Radix)',
-	rri: ResourceIdentifier.fromString(
-		'/9SBA2tji3wjuuThohxW37L6vySVuVaUpBFBpq2b7Ey7sKToU2uJp/ETHRW',
-	)._unsafeUnwrap(),
+	rri: ResourceIdentifier.fromUnsafe('ethrw_rb1qyeev2v5')._unsafeUnwrap(),
 	symbol: 'ETHRW',
 	description: 'Radix wrapped Ether. Granularity E-9.',
 	granularity: Amount.fromUInt256({
@@ -167,9 +155,7 @@ export const radixWrappedEtherToken: Token = {
 
 export const __fallBackAlexToken: Token = {
 	name: 'Alex token',
-	rri: ResourceIdentifier.fromString(
-		'/9S8LZFHXHTSJqNQ86ZeGKtFMJtqZbYPtgHWSC4LyYjSbduNRpDNN/ALEX',
-	)._unsafeUnwrap(),
+	rri: ResourceIdentifier.fromUnsafe('alex_rb1qy7s58lc')._unsafeUnwrap(),
 	symbol: 'ALEX',
 	description:
 		'Fallback token for when token for requested symbol was not found.',

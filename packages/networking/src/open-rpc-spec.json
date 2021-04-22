@@ -7,7 +7,7 @@
     "methods": [
         {
             "name": "networkId",
-            "summary": "Get the network \"magic\", a number that uniquely identifies the network and is used when generating addresses.",
+            "summary": "Get the network id, a number that uniquely identifies the network. This network id must match the one used to derive addresses.",
             "params": [],
             "result": {
                 "name": "networkId",
@@ -41,7 +41,7 @@
                         "name": "nativeTokenExample",
                         "value": {
                             "name": "Rad",
-                            "rri": "xrd_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtesv2yq5l",
+                            "rri": "xrd_rb1qya85pwq",
                             "symbol": "XRD",
                             "description": "The native token of the Radix network",
                             "granularity": "1",
@@ -82,7 +82,7 @@
                         "name": "tokenInfoExample",
                         "value": {
                             "name": "Rad",
-                            "rri": "xrd_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtesv2yq5l",
+                            "rri": "xrd_rb1qya85pwq",
                             "symbol": "XRD",
                             "description": "The native token of the Radix network",
                             "granularity": "1",
@@ -159,7 +159,7 @@
                             "owner": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
                             "tokenBalances": [
                                 {
-                                    "rri": "xrd_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtesv2yq5l",
+                                    "rri": "xrd_rb1qya85pwq",
                                     "amount": "100"
                                 }
                             ]
@@ -238,7 +238,7 @@
                                             "from": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
                                             "to": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
                                             "amount": "100",
-                                            "rri": "xrd_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtesv2yq5l"
+                                            "rri": "xrd_rb1qya85pwq"
                                         },
                                         {
                                             "type": "StakeTokens",
@@ -299,7 +299,7 @@
                                     "from": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
                                     "to": "9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT",
                                     "amount": "100",
-                                    "rri": "xrd_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtesv2yq5l"
+                                    "rri": "xrd_rb1qya85pwq"
                                 },
                                 {
                                     "type": "StakeTokens",
@@ -1058,7 +1058,7 @@
             },
             "rri": {
                 "type": "string",
-                "pattern": "^[!\\\"#$%&'()*+,-.\\/0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\\[\\\\\\]\\^_`abcdefghijklmnopqrstuvwxyz{|}~]{1,83}_rr1[023456789ACDEFGHJKLMNPQRSTUVWXYZacdefghjklmnpqrstuvwxyz]{6,90}$"
+                "pattern": "^[!\\\"#$%&'()*+,-.\\/0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\\[\\\\\\]\\^_`abcdefghijklmnopqrstuvwxyz{|}~]{1,83}_r[rb]1[023456789ACDEFGHJKLMNPQRSTUVWXYZacdefghjklmnpqrstuvwxyz]{6,90}$"
             },
             "url": {
                 "type": "string",
@@ -1070,7 +1070,7 @@
             },
             "validatorAddress": {
                 "type": "string",
-                "pattern": "^vb1[023456789ACDEFGHJKLMNPQRSTUVWXYZacdefghjklmnpqrstuvwxyz]{6,90}$"
+                "pattern": "^v[rb]1[023456789ACDEFGHJKLMNPQRSTUVWXYZacdefghjklmnpqrstuvwxyz]{6,90}$"
             },
             "txID": {
                 "type": "string",

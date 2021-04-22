@@ -1102,8 +1102,7 @@ describe('Radix API', () => {
 		const tokenTransferInput: TransferTokensInput = {
 			to: recipientAddress,
 			amount: 1,
-			tokenIdentifier:
-				'xrd_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtesv2yq5l',
+			tokenIdentifier: 'xrd_rb1qya85pwq',
 		}
 
 		const plaintext = 'Hey Bob, this is Alice.'
@@ -1229,8 +1228,7 @@ describe('Radix API', () => {
 		const tokenTransferInput: TransferTokensInput = {
 			to: bob,
 			amount: 1,
-			tokenIdentifier:
-				'xrd_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtesv2yq5l',
+			tokenIdentifier: 'xrd_rb1qya85pwq',
 		}
 
 		let pollTXStatusTrigger: Observable<unknown>

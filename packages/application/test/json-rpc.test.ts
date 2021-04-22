@@ -19,7 +19,6 @@ import {
 	ValidatorsEndpoint,
 	SubmitTransactionEndpoint,
 } from '../src/api/json-rpc/_types'
-import { ResourceIdentifier } from '../src/dto/resourceIdentifier'
 import { Amount, magicFromNumber } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
@@ -30,14 +29,18 @@ import {
 } from '../src/actions/_types'
 
 import { makeTokenPermissions } from '../src/dto/tokenPermissions'
-import { alice } from '../src/mockRadix'
+// import { alice } from '../src/mockRadix'
 import { isArray, isObject } from '@radixdlt/util'
 import {
 	MethodObject,
 	OpenrpcDocument,
 	ContentDescriptorObject,
 } from '@open-rpc/meta-schema'
-import { Address, ValidatorAddress } from '@radixdlt/account'
+import {
+	Address,
+	ResourceIdentifier,
+	ValidatorAddress,
+} from '@radixdlt/account'
 import { LookupValidatorEndpoint } from '../src/api/json-rpc/_types'
 const faker = require('json-schema-faker')
 
@@ -71,7 +74,7 @@ const expectedDecodedResponses = {
 		response: NativeTokenEndpoint.Response,
 	): NativeTokenEndpoint.DecodedResponse => ({
 		name: response.name,
-		rri: ResourceIdentifier.fromString(response.rri)._unsafeUnwrap({
+		rri: ResourceIdentifier.fromUnsafe(response.rri)._unsafeUnwrap({
 			withStackTrace: true,
 		}),
 		symbol: response.symbol,
@@ -92,7 +95,7 @@ const expectedDecodedResponses = {
 		response: TokenInfoEndpoint.Response,
 	): TokenInfoEndpoint.DecodedResponse => ({
 		name: response.name,
-		rri: ResourceIdentifier.fromString(response.rri)._unsafeUnwrap({
+		rri: ResourceIdentifier.fromUnsafe(response.rri)._unsafeUnwrap({
 			withStackTrace: true,
 		}),
 		symbol: response.symbol,
@@ -112,10 +115,12 @@ const expectedDecodedResponses = {
 	[rpcSpec.methods[3].name]: (
 		response: TokenBalancesEndpoint.Response,
 	): TokenBalancesEndpoint.DecodedResponse => ({
-		owner: alice,
+		owner: Address.fromUnsafe(
+			'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+		)._unsafeUnwrap(),
 		tokenBalances: [
 			{
-				tokenIdentifier: ResourceIdentifier.fromString(
+				tokenIdentifier: ResourceIdentifier.fromUnsafe(
 					response.tokenBalances[0].rri,
 				)._unsafeUnwrap({ withStackTrace: true }),
 				amount: Amount.inSmallestDenomination(

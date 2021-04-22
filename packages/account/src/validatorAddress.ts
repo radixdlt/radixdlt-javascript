@@ -22,7 +22,7 @@ const encoding = Encoding.BECH32
 
 const fromPublicKey = (publicKey: PublicKey): ValidatorAddressT => {
 	const bytes = publicKey.asData({ compressed: true })
-	const data = Bech32.convertDataToBech32(bytes)
+	const data = Bech32.convertDataToBech32(bytes)._unsafeUnwrap()
 	const encodingResult = Bech32.encode({ hrp, data, encoding, maxLength })
 
 	if (!encodingResult.isOk()) {
@@ -52,7 +52,9 @@ const fromString = (
 ): Result<ValidatorAddressT, Error> => {
 	return Bech32.decode({ bechString, encoding, maxLength })
 		.andThen((decoded) =>
-			publicKeyFromBytes(Bech32.convertDataFromBech32(decoded.data)),
+			publicKeyFromBytes(
+				Bech32.convertDataFromBech32(decoded.data)._unsafeUnwrap(),
+			),
 		)
 		.map(fromPublicKey)
 		.map((va) => {
