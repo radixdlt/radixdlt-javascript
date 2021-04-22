@@ -132,5 +132,62 @@ describe('rri_on_bech32_format', () => {
 				}
 			)
 		})
+
+		/*
+		* 	private final Map<String, String> invalidRris = Map.of(
+		"xrd1pzdsczc", "no _rb suffix",
+		"xrd_rb1avu205I", "invalid address type (0)",
+		"usdc_rb1qg8vs72e", "invalid address type (2)",
+		"usdc_rb1qqqsqs6ztc", "invalid length for address type 1",
+		"usdc_rb1qvgxjc9r", "invalid length for address type 3",
+		"xrd_2_rb1qvpsxqcrqvpsxqcrqvpsxqcrqvpsxqcrqvpsxqcrqvpszyaqyw", "invalid characters in hrp"
+	);*/
+
+		type InvalidVector = {
+			invalidRRI: string,
+			failureReason: string
+		}
+
+		const invalidVectors: InvalidVector[] = [
+			{
+				invalidRRI: 'xrd1pzdsczc',
+				failureReason: 'no _rb suffix'
+			},
+			{
+				invalidRRI: 'xrd_rb1avu205I',
+				failureReason: 'invalid address type (0)'
+			},
+			{
+				invalidRRI: 'usdc_rb1qg8vs72e',
+				failureReason: 'invalid address type (2)'
+			},
+			{
+				invalidRRI: 'usdc_rb1qqqsqs6ztc',
+				failureReason: 'invalid length for address type 1'
+			},
+			{
+				invalidRRI: 'usdc_rb1qvgxjc9r',
+				failureReason: 'invalid length for address type 3'
+			},
+			{
+				invalidRRI: 'xrd_2_rb1qvpsxqcrqvpsxqcrqvpsxqcrqvpsxqcrqvpsxqcrqvpszyaqyw',
+				failureReason: 'invalid characters in hrp'
+			},
+		]
+
+		const doTest = (invalidVector: InvalidVector, index: number): void => {
+			it(`invalid_vector_index${index}`, () => {
+				console.log(`🚀 invalidVector: ${index} `)
+				ResourceIdentifier.fromUnsafe(invalidVector.invalidRRI).match(
+					(_) => { throw new Error(`Got success, but expected failure, rri: ${invalidVector.invalidRRI}`) },
+					(e) => {
+						expect(msgFromError(e).length).toBeGreaterThan(1)
+					}
+				)
+			})
+		}
+
+		invalidVectors.forEach((v, i) => doTest(v, i))
+
 	})
 })

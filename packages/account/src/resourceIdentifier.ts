@@ -62,7 +62,15 @@ const fromBech32String = (
 		return err(new Error(errMsg))
 	}
 
-	const name = hrp.slice(0, hrp.length - hrpSuffix.length)
+	const nameToValidate = hrp.slice(0, hrp.length - hrpSuffix.length)
+
+	const nameValidationResult = validateCharsInName(nameToValidate)
+
+	if (!nameValidationResult.isOk()) {
+		return err(nameValidationResult.error)
+	}
+	const name = nameValidationResult.value
+
 	const processed = decoded.data
 	const combinedDataResult = Bech32.convertDataFromBech32(processed)
 
@@ -145,6 +153,16 @@ const fromBech32String = (
 // 	})
 // }
 
+const validateCharsInName = (name: string): Result<string, Error> => {
+	const regexLowerAlphaNumerics = new RegExp('^[a-z0-9]+$')
+	if (!regexLowerAlphaNumerics.test(name)) {
+		const errMsg = `Illegal characters found in name`
+		console.log(errMsg)
+		return err(new Error(errMsg))
+	}
+	return ok(name)
+}
+
 const withNameRawDataAndVersionByte = (
 	input: Readonly<{
 		hash: Buffer
@@ -152,65 +170,69 @@ const withNameRawDataAndVersionByte = (
 		name: string
 	}>,
 ): Result<ResourceIdentifierT, Error> => {
-	const hrpSuffix = hrpBetanetSuffix // TODO make dependent on Network!
+	return validateCharsInName(input.name).andThen((name) => {
 
-	const { versionByte, name, hash } = input
-	const hrp = `${name}${hrpSuffix}`
+		const hrpSuffix = hrpBetanetSuffix // TODO make dependent on Network!
 
-	const combinedData = Buffer.concat([Buffer.from([versionByte]), hash])
+		const { versionByte, hash } = input
+		const hrp = `${name}${hrpSuffix}`
 
-	console.log(
-		`🔮 fromRawDataAndName: combinedData ${combinedData.toString('hex')}, `,
-	)
+		const combinedData = Buffer.concat([Buffer.from([versionByte]), hash])
 
-	return Bech32.convertDataToBech32(combinedData)
-		.andThen((processed) => {
+		console.log(
+			`🔮 fromRawDataAndName: combinedData ${combinedData.toString('hex')}, `,
+		)
 
-			console.log(
-				`🔮 fromRawDataAndName: processed ${processed.toString('hex')}, `,
-			)
+		return Bech32.convertDataToBech32(combinedData)
+			.andThen((processed) => {
+
+				console.log(
+					`🔮 fromRawDataAndName: processed ${processed.toString('hex')}, `,
+				)
 
 
-			return Bech32.encode({
-				data: processed,
-				hrp,
-				encoding,
-				maxLength,
+				return Bech32.encode({
+					data: processed,
+					hrp,
+					encoding,
+					maxLength,
+				})
 			})
-		})
-		.map((bech32) => {
+			.map((bech32) => {
 
-			console.log(
-				`🔮 fromRawDataAndName: bech32.data ${bech32.data.toString('hex')}, `,
-			)
+				console.log(
+					`🔮 fromRawDataAndName: bech32.data ${bech32.data.toString('hex')}, `,
+				)
 
-			console.log(
-				`🔮 fromRawDataAndName: toString ${bech32.toString()}, `,
-			)
-			return __create({
-				hash, //: rawData, //processedData,
-				name,
-				toString: () => bech32.toString(),
+				console.log(
+					`🔮 fromRawDataAndName: toString ${bech32.toString()}, `,
+				)
+				return __create({
+					hash, //: rawData, //processedData,
+					name,
+					toString: () => bech32.toString(),
+				})
 			})
-		})
-		.map((rri) => {
-			// soundness check
-			console.log(`🔮 soundness check from string ${rri.toString()}, `)
-			const roundtrip = fromUnsafe(rri.toString())
-			if (!roundtrip.isOk()) {
-				const errMsg = `Soundness check failed, error ${msgFromError(
-					roundtrip.error,
-				)}`
-				console.log(errMsg)
-				throw new Error(errMsg)
-			}
-			if (roundtrip.value.toString() !== rri.toString()) {
-				const errMsg = `Soundness check failed strings differ...`
-				console.log(errMsg)
-				throw new Error(errMsg)
-			}
-			return rri
-		})
+			.map((rri) => {
+				// soundness check
+				console.log(`🔮 soundness check from string ${rri.toString()}, `)
+				const roundtrip = fromUnsafe(rri.toString())
+				if (!roundtrip.isOk()) {
+					const errMsg = `Soundness check failed, error ${msgFromError(
+						roundtrip.error,
+					)}`
+					console.log(errMsg)
+					throw new Error(errMsg)
+				}
+				if (roundtrip.value.toString() !== rri.toString()) {
+					const errMsg = `Soundness check failed strings differ...`
+					console.log(errMsg)
+					throw new Error(errMsg)
+				}
+				return rri
+			})
+	})
+
 }
 
 const systemRRI = (name: string): Result<ResourceIdentifierT, Error> =>
