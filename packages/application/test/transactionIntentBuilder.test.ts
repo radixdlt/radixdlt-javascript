@@ -9,9 +9,9 @@ import {
 } from '../src/actions/_types'
 import {
 	AddressT,
-	isAddress,
+	isAccountAddress,
 	isValidatorAddress,
-	Mnemonic,
+	Mnemonic, NetworkT,
 	ValidatorAddress,
 	ValidatorAddressT,
 	Wallet,
@@ -44,7 +44,7 @@ describe('tx intent builder', () => {
 	}
 	const wallet = createSpecificWallet()
 
-	wallet.provideNetworkId(of({ byte: 237 }))
+	wallet.provideNetworkId(of(NetworkT.BETANET))
 	const aliceAccount = wallet.deriveNext()
 	const bobAccount = wallet.deriveNext()
 	let alice: AddressT
@@ -341,7 +341,7 @@ describe('tx intent builder', () => {
 				throw new Error('Expected property TO or VALIDATOR')
 			} else {
 				const actualAddress: AnyAddress = actualAddressMaybe
-				if (isAddress(expectedAddress) && isAddress(actualAddress)) {
+				if (isAccountAddress(expectedAddress) && isAccountAddress(actualAddress)) {
 					expect(actualAddress.equals(expectedAddress)).toBe(true)
 				} else if (
 					isValidatorAddress(expectedAddress) &&

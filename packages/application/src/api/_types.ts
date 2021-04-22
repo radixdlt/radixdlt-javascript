@@ -1,8 +1,7 @@
 import { getAPI } from './json-rpc/interface'
 
-import { Magic } from '@radixdlt/primitives'
 import { Observable } from 'rxjs'
-import { AddressT, ValidatorAddressT } from '@radixdlt/account'
+import { AddressT, ValidatorAddressT, NetworkT } from '@radixdlt/account'
 
 import {
 	ExecutedTransaction,
@@ -83,7 +82,7 @@ export type RadixAPI = Readonly<{
 		signedUnconfirmedTransaction: SignedTransaction,
 	) => Observable<FinalizedTransaction>
 
-	networkId: () => Observable<Magic>
+	networkId: () => Observable<NetworkT>
 }>
 
 export type RadixCoreAPI = RadixAPI &

@@ -14,6 +14,7 @@ describe('validator address', () => {
 
 		const validatorAddress = ValidatorAddress.fromPublicKeyAndNetwork({
 			publicKey,
+			network: NetworkT.BETANET
 		})
 
 		expect(validatorAddress.network).toBe(NetworkT.BETANET)

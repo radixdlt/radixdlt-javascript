@@ -5,9 +5,10 @@ import {
 	MnemomicT,
 	SwitchAccountInput,
 	Wallet,
+	NetworkT,
 	WalletT,
 } from '@radixdlt/account'
-import { NodeT, RadixAPI, RadixCoreAPI } from './api/_types'
+import { NodeT, RadixAPI, RadixCoreAPI, radixCoreAPI, nodeAPI } from './api'
 
 import {
 	catchError,
@@ -20,14 +21,12 @@ import {
 	skipWhile,
 	switchMap,
 	take,
-	takeWhile,
 	tap,
 	withLatestFrom,
 } from 'rxjs/operators'
 import {
 	combineLatest,
 	EMPTY,
-	interval,
 	merge,
 	Observable,
 	of,
@@ -37,8 +36,6 @@ import {
 	throwError,
 	timer,
 } from 'rxjs'
-import { radixCoreAPI } from './api/radixCoreAPI'
-import { Magic } from '@radixdlt/primitives'
 import { EncryptedMessage, KeystoreT } from '@radixdlt/crypto'
 import {
 	MakeTransactionOptions,
@@ -71,13 +68,7 @@ import {
 	unstakesForAddressErr,
 	validatorsErr,
 } from './errors'
-import {
-	isArray,
-	log,
-	msgFromError,
-	RadixLogLevel,
-	setLogLevel,
-} from '@radixdlt/util'
+import { log, msgFromError, RadixLogLevel, setLogLevel } from '@radixdlt/util'
 import {
 	PendingTransaction,
 	FinalizedTransaction,
@@ -99,19 +90,20 @@ import {
 	TransactionStateUpdate,
 	TransactionStateError,
 	ExecutedTransaction,
-} from './dto/_types'
-import { nodeAPI } from './api/api'
-import {
 	singleRecipientFromActions,
 	TransactionIntentBuilder,
-} from './dto/transactionIntentBuilder'
-import { add } from 'ramda'
+} from './dto'
 
 const shouldConfirmTransactionAutomatically = (
 	confirmationScheme: TransactionConfirmationBeforeFinalization,
 ): confirmationScheme is 'skip' => confirmationScheme === 'skip'
 
-const create = (): RadixT => {
+const create = (
+	input?: Readonly<{
+		network?: NetworkT
+	}>,
+): RadixT => {
+	const requestedNetwork = input?.network ?? NetworkT.BETANET // TODO Mainnet replace with NetworkT.MAINNET when launched
 	const subs = new Subscription()
 	const radixLog = log // TODO configure child loggers
 
@@ -150,10 +142,23 @@ const create = (): RadixT => {
 			}),
 		)
 
-	const networkId: () => Observable<Magic> = fwdAPICall(
+	const networkId: () => Observable<NetworkT> = fwdAPICall(
 		(a) => a.networkId,
 		(m) => networkIdErr(m),
 	)
+
+	networkId()
+		.subscribe((actualNetwork) => {
+			if (actualNetwork !== requestedNetwork) {
+				const errMsg = `☣️ EMERGENCY actual network and requested network differs. STOP EVERYTHING YOU ARE DOING. You might lose funds.`
+				log.error(errMsg)
+				// https://nodejs.org/api/process.html#process_exit_codes
+				const nodeExitCodeUncaughtFatalException = 1
+				process?.exit(nodeExitCodeUncaughtFatalException)
+				throw new Error(errMsg)
+			}
+		})
+		.add(subs)
 
 	const api: RadixAPI = {
 		networkId,

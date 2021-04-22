@@ -6,7 +6,7 @@ import { msgFromError } from '@radixdlt/util'
 
 describe('ResourceIdentifier (RRI)', () => {
 	it('can be created from address+name AND from id-string', () => {
-		const address = Address.fromBase58String(
+		const address = Address.fromUnsafe(
 			'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
 		)._unsafeUnwrap()
 		const name = 'FOOBAR'

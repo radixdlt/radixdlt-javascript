@@ -1,4 +1,3 @@
-import { Byte } from '@radixdlt/util'
 import {
 	ECPointOnCurve,
 	EncryptedMessageT,
@@ -8,7 +7,6 @@ import {
 import { Observable } from 'rxjs'
 import { Option } from 'prelude-ts'
 import { HDPathRadixT, BIP32T } from './bip32'
-import { Magic } from '@radixdlt/primitives'
 import { MnemomicT } from './bip39'
 
 export enum NetworkT {
@@ -29,10 +27,10 @@ export type AbstractAddressT = Readonly<{
 	equals: (other: AbstractAddressT) => boolean
 }>
 
-export type AddressT2 = AbstractAddressT &
+export type AddressT = AbstractAddressT &
 	Readonly<{
 		addressType: AddressTypeT.ACCOUNT
-		equals: (other: AddressT2) => boolean
+		equals: (other: AddressT) => boolean
 	}>
 
 export type ValidatorAddressT = AbstractAddressT &
@@ -40,13 +38,6 @@ export type ValidatorAddressT = AbstractAddressT &
 		addressType: AddressTypeT.VALIDATOR
 		equals: (other: ValidatorAddressT) => boolean
 	}>
-
-export type AddressT = Readonly<{
-	publicKey: PublicKey
-	magicByte: Byte
-	toString: () => string
-	equals: (other: AddressT) => boolean
-}>
 
 export type PublicKeyDeriving = Readonly<{
 	derivePublicKey: () => Observable<PublicKey>
@@ -137,7 +128,7 @@ export type WalletT = PublicKeyDeriving &
 		revealMnemonic: () => MnemomicT
 
 		// Call this once you can provide an observable providing magic.
-		provideNetworkId: (magic: Observable<Magic>) => void
+		provideNetworkId: (magic: Observable<NetworkT>) => void
 		deriveNext: (input?: DeriveNextAccountInput) => AccountT
 
 		switchAccount: (input: SwitchAccountInput) => AccountT

@@ -1,5 +1,4 @@
-import { Int32 } from '@radixdlt/account'
-import { Magic } from '@radixdlt/primitives'
+import { Int32, NetworkT } from '@radixdlt/account'
 import { ActionType } from '../../actions'
 import {
 	ExecutedTransaction,
@@ -13,7 +12,6 @@ import {
 	StatusOfTransaction,
 	Token,
 	TransactionHistory,
-	TransactionIntent,
 	TransactionStatus,
 	BuiltTransaction,
 	UnstakePositions,
@@ -54,7 +52,7 @@ export namespace NetworkIdEndpoint {
 	}
 
 	export type DecodedResponse = {
-		networkId: Magic
+		networkId: NetworkT
 	}
 }
 

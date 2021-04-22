@@ -17,13 +17,26 @@ export const isAbstractAddress = (
 	)
 }
 
+export type TypeGuard<A extends AbstractAddressT> = (
+	something: unknown,
+) => something is A
+
+export type NetworkFromHRP = (hrp: string) => Result<NetworkT, Error>
+export type HRPFromNetwork = (network: NetworkT) => string
+export type FormatDataToBech32Convert = (publicKeyBytes: Buffer) => Buffer
+
+export type ValidateDataAndExtractPubKeyBytes = (
+	data: Buffer,
+) => Result<Buffer, Error>
+
 const create = <A extends AbstractAddressT>(
 	input: Readonly<{
 		publicKey: PublicKey
-		hrpFromNetwork: (network: NetworkT) => string
+		hrpFromNetwork: HRPFromNetwork
 		addressType: AddressTypeT
 		network: NetworkT
-		typeguard: (something: unknown) => something is A
+		typeguard: TypeGuard<A>
+		formatDataToBech32Convert?: FormatDataToBech32Convert
 		encoding?: Encoding
 		maxLength?: number
 	}>,
@@ -38,7 +51,11 @@ const create = <A extends AbstractAddressT>(
 		typeguard,
 	} = input
 
-	const bytes = publicKey.asData({ compressed: true })
+	const formatDataToBech32Convert =
+		input.formatDataToBech32Convert ?? ((b) => b)
+
+	const publicKeyBytes = publicKey.asData({ compressed: true })
+	const bytes = formatDataToBech32Convert(publicKeyBytes)
 	const data = Bech32.convertDataToBech32(bytes)
 	const hrp = hrpFromNetwork(network)
 	const encodingResult = Bech32.encode({ hrp, data, encoding, maxLength })
@@ -47,7 +64,7 @@ const create = <A extends AbstractAddressT>(
 		const errMsg = `Incorrect implementation, failed to Bech32 encode validator pubkey, underlying error: ${msgFromError(
 			encodingResult.error,
 		)}, but expect to always be able to.`
-		console.log(errMsg)
+		console.error(errMsg)
 		throw new Error(errMsg)
 	}
 	const encoded = encodingResult.value
@@ -85,8 +102,9 @@ const fromString = <A extends AbstractAddressT>(
 	input: Readonly<{
 		bechString: string
 		addressType: AddressTypeT
-		networkFromHRP: (hrp: string) => Result<NetworkT, Error>
-		typeguard: (something: unknown) => something is A
+		networkFromHRP: NetworkFromHRP
+		typeguard: TypeGuard<A>
+		validateDataAndExtractPubKeyBytes?: ValidateDataAndExtractPubKeyBytes
 		encoding?: Encoding
 		maxLength?: number
 	}>,
@@ -100,30 +118,37 @@ const fromString = <A extends AbstractAddressT>(
 		addressType,
 	} = input
 
+	const validateDataAndExtractPubKeyBytes =
+		input.validateDataAndExtractPubKeyBytes ?? ((data: Buffer) => ok(data))
+
 	return Bech32.decode({ bechString, encoding, maxLength })
 		.andThen(
-			({ hrp, data: pubKeyBech32Data }): Result<A, Error> => {
-				const publicKeyBytes = Bech32.convertDataFromBech32(
-					pubKeyBech32Data,
-				)
+			({ hrp, data: bech32Data }): Result<A, Error> => {
+				const data = Bech32.convertDataFromBech32(bech32Data)
 
-				return combine([
-					networkFromHRP(hrp),
-					publicKeyFromBytes(publicKeyBytes),
-				]).map(
-					(resultList): A => {
-						const network = resultList[0] as NetworkT
-						const publicKey = resultList[1] as PublicKey
+				return validateDataAndExtractPubKeyBytes(data).andThen(
+					(publicKeyBytes) => {
+						return combine([
+							networkFromHRP(hrp),
+							publicKeyFromBytes(publicKeyBytes),
+						]).map(
+							(resultList): A => {
+								const network = resultList[0] as NetworkT
+								const publicKey = resultList[1] as PublicKey
 
-						return create({
-							addressType,
-							publicKey,
-							hrpFromNetwork: (_) => hrp,
-							network,
-							typeguard,
-							encoding,
-							maxLength,
-						})
+								return create({
+									addressType,
+									publicKey,
+									hrpFromNetwork: (_) => hrp,
+									network,
+									typeguard,
+									formatDataToBech32Convert: (_) =>
+										bech32Data,
+									encoding,
+									maxLength,
+								})
+							},
+						)
 					},
 				)
 			},

@@ -2,7 +2,7 @@ import { err, ok, Result } from 'neverthrow'
 import { PublicKey } from '@radixdlt/crypto'
 import { AddressTypeT, NetworkT, ValidatorAddressT } from '../_types'
 import { Encoding } from '../bech32'
-import { AbstractAddress, isAbstractAddress } from './abstractAddress'
+import { AbstractAddress, HRPFromNetwork, isAbstractAddress, NetworkFromHRP } from './abstractAddress'
 
 export const isValidatorAddress = (
 	something: unknown,
@@ -16,7 +16,7 @@ const hrpBetanet = 'vb'
 const maxLength = 300 // arbitrarily chosen
 const encoding = Encoding.BECH32
 
-const hrpFromNetwork = (network: NetworkT): string => {
+const hrpFromNetwork: HRPFromNetwork = (network) => {
 	switch (network) {
 		case NetworkT.BETANET:
 			return hrpBetanet
@@ -25,7 +25,7 @@ const hrpFromNetwork = (network: NetworkT): string => {
 	}
 }
 
-const networkFromHRP = (hrp: string): Result<NetworkT, Error> => {
+const networkFromHRP: NetworkFromHRP = (hrp) => {
 	if (hrp === hrpMainnet) return ok(NetworkT.MAINNET)
 	if (hrp === hrpBetanet) return ok(NetworkT.BETANET)
 	const errMsg = `Failed to parse network from HRP ${hrp} for ValidatorAddress.`
@@ -35,12 +35,12 @@ const networkFromHRP = (hrp: string): Result<NetworkT, Error> => {
 const fromPublicKeyAndNetwork = (
 	input: Readonly<{
 		publicKey: PublicKey
-		network?: NetworkT
+		network: NetworkT
 	}>,
 ): ValidatorAddressT =>
 	AbstractAddress.create({
 		...input,
-		network: input.network ?? NetworkT.BETANET, // TODO Mainnet change to default to NetworkT.MAINNET before launch of mainnet.
+		network: input.network,
 		hrpFromNetwork,
 		addressType: AddressTypeT.VALIDATOR,
 		typeguard: isValidatorAddress,

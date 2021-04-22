@@ -17,8 +17,8 @@ import {
 	AddressT,
 	HardwareWalletSimpleT,
 } from './_types'
-import { HDMasterSeedT, HDNodeT } from './bip39/_types'
-import { HDPathRadixT } from './bip32/bip44/_types'
+import { HDMasterSeedT, HDNodeT } from './bip39'
+import { HDPathRadixT } from './bip32'
 import { errAsync, okAsync, ResultAsync } from 'neverthrow'
 import { log } from '@radixdlt/util'
 
@@ -93,7 +93,7 @@ const fromHDPathWithHardwareWallet = (
 			),
 			map(
 				(dhKey: ECPointOnCurve): DiffieHellman => {
-					const diffieHellman: DiffieHellman = (
+					return (
 						publicKeyOfOtherParty: PublicKey,
 					): ResultAsync<ECPointOnCurve, Error> => {
 						if (
@@ -108,7 +108,6 @@ const fromHDPathWithHardwareWallet = (
 						}
 						return okAsync(dhKey)
 					}
-					return diffieHellman
 				},
 			),
 		)

@@ -84,7 +84,7 @@ describe('integration API tests', () => {
 		radix.activeAddress
 			.subscribe(
 				(address) => {
-					expect(address.magicByte).toBeDefined()
+					expect(address.network).toBeDefined()
 					done()
 				},
 				(error) => done(error),

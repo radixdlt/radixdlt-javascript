@@ -23,7 +23,7 @@ const create = (input: {
 			const errMsg = `Incorrect implementation, failed to Bech32 encode RRI, underlying error: ${msgFromError(
 				bech32Result.error,
 			)}, but expect to always be able to.`
-			console.log(errMsg)
+			console.error(errMsg)
 			return err(new Error(errMsg))
 		}
 
@@ -66,13 +66,13 @@ const fromSpecString = (
 	const regExp = new RegExp(regExpStr)
 	if (!regExp.test(name)) {
 		const errMsg = `RRI name is invalid, got ${name}, which does not match regexp: ${regExpStr}`
-		// console.log(errMsg)
+		// console.error(errMsg)
 		return err(new Error(errMsg))
 	}
 	if (components[1].length === 0) {
 		return systemRRI(name)
 	} else {
-		return Address.fromBase58String(components[1]).andThen((a) =>
+		return Address.fromUnsafe(components[1]).andThen((a) =>
 			create({ hash: a.publicKey.asData({ compressed: true }), name }),
 		)
 	}
@@ -86,7 +86,7 @@ const fromBech32String = (
 		const errMsg = `Failed to Bech32 decode RRI, underlying error: ${msgFromError(
 			decodingResult.error,
 		)}, but expect to always be able to.`
-		// console.log(errMsg)
+		// console.error(errMsg)
 		return err(new Error(errMsg))
 	}
 	const d = decodingResult.value
@@ -100,13 +100,13 @@ const fromBech32String = (
 			const errMsg = `Failed to convert data from bech32 data, underlying error: ${underlyingErrorMsg}, hash: '${hash.toString(
 				'hex',
 			)}'`
-			// console.log(errMsg)
+			// console.error(errMsg)
 			return err(new Error(errMsg))
 		}
 	}
 	if (!hrp.endsWith(hrpSuffix)) {
 		const errMsg = `The prefix (HRP: Human Readable Part) of a Resource identifier must end with suffix ${hrpSuffix}`
-		// console.log(errMsg)
+		// console.error(errMsg)
 		return err(new Error(errMsg))
 	}
 

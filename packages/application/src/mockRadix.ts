@@ -11,6 +11,7 @@ import { UInt256 } from '@radixdlt/uint256'
 import {
 	Address,
 	AddressT,
+	NetworkT,
 	ValidatorAddress,
 	ValidatorAddressT,
 } from '@radixdlt/account'
@@ -55,7 +56,7 @@ import { FinalizedTransaction } from './dto/_types'
 import { isNumber } from '@radixdlt/util'
 
 export const toAddress = (b58: string): AddressT =>
-	Address.fromBase58String(b58)._unsafeUnwrap()
+	Address.fromUnsafe(b58)._unsafeUnwrap()
 
 export const xrd: Token = {
 	name: 'Rad',
@@ -738,11 +739,12 @@ export const deterministicRandomTxHistoryWithInput = (
 
 const deterministicRandomLookupTXUsingHist = (
 	txID: TransactionIdentifierT,
+	network?: NetworkT,
 ): ExecutedTransaction => {
 	const seed = sha256(Buffer.from(txID.__hex, 'hex'))
-	const addressWithTXIdBytesAsSeed = Address.fromPublicKeyAndMagicByte({
-		magicByte: 123,
+	const addressWithTXIdBytesAsSeed = Address.fromPublicKeyAndNetwork({
 		publicKey: privateKeyFromBuffer(seed)._unsafeUnwrap().publicKey(),
+		network: network ?? NetworkT.BETANET,
 	})
 	const txs = deterministicRandomTxHistoryWithInput({
 		size: 1,
@@ -785,7 +787,7 @@ export const deterministicRandomStakesForAddr = (
 export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
 	node: { url: new URL(nodeUrl ?? 'http://www.example.com') },
 
-	networkId: (): Observable<Magic> => {
+	networkId: (): Observable<NetworkT> => {
 		throw Error('Not implemented')
 	},
 
@@ -879,8 +881,8 @@ export const mockRadixCoreAPI = (
 	return {
 		node: { url: new URL(input?.nodeUrl ?? 'http://www.example.com') },
 
-		networkId: (): Observable<Magic> => {
-			return of(magicFromNumber(input?.magic ?? 123)).pipe(shareReplay(1))
+		networkId: (): Observable<NetworkT> => {
+			return of(NetworkT.BETANET).pipe(shareReplay(1))
 		},
 		nativeToken: (): Observable<Token> => of(xrd),
 		tokenInfo: (rri: ResourceIdentifierT): Observable<Token> =>

@@ -21,7 +21,7 @@ import {
 import {
 	AccountT,
 	AddressT,
-	isAddress,
+	isAccountAddress,
 	toObservableFromResult,
 } from '@radixdlt/account'
 import { isObservable, Observable, of } from 'rxjs'
@@ -130,8 +130,8 @@ export const isIntendedTransferTokensAction = (
 	const inspection = something as IntendedTransferTokensAction
 	return (
 		inspection.type === ActionType.TOKEN_TRANSFER &&
-		isAddress(inspection.from) &&
-		isAddress(inspection.to) &&
+		isAccountAddress(inspection.from) &&
+		isAccountAddress(inspection.to) &&
 		isAmount(inspection.amount) &&
 		isResourceIdentifier(inspection.tokenIdentifier)
 	)
@@ -143,8 +143,8 @@ export const isIntendedStakeTokensAction = (
 	const inspection = something as IntendedStakeTokensAction
 	return (
 		inspection.type === ActionType.STAKE_TOKENS &&
-		isAddress(inspection.from) &&
-		isAddress(inspection.validator) &&
+		isAccountAddress(inspection.from) &&
+		isAccountAddress(inspection.validator) &&
 		isAmount(inspection.amount)
 	)
 }
@@ -155,8 +155,8 @@ export const isIntendedUnstakeTokensAction = (
 	const inspection = something as IntendedUnstakeTokensAction
 	return (
 		inspection.type === ActionType.UNSTAKE_TOKENS &&
-		isAddress(inspection.from) &&
-		isAddress(inspection.validator) &&
+		isAccountAddress(inspection.from) &&
+		isAccountAddress(inspection.validator) &&
 		isAmount(inspection.amount)
 	)
 }

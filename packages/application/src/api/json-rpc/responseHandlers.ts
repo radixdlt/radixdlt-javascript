@@ -1,9 +1,9 @@
 import { decoder, JSONDecoding } from '@radixdlt/data-formats'
 import { err, ok, Result } from 'neverthrow'
 import { UInt256 } from '@radixdlt/uint256'
-import { Amount, magicFromNumber } from '@radixdlt/primitives'
+import { Amount } from '@radixdlt/primitives'
 
-import { Address, ValidatorAddress } from '@radixdlt/account'
+import { Address, ValidatorAddress, NetworkT } from '@radixdlt/account'
 
 import { isObject, isString } from '@radixdlt/util'
 import {
@@ -78,17 +78,21 @@ const transactionIdentifierDecoder = (...keys: string[]) =>
 			: undefined,
 	)
 
-const magicDecoder = (...keys: string[]) =>
+const networkDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
-		key !== undefined && keys.includes(key) && typeof value === 'number'
-			? ok(magicFromNumber(value))
+		key !== undefined && keys.includes(key) && typeof value === 'string'
+			? value === 'MAINNET'
+				? ok(NetworkT.MAINNET)
+				: value === 'BETANET'
+				? ok(NetworkT.BETANET)
+				: err(new Error(`Unrecognized network: '${value}'`))
 			: undefined,
 	)
 
 const addressDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
 		key !== undefined && keys.includes(key) && isString(value)
-			? Address.fromBase58String(value)
+			? Address.fromUnsafe(value)
 			: undefined,
 	)
 
@@ -130,7 +134,7 @@ export const handleLookupTXResponse = executedTXDecoders.create<
 >()
 
 export const handleNetworkIdResponse = JSONDecoding.withDecoders(
-	magicDecoder('networkId'),
+	networkDecoder('networkId'),
 ).create<NetworkIdEndpoint.Response, NetworkIdEndpoint.DecodedResponse>()
 
 export const handleTokenBalancesResponse = (

@@ -1,9 +1,8 @@
 import { NodeAPI, NodeT, RadixCoreAPI } from './_types'
 import { ResultAsync } from 'neverthrow'
 import { defer, Observable } from 'rxjs'
-import { AddressT, toObservable, ValidatorAddressT } from '@radixdlt/account'
+import { AddressT, toObservable, ValidatorAddressT, NetworkT } from '@radixdlt/account'
 import { map } from 'rxjs/operators'
-import { Magic } from '@radixdlt/primitives'
 import {
 	ExecutedTransaction,
 	NetworkTransactionDemand,
@@ -59,7 +58,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 		): Observable<ExecutedTransaction> =>
 			toObs((a) => a.lookupTransaction, txID.toString()),
 
-		networkId: (): Observable<Magic> =>
+		networkId: (): Observable<NetworkT> =>
 			toObsMap(
 				(a) => a.networkId,
 				(m) => m.networkId,

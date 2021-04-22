@@ -5,56 +5,34 @@ import {
 	AddressT,
 	HDMasterSeed,
 	Mnemonic,
+	NetworkT,
 	ValidatorAddress,
 	Wallet,
 	WalletT,
 } from '@radixdlt/account'
-import {
-	interval,
-	Observable,
-	of,
-	ReplaySubject,
-	Subscription,
-	throwError,
-} from 'rxjs'
+import { interval, Observable, of, ReplaySubject, Subscription, throwError } from 'rxjs'
 import { map, mergeMap, shareReplay, take, tap, toArray } from 'rxjs/operators'
 import { KeystoreT, PublicKey, publicKeyFromBytes } from '@radixdlt/crypto'
+
+import { AmountT, one } from '@radixdlt/primitives'
 import {
-	ManualUserConfirmTX,
-	RadixT,
-	TransferTokensOptions,
-} from '../src/_types'
-import {
-	APIError,
-	APIErrorCause,
-	ErrorCategory,
-	ErrorCause,
-} from '../src/errors'
-import {
-	alice,
-	balancesFor,
-	bob,
-	mockedAPI,
-	mockRadixCoreAPI,
-} from '../src/mockRadix'
-import { NodeT, RadixCoreAPI } from '../src/api/_types'
-import {
+	isIntendedStakeTokensAction,
+	isIntendedTransferTokensAction,
+	isIntendedUnstakeTokensAction,
+	TransactionIntentBuilder,
+	TransactionIdentifier,
+	APIError, APIErrorCause, ErrorCategory, ErrorCause,
+	ManualUserConfirmTX, RadixT, TransferTokensOptions,
+	alice, balancesFor, bob, mockedAPI, mockRadixCoreAPI,
+	TransferTokensInput,
 	SimpleTokenBalances,
 	TokenBalances,
+	NodeT, RadixCoreAPI,
 	TransactionIdentifierT,
 	TransactionStatus,
 	TransactionTrackingEventType,
-} from '../src/dto/_types'
-import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
-import { AmountT, Magic, magicFromNumber, one } from '@radixdlt/primitives'
-import { TransactionIntentBuilder } from '../src/dto/transactionIntentBuilder'
-import { TransferTokensInput } from '../src/actions/_types'
-import {
-	log,
-	msgFromError,
-	restoreDefaultLogLevel,
-	setLogLevel,
-} from '@radixdlt/util'
+} from '../src'
+import { log, msgFromError, restoreDefaultLogLevel, setLogLevel } from '@radixdlt/util'
 import { mockErrorMsg } from '../../util/test/util'
 import {
 	ExecutedAction,
@@ -65,11 +43,6 @@ import {
 	IntendedAction,
 	TransactionIntent,
 } from '..'
-import {
-	isIntendedStakeTokensAction,
-	isIntendedTransferTokensAction,
-	isIntendedUnstakeTokensAction,
-} from '../src/dto/transactionIntentBuilder'
 import { signatureFromHexStrings } from '@radixdlt/crypto/test/utils'
 import { makeWalletWithFunds } from '@radixdlt/account/test/utils'
 
@@ -221,7 +194,7 @@ describe('Radix API', () => {
 	})
 
 	it('can connect and is chainable', () => {
-		const radix = Radix.create().connect('http://www.my.node.com')
+		const radix = Radix.create().connect('https://www.my.node.com')
 		expect(radix).toBeDefined()
 		expect(radix.ledger.nativeToken).toBeDefined()
 		expect(radix.ledger.tokenBalancesForAddress).toBeDefined() // etc
@@ -265,8 +238,8 @@ describe('Radix API', () => {
 	}
 
 	it('can change node with nodeConnection', async (done) => {
-		const n1 = 'http://www.node1.com/'
-		const n2 = 'http://www.node2.com/'
+		const n1 = 'https://www.node1.com/'
+		const n2 = 'https://www.node2.com/'
 
 		await testChangeNode([n1, n2], done, (radix: RadixT) => {
 			radix.withNodeConnection(dummyNode(n1))
@@ -275,8 +248,8 @@ describe('Radix API', () => {
 	})
 
 	it('can change node with url', async (done) => {
-		const n1 = 'http://www.node1.com/'
-		const n2 = 'http://www.node2.com/'
+		const n1 = 'https://www.node1.com/'
+		const n2 = 'https://www.node2.com/'
 
 		await testChangeNode([n1, n2], done, (radix: RadixT) => {
 			radix.connect(n1)
@@ -285,8 +258,8 @@ describe('Radix API', () => {
 	})
 
 	it('can change api', async (done) => {
-		const n1 = 'http://www.node1.com/'
-		const n2 = 'http://www.node2.com/'
+		const n1 = 'https://www.node1.com/'
+		const n2 = 'https://www.node2.com/'
 
 		await testChangeNode([n1, n2], done, (radix: RadixT) => {
 			radix.__withAPI(of(mockRadixCoreAPI({ nodeUrl: n1 })))
@@ -316,7 +289,7 @@ describe('Radix API', () => {
 
 		radix.activeAddress.subscribe(
 			(address) => {
-				expect(address.magicByte).toBe(123)
+				expect(address.network).toBe(NetworkT.BETANET)
 				done()
 			},
 			(error) => done(error),
@@ -1095,9 +1068,9 @@ describe('Radix API', () => {
 		const recipientPK = publicKeyFromBytes(
 			Buffer.from(keystoreForTest.publicKeysCompressed[1], 'hex'),
 		)._unsafeUnwrap()
-		const recipientAddress = Address.fromPublicKeyAndMagicByte({
+		const recipientAddress = Address.fromPublicKeyAndNetwork({
 			publicKey: recipientPK,
-			magicByte: 237,
+			network: NetworkT.MAINNET,
 		})
 		const tokenTransferInput: TransferTokensInput = {
 			to: recipientAddress,
@@ -1520,8 +1493,8 @@ describe('Radix API', () => {
 				.__withAPI(
 					of({
 						...mockRadixCoreAPI(),
-						networkId: (): Observable<Magic> => {
-							return of(magicFromNumber(1803288578)).pipe(
+						networkId: (): Observable<NetworkT> => {
+							return of(NetworkT.BETANET).pipe(
 								shareReplay(1),
 							)
 						},

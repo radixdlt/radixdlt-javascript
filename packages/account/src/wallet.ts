@@ -5,6 +5,7 @@ import {
 	AccountT,
 	AddressT,
 	DeriveNextAccountInput,
+	NetworkT,
 	SwitchAccountInput,
 	SwitchToAccount,
 	SwitchToAccountIndex,
@@ -25,7 +26,7 @@ import { Int32 } from './bip32/_types'
 import { arraysEqual, msgFromError } from '@radixdlt/util'
 import { MnemomicT } from './bip39/_types'
 import { Magic } from '@radixdlt/primitives'
-import { Address } from './address'
+import { Address } from './addresses/address'
 import { ResultAsync } from 'neverthrow'
 import { HDMasterSeed } from './bip39/hdMasterSeed'
 import { log } from '@radixdlt/util'
@@ -53,13 +54,11 @@ const __unsafeCreateWithPrivateKeyProvider = (
 
 	const numberOfAccounts = (): number => accountsSubject.getValue().size
 
-	const universeMagicSubject = new ReplaySubject<Magic>()
-	const magic$ = universeMagicSubject.asObservable()
+	const networkIdSubject = new ReplaySubject<NetworkT>()
+	const networkId$ = networkIdSubject.asObservable()
 
-	const provideNetworkId = (magic$: Observable<Magic>): void => {
-		magic$
-			.subscribe((magic: Magic) => universeMagicSubject.next(magic))
-			.add(subs)
+	const provideNetworkId = (networkIdSource: Observable<NetworkT>): void => {
+		networkIdSource.subscribe(networkIdSubject).add(subs)
 	}
 
 	const _deriveWithPath = (
@@ -92,11 +91,11 @@ const __unsafeCreateWithPrivateKeyProvider = (
 								log.error(errMsg)
 								throw new Error(errMsg)
 							}
-							return magic$.pipe(
-								map((magic) =>
-									Address.fromPublicKeyAndMagic({
+							return networkId$.pipe(
+								map((network: NetworkT) =>
+									Address.fromPublicKeyAndNetwork({
 										publicKey,
-										magic,
+										network,
 									}),
 								),
 							)
@@ -108,11 +107,11 @@ const __unsafeCreateWithPrivateKeyProvider = (
 						deriveNodeAtPath: () =>
 							hdNodeDeriverWithBip32Path(hdPath),
 						addressFromPublicKey: (publicKey: PublicKey) =>
-							magic$.pipe(
-								map((magic) =>
-									Address.fromPublicKeyAndMagic({
+							networkId$.pipe(
+								map((network: NetworkT) =>
+									Address.fromPublicKeyAndNetwork({
 										publicKey,
-										magic,
+										network,
 									}),
 								),
 							),
@@ -260,7 +259,7 @@ const create = (
 	input: Readonly<{
 		mnemonic: MnemomicT
 	}>,
-): WalletT => __unsafeCreateWithPrivateKeyProvider({ mnemonic: input.mnemonic })
+): WalletT => __unsafeCreateWithPrivateKeyProvider({ ...input })
 
 const byLoadingAndDecryptingKeystore = (
 	input: Readonly<{
@@ -276,9 +275,9 @@ const byLoadingAndDecryptingKeystore = (
 			return new Error(errMsg)
 		})
 	return loadKeystore()
-		.map((k: KeystoreT) => {
+		.map((keystore: KeystoreT) => {
 			log.info('Keystore successfully loaded.')
-			return { keystore: k, password: input.password }
+			return { ...input, keystore }
 		})
 		.andThen(Wallet.fromKeystore)
 }
@@ -292,7 +291,7 @@ const fromKeystore = (
 	Keystore.decrypt(input)
 		.map((entropy) => ({ entropy }))
 		.andThen(Mnemonic.fromEntropy)
-		.map((mnemonic) => ({ mnemonic, password: input.password }))
+		.map((mnemonic) => ({ mnemonic }))
 		.map(create)
 
 const byEncryptingMnemonicAndSavingKeystore = (

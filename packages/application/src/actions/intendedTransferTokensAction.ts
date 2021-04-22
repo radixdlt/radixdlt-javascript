@@ -4,7 +4,7 @@ import {
 	TransferTokensInput,
 } from './_types'
 import { v4 as uuidv4 } from 'uuid'
-import { Address, AddressT, isAddressOrUnsafeInput } from '@radixdlt/account'
+import { Address, AddressT, isAccountAddressOrUnsafeInput } from '@radixdlt/account'
 import { Amount, AmountT, isAmountOrUnsafeInput } from '@radixdlt/primitives'
 import {
 	isResourceIdentifierOrUnsafeInput,
@@ -18,7 +18,7 @@ export const isTransferTokensInput = (
 ): something is TransferTokensInput => {
 	const inspection = something as TransferTokensInput
 	return (
-		isAddressOrUnsafeInput(inspection.to) &&
+		isAccountAddressOrUnsafeInput(inspection.to) &&
 		isAmountOrUnsafeInput(inspection.amount) &&
 		isResourceIdentifierOrUnsafeInput(inspection.tokenIdentifier)
 	)
