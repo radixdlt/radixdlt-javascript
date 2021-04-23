@@ -222,7 +222,7 @@ describe('Radix API', () => {
 	})
 
 	it('can connect and is chainable', () => {
-		const radix = Radix.create().connect('https://www.my.node.com')
+		const radix = Radix.create().connect('http://www.my.node.com')
 		expect(radix).toBeDefined()
 		expect(radix.ledger.nativeToken).toBeDefined()
 		expect(radix.ledger.tokenBalancesForAddress).toBeDefined() // etc
@@ -266,8 +266,8 @@ describe('Radix API', () => {
 	}
 
 	it('can change node with nodeConnection', async (done) => {
-		const n1 = 'https://www.node1.com/'
-		const n2 = 'https://www.node2.com/'
+		const n1 = 'http://www.node1.com/'
+		const n2 = 'http://www.node2.com/'
 
 		await testChangeNode([n1, n2], done, (radix: RadixT) => {
 			radix.withNodeConnection(dummyNode(n1))
@@ -276,8 +276,8 @@ describe('Radix API', () => {
 	})
 
 	it('can change node with url', async (done) => {
-		const n1 = 'https://www.node1.com/'
-		const n2 = 'https://www.node2.com/'
+		const n1 = 'http://www.node1.com/'
+		const n2 = 'http://www.node2.com/'
 
 		await testChangeNode([n1, n2], done, (radix: RadixT) => {
 			radix.connect(n1)
@@ -286,8 +286,8 @@ describe('Radix API', () => {
 	})
 
 	it('can change api', async (done) => {
-		const n1 = 'https://www.node1.com/'
-		const n2 = 'https://www.node2.com/'
+		const n1 = 'http://www.node1.com/'
+		const n2 = 'http://www.node2.com/'
 
 		await testChangeNode([n1, n2], done, (radix: RadixT) => {
 			radix.__withAPI(of(mockRadixCoreAPI({ nodeUrl: n1 })))
