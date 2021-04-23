@@ -1,6 +1,6 @@
 {
   "name": "@radixdlt/data-formats",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "description": "Data formats used for serialization.",
   "keywords": [
     "Data"
@@ -26,7 +26,7 @@
     "node": ">=15.5.0 <16"
   },
   "dependencies": {
-    "@radixdlt/util": "^1.0.15",
+    "@radixdlt/util": "^1.0.16",
     "neverthrow": "^4.0.1",
     "ramda": "^0.27.1"
   },
