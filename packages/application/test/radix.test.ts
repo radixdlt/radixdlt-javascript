@@ -894,7 +894,7 @@ describe('Radix API', () => {
 						).toBe(true)
 						expect(
 							validator.ownerAddress.toString().slice(-4),
-						).toBe('CXpz')
+						).toBe('9gwm')
 						done()
 					})
 			})
@@ -936,7 +936,7 @@ describe('Radix API', () => {
 			.buildTransaction(transactionIntent)
 			.subscribe((unsignedTx) => {
 				expect((unsignedTx as { fee: AmountT }).fee.toString()).toEqual(
-					'63140',
+					'30902',
 				)
 				done()
 			})
@@ -1527,11 +1527,11 @@ describe('Radix API', () => {
 				.withWallet(walletWithFunds)
 
 			const expectedAddresses: string[] = [
-				'apa1',
-				'apa2',
-				'apa3',
-				'apa4',
-				'apa5',
+				'brx1qsp8n0nx0muaewav2ksx99wwsu9swq5mlndjmn3gm9vl9q2mzmup0xqmhf7fh',
+				'brx1qspvvprlj3q76ltdxpz5qm54cp7dshrh3e9cemeu5746czdet3cfaegp6s708',
+				'brx1qsp0jvy2qxf93scsfy6ylp0cn4fzndf3epzcxmuekzrqrugnhnsrd7gah8wq5',
+				'brx1qspwfy7m78qsmq8ntq0yjpynpv2qfnrvzwgqacr4s360499tarzv6yctz3ahh',
+				'brx1qspzlz77f5dqwgyn2k62wfg2t3gj36ytsj7accv6kl9634tfkfqwleqmpz874',
 			]
 
 			radix.activeAddress
