@@ -146,18 +146,18 @@ const create = (
 		(m) => networkIdErr(m),
 	)
 
-	networkId()
-		.subscribe((actualNetwork) => {
-			if (actualNetwork !== requestedNetwork) {
-				const errMsg = `☣️ EMERGENCY actual network and requested network differs. STOP EVERYTHING YOU ARE DOING. You might lose funds.`
-				log.error(errMsg)
-				// https://nodejs.org/api/process.html#process_exit_codes
-				const nodeExitCodeUncaughtFatalException = 1
-				process?.exit(nodeExitCodeUncaughtFatalException)
-				throw new Error(errMsg)
-			}
-		})
-		.add(subs)
+	// networkId()
+	// 	.subscribe((actualNetwork) => {
+	// 		if (actualNetwork !== requestedNetwork) {
+	// 			const errMsg = `☣️ EMERGENCY actual network and requested network differs. STOP EVERYTHING YOU ARE DOING. You might lose funds.`
+	// 			log.error(errMsg)
+	// 			// https://nodejs.org/api/process.html#process_exit_codes
+	// 			const nodeExitCodeUncaughtFatalException = 1
+	// 			process?.exit(nodeExitCodeUncaughtFatalException)
+	// 			throw new Error(errMsg)
+	// 		}
+	// 	})
+	// 	.add(subs)
 
 	const api: RadixAPI = {
 		networkId,

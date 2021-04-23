@@ -116,9 +116,7 @@ const expectedDecodedResponses = {
 	[rpcSpec.methods[3].name]: (
 		response: TokenBalancesEndpoint.Response,
 	): TokenBalancesEndpoint.DecodedResponse => ({
-		owner: Address.fromUnsafe(
-			response.owner,
-		)._unsafeUnwrap(),
+		owner: Address.fromUnsafe(response.owner)._unsafeUnwrap(),
 		tokenBalances: [
 			{
 				tokenIdentifier: ResourceIdentifier.fromUnsafe(
@@ -210,9 +208,9 @@ const expectedDecodedResponses = {
 				: action.type === ActionType.STAKE_TOKENS ||
 				  action.type === ActionType.UNSTAKE_TOKENS
 				? <ExecutedStakeTokensAction>{
-						from: Address.fromUnsafe(
-							action.from,
-						)._unsafeUnwrap({ withStackTrace: true }),
+						from: Address.fromUnsafe(action.from)._unsafeUnwrap({
+							withStackTrace: true,
+						}),
 						validator: ValidatorAddress.fromUnsafe(
 							action.validator,
 						)._unsafeUnwrap({ withStackTrace: true }),
@@ -350,7 +348,7 @@ const expectedDecodedResponses = {
 	}),
 }
 
-const client = nodeAPI(new URL('https://xyz'))
+const client = nodeAPI(new URL('http://xyz'))
 
 const testRpcMethod = (method: MethodObject, index: number) => {
 	it(`should decode ${method.name} response`, async () => {
