@@ -141,31 +141,48 @@ const fromString = <A extends AbstractAddressT>(
 		((passthroughData: Buffer) => ok(passthroughData))
 
 	return Bech32.decode(input)
-		.andThen(
-			({ hrp, data: bech32Data }): Result<A, Error> =>
-				Bech32.convertDataFromBech32(bech32Data).andThen(
-					(dataFromBech32) => {
-						return validateDataAndExtractPubKeyBytes(
-							dataFromBech32,
-						).andThen((publicKeyBytes: Buffer) => {
-							return combine([
-								networkFromHRP(hrp),
-								publicKeyFromBytes(publicKeyBytes),
-							]).andThen((resultList) => {
-								const network = resultList[0] as NetworkT
-								const publicKey = resultList[1] as PublicKey
-								return __create({
-									...input,
-									network,
-									hrp,
-									data: bech32Data,
-									publicKey,
-								})
-							})
-						})
-					},
-				),
-		)
+		.andThen(({ hrp, data: bech32Data }) => {
+			return Bech32.convertDataFromBech32(bech32Data).map(
+				(dataFromBech32) => ({
+					bech32Data,
+					dataFromBech32,
+					hrp,
+				}),
+			)
+		})
+		.andThen(({ bech32Data, dataFromBech32, hrp }) => {
+			return validateDataAndExtractPubKeyBytes(dataFromBech32).map(
+				(publicKeyBytes) => ({
+					bech32Data,
+					publicKeyBytes,
+					hrp,
+				}),
+			)
+		})
+		.andThen(({ bech32Data, publicKeyBytes, hrp }) => {
+			return combine([
+				networkFromHRP(hrp),
+				publicKeyFromBytes(publicKeyBytes),
+			]).map((resultList) => {
+				const network = resultList[0] as NetworkT
+				const publicKey = resultList[1] as PublicKey
+				return {
+					bech32Data,
+					hrp,
+					network,
+					publicKey,
+				}
+			})
+		})
+		.andThen(({ bech32Data, hrp, network, publicKey }) => {
+			return __create({
+				...input,
+				network,
+				hrp,
+				data: bech32Data,
+				publicKey,
+			})
+		})
 		.map(
 			(abstractAddress: A): A => {
 				// Soundness check
