@@ -5,7 +5,6 @@ import { UInt256 } from '@radixdlt/uint256'
 import { combine, Result } from 'neverthrow'
 import { ec } from 'elliptic'
 import { Signature } from '../../_types'
-import log from 'loglevel'
 
 export const signDataWithPrivateKey = (
 	input: Readonly<{
@@ -13,7 +12,7 @@ export const signDataWithPrivateKey = (
 		data: Buffer
 	}>,
 ): Result<Signature, Error> => {
-	log.info(`Signing ${input.data.toString()} with private key.`)
+	// log.info(`Signing ${input.data.toString()} with private key.`)
 	const thirdPartyLibEllipticSecp256k1 = new ec('secp256k1')
 
 	const privateKey = thirdPartyLibEllipticSecp256k1.keyFromPrivate(
@@ -39,7 +38,7 @@ export const signDataWithPrivateKey = (
 	]).map((resultList) => {
 		const r = resultList[0]
 		const s = resultList[1]
-		log.info('Signed successfully.')
+		// log.info('Signed successfully.')
 		return {
 			r,
 			s,
