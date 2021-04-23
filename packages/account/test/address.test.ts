@@ -1,76 +1,156 @@
-import { UInt256 } from '@radixdlt/uint256'
-import { Address, AddressT } from '../src'
+import { Address } from '../src'
 
-import { generatePrivateKey, privateKeyFromScalar } from '@radixdlt/crypto'
+import {
+	privateKeyFromBuffer,
+	publicKeyCompressedByteCount,
+	sha256Twice,
+} from '@radixdlt/crypto'
 import { NetworkT } from '../dist'
-import { toAddress } from './utils'
-import { alice, bob } from '@radixdlt/application'
+import { msgFromError } from '@radixdlt/util'
 
-describe('AccountAddress', () => {
-	it('can generate new account address', () => {
-		const doGenerate = (): string => {
-			const privateKey = generatePrivateKey()
-			const publicKey = privateKey.publicKey()
-
-			const address = Address.fromPublicKeyAndNetwork({
-				publicKey: publicKey,
+describe('account_address_on_bech32_format', () => {
+	describe('addr from seeded private key', () => {
+		type PrivateKeySeedVector = {
+			privateKeySeed: string
+			expectedAddr: string
+			network: NetworkT
+		}
+		const privateKeySeedVectors: PrivateKeySeedVector[] = [
+			{
+				privateKeySeed: '00',
+				expectedAddr:
+					'brx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjqllv9',
 				network: NetworkT.BETANET,
-			})
+			},
+			{
+				privateKeySeed: 'deadbeef',
+				expectedAddr:
+					'brx1qspsel805pa0nhtdhemshp7hm0wjcvd60a8ulre6zxtd2qh3x4smq3sraak9a',
+				network: NetworkT.BETANET,
+			},
+			{
+				privateKeySeed: 'deadbeefdeadbeef',
+				expectedAddr:
+					'brx1qsp7gnv7g60plkk9lgskjghdlevyve6rtrzggk7x3fwmp4yfyjza7gcumgm9f',
+				network: NetworkT.BETANET,
+			},
+			{
+				privateKeySeed: 'bead',
+				expectedAddr:
+					'brx1qsppw0z477r695m9f9qjs3nj2vmdkd3rg4mfx7tf5v0gasrhz32jefqwxg7ul',
+				network: NetworkT.BETANET,
+			},
+			{
+				privateKeySeed: 'aaaaaaaaaaaaaaaa',
+				expectedAddr:
+					'brx1qspqsfad7e5k2k9agq74g40al0j9cllv7w0ylatvhy7m64wyrwymy5g7md96s',
+				network: NetworkT.BETANET,
+			},
+		]
 
-			expect(Address.isAccountAddress(address)).toBe(true)
-			const addressString = address.toString()
-			Address.fromUnsafe(addressString).match(
-				(a) => {
-					expect(a.equals(address)).toBe(true)
-				},
-				(e) => {
-					throw e
-				},
-			)
-			return addressString
+		const doTest = (vector: PrivateKeySeedVector, index: number): void => {
+			it(`vector_index${index}`, () => {
+				const seed = Buffer.from(vector.privateKeySeed, 'hex')
+				const hash = sha256Twice(seed)
+				const privateKey = privateKeyFromBuffer(hash)._unsafeUnwrap()
+				const publicKey = privateKey.publicKey()
+
+				const addr = Address.fromPublicKeyAndNetwork({
+					publicKey,
+					network: vector.network,
+				})
+				expect(addr.toString()).toBe(vector.expectedAddr)
+				expect(addr.network).toBe(vector.network)
+
+				const parsedAddress = Address.fromUnsafe(
+					vector.expectedAddr,
+				)._unsafeUnwrap()
+				expect(parsedAddress.toString()).toBe(vector.expectedAddr)
+				expect(parsedAddress.toString()).toBe(addr.toString())
+				expect(parsedAddress.publicKey.equals(publicKey)).toBe(true)
+
+				expect(parsedAddress.equals(addr)).toBe(true)
+				expect(addr.equals(parsedAddress)).toBe(true)
+			})
 		}
 
-		doGenerate()
-		// const str = Array(30).fill(undefined).map((_) => `'${doGenerate()}',`).join('\n')
-		// console.log(`Addresses:\n${str}`)
+		privateKeySeedVectors.forEach((v, i) => doTest(v, i))
 	})
 
-	it('can be created from a publicKey and network id', async () => {
-		const privateKey = privateKeyFromScalar(
-			UInt256.valueOf(1),
-		)._unsafeUnwrap()
-		const publicKey = privateKey.publicKey()
+	describe('rri roundtrip', () => {
+		type RRIDesVector = {
+			address: string
+			data: string
+		}
 
-		const address = Address.fromPublicKeyAndNetwork({
-			publicKey: publicKey,
-			network: NetworkT.BETANET,
+		const reAddressToRri: RRIDesVector[] = [
+			{
+				address:
+					'brx1qspqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqs7cr9az',
+				data: '02'.repeat(publicKeyCompressedByteCount),
+			},
+		]
+		const doTest = (vector: RRIDesVector, index: number): void => {
+			it(`rri_deserialization_vector_index${index}`, () => {
+				const address = Address.fromUnsafe(
+					vector.address,
+				)._unsafeUnwrap()
+				expect(address.toString()).toBe(vector.address)
+				expect(address.publicKey.toString(true)).toBe(vector.data)
+			})
+		}
+
+		reAddressToRri.forEach((v, i) => doTest(v, i))
+	})
+
+	describe('test non happy paths', () => {
+		beforeAll(() => {
+			jest.spyOn(console, 'error').mockImplementation(() => {})
 		})
 
-		expect(Address.isAccountAddress(address)).toBe(true)
+		afterAll(() => {
+			jest.clearAllMocks()
+		})
 
-		const expctedAddressBase58 =
-			'brx1qsp8n0nx0muaewav2ksx99wwsu9swq5mlndjmn3gm9vl9q2mzmup0xqmhf7fh'
-		expect(address.toString()).toBe(expctedAddressBase58)
+		type InvalidVector = {
+			invalidAddr: string
+			failureReason: string
+		}
 
-		const addressFromString = Address.fromUnsafe(
-			expctedAddressBase58,
-		)._unsafeUnwrap()
+		const invalidVectors: InvalidVector[] = [
+			{
+				invalidAddr:
+					'vb1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq9u3702',
+				failureReason: 'invalid hrp',
+			},
+			{
+				invalidAddr: 'brx1xhv8x3',
+				failureReason: 'invalid address length 0',
+			},
+			{
+				invalidAddr: 'brx1qqnrjk8r',
+				failureReason: 'invalid address type (0)',
+			},
+			{
+				invalidAddr: 'brx1qsqsyqcyq5rqzjh9c6',
+				failureReason: 'invalid length for address type 4',
+			},
+		]
 
-		expect(publicKey.equals(addressFromString.publicKey)).toBeTruthy()
-
-		expect(addressFromString.equals(address)).toBe(true)
-	})
-
-	it('should consider the same address to be equal itself', () => {
-		const makeAddress = (): AddressT =>
-			toAddress(
-				'brx1qsp8n0nx0muaewav2ksx99wwsu9swq5mlndjmn3gm9vl9q2mzmup0xqmhf7fh',
-			)
-		expect(makeAddress().equals(makeAddress())).toBe(true)
-	})
-
-	it('should consider two different address with the same networkId but different publicKeys as inequal', async () => {
-		expect(alice.network).toBe(bob.network)
-		expect(alice.equals(bob)).toBe(false)
+		const doTest = (invalidVector: InvalidVector, index: number): void => {
+			it(`invalid_vector_index${index}`, () => {
+				Address.fromUnsafe(invalidVector.invalidAddr).match(
+					(_) => {
+						throw new Error(
+							`Got success, but expected failure, rri: ${invalidVector.invalidAddr}`,
+						)
+					},
+					(e) => {
+						expect(msgFromError(e).length).toBeGreaterThan(1)
+					},
+				)
+			})
+		}
+		invalidVectors.forEach((v, i) => doTest(v, i))
 	})
 })
