@@ -187,7 +187,7 @@ export const keystoreForTest: KeystoreForTest = {
 	],
 }
 
-describe('Radix API', () => {
+describe('radix_high_level_api', () => {
 	it('can load test keystore', async (done) => {
 		// keystoreForTest
 		await Wallet.byLoadingAndDecryptingKeystore({
@@ -215,14 +215,13 @@ describe('Radix API', () => {
 			},
 		)
 	})
-
 	it('can be created empty', () => {
 		const radix = Radix.create()
 		expect(radix).toBeDefined()
 	})
 
 	it('can connect and is chainable', () => {
-		const radix = Radix.create().connect('http://www.my.node.com')
+		const radix = Radix.create().connect('https://www.radixdlt.com/')
 		expect(radix).toBeDefined()
 		expect(radix.ledger.nativeToken).toBeDefined()
 		expect(radix.ledger.tokenBalancesForAddress).toBeDefined() // etc
@@ -234,7 +233,7 @@ describe('Radix API', () => {
 
 		radix.__node.subscribe(
 			(node) => {
-				expect(node.url.host).toBe('www.example.com')
+				expect(node.url.host).toBe('www.radixdlt.com')
 				done()
 			},
 			(error) => done(error),
@@ -266,8 +265,8 @@ describe('Radix API', () => {
 	}
 
 	it('can change node with nodeConnection', async (done) => {
-		const n1 = 'http://www.node1.com/'
-		const n2 = 'http://www.node2.com/'
+		const n1 = 'https://www.rewards.radixtokens.com/'
+		const n2 = 'https://www.radixdlt.com/'
 
 		await testChangeNode([n1, n2], done, (radix: RadixT) => {
 			radix.withNodeConnection(dummyNode(n1))
@@ -275,9 +274,9 @@ describe('Radix API', () => {
 		})
 	})
 
-	it('can change node with url', async (done) => {
-		const n1 = 'http://www.node1.com/'
-		const n2 = 'http://www.node2.com/'
+	it('can_change_node_connection', async (done) => {
+		const n1 = 'https://www.rewards.radixtokens.com/'
+		const n2 = 'https://www.radixdlt.com/'
 
 		await testChangeNode([n1, n2], done, (radix: RadixT) => {
 			radix.connect(n1)
@@ -286,8 +285,8 @@ describe('Radix API', () => {
 	})
 
 	it('can change node to connect to', async (done) => {
-		const n1 = 'http://www.node1.com/'
-		const n2 = 'http://www.node2.com/'
+		const n1 = 'https://www.rewards.radixtokens.com/'
+		const n2 = 'https://www.radixdlt.com/'
 
 		await testChangeNode([n1, n2], done, (radix: RadixT) => {
 			radix.__withAPI(of(mockRadixCoreAPI({ nodeUrl: n1 })))
@@ -365,7 +364,7 @@ describe('Radix API', () => {
 		radix.withNodeConnection(failingNode)
 	})
 
-	it('login with wallet', async (done) => {
+	it('login_with_wallet', async (done) => {
 		const radix = Radix.create()
 		radix.__wallet.subscribe(
 			(wallet: WalletT) => {
@@ -415,7 +414,7 @@ describe('Radix API', () => {
 		)
 	})
 
-	describe('failing scenarios', () => {
+	describe('radix_api_failing_scenarios', () => {
 		beforeAll(() => {
 			setLogLevel('silent')
 		})
@@ -457,72 +456,6 @@ describe('Radix API', () => {
 
 			radix.login(keystoreForTest.password, loadKeystoreError)
 			radix.login(keystoreForTest.password, loadKeystoreSuccess)
-		})
-	})
-
-	it('radix can derive accounts', async (done) => {
-		const subs = new Subscription()
-		const radix = Radix.create()
-
-		radix.activeAccount
-			.pipe(
-				map((a) => a.hdPath.addressIndex.value()),
-				take(2),
-				toArray(),
-			)
-			.subscribe(
-				(accounts) => {
-					expect(accounts).toStrictEqual([0, 2])
-					done()
-				},
-				(e) => done(e),
-			)
-			.add(subs)
-
-		radix
-			.withWallet(createWallet())
-			.deriveNextAccount()
-			.deriveNextAccount({ alsoSwitchTo: true })
-	})
-
-	it('radix can switch to accounts', async (done) => {
-		const subs = new Subscription()
-		const radix = Radix.create()
-
-		const expectedValues = [0, 1, 2, 3, 1, 0, 3]
-
-		radix.activeAccount
-			.pipe(
-				map((a) => a.hdPath.addressIndex.value()),
-				take(expectedValues.length),
-				toArray(),
-			)
-			.subscribe(
-				(accounts) => {
-					expect(accounts).toStrictEqual(expectedValues)
-					done()
-				},
-				(e) => done(e),
-			)
-			.add(subs)
-
-		radix
-			.withWallet(createWallet()) //0
-			.deriveNextAccount({ alsoSwitchTo: true }) // 1
-			.deriveNextAccount({ alsoSwitchTo: true }) // 2
-			.deriveNextAccount({ alsoSwitchTo: true }) // 3
-			.switchAccount({ toIndex: 1 })
-			.switchAccount('first')
-			.switchAccount('last')
-	})
-
-	describe('radix unhappy paths', () => {
-		beforeAll(() => {
-			jest.spyOn(console, 'error').mockImplementation(() => {})
-		})
-
-		afterAll(() => {
-			jest.clearAllMocks()
 		})
 
 		it('should forward an error when calling api', (done) => {
@@ -610,6 +543,61 @@ describe('Radix API', () => {
 				})
 				.add(subs)
 		})
+	})
+
+	it('radix can derive accounts', async (done) => {
+		const subs = new Subscription()
+		const radix = Radix.create()
+
+		radix.activeAccount
+			.pipe(
+				map((a) => a.hdPath.addressIndex.value()),
+				take(2),
+				toArray(),
+			)
+			.subscribe(
+				(accounts) => {
+					expect(accounts).toStrictEqual([0, 2])
+					done()
+				},
+				(e) => done(e),
+			)
+			.add(subs)
+
+		radix
+			.withWallet(createWallet())
+			.deriveNextAccount()
+			.deriveNextAccount({ alsoSwitchTo: true })
+	})
+	it('radix can switch to accounts', async (done) => {
+		const subs = new Subscription()
+		const radix = Radix.create()
+
+		const expectedValues = [0, 1, 2, 3, 1, 0, 3]
+
+		radix.activeAccount
+			.pipe(
+				map((a) => a.hdPath.addressIndex.value()),
+				take(expectedValues.length),
+				toArray(),
+			)
+			.subscribe(
+				(accounts) => {
+					expect(accounts).toStrictEqual(expectedValues)
+					done()
+				},
+				(e) => done(e),
+			)
+			.add(subs)
+
+		radix
+			.withWallet(createWallet()) //0
+			.deriveNextAccount({ alsoSwitchTo: true }) // 1
+			.deriveNextAccount({ alsoSwitchTo: true }) // 2
+			.deriveNextAccount({ alsoSwitchTo: true }) // 3
+			.switchAccount({ toIndex: 1 })
+			.switchAccount('first')
+			.switchAccount('last')
 	})
 
 	it('deriveNextAccount method on radix updates accounts', (done) => {

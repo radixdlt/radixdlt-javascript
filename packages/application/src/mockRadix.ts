@@ -396,7 +396,7 @@ const randomValidatorList = (
 			address: detRandomValidatorAddress(),
 			ownerAddress,
 			name,
-			infoURL: new URL('https://example.com'),
+			infoURL: new URL('https://rewards.radixtokens.comcom'),
 			totalDelegatedStake: amount,
 			ownerDelegation: amount,
 			isExternalStakeAccepted: bool,
@@ -735,7 +735,7 @@ export const deterministicRandomStakesForAddr = (
 	of(deterministicRandomStakesForAddress(address))
 
 export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
-	node: { url: new URL(nodeUrl ?? 'https://www.example.com') },
+	node: { url: new URL(nodeUrl ?? 'https://www.radixdlt.com/') },
 
 	networkId: (): Observable<NetworkT> => {
 		throw Error('Not implemented')
@@ -829,7 +829,7 @@ export const mockRadixCoreAPI = (
 ): RadixCoreAPI => {
 	txStatusMapCounter = new Map<TransactionIdentifierT, number>()
 	return {
-		node: { url: new URL(input?.nodeUrl ?? 'https://www.example.com') },
+		node: { url: new URL(input?.nodeUrl ?? 'https://www.radixdlt.com/') },
 
 		networkId: (): Observable<NetworkT> => {
 			return of(input?.network ?? NetworkT.BETANET).pipe(shareReplay(1))

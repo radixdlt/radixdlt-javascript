@@ -6,13 +6,17 @@ import {
 	TransferTokensInput,
 	TransactionIntentBuilderT,
 	TransactionIntentBuilder,
-	IntendedStakeTokensAction, carol, erin, xrd,
+	IntendedStakeTokensAction,
+	carol,
+	erin,
+	xrd,
 } from '../src'
 import {
 	AddressT,
 	isAccountAddress,
 	isValidatorAddress,
-	Mnemonic, NetworkT,
+	Mnemonic,
+	NetworkT,
 	ValidatorAddress,
 	ValidatorAddressT,
 	Wallet,
@@ -126,8 +130,7 @@ describe('tx_intent_builder', () => {
 			// unsafe inputs
 			amount: 1,
 			to: bob.toString(),
-			tokenIdentifier:
-				'xrd_rb1qya85pwq',
+			tokenIdentifier: 'xrd_rb1qya85pwq',
 		})
 
 		validateOneToBob(builder)
@@ -340,7 +343,10 @@ describe('tx_intent_builder', () => {
 				throw new Error('Expected property TO or VALIDATOR')
 			} else {
 				const actualAddress: AnyAddress = actualAddressMaybe
-				if (isAccountAddress(expectedAddress) && isAccountAddress(actualAddress)) {
+				if (
+					isAccountAddress(expectedAddress) &&
+					isAccountAddress(actualAddress)
+				) {
 					expect(actualAddress.equals(expectedAddress)).toBe(true)
 				} else if (
 					isValidatorAddress(expectedAddress) &&

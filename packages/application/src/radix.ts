@@ -146,19 +146,6 @@ const create = (
 		(m) => networkIdErr(m),
 	)
 
-	// networkId()
-	// 	.subscribe((actualNetwork) => {
-	// 		if (actualNetwork !== requestedNetwork) {
-	// 			const errMsg = `☣️ EMERGENCY actual network and requested network differs. STOP EVERYTHING YOU ARE DOING. You might lose funds.`
-	// 			log.error(errMsg)
-	// 			// https://nodejs.org/api/process.html#process_exit_codes
-	// 			const nodeExitCodeUncaughtFatalException = 1
-	// 			process?.exit(nodeExitCodeUncaughtFatalException)
-	// 			throw new Error(errMsg)
-	// 		}
-	// 	})
-	// 	.add(subs)
-
 	const api: RadixAPI = {
 		networkId,
 		tokenBalancesForAddress: fwdAPICall(
@@ -373,7 +360,23 @@ const create = (
 	const _withWallet = (wallet: WalletT): void => {
 		// Important! We must provide wallet with `networkId`,
 		// so that it can derive addresses for its accounts.
-		wallet.provideNetworkId(networkId())
+		const networkID$ = networkId().pipe(
+			tap((actualNetwork) => {
+				if (actualNetwork !== requestedNetwork) {
+					const errMsg = `EMERGENCY actual network and requested network differs. STOP EVERYTHING YOU ARE DOING. You might lose funds.`
+					const errMsgToLog = `☣️ ${errMsg}`
+					console.error(errMsgToLog)
+					log.error(errMsgToLog)
+					throw new Error(errMsg)
+				} else {
+					console.log(
+						`✅ network ID matches the requested one, connected to ${actualNetwork.toString()}`
+					)
+				}
+			}),
+		)
+
+		wallet.provideNetworkId(networkID$)
 		walletSubject.next(wallet)
 	}
 
