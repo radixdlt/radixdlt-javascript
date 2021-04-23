@@ -7,6 +7,7 @@ export enum NetworkT {
 export type ResourceIdentifierT = Readonly<{
 	hash: Buffer
 	__witness: 'isRRI'
+	network: NetworkT
 	name: string
 	toString: () => string
 	equals: (other: ResourceIdentifierT) => boolean

@@ -2,20 +2,83 @@ import { err, ok, Result } from 'neverthrow'
 import { buffersEquals, msgFromError } from '@radixdlt/util'
 import { PublicKey, sha256Twice } from '@radixdlt/crypto'
 import { Bech32, Encoding } from '../bech32'
-import { ResourceIdentifierT } from './_types'
+import { NetworkT, ResourceIdentifierT } from './_types'
+import { HRPFromNetwork, NetworkFromHRP } from './abstractAddress'
 
 const encoding = Encoding.BECH32
 const maxLength: number | undefined = undefined // arbitrarily chosen
 
-const hrpBetanetSuffix = '_rb'
-const hrpMainnetSuffix = '_rr'
+const hrpSuffixBetanet = 'b'
+const hrpSuffixMainnet = 'r'
+const hrpSuffixSharedFirstPart = '_r'
+const hrpSuffixLengthOfSpecificPart = 1
+const hrpFullSuffixLength = 3
+
+const internalSanityCheckOfHRP = (): void => {
+	if (hrpSuffixBetanet.length !== hrpSuffixMainnet.length) {
+		throw new Error(
+			'Incorrect implementation, HRP suffix must have same length for mainnet and betanet',
+		)
+	}
+	if (hrpSuffixMainnet.length !== hrpSuffixLengthOfSpecificPart) {
+		// or `hrpSuffixBetanet.length`...does not matter, same length!
+		throw new Error(
+			`Incorrect implementation, expected specific part of HRP to have length ${hrpSuffixLengthOfSpecificPart}`,
+		)
+	}
+
+	const combined = hrpSuffixSharedFirstPart + hrpSuffixMainnet // or ` + hrpSuffixBetanet`...does not matter, same length!
+	if (combined.length !== hrpFullSuffixLength) {
+		throw new Error(
+			`Incorrect implementation, expected HRP suffixes to have length ${hrpFullSuffixLength}`,
+		)
+	}
+	// all is well
+}
 
 const versionByteNativeToken = 0x01
 const versionByteNonNativeToken = 0x03
 
+const hrpSuffixFromNetwork: HRPFromNetwork = (network) => {
+	internalSanityCheckOfHRP()
+	let specificLastPart: string = ''
+	switch (network) {
+		case NetworkT.BETANET:
+			specificLastPart = hrpSuffixBetanet
+			break
+		case NetworkT.MAINNET:
+			specificLastPart = hrpSuffixMainnet
+			break
+	}
+	const fullSuffix = hrpSuffixSharedFirstPart + specificLastPart
+	if (fullSuffix.length !== hrpFullSuffixLength) {
+		throw new Error('Incorrect implementation, wrong length of HRP suffix')
+	}
+	return fullSuffix
+}
+
+const networkFromHRPSuffix: NetworkFromHRP = (hrp) => {
+	internalSanityCheckOfHRP()
+
+	if (hrp.length < hrpSuffixLengthOfSpecificPart) {
+		throw new Error(
+			`Incorrect implementation, HRP suffix specific part must not be shorter than ${hrpSuffixLengthOfSpecificPart}`,
+		)
+	}
+	const hrpLastPart =
+		hrp.length !== hrpSuffixLengthOfSpecificPart
+			? hrp.slice(-hrpSuffixLengthOfSpecificPart)
+			: hrp
+	if (hrpLastPart === hrpSuffixMainnet) return ok(NetworkT.MAINNET)
+	if (hrpLastPart === hrpSuffixBetanet) return ok(NetworkT.BETANET)
+	const errMsg = `Failed to parse network from HRP ${hrp} for ValidatorAddress.`
+	return err(new Error(errMsg))
+}
+
 const __create = (input: {
 	hash: Buffer
 	name: string
+	network: NetworkT
 	toString: () => string
 }): ResourceIdentifierT => {
 	return {
@@ -25,7 +88,8 @@ const __create = (input: {
 			if (!isResourceIdentifier(other)) return false
 			const same =
 				other.name === input.name &&
-				buffersEquals(other.hash, input.hash)
+				buffersEquals(other.hash, input.hash) &&
+				input.network === other.network
 			if (same) {
 				if (other.toString() !== input.toString()) {
 					const errMsg = `ResourceIdentifiers believed to be equal, but return different values when calling toString, (this)'${input.toString()}' vs other: '${other.toString()}'`
@@ -41,7 +105,7 @@ const __create = (input: {
 const fromBech32String = (
 	bechString: string,
 ): Result<ResourceIdentifierT, Error> => {
-	const hrpSuffix = hrpBetanetSuffix // TODO make dependent on Network!
+	// const hrpSuffix = hrpBetanetSuffix // TODO make dependent on Network!
 
 	const decodingResult = Bech32.decode({ bechString, encoding, maxLength })
 
@@ -54,12 +118,19 @@ const fromBech32String = (
 	const decoded = decodingResult.value
 	const hrp = decoded.hrp
 
-	if (!hrp.endsWith(hrpSuffix)) {
-		const errMsg = `The prefix (HRP: Human Readable Part) of a Resource identifier must end with suffix ${hrpSuffix}`
+	if (!(hrp.endsWith(hrpSuffixBetanet) || hrp.endsWith(hrpSuffixMainnet))) {
+		const errMsg = `The prefix (HRP: Human Readable Part) of a Resource identifier must end with suffix '_${hrpSuffixBetanet}' or '_${hrpSuffixMainnet}'`
 		return err(new Error(errMsg))
 	}
+	const nameToValidate = hrp.slice(0, hrp.length - hrpFullSuffixLength)
+	const hrpSuffix = hrp.slice(hrpFullSuffixLength)
+	const networkResult = networkFromHRPSuffix(hrpSuffix)
 
-	const nameToValidate = hrp.slice(0, hrp.length - hrpSuffix.length)
+	if (!networkResult.isOk()) {
+		const errMsg = `Expected to get network from HRP suffix '${hrpSuffix}', but failed to get it.`
+		return err(new Error(errMsg))
+	}
+	const network = networkResult.value
 
 	const nameValidationResult = validateCharsInName(nameToValidate)
 
@@ -102,8 +173,6 @@ const fromBech32String = (
 
 	const isNativeToken = versionByte === versionByteNativeToken
 
-	let hash: Buffer
-
 	if (isNativeToken) {
 		if (combinedData.length > 1) {
 			const errMsg = `Expected data to be empty for native token, but got: #${
@@ -112,24 +181,18 @@ const fromBech32String = (
 			console.error(errMsg)
 			return err(new Error(errMsg))
 		}
-
-		hash = Buffer.alloc(0)
 	} else {
 		if (combinedData.length <= 1) {
 			const errMsg = `Expected data to be non empty for non native token`
 			console.error(errMsg)
 			return err(new Error(errMsg))
 		}
-
-		hash = combinedData.slice(1, combinedData.length)
-		if (hash.length !== combinedData.length - 1) {
-			throw new Error('incorrect impl, bad slice of data')
-		}
 	}
 
 	return ok(
 		__create({
 			hash: combinedData,
+			network,
 			name,
 			toString: () => bechString,
 		}),
@@ -149,14 +212,15 @@ const validateCharsInName = (name: string): Result<string, Error> => {
 const withNameRawDataAndVersionByte = (
 	input: Readonly<{
 		hash: Buffer
+		network: NetworkT
 		versionByte: number
 		name: string
 	}>,
 ): Result<ResourceIdentifierT, Error> => {
-	return validateCharsInName(input.name).andThen((name) => {
-		const hrpSuffix = hrpBetanetSuffix // TODO make dependent on Network!
+	const { versionByte, hash, network } = input
+	const hrpSuffix = hrpSuffixFromNetwork(network)
 
-		const { versionByte, hash } = input
+	return validateCharsInName(input.name).andThen((name) => {
 		const hrp = `${name}${hrpSuffix}`
 
 		const combinedData = Buffer.concat([Buffer.from([versionByte]), hash])
@@ -173,6 +237,7 @@ const withNameRawDataAndVersionByte = (
 			.map((bech32) => {
 				return __create({
 					hash,
+					network,
 					name,
 					toString: () => bech32.toString(),
 				})
@@ -180,9 +245,14 @@ const withNameRawDataAndVersionByte = (
 	})
 }
 
-const systemRRI = (name: string): Result<ResourceIdentifierT, Error> =>
+const systemRRIForNetwork = (
+	input: Readonly<{
+		name: string
+		network: NetworkT
+	}>,
+): Result<ResourceIdentifierT, Error> =>
 	withNameRawDataAndVersionByte({
-		name,
+		...input,
 		versionByte: versionByteNativeToken,
 		hash: Buffer.alloc(0),
 	})
@@ -203,14 +273,15 @@ const pkToHash = (
 	return hash.slice(-hashByteCount) // last bytes
 }
 
-const fromPublicKeyAndName = (
+const fromPublicKeyAndNameAndNetwork = (
 	input: Readonly<{
 		publicKey: PublicKey
 		name: string
+		network: NetworkT
 	}>,
 ): Result<ResourceIdentifierT, Error> =>
 	withNameRawDataAndVersionByte({
-		name: input.name,
+		...input,
 		versionByte: versionByteNonNativeToken,
 		hash: pkToHash(input),
 	})
@@ -251,7 +322,7 @@ const fromUnsafe = (
 }
 
 export const ResourceIdentifier = {
-	systemRRI,
-	fromPublicKeyAndName,
+	systemRRIForNetwork,
+	fromPublicKeyAndNameAndNetwork,
 	fromUnsafe,
 }

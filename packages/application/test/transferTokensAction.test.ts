@@ -1,4 +1,4 @@
-import { ResourceIdentifier } from '@radixdlt/account'
+import { NetworkT, ResourceIdentifier } from '@radixdlt/account'
 import { Denomination } from '@radixdlt/primitives'
 import { Amount, zero } from '@radixdlt/primitives/src/amount'
 import { TransferTokensInput } from '../src/actions/_types'
@@ -6,10 +6,13 @@ import { IntendedTransferTokens } from '../src/actions/intendedTransferTokensAct
 import { alice, bob } from '../src'
 
 describe('TransferTokensActions', () => {
-	const resourceIdentifier = ResourceIdentifier.fromPublicKeyAndName({
-		publicKey: alice.publicKey,
-		name: 'foobar',
-	})._unsafeUnwrap()
+	const resourceIdentifier = ResourceIdentifier.fromPublicKeyAndNameAndNetwork(
+		{
+			publicKey: alice.publicKey,
+			name: 'foobar',
+			network: NetworkT.BETANET,
+		},
+	)._unsafeUnwrap()
 	const amount = Amount.fromUnsafe(6, Denomination.Atto)._unsafeUnwrap()
 
 	const input = <TransferTokensInput>{

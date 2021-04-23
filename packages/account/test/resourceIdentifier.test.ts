@@ -1,4 +1,4 @@
-import { ResourceIdentifier } from '../src'
+import { isResourceIdentifier, NetworkT, ResourceIdentifier } from '../src'
 import { msgFromError } from '@radixdlt/util'
 import { privateKeyFromScalar } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
@@ -11,6 +11,7 @@ describe('rri_on_bech32_format', () => {
 			(rri) => {
 				expect(rri.name).toBe('xrd')
 				expect(rri.toString()).toBe(rriString)
+				expect(rri.network).toBe(NetworkT.BETANET)
 			},
 			(e) => {
 				throw e
@@ -18,40 +19,68 @@ describe('rri_on_bech32_format', () => {
 		)
 	})
 
+	it('can create mainnet rri that not equals rri of betanet with same name.', () => {
+		const name = 'foo'
+		const network = NetworkT.MAINNET
+		const rriMainnet = ResourceIdentifier.systemRRIForNetwork({
+			name,
+			network,
+		})._unsafeUnwrap()
+		expect(rriMainnet.network).toBe(network)
+		expect(rriMainnet.name).toBe(name)
+		expect(isResourceIdentifier(rriMainnet)).toBe(true)
+		expect(isResourceIdentifier('not_an_rri_just_a_string')).toBe(false)
+		expect(rriMainnet.toString()).toBe('foo_rr1qycfr7ap')
+
+		const rriBetanet = ResourceIdentifier.systemRRIForNetwork({
+			name,
+			network: NetworkT.BETANET,
+		})._unsafeUnwrap()
+
+		expect(rriBetanet.equals(rriMainnet)).toBe(false)
+		expect(rriBetanet.toString()).toBe('foo_rb1qy3q706k')
+		expect(rriBetanet.network).not.toBe(rriMainnet.network)
+	})
+
 	describe('rri from publicKey and name', () => {
-		type PKAneNameVector = {
+		type Vector = {
 			pkScalar: number
 			name: string
 			expectedRRI: string
+			network: NetworkT
 		}
-		const privateKeyAndNameToRri: PKAneNameVector[] = [
+		const privateKeyAndNameToRri: Vector[] = [
 			{
 				pkScalar: 1,
 				name: 'foo',
 				expectedRRI:
 					'foo_rb1qv9ee5j4qun9frqj2mcg79maqq55n46u5ypn2j0g9c3q32j6y3',
+				network: NetworkT.BETANET,
 			},
 			{
 				pkScalar: 1,
 				name: 'bar',
 				expectedRRI:
 					'bar_rb1qwaa87cznx0nmeq08dya2ae43u92g4g0nkfktd9u9lpq6hgjca',
+				network: NetworkT.BETANET,
 			},
 			{
 				pkScalar: 2,
 				name: 'foo',
 				expectedRRI:
 					'foo_rb1qvmf6ak360gxjfhxeh0x5tn99gjzzh5d7u3kvktj26rsu5qa3u',
+				network: NetworkT.BETANET,
 			},
 			{
 				pkScalar: 2,
 				name: 'bar',
 				expectedRRI:
 					'bar_rb1qd3t7gnvwxddj2wxg5dl4adr7er9uw62g7x0ku6hyw4qfk0pfz',
+				network: NetworkT.BETANET,
 			},
 		]
 
-		const doTest = (vector: PKAneNameVector, index: number): void => {
+		const doTest = (vector: Vector, index: number): void => {
 			it(`vector_index${index}`, () => {
 				const publicKey = privateKeyFromScalar(
 					UInt256.valueOf(vector.pkScalar),
@@ -59,12 +88,14 @@ describe('rri_on_bech32_format', () => {
 					._unsafeUnwrap()
 					.publicKey()
 
-				const rri = ResourceIdentifier.fromPublicKeyAndName({
+				const rri = ResourceIdentifier.fromPublicKeyAndNameAndNetwork({
 					publicKey,
 					name: vector.name,
+					network: vector.network,
 				})._unsafeUnwrap()
 
 				expect(rri.name).toBe(vector.name)
+				expect(rri.network).toBe(vector.network)
 				expect(rri.toString()).toBe(vector.expectedRRI)
 			})
 		}
@@ -133,45 +164,55 @@ describe('rri_on_bech32_format', () => {
 		type SystemRRIVector = {
 			name: string
 			expectedRRI: string
+			network: NetworkT
 		}
 		const privateKeyAndNameToRri: SystemRRIVector[] = [
 			{
 				name: 'xrd',
 				expectedRRI: 'xrd_rb1qya85pwq',
+				network: NetworkT.BETANET,
 			},
 			{
 				name: 'foo',
 				expectedRRI: 'foo_rb1qy3q706k',
+				network: NetworkT.BETANET,
 			},
 			{
 				name: 'bar',
 				expectedRRI: 'bar_rb1qy6gq5vc',
+				network: NetworkT.BETANET,
 			},
 			{
 				name: 'alex',
 				expectedRRI: 'alex_rb1qy7s58lc',
+				network: NetworkT.BETANET,
 			},
 			{
 				name: 'gold',
 				expectedRRI: 'gold_rb1qydtpdac',
+				network: NetworkT.BETANET,
 			},
 			{
 				name: 'btcrw',
 				expectedRRI: 'btcrw_rb1qyerpvjk',
+				network: NetworkT.BETANET,
 			},
 			{
 				name: 'ethrw',
 				expectedRRI: 'ethrw_rb1qyeev2v5',
+				network: NetworkT.BETANET,
 			},
 		]
 
 		const doTest = (vector: SystemRRIVector, index: number): void => {
 			it(`vector_index${index}`, () => {
-				const rri = ResourceIdentifier.systemRRI(
-					vector.name,
-				)._unsafeUnwrap()
+				const rri = ResourceIdentifier.systemRRIForNetwork({
+					name: vector.name,
+					network: vector.network,
+				})._unsafeUnwrap()
 
 				expect(rri.name).toBe(vector.name)
+				expect(rri.network).toBe(vector.network)
 				expect(rri.toString()).toBe(vector.expectedRRI)
 			})
 		}
