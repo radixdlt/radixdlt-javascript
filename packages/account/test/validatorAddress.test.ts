@@ -1,6 +1,7 @@
 import { privateKeyFromBuffer, sha256Twice } from '@radixdlt/crypto'
 import { ValidatorAddress } from '../src'
 import { NetworkT } from '../dist'
+import { msgFromError } from '@radixdlt/util'
 
 describe('validator_address_on_bech32_format', () => {
 
@@ -84,112 +85,6 @@ describe('validator_address_on_bech32_format', () => {
 
 			privateKeySeedVectors.forEach((v, i) => doTest(v, i))
 		})
-/*
-		describe('rri roundtrip', () => {
-			type RRIDesVector = {
-				rri: string
-				name: string
-				data: string
-			}
-
-			const reAddressToRri: RRIDesVector[] = [
-				{
-					rri: 'xrd_rb1qya85pwq',
-					name: 'xrd',
-					data: '01',
-				},
-				{
-					rri: 'xrd2_rb1qy557l44',
-					name: 'xrd2',
-					data: '01',
-				},
-				{
-					rri:
-						'usdc_rb1qvqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq6gwwwd',
-					name: 'usdc',
-					data: `03${'00'.repeat(26)}`,
-				},
-				{
-					rri:
-						't2t2t2_rb1qvpsxqcrqvpsxqcrqvpsxqcrqvpsxqcrqvpsxqcrqvpsmr9n0r',
-					name: 't2t2t2',
-					data: `03${'03'.repeat(26)}`,
-				},
-			]
-			const doTest = (vector: RRIDesVector, index: number): void => {
-				// it(`rri_serialization_vector_index${index}`, () => {
-				// 	const rri = ResourceIdentifier.withNameAndHash({
-				// 		hash: Buffer.from(vector.data, 'hex'),
-				// 		name: vector.name,
-				// 	})._unsafeUnwrap()
-				//
-				// 	expect(rri.toString()).toBe(vector.rri)
-				// 	expect(rri.name).toBe(vector.name)
-				// 	expect(rri.hash.toString('hex')).toBe(vector.data)
-				// })
-				it(`rri_deserialization_vector_index${index}`, () => {
-					const rri = ResourceIdentifier.fromUnsafe(
-						vector.rri,
-					)._unsafeUnwrap()
-
-					expect(rri.hash.toString('hex')).toBe(vector.data)
-
-					expect(rri.toString()).toBe(vector.rri)
-					expect(rri.name).toBe(vector.name)
-				})
-			}
-
-			reAddressToRri.forEach((v, i) => doTest(v, i))
-		})
-
-		describe('rri system', () => {
-			type SystemRRIVector = {
-				name: string
-				expectedRRI: string
-			}
-			const privateKeyAndNameToRri: SystemRRIVector[] = [
-				{
-					name: 'xrd',
-					expectedRRI: 'xrd_rb1qya85pwq',
-				},
-				{
-					name: 'foo',
-					expectedRRI: 'foo_rb1qy3q706k',
-				},
-				{
-					name: 'bar',
-					expectedRRI: 'bar_rb1qy6gq5vc',
-				},
-				{
-					name: 'alex',
-					expectedRRI: 'alex_rb1qy7s58lc',
-				},
-				{
-					name: 'gold',
-					expectedRRI: 'gold_rb1qydtpdac',
-				},
-				{
-					name: 'btcrw',
-					expectedRRI: 'btcrw_rb1qyerpvjk',
-				},
-				{
-					name: 'ethrw',
-					expectedRRI: 'ethrw_rb1qyeev2v5',
-				},
-			]
-
-			const doTest = (vector: SystemRRIVector, index: number): void => {
-				it(`vector_index${index}`, () => {
-					const rri = ResourceIdentifier.systemRRI(
-						vector.name,
-					)._unsafeUnwrap()
-
-					expect(rri.name).toBe(vector.name)
-					expect(rri.toString()).toBe(vector.expectedRRI)
-				})
-			}
-			privateKeyAndNameToRri.forEach((v, i) => doTest(v, i))
-		})
 
 		describe('test non happy paths', () => {
 			beforeAll(() => {
@@ -200,57 +95,32 @@ describe('validator_address_on_bech32_format', () => {
 				jest.clearAllMocks()
 			})
 
-			it('rri checksum invalid bech32 string', () => {
-				const rri = 'xrd_rb1qya85pw1' // "w1" should have been "wq";
-				ResourceIdentifier.fromUnsafe(rri).match(
-					(_) => {
-						throw new Error('Expected error but got none')
-					},
-					(e) => {
-						expect(msgFromError(e).length).toBeGreaterThan(0)
-					},
-				)
-			})
-
 			type InvalidVector = {
-				invalidRRI: string
+				invalidAddr: string
 				failureReason: string
 			}
 
 			const invalidVectors: InvalidVector[] = [
 				{
-					invalidRRI: 'xrd1pzdsczc',
-					failureReason: 'no _rb suffix',
+					invalidAddr: 'vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazz',
+					failureReason: 'bad checksum',
 				},
 				{
-					invalidRRI: 'xrd_rb1avu205I',
-					failureReason: 'invalid address type (0)',
+					invalidAddr: 'xrd_rr1gd5j68',
+					failureReason: 'Bad hrp',
 				},
 				{
-					invalidRRI: 'usdc_rb1qg8vs72e',
-					failureReason: 'invalid address type (2)',
-				},
-				{
-					invalidRRI: 'usdc_rb1qqqsqs6ztc',
-					failureReason: 'invalid length for address type 1',
-				},
-				{
-					invalidRRI: 'usdc_rb1qvgxjc9r',
-					failureReason: 'invalid length for address type 3',
-				},
-				{
-					invalidRRI:
-						'xrd_2_rb1qvpsxqcrqvpsxqcrqvpsxqcrqvpsxqcrqvpsxqcrqvpszyaqyw',
-					failureReason: 'invalid characters in hrp',
+					invalidAddr: 'vb1qqweu28r',
+					failureReason: 'Not enough bytes for public key',
 				},
 			]
 
 			const doTest = (invalidVector: InvalidVector, index: number): void => {
 				it(`invalid_vector_index${index}`, () => {
-					ResourceIdentifier.fromUnsafe(invalidVector.invalidRRI).match(
+					ValidatorAddress.fromUnsafe(invalidVector.invalidAddr).match(
 						(_) => {
 							throw new Error(
-								`Got success, but expected failure, rri: ${invalidVector.invalidRRI}`,
+								`Got success, but expected failure, rri: ${invalidVector.invalidAddr}`,
 							)
 						},
 						(e) => {
@@ -262,5 +132,4 @@ describe('validator_address_on_bech32_format', () => {
 			invalidVectors.forEach((v, i) => doTest(v, i))
 		})
 
-	 */
 })
