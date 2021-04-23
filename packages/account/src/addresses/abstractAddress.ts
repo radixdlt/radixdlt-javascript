@@ -1,8 +1,8 @@
 import { combine, ok, Result } from 'neverthrow'
 import { isPublicKey, PublicKey, publicKeyFromBytes } from '@radixdlt/crypto'
 import { log, msgFromError } from '@radixdlt/util'
-import { AbstractAddressT, AddressTypeT, NetworkT } from '../_types'
 import { Bech32, Encoding } from '../bech32'
+import { AbstractAddressT, AddressTypeT, NetworkT } from './_types'
 
 export const isAbstractAddress = (
 	something: unknown,
@@ -134,57 +134,54 @@ const fromString = <A extends AbstractAddressT>(
 		maxLength?: number
 	}>,
 ): Result<A, Error> => {
-	const { bechString, encoding, maxLength, networkFromHRP } = input
+	const { bechString, networkFromHRP } = input
 
-	return Bech32.decode({ bechString, encoding, maxLength })
+	const validateDataAndExtractPubKeyBytes =
+		input.validateDataAndExtractPubKeyBytes ??
+		((passthroughData: Buffer) => ok(passthroughData))
+
+	return Bech32.decode(input)
 		.andThen(
-			({ hrp, data: bech32Data }): Result<A, Error> => {
-				const validateDataAndExtractPubKeyBytes =
-					input.validateDataAndExtractPubKeyBytes ??
-					((data: Buffer) => ok(data))
-				return Bech32.convertDataFromBech32(bech32Data).andThen(
+			({ hrp, data: bech32Data }): Result<A, Error> =>
+				Bech32.convertDataFromBech32(bech32Data).andThen(
 					(dataFromBech32) => {
 						return validateDataAndExtractPubKeyBytes(
 							dataFromBech32,
-						).andThen((publicKeyBytes) => {
+						).andThen((publicKeyBytes: Buffer) => {
 							return combine([
 								networkFromHRP(hrp),
 								publicKeyFromBytes(publicKeyBytes),
-							])
-								.map((resultList) => {
-									const network = resultList[0] as NetworkT
-									const publicKey = resultList[1] as PublicKey
-									return { network, publicKey }
+							]).andThen((resultList) => {
+								const network = resultList[0] as NetworkT
+								const publicKey = resultList[1] as PublicKey
+								return __create({
+									...input,
+									network,
+									hrp,
+									data: bech32Data,
+									publicKey,
 								})
-								.andThen(
-									({
-										network,
-										publicKey,
-									}): Result<A, Error> => {
-										return __create({
-											...input,
-											network,
-											hrp,
-											data: bech32Data,
-											publicKey,
-										})
-									},
-								)
+							})
 						})
 					},
-				)
+				),
+		)
+		.map(
+			(abstractAddress: A): A => {
+				// Soundness check
+				if (
+					abstractAddress.toString().toLowerCase() !==
+					bechString.toLowerCase()
+				) {
+					const errMsg = `Incorrect implementation, AbstractAddress mismatch, passed in: ${bechString.toLowerCase()}, created: ${abstractAddress
+						.toString()
+						.toLowerCase()}`
+					log.error(errMsg)
+					throw new Error(errMsg)
+				}
+				return abstractAddress
 			},
 		)
-		.map((va) => {
-			if (va.toString().toLowerCase() !== bechString.toLowerCase()) {
-				const errMsg = `Incorrect implementation, AbstractAddress mismatch, passed in: ${bechString.toLowerCase()}, created: ${va
-					.toString()
-					.toLowerCase()}`
-				log.error(errMsg)
-				throw new Error(errMsg)
-			}
-			return va
-		})
 }
 
 export const AbstractAddress = {

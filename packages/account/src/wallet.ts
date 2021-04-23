@@ -3,9 +3,7 @@ import { Account } from './account'
 import {
 	AccountsT,
 	AccountT,
-	AddressT,
 	DeriveNextAccountInput,
-	NetworkT,
 	SwitchAccountInput,
 	SwitchToAccount,
 	SwitchToAccountIndex,
@@ -24,7 +22,7 @@ import { HDPathRadix, HDPathRadixT, Int32 } from './bip32'
 import { isAccount } from './account'
 import { arraysEqual, msgFromError } from '@radixdlt/util'
 import { MnemomicT, HDMasterSeed, Mnemonic } from './bip39'
-import { Address } from './addresses'
+import { Address, AddressT, NetworkT } from './addresses'
 import { ResultAsync } from 'neverthrow'
 import { log } from '@radixdlt/util'
 

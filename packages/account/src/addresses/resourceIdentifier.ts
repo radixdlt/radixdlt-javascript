@@ -1,8 +1,8 @@
 import { err, ok, Result } from 'neverthrow'
 import { buffersEquals, msgFromError } from '@radixdlt/util'
 import { PublicKey, sha256Twice } from '@radixdlt/crypto'
-import { ResourceIdentifierT } from '../_types'
 import { Bech32, Encoding } from '../bech32'
+import { ResourceIdentifierT } from './_types'
 
 const encoding = Encoding.BECH32
 const maxLength: number | undefined = undefined // arbitrarily chosen

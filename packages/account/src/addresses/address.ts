@@ -1,7 +1,6 @@
 import { err, ok, Result } from 'neverthrow'
 import { PublicKey } from '@radixdlt/crypto'
-import { AddressT, AddressTypeT, NetworkT } from '../_types'
-import { Bech32, Encoding } from '../bech32'
+import { Encoding } from '../bech32'
 import {
 	AbstractAddress,
 	FormatDataToBech32Convert,
@@ -11,6 +10,7 @@ import {
 	ValidateDataAndExtractPubKeyBytes,
 } from './abstractAddress'
 import { buffersEquals } from '@radixdlt/util'
+import { AddressT, AddressTypeT, NetworkT } from './_types'
 
 export const isAccountAddress = (something: unknown): something is AddressT => {
 	if (!isAbstractAddress(something)) return false

@@ -1,6 +1,5 @@
 import { err, ok, Result } from 'neverthrow'
 import { PublicKey } from '@radixdlt/crypto'
-import { AddressTypeT, NetworkT, ValidatorAddressT } from '../_types'
 import { Encoding } from '../bech32'
 import {
 	AbstractAddress,
@@ -8,6 +7,7 @@ import {
 	isAbstractAddress,
 	NetworkFromHRP,
 } from './abstractAddress'
+import { AddressTypeT, NetworkT, ValidatorAddressT } from './_types'
 
 export const isValidatorAddress = (
 	something: unknown,

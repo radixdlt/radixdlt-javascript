@@ -14,13 +14,13 @@ import {
 	AccountDecryptionInput,
 	AccountEncryptionInput,
 	AccountT,
-	AddressT,
 	HardwareWalletSimpleT,
 } from './_types'
 import { HDMasterSeedT, HDNodeT } from './bip39'
 import { HDPathRadixT } from './bip32'
 import { errAsync, okAsync, ResultAsync } from 'neverthrow'
 import { log } from '@radixdlt/util'
+import { AddressT } from './addresses'
 
 const fromPrivateKey = (
 	input: Readonly<{
