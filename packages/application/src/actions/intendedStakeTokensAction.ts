@@ -5,7 +5,7 @@ import {
 } from './_types'
 import { v4 as uuidv4 } from 'uuid'
 import {
-	AddressT,
+	AccountAddressT,
 	isValidatorAddressOrUnsafeInput,
 	ValidatorAddress,
 	ValidatorAddressT,
@@ -25,7 +25,7 @@ export const isStakeTokensInput = (
 
 export const __createIntendedStakeAction = (
 	input: StakeTokensInput,
-	from: AddressT,
+	from: AccountAddressT,
 ): Result<IntendedStakeTokensAction, Error> => {
 	const uuid = uuidv4()
 	return combine([

@@ -4,7 +4,7 @@ import { UInt256 } from '@radixdlt/uint256'
 import { Amount } from '@radixdlt/primitives'
 
 import {
-	Address,
+	AccountAddress,
 	ValidatorAddress,
 	ResourceIdentifier,
 	NetworkT,
@@ -96,7 +96,7 @@ const networkDecoder = (...keys: string[]) =>
 const addressDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
 		key !== undefined && keys.includes(key) && isString(value)
-			? Address.fromUnsafe(value)
+			? AccountAddress.fromUnsafe(value)
 			: undefined,
 	)
 

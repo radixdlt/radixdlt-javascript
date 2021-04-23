@@ -1,6 +1,6 @@
 import {
 	AccountT,
-	AddressT,
+	AccountAddressT,
 	DeriveNextAccountInput,
 	MnemomicT,
 	SwitchAccountInput,
@@ -244,7 +244,9 @@ const create = (
 
 	const activeAddressToAPIObservableWithTrigger = <O>(
 		trigger: Observable<number>,
-		pickFn: (api: RadixCoreAPI) => (address: AddressT) => Observable<O>,
+		pickFn: (
+			api: RadixCoreAPI,
+		) => (address: AccountAddressT) => Observable<O>,
 		errorFn: (errorMessage: string) => APIError,
 	): Observable<O> =>
 		merge(
@@ -947,7 +949,7 @@ const create = (
 		activeAccount,
 		accounts,
 
-		// Active Address/Account APIs
+		// Active AccountAddress/Account APIs
 		tokenBalances,
 		stakingPositions,
 		unstakingPositions,

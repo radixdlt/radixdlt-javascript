@@ -22,7 +22,7 @@ import { HDPathRadix, HDPathRadixT, Int32 } from './bip32'
 import { isAccount } from './account'
 import { arraysEqual, msgFromError } from '@radixdlt/util'
 import { MnemomicT, HDMasterSeed, Mnemonic } from './bip39'
-import { Address, AddressT, NetworkT } from './addresses'
+import { AccountAddress, AccountAddressT, NetworkT } from './addresses'
 import { ResultAsync } from 'neverthrow'
 import { log } from '@radixdlt/util'
 
@@ -75,7 +75,7 @@ const __unsafeCreateWithPrivateKeyProvider = (
 						privateKey: __privateKeyProvider(hdPath),
 						addressFromPublicKey: (
 							publicKey: PublicKey,
-						): Observable<AddressT> => {
+						): Observable<AccountAddressT> => {
 							if (
 								!publicKey.equals(
 									__privateKeyProvider(hdPath).publicKey(),
@@ -87,7 +87,7 @@ const __unsafeCreateWithPrivateKeyProvider = (
 							}
 							return networkId$.pipe(
 								map((network: NetworkT) =>
-									Address.fromPublicKeyAndNetwork({
+									AccountAddress.fromPublicKeyAndNetwork({
 										publicKey,
 										network,
 									}),
@@ -103,7 +103,7 @@ const __unsafeCreateWithPrivateKeyProvider = (
 						addressFromPublicKey: (publicKey: PublicKey) =>
 							networkId$.pipe(
 								map((network: NetworkT) =>
-									Address.fromPublicKeyAndNetwork({
+									AccountAddress.fromPublicKeyAndNetwork({
 										publicKey,
 										network,
 									}),
@@ -241,7 +241,7 @@ const __unsafeCreateWithPrivateKeyProvider = (
 		switchAccount,
 		observeAccounts: (): Observable<AccountsT> => accounts$,
 		observeActiveAccount: (): Observable<AccountT> => activeAccount$,
-		observeActiveAddress: (): Observable<AddressT> => activeAddress$,
+		observeActiveAddress: (): Observable<AccountAddressT> => activeAddress$,
 		derivePublicKey: (): Observable<PublicKey> =>
 			activeAccount$.pipe(mergeMap((a) => a.derivePublicKey())),
 		sign: (hashedMessage: Buffer): Observable<Signature> =>

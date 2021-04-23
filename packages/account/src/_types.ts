@@ -8,7 +8,7 @@ import { Observable } from 'rxjs'
 import { Option } from 'prelude-ts'
 import { HDPathRadixT, BIP32T } from './bip32'
 import { MnemomicT } from './bip39'
-import { AddressT, NetworkT } from './addresses'
+import { AccountAddressT, NetworkT } from './addresses'
 
 export type PublicKeyDeriving = Readonly<{
 	derivePublicKey: () => Observable<PublicKey>
@@ -43,7 +43,7 @@ export type AccountT = PublicKeyDeriving &
 	Decrypting &
 	Readonly<{
 		hdPath: HDPathRadixT
-		deriveAddress: () => Observable<AddressT>
+		deriveAddress: () => Observable<AccountAddressT>
 		__unsafeGetPublicKey: () => PublicKey
 	}>
 
@@ -105,6 +105,6 @@ export type WalletT = PublicKeyDeriving &
 		switchAccount: (input: SwitchAccountInput) => AccountT
 
 		observeActiveAccount: () => Observable<AccountT>
-		observeActiveAddress: () => Observable<AddressT>
+		observeActiveAddress: () => Observable<AccountAddressT>
 		observeAccounts: () => Observable<AccountsT>
 	}>

@@ -12,7 +12,7 @@ import {
 	xrd,
 } from '../src'
 import {
-	AddressT,
+	AccountAddressT,
 	isAccountAddress,
 	isValidatorAddress,
 	Mnemonic,
@@ -50,8 +50,8 @@ describe('tx_intent_builder', () => {
 	wallet.provideNetworkId(of(NetworkT.BETANET))
 	const aliceAccount = wallet.deriveNext()
 	const bobAccount = wallet.deriveNext()
-	let alice: AddressT
-	let bob: AddressT
+	let alice: AccountAddressT
+	let bob: AccountAddressT
 
 	const subs = new Subscription()
 
@@ -64,8 +64,8 @@ describe('tx_intent_builder', () => {
 		])
 			.pipe(
 				map(([aliceAddress, bobAddress]) => ({
-					aliceAddress: aliceAddress as AddressT,
-					bobAddress: bobAddress as AddressT,
+					aliceAddress: aliceAddress as AccountAddressT,
+					bobAddress: bobAddress as AccountAddressT,
 				})),
 			)
 			.subscribe(({ aliceAddress, bobAddress }) => {
@@ -76,15 +76,17 @@ describe('tx_intent_builder', () => {
 			.add(subs)
 	})
 
-	type SimpleTransf = { amount: number; to: AddressT }
+	type SimpleTransf = { amount: number; to: AccountAddressT }
 	const transfT = (input: SimpleTransf): TransferTokensInput => ({
 		to: input.to,
 		amount: Amount.fromUnsafe(input.amount)._unsafeUnwrap(),
 		tokenIdentifier: xrdRRI,
 	})
 
-	const transfS = (amount: number, to: AddressT): TransferTokensInput =>
-		transfT({ amount, to })
+	const transfS = (
+		amount: number,
+		to: AccountAddressT,
+	): TransferTokensInput => transfT({ amount, to })
 
 	const stakeS = (
 		amount: number,
@@ -325,7 +327,7 @@ describe('tx_intent_builder', () => {
 			),
 		).toStrictEqual([3, 4, 5, 6])
 
-		type AnyAddress = ValidatorAddressT | AddressT
+		type AnyAddress = ValidatorAddressT | AccountAddressT
 
 		const assertAddr = (
 			index: number,

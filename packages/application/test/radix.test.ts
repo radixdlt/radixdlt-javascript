@@ -1,8 +1,8 @@
 import { Radix } from '../src/radix'
 import {
 	AccountT,
-	Address,
-	AddressT,
+	AccountAddress,
+	AccountAddressT,
 	HDMasterSeed,
 	Mnemonic,
 	NetworkT,
@@ -507,7 +507,7 @@ describe('radix_high_level_api', () => {
 			const api = of(<RadixCoreAPI>{
 				...mockRadixCoreAPI(),
 				tokenBalancesForAddress: (
-					a: AddressT,
+					a: AccountAddressT,
 				): Observable<SimpleTokenBalances> => {
 					if (counter > 2 && counter < 5) {
 						counter++
@@ -1084,7 +1084,7 @@ describe('radix_high_level_api', () => {
 		const recipientPK = publicKeyFromBytes(
 			Buffer.from(keystoreForTest.publicKeysCompressed[1], 'hex'),
 		)._unsafeUnwrap()
-		const recipientAddress = Address.fromPublicKeyAndNetwork({
+		const recipientAddress = AccountAddress.fromPublicKeyAndNetwork({
 			publicKey: recipientPK,
 			network: NetworkT.BETANET,
 		})
@@ -1561,7 +1561,7 @@ describe('radix_high_level_api', () => {
 
 		radix.activeAddress
 			.pipe(
-				map((a: AddressT) => a.toString()),
+				map((a: AccountAddressT) => a.toString()),
 				take(expectedAddresses.length),
 				toArray(),
 			)

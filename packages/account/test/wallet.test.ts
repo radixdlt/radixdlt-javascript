@@ -1,4 +1,4 @@
-import { AddressT, NetworkT, WalletT, Wallet, Mnemonic } from '../src'
+import { AccountAddressT, NetworkT, WalletT, Wallet, Mnemonic } from '../src'
 import { map, take, toArray } from 'rxjs/operators'
 import { KeystoreT, PublicKey } from '@radixdlt/crypto'
 import { combineLatest, of, Subject } from 'rxjs'
@@ -244,7 +244,7 @@ describe('HD Wallet', () => {
 		wallet
 			.observeActiveAddress()
 			.pipe(
-				map((a: AddressT) => a.network),
+				map((a: AccountAddressT) => a.network),
 				take(2),
 				toArray(),
 			)

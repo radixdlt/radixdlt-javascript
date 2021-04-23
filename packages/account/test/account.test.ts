@@ -5,18 +5,18 @@ import {
 	Mnemonic,
 	HDMasterSeed,
 	HDPathRadix,
-	AddressT,
+	AccountAddressT,
 	NetworkT,
-	Address,
+	AccountAddress,
 } from '../src'
 import { Observable, of } from 'rxjs'
 
 const addressFromPublicKey = (
 	publicKey: PublicKey,
 	network?: NetworkT,
-): Observable<AddressT> =>
+): Observable<AccountAddressT> =>
 	of(
-		Address.fromPublicKeyAndNetwork({
+		AccountAddress.fromPublicKeyAndNetwork({
 			publicKey,
 			network: network ?? NetworkT.BETANET,
 		}),

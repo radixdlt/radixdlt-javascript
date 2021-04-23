@@ -1,8 +1,8 @@
 import { PrivateKey, privateKeyFromScalar } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
 import {
-	Address,
-	AddressT,
+	AccountAddress,
+	AccountAddressT,
 	HDPathRadixT,
 	Mnemonic,
 	Wallet,
@@ -23,8 +23,8 @@ export const makeWalletWithFunds = (): WalletT => {
 }
 
 // TODO CODE DUPLICATION remove to separate test package...
-export const toAddress = (bech32String: string): AddressT =>
-	Address.fromUnsafe(bech32String)._unsafeUnwrap()
+export const toAddress = (bech32String: string): AccountAddressT =>
+	AccountAddress.fromUnsafe(bech32String)._unsafeUnwrap()
 
 const alice = toAddress(
 	'brx1qsp8n0nx0muaewav2ksx99wwsu9swq5mlndjmn3gm9vl9q2mzmup0xqmhf7fh',

@@ -7,8 +7,8 @@ import {
 } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import {
-	Address,
-	AddressT,
+	AccountAddress,
+	AccountAddressT,
 	ResourceIdentifierT,
 	ResourceIdentifier,
 	ValidatorAddress,
@@ -187,7 +187,7 @@ export const balanceOfFor = (
 }
 
 export const balancesFor = (
-	address: AddressT,
+	address: AccountAddressT,
 	amount: number,
 ): SimpleTokenBalances => {
 	return {
@@ -299,8 +299,10 @@ const characterNames: string[] = [
 		typeof getAPI
 	>[Property]
 * */
-export const castOfCharacters: AddressT[] = addressesString
-	.map((s) => Address.fromUnsafe(s)._unsafeUnwrap({ withStackTrace: true }))
+export const castOfCharacters: AccountAddressT[] = addressesString
+	.map((s) =>
+		AccountAddress.fromUnsafe(s)._unsafeUnwrap({ withStackTrace: true }),
+	)
 	.slice(0, characterNames.length)
 export const alice = castOfCharacters[0]
 export const bob = castOfCharacters[1]
@@ -505,7 +507,7 @@ const detRandBalanceOfTokenWithInfo = (
 }
 
 export const deterministicRandomBalancesForAddress = (
-	address: AddressT,
+	address: AccountAddressT,
 ): SimpleTokenBalances => {
 	const anInt = detPRNGWithPubKey(address.publicKey)
 
@@ -520,7 +522,7 @@ export const deterministicRandomBalancesForAddress = (
 }
 
 export const deterministicRandomUnstakesForAddress = (
-	address: AddressT,
+	address: AccountAddressT,
 ): UnstakePositions => {
 	const anInt = detPRNGWithPubKey(address.publicKey)
 	const size = anInt() % 10
@@ -560,7 +562,7 @@ export const deterministicRandomUnstakesForAddress = (
 }
 
 export const deterministicRandomStakesForAddress = (
-	address: AddressT,
+	address: AccountAddressT,
 ): StakePositions => {
 	return deterministicRandomUnstakesForAddress(address).map(
 		(un): StakePosition => ({
@@ -577,7 +579,7 @@ export const deterministicRandomTxHistoryWithInput = (
 	const pubKeyBytes = address.publicKey
 		.asData({ compressed: true })
 		.slice(1, 33)
-	const detRandomAddress = (): AddressT =>
+	const detRandomAddress = (): AccountAddressT =>
 		castOfCharacters[anInt() % castOfCharacters.length]
 	const detRandomValidatorAddress = detRandomValidatorAddressWithPRNG(anInt)
 	const tokenAndAmounts = detRandBalanceOfTokenWithInfo(anInt)
@@ -692,7 +694,7 @@ const deterministicRandomLookupTXUsingHist = (
 	txID: TransactionIdentifierT,
 ): ExecutedTransaction => {
 	const seed = sha256(Buffer.from(txID.__hex, 'hex'))
-	const addressWithTXIdBytesAsSeed = Address.fromPublicKeyAndNetwork({
+	const addressWithTXIdBytesAsSeed = AccountAddress.fromPublicKeyAndNetwork({
 		publicKey: privateKeyFromBuffer(seed)._unsafeUnwrap().publicKey(),
 		network: NetworkT.BETANET,
 	})
@@ -710,7 +712,7 @@ const deterministicRandomLookupTXUsingHist = (
 }
 
 export const deterministicRandomBalances = (
-	address: AddressT,
+	address: AccountAddressT,
 ): Observable<SimpleTokenBalances> =>
 	of(deterministicRandomBalancesForAddress(address))
 
@@ -725,12 +727,12 @@ export const deterministicRandomLookupTX = (
 	of(deterministicRandomLookupTXUsingHist(txID))
 
 export const deterministicRandomUnstakesForAddr = (
-	address: AddressT,
+	address: AccountAddressT,
 ): Observable<UnstakePositions> =>
 	of(deterministicRandomUnstakesForAddress(address))
 
 export const deterministicRandomStakesForAddr = (
-	address: AddressT,
+	address: AccountAddressT,
 ): Observable<StakePositions> =>
 	of(deterministicRandomStakesForAddress(address))
 
@@ -742,7 +744,7 @@ export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
 	},
 
 	tokenBalancesForAddress: (
-		_address: AddressT,
+		_address: AccountAddressT,
 	): Observable<SimpleTokenBalances> => {
 		throw Error('Not implemented')
 	},
@@ -775,11 +777,15 @@ export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
 		throw Error('Not implemented')
 	},
 
-	stakesForAddress: (_address: AddressT): Observable<StakePositions> => {
+	stakesForAddress: (
+		_address: AccountAddressT,
+	): Observable<StakePositions> => {
 		throw Error('Not implemented')
 	},
 
-	unstakesForAddress: (_address: AddressT): Observable<UnstakePositions> => {
+	unstakesForAddress: (
+		_address: AccountAddressT,
+	): Observable<UnstakePositions> => {
 		throw Error('Not implemented')
 	},
 

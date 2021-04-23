@@ -4,7 +4,7 @@
 
 /* eslint-disable */
 import { Radix } from '../../src/radix'
-import { Address, ValidatorAddress } from '@radixdlt/account'
+import { AccountAddress, ValidatorAddress } from '@radixdlt/account'
 import {
 	interval,
 	Observable,

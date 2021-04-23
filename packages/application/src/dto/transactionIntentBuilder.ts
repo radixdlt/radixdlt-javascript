@@ -20,7 +20,7 @@ import {
 } from './_types'
 import {
 	AccountT,
-	AddressT,
+	AccountAddressT,
 	isAccountAddress,
 	toObservableFromResult,
 	isResourceIdentifier,
@@ -47,7 +47,7 @@ import { log } from '@radixdlt/util'
 
 type IntendedActionsFrom = Readonly<{
 	intendedActions: IntendedAction[]
-	from: AddressT
+	from: AccountAddressT
 }>
 
 export const singleRecipientFromActions = (
@@ -162,7 +162,7 @@ export const isIntendedUnstakeTokensAction = (
 }
 
 type UserAction = IntendedAction | ExecutedAction
-const getUniqueAddresses = (action: UserAction): AddressT[] => {
+const getUniqueAddresses = (action: UserAction): AccountAddressT[] => {
 	if (isIntendedTransferTokensAction(action)) {
 		return [action.to, action.from]
 	} else if (isIntendedStakeTokensAction(action)) {
@@ -250,7 +250,7 @@ const create = (): TransactionIntentBuilderT => {
 	}
 
 	const intendedActionsFromIntermediateActions = (
-		from: AddressT,
+		from: AccountAddressT,
 	): Result<IntendedActionsFrom, Error> => {
 		if (intermediateActions.length === 0)
 			return err(mustHaveAtLeastOneAction)
@@ -290,7 +290,7 @@ const create = (): TransactionIntentBuilderT => {
 	}
 
 	const syncBuildDoNotEncryptMessageIfAny = (
-		from: AddressT,
+		from: AccountAddressT,
 	): Result<TransactionIntent, Error> => {
 		return intendedActionsFromIntermediateActions(from).map(
 			({ intendedActions }) => ({
@@ -307,7 +307,7 @@ const create = (): TransactionIntentBuilderT => {
 	): Observable<TransactionIntent> => {
 		if (isTransactionIntentBuilderDoNotEncryptInput(options)) {
 			return options.spendingSender.pipe(
-				mergeMap((from: AddressT) =>
+				mergeMap((from: AccountAddressT) =>
 					toObservableFromResult(
 						syncBuildDoNotEncryptMessageIfAny(from),
 					),
@@ -320,13 +320,13 @@ const create = (): TransactionIntentBuilderT => {
 		}
 
 		const encryptingAccount$ = options.encryptMessageIfAnyWithAccount
-		const spendingSender: Observable<AddressT> =
+		const spendingSender: Observable<AccountAddressT> =
 			options.spendingSender ??
 			options.encryptMessageIfAnyWithAccount.pipe(
 				mergeMap((a) => a.deriveAddress()),
 			)
 		return spendingSender.pipe(
-			mergeMap((from: AddressT) =>
+			mergeMap((from: AccountAddressT) =>
 				toObservableFromResult(
 					intendedActionsFromIntermediateActions(from),
 				),

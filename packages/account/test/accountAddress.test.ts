@@ -1,11 +1,11 @@
-import { Address } from '../src'
+import { AccountAddress } from '../src'
 
 import {
 	privateKeyFromBuffer,
 	publicKeyCompressedByteCount,
 	sha256Twice,
 } from '@radixdlt/crypto'
-import { NetworkT } from '../dist'
+import { NetworkT } from '../src'
 import { msgFromError } from '@radixdlt/util'
 
 describe('account_address_on_bech32_format', () => {
@@ -55,14 +55,14 @@ describe('account_address_on_bech32_format', () => {
 				const privateKey = privateKeyFromBuffer(hash)._unsafeUnwrap()
 				const publicKey = privateKey.publicKey()
 
-				const addr = Address.fromPublicKeyAndNetwork({
+				const addr = AccountAddress.fromPublicKeyAndNetwork({
 					publicKey,
 					network: vector.network,
 				})
 				expect(addr.toString()).toBe(vector.expectedAddr)
 				expect(addr.network).toBe(vector.network)
 
-				const parsedAddress = Address.fromUnsafe(
+				const parsedAddress = AccountAddress.fromUnsafe(
 					vector.expectedAddr,
 				)._unsafeUnwrap()
 				expect(parsedAddress.toString()).toBe(vector.expectedAddr)
@@ -92,7 +92,7 @@ describe('account_address_on_bech32_format', () => {
 		]
 		const doTest = (vector: RRIDesVector, index: number): void => {
 			it(`rri_deserialization_vector_index${index}`, () => {
-				const address = Address.fromUnsafe(
+				const address = AccountAddress.fromUnsafe(
 					vector.address,
 				)._unsafeUnwrap()
 				expect(address.toString()).toBe(vector.address)
@@ -139,7 +139,7 @@ describe('account_address_on_bech32_format', () => {
 
 		const doTest = (invalidVector: InvalidVector, index: number): void => {
 			it(`invalid_vector_index${index}`, () => {
-				Address.fromUnsafe(invalidVector.invalidAddr).match(
+				AccountAddress.fromUnsafe(invalidVector.invalidAddr).match(
 					(_) => {
 						throw new Error(
 							`Got success, but expected failure, rri: ${invalidVector.invalidAddr}`,
