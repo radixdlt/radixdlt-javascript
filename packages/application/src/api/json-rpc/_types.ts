@@ -48,7 +48,7 @@ export namespace NetworkIdEndpoint {
 	export type Input = []
 
 	export type Response = {
-		networkId: Int32
+		networkId: number
 	}
 
 	export type DecodedResponse = {

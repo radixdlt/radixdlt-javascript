@@ -84,10 +84,10 @@ const transactionIdentifierDecoder = (...keys: string[]) =>
 
 const networkDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
-		key !== undefined && keys.includes(key) && typeof value === 'string'
-			? value === 'MAINNET'
+		key !== undefined && keys.includes(key) && typeof value === 'number'
+			? value === 0
 				? ok(NetworkT.MAINNET)
-				: value === 'BETANET'
+				: value === 1
 				? ok(NetworkT.BETANET)
 				: err(new Error(`Unrecognized network: '${value}'`))
 			: undefined,

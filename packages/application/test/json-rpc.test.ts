@@ -117,7 +117,7 @@ const expectedDecodedResponses = {
 		response: TokenBalancesEndpoint.Response,
 	): TokenBalancesEndpoint.DecodedResponse => ({
 		owner: Address.fromUnsafe(
-			'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
+			response.owner,
 		)._unsafeUnwrap(),
 		tokenBalances: [
 			{
@@ -211,7 +211,7 @@ const expectedDecodedResponses = {
 				  action.type === ActionType.UNSTAKE_TOKENS
 				? <ExecutedStakeTokensAction>{
 						from: Address.fromUnsafe(
-							action.validator,
+							action.from,
 						)._unsafeUnwrap({ withStackTrace: true }),
 						validator: ValidatorAddress.fromUnsafe(
 							action.validator,

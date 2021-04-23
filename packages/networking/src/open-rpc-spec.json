@@ -15,7 +15,7 @@
                     "type": "object",
                     "properties": {
                         "networkId": {
-                            "$ref": "#/components/schemas/int32"
+                            "$ref": "#/components/schemas/networkId"
                         }
                     },
                     "required": [
@@ -1052,6 +1052,11 @@
                 "minimum": -2147483648,
                 "maximum": 2147483648
             },
+            "networkId": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1
+            },
             "amount": {
                 "type": "string",
                 "pattern": "^[0-9]+$"
@@ -1066,11 +1071,11 @@
             },
             "address": {
                 "type": "string",
-                "pattern": "^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{52}$"
+                "pattern": "^(brx|rdx)1qsp[023456789ACDEFGHJKLMNPQRSTUVWXYZacdefghjklmnpqrstuvwxyz]{58}$"
             },
             "validatorAddress": {
                 "type": "string",
-                "pattern": "^v[rb]1[023456789ACDEFGHJKLMNPQRSTUVWXYZacdefghjklmnpqrstuvwxyz]{6,90}$"
+                "pattern": "^v[rb]1q[023456789ACDEFGHJKLMNPQRSTUVWXYZacdefghjklmnpqrstuvwxyz]{6,90}$"
             },
             "txID": {
                 "type": "string",
