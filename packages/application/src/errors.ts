@@ -1,4 +1,4 @@
-import { isString } from '@radixdlt/util'
+import { isArray, isString, msgFromError } from '@radixdlt/util'
 
 export type ErrorT<Category extends ErrorCategory, Cause extends ErrorCause> = {
 	category: Category
@@ -49,11 +49,21 @@ export type ErrorNotification = NodeError | WalletError | APIError
 
 const ErrorT = <E extends ErrorCategory, C extends ErrorCause>(category: E) => (
 	cause: C,
-) => (error: string | Error[]): ErrorT<E, C> => ({
-	category,
-	cause,
-	errors: isString(error) ? [Error(error)] : error,
-})
+) => (error: string | Error[]): ErrorT<E, C> => {
+	let errors: Error[] = []
+
+	if (typeof error === 'string') {
+		errors = [new Error(error)]
+	} else if (isArray(error)) {
+		errors = error
+	}
+
+	return {
+		category,
+		cause,
+		errors,
+	}
+}
 
 export const APIError = ErrorT<ErrorCategory.API, APIErrorCause>(
 	ErrorCategory.API,

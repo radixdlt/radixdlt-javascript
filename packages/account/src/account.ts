@@ -14,19 +14,21 @@ import {
 	AccountDecryptionInput,
 	AccountEncryptionInput,
 	AccountT,
-	AddressT,
 	HardwareWalletSimpleT,
 } from './_types'
-import { HDMasterSeedT, HDNodeT } from './bip39/_types'
-import { HDPathRadixT } from './bip32/bip44/_types'
+import { HDMasterSeedT, HDNodeT } from './bip39'
+import { HDPathRadixT } from './bip32'
 import { errAsync, okAsync, ResultAsync } from 'neverthrow'
 import { log } from '@radixdlt/util'
+import { AccountAddressT } from './addresses'
 
 const fromPrivateKey = (
 	input: Readonly<{
 		privateKey: PrivateKey
 		hdPath: HDPathRadixT
-		addressFromPublicKey: (publicKey: PublicKey) => Observable<AddressT>
+		addressFromPublicKey: (
+			publicKey: PublicKey,
+		) => Observable<AccountAddressT>
 	}>,
 ): AccountT => {
 	const { privateKey, hdPath, addressFromPublicKey } = input
@@ -66,7 +68,9 @@ const fromPrivateKey = (
 const fromHDPathWithHardwareWallet = (
 	input: Readonly<{
 		hdPath: HDPathRadixT
-		addressFromPublicKey: (publicKey: PublicKey) => Observable<AddressT>
+		addressFromPublicKey: (
+			publicKey: PublicKey,
+		) => Observable<AccountAddressT>
 		onHardwareWalletConnect: Observable<HardwareWalletSimpleT>
 	}>,
 ): AccountT => {
@@ -93,7 +97,7 @@ const fromHDPathWithHardwareWallet = (
 			),
 			map(
 				(dhKey: ECPointOnCurve): DiffieHellman => {
-					const diffieHellman: DiffieHellman = (
+					return (
 						publicKeyOfOtherParty: PublicKey,
 					): ResultAsync<ECPointOnCurve, Error> => {
 						if (
@@ -108,7 +112,6 @@ const fromHDPathWithHardwareWallet = (
 						}
 						return okAsync(dhKey)
 					}
-					return diffieHellman
 				},
 			),
 		)
@@ -159,7 +162,9 @@ const byDerivingNodeAtPath = (
 	input: Readonly<{
 		hdPath: HDPathRadixT
 		deriveNodeAtPath: () => HDNodeT
-		addressFromPublicKey: (publicKey: PublicKey) => Observable<AddressT>
+		addressFromPublicKey: (
+			publicKey: PublicKey,
+		) => Observable<AccountAddressT>
 	}>,
 ): AccountT =>
 	fromPrivateKey({
@@ -170,7 +175,9 @@ const byDerivingNodeAtPath = (
 const fromHDPathWithHDMasterNode = (
 	input: Readonly<{
 		hdPath: HDPathRadixT
-		addressFromPublicKey: (publicKey: PublicKey) => Observable<AddressT>
+		addressFromPublicKey: (
+			publicKey: PublicKey,
+		) => Observable<AccountAddressT>
 		hdMasterNode: HDNodeT
 	}>,
 ): AccountT => {
@@ -181,7 +188,9 @@ const fromHDPathWithHDMasterNode = (
 const fromHDPathWithHDMasterSeed = (
 	input: Readonly<{
 		hdPath: HDPathRadixT
-		addressFromPublicKey: (publicKey: PublicKey) => Observable<AddressT>
+		addressFromPublicKey: (
+			publicKey: PublicKey,
+		) => Observable<AccountAddressT>
 		hdMasterSeed: HDMasterSeedT
 	}>,
 ): AccountT => {

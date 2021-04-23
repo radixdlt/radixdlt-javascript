@@ -109,7 +109,7 @@ export const publicKeyFromBytesValidated = (
 		const errMsg = `Failed to decode bytes into public key, underlying error: ${underlyingError}. bytes: '${publicKeyBytes.toString(
 			'hex',
 		)}'`
-		console.log(errMsg)
+		console.error(errMsg)
 		return err(new Error(errMsg))
 	}
 }

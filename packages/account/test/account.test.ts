@@ -1,18 +1,24 @@
 import { privateKeyFromScalar, PublicKey, sha256Twice } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
-import { Account } from '../src/account'
-import { Mnemonic } from '../src/bip39/mnemonic'
-import { HDMasterSeed } from '../src/bip39/hdMasterSeed'
-import { HDPathRadix } from '../src/bip32/bip44/bip44'
+import {
+	Account,
+	Mnemonic,
+	HDMasterSeed,
+	HDPathRadix,
+	AccountAddressT,
+	NetworkT,
+	AccountAddress,
+} from '../src'
 import { Observable, of } from 'rxjs'
-import { AddressT } from '../src/_types'
-import { Address } from '../src/address'
 
-const addressFromPublicKey = (publicKey: PublicKey): Observable<AddressT> =>
+const addressFromPublicKey = (
+	publicKey: PublicKey,
+	network?: NetworkT,
+): Observable<AccountAddressT> =>
 	of(
-		Address.fromPublicKeyAndMagic({
+		AccountAddress.fromPublicKeyAndNetwork({
 			publicKey,
-			magic: { byte: 237 },
+			network: network ?? NetworkT.BETANET,
 		}),
 	)
 

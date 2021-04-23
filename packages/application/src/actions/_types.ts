@@ -1,6 +1,6 @@
 import {
 	AddressOrUnsafeInput,
-	AddressT,
+	AccountAddressT,
 	ValidatorAddressT,
 	ValidatorAddressOrUnsafeInput,
 	ResourceIdentifierOrUnsafeInput,
@@ -51,7 +51,7 @@ export type ActionInput =
 // ####                         #####
 // ##################################
 export type TransferTokensProps = Readonly<{
-	to: AddressT
+	to: AccountAddressT
 	amount: AmountT
 	tokenIdentifier: ResourceIdentifierT
 }>
@@ -71,7 +71,7 @@ export type IntendedActionBase<T extends ActionType> = Action<T> &
 		// An ephemeral, client-side randomly generated, id
 		// useful for debugging purposes. Note that this is
 		// PER action, not per transactionIntent.
-		from: AddressT
+		from: AccountAddressT
 		uuid: string
 	}>
 

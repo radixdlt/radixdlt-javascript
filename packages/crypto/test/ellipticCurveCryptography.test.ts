@@ -7,18 +7,71 @@ import {
 	generatePrivateKey,
 	generateKeyPair,
 	sha256,
+	publicKeyCompressedByteCount,
 } from '../src/index'
 
 import { UInt256 } from '@radixdlt/uint256'
 import { publicKeyFromPrivateKeyScalar } from '../src/elliptic-curve/wrap/publicKeyWrapped'
 import { pointOnCurve } from '../src/elliptic-curve/wrap/ecPointOnCurve'
 import { signatureFromHexStrings } from './utils'
+import { msgFromError } from '@radixdlt/util'
 
 describe('elliptic curve cryptography', () => {
 	it('knows the order of secp256l1', () => {
 		expect(Secp256k1.order.toString(10)).toBe(
 			'115792089237316195423570985008687907852837564279074904382605163141518161494337',
 		)
+	})
+
+	it('0202...is a valid public key', () => {
+		const publicKeyCompressedHexString = '02'.repeat(
+			publicKeyCompressedByteCount,
+		)
+		publicKeyFromBytes(
+			Buffer.from(publicKeyCompressedHexString, 'hex'),
+		).match(
+			(s) => {
+				expect(s.toString(false)).toBe(
+					'040202020202020202020202020202020202020202020202020202020202020202415456f0fc01d66476251cab4525d9db70bfec652b2d8130608675674cde64b2',
+				)
+				expect(s.toString(true)).toBe(publicKeyCompressedHexString)
+			},
+			(e) => {
+				throw new Error(
+					'0202... is not a valid public key, but we expected it to be.',
+				)
+			},
+		)
+	})
+
+	describe('failing scenarios', () => {
+		beforeAll(() => {
+			jest.spyOn(console, 'error').mockImplementation(() => {})
+		})
+
+		afterAll(() => {
+			jest.clearAllMocks()
+		})
+
+		it('0303...is not a valid public key', () => {
+			const publicKeyCompressedHexString = '03'.repeat(
+				publicKeyCompressedByteCount,
+			)
+			publicKeyFromBytes(
+				Buffer.from(publicKeyCompressedHexString, 'hex'),
+			).match(
+				(s) => {
+					throw new Error(
+						`We expected ${publicKeyCompressedHexString} to be invalid, but it is not.`,
+					)
+				},
+				(e) => {
+					expect(msgFromError(e)).toBe(
+						`Failed to decode bytes into public key, underlying error: invalid point. bytes: '${publicKeyCompressedHexString}'`,
+					)
+				},
+			)
+		})
 	})
 
 	it('can securely generate private keys', () => {

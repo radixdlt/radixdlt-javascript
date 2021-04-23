@@ -4,7 +4,7 @@
 
 /* eslint-disable */
 import { Radix } from '../../src/radix'
-import { Address, ValidatorAddress } from '@radixdlt/account'
+import { AccountAddress, ValidatorAddress } from '@radixdlt/account'
 import {
 	interval,
 	Observable,
@@ -27,7 +27,7 @@ import { TransferTokensOptions } from '../../src/_types'
 import { makeWalletWithFunds } from '../../../account/test/utils'
 const fetch = require('node-fetch')
 
-//const NODE_URL = 'http://localhost:8080'
+//const NODE_URL = 'https://localhost:8080'
 const NODE_URL = 'https://54.73.253.49'
 
 const requestFaucet = async (address: string) => {
@@ -77,7 +77,7 @@ describe('integration API tests', () => {
 			.add(subs)
 	})
 
-	it('provides magic for wallets', async (done) => {
+	it('provides network for wallets', async (done) => {
 		const radix = Radix.create()
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
@@ -85,7 +85,7 @@ describe('integration API tests', () => {
 		radix.activeAddress
 			.subscribe(
 				(address) => {
-					expect(address.magicByte).toBeDefined()
+					expect(address.network).toBeDefined()
 					done()
 				},
 				(error) => done(error),

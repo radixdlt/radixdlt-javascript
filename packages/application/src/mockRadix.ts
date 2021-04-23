@@ -3,18 +3,17 @@ import {
 	AmountT,
 	Denomination,
 	isAmount,
-	Magic,
-	magicFromNumber,
 	maxAmount,
 } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import {
-	Address,
-	AddressT,
+	AccountAddress,
+	AccountAddressT,
 	ResourceIdentifierT,
 	ResourceIdentifier,
 	ValidatorAddress,
 	ValidatorAddressT,
+	NetworkT,
 } from '@radixdlt/account'
 import { Observable, of } from 'rxjs'
 import {
@@ -42,20 +41,12 @@ import {
 import { tokenOwnerOnly, tokenPermissionsAll } from './dto/tokenPermissions'
 import { RadixCoreAPI } from './api/_types'
 import { shareReplay } from 'rxjs/operators'
-import {
-	privateKeyFromBuffer,
-	privateKeyFromHex,
-	PublicKey,
-	sha256,
-} from '@radixdlt/crypto'
+import { privateKeyFromBuffer, PublicKey, sha256 } from '@radixdlt/crypto'
 import { ActionType, ExecutedAction } from './actions/_types'
 import { TransactionIdentifier } from './dto/transactionIdentifier'
 import { StakePosition, UnstakePosition } from './dto/_types'
 import { FinalizedTransaction } from './dto/_types'
 import { isNumber } from '@radixdlt/util'
-
-export const toAddress = (b58: string): AddressT =>
-	Address.fromBase58String(b58)._unsafeUnwrap()
 
 export const xrd: Token = {
 	name: 'Rad',
@@ -68,8 +59,8 @@ export const xrd: Token = {
 	})._unsafeUnwrap(),
 	isSupplyMutable: false,
 	currentSupply: maxAmount,
-	tokenInfoURL: new URL('http://www.radixdlt.com'),
-	iconURL: new URL('http://www.image.radixdlt.com/'),
+	tokenInfoURL: new URL('https://www.radixdlt.com'),
+	iconURL: new URL('https://www.image.radixdlt.com/'),
 	tokenPermission: tokenPermissionsAll,
 }
 
@@ -84,8 +75,8 @@ export const fooToken: Token = {
 	})._unsafeUnwrap(),
 	isSupplyMutable: false,
 	currentSupply: maxAmount,
-	tokenInfoURL: new URL('http://www.footoken.com'),
-	iconURL: new URL('http://www.image.footoken.com/'),
+	tokenInfoURL: new URL('https://www.footoken.com'),
+	iconURL: new URL('https://www.image.footoken.com/'),
 	tokenPermission: tokenPermissionsAll,
 }
 
@@ -100,8 +91,8 @@ export const barToken: Token = {
 	})._unsafeUnwrap(),
 	isSupplyMutable: true,
 	currentSupply: maxAmount,
-	tokenInfoURL: new URL('http://www.bartoken.com'),
-	iconURL: new URL('http://www.image.bartoken.com/'),
+	tokenInfoURL: new URL('https://www.bartoken.com'),
+	iconURL: new URL('https://www.image.bartoken.com/'),
 	tokenPermission: tokenPermissionsAll,
 }
 
@@ -116,8 +107,8 @@ export const goldToken: Token = {
 	})._unsafeUnwrap(),
 	isSupplyMutable: false,
 	currentSupply: maxAmount,
-	tokenInfoURL: new URL('http://www.goldtoken.com'),
-	iconURL: new URL('http://www.image.goldtoken.com/'),
+	tokenInfoURL: new URL('https://www.goldtoken.com'),
+	iconURL: new URL('https://www.image.goldtoken.com/'),
 	tokenPermission: tokenOwnerOnly,
 }
 
@@ -132,8 +123,8 @@ export const radixWrappedBitcoinToken: Token = {
 	})._unsafeUnwrap(),
 	isSupplyMutable: true,
 	currentSupply: maxAmount,
-	tokenInfoURL: new URL('http://www.bitcoin.radix.com'),
-	iconURL: new URL('http://www.image.bitcoin.radix.com/'),
+	tokenInfoURL: new URL('https://www.bitcoin.radix.com'),
+	iconURL: new URL('https://www.image.bitcoin.radix.com/'),
 	tokenPermission: tokenPermissionsAll,
 }
 
@@ -148,8 +139,8 @@ export const radixWrappedEtherToken: Token = {
 	})._unsafeUnwrap(),
 	isSupplyMutable: true,
 	currentSupply: maxAmount,
-	tokenInfoURL: new URL('http://www.ether.radix.com'),
-	iconURL: new URL('http://www.image.ether.radix.com/'),
+	tokenInfoURL: new URL('https://www.ether.radix.com'),
+	iconURL: new URL('https://www.image.ether.radix.com/'),
 	tokenPermission: tokenPermissionsAll,
 }
 
@@ -165,8 +156,8 @@ export const __fallBackAlexToken: Token = {
 	})._unsafeUnwrap(),
 	isSupplyMutable: true,
 	currentSupply: maxAmount,
-	tokenInfoURL: new URL('http://www.alex.token.com'),
-	iconURL: new URL('http://www.image.alex.token.com/'),
+	tokenInfoURL: new URL('https://www.alex.token.com'),
+	iconURL: new URL('https://www.image.alex.token.com/'),
 	tokenPermission: tokenPermissionsAll,
 }
 
@@ -196,7 +187,7 @@ export const balanceOfFor = (
 }
 
 export const balancesFor = (
-	address: AddressT,
+	address: AccountAddressT,
 	amount: number,
 ): SimpleTokenBalances => {
 	return {
@@ -220,57 +211,60 @@ const differentTokens: Token[] = [
 ]
 
 // PLEASE KEEP - used as Cast of characters: https://en.wikipedia.org/wiki/Alice_and_Bob#Cast_of_characters
-export const alice = toAddress(
-	'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
-)
-export const bob = toAddress(
-	'9S9LHeQNFpNJYqLtTJeAbos1LCC5Q7HBiGwPf2oju3NRq5MBKAGt',
-)
-export const carol = toAddress(
-	'9S8sKfN3wGyJdfyu9RwWvGKtZqq3R1NaxwT63VXi5dEZ6dUJXLyR',
-)
-export const dan = toAddress(
-	'9SBFdPAkvquf9XX82D2Z9DzL2WdmNQGcrxFUnKpVytpkMjZWD9Rb',
-)
-export const erin = toAddress(
-	'9S8LZFHXHTSJqNQ86ZeGKtFMJtqZbYPtgHWSC4LyYjSbduNRpDNN',
-)
-export const frank = toAddress(
-	'9SBRR1Xa3RRw1M7juwLTHfL1T2Y7XMZJJM6YyJjqddSLGaH2dk9c',
-)
-export const grace = toAddress(
-	'9S9AtsDC1eR6QSLwrTRi2vteWCg2C1VDMySStFaZVRpMrvErXzBV',
-)
-export const heidi = toAddress(
-	'9S9y4d9owF7kuRk7b14VhfwrBxHe3w9ukbAcbnoLtBFvjWhTCXpz',
-)
-export const ivan = toAddress(
-	'9SBRrNSxu6zacM8qyuUpDh4gNqou8QX6QEu53LKVsT4FXjvD77ou',
-)
-export const judy = toAddress(
-	'9S9tQA7v1jSEUTvLk3hTp9fTmWNsA1ppJ3D6dHLxoqnPcYayAmQf',
-)
-export const klara = toAddress(
-	'9S8np84gn7skz8U2Vd7GwkvSMzSksMLqAq7nrpu2hA2a31M2rmfD',
-)
-export const leonard = toAddress(
-	'9S8toEsjy7bLLVYwenrygbEiQDBiSYen4GDEGan5y6nGMXzKT22G',
-)
-export const mallory = toAddress(
-	'9SBZ9kzpXKAQ9oHHZngahVUQrLwU6DssiPbtCj5Qb6cxqxPC6stb',
-)
-export const niaj = toAddress(
-	'9S9X7DFSGTbfiQpSw1Dv9DHK67K1qHtz1Kjwd2uFtty7Yz8dmZbc',
-)
-export const olivia = toAddress(
-	'9S81XtkW3H9XZrmnzWqYSuTFPhWXdRnnpL3XXk7h5XxAM6zMdH7k',
-)
-export const peggy = toAddress(
-	'9SAGS7iVkjLDa2uoqzvybBJZP5RJd6XLzoeSmqur9WWXoKs7hPqz',
-)
-export const quentin = toAddress(
-	'9SB4Hvi9sudHncGXhUhuvUYNWziMYYcXXiDZ6i7fpSvRUDCA3rjg',
-)
+
+export const tokenByRRIMap: Map<
+	ResourceIdentifierT,
+	Token
+> = differentTokens.reduce((a: Map<ResourceIdentifierT, Token>, b: Token) => {
+	return a.set(b.rri, b)
+}, new Map<ResourceIdentifierT, Token>())
+
+const detPRNGWithBuffer = (buffer: Buffer): (() => number) => {
+	const bufCopy = Buffer.from(buffer)
+	let bytes = Buffer.from(buffer)
+	return (): number => {
+		if (bytes.length === 0) {
+			bytes = sha256(bufCopy)
+		}
+		const lengthToSlice = 2
+		const buf = bytes.slice(0, lengthToSlice)
+		bytes = bytes.slice(lengthToSlice, bytes.length)
+		return Number.parseInt(buf.toString('hex'), 16)
+	}
+}
+
+const addressesString: string[] = [
+	'brx1qspqljn9rg7x97s3rcvyzal2uxr5q22d9xn8nc4rpq8vq08kg4ch8yqhs9dq6',
+	'brx1qsp0mejfswrmcy5xf9up2ve7zez7w2th0fw4ne8js0u0q22vya7kg8getv7av',
+	'brx1qspvp5dklh3psxxegmrxvcxf657zfnh6z3t3snlh3qsa9twk56zlz3qyx6lhz',
+	'brx1qsppfpt0shel54s245fsk576tpcck3588qd32nknp5tghln93ltvl2q9ytt32',
+	'brx1qspp5vgf0l05ftl2qsu58u7zcel2gznfe9qduf0sfz20kt348fm8h6g0rs8g2',
+	'brx1qsplvk5mts5unklcmdlgzuyr4nm3ez4lkax9g99mhdzv60lv52wdlnqc2zk90',
+	'brx1qsp4mzazl97ynj37pud86e9l6ycam29qjtj89gl0j3ngs44wpf726gc2m9gwm',
+	'brx1qspdcmak8mq5w359sjayu7rr6umsmechxjpj5jtdy3jku3zj9p8n8fqza8lzg',
+	'brx1qsph24szj4jhl5ysefd8lma4el2lgpuhga7azwd9062r5hx98jw9mvssxl9cx',
+	'brx1qspavumjx92gcetz2klgc23fr28s2pf9q0nfssdxf2cnsjhxt3k8q5qzt2jme',
+	'brx1qspmk4lcn48p776g0djruqxyuy8f3l9639fpams8kuv0fwxsm9rqcsqfaw3rd',
+	'brx1qsp6g9ey8erzare0kedr0ymw9x00xnspksnkmvkczwg9tqea490n8qcypnzq4',
+	'brx1qspvrkaccvzd2cmh2w8awl4naxln5ssjuzarejl6fhakedhnkqn7d6qpflpty',
+	'brx1qspte4df856phvm8zq3ns37g7ax6qj9sc2ud559pa9vlque30nuxlgq9hwucz',
+	'brx1qsp4yj8ypkda0lt90yds8v8gknal0wwp4w8zzst5mtj7w6dr9gmlxdghckufj',
+	'brx1qspshc06mfs9d4hp4n696s3kapal8sck4nyxzl38mufvz3kw8cgktvs7wvfem',
+	'brx1qspvk7dj2af7x2nrccw58pe789a9s9hz6wyg9yqd6mnqetllr64gfdshs0adp',
+	'brx1qspwmz963arljtpte327hw04axj9pkeav5r8gkdvx6jpyxtmd0esfwgsczr92',
+	'brx1qspj2gpcnkc46x4t0lzqm6sxa0md42tfuwvshnuc0kg2zyt5mz5fs3saun8n2',
+	'brx1qspmv3m7c70mdegm4dkwmlnekzdas58g8fp83snmf0wz9yqpkepf43gjhan7g',
+	'brx1qspks7jgg0uksy8n7zvd6y93dpgy82653kq79mnk39eacyrjcnsy48ss8v8s3',
+	'brx1qsp6s2epnqhgnshjvktkz7j8ycf948xvcgmwcde04a8pcrzeqfe7z3qmakp5k',
+	'brx1qsp07ca60zv3heutkrguvd5j0f3a0y2785kynn9cfqrq2n4z962jxksthv4qp',
+	'brx1qsplvt0dkj7494mqk4pu2m9j2v68h0w8t8l0z2xj2kl09x7a5ssnz6se4thng',
+	'brx1qspc8cm2x2466x9n9tvurnvedqq9ukn95zjsfmhv2w04qkhgdx2dcrct7z9d2',
+	'brx1qsp68th9ywzwdzq0vsnkqr07sa6hdflg0jzerk7x535ekxjrvzsk07szync20',
+	'brx1qspxkq70fnkerexlfxeznkg2plxm4g25msu889t9z6pr3fqwyadev8gdn58en',
+	'brx1qspk03jsd52z7pqtxh80rhcx8ej8ee9dz4skc3kx7vymztfed3cpttgdfwg37',
+	'brx1qspp3ycx66gsm3r8vsycs04p9delgpu9h4y9agaw3v99rtd2fdyqh5cw4hquv',
+	'brx1qspgp2ce5lfmvqj2zp4ky6nef0wh24us2gp2rrxzjxrmzvgvvs53kzgzscgad',
+]
 
 const characterNames: string[] = [
 	'alice',
@@ -300,47 +294,21 @@ const characterNames: string[] = [
 	'yara',
 	'zelda',
 ]
-
-export const castOfCharacters: AddressT[] = [
-	alice,
-	bob,
-	carol,
-	dan,
-	erin,
-	frank,
-	grace,
-	heidi,
-	ivan,
-	judy,
-	klara,
-	leonard,
-	mallory,
-	niaj,
-	olivia,
-	peggy,
-	quentin,
-]
-
-export const tokenByRRIMap: Map<
-	ResourceIdentifierT,
-	Token
-> = differentTokens.reduce((a: Map<ResourceIdentifierT, Token>, b: Token) => {
-	return a.set(b.rri, b)
-}, new Map<ResourceIdentifierT, Token>())
-
-const detPRNGWithBuffer = (buffer: Buffer): (() => number) => {
-	const bufCopy = Buffer.from(buffer)
-	let bytes = Buffer.from(buffer)
-	return (): number => {
-		if (bytes.length === 0) {
-			bytes = sha256(bufCopy)
-		}
-		const lengthToSlice = 2
-		const buf = bytes.slice(0, lengthToSlice)
-		bytes = bytes.slice(lengthToSlice, bytes.length)
-		return Number.parseInt(buf.toString('hex'), 16)
-	}
-}
+/*
+* [Property in keyof ReturnType<typeof getAPI>]: ReturnType<
+		typeof getAPI
+	>[Property]
+* */
+export const castOfCharacters: AccountAddressT[] = addressesString
+	.map((s) =>
+		AccountAddress.fromUnsafe(s)._unsafeUnwrap({ withStackTrace: true }),
+	)
+	.slice(0, characterNames.length)
+export const alice = castOfCharacters[0]
+export const bob = castOfCharacters[1]
+export const carol = castOfCharacters[2]
+export const dan = castOfCharacters[3]
+export const erin = castOfCharacters[4]
 
 const makeListOfValidatorAddresses = (): ValidatorAddressT[] => {
 	const stringAddresses = [
@@ -430,7 +398,7 @@ const randomValidatorList = (
 			address: detRandomValidatorAddress(),
 			ownerAddress,
 			name,
-			infoURL: new URL('https://example.com'),
+			infoURL: new URL('https://rewards.radixtokens.comcom'),
 			totalDelegatedStake: amount,
 			ownerDelegation: amount,
 			isExternalStakeAccepted: bool,
@@ -539,7 +507,7 @@ const detRandBalanceOfTokenWithInfo = (
 }
 
 export const deterministicRandomBalancesForAddress = (
-	address: AddressT,
+	address: AccountAddressT,
 ): SimpleTokenBalances => {
 	const anInt = detPRNGWithPubKey(address.publicKey)
 
@@ -554,7 +522,7 @@ export const deterministicRandomBalancesForAddress = (
 }
 
 export const deterministicRandomUnstakesForAddress = (
-	address: AddressT,
+	address: AccountAddressT,
 ): UnstakePositions => {
 	const anInt = detPRNGWithPubKey(address.publicKey)
 	const size = anInt() % 10
@@ -594,7 +562,7 @@ export const deterministicRandomUnstakesForAddress = (
 }
 
 export const deterministicRandomStakesForAddress = (
-	address: AddressT,
+	address: AccountAddressT,
 ): StakePositions => {
 	return deterministicRandomUnstakesForAddress(address).map(
 		(un): StakePosition => ({
@@ -611,7 +579,7 @@ export const deterministicRandomTxHistoryWithInput = (
 	const pubKeyBytes = address.publicKey
 		.asData({ compressed: true })
 		.slice(1, 33)
-	const detRandomAddress = (): AddressT =>
+	const detRandomAddress = (): AccountAddressT =>
 		castOfCharacters[anInt() % castOfCharacters.length]
 	const detRandomValidatorAddress = detRandomValidatorAddressWithPRNG(anInt)
 	const tokenAndAmounts = detRandBalanceOfTokenWithInfo(anInt)
@@ -726,9 +694,9 @@ const deterministicRandomLookupTXUsingHist = (
 	txID: TransactionIdentifierT,
 ): ExecutedTransaction => {
 	const seed = sha256(Buffer.from(txID.__hex, 'hex'))
-	const addressWithTXIdBytesAsSeed = Address.fromPublicKeyAndMagicByte({
-		magicByte: 123,
+	const addressWithTXIdBytesAsSeed = AccountAddress.fromPublicKeyAndNetwork({
 		publicKey: privateKeyFromBuffer(seed)._unsafeUnwrap().publicKey(),
+		network: NetworkT.BETANET,
 	})
 	const txs = deterministicRandomTxHistoryWithInput({
 		size: 1,
@@ -744,7 +712,7 @@ const deterministicRandomLookupTXUsingHist = (
 }
 
 export const deterministicRandomBalances = (
-	address: AddressT,
+	address: AccountAddressT,
 ): Observable<SimpleTokenBalances> =>
 	of(deterministicRandomBalancesForAddress(address))
 
@@ -759,24 +727,24 @@ export const deterministicRandomLookupTX = (
 	of(deterministicRandomLookupTXUsingHist(txID))
 
 export const deterministicRandomUnstakesForAddr = (
-	address: AddressT,
+	address: AccountAddressT,
 ): Observable<UnstakePositions> =>
 	of(deterministicRandomUnstakesForAddress(address))
 
 export const deterministicRandomStakesForAddr = (
-	address: AddressT,
+	address: AccountAddressT,
 ): Observable<StakePositions> =>
 	of(deterministicRandomStakesForAddress(address))
 
 export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
-	node: { url: new URL(nodeUrl ?? 'http://www.example.com') },
+	node: { url: new URL(nodeUrl ?? 'https://www.radixdlt.com/') },
 
-	networkId: (): Observable<Magic> => {
+	networkId: (): Observable<NetworkT> => {
 		throw Error('Not implemented')
 	},
 
 	tokenBalancesForAddress: (
-		_address: AddressT,
+		_address: AccountAddressT,
 	): Observable<SimpleTokenBalances> => {
 		throw Error('Not implemented')
 	},
@@ -809,11 +777,15 @@ export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
 		throw Error('Not implemented')
 	},
 
-	stakesForAddress: (_address: AddressT): Observable<StakePositions> => {
+	stakesForAddress: (
+		_address: AccountAddressT,
+	): Observable<StakePositions> => {
 		throw Error('Not implemented')
 	},
 
-	unstakesForAddress: (_address: AddressT): Observable<UnstakePositions> => {
+	unstakesForAddress: (
+		_address: AccountAddressT,
+	): Observable<UnstakePositions> => {
 		throw Error('Not implemented')
 	},
 
@@ -858,15 +830,15 @@ let txStatusMapCounter: Map<
 export const mockRadixCoreAPI = (
 	input?: Readonly<{
 		nodeUrl?: string
-		magic?: number
+		network?: NetworkT
 	}>,
 ): RadixCoreAPI => {
 	txStatusMapCounter = new Map<TransactionIdentifierT, number>()
 	return {
-		node: { url: new URL(input?.nodeUrl ?? 'http://www.example.com') },
+		node: { url: new URL(input?.nodeUrl ?? 'https://www.radixdlt.com/') },
 
-		networkId: (): Observable<Magic> => {
-			return of(magicFromNumber(input?.magic ?? 123)).pipe(shareReplay(1))
+		networkId: (): Observable<NetworkT> => {
+			return of(input?.network ?? NetworkT.BETANET).pipe(shareReplay(1))
 		},
 		nativeToken: (): Observable<Token> => of(xrd),
 		tokenInfo: (rri: ResourceIdentifierT): Observable<Token> =>

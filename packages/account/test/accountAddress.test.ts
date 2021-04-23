@@ -1,9 +1,14 @@
-import { privateKeyFromBuffer, sha256Twice } from '@radixdlt/crypto'
-import { ValidatorAddress } from '../src'
-import { NetworkT } from '../dist'
+import { AccountAddress } from '../src'
+
+import {
+	privateKeyFromBuffer,
+	publicKeyCompressedByteCount,
+	sha256Twice,
+} from '@radixdlt/crypto'
+import { NetworkT } from '../src'
 import { msgFromError } from '@radixdlt/util'
 
-describe('validator_address_on_bech32_format', () => {
+describe('account_address_on_bech32_format', () => {
 	describe('addr from seeded private key', () => {
 		type PrivateKeySeedVector = {
 			privateKeySeed: string
@@ -14,31 +19,31 @@ describe('validator_address_on_bech32_format', () => {
 			{
 				privateKeySeed: '00',
 				expectedAddr:
-					'vb1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq9u3702',
+					'brx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjqllv9',
 				network: NetworkT.BETANET,
 			},
 			{
 				privateKeySeed: 'deadbeef',
 				expectedAddr:
-					'vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazy',
+					'brx1qspsel805pa0nhtdhemshp7hm0wjcvd60a8ulre6zxtd2qh3x4smq3sraak9a',
 				network: NetworkT.BETANET,
 			},
 			{
 				privateKeySeed: 'deadbeefdeadbeef',
 				expectedAddr:
-					'vb1q0jym8jxnc0a4306y95j9m07tprxws6ccjz9h352tkcdfzfysh0jxll64dl',
+					'brx1qsp7gnv7g60plkk9lgskjghdlevyve6rtrzggk7x3fwmp4yfyjza7gcumgm9f',
 				network: NetworkT.BETANET,
 			},
 			{
 				privateKeySeed: 'bead',
 				expectedAddr:
-					'vb1qgtnc40hs73dxe2fgy5yvujnxmdnvg69w6fhj6drr68vqac525k2gkfdady',
+					'brx1qsppw0z477r695m9f9qjs3nj2vmdkd3rg4mfx7tf5v0gasrhz32jefqwxg7ul',
 				network: NetworkT.BETANET,
 			},
 			{
 				privateKeySeed: 'aaaaaaaaaaaaaaaa',
 				expectedAddr:
-					'vb1qgyz0t0kd9j4302q8429tl0mu3w8lm8nne8l2m9e8k74t3qm3xe9z8l2049',
+					'brx1qspqsfad7e5k2k9agq74g40al0j9cllv7w0ylatvhy7m64wyrwymy5g7md96s',
 				network: NetworkT.BETANET,
 			},
 		]
@@ -50,14 +55,14 @@ describe('validator_address_on_bech32_format', () => {
 				const privateKey = privateKeyFromBuffer(hash)._unsafeUnwrap()
 				const publicKey = privateKey.publicKey()
 
-				const addr = ValidatorAddress.fromPublicKeyAndNetwork({
+				const addr = AccountAddress.fromPublicKeyAndNetwork({
 					publicKey,
 					network: vector.network,
 				})
 				expect(addr.toString()).toBe(vector.expectedAddr)
 				expect(addr.network).toBe(vector.network)
 
-				const parsedAddress = ValidatorAddress.fromUnsafe(
+				const parsedAddress = AccountAddress.fromUnsafe(
 					vector.expectedAddr,
 				)._unsafeUnwrap()
 				expect(parsedAddress.toString()).toBe(vector.expectedAddr)
@@ -70,6 +75,32 @@ describe('validator_address_on_bech32_format', () => {
 		}
 
 		privateKeySeedVectors.forEach((v, i) => doTest(v, i))
+	})
+
+	describe('rri roundtrip', () => {
+		type RRIDesVector = {
+			address: string
+			data: string
+		}
+
+		const reAddressToRri: RRIDesVector[] = [
+			{
+				address:
+					'brx1qspqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqs7cr9az',
+				data: '02'.repeat(publicKeyCompressedByteCount),
+			},
+		]
+		const doTest = (vector: RRIDesVector, index: number): void => {
+			it(`rri_deserialization_vector_index${index}`, () => {
+				const address = AccountAddress.fromUnsafe(
+					vector.address,
+				)._unsafeUnwrap()
+				expect(address.toString()).toBe(vector.address)
+				expect(address.publicKey.toString(true)).toBe(vector.data)
+			})
+		}
+
+		reAddressToRri.forEach((v, i) => doTest(v, i))
 	})
 
 	describe('test non happy paths', () => {
@@ -89,22 +120,26 @@ describe('validator_address_on_bech32_format', () => {
 		const invalidVectors: InvalidVector[] = [
 			{
 				invalidAddr:
-					'vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazz',
-				failureReason: 'bad checksum',
+					'vb1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq9u3702',
+				failureReason: 'invalid hrp',
 			},
 			{
-				invalidAddr: 'xrd_rr1gd5j68',
-				failureReason: 'Bad hrp',
+				invalidAddr: 'brx1xhv8x3',
+				failureReason: 'invalid address length 0',
 			},
 			{
-				invalidAddr: 'vb1qqweu28r',
-				failureReason: 'Not enough bytes for public key',
+				invalidAddr: 'brx1qqnrjk8r',
+				failureReason: 'invalid address type (0)',
+			},
+			{
+				invalidAddr: 'brx1qsqsyqcyq5rqzjh9c6',
+				failureReason: 'invalid length for address type 4',
 			},
 		]
 
 		const doTest = (invalidVector: InvalidVector, index: number): void => {
 			it(`invalid_vector_index${index}`, () => {
-				ValidatorAddress.fromUnsafe(invalidVector.invalidAddr).match(
+				AccountAddress.fromUnsafe(invalidVector.invalidAddr).match(
 					(_) => {
 						throw new Error(
 							`Got success, but expected failure, rri: ${invalidVector.invalidAddr}`,

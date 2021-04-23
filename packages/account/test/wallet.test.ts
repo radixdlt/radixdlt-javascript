@@ -1,24 +1,16 @@
-import { WalletT, AddressT } from '../src/_types'
-import { Wallet } from '../src/wallet'
-import { Mnemonic } from '../src/bip39/mnemonic'
+import { AccountAddressT, NetworkT, WalletT, Wallet, Mnemonic } from '../src'
 import { map, take, toArray } from 'rxjs/operators'
-import {
-	KeystoreT,
-	PrivateKey,
-	privateKeyFromScalar,
-	PublicKey,
-} from '@radixdlt/crypto'
+import { KeystoreT, PublicKey } from '@radixdlt/crypto'
 import { combineLatest, of, Subject } from 'rxjs'
-import { Magic, magicFromNumber } from '@radixdlt/primitives'
 import { restoreDefaultLogLevel, setLogLevel } from '@radixdlt/util'
 import { mockErrorMsg } from '../../util/test/util'
 
-const createWallet = (password: string = 'radixdlt'): WalletT => {
+const createWallet = (network?: NetworkT): WalletT => {
 	const mnemonic = Mnemonic.generateNew()
 	return Wallet.create({ mnemonic })
 }
 
-const createSpecificWallet = (): WalletT => {
+const createSpecificWallet = (network?: NetworkT): WalletT => {
 	const mnemonic = Mnemonic.fromEnglishPhrase(
 		'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
 	)._unsafeUnwrap()
@@ -54,7 +46,6 @@ describe('HD Wallet', () => {
 		const password = 'super secret password'
 
 		let load: () => Promise<KeystoreT>
-
 		await Wallet.byEncryptingMnemonicAndSavingKeystore({
 			mnemonic,
 			password,
@@ -229,40 +220,37 @@ describe('HD Wallet', () => {
 
 	it('can derive address for accounts', async (done) => {
 		const wallet = createWallet()
-		const magicSubject = new Subject<Magic>()
-		wallet.provideNetworkId(magicSubject.asObservable())
+		const networkIdSubject = new Subject<NetworkT>()
+		wallet.provideNetworkId(networkIdSubject.asObservable())
 
-		wallet.provideNetworkId(of(magicFromNumber(123)))
-
-		const magic = magicFromNumber(123)
 		wallet.observeActiveAddress().subscribe((address) => {
-			expect(address.magicByte).toBe(magic.byte)
+			expect(address.network).toBe(NetworkT.MAINNET)
 			done()
 		})
-		magicSubject.next(magic)
+		networkIdSubject.next(NetworkT.MAINNET)
 	})
 
-	it('can change magic', async (done) => {
+	it('can change networkID', async (done) => {
 		const wallet = createSpecificWallet()
 
-		const m1 = magicFromNumber(1)
-		const m2 = magicFromNumber(2)
+		const n1 = NetworkT.MAINNET
+		const n2 = NetworkT.BETANET
 
-		const expectedValues = [m1, m2].map((m) => m.byte)
+		const expectedValues = [n1, n2]
 
-		wallet.provideNetworkId(of(m1))
-		wallet.provideNetworkId(of(m2))
+		wallet.provideNetworkId(of(n1))
+		wallet.provideNetworkId(of(n2))
 
 		wallet
 			.observeActiveAddress()
 			.pipe(
-				map((a: AddressT) => a.magicByte),
+				map((a: AccountAddressT) => a.network),
 				take(2),
 				toArray(),
 			)
 			.subscribe(
-				(magic) => {
-					expect(magic).toStrictEqual(expectedValues)
+				(networks: NetworkT[]) => {
+					expect(networks).toStrictEqual(expectedValues)
 					done()
 				},
 				(error) => done(error),

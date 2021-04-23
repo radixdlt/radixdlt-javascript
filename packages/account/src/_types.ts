@@ -1,4 +1,3 @@
-import { Byte } from '@radixdlt/util'
 import {
 	ECPointOnCurve,
 	EncryptedMessageT,
@@ -6,32 +5,10 @@ import {
 	Signature,
 } from '@radixdlt/crypto'
 import { Observable } from 'rxjs'
-import { BIP32T } from './bip32/_types'
 import { Option } from 'prelude-ts'
-import { HDPathRadixT } from './bip32'
-import { Magic } from '@radixdlt/primitives'
-import { MnemomicT } from './bip39/_types'
-
-export type ResourceIdentifierT = Readonly<{
-	__witness: 'isRRI'
-	hash: Buffer
-	name: string
-	toString: () => string
-	equals: (other: ResourceIdentifierT) => boolean
-}>
-
-export type AddressT = Readonly<{
-	publicKey: PublicKey
-	magicByte: Byte
-	toString: () => string
-	equals: (other: AddressT) => boolean
-}>
-
-export type ValidatorAddressT = Readonly<{
-	publicKey: PublicKey
-	toString: () => string
-	equals: (other: ValidatorAddressT) => boolean
-}>
+import { HDPathRadixT, BIP32T } from './bip32'
+import { MnemomicT } from './bip39'
+import { AccountAddressT, NetworkT } from './addresses'
 
 export type PublicKeyDeriving = Readonly<{
 	derivePublicKey: () => Observable<PublicKey>
@@ -66,7 +43,7 @@ export type AccountT = PublicKeyDeriving &
 	Decrypting &
 	Readonly<{
 		hdPath: HDPathRadixT
-		deriveAddress: () => Observable<AddressT>
+		deriveAddress: () => Observable<AccountAddressT>
 		__unsafeGetPublicKey: () => PublicKey
 	}>
 
@@ -121,13 +98,13 @@ export type WalletT = PublicKeyDeriving &
 
 		revealMnemonic: () => MnemomicT
 
-		// Call this once you can provide an observable providing magic.
-		provideNetworkId: (magic: Observable<Magic>) => void
+		// Call this once you can provide an observable providing network.
+		provideNetworkId: (network: Observable<NetworkT>) => void
 		deriveNext: (input?: DeriveNextAccountInput) => AccountT
 
 		switchAccount: (input: SwitchAccountInput) => AccountT
 
 		observeActiveAccount: () => Observable<AccountT>
-		observeActiveAddress: () => Observable<AddressT>
+		observeActiveAddress: () => Observable<AccountAddressT>
 		observeAccounts: () => Observable<AccountsT>
 	}>

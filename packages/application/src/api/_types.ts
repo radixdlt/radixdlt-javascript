@@ -1,11 +1,11 @@
 import { getAPI } from './json-rpc/interface'
 
-import { Magic } from '@radixdlt/primitives'
 import { Observable } from 'rxjs'
 import {
-	AddressT,
+	AccountAddressT,
 	ResourceIdentifierT,
 	ValidatorAddressT,
+	NetworkT,
 } from '@radixdlt/account'
 
 import {
@@ -44,7 +44,7 @@ export type NodeT = Readonly<{
 
 export type RadixAPI = Readonly<{
 	tokenBalancesForAddress: (
-		address: AddressT,
+		address: AccountAddressT,
 	) => Observable<SimpleTokenBalances>
 
 	transactionHistory: (
@@ -55,8 +55,10 @@ export type RadixAPI = Readonly<{
 
 	tokenInfo: (rri: ResourceIdentifierT) => Observable<Token>
 
-	stakesForAddress: (address: AddressT) => Observable<StakePositions>
-	unstakesForAddress: (address: AddressT) => Observable<UnstakePositions>
+	stakesForAddress: (address: AccountAddressT) => Observable<StakePositions>
+	unstakesForAddress: (
+		address: AccountAddressT,
+	) => Observable<UnstakePositions>
 
 	transactionStatus: (
 		txID: TransactionIdentifierT,
@@ -86,7 +88,7 @@ export type RadixAPI = Readonly<{
 		signedUnconfirmedTransaction: SignedTransaction,
 	) => Observable<FinalizedTransaction>
 
-	networkId: () => Observable<Magic>
+	networkId: () => Observable<NetworkT>
 }>
 
 export type RadixCoreAPI = RadixAPI &

@@ -1,7 +1,7 @@
 import {
 	AccountsT,
 	AccountT,
-	AddressT,
+	AccountAddressT,
 	DeriveNextAccountInput,
 	MnemomicT,
 	SwitchAccountInput,
@@ -76,11 +76,11 @@ export type RadixT = Readonly<{
 	switchAccount: (input: SwitchAccountInput) => RadixT
 	revealMnemonic: () => Observable<MnemomicT>
 
-	activeAddress: Observable<AddressT>
+	activeAddress: Observable<AccountAddressT>
 	activeAccount: Observable<AccountT>
 	accounts: Observable<AccountsT>
 
-	// Active Address/Account APIs
+	// Active AccountAddress/Account APIs
 	tokenBalances: Observable<TokenBalances>
 	stakingPositions: Observable<StakePositions>
 	unstakingPositions: Observable<UnstakePositions>

@@ -19,7 +19,7 @@ import {
 	ValidatorsEndpoint,
 	SubmitTransactionEndpoint,
 } from '../src/api/json-rpc/_types'
-import { Amount, magicFromNumber } from '@radixdlt/primitives'
+import { Amount } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
 import {
@@ -29,7 +29,6 @@ import {
 } from '../src/actions/_types'
 
 import { makeTokenPermissions } from '../src/dto/tokenPermissions'
-// import { alice } from '../src/mockRadix'
 import { isArray, isObject } from '@radixdlt/util'
 import {
 	MethodObject,
@@ -37,9 +36,10 @@ import {
 	ContentDescriptorObject,
 } from '@open-rpc/meta-schema'
 import {
-	Address,
+	AccountAddress,
 	ResourceIdentifier,
 	ValidatorAddress,
+	NetworkT,
 } from '@radixdlt/account'
 import { LookupValidatorEndpoint } from '../src/api/json-rpc/_types'
 const faker = require('json-schema-faker')
@@ -67,7 +67,8 @@ const expectedDecodedResponses = {
 	[rpcSpec.methods[0].name]: (
 		response: NetworkIdEndpoint.Response,
 	): NetworkIdEndpoint.DecodedResponse => ({
-		networkId: magicFromNumber(response.networkId),
+		networkId:
+			response.networkId === 0 ? NetworkT.MAINNET : NetworkT.BETANET,
 	}),
 
 	[rpcSpec.methods[1].name]: (
@@ -115,9 +116,7 @@ const expectedDecodedResponses = {
 	[rpcSpec.methods[3].name]: (
 		response: TokenBalancesEndpoint.Response,
 	): TokenBalancesEndpoint.DecodedResponse => ({
-		owner: Address.fromUnsafe(
-			'9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT',
-		)._unsafeUnwrap(),
+		owner: AccountAddress.fromUnsafe(response.owner)._unsafeUnwrap(),
 		tokenBalances: [
 			{
 				tokenIdentifier: ResourceIdentifier.fromUnsafe(
@@ -147,10 +146,10 @@ const expectedDecodedResponses = {
 				actions: response.transactions[0].actions.map((action) =>
 					action.type === ActionType.TOKEN_TRANSFER
 						? <ExecutedTransferTokensAction>{
-								from: Address.fromUnsafe(
+								from: AccountAddress.fromUnsafe(
 									action.from,
 								)._unsafeUnwrap({ withStackTrace: true }),
-								to: Address.fromUnsafe(
+								to: AccountAddress.fromUnsafe(
 									action.to,
 								)._unsafeUnwrap({ withStackTrace: true }),
 								rri: ResourceIdentifier.fromUnsafe(
@@ -163,7 +162,7 @@ const expectedDecodedResponses = {
 						: action.type === ActionType.STAKE_TOKENS ||
 						  action.type === ActionType.UNSTAKE_TOKENS
 						? <ExecutedStakeTokensAction>{
-								from: Address.fromUnsafe(
+								from: AccountAddress.fromUnsafe(
 									action.from,
 								)._unsafeUnwrap({ withStackTrace: true }),
 								validator: ValidatorAddress.fromUnsafe(
@@ -193,10 +192,12 @@ const expectedDecodedResponses = {
 		actions: response.actions.map((action) =>
 			action.type === ActionType.TOKEN_TRANSFER
 				? <ExecutedTransferTokensAction>{
-						from: Address.fromUnsafe(action.from)._unsafeUnwrap({
+						from: AccountAddress.fromUnsafe(
+							action.from,
+						)._unsafeUnwrap({
 							withStackTrace: true,
 						}),
-						to: Address.fromUnsafe(action.to)._unsafeUnwrap({
+						to: AccountAddress.fromUnsafe(action.to)._unsafeUnwrap({
 							withStackTrace: true,
 						}),
 						rri: ResourceIdentifier.fromUnsafe(
@@ -209,9 +210,11 @@ const expectedDecodedResponses = {
 				: action.type === ActionType.STAKE_TOKENS ||
 				  action.type === ActionType.UNSTAKE_TOKENS
 				? <ExecutedStakeTokensAction>{
-						from: Address.fromUnsafe(
-							action.validator,
-						)._unsafeUnwrap({ withStackTrace: true }),
+						from: AccountAddress.fromUnsafe(
+							action.from,
+						)._unsafeUnwrap({
+							withStackTrace: true,
+						}),
 						validator: ValidatorAddress.fromUnsafe(
 							action.validator,
 						)._unsafeUnwrap({ withStackTrace: true }),
@@ -283,7 +286,7 @@ const expectedDecodedResponses = {
 				address: ValidatorAddress.fromUnsafe(
 					response.validators[0].address,
 				)._unsafeUnwrap({ withStackTrace: true }),
-				ownerAddress: Address.fromUnsafe(
+				ownerAddress: AccountAddress.fromUnsafe(
 					response.validators[0].ownerAddress,
 				)._unsafeUnwrap({ withStackTrace: true }),
 				name: response.validators[0].name,
@@ -306,7 +309,9 @@ const expectedDecodedResponses = {
 		address: ValidatorAddress.fromUnsafe(response.address)._unsafeUnwrap({
 			withStackTrace: true,
 		}),
-		ownerAddress: Address.fromUnsafe(response.ownerAddress)._unsafeUnwrap({
+		ownerAddress: AccountAddress.fromUnsafe(
+			response.ownerAddress,
+		)._unsafeUnwrap({
 			withStackTrace: true,
 		}),
 		name: response.name,
@@ -395,5 +400,5 @@ const testRpcMethod = (method: MethodObject, index: number) => {
 }
 
 describe('json-rpc spec', () => {
-	rpcSpec.methods.slice(3, 5).forEach((method, i) => testRpcMethod(method, i))
+	rpcSpec.methods.forEach((method, i) => testRpcMethod(method, i))
 })
