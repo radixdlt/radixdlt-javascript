@@ -1,6 +1,6 @@
 {
   "name": "@radixdlt/hardware-wallet",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Application for the Ledger Nano hardware wallet",
   "keywords": [
     "Ledger",
