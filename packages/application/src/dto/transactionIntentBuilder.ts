@@ -23,6 +23,7 @@ import {
 	AddressT,
 	isAccountAddress,
 	toObservableFromResult,
+	isResourceIdentifier,
 } from '@radixdlt/account'
 import { isObservable, Observable, of } from 'rxjs'
 import { map, mergeMap } from 'rxjs/operators'
@@ -41,7 +42,6 @@ import {
 import { combine, err, ok, Result } from 'neverthrow'
 import { EncryptedMessageT, PublicKey } from '@radixdlt/crypto'
 import { Option } from 'prelude-ts'
-import { isResourceIdentifier } from '@radixdlt/account/dist/addresses/resourceIdentifier'
 import { isAmount } from '@radixdlt/primitives'
 import { log } from '@radixdlt/util'
 

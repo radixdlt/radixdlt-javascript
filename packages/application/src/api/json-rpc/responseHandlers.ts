@@ -3,7 +3,11 @@ import { err, ok, Result } from 'neverthrow'
 import { UInt256 } from '@radixdlt/uint256'
 import { Amount } from '@radixdlt/primitives'
 
-import { Address, ValidatorAddress, NetworkT } from '@radixdlt/account'
+import {
+	Address,
+	ValidatorAddress,
+	ResourceIdentifier,
+} from '@radixdlt/account'
 
 import { isObject, isString } from '@radixdlt/util'
 import {
@@ -26,7 +30,6 @@ import {
 import { TransactionIdentifier } from '../../dto/transactionIdentifier'
 import { makeTokenPermissions } from '../../dto/tokenPermissions'
 import { TokenPermission } from '../../dto/_types'
-import { ResourceIdentifier } from '@radixdlt/account/dist/addresses/resourceIdentifier'
 import { pipe } from 'ramda'
 
 const amountDecoder = (...keys: string[]) =>

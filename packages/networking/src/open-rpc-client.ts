@@ -21,8 +21,7 @@ export const RPCClient: Client = (url: URL): Transport => {
 		/*
 		console.log(
 			`sending to ${endpoint}: ${JSON.stringify(filteredParams, null, 2)}`,
-		)
-		*/
+		)*/
 
 		const response:
 			| Record<string, unknown>

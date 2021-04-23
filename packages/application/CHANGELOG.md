@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.24](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@1.0.23...@radixdlt/application@1.0.24) (2021-04-22)
+
+**Note:** Version bump only for package @radixdlt/application
+
+
+
+
+
+## [1.0.23](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@1.0.22...@radixdlt/application@1.0.23) (2021-04-22)
+
+**Note:** Version bump only for package @radixdlt/application
+
+
+
+
+
 ## [1.0.22](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@1.0.21...@radixdlt/application@1.0.22) (2021-04-21)
 
 **Note:** Version bump only for package @radixdlt/application

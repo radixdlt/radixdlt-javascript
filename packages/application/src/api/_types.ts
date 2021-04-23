@@ -1,7 +1,11 @@
 import { getAPI } from './json-rpc/interface'
 
 import { Observable } from 'rxjs'
-import { AddressT, ValidatorAddressT, NetworkT, ResourceIdentifierT } from '@radixdlt/account'
+import {
+	AddressT,
+	ResourceIdentifierT,
+	ValidatorAddressT,
+} from '@radixdlt/account'
 
 import {
 	ExecutedTransaction,

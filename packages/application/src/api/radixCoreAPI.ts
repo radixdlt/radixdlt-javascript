@@ -1,7 +1,12 @@
 import { NodeAPI, NodeT, RadixCoreAPI } from './_types'
 import { ResultAsync } from 'neverthrow'
 import { defer, Observable } from 'rxjs'
-import { AddressT, toObservable, ValidatorAddressT, NetworkT, ResourceIdentifierT } from '@radixdlt/account'
+import {
+	AddressT,
+	ResourceIdentifierT,
+	toObservable,
+	ValidatorAddressT,
+} from '@radixdlt/account'
 import { map } from 'rxjs/operators'
 import {
 	ExecutedTransaction,
@@ -47,7 +52,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 		node,
 
 		validators: (input: ValidatorsRequestInput): Observable<Validators> =>
-			toObs((a) => a.validators, input.size, input.cursor.toString()),
+			toObs((a) => a.validators, input.size, input.cursor?.toString()),
 
 		lookupValidator: (input: ValidatorAddressT): Observable<Validator> =>
 			toObs((a) => a.lookupValidator, input.toString()),

@@ -34,7 +34,6 @@ import {
 	Subject,
 	Subscription,
 	throwError,
-	timer,
 } from 'rxjs'
 import { EncryptedMessage, KeystoreT } from '@radixdlt/crypto'
 import {
@@ -137,7 +136,6 @@ const create = (
 			// We do NOT omit/supress error, we merely DECORATE the error
 			catchError((errors: unknown) => {
 				const underlyingError = msgFromError(errors)
-				console.error(`🚗: ${underlyingError}`)
 				throw errorFn(underlyingError)
 			}),
 		)
@@ -638,11 +636,13 @@ const create = (
 			.add(subs)
 
 		const pollTxStatusTrigger = (
-			options.pollTXStatusTrigger ?? timer(1_000)
+			options.pollTXStatusTrigger ?? interval(1000)
 		).pipe(share())
 
-		const transactionStatus$ = pollTxStatusTrigger.pipe(
-			withLatestFrom(pendingTXSubject),
+		const transactionStatus$ = combineLatest([
+			pollTxStatusTrigger,
+			pendingTXSubject,
+		]).pipe(
 			mergeMap(([_, pendingTx]) => {
 				txLog.debug(
 					`Asking API for status of transaction with txID: ${pendingTx.txID.toString()}`,

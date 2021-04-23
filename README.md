@@ -10,14 +10,13 @@ import { Radix } from '@radixdlt/application'
 
 const radix = Radix.create()
 	.login('my strong password', loadKeystore)
-	.connect(new URL('https://api.radixdlt.com'))
+	.connect(new URL('https://api.radixdlt.com/rpc'))
 	.transferTokens(
 		{
 			transferInput: {
 				to: bob,
 				amount: 1,
-				tokenIdentifier:
-					'xrd_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtesv2yq5l',
+				tokenIdentifier: 'xrd_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtesv2yq5l',
 			},
 			userConfirmation: 'skip'
 		}
