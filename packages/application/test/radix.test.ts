@@ -1497,52 +1497,88 @@ describe('radix_high_level_api', () => {
 		})
 	})
 
-	describe('special wallet with preallocated funds', () => {
-		it('hardcoded funds', (done) => {
+	describe('failing scenarios', function () {
+		beforeAll(() => {
+			jest.spyOn(console, 'error').mockImplementation(() => {})
+		})
+
+		afterAll(() => {
+			jest.clearAllMocks()
+		})
+
+		it('error is thrown when wrong network', (done) => {
 			const subs = new Subscription()
+			const requestedNetwork = NetworkT.MAINNET
+			const radix = Radix.create({ network: requestedNetwork }).__withAPI(
+				of({
+					...mockRadixCoreAPI(),
+					networkId: () => of(NetworkT.BETANET),
+				}),
+			)
 
-			const walletWithFunds = makeWalletWithFunds()
-
-			const radix = Radix.create()
-				.__withAPI(
-					of({
-						...mockRadixCoreAPI(),
-						networkId: (): Observable<NetworkT> => {
-							return of(NetworkT.BETANET).pipe(shareReplay(1))
-						},
-					}),
-				)
-				.withWallet(walletWithFunds)
-
-			const expectedAddresses: string[] = [
-				'brx1qsp8n0nx0muaewav2ksx99wwsu9swq5mlndjmn3gm9vl9q2mzmup0xqmhf7fh',
-				'brx1qspvvprlj3q76ltdxpz5qm54cp7dshrh3e9cemeu5746czdet3cfaegp6s708',
-				'brx1qsp0jvy2qxf93scsfy6ylp0cn4fzndf3epzcxmuekzrqrugnhnsrd7gah8wq5',
-				'brx1qspwfy7m78qsmq8ntq0yjpynpv2qfnrvzwgqacr4s360499tarzv6yctz3ahh',
-				'brx1qspzlz77f5dqwgyn2k62wfg2t3gj36ytsj7accv6kl9634tfkfqwleqmpz874',
-			]
-
-			radix.activeAddress
-				.pipe(
-					map((a: AddressT) => a.toString()),
-					take(expectedAddresses.length),
-					toArray(),
-				)
+			radix.ledger
+				.networkId()
 				.subscribe(
-					(values) => {
-						expect(values).toStrictEqual(expectedAddresses)
-						done()
+					(network) => {
+						const wrong = `Expected failure but got success, got networkID: ${network.toString()}`
+						console.error(wrong)
+						done(new Error(wrong))
 					},
-					(error) => {
-						done(error)
+					(e) => {
+						expect(msgFromError(e)).toBe(
+							`EMERGENCY actual network and requested network differs. STOP EVERYTHING YOU ARE DOING. You might lose funds.`,
+						)
+						done()
 					},
 				)
 				.add(subs)
-
-			radix.deriveNextAccount({ alsoSwitchTo: true })
-			radix.deriveNextAccount({ alsoSwitchTo: true })
-			radix.deriveNextAccount({ alsoSwitchTo: true })
-			radix.deriveNextAccount({ alsoSwitchTo: true })
 		})
+	})
+
+	it('special wallet with preallocated funds', (done) => {
+		const subs = new Subscription()
+
+		const walletWithFunds = makeWalletWithFunds()
+
+		const radix = Radix.create()
+			.__withAPI(
+				of({
+					...mockRadixCoreAPI(),
+					networkId: (): Observable<NetworkT> => {
+						return of(NetworkT.BETANET).pipe(shareReplay(1))
+					},
+				}),
+			)
+			.withWallet(walletWithFunds)
+
+		const expectedAddresses: string[] = [
+			'brx1qsp8n0nx0muaewav2ksx99wwsu9swq5mlndjmn3gm9vl9q2mzmup0xqmhf7fh',
+			'brx1qspvvprlj3q76ltdxpz5qm54cp7dshrh3e9cemeu5746czdet3cfaegp6s708',
+			'brx1qsp0jvy2qxf93scsfy6ylp0cn4fzndf3epzcxmuekzrqrugnhnsrd7gah8wq5',
+			'brx1qspwfy7m78qsmq8ntq0yjpynpv2qfnrvzwgqacr4s360499tarzv6yctz3ahh',
+			'brx1qspzlz77f5dqwgyn2k62wfg2t3gj36ytsj7accv6kl9634tfkfqwleqmpz874',
+		]
+
+		radix.activeAddress
+			.pipe(
+				map((a: AddressT) => a.toString()),
+				take(expectedAddresses.length),
+				toArray(),
+			)
+			.subscribe(
+				(values) => {
+					expect(values).toStrictEqual(expectedAddresses)
+					done()
+				},
+				(error) => {
+					done(error)
+				},
+			)
+			.add(subs)
+
+		radix.deriveNextAccount({ alsoSwitchTo: true })
+		radix.deriveNextAccount({ alsoSwitchTo: true })
+		radix.deriveNextAccount({ alsoSwitchTo: true })
+		radix.deriveNextAccount({ alsoSwitchTo: true })
 	})
 })

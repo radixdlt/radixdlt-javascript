@@ -16,9 +16,24 @@ type ErrorCodeOwner = {
 	code: string
 }
 
-type NestedErrorOwner = {
-	error: MessageOwner | FailureOwner | ErrorMessageOwner | ErrorCodeOwner
+type ErrorIsh = MessageOwner | FailureOwner | ErrorMessageOwner | ErrorCodeOwner
+
+type ErrorsOwner = {
+	errors: ErrorIsh[]
 }
+
+type NestedErrorOwner = {
+	error:
+		| MessageOwner
+		| FailureOwner
+		| ErrorMessageOwner
+		| ErrorCodeOwner
+		| ErrorsOwner
+}
+
+// type ErrorNotificationIsh = {
+// 	errors: Error[]
+// }
 
 const isString = (something: unknown): something is string =>
 	typeof something === 'string'
@@ -31,6 +46,11 @@ const isMessageOwner = (something: unknown): something is MessageOwner => {
 	return (
 		inspection.message !== undefined && isNonEmptyString(inspection.message)
 	)
+}
+
+const isErrorsOwner = (something: unknown): something is ErrorsOwner => {
+	const inspection = something as ErrorsOwner
+	return inspection.errors !== undefined && isArray(inspection.errors)
 }
 
 const isFailureOwner = (something: unknown): something is FailureOwner => {
@@ -64,7 +84,8 @@ const isNestedErrorOwner = (
 		isMessageOwner(err) ||
 		isFailureOwner(err) ||
 		isErrorMessageOwner(err) ||
-		isErrorCodeOwner(err)
+		isErrorCodeOwner(err) ||
+		isErrorsOwner(err)
 	)
 }
 
@@ -74,6 +95,9 @@ export const msgFromError = (e: unknown, dumpJSON: boolean = true): string => {
 	if (isFailureOwner(e)) return e.failure
 	if (isErrorMessageOwner(e)) return e.error
 	if (isErrorCodeOwner(e)) return e.code
+	if (isErrorsOwner(e)) {
+		return e.errors.map((inner) => msgFromError(inner)).join(`, `)
+	}
 	if (isNestedErrorOwner(e)) {
 		const inner = e.error
 		return msgFromError(inner)

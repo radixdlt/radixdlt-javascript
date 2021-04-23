@@ -142,7 +142,21 @@ const create = (
 		)
 
 	const networkId: () => Observable<NetworkT> = fwdAPICall(
-		(a) => a.networkId,
+		(a) => {
+			return (): Observable<NetworkT> => {
+				return a.networkId().pipe(
+					tap((actualNetwork) => {
+						if (actualNetwork !== requestedNetwork) {
+							const errMsg = `EMERGENCY actual network and requested network differs. STOP EVERYTHING YOU ARE DOING. You might lose funds.`
+							const errMsgToLog = `☣️ ${errMsg}`
+							console.error(errMsgToLog)
+							log.error(errMsgToLog)
+							throw new Error(errMsg)
+						}
+					}),
+				)
+			}
+		},
 		(m) => networkIdErr(m),
 	)
 
@@ -360,22 +374,7 @@ const create = (
 	const _withWallet = (wallet: WalletT): void => {
 		// Important! We must provide wallet with `networkId`,
 		// so that it can derive addresses for its accounts.
-		const networkID$ = networkId().pipe(
-			tap((actualNetwork) => {
-				if (actualNetwork !== requestedNetwork) {
-					const errMsg = `EMERGENCY actual network and requested network differs. STOP EVERYTHING YOU ARE DOING. You might lose funds.`
-					const errMsgToLog = `☣️ ${errMsg}`
-					console.error(errMsgToLog)
-					log.error(errMsgToLog)
-					throw new Error(errMsg)
-				} else {
-					console.log(
-						`✅ network ID matches the requested one, connected to ${actualNetwork.toString()}`
-					)
-				}
-			}),
-		)
-
+		const networkID$ = networkId()
 		wallet.provideNetworkId(networkID$)
 		walletSubject.next(wallet)
 	}
