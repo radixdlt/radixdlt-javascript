@@ -27,7 +27,7 @@ import { TransferTokensOptions } from '../../src/_types'
 import { makeWalletWithFunds } from '../../../account/test/utils'
 const fetch = require('node-fetch')
 
-//const NODE_URL = 'http://localhost:8080'
+//const NODE_URL = 'https://localhost:8080'
 const NODE_URL = 'https://54.73.253.49'
 
 const requestFaucet = async (address: string) => {

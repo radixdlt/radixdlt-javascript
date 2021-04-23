@@ -6,6 +6,7 @@ import {
 	ResourceIdentifierT,
 	toObservable,
 	ValidatorAddressT,
+	NetworkT,
 } from '@radixdlt/account'
 import { map } from 'rxjs/operators'
 import {

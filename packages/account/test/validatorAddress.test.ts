@@ -3,7 +3,6 @@ import { ValidatorAddress } from '../src'
 import { AddressTypeT, NetworkT, ValidatorAddressT } from '../dist'
 
 describe('validator address', () => {
-
 	it('validator address betanet', () => {
 		const publicKey = publicKeyFromBytes(
 			Buffer.from(
@@ -14,7 +13,7 @@ describe('validator address', () => {
 
 		const validatorAddress = ValidatorAddress.fromPublicKeyAndNetwork({
 			publicKey,
-			network: NetworkT.BETANET
+			network: NetworkT.BETANET,
 		})
 
 		expect(validatorAddress.network).toBe(NetworkT.BETANET)
@@ -37,7 +36,7 @@ describe('validator address', () => {
 
 		const validatorAddress = ValidatorAddress.fromPublicKeyAndNetwork({
 			publicKey,
-			network: NetworkT.MAINNET
+			network: NetworkT.MAINNET,
 		})
 
 		expect(validatorAddress.network).toBe(NetworkT.MAINNET)
@@ -64,7 +63,9 @@ describe('validator address', () => {
 				)
 
 				expect(validatorAddress.network).toBe(NetworkT.BETANET)
-				expect(validatorAddress.addressType).toBe(AddressTypeT.VALIDATOR)
+				expect(validatorAddress.addressType).toBe(
+					AddressTypeT.VALIDATOR,
+				)
 			},
 			(error) => {
 				throw error
@@ -86,7 +87,9 @@ describe('validator address', () => {
 				)
 
 				expect(validatorAddress.network).toBe(NetworkT.MAINNET)
-				expect(validatorAddress.addressType).toBe(AddressTypeT.VALIDATOR)
+				expect(validatorAddress.addressType).toBe(
+					AddressTypeT.VALIDATOR,
+				)
 			},
 			(error) => {
 				throw error

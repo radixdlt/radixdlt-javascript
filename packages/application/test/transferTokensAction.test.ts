@@ -1,15 +1,11 @@
-import { Address, ResourceIdentifier } from '@radixdlt/account'
+import { ResourceIdentifier } from '@radixdlt/account'
 import { Denomination } from '@radixdlt/primitives'
 import { Amount, zero } from '@radixdlt/primitives/src/amount'
 import { TransferTokensInput } from '../src/actions/_types'
 import { IntendedTransferTokens } from '../src/actions/intendedTransferTokensAction'
+import { alice, bob } from '../src'
 
 describe('TransferTokensActions', () => {
- 	const resourceIdentifier = ResourceIdentifier.create({
- 		hash: alice.publicKey.asData({ compressed: true }),
- 		name: 'FOOBAR',
- 	})._unsafeUnwrap({ withStackTrace: true })
-
 	const resourceIdentifier = ResourceIdentifier.fromPublicKeyAndName({
 		publicKey: alice.publicKey,
 		name: 'foobar',

@@ -1,12 +1,26 @@
 import { privateKeyFromScalar, PublicKey, sha256Twice } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
-import { Account, Mnemonic, HDMasterSeed, HDPathRadix, AddressT, NetworkT, Address } from '../src'
+import {
+	Account,
+	Mnemonic,
+	HDMasterSeed,
+	HDPathRadix,
+	AddressT,
+	NetworkT,
+	Address,
+} from '../src'
 import { Observable, of } from 'rxjs'
 
-const addressFromPublicKey = (publicKey: PublicKey, network?: NetworkT): Observable<AddressT> => of(Address.fromPublicKeyAndNetwork({
+const addressFromPublicKey = (
+	publicKey: PublicKey,
+	network?: NetworkT,
+): Observable<AddressT> =>
+	of(
+		Address.fromPublicKeyAndNetwork({
 			publicKey,
-			network: network ?? NetworkT.BETANET
-		}))
+			network: network ?? NetworkT.BETANET,
+		}),
+	)
 
 describe('account', () => {
 	it('works', async (done) => {

@@ -4,9 +4,9 @@ import {
 	DeriveNextAccountInput,
 	MnemomicT,
 	SwitchAccountInput,
-	Wallet,
 	NetworkT,
 	WalletT,
+	Wallet,
 } from '@radixdlt/account'
 import { NodeT, RadixAPI, RadixCoreAPI, radixCoreAPI, nodeAPI } from './api'
 
@@ -32,6 +32,7 @@ import {
 	of,
 	ReplaySubject,
 	Subject,
+	interval,
 	Subscription,
 	throwError,
 } from 'rxjs'

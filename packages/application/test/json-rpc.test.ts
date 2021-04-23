@@ -19,7 +19,7 @@ import {
 	ValidatorsEndpoint,
 	SubmitTransactionEndpoint,
 } from '../src/api/json-rpc/_types'
-import { Amount, magicFromNumber } from '@radixdlt/primitives'
+import { Amount } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
 import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
 import {
@@ -29,7 +29,6 @@ import {
 } from '../src/actions/_types'
 
 import { makeTokenPermissions } from '../src/dto/tokenPermissions'
-// import { alice } from '../src/mockRadix'
 import { isArray, isObject } from '@radixdlt/util'
 import {
 	MethodObject,
@@ -40,6 +39,7 @@ import {
 	Address,
 	ResourceIdentifier,
 	ValidatorAddress,
+	NetworkT,
 } from '@radixdlt/account'
 import { LookupValidatorEndpoint } from '../src/api/json-rpc/_types'
 const faker = require('json-schema-faker')
@@ -67,7 +67,8 @@ const expectedDecodedResponses = {
 	[rpcSpec.methods[0].name]: (
 		response: NetworkIdEndpoint.Response,
 	): NetworkIdEndpoint.DecodedResponse => ({
-		networkId: response.networkId === 0 ? NetworkT.MAINNET : NetworkT.BETANET,
+		networkId:
+			response.networkId === 0 ? NetworkT.MAINNET : NetworkT.BETANET,
 	}),
 
 	[rpcSpec.methods[1].name]: (
@@ -349,7 +350,7 @@ const expectedDecodedResponses = {
 	}),
 }
 
-const client = nodeAPI(new URL('http://xyz'))
+const client = nodeAPI(new URL('https://xyz'))
 
 const testRpcMethod = (method: MethodObject, index: number) => {
 	it(`should decode ${method.name} response`, async () => {
@@ -392,4 +393,8 @@ const testRpcMethod = (method: MethodObject, index: number) => {
 
 		checkEquality(expected, result)
 	})
+}
+
+describe('json-rpc spec', () => {
+	rpcSpec.methods.forEach((method, i) => testRpcMethod(method, i))
 })

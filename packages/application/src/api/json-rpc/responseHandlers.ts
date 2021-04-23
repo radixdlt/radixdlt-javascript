@@ -7,6 +7,7 @@ import {
 	Address,
 	ValidatorAddress,
 	ResourceIdentifier,
+	NetworkT,
 } from '@radixdlt/account'
 
 import { isObject, isString } from '@radixdlt/util'

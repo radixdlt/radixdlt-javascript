@@ -5,6 +5,7 @@ import {
 	AddressT,
 	ResourceIdentifierT,
 	ValidatorAddressT,
+	NetworkT,
 } from '@radixdlt/account'
 
 import {

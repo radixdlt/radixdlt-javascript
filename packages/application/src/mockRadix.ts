@@ -3,8 +3,6 @@ import {
 	AmountT,
 	Denomination,
 	isAmount,
-	Magic,
-	magicFromNumber,
 	maxAmount,
 } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
@@ -15,6 +13,7 @@ import {
 	ResourceIdentifier,
 	ValidatorAddress,
 	ValidatorAddressT,
+	NetworkT,
 } from '@radixdlt/account'
 import { Observable, of } from 'rxjs'
 import {
@@ -42,20 +41,12 @@ import {
 import { tokenOwnerOnly, tokenPermissionsAll } from './dto/tokenPermissions'
 import { RadixCoreAPI } from './api/_types'
 import { shareReplay } from 'rxjs/operators'
-import {
-	privateKeyFromBuffer,
-	privateKeyFromHex,
-	PublicKey,
-	sha256,
-} from '@radixdlt/crypto'
+import { privateKeyFromBuffer, PublicKey, sha256 } from '@radixdlt/crypto'
 import { ActionType, ExecutedAction } from './actions/_types'
 import { TransactionIdentifier } from './dto/transactionIdentifier'
 import { StakePosition, UnstakePosition } from './dto/_types'
 import { FinalizedTransaction } from './dto/_types'
 import { isNumber } from '@radixdlt/util'
-
-export const toAddress = (b58: string): AddressT =>
-	Address.fromBase58String(b58)._unsafeUnwrap()
 
 export const xrd: Token = {
 	name: 'Rad',
@@ -68,8 +59,8 @@ export const xrd: Token = {
 	})._unsafeUnwrap(),
 	isSupplyMutable: false,
 	currentSupply: maxAmount,
-	tokenInfoURL: new URL('http://www.radixdlt.com'),
-	iconURL: new URL('http://www.image.radixdlt.com/'),
+	tokenInfoURL: new URL('https://www.radixdlt.com'),
+	iconURL: new URL('https://www.image.radixdlt.com/'),
 	tokenPermission: tokenPermissionsAll,
 }
 
@@ -84,8 +75,8 @@ export const fooToken: Token = {
 	})._unsafeUnwrap(),
 	isSupplyMutable: false,
 	currentSupply: maxAmount,
-	tokenInfoURL: new URL('http://www.footoken.com'),
-	iconURL: new URL('http://www.image.footoken.com/'),
+	tokenInfoURL: new URL('https://www.footoken.com'),
+	iconURL: new URL('https://www.image.footoken.com/'),
 	tokenPermission: tokenPermissionsAll,
 }
 
@@ -100,8 +91,8 @@ export const barToken: Token = {
 	})._unsafeUnwrap(),
 	isSupplyMutable: true,
 	currentSupply: maxAmount,
-	tokenInfoURL: new URL('http://www.bartoken.com'),
-	iconURL: new URL('http://www.image.bartoken.com/'),
+	tokenInfoURL: new URL('https://www.bartoken.com'),
+	iconURL: new URL('https://www.image.bartoken.com/'),
 	tokenPermission: tokenPermissionsAll,
 }
 
@@ -116,8 +107,8 @@ export const goldToken: Token = {
 	})._unsafeUnwrap(),
 	isSupplyMutable: false,
 	currentSupply: maxAmount,
-	tokenInfoURL: new URL('http://www.goldtoken.com'),
-	iconURL: new URL('http://www.image.goldtoken.com/'),
+	tokenInfoURL: new URL('https://www.goldtoken.com'),
+	iconURL: new URL('https://www.image.goldtoken.com/'),
 	tokenPermission: tokenOwnerOnly,
 }
 
@@ -132,8 +123,8 @@ export const radixWrappedBitcoinToken: Token = {
 	})._unsafeUnwrap(),
 	isSupplyMutable: true,
 	currentSupply: maxAmount,
-	tokenInfoURL: new URL('http://www.bitcoin.radix.com'),
-	iconURL: new URL('http://www.image.bitcoin.radix.com/'),
+	tokenInfoURL: new URL('https://www.bitcoin.radix.com'),
+	iconURL: new URL('https://www.image.bitcoin.radix.com/'),
 	tokenPermission: tokenPermissionsAll,
 }
 
@@ -148,8 +139,8 @@ export const radixWrappedEtherToken: Token = {
 	})._unsafeUnwrap(),
 	isSupplyMutable: true,
 	currentSupply: maxAmount,
-	tokenInfoURL: new URL('http://www.ether.radix.com'),
-	iconURL: new URL('http://www.image.ether.radix.com/'),
+	tokenInfoURL: new URL('https://www.ether.radix.com'),
+	iconURL: new URL('https://www.image.ether.radix.com/'),
 	tokenPermission: tokenPermissionsAll,
 }
 
@@ -165,8 +156,8 @@ export const __fallBackAlexToken: Token = {
 	})._unsafeUnwrap(),
 	isSupplyMutable: true,
 	currentSupply: maxAmount,
-	tokenInfoURL: new URL('http://www.alex.token.com'),
-	iconURL: new URL('http://www.image.alex.token.com/'),
+	tokenInfoURL: new URL('https://www.alex.token.com'),
+	iconURL: new URL('https://www.image.alex.token.com/'),
 	tokenPermission: tokenPermissionsAll,
 }
 
@@ -221,9 +212,6 @@ const differentTokens: Token[] = [
 
 // PLEASE KEEP - used as Cast of characters: https://en.wikipedia.org/wiki/Alice_and_Bob#Cast_of_characters
 
-
-
-
 export const tokenByRRIMap: Map<
 	ResourceIdentifierT,
 	Token
@@ -244,7 +232,6 @@ const detPRNGWithBuffer = (buffer: Buffer): (() => number) => {
 		return Number.parseInt(buf.toString('hex'), 16)
 	}
 }
-
 
 const addressesString: string[] = [
 	'brx1qspqljn9rg7x97s3rcvyzal2uxr5q22d9xn8nc4rpq8vq08kg4ch8yqhs9dq6',
@@ -320,7 +307,6 @@ export const bob = castOfCharacters[1]
 export const carol = castOfCharacters[2]
 export const dan = castOfCharacters[3]
 export const erin = castOfCharacters[4]
-
 
 const makeListOfValidatorAddresses = (): ValidatorAddressT[] => {
 	const stringAddresses = [
@@ -706,9 +692,9 @@ const deterministicRandomLookupTXUsingHist = (
 	txID: TransactionIdentifierT,
 ): ExecutedTransaction => {
 	const seed = sha256(Buffer.from(txID.__hex, 'hex'))
-	const addressWithTXIdBytesAsSeed = Address.fromPublicKeyAndMagicByte({
-		magicByte: 123,
+	const addressWithTXIdBytesAsSeed = Address.fromPublicKeyAndNetwork({
 		publicKey: privateKeyFromBuffer(seed)._unsafeUnwrap().publicKey(),
+		network: NetworkT.BETANET,
 	})
 	const txs = deterministicRandomTxHistoryWithInput({
 		size: 1,
@@ -749,9 +735,9 @@ export const deterministicRandomStakesForAddr = (
 	of(deterministicRandomStakesForAddress(address))
 
 export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
-	node: { url: new URL(nodeUrl ?? 'http://www.example.com') },
+	node: { url: new URL(nodeUrl ?? 'https://www.example.com') },
 
-	networkId: (): Observable<Magic> => {
+	networkId: (): Observable<NetworkT> => {
 		throw Error('Not implemented')
 	},
 
@@ -838,15 +824,15 @@ let txStatusMapCounter: Map<
 export const mockRadixCoreAPI = (
 	input?: Readonly<{
 		nodeUrl?: string
-		magic?: number
+		network?: NetworkT
 	}>,
 ): RadixCoreAPI => {
 	txStatusMapCounter = new Map<TransactionIdentifierT, number>()
 	return {
-		node: { url: new URL(input?.nodeUrl ?? 'http://www.example.com') },
+		node: { url: new URL(input?.nodeUrl ?? 'https://www.example.com') },
 
-		networkId: (): Observable<Magic> => {
-			return of(magicFromNumber(input?.magic ?? 123)).pipe(shareReplay(1))
+		networkId: (): Observable<NetworkT> => {
+			return of(input?.network ?? NetworkT.BETANET).pipe(shareReplay(1))
 		},
 		nativeToken: (): Observable<Token> => of(xrd),
 		tokenInfo: (rri: ResourceIdentifierT): Observable<Token> =>

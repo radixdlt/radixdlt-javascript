@@ -7,10 +7,11 @@ import { Bech32, Encoding } from '../bech32'
 const encoding = Encoding.BECH32
 const maxLength: number | undefined = undefined // arbitrarily chosen
 
-const hrpSuffix = '_rr'
+const hrpBetanetSuffix = '_rb'
+const hrpMainnetSuffix = '_rr'
 
-const versionByteNativeToken = 0x01 //Buffer.from([0x01])
-const versionByteNonNativeToken = 0x03 //Buffer.from([0x03])
+const versionByteNativeToken = 0x01
+const versionByteNonNativeToken = 0x03
 
 const __create = (input: {
 	hash: Buffer
@@ -22,7 +23,6 @@ const __create = (input: {
 		__witness: 'isRRI',
 		equals: (other): boolean => {
 			if (!isResourceIdentifier(other)) return false
-			// return input.toString() === other.toString()
 			const same =
 				other.name === input.name &&
 				buffersEquals(other.hash, input.hash)
@@ -41,13 +41,14 @@ const __create = (input: {
 const fromBech32String = (
 	bechString: string,
 ): Result<ResourceIdentifierT, Error> => {
+	const hrpSuffix = hrpBetanetSuffix // TODO make dependent on Network!
+
 	const decodingResult = Bech32.decode({ bechString, encoding, maxLength })
 
 	if (!decodingResult.isOk()) {
 		const errMsg = `Failed to Bech32 decode RRI, underlying error: ${msgFromError(
 			decodingResult.error,
 		)}, but expect to always be able to.`
-		// console.error(errMsg)
 		return err(new Error(errMsg))
 	}
 	const decoded = decodingResult.value
@@ -55,11 +56,18 @@ const fromBech32String = (
 
 	if (!hrp.endsWith(hrpSuffix)) {
 		const errMsg = `The prefix (HRP: Human Readable Part) of a Resource identifier must end with suffix ${hrpSuffix}`
-		// console.error(errMsg)
 		return err(new Error(errMsg))
 	}
 
-	const name = hrp.slice(0, hrp.length - hrpSuffix.length)
+	const nameToValidate = hrp.slice(0, hrp.length - hrpSuffix.length)
+
+	const nameValidationResult = validateCharsInName(nameToValidate)
+
+	if (!nameValidationResult.isOk()) {
+		return err(nameValidationResult.error)
+	}
+	const name = nameValidationResult.value
+
 	const processed = decoded.data
 	const combinedDataResult = Bech32.convertDataFromBech32(processed)
 
@@ -121,11 +129,21 @@ const fromBech32String = (
 
 	return ok(
 		__create({
-			hash,
+			hash: combinedData,
 			name,
 			toString: () => bechString,
 		}),
 	)
+}
+
+const validateCharsInName = (name: string): Result<string, Error> => {
+	const regexLowerAlphaNumerics = new RegExp('^[a-z0-9]+$')
+	if (!regexLowerAlphaNumerics.test(name)) {
+		const errMsg = `Illegal characters found in name`
+		// console.error(errMsg)
+		return err(new Error(errMsg))
+	}
+	return ok(name)
 }
 
 const withNameRawDataAndVersionByte = (
@@ -135,48 +153,31 @@ const withNameRawDataAndVersionByte = (
 		name: string
 	}>,
 ): Result<ResourceIdentifierT, Error> => {
-	const { versionByte, name, hash } = input
-	const hrp = `${name}${hrpSuffix}`
+	return validateCharsInName(input.name).andThen((name) => {
+		const hrpSuffix = hrpBetanetSuffix // TODO make dependent on Network!
 
-	const combinedData = Buffer.concat([Buffer.from([versionByte]), hash])
+		const { versionByte, hash } = input
+		const hrp = `${name}${hrpSuffix}`
 
-	return Bech32.convertDataToBech32(combinedData)
-		.andThen((processed) => {
-			return Bech32.encode({
-				data: processed,
-				hrp,
-				encoding,
-				maxLength,
+		const combinedData = Buffer.concat([Buffer.from([versionByte]), hash])
+
+		return Bech32.convertDataToBech32(combinedData)
+			.andThen((processed) => {
+				return Bech32.encode({
+					data: processed,
+					hrp,
+					encoding,
+					maxLength,
+				})
 			})
-		})
-		.map((bech32) => {
-			console.log(
-				`🔮 fromRawDataAndName: toString ${bech32.toString()}, `,
-			)
-			return __create({
-				hash, //: rawData, //processedData,
-				name,
-				toString: () => bech32.toString(),
+			.map((bech32) => {
+				return __create({
+					hash,
+					name,
+					toString: () => bech32.toString(),
+				})
 			})
-		})
-		.map((rri) => {
-			// soundness check
-			console.log(`🔮 soundness check from string ${rri.toString()}, `)
-			const roundtrip = fromUnsafe(rri.toString())
-			if (!roundtrip.isOk()) {
-				const errMsg = `Soundness check failed, error ${msgFromError(
-					roundtrip.error,
-				)}`
-				console.log(errMsg)
-				throw new Error(errMsg)
-			}
-			if (roundtrip.value.toString() !== rri.toString()) {
-				const errMsg = `Soundness check failed strings differ...`
-				console.log(errMsg)
-				throw new Error(errMsg)
-			}
-			return rri
-		})
+	})
 }
 
 const systemRRI = (name: string): Result<ResourceIdentifierT, Error> =>
@@ -197,7 +198,7 @@ const pkToHash = (
 	const { name, publicKey } = input
 	const nameBytes = Buffer.from(name, 'utf8')
 	const pubKeyBytes = publicKey.asData({ compressed: true })
-	const dataToHash = Buffer.concat([nameBytes, pubKeyBytes])
+	const dataToHash = Buffer.concat([pubKeyBytes, nameBytes])
 	const hash = sha256Twice(dataToHash)
 	return hash.slice(-hashByteCount) // last bytes
 }

@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid'
 import {
 	Address,
 	AddressT,
-	isAddressOrUnsafeInput,
+	isAccountAddressOrUnsafeInput,
 	ResourceIdentifierT,
 	ResourceIdentifier,
 	isResourceIdentifierOrUnsafeInput,
