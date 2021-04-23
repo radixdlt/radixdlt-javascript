@@ -1,4 +1,4 @@
-import { isArray } from '../src'
+import { isArray } from './'
 
 type MessageOwner = {
 	message: string
