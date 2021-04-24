@@ -87,9 +87,7 @@ const networkDecoder = (...keys: string[]) =>
 		key !== undefined && keys.includes(key) && typeof value === 'number'
 			? value === 0
 				? ok(NetworkT.MAINNET)
-				: value === 1
-				? ok(NetworkT.BETANET)
-				: err(new Error(`Unrecognized network: '${value}'`))
+				: ok(NetworkT.BETANET)
 			: undefined,
 	)
 
