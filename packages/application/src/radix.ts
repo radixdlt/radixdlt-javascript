@@ -92,6 +92,7 @@ import {
 	ExecutedTransaction,
 	singleRecipientFromActions,
 	TransactionIntentBuilder,
+	TransactionIntentBuilderOptions,
 } from './dto'
 
 const shouldConfirmTransactionAutomatically = (
@@ -728,13 +729,18 @@ const create = (
 
 	const __makeTransactionFromBuilder = (
 		transactionIntentBuilderT: TransactionIntentBuilderT,
-		options: MakeTransactionOptions,
+		makeTXOptions: MakeTransactionOptions,
+		builderOptions?: TransactionIntentBuilderOptions,
 	): TransactionTracking => {
 		radixLog.debug(`make transaction from builder`)
-		const intent$ = transactionIntentBuilderT.build({
-			encryptMessageIfAnyWithAccount: activeAccount,
-		})
-		return __makeTransactionFromIntent(intent$, options)
+		const intent$ = transactionIntentBuilderT.build(
+			builderOptions ?? {
+				skipEncryptionOfMessageIfAny: {
+					spendingSender: activeAddress,
+				},
+			},
+		)
+		return __makeTransactionFromIntent(intent$, makeTXOptions)
 	}
 
 	const transferTokens = (
@@ -745,11 +751,21 @@ const create = (
 			input.transferInput,
 		)
 
+		let encryptMsgIfAny = false
 		if (input.message) {
 			builder.message(input.message)
+			encryptMsgIfAny = input.message.encrypt
 		}
 
-		return __makeTransactionFromBuilder(builder, { ...input })
+		return __makeTransactionFromBuilder(
+			builder,
+			{ ...input },
+			encryptMsgIfAny
+				? {
+						encryptMessageIfAnyWithAccount: activeAccount,
+				  }
+				: undefined,
+		)
 	}
 
 	const stakeTokens = (input: StakeOptions) => {

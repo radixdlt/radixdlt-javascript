@@ -1075,6 +1075,71 @@ describe('radix_high_level_api', () => {
 			.add(subs)
 	})
 
+	it('can attach messages to transfers and skip encrypting them', async (done) => {
+		const subs = new Subscription()
+
+		let receivedMsg = 'not_set'
+
+		// const alicePrivateKey = privateKeyFromScalar(
+		// 	UInt256.valueOf(1),
+		// )._unsafeUnwrap()
+		// const alicePublicKey = alicePrivateKey.publicKey()
+		// const bobPrivateKey = privateKeyFromScalar(
+		// 	UInt256.valueOf(2),
+		// )._unsafeUnwrap()
+		// const bobPublicKey = bobPrivateKey.publicKey()
+		// const bob = AccountAddress.fromPublicKeyAndNetwork({
+		// 	publicKey: bobPublicKey,
+		// 	network: NetworkT.BETANET,
+		// })
+
+		const plaintext =
+			'Hey Bob, this is Alice, you and I can read this message, but no one else.'
+
+		const errNoMessage = 'found_no_message_in_tx'
+
+		const mockedAPI = mockRadixCoreAPI()
+		const radix = Radix.create()
+			.withWallet(makeWalletWithFunds()) // returns
+			.__withAPI(
+				of({
+					...mockedAPI,
+					buildTransaction: (
+						txIntent: TransactionIntent,
+					): Observable<BuiltTransaction> => {
+						receivedMsg =
+							txIntent.message?.toString('utf8') ?? errNoMessage
+						return mockedAPI.buildTransaction(txIntent)
+					},
+				}),
+			)
+
+		radix
+			.transferTokens({
+				transferInput: {
+					to: bob,
+					amount: 1,
+					tokenIdentifier: 'xrd_rb1qya85pwq',
+				},
+				userConfirmation: 'skip',
+				message: { plaintext, encrypt: false },
+			})
+			.completion.subscribe({
+				next: (_) => {
+					expect(receivedMsg).toBe(plaintext)
+					done()
+				},
+				error: (e) => {
+					done(
+						new Error(
+							`Got error, but expected none: ${msgFromError(e)}`,
+						),
+					)
+				},
+			})
+			.add(subs)
+	})
+
 	it('can attach messages to transfers and encrypt them', async (done) => {
 		const subs = new Subscription()
 
