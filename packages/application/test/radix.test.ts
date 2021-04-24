@@ -1,11 +1,12 @@
 import { Radix } from '../src/radix'
 import {
-	AccountT,
 	AccountAddress,
 	AccountAddressT,
+	AccountT,
 	HDMasterSeed,
 	Mnemonic,
 	NetworkT,
+	toObservable,
 	ValidatorAddress,
 	Wallet,
 	WalletT,
@@ -17,9 +18,17 @@ import {
 	ReplaySubject,
 	Subscription,
 	throwError,
+	timer,
 } from 'rxjs'
 import { map, mergeMap, shareReplay, take, tap, toArray } from 'rxjs/operators'
-import { KeystoreT, PublicKey, publicKeyFromBytes } from '@radixdlt/crypto'
+import {
+	DiffieHellman,
+	KeystoreT,
+	MessageEncryption,
+	privateKeyFromScalar,
+	PublicKey,
+	publicKeyFromBytes,
+} from '@radixdlt/crypto'
 import {
 	ManualUserConfirmTX,
 	RadixT,
@@ -40,6 +49,7 @@ import {
 } from '../src/mockRadix'
 import { NodeT, RadixCoreAPI } from '../src/api/_types'
 import {
+	BuiltTransaction,
 	SimpleTokenBalances,
 	TokenBalances,
 	TransactionIdentifierT,
@@ -73,6 +83,8 @@ import {
 } from '..'
 import { signatureFromHexStrings } from '@radixdlt/crypto/test/utils'
 import { makeWalletWithFunds } from '@radixdlt/account/test/utils'
+import { UInt256 } from '@radixdlt/uint256'
+import { EncryptedMessageT } from '@radixdlt/crypto/src/encryption/_types'
 
 const mockTransformIntentToExecutedTX = (
 	txIntent: TransactionIntent,
@@ -1059,6 +1071,108 @@ describe('radix_high_level_api', () => {
 						expect(values).toStrictEqual(expectedValues)
 						done()
 					})
+			})
+			.add(subs)
+	})
+
+	it('can attach messages to transfers and encrypt them', async (done) => {
+		const subs = new Subscription()
+
+		let receivedMsgHex = 'not_set'
+
+		const alicePrivateKey = privateKeyFromScalar(
+			UInt256.valueOf(1),
+		)._unsafeUnwrap()
+		const alicePublicKey = alicePrivateKey.publicKey()
+		const bobPrivateKey = privateKeyFromScalar(
+			UInt256.valueOf(2),
+		)._unsafeUnwrap()
+		const bobPublicKey = bobPrivateKey.publicKey()
+		const bob = AccountAddress.fromPublicKeyAndNetwork({
+			publicKey: bobPublicKey,
+			network: NetworkT.BETANET,
+		})
+
+		const plaintext =
+			'Hey Bob, this is Alice, you and I can read this message, but no one else.'
+
+		const errNoMessage = 'found_no_message_in_tx'
+
+		const mockedAPI = mockRadixCoreAPI()
+		const radix = Radix.create()
+			.withWallet(makeWalletWithFunds()) // returns
+			.__withAPI(
+				of({
+					...mockedAPI,
+					buildTransaction: (
+						txIntent: TransactionIntent,
+					): Observable<BuiltTransaction> => {
+						receivedMsgHex =
+							txIntent.message?.toString('hex') ?? errNoMessage
+						return mockedAPI.buildTransaction(txIntent)
+					},
+				}),
+			)
+
+		const transactionTracking = radix.transferTokens({
+			transferInput: {
+				to: bob,
+				amount: 1,
+				tokenIdentifier: 'xrd_rb1qya85pwq',
+			},
+			userConfirmation: 'skip',
+			message: { plaintext, encrypt: true },
+		})
+
+		transactionTracking.completion
+			.pipe(
+				mergeMap(
+					(_): Observable<Buffer> => {
+						return toObservable(
+							MessageEncryption.decrypt({
+								encryptedMessage: Buffer.from(
+									receivedMsgHex,
+									'hex',
+								),
+								publicKeyOfOtherParty: bobPublicKey,
+								diffieHellman: alicePrivateKey.diffieHellman,
+							}),
+						)
+					},
+				),
+				tap((decryptedByAlice: Buffer) => {
+					expect(decryptedByAlice.toString('utf8')).toBe(plaintext)
+				}),
+				mergeMap(
+					(_): Observable<Buffer> => {
+						return toObservable(
+							MessageEncryption.decrypt({
+								encryptedMessage: Buffer.from(
+									receivedMsgHex,
+									'hex',
+								),
+								publicKeyOfOtherParty: alicePublicKey,
+								diffieHellman: bobPrivateKey.diffieHellman,
+							}),
+						)
+					},
+				),
+				map((decryptedByBob: Buffer) => {
+					return decryptedByBob.toString('utf8')
+				}),
+			)
+			.subscribe({
+				next: (decryptedByBob) => {
+					expect(decryptedByBob).toBe(plaintext)
+					done()
+				},
+				error: (e) => {
+					done(
+						new Error(
+							`Got error, but expected none: ${msgFromError(e)}`,
+						),
+					)
+				},
 			})
 			.add(subs)
 	})

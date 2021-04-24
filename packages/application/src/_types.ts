@@ -45,13 +45,13 @@ export type MessageInTransaction = Readonly<{
 }>
 
 export type MakeTransactionOptions = Readonly<{
-	message?: MessageInTransaction
 	userConfirmation: TransactionConfirmationBeforeFinalization
 	pollTXStatusTrigger?: Observable<unknown>
 }>
 
 export type TransferTokensOptions = MakeTransactionOptions &
 	Readonly<{
+		message?: MessageInTransaction
 		transferInput: TransferTokensInput
 	}>
 
