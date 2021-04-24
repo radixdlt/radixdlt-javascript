@@ -17,7 +17,8 @@ const radix = Radix.create()
 				amount: 1,
 				tokenIdentifier: 'xrd_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtesv2yq5l',
 			},
-			userConfirmation: 'skip'
+			userConfirmation: 'skip',
+			message: { plaintext: 'Hey Bob, only we can read this.', encrypt: true }
 		}
 	)
 	.subscribe((txID) => console.log(`✅ TokenTransfer with txID ${txID.toString()} completed successfully.`)
@@ -541,6 +542,7 @@ const radix = Radix.create()
 				tokenIdentifier:
 					'xrd_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtesv2yq5l',
 			},
+			message: { plaintext: 'Hey Bob, only we can read this.', encrypt: true }
 			userConfirmation: 'skip'
 		}
 	)
