@@ -156,6 +156,12 @@ type DeterministicMessageEncryptionInput = MessageEncryptionInput &
 		ephemeralPublicKey: PublicKey
 	}>
 
+const encodePlaintext = (plaintext: Buffer | string): Buffer => {
+	return typeof plaintext === 'string'
+		? Buffer.from(plaintext, 'utf-8')
+		: plaintext
+}
+
 const __encryptDeterministic = (
 	input: DeterministicMessageEncryptionInput,
 ): ResultAsync<EncryptedMessageT, Error> => {
@@ -165,10 +171,7 @@ const __encryptDeterministic = (
 		compressed: true,
 	})
 
-	const plaintext =
-		typeof input.plaintext === 'string'
-			? Buffer.from(input.plaintext, 'utf-8')
-			: input.plaintext
+	const plaintext = encodePlaintext(input.plaintext)
 
 	if (plaintext.length > EncryptedMessage.maxLengthOfCipherTextOfSealedMsg) {
 		const errMsg = `Plaintext is too long, expected max #${EncryptedMessage.maxLengthOfCipherTextOfSealedMsg}, but got: #${plaintext.length}`
@@ -222,6 +225,7 @@ const encrypt = (
 
 export const MessageEncryption = {
 	__encryptDeterministic,
+	encodePlaintext,
 	encrypt,
 	decrypt,
 }

@@ -10,7 +10,7 @@ import {
 import { KeystoreT } from '@radixdlt/crypto'
 import { RadixLogLevel } from '@radixdlt/util'
 import { Observable, ReplaySubject } from 'rxjs'
-import { NodeT, RadixAPI, RadixCoreAPI } from './api/_types'
+import { NodeT, RadixAPI, RadixCoreAPI } from './api'
 import { ErrorNotification } from './errors'
 import {
 	StakePositions,
@@ -23,12 +23,12 @@ import {
 	TransactionTracking,
 	BuiltTransaction,
 	ExecutedTransaction,
-} from './dto/_types'
+} from './dto'
 import {
 	StakeTokensInput,
 	TransferTokensInput,
 	UnstakeTokensInput,
-} from './actions/_types'
+} from './actions'
 
 export type ManualUserConfirmTX = {
 	txToConfirm: BuiltTransaction
@@ -39,6 +39,11 @@ export type TransactionConfirmationBeforeFinalization =
 	| 'skip'
 	| ReplaySubject<ManualUserConfirmTX>
 
+export type MessageInTransaction = Readonly<{
+	plaintext: string
+	encrypt: boolean
+}>
+
 export type MakeTransactionOptions = Readonly<{
 	userConfirmation: TransactionConfirmationBeforeFinalization
 	pollTXStatusTrigger?: Observable<unknown>
@@ -46,6 +51,7 @@ export type MakeTransactionOptions = Readonly<{
 
 export type TransferTokensOptions = MakeTransactionOptions &
 	Readonly<{
+		message?: MessageInTransaction
 		transferInput: TransferTokensInput
 	}>
 

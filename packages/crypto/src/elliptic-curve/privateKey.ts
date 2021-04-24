@@ -20,7 +20,7 @@ import {
 import { publicKeyFromPrivateKey } from './wrap/publicKeyWrapped'
 import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
 import { Secp256k1 } from './secp256k1'
-import { sha256Twice } from '../hash/sha'
+import { sha256Twice } from '../hash'
 
 const privateKeyFromValidatedScalar = (scalar: UInt256): PrivateKey => {
 	const sign = (hashedMessage: Buffer): ResultAsync<Signature, Error> => {
