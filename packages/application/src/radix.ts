@@ -741,12 +741,15 @@ const create = (
 		input: TransferTokensOptions,
 	): TransactionTracking => {
 		radixLog.debug(`transferTokens`)
-		return __makeTransactionFromBuilder(
-			TransactionIntentBuilder.create().transferTokens(
-				input.transferInput,
-			),
-			{ ...input },
+		const builder = TransactionIntentBuilder.create().transferTokens(
+			input.transferInput,
 		)
+
+		if (input.message) {
+			builder.message(input.message)
+		}
+
+		return __makeTransactionFromBuilder(builder, { ...input })
 	}
 
 	const stakeTokens = (input: StakeOptions) => {

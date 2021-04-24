@@ -17,6 +17,7 @@ import { AmountT } from '@radixdlt/primitives'
 import { PublicKey, Signature } from '@radixdlt/crypto'
 import { Observable } from 'rxjs'
 import { Result } from 'neverthrow'
+import { MessageInTransaction } from '../_types'
 
 export type StakePosition = Readonly<{
 	validator: ValidatorAddressT
@@ -63,19 +64,24 @@ export enum TokenTransition {
 
 export type TransactionIntentBuilderState = Readonly<{
 	actionInputs: ActionInput[]
-	message?: string
+	message?: MessageInTransaction
 }>
 
-export type TransactionIntentBuilderEncryptInput = Readonly<{
+export type TransactionIntentBuilderEncryptOption = Readonly<{
 	encryptMessageIfAnyWithAccount: Observable<AccountT>
 	spendingSender?: Observable<AccountAddressT>
 }>
+
 export type TransactionIntentBuilderDoNotEncryptInput = Readonly<{
 	spendingSender: Observable<AccountAddressT>
 }>
+
+export type TransactionIntentBuilderDoNotEncryptOption = Readonly<{
+	skipEncryptionOfMessageIfAny: TransactionIntentBuilderDoNotEncryptInput
+}>
 export type TransactionIntentBuilderOptions =
-	| TransactionIntentBuilderDoNotEncryptInput
-	| TransactionIntentBuilderEncryptInput
+	| TransactionIntentBuilderDoNotEncryptOption
+	| TransactionIntentBuilderEncryptOption
 
 export type TransactionIntentBuilderT = Readonly<{
 	__state: TransactionIntentBuilderState
@@ -83,7 +89,7 @@ export type TransactionIntentBuilderT = Readonly<{
 	transferTokens: (input: TransferTokensInput) => TransactionIntentBuilderT
 	stakeTokens: (input: StakeTokensInput) => TransactionIntentBuilderT
 	unstakeTokens: (input: UnstakeTokensInput) => TransactionIntentBuilderT
-	message: (msg: string) => TransactionIntentBuilderT
+	message: (msg: MessageInTransaction) => TransactionIntentBuilderT
 
 	// Build
 	__syncBuildDoNotEncryptMessageIfAny: (

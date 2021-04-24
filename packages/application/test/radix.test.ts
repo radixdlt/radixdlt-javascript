@@ -1117,7 +1117,7 @@ describe('radix_high_level_api', () => {
 					(account: AccountT): Observable<TransactionIntent> => {
 						return txIntentBuilder
 							.transferTokens(tokenTransferInput)
-							.message(plaintext)
+							.message({ plaintext, encrypt: true })
 							.build({
 								encryptMessageIfAnyWithAccount: of(account),
 							})

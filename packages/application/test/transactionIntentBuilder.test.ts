@@ -248,7 +248,7 @@ describe('tx_intent_builder', () => {
 		testWithMessage(
 			TransactionIntentBuilder.create()
 				.transferTokens(transfS(3, bob))
-				.message(plaintext),
+				.message({ plaintext, encrypt: true }),
 			plaintext,
 			done,
 		).add(subs)
@@ -259,7 +259,7 @@ describe('tx_intent_builder', () => {
 
 		testWithMessage(
 			TransactionIntentBuilder.create()
-				.message(plaintext)
+				.message({ plaintext, encrypt: true })
 				.transferTokens(transfS(3, bob)),
 			plaintext,
 			done,
@@ -286,9 +286,9 @@ describe('tx_intent_builder', () => {
 
 		TransactionIntentBuilder.create()
 			.transferTokens(transfS(3, bob))
-			.message(plaintext)
+			.message({ plaintext, encrypt: false })
 			.build({
-				spendingSender: of(alice),
+				skipEncryptionOfMessageIfAny: { spendingSender: of(alice) },
 			})
 			.subscribe((txIntent) => {
 				expect(txIntent.actions.length).toBe(1)
@@ -377,10 +377,68 @@ describe('tx_intent_builder', () => {
 	describe('failing scenarios', () => {
 		beforeAll(() => {
 			setLogLevel('silent')
+			jest.spyOn(console, 'error').mockImplementation(() => {})
 		})
 
 		afterAll(() => {
+			jest.clearAllMocks()
 			restoreDefaultLogLevel()
+		})
+
+		it('an error is thrown when specifying encryption for message but building intent without encrypting account', (done) => {
+			const subs = new Subscription()
+
+			const builder = TransactionIntentBuilder.create()
+				.transferTokens(transfS(1, bob))
+				.message({
+					plaintext:
+						'No one will be able to see this because we will get a crash',
+					encrypt: true,
+				})
+
+			builder
+				.build({
+					skipEncryptionOfMessageIfAny: { spendingSender: of(alice) },
+				})
+				.subscribe({
+					next: (_) => {
+						done(new Error('Expected error'))
+					},
+					error: (error: Error) => {
+						expect(error.message).toBe(
+							'Message in transaction specifies it should be encrypted, but input to TransactionIntentBuilder build method specifies that it (the builder) should not encrypt the message, and does not provide any account with which we can perform encryption.',
+						)
+						done()
+					},
+				})
+				.add(subs)
+		})
+
+		it('an error is thrown when specifying plaintext for message but building intent with encrypting account', (done) => {
+			const subs = new Subscription()
+
+			const builder = TransactionIntentBuilder.create()
+				.transferTokens(transfS(1, bob))
+				.message({
+					plaintext:
+						'No one will be able to see this because we will get a crash',
+					encrypt: false,
+				})
+
+			builder
+				.build({ encryptMessageIfAnyWithAccount: of(aliceAccount) })
+				.subscribe({
+					next: (_) => {
+						done(new Error('Expected error'))
+					},
+					error: (error: Error) => {
+						expect(error.message).toBe(
+							'You are trying to encrypt a message which was specified not to be encrypted.',
+						)
+						done()
+					},
+				})
+				.add(subs)
 		})
 
 		it('an error is thrown when trying to encrypt message of a transaction with multiple recipients', (done) => {
@@ -389,9 +447,11 @@ describe('tx_intent_builder', () => {
 			const builder = TransactionIntentBuilder.create()
 				.transferTokens(transfS(1, bob))
 				.transferTokens(transfS(1, carol))
-				.message(
-					'No one will be able to see this because we will get a crash',
-				)
+				.message({
+					plaintext:
+						'No one will be able to see this because we will get a crash',
+					encrypt: true,
+				})
 
 			builder
 				.build({ encryptMessageIfAnyWithAccount: of(aliceAccount) })
@@ -417,7 +477,7 @@ describe('tx_intent_builder', () => {
 
 		const builder = TransactionIntentBuilder.create()
 			.transferTokens(transfS(1, alice))
-			.message(plaintext)
+			.message({ plaintext, encrypt: true })
 
 		builder
 			.build({ encryptMessageIfAnyWithAccount: of(aliceAccount) })
