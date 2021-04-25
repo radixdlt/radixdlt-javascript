@@ -318,6 +318,31 @@ describe('radix_high_level_api', () => {
 		)
 	})
 
+	it('radix can restoreAccountsUpToIndex', (done) => {
+		const subs = new Subscription()
+
+		const radix = Radix.create().withWallet(createWallet())
+
+		const index = 3
+		radix
+			.restoreAccountsUpToIndex(index)
+			.subscribe(
+				(accounts) => {
+					expect(accounts.size).toBe(index + 1)
+					radix.activeAccount
+						.subscribe((a) => {
+							expect(a.hdPath.addressIndex.value()).toBe(0)
+							done()
+						})
+						.add(subs)
+				},
+				(e) => {
+					done(e)
+				},
+			)
+			.add(subs)
+	})
+
 	it('provides networkId for wallets', async (done) => {
 		const radix = Radix.create()
 		const wallet = createWallet()
