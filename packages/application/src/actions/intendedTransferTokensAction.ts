@@ -3,7 +3,6 @@ import {
 	IntendedTransferTokensAction,
 	TransferTokensInput,
 } from './_types'
-import { v4 as uuidv4 } from 'uuid'
 import {
 	AccountAddress,
 	AccountAddressT,
@@ -30,8 +29,6 @@ export const create = (
 	input: TransferTokensInput,
 	from: AccountAddressT,
 ): Result<IntendedTransferTokensAction, Error> => {
-	const uuid = uuidv4()
-
 	return combine([
 		AccountAddress.fromUnsafe(input.to),
 		Amount.fromUnsafe(input.amount),
@@ -40,15 +37,14 @@ export const create = (
 		(resultList): IntendedTransferTokensAction => {
 			const to = resultList[0] as AccountAddressT
 			const amount = resultList[1] as AmountT
-			const tokenIdentifier = resultList[2] as ResourceIdentifierT
+			const rri = resultList[2] as ResourceIdentifierT
 
 			return {
 				to,
 				amount,
-				tokenIdentifier,
+				rri,
 				type: ActionType.TOKEN_TRANSFER,
 				from,
-				uuid,
 			}
 		},
 	)

@@ -3,7 +3,6 @@ import {
 	IntendedStakeTokensAction,
 	StakeTokensInput,
 } from './_types'
-import { v4 as uuidv4 } from 'uuid'
 import {
 	AccountAddressT,
 	isValidatorAddressOrUnsafeInput,
@@ -27,7 +26,6 @@ export const __createIntendedStakeAction = (
 	input: StakeTokensInput,
 	from: AccountAddressT,
 ): Result<IntendedStakeTokensAction, Error> => {
-	const uuid = uuidv4()
 	return combine([
 		ValidatorAddress.fromUnsafe(input.validator),
 		Amount.fromUnsafe(input.amount),
@@ -41,7 +39,6 @@ export const __createIntendedStakeAction = (
 				amount,
 				type: ActionType.STAKE_TOKENS,
 				from,
-				uuid,
 			}
 		},
 	)

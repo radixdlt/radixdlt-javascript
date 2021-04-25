@@ -116,7 +116,7 @@ describe('tx_intent_builder', () => {
 		expect(transfer0.amount.equals(one)).toBe(true)
 		expect(transfer0.from.equals(alice)).toBe(true)
 		expect(transfer0.to.equals(bob)).toBe(true)
-		expect(transfer0.tokenIdentifier.equals(xrdRRI)).toBe(true)
+		expect(transfer0.rri.equals(xrdRRI)).toBe(true)
 	}
 
 	it('can add single transfer', () => {

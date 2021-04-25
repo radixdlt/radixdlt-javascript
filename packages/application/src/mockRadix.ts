@@ -9,30 +9,36 @@ import { UInt256 } from '@radixdlt/uint256'
 import {
 	AccountAddress,
 	AccountAddressT,
-	ResourceIdentifierT,
+	NetworkT,
 	ResourceIdentifier,
+	ResourceIdentifierT,
 	ValidatorAddress,
 	ValidatorAddressT,
-	NetworkT,
 } from '@radixdlt/account'
 import { Observable, of } from 'rxjs'
 import {
+	BuiltTransaction,
 	ExecutedTransaction,
+	FinalizedTransaction,
 	NetworkTransactionDemand,
 	NetworkTransactionThroughput,
 	PendingTransaction,
 	SignedTransaction,
+	SimpleExecutedTransaction,
+	SimpleTokenBalance,
+	SimpleTokenBalances,
+	SimpleTransactionHistory,
+	StakePosition,
 	StakePositions,
 	StatusOfTransaction,
 	Token,
-	SimpleTokenBalance,
-	SimpleTokenBalances,
 	TransactionHistory,
 	TransactionHistoryRequestInput,
 	TransactionIdentifierT,
 	TransactionIntent,
 	TransactionStatus,
-	BuiltTransaction,
+	TransactionType,
+	UnstakePosition,
 	UnstakePositions,
 	Validator,
 	Validators,
@@ -44,8 +50,6 @@ import { shareReplay } from 'rxjs/operators'
 import { privateKeyFromBuffer, PublicKey, sha256 } from '@radixdlt/crypto'
 import { ActionType, ExecutedAction } from './actions/_types'
 import { TransactionIdentifier } from './dto/transactionIdentifier'
-import { StakePosition, UnstakePosition } from './dto/_types'
-import { FinalizedTransaction } from './dto/_types'
 import { isNumber } from '@radixdlt/util'
 
 export const xrd: Token = {
@@ -414,7 +418,6 @@ const randomUnsignedTransaction = (
 		...transactionIntent,
 		actions: transactionIntent.actions.map((a) => ({
 			...a,
-			uuid: 'deadbeef',
 		})),
 	}
 
@@ -589,6 +592,18 @@ export const deterministicRandomTxHistoryWithInput = (
 			.fill(undefined)
 			.map(
 				(_, index): ExecutedTransaction => {
+					const bytesFromIndex = Buffer.allocUnsafe(2)
+					bytesFromIndex.writeUInt16BE(index)
+					const txIDBuffer = sha256(
+						Buffer.concat([pubKeyBytes, bytesFromIndex]),
+					)
+					const date = new Date('2020-03-14T15:32:05')
+					date.setMonth(index % 12)
+
+					const txID = TransactionIdentifier.create(
+						txIDBuffer,
+					)._unsafeUnwrap()
+
 					const detMakeActionForTx = (): ExecutedAction[] => {
 						// mock max 5 actions per tx in history, min 1.
 						const actionCount = Math.max(anInt() % 5, 1)
@@ -654,21 +669,18 @@ export const deterministicRandomTxHistoryWithInput = (
 							)
 					}
 
-					const bytesFromIndex = Buffer.allocUnsafe(2)
-					bytesFromIndex.writeUInt16BE(index)
-					const txIDBuffer = sha256(
-						Buffer.concat([pubKeyBytes, bytesFromIndex]),
-					)
-					const date = new Date('2020-03-14T15:32:05')
-					date.setMonth(index % 12)
-
-					const txID = TransactionIdentifier.create(
-						txIDBuffer,
-					)._unsafeUnwrap()
+					const rndTxTypeInt = anInt() % 3
+					const transactionType =
+						rndTxTypeInt === 0
+							? TransactionType.INCOMING
+							: rndTxTypeInt === 1
+							? TransactionType.FROM_ME_TO_ME
+							: TransactionType.OUTGOING
 
 					return {
 						txID,
 						sentAt: date,
+						transactionType,
 						fee: Amount.fromUnsafe(anInt())._unsafeUnwrap(),
 						// message?: {
 						// 	msg: string
@@ -692,7 +704,7 @@ export const deterministicRandomTxHistoryWithInput = (
 
 const deterministicRandomLookupTXUsingHist = (
 	txID: TransactionIdentifierT,
-): ExecutedTransaction => {
+): SimpleExecutedTransaction => {
 	const seed = sha256(Buffer.from(txID.__hex, 'hex'))
 	const addressWithTXIdBytesAsSeed = AccountAddress.fromPublicKeyAndNetwork({
 		publicKey: privateKeyFromBuffer(seed)._unsafeUnwrap().publicKey(),
@@ -723,7 +735,7 @@ export const deterministicRandomTXHistory = (
 
 export const deterministicRandomLookupTX = (
 	txID: TransactionIdentifierT,
-): Observable<ExecutedTransaction> =>
+): Observable<SimpleExecutedTransaction> =>
 	of(deterministicRandomLookupTXUsingHist(txID))
 
 export const deterministicRandomUnstakesForAddr = (
@@ -751,7 +763,7 @@ export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
 
 	lookupTransaction: (
 		_txID: TransactionIdentifierT,
-	): Observable<ExecutedTransaction> => {
+	): Observable<SimpleExecutedTransaction> => {
 		throw Error('Not implemented')
 	},
 

@@ -1,4 +1,3 @@
-import { Radix } from '../src/radix'
 import {
 	AccountAddress,
 	AccountAddressT,
@@ -6,6 +5,7 @@ import {
 	HDMasterSeed,
 	Mnemonic,
 	NetworkT,
+	ResourceIdentifier,
 	toObservable,
 	ValidatorAddress,
 	Wallet,
@@ -18,11 +18,9 @@ import {
 	ReplaySubject,
 	Subscription,
 	throwError,
-	timer,
 } from 'rxjs'
 import { map, mergeMap, shareReplay, take, tap, toArray } from 'rxjs/operators'
 import {
-	DiffieHellman,
 	KeystoreT,
 	MessageEncryption,
 	privateKeyFromScalar,
@@ -30,41 +28,39 @@ import {
 	publicKeyFromBytes,
 } from '@radixdlt/crypto'
 import {
+	Radix,
+	alice,
+	bob,
+	balancesFor,
+	mockedAPI,
 	ManualUserConfirmTX,
 	RadixT,
 	TransferTokensOptions,
-} from '../src/_types'
-import {
 	APIError,
 	APIErrorCause,
 	ErrorCategory,
 	ErrorCause,
-} from '../src/errors'
-import {
-	alice,
-	balancesFor,
-	bob,
-	mockedAPI,
 	mockRadixCoreAPI,
-} from '../src/mockRadix'
-import { NodeT, RadixCoreAPI } from '../src/api/_types'
-import {
 	BuiltTransaction,
 	SimpleTokenBalances,
 	TokenBalances,
 	TransactionIdentifierT,
 	TransactionStatus,
+	NodeT,
+	RadixCoreAPI,
 	TransactionTrackingEventType,
-} from '../src/dto/_types'
-import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
-import { AmountT, one } from '@radixdlt/primitives'
-import {
-	isIntendedStakeTokensAction,
-	isIntendedTransferTokensAction,
-	isIntendedUnstakeTokensAction,
 	TransactionIntentBuilder,
-} from '../src/dto/transactionIntentBuilder'
-import { TransferTokensInput } from '../src/actions/_types'
+	TransactionIdentifier,
+	TransferTokensInput,
+	ActionType,
+	TransactionType,
+	isTransferTokensAction,
+	isStakeTokensAction,
+	isUnstakeTokensAction,
+	carol,
+} from '../src'
+import { Amount, AmountT, one } from '@radixdlt/primitives'
+
 import {
 	log,
 	msgFromError,
@@ -75,7 +71,7 @@ import { mockErrorMsg } from '../../util/test/util'
 import {
 	ExecutedAction,
 	ExecutedStakeTokensAction,
-	ExecutedTransaction,
+	SimpleExecutedTransaction,
 	ExecutedTransferTokensAction,
 	ExecutedUnstakeTokensAction,
 	IntendedAction,
@@ -84,26 +80,31 @@ import {
 import { signatureFromHexStrings } from '@radixdlt/crypto/test/utils'
 import { makeWalletWithFunds } from '@radixdlt/account/test/utils'
 import { UInt256 } from '@radixdlt/uint256'
-import { EncryptedMessageT } from '@radixdlt/crypto/src/encryption/_types'
 
 const mockTransformIntentToExecutedTX = (
 	txIntent: TransactionIntent,
-): ExecutedTransaction => {
+): SimpleExecutedTransaction => {
+	const txID = TransactionIdentifier.create(
+		'deadbeef'.repeat(8),
+	)._unsafeUnwrap()
+
+	const idOfContainingTX = txID
+
 	const mockTransformIntendedActionToExecutedAction = (
 		intendedAction: IntendedAction,
 	): ExecutedAction => {
-		if (isIntendedTransferTokensAction(intendedAction)) {
+		if (isTransferTokensAction(intendedAction)) {
 			const tokenTransfer: ExecutedTransferTokensAction = {
 				...intendedAction,
-				rri: intendedAction.tokenIdentifier,
+				rri: intendedAction.rri,
 			}
 			return tokenTransfer
-		} else if (isIntendedStakeTokensAction(intendedAction)) {
+		} else if (isStakeTokensAction(intendedAction)) {
 			const stake: ExecutedStakeTokensAction = {
 				...intendedAction,
 			}
 			return stake
-		} else if (isIntendedUnstakeTokensAction(intendedAction)) {
+		} else if (isUnstakeTokensAction(intendedAction)) {
 			const unstake: ExecutedUnstakeTokensAction = {
 				...intendedAction,
 			}
@@ -119,10 +120,8 @@ const mockTransformIntentToExecutedTX = (
 		log.info(`TX intent contains no message.`)
 	}
 
-	const executedTx: ExecutedTransaction = {
-		txID: TransactionIdentifier.create(
-			'deadbeef'.repeat(8),
-		)._unsafeUnwrap(),
+	const executedTx: SimpleExecutedTransaction = {
+		txID,
 		sentAt: new Date(Date.now()),
 		fee: one,
 		message: msg?.toString('hex'),
@@ -784,9 +783,9 @@ describe('radix_high_level_api', () => {
 		radix.__wallet
 			.subscribe((_w) => {
 				const expectedValues = [
-					{ pkIndex: 0, actionsCountForEachTx: [3, 1, 2] },
-					{ pkIndex: 1, actionsCountForEachTx: [2, 2, 1] },
-					{ pkIndex: 2, actionsCountForEachTx: [1, 1, 2] },
+					{ pkIndex: 0, actionsCountForEachTx: [1, 4, 2] },
+					{ pkIndex: 1, actionsCountForEachTx: [3, 1, 1] },
+					{ pkIndex: 2, actionsCountForEachTx: [1, 4, 3] },
 				]
 
 				radix
@@ -936,7 +935,7 @@ describe('radix_high_level_api', () => {
 			.buildTransaction(transactionIntent)
 			.subscribe((unsignedTx) => {
 				expect((unsignedTx as { fee: AmountT }).fee.toString()).toEqual(
-					'30902',
+					'26495',
 				)
 				done()
 			})
@@ -1255,7 +1254,7 @@ describe('radix_high_level_api', () => {
 			pkOfActiveAccount0: PublicKey
 			pkOfActiveAccount1: PublicKey
 			recipient: PublicKey
-			tx: ExecutedTransaction
+			tx: SimpleExecutedTransaction
 			decrypted0: string
 			decrypted1: string
 		}
@@ -1303,11 +1302,13 @@ describe('radix_high_level_api', () => {
 					},
 				),
 				map(
-					(intent: TransactionIntent): ExecutedTransaction =>
+					(intent: TransactionIntent): SimpleExecutedTransaction =>
 						mockTransformIntentToExecutedTX(intent),
 				),
 				tap(
-					(tx: ExecutedTransaction): ExecutedTransaction => {
+					(
+						tx: SimpleExecutedTransaction,
+					): SimpleExecutedTransaction => {
 						sut.tx = tx
 						return tx
 					},
@@ -1759,5 +1760,109 @@ describe('radix_high_level_api', () => {
 		radix.deriveNextAccount({ alsoSwitchTo: true })
 		radix.deriveNextAccount({ alsoSwitchTo: true })
 		radix.deriveNextAccount({ alsoSwitchTo: true })
+	})
+
+	describe('tx history returns type of tx', () => {
+		const testTXType = (
+			fromMe: boolean,
+			toMe: boolean,
+			expectedTxType: TransactionType,
+			done: jest.DoneCallback,
+		): void => {
+			const subs = new Subscription()
+
+			const xrdRRI = ResourceIdentifier.fromUnsafe(
+				'xrd_rb1qya85pwq',
+			)._unsafeUnwrap()
+
+			const txID = TransactionIdentifier.create(
+				'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+			)._unsafeUnwrap()
+
+			const makeTransfer = (
+				input: Readonly<{
+					from: AccountAddressT
+					to: AccountAddressT
+					amount?: number
+				}>,
+			): ExecutedTransferTokensAction => {
+				return {
+					...input,
+					type: ActionType.TOKEN_TRANSFER,
+					rri: xrdRRI,
+					amount: Amount.fromUnsafe(
+						input.amount ?? 1337,
+					)._unsafeUnwrap(),
+				}
+			}
+
+			const wallet = makeWalletWithFunds()
+			const network = NetworkT.BETANET
+			const myAddress = AccountAddress.fromPublicKeyAndNetwork({
+				publicKey: wallet.__unsafeGetAccount().__unsafeGetPublicKey(),
+				network,
+			})
+			const radix = Radix.create({ network })
+				.withWallet(wallet)
+				.__withAPI(
+					of({
+						...mockRadixCoreAPI(),
+						transactionHistory: (_) => {
+							return of({
+								cursor: 'AN_EMPTY_CURSOR',
+								transactions: [
+									{
+										txID,
+										sentAt: new Date(),
+										fee: Amount.fromUnsafe(
+											1,
+										)._unsafeUnwrap(),
+										actions: [
+											makeTransfer({
+												from: fromMe ? myAddress : bob,
+												to: toMe ? myAddress : carol,
+											}),
+										],
+									},
+								],
+							}).pipe(shareReplay(1))
+						},
+					}),
+				)
+
+			radix
+				.transactionHistory({ size: 1 })
+				.subscribe(
+					(hist) => {
+						expect(hist.transactions.length).toBe(1)
+						const tx = hist.transactions[0]
+						expect(tx.transactionType).toBe(expectedTxType)
+						done()
+					},
+					(error) => {
+						done(
+							new Error(
+								`Expected tx history but got error: ${msgFromError(
+									error,
+								)}`,
+							),
+						)
+					},
+				)
+				.add(subs)
+		}
+
+		it('outgoing', (done) => {
+			testTXType(true, false, TransactionType.OUTGOING, done)
+		})
+		it('incoming', (done) => {
+			testTXType(false, true, TransactionType.INCOMING, done)
+		})
+		it('from_me_to_me', (done) => {
+			testTXType(true, true, TransactionType.FROM_ME_TO_ME, done)
+		})
+		it('unrelated', (done) => {
+			testTXType(false, false, TransactionType.UNRELATED, done)
+		})
 	})
 })

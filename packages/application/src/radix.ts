@@ -1,14 +1,14 @@
 import {
-	AccountT,
 	AccountAddressT,
+	AccountT,
 	DeriveNextAccountInput,
 	MnemomicT,
-	SwitchAccountInput,
 	NetworkT,
-	WalletT,
+	SwitchAccountInput,
 	Wallet,
+	WalletT,
 } from '@radixdlt/account'
-import { NodeT, RadixAPI, RadixCoreAPI, radixCoreAPI, nodeAPI } from './api'
+import { nodeAPI, NodeT, RadixAPI, radixCoreAPI, RadixCoreAPI } from './api'
 
 import {
 	catchError,
@@ -27,12 +27,12 @@ import {
 import {
 	combineLatest,
 	EMPTY,
+	interval,
 	merge,
 	Observable,
 	of,
 	ReplaySubject,
 	Subject,
-	interval,
 	Subscription,
 	throwError,
 } from 'rxjs'
@@ -70,30 +70,35 @@ import {
 } from './errors'
 import { log, msgFromError, RadixLogLevel, setLogLevel } from '@radixdlt/util'
 import {
-	PendingTransaction,
+	BuiltTransaction,
+	ExecutedTransaction,
 	FinalizedTransaction,
+	flatMapAddressesOf,
+	PendingTransaction,
 	SignedTransaction,
+	SimpleExecutedTransaction,
+	SimpleTokenBalance,
+	SimpleTokenBalances,
+	SimpleTransactionHistory,
+	singleRecipientFromActions,
+	Token,
+	TokenBalance,
+	TokenBalances,
 	TransactionHistory,
 	TransactionHistoryActiveAccountRequestInput,
 	TransactionIdentifierT,
 	TransactionIntent,
+	TransactionIntentBuilder,
+	TransactionIntentBuilderOptions,
 	TransactionIntentBuilderT,
+	TransactionStateError,
+	TransactionStateUpdate,
 	TransactionStatus,
 	TransactionTracking,
 	TransactionTrackingEventType,
-	BuiltTransaction,
-	SimpleTokenBalances,
-	TokenBalances,
-	SimpleTokenBalance,
-	TokenBalance,
-	Token,
-	TransactionStateUpdate,
-	TransactionStateError,
-	ExecutedTransaction,
-	singleRecipientFromActions,
-	TransactionIntentBuilder,
-	TransactionIntentBuilderOptions,
+	TransactionType,
 } from './dto'
+import { ExecutedAction } from './actions'
 
 const shouldConfirmTransactionAutomatically = (
 	confirmationScheme: TransactionConfirmationBeforeFinalization,
@@ -329,11 +334,42 @@ const create = (
 
 	const transactionHistory = (
 		input: TransactionHistoryActiveAccountRequestInput,
-	): Observable<TransactionHistory> =>
-		activeAddress.pipe(
+	): Observable<TransactionHistory> => {
+		const txTypeFromActions = (
+			input: Readonly<{
+				actions: ExecutedAction[]
+				activeAddress: AccountAddressT
+			}>,
+		): TransactionType => {
+			const { activeAddress } = input
+			const myAddress = activeAddress.toString()
+			const fromUnique = flatMapAddressesOf({
+				...input,
+				includeTo: false,
+			}).map((a) => a.toString())
+			const toUnique = flatMapAddressesOf({
+				...input,
+				includeFrom: false,
+			}).map((a) => a.toString())
+
+			const toMe = toUnique.includes(myAddress)
+			const fromMe = fromUnique.includes(myAddress)
+
+			if (toMe && fromMe) {
+				return TransactionType.FROM_ME_TO_ME
+			} else if (toMe) {
+				return TransactionType.INCOMING
+			} else if (fromMe) {
+				return TransactionType.OUTGOING
+			} else {
+				return TransactionType.UNRELATED
+			}
+		}
+
+		return activeAddress.pipe(
 			withLatestFrom(coreAPI$),
-			switchMap(([activeAddress, api]) =>
-				api
+			switchMap(([activeAddress, api]) => {
+				return api
 					.transactionHistory({ ...input, address: activeAddress })
 					.pipe(
 						catchError((error: Error) => {
@@ -342,10 +378,36 @@ const create = (
 							)
 							return EMPTY
 						}),
-					),
-			),
+						map(
+							(
+								simpleTxHistory: SimpleTransactionHistory,
+							): TransactionHistory => {
+								return {
+									...simpleTxHistory,
+									transactions: simpleTxHistory.transactions.map(
+										(
+											simpleExecutedTX: SimpleExecutedTransaction,
+										): ExecutedTransaction => {
+											return {
+												...simpleExecutedTX,
+												transactionType: txTypeFromActions(
+													{
+														actions:
+															simpleExecutedTX.actions,
+														activeAddress,
+													},
+												),
+											}
+										},
+									),
+								}
+							},
+						),
+					)
+			}),
 			shareReplay(1),
 		)
+	}
 
 	const node$ = merge(
 		nodeSubject.asObservable(),
@@ -785,7 +847,7 @@ const create = (
 	}
 
 	const decryptTransaction = (
-		input: ExecutedTransaction,
+		input: SimpleExecutedTransaction,
 	): Observable<string> => {
 		radixLog.verbose(
 			`Trying to decrypt transaction with txID=${input.txID.toString()}`,

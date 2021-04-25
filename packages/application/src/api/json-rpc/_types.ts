@@ -1,7 +1,7 @@
 import { Int32, NetworkT } from '@radixdlt/account'
 import { ActionType } from '../../actions'
 import {
-	ExecutedTransaction,
+	SimpleExecutedTransaction,
 	NetworkTransactionDemand,
 	NetworkTransactionThroughput,
 	PendingTransaction,
@@ -11,7 +11,7 @@ import {
 	StakePositions,
 	StatusOfTransaction,
 	Token,
-	TransactionHistory,
+	SimpleTransactionHistory,
 	TransactionStatus,
 	BuiltTransaction,
 	UnstakePositions,
@@ -82,13 +82,13 @@ export namespace TransactionHistoryEndpoint {
 		transactions: RawExecutedTransaction[]
 	}>
 
-	export type DecodedResponse = TransactionHistory
+	export type DecodedResponse = SimpleTransactionHistory
 }
 
 export namespace LookupTransactionEndpoint {
 	export type Input = [txID: string]
 	export type Response = RawExecutedTransaction
-	export type DecodedResponse = ExecutedTransaction
+	export type DecodedResponse = SimpleExecutedTransaction
 }
 
 export namespace TokenInfoEndpoint {
