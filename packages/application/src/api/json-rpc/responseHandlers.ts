@@ -55,23 +55,28 @@ const RRIDecoder = (...keys: string[]) =>
 	)
 
 const URLDecoder = (...keys: string[]) =>
-	decoder((value, key) =>
-		key !== undefined && keys.includes(key) && isString(value)
-			? ok(new URL(value))
-			: undefined,
-	)
+	decoder((value, key) => {
+		if (key !== undefined && keys.includes(key) && isString(value)) {
+			try {
+				return ok(new URL(value))
+			} catch {
+				return undefined
+			}
+		}
+		return undefined
+	})
 
 const tokenPermissionsDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
 		key !== undefined && keys.includes(key) && isObject(value)
 			? ok(
-					makeTokenPermissions(
-						value as Readonly<{
-							mint: TokenPermission
-							burn: TokenPermission
-						}>,
-					),
-			  )
+				makeTokenPermissions(
+					value as Readonly<{
+						mint: TokenPermission
+						burn: TokenPermission
+					}>,
+				),
+			)
 			: undefined,
 	)
 
@@ -125,6 +130,15 @@ const isRPCRequestFailureResponse = (
 	return inspection.failure !== undefined
 }
 
+const hasExpectedProps = <T extends Record<string, unknown>>(methodName: string, obj: T, props: string[]): Result<T, Error[]> => {
+	for (const prop of props) {
+		if (obj[prop] === undefined) {
+			return err([Error(`Prop validation failed for ${methodName} response. ${prop} was undefined.`)])
+		}
+	}
+	return ok(obj)
+}
+
 export const handleTransactionHistoryResponse = executedTXDecoders.create<
 	TransactionHistoryEndpoint.Response,
 	TransactionHistoryEndpoint.DecodedResponse
@@ -135,9 +149,16 @@ export const handleLookupTXResponse = executedTXDecoders.create<
 	LookupTransactionEndpoint.DecodedResponse
 >()
 
-export const handleNetworkIdResponse = JSONDecoding.withDecoders(
+export const handleNetworkIdResponse = (json: NetworkIdEndpoint.Response) => JSONDecoding.withDecoders(
 	networkDecoder('networkId'),
-).create<NetworkIdEndpoint.Response, NetworkIdEndpoint.DecodedResponse>()
+).create<NetworkIdEndpoint.Response, NetworkIdEndpoint.DecodedResponse>()(json)
+	.andThen(decoded =>
+		hasExpectedProps(
+			'networkId',
+			decoded,
+			['networkId']
+		)
+	)
 
 export const handleTokenBalancesResponse = (
 	json: TokenBalancesEndpoint.Response,
@@ -147,11 +168,11 @@ export const handleTokenBalancesResponse = (
 			owner: json.owner,
 			tokenBalances: json.tokenBalances[0]
 				? [
-						{
-							tokenIdentifier: json.tokenBalances[0].rri,
-							amount: json.tokenBalances[0].amount,
-						},
-				  ]
+					{
+						tokenIdentifier: json.tokenBalances[0].rri,
+						amount: json.tokenBalances[0].amount,
+					},
+				]
 				: [],
 		}),
 		JSONDecoding.withDecoders(
@@ -168,7 +189,13 @@ export const handleTokenBalancesResponse = (
 			},
 			TokenBalancesEndpoint.DecodedResponse
 		>(),
-	)(json)
+	)(json).andThen(decoded =>
+		hasExpectedProps(
+			'tokenBalances',
+			decoded,
+			['owner', 'tokenBalances']
+		)
+	)
 
 const validatorDecoders = JSONDecoding.withDecoders(
 	validatorAddressDecoder('address'),
@@ -177,22 +204,35 @@ const validatorDecoders = JSONDecoding.withDecoders(
 	amountDecoder('totalDelegatedStake', 'ownerDelegation'),
 )
 
-export const handleValidatorsResponse = validatorDecoders.create<
-	ValidatorsEndpoint.Response,
-	ValidatorsEndpoint.DecodedResponse
->()
+export const handleValidatorsResponse = (json: ValidatorsEndpoint.Response) =>
+	validatorDecoders.create<
+		ValidatorsEndpoint.Response,
+		ValidatorsEndpoint.DecodedResponse
+	>()(json).andThen(decoded =>
+		hasExpectedProps(
+			'validators',
+			decoded,
+			['cursor', 'validators']
+		)	
+	)
 
 export const handleLookupValidatorResponse = validatorDecoders.create<
 	LookupValidatorEndpoint.Response,
 	LookupValidatorEndpoint.DecodedResponse
 >()
 
-export const handleTokenInfoResponse = JSONDecoding.withDecoders(
+export const handleTokenInfoResponse = (json: TokenInfoEndpoint.Response) => JSONDecoding.withDecoders(
 	RRIDecoder('rri'),
 	amountDecoder('granularity', 'currentSupply'),
 	URLDecoder('tokenInfoURL', 'iconURL'),
 	tokenPermissionsDecoder('tokenPermission'),
-).create<TokenInfoEndpoint.Response, TokenInfoEndpoint.DecodedResponse>()
+).create<TokenInfoEndpoint.Response, TokenInfoEndpoint.DecodedResponse>()(json).andThen(
+	decoded => hasExpectedProps(
+		'tokenInfo',
+		decoded,
+		['name', 'rri', 'symbol', 'granularity', 'isSupplyMutable', 'currentSupply', 'tokenInfoURL', 'iconURL', 'tokenPermission']
+	)
+)
 
 export const handleStakesResponse = JSONDecoding.withDecoders(
 	validatorAddressDecoder('validator'),
@@ -217,21 +257,33 @@ export const handleTransactionStatusResponse = (
 	isRPCRequestFailureResponse(json)
 		? err([new Error(json.failure)])
 		: JSONDecoding.withDecoders(
-				transactionIdentifierDecoder('txID'),
-		  ).create<
-				TransactionStatusEndpoint.Response,
-				TransactionStatusEndpoint.DecodedResponse
-		  >()(json)
+			transactionIdentifierDecoder('txID'),
+		).create<
+			TransactionStatusEndpoint.Response,
+			TransactionStatusEndpoint.DecodedResponse
+		>()(json).andThen(decoded => hasExpectedProps(
+			'transactionStatus',
+			decoded,
+			['txID', 'status']
+		))
 
-export const handleNetworkTxThroughputResponse = JSONDecoding.create<
+export const handleNetworkTxThroughputResponse = (json: NetworkTransactionThroughputEndpoint.Response) => JSONDecoding.create<
 	NetworkTransactionThroughputEndpoint.Response,
 	NetworkTransactionThroughputEndpoint.DecodedResponse
->()
+>()(json).andThen(decoded => hasExpectedProps(
+	'networkTransactionThroughput',
+	decoded,
+	['tps']
+))
 
-export const handleNetworkTxDemandResponse = JSONDecoding.create<
+export const handleNetworkTxDemandResponse = (json: NetworkTransactionDemandEndpoint.Response) => JSONDecoding.create<
 	NetworkTransactionDemandEndpoint.Response,
 	NetworkTransactionDemandEndpoint.DecodedResponse
->()
+>()(json).andThen(decoded => hasExpectedProps(
+	'networkTransactionDemand',
+	decoded,
+	['tps']
+))
 
 export const handleBuildTransactionResponse = (
 	json: BuildTransactionEndpoint.Response,
@@ -239,7 +291,11 @@ export const handleBuildTransactionResponse = (
 	JSONDecoding.withDecoders(amountDecoder('fee')).create<
 		BuildTransactionEndpoint.Response,
 		BuildTransactionEndpoint.DecodedResponse
-	>()(json)
+	>()(json).andThen(decoded => hasExpectedProps(
+		'buildTransaction',
+		decoded,
+		['transaction', 'fee']
+	))
 
 export const handleFinalizeTransactionResponse = (
 	json: FinalizeTransactionEndpoint.Response,
@@ -247,11 +303,15 @@ export const handleFinalizeTransactionResponse = (
 	isRPCRequestFailureResponse(json)
 		? err([new Error(json.failure)])
 		: JSONDecoding.withDecoders(
-				transactionIdentifierDecoder('txID'),
-		  ).create<
-				FinalizeTransactionEndpoint.Response,
-				FinalizeTransactionEndpoint.DecodedResponse
-		  >()(json)
+			transactionIdentifierDecoder('txID'),
+		).create<
+			FinalizeTransactionEndpoint.Response,
+			FinalizeTransactionEndpoint.DecodedResponse
+		>()(json).andThen(decoded => hasExpectedProps(
+			'finalizeTransaction',
+			decoded,
+			['txID']
+		))
 
 export const handleSubmitTransactionResponse = (
 	json: SubmitTransactionEndpoint.Response,
@@ -259,8 +319,12 @@ export const handleSubmitTransactionResponse = (
 	isRPCRequestFailureResponse(json)
 		? err([new Error(json.failure)])
 		: JSONDecoding.withDecoders(
-				transactionIdentifierDecoder('txID'),
-		  ).create<
-				SubmitTransactionEndpoint.Response,
-				SubmitTransactionEndpoint.DecodedResponse
-		  >()(json)
+			transactionIdentifierDecoder('txID'),
+		).create<
+			SubmitTransactionEndpoint.Response,
+			SubmitTransactionEndpoint.DecodedResponse
+		>()(json).andThen(decoded => hasExpectedProps(
+			'submitTransaction',
+			decoded,
+			['txID']
+		))
