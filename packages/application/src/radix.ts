@@ -100,6 +100,48 @@ import {
 } from './dto'
 import { ExecutedAction } from './actions'
 
+const txTypeFromActions = (
+	input: Readonly<{
+		actions: ExecutedAction[]
+		activeAddress: AccountAddressT
+	}>,
+): TransactionType => {
+	const { activeAddress } = input
+	const myAddress = activeAddress.toString()
+	const fromUnique = flatMapAddressesOf({
+		...input,
+		includeTo: false,
+	}).map((a) => a.toString())
+	const toUnique = flatMapAddressesOf({
+		...input,
+		includeFrom: false,
+	}).map((a) => a.toString())
+
+	const toMe = toUnique.includes(myAddress)
+	const fromMe = fromUnique.includes(myAddress)
+
+	if (toMe && fromMe) {
+		return TransactionType.FROM_ME_TO_ME
+	} else if (toMe) {
+		return TransactionType.INCOMING
+	} else if (fromMe) {
+		return TransactionType.OUTGOING
+	} else {
+		return TransactionType.UNRELATED
+	}
+}
+
+const decorateSimpleExecutedTransactionWithType = (
+	simpleExecutedTX: SimpleExecutedTransaction,
+	activeAddress: AccountAddressT,
+): ExecutedTransaction => ({
+	...simpleExecutedTX,
+	transactionType: txTypeFromActions({
+		actions: simpleExecutedTX.actions,
+		activeAddress,
+	}),
+})
+
 const shouldConfirmTransactionAutomatically = (
 	confirmationScheme: TransactionConfirmationBeforeFinalization,
 ): confirmationScheme is 'skip' => confirmationScheme === 'skip'
@@ -239,6 +281,16 @@ const create = (
 		shareReplay(1),
 	)
 
+	const lookupTransaction = (
+		txID: TransactionIdentifierT,
+	): Observable<ExecutedTransaction> =>
+		api.lookupTransaction(txID).pipe(
+			withLatestFrom(activeAddress),
+			map(([simpleTx, aa]) =>
+				decorateSimpleExecutedTransactionWithType(simpleTx, aa),
+			),
+		)
+
 	const revealMnemonic = (): Observable<MnemomicT> =>
 		wallet$.pipe(
 			map(
@@ -335,37 +387,6 @@ const create = (
 	const transactionHistory = (
 		input: TransactionHistoryActiveAccountRequestInput,
 	): Observable<TransactionHistory> => {
-		const txTypeFromActions = (
-			input: Readonly<{
-				actions: ExecutedAction[]
-				activeAddress: AccountAddressT
-			}>,
-		): TransactionType => {
-			const { activeAddress } = input
-			const myAddress = activeAddress.toString()
-			const fromUnique = flatMapAddressesOf({
-				...input,
-				includeTo: false,
-			}).map((a) => a.toString())
-			const toUnique = flatMapAddressesOf({
-				...input,
-				includeFrom: false,
-			}).map((a) => a.toString())
-
-			const toMe = toUnique.includes(myAddress)
-			const fromMe = fromUnique.includes(myAddress)
-
-			if (toMe && fromMe) {
-				return TransactionType.FROM_ME_TO_ME
-			} else if (toMe) {
-				return TransactionType.INCOMING
-			} else if (fromMe) {
-				return TransactionType.OUTGOING
-			} else {
-				return TransactionType.UNRELATED
-			}
-		}
-
 		return activeAddress.pipe(
 			withLatestFrom(coreAPI$),
 			switchMap(([activeAddress, api]) => {
@@ -387,18 +408,11 @@ const create = (
 									transactions: simpleTxHistory.transactions.map(
 										(
 											simpleExecutedTX: SimpleExecutedTransaction,
-										): ExecutedTransaction => {
-											return {
-												...simpleExecutedTX,
-												transactionType: txTypeFromActions(
-													{
-														actions:
-															simpleExecutedTX.actions,
-														activeAddress,
-													},
-												),
-											}
-										},
+										): ExecutedTransaction =>
+											decorateSimpleExecutedTransactionWithType(
+												simpleExecutedTX,
+												activeAddress,
+											),
 									),
 								}
 							},
@@ -1036,8 +1050,9 @@ const create = (
 		unstakingPositions,
 
 		// Methods
-		transferTokens,
+		lookupTransaction,
 		transactionHistory,
+		transferTokens,
 		stakeTokens,
 		unstakeTokens,
 	}
