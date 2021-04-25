@@ -1,5 +1,6 @@
 import {
 	AccountAddressT,
+	AccountsT,
 	AccountT,
 	DeriveNextAccountInput,
 	MnemomicT,
@@ -925,6 +926,10 @@ const create = (
 		)
 	}
 
+	const restoreAccountsUpToIndex = (index: number): Observable<AccountsT> => {
+		return wallet$.pipe(mergeMap((w) => w.restoreAccountsUpToIndex(index)))
+	}
+
 	deriveAccountSubject
 		.pipe(
 			withLatestFrom(wallet$),
@@ -1004,6 +1009,8 @@ const create = (
 			switchAccountSubject.next(input)
 			return this
 		},
+
+		restoreAccountsUpToIndex,
 
 		decryptTransaction: decryptTransaction,
 

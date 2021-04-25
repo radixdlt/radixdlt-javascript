@@ -1,4 +1,10 @@
-import { Observable, BehaviorSubject, ReplaySubject, Subscription } from 'rxjs'
+import {
+	Observable,
+	BehaviorSubject,
+	ReplaySubject,
+	Subscription,
+	throwError,
+} from 'rxjs'
 import { Account } from './account'
 import {
 	AccountsT,
@@ -9,7 +15,13 @@ import {
 	SwitchToAccountIndex,
 	WalletT,
 } from './_types'
-import { mergeMap, map, distinctUntilChanged } from 'rxjs/operators'
+import {
+	mergeMap,
+	map,
+	distinctUntilChanged,
+	skipUntil,
+	skipWhile,
+} from 'rxjs/operators'
 import {
 	Keystore,
 	KeystoreT,
@@ -220,6 +232,22 @@ const __unsafeCreateWithPrivateKeyProvider = (
 		mergeMap((activeAccount) => activeAccount.deriveAddress()),
 	)
 
+	const restoreAccountsUpToIndex = (
+		targetIndex: number,
+	): Observable<AccountsT> => {
+		if (targetIndex < 0) {
+			const errMsg = `targetIndex must not be negative`
+			console.error(errMsg)
+			return throwError(new Error(errMsg))
+		}
+		Array(targetIndex)
+			.fill(undefined)
+			.forEach((_, index) => _deriveAtIndex({ addressIndex: { index } }))
+		return accounts$.pipe(
+			skipWhile((accounts: AccountsT) => accounts.size < targetIndex - 1),
+		)
+	}
+
 	return {
 		revealMnemonic,
 		// should only be used for testing
@@ -239,6 +267,7 @@ const __unsafeCreateWithPrivateKeyProvider = (
 		provideNetworkId,
 		deriveNext,
 		switchAccount,
+		restoreAccountsUpToIndex,
 		observeAccounts: (): Observable<AccountsT> => accounts$,
 		observeActiveAccount: (): Observable<AccountT> => activeAccount$,
 		observeActiveAddress: (): Observable<AccountAddressT> => activeAddress$,
