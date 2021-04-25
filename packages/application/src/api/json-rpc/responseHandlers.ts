@@ -130,7 +130,7 @@ const isRPCRequestFailureResponse = (
 	return inspection.failure !== undefined
 }
 
-const hasExpectedProps = <T extends Record<string, unknown>>(methodName: string, obj: T, props: string[]): Result<T, Error[]> => {
+const hasRequiredProps = <T extends Record<string, unknown>>(methodName: string, obj: T, props: string[]): Result<T, Error[]> => {
 	for (const prop of props) {
 		if (obj[prop] === undefined) {
 			return err([Error(`Prop validation failed for ${methodName} response. ${prop} was undefined.`)])
@@ -153,7 +153,7 @@ export const handleNetworkIdResponse = (json: NetworkIdEndpoint.Response) => JSO
 	networkDecoder('networkId'),
 ).create<NetworkIdEndpoint.Response, NetworkIdEndpoint.DecodedResponse>()(json)
 	.andThen(decoded =>
-		hasExpectedProps(
+		hasRequiredProps(
 			'networkId',
 			decoded,
 			['networkId']
@@ -190,7 +190,7 @@ export const handleTokenBalancesResponse = (
 			TokenBalancesEndpoint.DecodedResponse
 		>(),
 	)(json).andThen(decoded =>
-		hasExpectedProps(
+		hasRequiredProps(
 			'tokenBalances',
 			decoded,
 			['owner', 'tokenBalances']
@@ -209,7 +209,7 @@ export const handleValidatorsResponse = (json: ValidatorsEndpoint.Response) =>
 		ValidatorsEndpoint.Response,
 		ValidatorsEndpoint.DecodedResponse
 	>()(json).andThen(decoded =>
-		hasExpectedProps(
+		hasRequiredProps(
 			'validators',
 			decoded,
 			['cursor', 'validators']
@@ -227,7 +227,7 @@ export const handleTokenInfoResponse = (json: TokenInfoEndpoint.Response) => JSO
 	URLDecoder('tokenInfoURL', 'iconURL'),
 	tokenPermissionsDecoder('tokenPermission'),
 ).create<TokenInfoEndpoint.Response, TokenInfoEndpoint.DecodedResponse>()(json).andThen(
-	decoded => hasExpectedProps(
+	decoded => hasRequiredProps(
 		'tokenInfo',
 		decoded,
 		['name', 'rri', 'symbol', 'granularity', 'isSupplyMutable', 'currentSupply', 'tokenInfoURL', 'iconURL', 'tokenPermission']
@@ -261,7 +261,7 @@ export const handleTransactionStatusResponse = (
 		).create<
 			TransactionStatusEndpoint.Response,
 			TransactionStatusEndpoint.DecodedResponse
-		>()(json).andThen(decoded => hasExpectedProps(
+		>()(json).andThen(decoded => hasRequiredProps(
 			'transactionStatus',
 			decoded,
 			['txID', 'status']
@@ -270,7 +270,7 @@ export const handleTransactionStatusResponse = (
 export const handleNetworkTxThroughputResponse = (json: NetworkTransactionThroughputEndpoint.Response) => JSONDecoding.create<
 	NetworkTransactionThroughputEndpoint.Response,
 	NetworkTransactionThroughputEndpoint.DecodedResponse
->()(json).andThen(decoded => hasExpectedProps(
+>()(json).andThen(decoded => hasRequiredProps(
 	'networkTransactionThroughput',
 	decoded,
 	['tps']
@@ -279,7 +279,7 @@ export const handleNetworkTxThroughputResponse = (json: NetworkTransactionThroug
 export const handleNetworkTxDemandResponse = (json: NetworkTransactionDemandEndpoint.Response) => JSONDecoding.create<
 	NetworkTransactionDemandEndpoint.Response,
 	NetworkTransactionDemandEndpoint.DecodedResponse
->()(json).andThen(decoded => hasExpectedProps(
+>()(json).andThen(decoded => hasRequiredProps(
 	'networkTransactionDemand',
 	decoded,
 	['tps']
@@ -291,7 +291,7 @@ export const handleBuildTransactionResponse = (
 	JSONDecoding.withDecoders(amountDecoder('fee')).create<
 		BuildTransactionEndpoint.Response,
 		BuildTransactionEndpoint.DecodedResponse
-	>()(json).andThen(decoded => hasExpectedProps(
+	>()(json).andThen(decoded => hasRequiredProps(
 		'buildTransaction',
 		decoded,
 		['transaction', 'fee']
@@ -307,7 +307,7 @@ export const handleFinalizeTransactionResponse = (
 		).create<
 			FinalizeTransactionEndpoint.Response,
 			FinalizeTransactionEndpoint.DecodedResponse
-		>()(json).andThen(decoded => hasExpectedProps(
+		>()(json).andThen(decoded => hasRequiredProps(
 			'finalizeTransaction',
 			decoded,
 			['txID']
@@ -323,7 +323,7 @@ export const handleSubmitTransactionResponse = (
 		).create<
 			SubmitTransactionEndpoint.Response,
 			SubmitTransactionEndpoint.DecodedResponse
-		>()(json).andThen(decoded => hasExpectedProps(
+		>()(json).andThen(decoded => hasRequiredProps(
 			'submitTransaction',
 			decoded,
 			['txID']
