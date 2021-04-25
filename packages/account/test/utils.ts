@@ -1,11 +1,6 @@
 import { PrivateKey, privateKeyFromScalar } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
-import {
-	HDPathRadixT,
-	Mnemonic,
-	Wallet,
-	WalletT,
-} from '../src'
+import { HDPathRadixT, Mnemonic, Wallet, WalletT } from '../src'
 
 export const makeWalletWithFunds = (): WalletT => {
 	return Wallet.__unsafeCreateWithPrivateKeyProvider({

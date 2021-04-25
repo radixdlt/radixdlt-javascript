@@ -79,6 +79,7 @@ export type RadixT = Readonly<{
 	login: (password: string, loadKeystore: () => Promise<KeystoreT>) => RadixT
 
 	// Wallet APIs
+	restoreAccountsUpToIndex: (index: number) => Observable<AccountsT>
 	deriveNextAccount: (input?: DeriveNextAccountInput) => RadixT
 	switchAccount: (input: SwitchAccountInput) => RadixT
 	revealMnemonic: () => Observable<MnemomicT>
