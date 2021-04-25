@@ -10,17 +10,15 @@ import { Radix } from '@radixdlt/application'
 const radix = Radix.create()
 	.login('my strong password', loadKeystore)
 	.connect(new URL('https://api.radixdlt.com/rpc'))
-	.transferTokens(
-		{
-			transferInput: {
-				to: bob,
-				amount: 1,
-				tokenIdentifier: 'xrd_rr1qfumuen7l8wthtz45p3ftn58pvrs9xlumvkuu2xet8egzkcklqtesv2yq5l',
-			},
-			userConfirmation: 'skip',
-			message: { plaintext: 'Hey Bob, only we can read this.', encrypt: true }
-		}
-	)
+	.transferTokens({
+		transferInput: {
+			to: bob,
+			amount: 1,
+			tokenIdentifier: 'xrd_rb1qya85pwq',
+		},
+		userConfirmation: 'skip',
+		message: { plaintext: 'Hey Bob, only we can read this.', encrypt: true }
+	})
 	.subscribe((txID) => console.log(`✅ TokenTransfer with txID ${txID.toString()} completed successfully.`)
 ```
 
@@ -73,8 +71,6 @@ const radix = Radix.create()
 ```
 
 In the code block above we did not provide any wallet, and we accessed the property `ledger` on which we called the method `nativeToken()` which observable stream we subsequently subscribe to. Lastly we handle the subscription.
-
-> 💡 Everytime you'll see a heart emoji 💜💚💙💛❤️ it's a message logged from within this library (inspired by [SwiftBeaver](https://github.com/SwiftyBeaver/SwiftyBeaver#during-development-colored-logging-to-xcode-console)), representing `VERBOSE`, `DEBUG`, `INFO`, `WARNING` and `ERROR` log levels respectively.
 
 The [`ledger` property is separately documented in the end of this document](#ledger)
 
@@ -342,13 +338,11 @@ Use `withStakingFetchTrigger` to specify a fetch trigger for unstakes/stakes. Se
 
 ### Decrypt
 
-> ⚠️ Not yet implemented, subject to change.
-
 You can decrypt encrypted messages using the private key of the active account in transactions like so:
 
 ```typescript
 radix
-	.decryptMessageInTransaction(transaction)
+	.decryptTransaction(transaction) // e.g. from tx history.
 	.subscribe({
 		next: (decrypted) => { console.log(`✅🔓 successfully decrypted message: ${decrypted.message.toString()}`) },
 		error: (failure) => { console.log(`❌🔐 failed to decrypt message, wrong account? ${failure.toString()}`) },
@@ -356,32 +350,9 @@ radix
 	.add(subs)
 ```
 
-### Sign
-
-> ⚠️ Not yet implemented, subject to change.
-
-You can sign arbitrary data using the private key of the active account, typically you will not use this since you will use higher level method `transferTokens` which also handles the signing part. This should be considered a more low level API for signing generic data.
-
-```typescript
-radix
-	.wallet
-	.sign({ unhashed: 'I approve of this message.'.toString('hex')}) // will sha256 hash
-	.subscribe(
-		(signed) => console.log(`📝 
-			signed message '${signed.message.toString()}', 
-			with related private key of public key: ${signed.publicKey.toString()}, 
-			resulting in signature: '${signed.signature.toString()}'
-		`)
-	)
-	.add(subs)
-```
-
-
 ## Methods resulting in RPC calls
 
 ### Transaction history
-
-> ⚠️ Not yet implemented, subject to change.
 
 A transaction is not a token transfer, however, a token transfer might be _one_ action amongst _many_ in a transaction.
 

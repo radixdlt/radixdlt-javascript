@@ -12,7 +12,7 @@ export enum ActionType {
 	TOKEN_TRANSFER = 'TokenTransfer',
 	STAKE_TOKENS = 'StakeTokens',
 	UNSTAKE_TOKENS = 'UnstakeTokens',
-	OTHER = 'OTHER',
+	OTHER = 'Other',
 }
 
 export type Action<T extends ActionType = ActionType.OTHER> = Readonly<{
@@ -52,11 +52,16 @@ export type ActionInput =
 // ##################################
 export type TransferTokensProps = Readonly<{
 	to: AccountAddressT
+	from: AccountAddressT
 	amount: AmountT
-	tokenIdentifier: ResourceIdentifierT
+	rri: ResourceIdentifierT
 }>
 
+export type TransferTokensAction = TransferTokensProps &
+	Action<ActionType.TOKEN_TRANSFER>
+
 export type StakeAndUnstakeTokensProps = Readonly<{
+	from: AccountAddressT
 	validator: ValidatorAddressT
 	amount: AmountT
 }>
@@ -64,19 +69,20 @@ export type StakeAndUnstakeTokensProps = Readonly<{
 export type StakeTokensProps = StakeAndUnstakeTokensProps
 export type UnstakeTokensProps = StakeAndUnstakeTokensProps
 
+export type StakeTokensAction = StakeTokensProps &
+	Action<ActionType.STAKE_TOKENS>
+export type UnstakeTokensAction = UnstakeTokensProps &
+	Action<ActionType.UNSTAKE_TOKENS>
+
 // An intended action specified by the user. Not yet accepted by
 // Radix Core API.
 export type IntendedActionBase<T extends ActionType> = Action<T> &
 	Readonly<{
-		// An ephemeral, client-side randomly generated, id
-		// useful for debugging purposes. Note that this is
-		// PER action, not per transactionIntent.
 		from: AccountAddressT
-		uuid: string
 	}>
 
 export type IntendedTransferTokensAction = IntendedActionBase<ActionType.TOKEN_TRANSFER> &
-	TransferTokensProps
+	TransferTokensAction
 
 export type IntendedStakeTokensAction = IntendedActionBase<ActionType.STAKE_TOKENS> &
 	StakeTokensProps
@@ -100,17 +106,13 @@ export type IntendedAction =
 export type ExecutedActionBase<T extends ActionType> = Action<T>
 
 export type ExecutedTransferTokensAction = ExecutedActionBase<ActionType.TOKEN_TRANSFER> &
-	// 'tokenIdentifier' is called 'rri' in history...
-	Omit<IntendedTransferTokensAction, 'uuid' | 'tokenIdentifier'> &
-	Readonly<{
-		rri: ResourceIdentifierT
-	}>
+	TransferTokensAction
 
 export type ExecutedStakeTokensAction = ExecutedActionBase<ActionType.STAKE_TOKENS> &
-	Omit<IntendedStakeTokensAction, 'uuid'>
+	StakeTokensAction
 
 export type ExecutedUnstakeTokensAction = ExecutedActionBase<ActionType.UNSTAKE_TOKENS> &
-	Omit<IntendedUnstakeTokensAction, 'uuid'>
+	UnstakeTokensAction
 
 // OTHER (Only "Executed")
 export type ExecutedOtherAction = ExecutedActionBase<ActionType.OTHER>

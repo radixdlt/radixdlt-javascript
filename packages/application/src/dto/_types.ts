@@ -44,6 +44,7 @@ export type TokenPermissions = Readonly<{
  * Used to lookup transactions by ID.
  */
 export type TransactionIdentifierT = Readonly<{
+	__witness: 'isTXId'
 	__hex: string
 	toString: () => string
 	equals: (other: TransactionIdentifierT) => boolean
@@ -166,13 +167,25 @@ export type TransactionHistoryRequestInput = TransactionHistoryOfKnownAddressReq
 		address: AccountAddressT
 	}>
 
-export type ExecutedTransaction = Readonly<{
+export type SimpleExecutedTransaction = Readonly<{
 	txID: TransactionIdentifierT
 	sentAt: Date
 	fee: AmountT
 	message?: string
 	actions: ExecutedAction[]
 }>
+
+export enum TransactionType {
+	FROM_ME_TO_ME = 'FROM_ME_TO_ME',
+	INCOMING = 'INCOMING',
+	OUTGOING = 'OUTGOING',
+	UNRELATED = 'UNRELATED',
+}
+
+export type ExecutedTransaction = SimpleExecutedTransaction &
+	Readonly<{
+		transactionType: TransactionType
+	}>
 
 export type TokenAmount = Readonly<{
 	tokenIdentifier: ResourceIdentifierT
@@ -300,10 +313,15 @@ export type TokenBalances = Readonly<{
 	tokenBalances: TokenBalance[]
 }>
 
-export type TransactionHistory = Readonly<{
+export type SimpleTransactionHistory = Readonly<{
 	cursor: string
-	transactions: ExecutedTransaction[]
+	transactions: SimpleExecutedTransaction[]
 }>
+
+export type TransactionHistory = SimpleTransactionHistory &
+	Readonly<{
+		transactions: ExecutedTransaction[]
+	}>
 
 export type Validator = Readonly<{
 	address: ValidatorAddressT

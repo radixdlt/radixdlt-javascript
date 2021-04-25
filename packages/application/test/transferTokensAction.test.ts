@@ -45,14 +45,6 @@ describe('TransferTokensActions', () => {
 		expect(tokenTransfer.from.equals(alice)).toBe(true)
 	})
 
-	it(`should have a 'uuid'`, () => {
-		const tokenTransfer = IntendedTransferTokens.create(
-			input,
-			alice,
-		)._unsafeUnwrap()
-		expect(tokenTransfer.uuid).toBeDefined()
-	})
-
 	it('should be possible to transfer 0 tokens', () => {
 		const tokenTransfer = IntendedTransferTokens.create(
 			{ ...input, amount: zero },

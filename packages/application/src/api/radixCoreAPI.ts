@@ -10,7 +10,7 @@ import {
 } from '@radixdlt/account'
 import { map } from 'rxjs/operators'
 import {
-	ExecutedTransaction,
+	SimpleExecutedTransaction,
 	NetworkTransactionDemand,
 	NetworkTransactionThroughput,
 	PendingTransaction,
@@ -19,7 +19,7 @@ import {
 	StakePositions,
 	StatusOfTransaction,
 	Token,
-	TransactionHistory,
+	SimpleTransactionHistory,
 	TransactionHistoryRequestInput,
 	TransactionIdentifierT,
 	TransactionIntent,
@@ -60,7 +60,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 
 		lookupTransaction: (
 			txID: TransactionIdentifierT,
-		): Observable<ExecutedTransaction> =>
+		): Observable<SimpleExecutedTransaction> =>
 			toObs((a) => a.lookupTransaction, txID.toString()),
 
 		networkId: (): Observable<NetworkT> =>
@@ -76,7 +76,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 
 		transactionHistory: (
 			input: TransactionHistoryRequestInput,
-		): Observable<TransactionHistory> =>
+		): Observable<SimpleTransactionHistory> =>
 			toObs(
 				(a) => a.transactionHistory,
 				input.address.toString(),
@@ -121,7 +121,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 								from: action.from.toString(),
 								to: action.to.toString(),
 								amount: action.amount.toString(),
-								tokenIdentifier: action.tokenIdentifier.toString(),
+								tokenIdentifier: action.rri.toString(),
 						  }
 						: {
 								type: action.type,

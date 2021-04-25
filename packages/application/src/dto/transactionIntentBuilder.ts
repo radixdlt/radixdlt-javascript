@@ -2,12 +2,20 @@ import {
 	ActionInput,
 	ActionType,
 	ExecutedAction,
+	ExecutedActionBase,
+	ExecutedStakeTokensAction,
+	ExecutedTransferTokensAction,
+	ExecutedUnstakeTokensAction,
 	IntendedAction,
 	IntendedStakeTokensAction,
 	IntendedTransferTokensAction,
 	IntendedUnstakeTokensAction,
+	StakeTokensAction,
 	StakeTokensInput,
+	TransferTokensAction,
 	TransferTokensInput,
+	TransferTokensProps,
+	UnstakeTokensAction,
 	UnstakeTokensInput,
 } from '../actions'
 import {
@@ -46,6 +54,7 @@ import { Option } from 'prelude-ts'
 import { isAmount } from '@radixdlt/primitives'
 import { log } from '@radixdlt/util'
 import { MessageInTransaction } from '../_types'
+import { TransactionIdentifier } from './transactionIdentifier'
 
 type IntendedActionsFrom = Readonly<{
 	intendedActions: IntendedAction[]
@@ -56,23 +65,9 @@ export const singleRecipientFromActions = (
 	mine: PublicKey,
 	actions: UserAction[],
 ): Result<PublicKey, Error> => {
-	const setOfStrings = new Set<string>()
-	setOfStrings.add(mine.toString())
-
-	const others: PublicKey[] = actions.reduce(
-		(acc: PublicKey[], action: UserAction) => {
-			const uniqueAddressesOfAction = getUniqueAddresses(action)
-			uniqueAddressesOfAction.forEach((a) => {
-				const pkString = a.publicKey.toString()
-				if (!setOfStrings.has(pkString)) {
-					acc.push(a.publicKey)
-					setOfStrings.add(pkString)
-				}
-			})
-			return acc
-		},
-		[] as PublicKey[],
-	)
+	const others = flatMapAddressesOf({ actions })
+		.map((a) => a.publicKey)
+		.filter((a) => !a.equals(mine))
 
 	if (others.length > 1) {
 		const errMsg = `Cannot encrypt/decrypt message for a transaction containing more than one recipient addresses.`
@@ -126,23 +121,23 @@ const mustHaveAtLeastOneAction = new Error(
 	'A transaction intent must contain at least one of the following actions: TransferToken, StakeTokens or UnstakeTokens',
 )
 
-export const isIntendedTransferTokensAction = (
+export const isTransferTokensAction = (
 	something: unknown,
-): something is IntendedTransferTokensAction => {
-	const inspection = something as IntendedTransferTokensAction
+): something is TransferTokensAction => {
+	const inspection = something as TransferTokensAction
 	return (
 		inspection.type === ActionType.TOKEN_TRANSFER &&
-		isAccountAddress(inspection.from) &&
 		isAccountAddress(inspection.to) &&
+		isAccountAddress(inspection.from) &&
 		isAmount(inspection.amount) &&
-		isResourceIdentifier(inspection.tokenIdentifier)
+		isResourceIdentifier(inspection.rri)
 	)
 }
 
-export const isIntendedStakeTokensAction = (
+export const isStakeTokensAction = (
 	something: unknown,
-): something is IntendedStakeTokensAction => {
-	const inspection = something as IntendedStakeTokensAction
+): something is StakeTokensAction => {
+	const inspection = something as StakeTokensAction
 	return (
 		inspection.type === ActionType.STAKE_TOKENS &&
 		isAccountAddress(inspection.from) &&
@@ -151,10 +146,10 @@ export const isIntendedStakeTokensAction = (
 	)
 }
 
-export const isIntendedUnstakeTokensAction = (
+export const isUnstakeTokensAction = (
 	something: unknown,
-): something is IntendedUnstakeTokensAction => {
-	const inspection = something as IntendedUnstakeTokensAction
+): something is UnstakeTokensAction => {
+	const inspection = something as UnstakeTokensAction
 	return (
 		inspection.type === ActionType.UNSTAKE_TOKENS &&
 		isAccountAddress(inspection.from) &&
@@ -164,16 +159,69 @@ export const isIntendedUnstakeTokensAction = (
 }
 
 type UserAction = IntendedAction | ExecutedAction
-const getUniqueAddresses = (action: UserAction): AccountAddressT[] => {
-	if (isIntendedTransferTokensAction(action)) {
-		return [action.to, action.from]
-	} else if (isIntendedStakeTokensAction(action)) {
-		return [action.from]
-	} else if (isIntendedUnstakeTokensAction(action)) {
-		return [action.from]
+export const getUniqueAddresses = (
+	input: Readonly<{
+		action: UserAction
+		includeFrom?: boolean
+		includeTo?: boolean
+	}>,
+): AccountAddressT[] => {
+	const action = input.action
+	const includeFrom = input.includeFrom ?? true
+	const includeTo = input.includeTo ?? true
+	if (isTransferTokensAction(action)) {
+		const addresses: AccountAddressT[] = []
+		if (includeTo) {
+			addresses.push(action.to)
+		}
+		if (includeFrom) {
+			addresses.push(action.from)
+		}
+		return addresses
+	} else if (isStakeTokensAction(action)) {
+		const addresses: AccountAddressT[] = []
+		if (includeFrom) {
+			addresses.push(action.from)
+		}
+		return addresses
+	} else if (isUnstakeTokensAction(action)) {
+		const addresses: AccountAddressT[] = []
+		if (includeFrom) {
+			addresses.push(action.from)
+		}
+		return addresses
 	} else {
-		throw new Error('Incorrect impl')
+		return []
 	}
+}
+
+export const flatMapAddressesOf = (
+	input: Readonly<{
+		actions: UserAction[]
+		includeFrom?: boolean
+		includeTo?: boolean
+	}>,
+): AccountAddressT[] => {
+	const { actions, includeFrom, includeTo } = input
+	const flatMapped = actions.reduce(
+		(acc: AccountAddressT[], action: UserAction) => {
+			const uniqueAddressOfAction = getUniqueAddresses({
+				action,
+				includeFrom,
+				includeTo,
+			})
+			return acc.concat(...uniqueAddressOfAction)
+		},
+		[] as AccountAddressT[],
+	)
+
+	const set = new Set<string>()
+	return flatMapped.filter((a) => {
+		const str = a.toString()
+		const hasNt = !set.has(str)
+		set.add(str)
+		return hasNt
+	})
 }
 
 const isTransactionIntentBuilderEncryptInput = (

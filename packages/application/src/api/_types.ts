@@ -1,4 +1,4 @@
-import { getAPI } from './json-rpc/interface'
+import { getAPI } from './json-rpc'
 
 import { Observable } from 'rxjs'
 import {
@@ -9,7 +9,7 @@ import {
 } from '@radixdlt/account'
 
 import {
-	ExecutedTransaction,
+	SimpleExecutedTransaction,
 	NetworkTransactionDemand,
 	NetworkTransactionThroughput,
 	PendingTransaction,
@@ -17,7 +17,7 @@ import {
 	StakePositions,
 	StatusOfTransaction,
 	Token,
-	TransactionHistory,
+	SimpleTransactionHistory,
 	TransactionHistoryRequestInput,
 	TransactionIdentifierT,
 	TransactionIntent,
@@ -28,7 +28,7 @@ import {
 	SimpleTokenBalances,
 	FinalizedTransaction,
 	Validator,
-} from '../dto/_types'
+} from '../dto'
 
 type JsonRpcAPI = {
 	[Property in keyof ReturnType<typeof getAPI>]: ReturnType<
@@ -49,7 +49,7 @@ export type RadixAPI = Readonly<{
 
 	transactionHistory: (
 		input: TransactionHistoryRequestInput,
-	) => Observable<TransactionHistory>
+	) => Observable<SimpleTransactionHistory>
 
 	nativeToken: () => Observable<Token>
 
@@ -66,7 +66,7 @@ export type RadixAPI = Readonly<{
 
 	lookupTransaction: (
 		txID: TransactionIdentifierT,
-	) => Observable<ExecutedTransaction>
+	) => Observable<SimpleExecutedTransaction>
 
 	validators: (input: ValidatorsRequestInput) => Observable<Validators>
 

@@ -16,13 +16,13 @@ import {
 	StakePositions,
 	StatusOfTransaction,
 	TokenBalances,
-	TransactionHistory,
 	TransactionHistoryActiveAccountRequestInput,
 	UnstakePositions,
 	TransactionIdentifierT,
 	TransactionTracking,
 	BuiltTransaction,
-	ExecutedTransaction,
+	SimpleExecutedTransaction,
+	TransactionHistory,
 } from './dto'
 import {
 	StakeTokensInput,
@@ -129,7 +129,7 @@ export type RadixT = Readonly<{
 
 	unstakeTokens: (input: UnstakeOptions) => TransactionTracking
 
-	decryptTransaction: (input: ExecutedTransaction) => Observable<string>
+	decryptTransaction: (input: SimpleExecutedTransaction) => Observable<string>
 
 	errors: Observable<ErrorNotification>
 
