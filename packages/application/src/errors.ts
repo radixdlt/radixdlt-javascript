@@ -1,4 +1,4 @@
-import { isArray, isString, msgFromError } from '@radixdlt/util'
+import { isArray } from '@radixdlt/util'
 
 export type ErrorT<Category extends ErrorCategory, Cause extends ErrorCause> = {
 	category: Category

@@ -1,4 +1,4 @@
-import { Int32, NetworkT } from '@radixdlt/account'
+import { NetworkT } from '@radixdlt/account'
 import { ActionType } from '../../actions'
 import {
 	SimpleExecutedTransaction,
@@ -19,7 +19,7 @@ import {
 	SimpleTokenBalances,
 	Validator,
 	RawValidatorResponse,
-} from '../../dto/_types'
+} from '../../dto'
 
 type API_PREFIX = 'radix'
 

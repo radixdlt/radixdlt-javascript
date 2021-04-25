@@ -1801,65 +1801,88 @@ describe('radix_high_level_api', () => {
 				publicKey: wallet.__unsafeGetAccount().__unsafeGetPublicKey(),
 				network,
 			})
+
+			const mockApi = (): RadixCoreAPI => {
+				const makeTX = (): SimpleExecutedTransaction => {
+					return {
+						txID,
+						sentAt: new Date(),
+						fee: Amount.fromUnsafe(1)._unsafeUnwrap(),
+						actions: <ExecutedAction[]>[
+							makeTransfer({
+								from: fromMe ? myAddress : bob,
+								to: toMe ? myAddress : carol,
+							}),
+							{
+								type: ActionType.OTHER,
+							},
+							{
+								type: ActionType.STAKE_TOKENS,
+								from: fromMe ? myAddress : bob,
+								validator: ValidatorAddress.fromUnsafe(
+									'vb1qgfqnj34dn7qp9wvf4l6rhw6hu3l82rcqh3rjtk080t75t888u98wkh3gjq',
+								)._unsafeUnwrap(),
+								amount: Amount.fromUnsafe(1)._unsafeUnwrap(),
+							},
+							{
+								type: ActionType.UNSTAKE_TOKENS,
+								from: fromMe ? myAddress : bob,
+								validator: ValidatorAddress.fromUnsafe(
+									'vb1qgfqnj34dn7qp9wvf4l6rhw6hu3l82rcqh3rjtk080t75t888u98wkh3gjq',
+								)._unsafeUnwrap(),
+								amount: Amount.fromUnsafe(1)._unsafeUnwrap(),
+							},
+						],
+					}
+				}
+
+				return {
+					...mockRadixCoreAPI(),
+					lookupTransaction: (_) => {
+						console.log(`👻 lookupTx`)
+						return of(makeTX())
+					},
+					transactionHistory: (_) => {
+						return of({
+							cursor: 'AN_EMPTY_CURSOR',
+							transactions: <ExecutedTransaction[]>[makeTX()],
+						}).pipe(shareReplay(1))
+					},
+				}
+			}
+
 			const radix = Radix.create({ network })
 				.withWallet(wallet)
-				.__withAPI(
-					of({
-						...mockRadixCoreAPI(),
-						transactionHistory: (_) => {
-							return of({
-								cursor: 'AN_EMPTY_CURSOR',
-								transactions: <ExecutedTransaction[]>[
-									{
-										txID,
-										sentAt: new Date(),
-										fee: Amount.fromUnsafe(
-											1,
-										)._unsafeUnwrap(),
-										actions: <ExecutedAction[]>[
-											makeTransfer({
-												from: fromMe ? myAddress : bob,
-												to: toMe ? myAddress : carol,
-											}),
-											{
-												type: ActionType.OTHER,
-											},
-											{
-												type: ActionType.STAKE_TOKENS,
-												from: fromMe ? myAddress : bob,
-												validator: ValidatorAddress.fromUnsafe(
-													'vb1qgfqnj34dn7qp9wvf4l6rhw6hu3l82rcqh3rjtk080t75t888u98wkh3gjq',
-												)._unsafeUnwrap(),
-												amount: Amount.fromUnsafe(
-													1,
-												)._unsafeUnwrap(),
-											},
-											{
-												type: ActionType.UNSTAKE_TOKENS,
-												from: fromMe ? myAddress : bob,
-												validator: ValidatorAddress.fromUnsafe(
-													'vb1qgfqnj34dn7qp9wvf4l6rhw6hu3l82rcqh3rjtk080t75t888u98wkh3gjq',
-												)._unsafeUnwrap(),
-												amount: Amount.fromUnsafe(
-													1,
-												)._unsafeUnwrap(),
-											},
-										],
-									},
-								],
-							}).pipe(shareReplay(1))
-						},
-					}),
-				)
+				.__withAPI(of(mockApi()))
+
+			const assertTX = (tx: ExecutedTransaction): void => {
+				expect(tx.transactionType).toBe(expectedTxType)
+			}
 
 			radix
 				.transactionHistory({ size: 1 })
 				.subscribe(
 					(hist) => {
 						expect(hist.transactions.length).toBe(1)
-						const tx = hist.transactions[0]
-						expect(tx.transactionType).toBe(expectedTxType)
-						done()
+						const txFromhistory = hist.transactions[0]
+
+						assertTX(txFromhistory)
+						radix
+							.lookupTransaction(<TransactionIdentifierT>{})
+							.subscribe(
+								(txFromLookup) => {
+									assertTX(txFromLookup)
+									done()
+								},
+								(error) => {
+									new Error(
+										`Expected tx history but got error: ${msgFromError(
+											error,
+										)}`,
+									)
+								},
+							)
+							.add(subs)
 					},
 					(error) => {
 						done(

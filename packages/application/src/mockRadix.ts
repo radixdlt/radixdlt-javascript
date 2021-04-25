@@ -27,7 +27,6 @@ import {
 	SimpleExecutedTransaction,
 	SimpleTokenBalance,
 	SimpleTokenBalances,
-	SimpleTransactionHistory,
 	StakePosition,
 	StakePositions,
 	StatusOfTransaction,
@@ -43,13 +42,14 @@ import {
 	Validator,
 	Validators,
 	ValidatorsRequestInput,
-} from './dto/_types'
-import { tokenOwnerOnly, tokenPermissionsAll } from './dto/tokenPermissions'
-import { RadixCoreAPI } from './api/_types'
+	tokenOwnerOnly,
+	tokenPermissionsAll,
+	TransactionIdentifier,
+} from './dto'
+import { RadixCoreAPI } from './api'
 import { shareReplay } from 'rxjs/operators'
 import { privateKeyFromBuffer, PublicKey, sha256 } from '@radixdlt/crypto'
-import { ActionType, ExecutedAction } from './actions/_types'
-import { TransactionIdentifier } from './dto/transactionIdentifier'
+import { ActionType, ExecutedAction } from './actions'
 import { isNumber } from '@radixdlt/util'
 
 export const xrd: Token = {
