@@ -28,36 +28,37 @@ import {
 	publicKeyFromBytes,
 } from '@radixdlt/crypto'
 import {
-	Radix,
+	ActionType,
 	alice,
-	bob,
-	balancesFor,
-	mockedAPI,
-	ManualUserConfirmTX,
-	RadixT,
-	TransferTokensOptions,
 	APIError,
 	APIErrorCause,
+	balancesFor,
+	bob,
+	BuiltTransaction,
+	carol,
 	ErrorCategory,
 	ErrorCause,
+	ExecutedTransaction,
+	isStakeTokensAction,
+	isTransferTokensAction,
+	isUnstakeTokensAction,
+	ManualUserConfirmTX,
+	mockedAPI,
 	mockRadixCoreAPI,
-	BuiltTransaction,
+	NodeT,
+	Radix,
+	RadixCoreAPI,
+	RadixT,
 	SimpleTokenBalances,
 	TokenBalances,
-	TransactionIdentifierT,
-	TransactionStatus,
-	NodeT,
-	RadixCoreAPI,
-	TransactionTrackingEventType,
-	TransactionIntentBuilder,
 	TransactionIdentifier,
-	TransferTokensInput,
-	ActionType,
+	TransactionIdentifierT,
+	TransactionIntentBuilder,
+	TransactionStatus,
+	TransactionTrackingEventType,
 	TransactionType,
-	isTransferTokensAction,
-	isStakeTokensAction,
-	isUnstakeTokensAction,
-	carol,
+	TransferTokensInput,
+	TransferTokensOptions,
 } from '../src'
 import { Amount, AmountT, one } from '@radixdlt/primitives'
 
@@ -71,10 +72,10 @@ import { mockErrorMsg } from '../../util/test/util'
 import {
 	ExecutedAction,
 	ExecutedStakeTokensAction,
-	SimpleExecutedTransaction,
 	ExecutedTransferTokensAction,
 	ExecutedUnstakeTokensAction,
 	IntendedAction,
+	SimpleExecutedTransaction,
 	TransactionIntent,
 } from '..'
 import { signatureFromHexStrings } from '@radixdlt/crypto/test/utils'
@@ -87,8 +88,6 @@ const mockTransformIntentToExecutedTX = (
 	const txID = TransactionIdentifier.create(
 		'deadbeef'.repeat(8),
 	)._unsafeUnwrap()
-
-	const idOfContainingTX = txID
 
 	const mockTransformIntendedActionToExecutedAction = (
 		intendedAction: IntendedAction,
@@ -1810,18 +1809,41 @@ describe('radix_high_level_api', () => {
 						transactionHistory: (_) => {
 							return of({
 								cursor: 'AN_EMPTY_CURSOR',
-								transactions: [
+								transactions: <ExecutedTransaction[]>[
 									{
 										txID,
 										sentAt: new Date(),
 										fee: Amount.fromUnsafe(
 											1,
 										)._unsafeUnwrap(),
-										actions: [
+										actions: <ExecutedAction[]>[
 											makeTransfer({
 												from: fromMe ? myAddress : bob,
 												to: toMe ? myAddress : carol,
 											}),
+											{
+												type: ActionType.OTHER,
+											},
+											{
+												type: ActionType.STAKE_TOKENS,
+												from: fromMe ? myAddress : bob,
+												validator: ValidatorAddress.fromUnsafe(
+													'vb1qgfqnj34dn7qp9wvf4l6rhw6hu3l82rcqh3rjtk080t75t888u98wkh3gjq',
+												)._unsafeUnwrap(),
+												amount: Amount.fromUnsafe(
+													1,
+												)._unsafeUnwrap(),
+											},
+											{
+												type: ActionType.UNSTAKE_TOKENS,
+												from: fromMe ? myAddress : bob,
+												validator: ValidatorAddress.fromUnsafe(
+													'vb1qgfqnj34dn7qp9wvf4l6rhw6hu3l82rcqh3rjtk080t75t888u98wkh3gjq',
+												)._unsafeUnwrap(),
+												amount: Amount.fromUnsafe(
+													1,
+												)._unsafeUnwrap(),
+											},
 										],
 									},
 								],

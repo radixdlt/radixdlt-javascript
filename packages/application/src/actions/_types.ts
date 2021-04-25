@@ -103,7 +103,7 @@ export type IntendedAction =
 
 // An executed action stored in the Radix Ledger, part
 // of transaction history. Marker type.
-export type ExecutedActionBase<T extends ActionType> = Action<T> & Readonly<{}>
+export type ExecutedActionBase<T extends ActionType> = Action<T>
 
 export type ExecutedTransferTokensAction = ExecutedActionBase<ActionType.TOKEN_TRANSFER> &
 	TransferTokensAction
