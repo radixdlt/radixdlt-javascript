@@ -4,11 +4,10 @@
 
 /* eslint-disable */
 import { Radix } from '../../src/radix'
-import { AccountAddress, NetworkT, ValidatorAddress } from '@radixdlt/account'
+import { NetworkT, ValidatorAddress } from '@radixdlt/account'
 import {
 	interval,
 	Observable,
-	of,
 	ReplaySubject,
 	Subject,
 	Subscription,
@@ -16,7 +15,6 @@ import {
 import { map, take, toArray } from 'rxjs/operators'
 import { ManualUserConfirmTX } from '../../src/_types'
 import { bob } from '../../src/mockRadix'
-import { NodeT } from '../../src/api/_types'
 import { TransactionIdentifierT, TransactionStatus } from '../../src/dto/_types'
 import { Amount, AmountT } from '@radixdlt/primitives'
 import { TransactionIntentBuilder } from '../../src/dto/transactionIntentBuilder'
@@ -28,25 +26,6 @@ const fetch = require('node-fetch')
 
 //const NODE_URL = 'https://localhost:8080'
 const NODE_URL = 'https://54.73.253.49'
-
-const requestFaucet = async (address: string) => {
-	let request = {
-		params: {
-			address,
-		},
-	}
-
-	await fetch(`${NODE_URL}/faucet/request`, {
-		method: 'POST',
-		body: JSON.stringify(request),
-		headers: { 'Content-Type': 'application/json' },
-	})
-}
-
-const dummyNode = (urlString: string): Observable<NodeT> =>
-	of({
-		url: new URL(urlString),
-	})
 
 describe('integration API tests', () => {
 	const subs = new Subscription()
@@ -257,7 +236,7 @@ describe('integration API tests', () => {
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
-		const pageSize = 5
+		const pageSize = 50
 
 		const fetchTxHistory = (cursor: string) => {
 			return new Promise<[string, number]>((resolve, _) => {
@@ -276,27 +255,22 @@ describe('integration API tests', () => {
 		const getLastCursor = async () => {
 			return new Promise<string>((resolve, _) => {
 				radix
-				.transactionHistory({
-					size: pageSize,
-				})
-				.subscribe(async (txHistory) => {
-					let cursor = txHistory.cursor
-					let prevTxCount = 0
-					let txCount = 0
-					let count = 0
+					.transactionHistory({
+						size: pageSize,
+					})
+					.subscribe(async (txHistory) => {
+						let cursor = txHistory.cursor
+						let prevTxCount = 0
+						let txCount = 0
 
-					console.log('ATTEMPTING TO GET LAST CURSOR')
-					while(txCount >= prevTxCount) {
-						count++
-						console.log(count)
-						prevTxCount = txCount
-						console.log(`FETCHING WITH CURSOR ${cursor}`)
-						;[cursor, txCount] = await fetchTxHistory(cursor)
-					}
-					console.log('GOT LAST CURSOR')
+						while (txCount >= prevTxCount) {
+							prevTxCount = txCount
 
-					resolve(cursor)
-				})
+								;[cursor, txCount] = await fetchTxHistory(cursor)
+						}
+
+						resolve(cursor)
+					})
 			})
 		}
 
@@ -338,7 +312,7 @@ describe('integration API tests', () => {
 			.add(subs)
 	})
 
-	it.only('should be able to paginate transaction history', (done) => {
+	it('should be able to paginate transaction history', (done) => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET
 		})
@@ -519,8 +493,7 @@ describe('integration API tests', () => {
 			.add(subs)
 	})
 
-	it.skip('should get validators', (done) => {
-		// not implemented in core
+	it('should get validators', (done) => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET
 		})
@@ -538,6 +511,52 @@ describe('integration API tests', () => {
 			})
 			.add(subs)
 	})
+
+	it('should be able to paginate validators', done => {
+		const radix = Radix.create({
+			network: NetworkT.BETANET
+		})
+			.withWallet(makeWalletWithFunds())
+			.connect(`${NODE_URL}/rpc`)
+
+		radix.ledger
+			.validators({
+				size: 2,
+			})
+			.subscribe((validators) => {
+				radix.ledger
+					.validators({
+						size: 1,
+					})
+					.subscribe((firstValidator) => {
+						const cursor = firstValidator.cursor
+
+						expect(
+							validators.validators[0].address.toString(),
+						).toEqual(
+							firstValidator.validators[0].address.toString(),
+						)
+
+						radix.ledger
+							.validators({
+								size: 1,
+								cursor
+							})
+							.subscribe((secondValidator) => {
+								expect(
+									validators.validators[1].address.toString(),
+								).toEqual(
+									secondValidator.validators[0].address.toString(),
+								)
+								done()
+							})
+							.add(subs)
+					})
+					.add(subs)
+			})
+			.add(subs)
+	})
+
 
 	it('should get build transaction response', (done) => {
 		const radix = Radix.create({
@@ -563,7 +582,7 @@ describe('integration API tests', () => {
 						.subscribe((unsignedTx) => {
 							expect(
 								(unsignedTx as { fee: AmountT }).fee.toString(),
-							).toEqual('50')
+							).toEqual('100')
 							done()
 						})
 						.add(subs)
@@ -605,7 +624,7 @@ describe('integration API tests', () => {
 			.add(subs)
 	})
 
-	it('can fetch stake positions', (done) => {
+	it.skip('can fetch stake positions', (done) => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET
 		})
@@ -614,36 +633,33 @@ describe('integration API tests', () => {
 			.withStakingFetchTrigger(interval(1000))
 
 		const stakeAmount = Amount.fromUnsafe(1)._unsafeUnwrap()
-		const validator =
-			'vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazy'
-		const { events, completion } = radix.stakeTokens({
-			stakeInput: {
-				amount: stakeAmount,
-				validator,
-			},
-			userConfirmation: 'skip',
-			pollTXStatusTrigger: interval(1000),
-		})
+		radix.ledger.validators({
+			size: 1
+		}).subscribe(({ validators }) => {
+			const validator = validators[0]
 
-		let resolveFee: any
-		const feePromise = new Promise<AmountT>((resolve, _) => {
-			resolveFee = resolve
-		})
-
-		completion.subscribe((txID) => {
 			radix.stakingPositions.subscribe(async (values) => {
-				radix.ledger
-					.lookupTransaction(txID)
-					.subscribe((tx) => {
-						resolveFee(tx.fee)
-					})
-					.add(subs)
+				const initialAmountStaked = values.find(value => value.validator.equals(validator.address))!.amount
+				
+				const { events, completion } = radix.stakeTokens({
+					stakeInput: {
+						amount: stakeAmount,
+						validator: validator.address,
+					},
+					userConfirmation: 'skip',
+					pollTXStatusTrigger: interval(1000),
+				})
 
-				const fee = await feePromise
-				expect(values[0].amount.equals(stakeAmount)).toEqual(true),
-					expect(values[0].validator.toString()).toEqual(validator)
-				done()
+				completion.subscribe((_) => {
+					radix.stakingPositions.subscribe(async (newValues) => {
+						const amountAfterStaking = newValues.find(value => value.validator.equals(validator.address))!.amount
+						
+						expect(amountAfterStaking.equals(initialAmountStaked.adding(stakeAmount)._unsafeUnwrap())).toEqual(true)
+						done()
+					})
+				})
 			})
+
 		})
 	})
 
@@ -663,7 +679,6 @@ describe('integration API tests', () => {
 	})
 
 	describe('make tx single transfer', () => {
-		// needs fix to handle arrays params
 		const tokenTransferInput: TransferTokensInput = {
 			to: bob,
 			amount: 1,

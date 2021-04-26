@@ -66,7 +66,6 @@ const radix = Radix.create()
 //      "currentSupply": "12000000000",
 //      "url": "https://https://www.radixdlt.com/",
 //      "tokenUrl": "https://avatars.githubusercontent.com/u/34097377?s=280&v=4",
-//      "tokenPermission": { "burn": "NONE", "mint": "NONE" }
 // } "
 ```
 
