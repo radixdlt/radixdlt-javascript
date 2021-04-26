@@ -29,8 +29,6 @@ import {
 	LookupValidatorEndpoint,
 } from './_types'
 import { TransactionIdentifier } from '../../dto/transactionIdentifier'
-import { makeTokenPermissions } from '../../dto/tokenPermissions'
-import { TokenPermission } from '../../dto/_types'
 import { pipe } from 'ramda'
 
 const amountDecoder = (...keys: string[]) =>
@@ -65,20 +63,6 @@ const URLDecoder = (...keys: string[]) =>
 		}
 		return undefined
 	})
-
-const tokenPermissionsDecoder = (...keys: string[]) =>
-	decoder((value, key) =>
-		key !== undefined && keys.includes(key) && isObject(value)
-			? ok(
-					makeTokenPermissions(
-						value as Readonly<{
-							mint: TokenPermission
-							burn: TokenPermission
-						}>,
-					),
-			  )
-			: undefined,
-	)
 
 const transactionIdentifierDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
@@ -227,7 +211,6 @@ export const handleTokenInfoResponse = (json: TokenInfoEndpoint.Response) =>
 		RRIDecoder('rri'),
 		amountDecoder('granularity', 'currentSupply'),
 		URLDecoder('tokenInfoURL', 'iconURL'),
-		tokenPermissionsDecoder('tokenPermission'),
 	)
 		.create<
 			TokenInfoEndpoint.Response,
@@ -243,7 +226,6 @@ export const handleTokenInfoResponse = (json: TokenInfoEndpoint.Response) =>
 				'currentSupply',
 				'tokenInfoURL',
 				'iconURL',
-				'tokenPermission',
 			]),
 		)
 

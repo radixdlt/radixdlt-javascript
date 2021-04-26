@@ -19,18 +19,18 @@ import {
 	TransactionStatusEndpoint,
 	UnstakePositionsEndpoint,
 	ValidatorsEndpoint,
-} from '../src/api/json-rpc/_types'
+} from '../src/api/json-rpc'
 import { Amount } from '@radixdlt/primitives'
 import { UInt256 } from '@radixdlt/uint256'
-import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
 import {
 	ActionType,
+	TransactionIdentifier,
 	ExecutedAction,
 	ExecutedOtherAction,
 	ExecutedTransferTokensAction,
-} from '../src/actions/_types'
+	RawExecutedAction
+} from '../src'
 
-import { makeTokenPermissions } from '../src/dto/tokenPermissions'
 import { isArray, isObject } from '@radixdlt/util'
 import {
 	ContentDescriptorObject,
@@ -43,11 +43,6 @@ import {
 	ResourceIdentifier,
 	ValidatorAddress,
 } from '@radixdlt/account'
-import {
-	RawExecutedAction,
-	TransactionIdentifierT,
-	TransactionType,
-} from '../src'
 
 const faker = require('json-schema-faker')
 
@@ -139,7 +134,6 @@ const expectedDecodedResponses = {
 		),
 		tokenInfoURL: new URL(response.tokenInfoURL),
 		iconURL: new URL(response.iconURL),
-		tokenPermission: makeTokenPermissions(response.tokenPermission),
 	}),
 
 	[rpcSpec.methods[2].name]: (
@@ -160,7 +154,6 @@ const expectedDecodedResponses = {
 		),
 		tokenInfoURL: new URL(response.tokenInfoURL),
 		iconURL: new URL(response.iconURL),
-		tokenPermission: makeTokenPermissions(response.tokenPermission),
 	}),
 
 	[rpcSpec.methods[3].name]: (

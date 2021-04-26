@@ -48,11 +48,7 @@
                             "isSupplyMutable": false,
                             "currentSupply": "2147483648",
                             "tokenInfoURL": "http://www.radixdlt.com",
-                            "iconURL": "http://www.image.radixdlt.com",
-                            "tokenPermission": {
-                                "burn": "all",
-                                "mint": "none"
-                            }
+                            "iconURL": "http://www.image.radixdlt.com"
                         }
                     }
                 }
@@ -89,11 +85,7 @@
                             "isSupplyMutable": false,
                             "currentSupply": "2147483648",
                             "tokenInfoURL": "http://www.radixdlt.com",
-                            "iconURL": "http://www.image.radixdlt.com",
-                            "tokenPermission": {
-                                "burn": "all",
-                                "mint": "none"
-                            }
+                            "iconURL": "http://www.image.radixdlt.com"
                         }
                     }
                 }
@@ -854,30 +846,6 @@
     ],
     "components": {
         "schemas": {
-            "tokenPermission": {
-                "type": "object",
-                "properties": {
-                    "burn": {
-                        "type": "string",
-                        "enum": [
-                            "ownerOnly",
-                            "all"
-                        ]
-                    },
-                    "mint": {
-                        "type": "string",
-                        "enum": [
-                            "ownerOnly",
-                            "all"
-                        ]
-                    }
-                },
-                "additionalProperties": false,
-                "required": [
-                    "burn",
-                    "mint"
-                ]
-            },
             "actions": {
                 "anyOf": [
                     {
@@ -1116,9 +1084,6 @@
                         },
                         "iconURL": {
                             "$ref": "#/components/schemas/url"
-                        },
-                        "tokenPermission": {
-                            "$ref": "#/components/schemas/tokenPermission"
                         }
                     },
                     "additionalProperties": false,
@@ -1130,8 +1095,7 @@
                         "isSupplyMutable",
                         "currentSupply",
                         "tokenInfoURL",
-                        "iconURL",
-                        "tokenPermission"
+                        "iconURL"
                     ]
                 }
             }
