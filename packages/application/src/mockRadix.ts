@@ -1,11 +1,4 @@
-import {
-	Amount,
-	AmountT,
-	Denomination,
-	isAmount,
-	maxAmount,
-} from '@radixdlt/primitives'
-import { UInt256 } from '@radixdlt/uint256'
+import { AmountOrUnsafeInput, AmountT, uint256Max } from '@radixdlt/primitives'
 import {
 	AccountAddress,
 	AccountAddressT,
@@ -48,19 +41,16 @@ import { RadixCoreAPI } from './api'
 import { shareReplay } from 'rxjs/operators'
 import { privateKeyFromBuffer, PublicKey, sha256 } from '@radixdlt/crypto'
 import { ActionType, ExecutedAction } from './actions'
-import { isNumber } from '@radixdlt/util'
+import { Amount } from '@radixdlt/primitives'
 
 export const xrd: Token = {
 	name: 'Rad',
 	rri: ResourceIdentifier.fromUnsafe('xrd_rb1qya85pwq')._unsafeUnwrap(),
 	symbol: 'XRD',
 	description: 'The native coin of Radix network',
-	granularity: Amount.fromUInt256({
-		magnitude: UInt256.valueOf(1),
-		denomination: Denomination.Whole,
-	})._unsafeUnwrap(),
+	granularity: Amount.fromUnsafe(1)._unsafeUnwrap(),
 	isSupplyMutable: false,
-	currentSupply: maxAmount,
+	currentSupply: uint256Max,
 	tokenInfoURL: new URL('https://www.radixdlt.com'),
 	iconURL: new URL('https://www.image.radixdlt.com/'),
 }
@@ -70,12 +60,9 @@ export const fooToken: Token = {
 	rri: ResourceIdentifier.fromUnsafe('foo_rb1qy3q706k')._unsafeUnwrap(),
 	symbol: 'FOO',
 	description: 'FOOest token.',
-	granularity: Amount.fromUInt256({
-		magnitude: UInt256.valueOf(1),
-		denomination: Denomination.Whole,
-	})._unsafeUnwrap(),
+	granularity: Amount.fromUnsafe(1)._unsafeUnwrap(),
 	isSupplyMutable: false,
-	currentSupply: maxAmount,
+	currentSupply: uint256Max,
 	tokenInfoURL: new URL('https://www.footoken.com'),
 	iconURL: new URL('https://www.image.footoken.com/'),
 }
@@ -85,12 +72,9 @@ export const barToken: Token = {
 	rri: ResourceIdentifier.fromUnsafe('bar_rb1qy6gq5vc')._unsafeUnwrap(),
 	symbol: 'BAR',
 	description: 'Bar token. Granularity E-3.',
-	granularity: Amount.fromUInt256({
-		magnitude: UInt256.valueOf(1),
-		denomination: Denomination.Milli,
-	})._unsafeUnwrap(),
+	granularity: Amount.fromUnsafe(1000)._unsafeUnwrap(),
 	isSupplyMutable: true,
-	currentSupply: maxAmount,
+	currentSupply: uint256Max,
 	tokenInfoURL: new URL('https://www.bartoken.com'),
 	iconURL: new URL('https://www.image.bartoken.com/'),
 }
@@ -100,12 +84,9 @@ export const goldToken: Token = {
 	rri: ResourceIdentifier.fromUnsafe('gold_rb1qydtpdac')._unsafeUnwrap(),
 	symbol: 'GOLD',
 	description: 'Gold token. Granularity E-12.',
-	granularity: Amount.fromUInt256({
-		magnitude: UInt256.valueOf(1),
-		denomination: Denomination.Pico,
-	})._unsafeUnwrap(),
+	granularity: Amount.fromUnsafe(1_000_000)._unsafeUnwrap(),
 	isSupplyMutable: false,
-	currentSupply: maxAmount,
+	currentSupply: uint256Max,
 	tokenInfoURL: new URL('https://www.goldtoken.com'),
 	iconURL: new URL('https://www.image.goldtoken.com/'),
 }
@@ -115,12 +96,9 @@ export const radixWrappedBitcoinToken: Token = {
 	rri: ResourceIdentifier.fromUnsafe('btcrw_rb1qyerpvjk')._unsafeUnwrap(),
 	symbol: 'BTCRW',
 	description: 'Radix wrapped Bitcoin. Granularity E-18.',
-	granularity: Amount.fromUInt256({
-		magnitude: UInt256.valueOf(1),
-		denomination: Denomination.Atto,
-	})._unsafeUnwrap(),
+	granularity: Amount.fromUnsafe(1)._unsafeUnwrap(),
 	isSupplyMutable: true,
-	currentSupply: maxAmount,
+	currentSupply: uint256Max,
 	tokenInfoURL: new URL('https://www.bitcoin.radix.com'),
 	iconURL: new URL('https://www.image.bitcoin.radix.com/'),
 }
@@ -130,12 +108,9 @@ export const radixWrappedEtherToken: Token = {
 	rri: ResourceIdentifier.fromUnsafe('ethrw_rb1qyeev2v5')._unsafeUnwrap(),
 	symbol: 'ETHRW',
 	description: 'Radix wrapped Ether. Granularity E-9.',
-	granularity: Amount.fromUInt256({
-		magnitude: UInt256.valueOf(1),
-		denomination: Denomination.Nano,
-	})._unsafeUnwrap(),
+	granularity: Amount.fromUnsafe(1_000_000_000)._unsafeUnwrap(),
 	isSupplyMutable: true,
-	currentSupply: maxAmount,
+	currentSupply: uint256Max,
 	tokenInfoURL: new URL('https://www.ether.radix.com'),
 	iconURL: new URL('https://www.image.ether.radix.com/'),
 }
@@ -146,12 +121,9 @@ export const __fallBackAlexToken: Token = {
 	symbol: 'ALEX',
 	description:
 		'Fallback token for when token for requested symbol was not found.',
-	granularity: Amount.fromUInt256({
-		magnitude: UInt256.valueOf(1),
-		denomination: Denomination.Whole,
-	})._unsafeUnwrap(),
+	granularity: Amount.fromUnsafe(1)._unsafeUnwrap(),
 	isSupplyMutable: true,
-	currentSupply: maxAmount,
+	currentSupply: uint256Max,
 	tokenInfoURL: new URL('https://www.alex.token.com'),
 	iconURL: new URL('https://www.image.alex.token.com/'),
 }
@@ -159,23 +131,14 @@ export const __fallBackAlexToken: Token = {
 export const balanceOfFor = (
 	input: Readonly<{
 		token: Token
-		amount: number | AmountT
+		amount: AmountOrUnsafeInput
 	}>,
 ): SimpleTokenBalance => {
-	const amt: AmountT = isAmount(input.amount)
-		? input.amount
-		: Amount.fromUInt256({
-				magnitude: input.token.granularity.magnitude.multiply(
-					isNumber(input.amount)
-						? UInt256.valueOf(input.amount)
-						: input.amount.magnitude,
-				),
-				denomination: Denomination.Atto,
-		  })._unsafeUnwrap()
+	const amt = Amount.fromUnsafe(input.amount)._unsafeUnwrap()
 
 	return {
 		tokenIdentifier: input.token.rri,
-		amount: amt.lessThan(input.token.currentSupply)
+		amount: amt.lt(input.token.currentSupply)
 			? amt
 			: input.token.currentSupply,
 	}
@@ -488,10 +451,13 @@ const detRandBalanceOfTokenWithInfo = (
 			(_): BalanceOfTokenWithInfo => {
 				const token = deterministicRandomToken()
 				const amtOrZero = anInt() % 10_000
-				const amountNum = Math.max(10, amtOrZero)
-				const amount = Amount.inSmallestDenomination(
-					token.granularity.magnitude.multiply(amountNum),
-				)
+				const amtFactor = Amount.fromUnsafe(
+					Math.max(10, amtOrZero),
+				)._unsafeUnwrap()
+
+				const amount = Amount.fromUnsafe(
+					token.granularity.mul(amtFactor),
+				)._unsafeUnwrap()
 				return {
 					token,
 					amount,

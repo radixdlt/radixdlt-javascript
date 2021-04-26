@@ -1,7 +1,5 @@
 import { decoder, JSONDecoding } from '@radixdlt/data-formats'
 import { err, ok, Result } from 'neverthrow'
-import { UInt256 } from '@radixdlt/uint256'
-import { Amount } from '@radixdlt/primitives'
 
 import {
 	AccountAddress,
@@ -10,7 +8,7 @@ import {
 	NetworkT,
 } from '@radixdlt/account'
 
-import { isObject, isString } from '@radixdlt/util'
+import { isString } from '@radixdlt/util'
 import {
 	BuildTransactionEndpoint,
 	SubmitTransactionEndpoint,
@@ -28,13 +26,14 @@ import {
 	ValidatorsEndpoint,
 	LookupValidatorEndpoint,
 } from './_types'
-import { TransactionIdentifier } from '../../dto/transactionIdentifier'
+import { TransactionIdentifier } from '../../dto'
 import { pipe } from 'ramda'
+import { Amount } from '@radixdlt/primitives'
 
 const amountDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
 		key !== undefined && keys.includes(key) && isString(value)
-			? ok(Amount.inSmallestDenomination(new UInt256(value)))
+			? Amount.fromUnsafe(value)
 			: undefined,
 	)
 
