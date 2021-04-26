@@ -15,13 +15,20 @@ import {
 import { map, take, toArray } from 'rxjs/operators'
 import { ManualUserConfirmTX } from '../../src/_types'
 import { bob } from '../../src/mockRadix'
-import { TransactionIdentifierT, TransactionStatus } from '../../src/dto/_types'
+import {
+	PendingTransaction,
+	TransactionIdentifierT,
+	TransactionStateSuccess,
+	TransactionStateUpdate,
+	TransactionStatus,
+} from '../../src/dto/_types'
 import { Amount, AmountT } from '@radixdlt/primitives'
 import { TransactionIntentBuilder } from '../../src/dto/transactionIntentBuilder'
 import { TransactionTrackingEventType } from '../../src/dto/_types'
 import { TransferTokensInput } from '../../src/actions/_types'
 import { TransferTokensOptions } from '../../src/_types'
 import { makeWalletWithFunds } from '../../../account/test/utils'
+import { UInt256 } from '@radixdlt/uint256'
 const fetch = require('node-fetch')
 
 //const NODE_URL = 'https://localhost:8080'
@@ -207,20 +214,26 @@ describe('integration API tests', () => {
 
 			radix.tokenBalances
 				.subscribe((balance) => {
+					const getXRDBalanceOrZero = (): AmountT => {
+						const maybeTokenBalance = balance.tokenBalances.find(
+							(a) => a.token.symbol.toLowerCase() === 'xrd',
+						)
+						return maybeTokenBalance !== undefined
+							? maybeTokenBalance.amount
+							: UInt256.valueOf(0)
+					}
+
 					if (transferDone) {
-						balanceAfterTransfer = balance.tokenBalances[0].amount
+						balanceAfterTransfer = getXRDBalanceOrZero()
 
 						expect(
 							initialBalance
-								.subtracting(balanceAfterTransfer)
-								._unsafeUnwrap()
-								.equals(
-									amountToSend.adding(fee)._unsafeUnwrap(),
-								),
+								.sub(balanceAfterTransfer)
+								.eq(amountToSend.add(fee)),
 						).toEqual(true)
 						done()
 					} else {
-						initialBalance = balance.tokenBalances[0].amount
+						initialBalance = getXRDBalanceOrZero()
 					}
 				})
 				.add(subs)
@@ -430,7 +443,7 @@ describe('integration API tests', () => {
 						event.eventUpdateType ===
 						TransactionTrackingEventType.SUBMITTED
 					) {
-						const txID: TransactionIdentifierT = (event as any)
+						const txID: TransactionIdentifierT = (event as TransactionStateSuccess<PendingTransaction>)
 							.transactionState.txID
 
 						radix
@@ -603,7 +616,7 @@ describe('integration API tests', () => {
 						.subscribe((unsignedTx) => {
 							expect(
 								(unsignedTx as { fee: AmountT }).fee.toString(),
-							).toEqual('100')
+							).toEqual('100000000000000000')
 							done()
 						})
 						.add(subs)
@@ -682,10 +695,8 @@ describe('integration API tests', () => {
 							)!.amount
 
 							expect(
-								amountAfterStaking.equals(
-									initialAmountStaked
-										.adding(stakeAmount)
-										._unsafeUnwrap(),
+								amountAfterStaking.eq(
+									initialAmountStaked.add(stakeAmount),
 								),
 							).toEqual(true)
 							done()

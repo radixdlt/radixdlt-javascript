@@ -16,6 +16,22 @@ describe('Amount', () => {
 		).toBe(false)
 	})
 
+	it('toString of 1 amount', () => {
+		const uOne = UInt256.valueOf(1)
+		expect(uOne.toString()).toBe('1')
+		const amount = Amount.fromUnsafe(1)._unsafeUnwrap()
+		expect(amount.toString()).toBe('1')
+	})
+
+	it('addition works as expected', () => {
+		const one = Amount.fromUnsafe(1)._unsafeUnwrap()
+		const two = Amount.fromUnsafe(2)._unsafeUnwrap()
+		const three = Amount.fromUnsafe(3)._unsafeUnwrap()
+		const res = one.add(two)
+		expect(res.eq(three)).toBe(true)
+		expect(res.toString()).toBe('3')
+	})
+
 	it('can typeguard UInt256', () => {
 		const uOne = UInt256.valueOf(1)
 		expect(isUInt256(uOne)).toBe(true)
