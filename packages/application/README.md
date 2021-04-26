@@ -259,8 +259,6 @@ For your convenience we provide you with a specific method for this
 
 #### restoreAccountsUpToIndex
 
-> ⚠️ Not yet implemented, subject to change.
-
 You can "restore" all accounts up to some last known index. This does **not** switch the active account. If you passed in the value `0` nothing will happen.
 
 ```typescript
@@ -371,7 +369,7 @@ radix.transactionHistory({
 //		"transactions": [
 //			{
 //				"id": "DeadBeefDeadBeefDeadBeefDeadBeefDeadBeefDeadBeefDeadBeefDeadBeef",
-//				"type": "incoming",
+//				"transactionType": "incoming",
 //				"sentAt": "2021-03-14",
 //				"fee": "0.0123",
 //				"message": {
@@ -390,7 +388,7 @@ radix.transactionHistory({
 //			},
 //			{
 //				"id": "ADeadBeeADeadBeeADeadBeeADeadBeeADeadBeeADeadBeeADeadBeeADeadBee",
-//				"type": "outgoing",
+//				"transactionType": "outgoing",
 //				"sentAt": "2021-03-09",
 //				"fee": "0.0095",
 //				"actions": [
@@ -405,7 +403,7 @@ radix.transactionHistory({
 //			},
 //			{
 //				"id": "FadedBeeFadedBeeFadedBeeFadedBeeFadedBeeFadedBeeFadedBeeFadedBee",
-//				"type": "outgoing",
+//				"transactionType": "outgoing",
 //				"sentAt": "2021-01-27",
 //				"fee": "0.0087",
 //				"actions": [
@@ -426,7 +424,7 @@ radix.transactionHistory({
 
 Wow 😅, that's a mouthful... Let's break it down. We call subscribe to the observable returned by the method call to `transactionHistory(...)` and after a short delay log the received object. It contains some "cursor", being a pointer to the last transaction, we can use this for subsequent pagination pages. We also see an array of "transactions". Each transaction has:  
 1. An identifier.  
-2. A type (`incoming`, `outgoing` or `unrelated`).
+2. A type (`INCOMING`, `OUTGOING`, `FROM_ME_TO_ME` or `UNRELATED`).
 3. A date.  
 4. A token fee (paid in the native token ("Rad"/`XRD`)).  
 5. An **optional**, encrypted, message.

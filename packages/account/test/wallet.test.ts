@@ -1,7 +1,7 @@
 import { AccountAddressT, NetworkT, WalletT, Wallet, Mnemonic } from '../src'
 import { map, take, toArray } from 'rxjs/operators'
 import { KeystoreT, PublicKey } from '@radixdlt/crypto'
-import { combineLatest, of, Subject } from 'rxjs'
+import { combineLatest, of, Subject, Subscription } from 'rxjs'
 import { restoreDefaultLogLevel, setLogLevel } from '@radixdlt/util'
 import { mockErrorMsg } from '../../util/test/util'
 
@@ -80,6 +80,25 @@ describe('HD Wallet', () => {
 		const mnemonicRevealed = wallet.revealMnemonic()
 		expect(mnemonicRevealed.equals(mnemonic)).toBe(true)
 		expect(mnemonicRevealed.phrase).toBe(mnemonicPhrase)
+	})
+
+	it('wallet can restoreAccountsUpToIndex', (done) => {
+		const subs = new Subscription()
+		const wallet = createWallet()
+
+		const index = 3
+		wallet
+			.restoreAccountsUpToIndex(index)
+			.subscribe(
+				(accounts) => {
+					expect(accounts.size).toBe(index + 1)
+					done()
+				},
+				(e) => {
+					done(e)
+				},
+			)
+			.add(subs)
 	})
 
 	describe('failing wallet scenarios', () => {

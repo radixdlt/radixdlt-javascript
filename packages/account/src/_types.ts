@@ -98,6 +98,8 @@ export type WalletT = PublicKeyDeriving &
 
 		revealMnemonic: () => MnemomicT
 
+		restoreAccountsUpToIndex: (index: number) => Observable<AccountsT>
+
 		// Call this once you can provide an observable providing network.
 		provideNetworkId: (network: Observable<NetworkT>) => void
 		deriveNext: (input?: DeriveNextAccountInput) => AccountT

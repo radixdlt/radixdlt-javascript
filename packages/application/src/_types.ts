@@ -23,6 +23,7 @@ import {
 	BuiltTransaction,
 	SimpleExecutedTransaction,
 	TransactionHistory,
+	ExecutedTransaction,
 } from './dto'
 import {
 	StakeTokensInput,
@@ -78,6 +79,7 @@ export type RadixT = Readonly<{
 	login: (password: string, loadKeystore: () => Promise<KeystoreT>) => RadixT
 
 	// Wallet APIs
+	restoreAccountsUpToIndex: (index: number) => Observable<AccountsT>
 	deriveNextAccount: (input?: DeriveNextAccountInput) => RadixT
 	switchAccount: (input: SwitchAccountInput) => RadixT
 	revealMnemonic: () => Observable<MnemomicT>
@@ -116,6 +118,14 @@ export type RadixT = Readonly<{
 	transactionHistory: (
 		input: TransactionHistoryActiveAccountRequestInput,
 	) => Observable<TransactionHistory>
+
+	/**
+	 * A decorated variant of RadixApi's lookupTransaction, this decorated variant returns
+	 * `ExecutedTransaction` instead of `SimpleExecutedTransaction` which includes `transctionType`.
+	 */
+	lookupTransaction: (
+		txID: TransactionIdentifierT,
+	) => Observable<ExecutedTransaction>
 
 	// Make TX flow
 	transferTokens: (input: TransferTokensOptions) => TransactionTracking
