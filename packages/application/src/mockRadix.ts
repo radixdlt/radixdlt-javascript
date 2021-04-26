@@ -35,8 +35,8 @@ import {
 	Validator,
 	Validators,
 	ValidatorsRequestInput,
-	TransactionIdentifier,
-} from './dto'
+} from './dto/_types'
+import { TransactionIdentifier } from './dto'
 import { RadixCoreAPI } from './api'
 import { shareReplay } from 'rxjs/operators'
 import { privateKeyFromBuffer, PublicKey, sha256 } from '@radixdlt/crypto'
