@@ -36,7 +36,7 @@ describe('integration API tests', () => {
 
 	it('can connect and is chainable', () => {
 		const radix = Radix.create({
-			network: NetworkT.BETANET
+			network: NetworkT.BETANET,
 		}).connect(`${NODE_URL}/rpc`)
 		expect(radix).toBeDefined()
 		expect(radix.ledger.nativeToken).toBeDefined()
@@ -45,7 +45,7 @@ describe('integration API tests', () => {
 
 	it('emits node connection without wallet', async (done) => {
 		const radix = Radix.create({
-			network: NetworkT.BETANET
+			network: NetworkT.BETANET,
 		}).connect(`${NODE_URL}/rpc`)
 
 		radix.__node
@@ -61,7 +61,7 @@ describe('integration API tests', () => {
 
 	it('provides network for wallets', async (done) => {
 		const radix = Radix.create({
-			network: NetworkT.BETANET
+			network: NetworkT.BETANET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
@@ -79,7 +79,7 @@ describe('integration API tests', () => {
 
 	it('returns native token without wallet', async (done) => {
 		const radix = Radix.create({
-			network: NetworkT.BETANET
+			network: NetworkT.BETANET,
 		})
 		radix.connect(`${NODE_URL}/rpc`)
 
@@ -97,7 +97,7 @@ describe('integration API tests', () => {
 
 	it('deriveNextAccount method on radix updates accounts', (done) => {
 		const radix = Radix.create({
-			network: NetworkT.BETANET
+			network: NetworkT.BETANET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
@@ -122,7 +122,7 @@ describe('integration API tests', () => {
 
 	it('deriveNextAccount alsoSwitchTo method on radix updates activeAccount', (done) => {
 		const radix = Radix.create({
-			network: NetworkT.BETANET
+			network: NetworkT.BETANET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
@@ -148,7 +148,7 @@ describe('integration API tests', () => {
 
 	it('deriveNextAccount alsoSwitchTo method on radix updates activeAddress', (done) => {
 		const radix = Radix.create({
-			network: NetworkT.BETANET
+			network: NetworkT.BETANET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
@@ -170,7 +170,7 @@ describe('integration API tests', () => {
 
 	it('should compare token balance before and after transfer', (done) => {
 		const radix = Radix.create({
-			network: NetworkT.BETANET
+			network: NetworkT.BETANET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
@@ -231,7 +231,7 @@ describe('integration API tests', () => {
 
 	it('should increment transaction history with a new transaction after transfer', async (done) => {
 		const radix = Radix.create({
-			network: NetworkT.BETANET
+			network: NetworkT.BETANET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
@@ -243,11 +243,14 @@ describe('integration API tests', () => {
 				const sub = radix
 					.transactionHistory({
 						size: pageSize,
-						cursor
+						cursor,
 					})
 					.subscribe((txHistory) => {
 						sub.unsubscribe()
-						resolve([txHistory.cursor, txHistory.transactions.length])
+						resolve([
+							txHistory.cursor,
+							txHistory.transactions.length,
+						])
 					})
 			})
 		}
@@ -265,8 +268,7 @@ describe('integration API tests', () => {
 
 						while (txCount >= prevTxCount) {
 							prevTxCount = txCount
-
-								;[cursor, txCount] = await fetchTxHistory(cursor)
+							;[cursor, txCount] = await fetchTxHistory(cursor)
 						}
 
 						resolve(cursor)
@@ -279,7 +281,7 @@ describe('integration API tests', () => {
 		radix
 			.transactionHistory({
 				size: pageSize,
-				cursor
+				cursor,
 			})
 			.subscribe((txHistory) => {
 				const countBeforeTransfer = txHistory.transactions.length
@@ -297,7 +299,7 @@ describe('integration API tests', () => {
 						radix
 							.transactionHistory({
 								size: pageSize,
-								cursor
+								cursor,
 							})
 							.subscribe((newTxHistory) => {
 								expect(
@@ -314,7 +316,7 @@ describe('integration API tests', () => {
 
 	it('should be able to paginate transaction history', (done) => {
 		const radix = Radix.create({
-			network: NetworkT.BETANET
+			network: NetworkT.BETANET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
@@ -381,7 +383,7 @@ describe('integration API tests', () => {
 
 	it('should handle transaction status updates', (done) => {
 		const radix = Radix.create({
-			network: NetworkT.BETANET
+			network: NetworkT.BETANET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
@@ -431,7 +433,7 @@ describe('integration API tests', () => {
 
 	it('can lookup tx', async (done) => {
 		const radix = Radix.create({
-			network: NetworkT.BETANET
+			network: NetworkT.BETANET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
@@ -467,7 +469,7 @@ describe('integration API tests', () => {
 	it.skip('can lookup validator', (done) => {
 		// not implemented in core
 		const radix = Radix.create({
-			network: NetworkT.BETANET
+			network: NetworkT.BETANET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
@@ -495,7 +497,7 @@ describe('integration API tests', () => {
 
 	it('should get validators', (done) => {
 		const radix = Radix.create({
-			network: NetworkT.BETANET
+			network: NetworkT.BETANET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
@@ -512,9 +514,9 @@ describe('integration API tests', () => {
 			.add(subs)
 	})
 
-	it('should be able to paginate validators', done => {
+	it('should be able to paginate validators', (done) => {
 		const radix = Radix.create({
-			network: NetworkT.BETANET
+			network: NetworkT.BETANET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
@@ -540,7 +542,7 @@ describe('integration API tests', () => {
 						radix.ledger
 							.validators({
 								size: 1,
-								cursor
+								cursor,
 							})
 							.subscribe((secondValidator) => {
 								expect(
@@ -557,10 +559,9 @@ describe('integration API tests', () => {
 			.add(subs)
 	})
 
-
 	it('should get build transaction response', (done) => {
 		const radix = Radix.create({
-			network: NetworkT.BETANET
+			network: NetworkT.BETANET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
@@ -573,7 +574,7 @@ describe('integration API tests', () => {
 			})
 			.build({
 				spendingSender: radix.activeAddress,
-				encryptMessageIfAnyWithAccount: radix.activeAccount
+				encryptMessageIfAnyWithAccount: radix.activeAccount,
 			})
 			.subscribe((intent) => {
 				radix.activeAddress.subscribe(async (address) => {
@@ -593,7 +594,7 @@ describe('integration API tests', () => {
 	it.skip('should get network transaction demand response', (done) => {
 		// not implemented in core
 		const radix = Radix.create({
-			network: NetworkT.BETANET
+			network: NetworkT.BETANET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
@@ -610,7 +611,7 @@ describe('integration API tests', () => {
 	it.skip('should get network transaction throughput response', (done) => {
 		// not implemented in core
 		const radix = Radix.create({
-			network: NetworkT.BETANET
+			network: NetworkT.BETANET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
@@ -626,47 +627,58 @@ describe('integration API tests', () => {
 
 	it.skip('can fetch stake positions', (done) => {
 		const radix = Radix.create({
-			network: NetworkT.BETANET
+			network: NetworkT.BETANET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 			.withStakingFetchTrigger(interval(1000))
 
 		const stakeAmount = Amount.fromUnsafe(1)._unsafeUnwrap()
-		radix.ledger.validators({
-			size: 1
-		}).subscribe(({ validators }) => {
-			const validator = validators[0]
+		radix.ledger
+			.validators({
+				size: 1,
+			})
+			.subscribe(({ validators }) => {
+				const validator = validators[0]
 
-			radix.stakingPositions.subscribe(async (values) => {
-				const initialAmountStaked = values.find(value => value.validator.equals(validator.address))!.amount
-				
-				const { events, completion } = radix.stakeTokens({
-					stakeInput: {
-						amount: stakeAmount,
-						validator: validator.address,
-					},
-					userConfirmation: 'skip',
-					pollTXStatusTrigger: interval(1000),
-				})
+				radix.stakingPositions.subscribe(async (values) => {
+					const initialAmountStaked = values.find((value) =>
+						value.validator.equals(validator.address),
+					)!.amount
 
-				completion.subscribe((_) => {
-					radix.stakingPositions.subscribe(async (newValues) => {
-						const amountAfterStaking = newValues.find(value => value.validator.equals(validator.address))!.amount
-						
-						expect(amountAfterStaking.equals(initialAmountStaked.adding(stakeAmount)._unsafeUnwrap())).toEqual(true)
-						done()
+					const { events, completion } = radix.stakeTokens({
+						stakeInput: {
+							amount: stakeAmount,
+							validator: validator.address,
+						},
+						userConfirmation: 'skip',
+						pollTXStatusTrigger: interval(1000),
+					})
+
+					completion.subscribe((_) => {
+						radix.stakingPositions.subscribe(async (newValues) => {
+							const amountAfterStaking = newValues.find((value) =>
+								value.validator.equals(validator.address),
+							)!.amount
+
+							expect(
+								amountAfterStaking.equals(
+									initialAmountStaked
+										.adding(stakeAmount)
+										._unsafeUnwrap(),
+								),
+							).toEqual(true)
+							done()
+						})
 					})
 				})
 			})
-
-		})
 	})
 
 	it.skip('can fetch unstake positions', (done) => {
 		// not implemented in core
 		const radix = Radix.create({
-			network: NetworkT.BETANET
+			network: NetworkT.BETANET,
 		})
 			.connect(`${NODE_URL}/rpc`)
 			.withWallet(makeWalletWithFunds())
@@ -706,7 +718,7 @@ describe('integration API tests', () => {
 
 		it('events emits expected values', (done) => {
 			const radix = Radix.create({
-				network: NetworkT.BETANET
+				network: NetworkT.BETANET,
 			})
 				.withWallet(makeWalletWithFunds())
 				.connect(`${NODE_URL}/rpc`)
@@ -753,7 +765,7 @@ describe('integration API tests', () => {
 
 		it('automatic confirmation', (done) => {
 			const radix = Radix.create({
-				network: NetworkT.BETANET
+				network: NetworkT.BETANET,
 			})
 				.withWallet(makeWalletWithFunds())
 				.connect(`${NODE_URL}/rpc`)
@@ -782,7 +794,7 @@ describe('integration API tests', () => {
 
 		it('manual confirmation', (done) => {
 			const radix = Radix.create({
-				network: NetworkT.BETANET
+				network: NetworkT.BETANET,
 			})
 				.withWallet(makeWalletWithFunds())
 				.connect(`${NODE_URL}/rpc`)
@@ -834,7 +846,7 @@ describe('integration API tests', () => {
 		it('should be able to call stake tokens', (done) => {
 			// not implemented in core
 			const radix = Radix.create({
-				network: NetworkT.BETANET
+				network: NetworkT.BETANET,
 			})
 				.withWallet(makeWalletWithFunds())
 				.connect(`${NODE_URL}/rpc`)
@@ -871,9 +883,8 @@ describe('integration API tests', () => {
 		})
 
 		it('should be able to call unstake tokens', (done) => {
-
 			const radix = Radix.create({
-				network: NetworkT.BETANET
+				network: NetworkT.BETANET,
 			})
 				.withWallet(makeWalletWithFunds())
 				.connect(`${NODE_URL}/rpc`)
@@ -898,7 +909,9 @@ describe('integration API tests', () => {
 									.unstakeTokens({
 										unstakeInput: {
 											amount: 1,
-											validator: validators.validators[0].address,
+											validator:
+												validators.validators[0]
+													.address,
 										},
 										userConfirmation: 'skip',
 										pollTXStatusTrigger: pollTXStatusTrigger,
@@ -930,29 +943,43 @@ describe('integration API tests', () => {
 				})
 		})
 
-		it('should be able to paginate validator result', done => {
+		it('should be able to paginate validator result', (done) => {
 			const radix = Radix.create({
-				network: NetworkT.BETANET
+				network: NetworkT.BETANET,
 			})
 				.withWallet(makeWalletWithFunds())
 				.connect(`${NODE_URL}/rpc`)
 
-			radix.ledger.validators({
-				size: 2
-			}).subscribe(twoValidators => {
-				radix.ledger.validators({
-					size: 1
-				}).subscribe(firstValidator => {
-					radix.ledger.validators({
-						size: 1,
-						cursor: firstValidator.cursor
-					}).subscribe(secondValidator => {
-						expect(firstValidator.validators[0].address.toString()).toEqual(twoValidators.validators[0].address.toString())
-						expect(secondValidator.validators[0].address.toString()).toEqual(twoValidators.validators[1].address.toString())
-						done()
-					})
+			radix.ledger
+				.validators({
+					size: 2,
 				})
-			})
+				.subscribe((twoValidators) => {
+					radix.ledger
+						.validators({
+							size: 1,
+						})
+						.subscribe((firstValidator) => {
+							radix.ledger
+								.validators({
+									size: 1,
+									cursor: firstValidator.cursor,
+								})
+								.subscribe((secondValidator) => {
+									expect(
+										firstValidator.validators[0].address.toString(),
+									).toEqual(
+										twoValidators.validators[0].address.toString(),
+									)
+									expect(
+										secondValidator.validators[0].address.toString(),
+									).toEqual(
+										twoValidators.validators[1].address.toString(),
+									)
+									done()
+								})
+						})
+				})
 		})
 	})
 })

@@ -30,7 +30,6 @@ import {
 	ExecutedTransferTokensAction,
 } from '../src/actions/_types'
 
-import { makeTokenPermissions } from '../src/dto/tokenPermissions'
 import { isArray, isObject } from '@radixdlt/util'
 import {
 	ContentDescriptorObject,
@@ -139,7 +138,6 @@ const expectedDecodedResponses = {
 		),
 		tokenInfoURL: new URL(response.tokenInfoURL),
 		iconURL: new URL(response.iconURL),
-		tokenPermission: makeTokenPermissions(response.tokenPermission),
 	}),
 
 	[rpcSpec.methods[2].name]: (
@@ -160,7 +158,6 @@ const expectedDecodedResponses = {
 		),
 		tokenInfoURL: new URL(response.tokenInfoURL),
 		iconURL: new URL(response.iconURL),
-		tokenPermission: makeTokenPermissions(response.tokenPermission),
 	}),
 
 	[rpcSpec.methods[3].name]: (
@@ -364,8 +361,8 @@ const testRpcMethod = (method: MethodObject, index: number) => {
 
 		const expected = expectedDecodedResponses[method.name](mockedResult)
 
-		// @ts-ignore
-		const result = (await client[method.name](undefined))._unsafeUnwrap({
+		const result = // @ts-ignore
+		(await client[method.name.split('.')[1]](undefined))._unsafeUnwrap({
 			withStackTrace: true,
 		})
 

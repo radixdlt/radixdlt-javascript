@@ -44,7 +44,6 @@ import {
 	Validators,
 	ValidatorsRequestInput,
 } from './dto/_types'
-import { tokenOwnerOnly, tokenPermissionsAll } from './dto/tokenPermissions'
 import { RadixCoreAPI } from './api/_types'
 import { shareReplay } from 'rxjs/operators'
 import { privateKeyFromBuffer, PublicKey, sha256 } from '@radixdlt/crypto'
@@ -65,7 +64,6 @@ export const xrd: Token = {
 	currentSupply: maxAmount,
 	tokenInfoURL: new URL('https://www.radixdlt.com'),
 	iconURL: new URL('https://www.image.radixdlt.com/'),
-	tokenPermission: tokenPermissionsAll,
 }
 
 export const fooToken: Token = {
@@ -81,7 +79,6 @@ export const fooToken: Token = {
 	currentSupply: maxAmount,
 	tokenInfoURL: new URL('https://www.footoken.com'),
 	iconURL: new URL('https://www.image.footoken.com/'),
-	tokenPermission: tokenPermissionsAll,
 }
 
 export const barToken: Token = {
@@ -97,7 +94,6 @@ export const barToken: Token = {
 	currentSupply: maxAmount,
 	tokenInfoURL: new URL('https://www.bartoken.com'),
 	iconURL: new URL('https://www.image.bartoken.com/'),
-	tokenPermission: tokenPermissionsAll,
 }
 
 export const goldToken: Token = {
@@ -113,7 +109,6 @@ export const goldToken: Token = {
 	currentSupply: maxAmount,
 	tokenInfoURL: new URL('https://www.goldtoken.com'),
 	iconURL: new URL('https://www.image.goldtoken.com/'),
-	tokenPermission: tokenOwnerOnly,
 }
 
 export const radixWrappedBitcoinToken: Token = {
@@ -129,7 +124,6 @@ export const radixWrappedBitcoinToken: Token = {
 	currentSupply: maxAmount,
 	tokenInfoURL: new URL('https://www.bitcoin.radix.com'),
 	iconURL: new URL('https://www.image.bitcoin.radix.com/'),
-	tokenPermission: tokenPermissionsAll,
 }
 
 export const radixWrappedEtherToken: Token = {
@@ -145,7 +139,6 @@ export const radixWrappedEtherToken: Token = {
 	currentSupply: maxAmount,
 	tokenInfoURL: new URL('https://www.ether.radix.com'),
 	iconURL: new URL('https://www.image.ether.radix.com/'),
-	tokenPermission: tokenPermissionsAll,
 }
 
 export const __fallBackAlexToken: Token = {
@@ -162,7 +155,6 @@ export const __fallBackAlexToken: Token = {
 	currentSupply: maxAmount,
 	tokenInfoURL: new URL('https://www.alex.token.com'),
 	iconURL: new URL('https://www.image.alex.token.com/'),
-	tokenPermission: tokenPermissionsAll,
 }
 
 export const balanceOfFor = (
