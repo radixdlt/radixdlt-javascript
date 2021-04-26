@@ -60,7 +60,7 @@ import {
 	TransferTokensInput,
 	TransferTokensOptions,
 } from '../src'
-import { Amount, AmountT, one } from '@radixdlt/primitives'
+import { Amount, AmountT } from '@radixdlt/primitives'
 
 import {
 	log,
@@ -122,7 +122,7 @@ const mockTransformIntentToExecutedTX = (
 	const executedTx: SimpleExecutedTransaction = {
 		txID,
 		sentAt: new Date(Date.now()),
-		fee: one,
+		fee: Amount.fromUnsafe(1)._unsafeUnwrap(),
 		message: msg?.toString('hex'),
 		actions: txIntent.actions.map(
 			mockTransformIntendedActionToExecutedAction,
@@ -558,17 +558,13 @@ describe('radix_high_level_api', () => {
 
 			const radix = Radix.create()
 			radix.withWallet(createWallet())
-			radix.__withAPI(api).withTokenBalanceFetchTrigger(interval(300))
+			radix.__withAPI(api).withTokenBalanceFetchTrigger(interval(250))
 
-			const expectedValues = [
-				100000000000000000000,
-				200000000000000000000,
-				300000000000000000000,
-			]
+			const expectedValues = [100, 200, 300]
 
 			radix.tokenBalances
 				.pipe(
-					map((tb) => tb.tokenBalances[0].amount.magnitude.valueOf()),
+					map((tb) => tb.tokenBalances[0].amount.valueOf()),
 					take(expectedValues.length),
 					toArray(),
 				)
@@ -769,8 +765,8 @@ describe('radix_high_level_api', () => {
 			.subscribe((_w) => {
 				type ExpectedValue = { name: string; amount: string }
 				const expectedValues: ExpectedValue[] = [
-					{ name: 'Gold token', amount: '1533' },
-					{ name: 'Bar token', amount: '9066' },
+					{ name: 'Gold token', amount: '1533000000' },
+					{ name: 'Bar token', amount: '9066000' },
 					{ name: 'Rad', amount: '5060' },
 				]
 
@@ -959,7 +955,7 @@ describe('radix_high_level_api', () => {
 			.buildTransaction(transactionIntent)
 			.subscribe((unsignedTx) => {
 				expect((unsignedTx as { fee: AmountT }).fee.toString()).toEqual(
-					'26495',
+					'7794',
 				)
 				done()
 			})
@@ -1044,9 +1040,7 @@ describe('radix_high_level_api', () => {
 			.subscribe((_w) => {
 				radix.stakingPositions
 					.pipe(
-						map((sp) =>
-							sp.map((p) => p.amount.magnitude.valueOf() % 100),
-						),
+						map((sp) => sp.map((p) => p.amount.valueOf() % 100)),
 						take(expectedValues.length),
 						toArray(),
 					)
@@ -1082,7 +1076,7 @@ describe('radix_high_level_api', () => {
 					.pipe(
 						map((sp) =>
 							sp.map((p) => ({
-								amount: p.amount.magnitude.valueOf() % 1000,
+								amount: p.amount.valueOf() % 1000,
 								validator: p.validator.toString().slice(-2),
 								epochsUntil: p.epochsUntil,
 							})),

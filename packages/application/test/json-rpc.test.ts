@@ -44,6 +44,8 @@ import {
 } from '@radixdlt/account'
 import {
 	RawExecutedAction,
+	RawToken,
+	Token,
 	TransactionIdentifierT,
 	TransactionType,
 } from '../src'
@@ -112,6 +114,20 @@ const executedActionFromRaw = (action: RawExecutedAction): ExecutedAction => {
 // @ts-ignore
 const rpcSpec: OpenrpcDocument = global.rpcSpec
 
+const tokenInfoFromResponse = (response: RawToken): Token => ({
+	name: response.name,
+	rri: ResourceIdentifier.fromUnsafe(response.rri)._unsafeUnwrap({
+		withStackTrace: true,
+	}),
+	symbol: response.symbol,
+	description: response.description,
+	granularity: Amount.fromUnsafe(response.granularity)._unsafeUnwrap(),
+	isSupplyMutable: response.isSupplyMutable,
+	currentSupply: Amount.fromUnsafe(response.currentSupply)._unsafeUnwrap(),
+	tokenInfoURL: new URL(response.tokenInfoURL),
+	iconURL: new URL(response.iconURL),
+})
+
 const expectedDecodedResponses = {
 	[rpcSpec.methods[0].name]: (
 		response: NetworkIdEndpoint.Response,
@@ -122,43 +138,11 @@ const expectedDecodedResponses = {
 
 	[rpcSpec.methods[1].name]: (
 		response: NativeTokenEndpoint.Response,
-	): NativeTokenEndpoint.DecodedResponse => ({
-		name: response.name,
-		rri: ResourceIdentifier.fromUnsafe(response.rri)._unsafeUnwrap({
-			withStackTrace: true,
-		}),
-		symbol: response.symbol,
-		description: response.description,
-		granularity: Amount.inSmallestDenomination(
-			new UInt256(response.granularity),
-		),
-		isSupplyMutable: response.isSupplyMutable,
-		currentSupply: Amount.inSmallestDenomination(
-			new UInt256(response.currentSupply),
-		),
-		tokenInfoURL: new URL(response.tokenInfoURL),
-		iconURL: new URL(response.iconURL),
-	}),
+	): NativeTokenEndpoint.DecodedResponse => tokenInfoFromResponse(response),
 
 	[rpcSpec.methods[2].name]: (
 		response: TokenInfoEndpoint.Response,
-	): TokenInfoEndpoint.DecodedResponse => ({
-		name: response.name,
-		rri: ResourceIdentifier.fromUnsafe(response.rri)._unsafeUnwrap({
-			withStackTrace: true,
-		}),
-		symbol: response.symbol,
-		description: response.description,
-		granularity: Amount.inSmallestDenomination(
-			new UInt256(response.granularity),
-		),
-		isSupplyMutable: response.isSupplyMutable,
-		currentSupply: Amount.inSmallestDenomination(
-			new UInt256(response.currentSupply),
-		),
-		tokenInfoURL: new URL(response.tokenInfoURL),
-		iconURL: new URL(response.iconURL),
-	}),
+	): TokenInfoEndpoint.DecodedResponse => tokenInfoFromResponse(response),
 
 	[rpcSpec.methods[3].name]: (
 		response: TokenBalancesEndpoint.Response,
@@ -169,9 +153,9 @@ const expectedDecodedResponses = {
 				tokenIdentifier: ResourceIdentifier.fromUnsafe(
 					response.tokenBalances[0].rri,
 				)._unsafeUnwrap({ withStackTrace: true }),
-				amount: Amount.inSmallestDenomination(
-					new UInt256(response.tokenBalances[0].amount),
-				),
+				amount: Amount.fromUnsafe(
+					response.tokenBalances[0].amount,
+				)._unsafeUnwrap(),
 			},
 		],
 	}),

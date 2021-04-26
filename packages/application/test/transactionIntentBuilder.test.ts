@@ -1,4 +1,4 @@
-import { Amount, DenominationOutputFormat } from '@radixdlt/primitives'
+import { Amount } from '@radixdlt/primitives'
 import {
 	ActionType,
 	IntendedTransferTokensAction,
@@ -113,7 +113,7 @@ describe('tx_intent_builder', () => {
 		const action0 = txIntent.actions[0]
 		expect(action0.type).toEqual(ActionType.TOKEN_TRANSFER)
 		const transfer0 = action0 as IntendedTransferTokensAction
-		expect(transfer0.amount.equals(one)).toBe(true)
+		expect(transfer0.amount.eq(one)).toBe(true)
 		expect(transfer0.from.equals(alice)).toBe(true)
 		expect(transfer0.to.equals(bob)).toBe(true)
 		expect(transfer0.rri.equals(xrdRRI)).toBe(true)
@@ -152,11 +152,7 @@ describe('tx_intent_builder', () => {
 		const action0 = txIntent.actions[0]
 		expect(action0.type).toBe(ActionType.STAKE_TOKENS)
 		const stakeAction = action0 as IntendedStakeTokensAction
-		expect(
-			stakeAction.amount.toString({
-				denominationOutputFormat: DenominationOutputFormat.OMIT,
-			}),
-		).toBe('1234567890')
+		expect(stakeAction.amount.toString()).toBe('1234567890')
 	})
 
 	it('can add multiple transfers', () => {
@@ -185,12 +181,7 @@ describe('tx_intent_builder', () => {
 			.map((a) => a as IntendedTransferTokensAction)
 			.map(
 				(t: IntendedTransferTokensAction): SimpleTransf => ({
-					amount: parseInt(
-						t.amount.toString({
-							denominationOutputFormat:
-								DenominationOutputFormat.OMIT,
-						}),
-					),
+					amount: parseInt(t.amount.toString()),
 					to: t.to,
 				}),
 			)
@@ -318,13 +309,7 @@ describe('tx_intent_builder', () => {
 
 		expect(txIntent.actions.length).toBe(4)
 		expect(
-			txIntent.actions.map((a) =>
-				parseInt(
-					a.amount.toString({
-						denominationOutputFormat: DenominationOutputFormat.OMIT,
-					}),
-				),
-			),
+			txIntent.actions.map((a) => parseInt(a.amount.toString())),
 		).toStrictEqual([3, 4, 5, 6])
 
 		type AnyAddress = ValidatorAddressT | AccountAddressT

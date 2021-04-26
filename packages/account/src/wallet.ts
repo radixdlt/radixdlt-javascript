@@ -15,13 +15,7 @@ import {
 	SwitchToAccountIndex,
 	WalletT,
 } from './_types'
-import {
-	mergeMap,
-	map,
-	distinctUntilChanged,
-	skipUntil,
-	skipWhile,
-} from 'rxjs/operators'
+import { mergeMap, map, distinctUntilChanged, skipWhile } from 'rxjs/operators'
 import {
 	Keystore,
 	KeystoreT,

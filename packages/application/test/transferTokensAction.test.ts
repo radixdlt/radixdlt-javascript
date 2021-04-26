@@ -1,6 +1,5 @@
 import { NetworkT, ResourceIdentifier } from '@radixdlt/account'
-import { Denomination } from '@radixdlt/primitives'
-import { Amount, zero } from '@radixdlt/primitives/src/amount'
+import { Amount } from '@radixdlt/primitives/src/amount'
 import { TransferTokensInput } from '../src/actions/_types'
 import { IntendedTransferTokens } from '../src/actions/intendedTransferTokensAction'
 import { alice, bob } from '../src'
@@ -13,7 +12,7 @@ describe('TransferTokensActions', () => {
 			network: NetworkT.BETANET,
 		},
 	)._unsafeUnwrap()
-	const amount = Amount.fromUnsafe(6, Denomination.Atto)._unsafeUnwrap()
+	const amount = Amount.fromUnsafe(6)._unsafeUnwrap()
 
 	const input = <TransferTokensInput>{
 		to: bob,
@@ -34,7 +33,7 @@ describe('TransferTokensActions', () => {
 			input,
 			alice,
 		)._unsafeUnwrap()
-		expect(tokenTransfer.amount.equals(amount)).toBe(true)
+		expect(tokenTransfer.amount.eq(amount)).toBe(true)
 	})
 
 	it(`should have a 'sender' equal to 'input.from'.`, () => {
@@ -46,11 +45,12 @@ describe('TransferTokensActions', () => {
 	})
 
 	it('should be possible to transfer 0 tokens', () => {
+		const zero = Amount.fromUnsafe(0)._unsafeUnwrap()
 		const tokenTransfer = IntendedTransferTokens.create(
 			{ ...input, amount: zero },
 			alice,
 		)._unsafeUnwrap()
 
-		expect(tokenTransfer.amount.equals(zero)).toBe(true)
+		expect(tokenTransfer.amount.eq(zero)).toBe(true)
 	})
 })
