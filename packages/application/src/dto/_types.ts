@@ -31,14 +31,6 @@ export type UnstakePosition = Readonly<{
 	epochsUntil: number
 }>
 
-export type TokenPermissions = Readonly<{
-	permissions: Readonly<{ [key in TokenTransition]: TokenPermission }>
-	canBeMinted: (isOwnerOfToken: IsOwnerOfToken) => boolean
-	canBeBurned: (isOwnerOfToken: IsOwnerOfToken) => boolean
-	mintPermission: TokenPermission
-	equals: (other: TokenPermissions) => boolean
-}>
-
 /**
  * A transaction identifier, 32 bytes hash of signature + hashOfTxBlob.
  * Used to lookup transactions by ID.
@@ -51,12 +43,6 @@ export type TransactionIdentifierT = Readonly<{
 }>
 
 export type IsOwnerOfToken = () => boolean
-
-export enum TokenPermission {
-	TOKEN_OWNER_ONLY = 'token_owner_only',
-	ALL = 'all',
-	NONE = 'none',
-}
 
 export enum TokenTransition {
 	MINT = 'mint',
@@ -209,7 +195,6 @@ export type Token = Readonly<{
 	currentSupply: AmountT
 	tokenInfoURL: URL
 	iconURL: URL
-	tokenPermission: TokenPermissions
 }>
 
 export type StatusOfTransaction = Readonly<{
@@ -252,10 +237,6 @@ export type RawToken = Readonly<{
 	currentSupply: string
 	tokenInfoURL: string
 	iconURL: string
-	tokenPermission: {
-		burn: TokenPermission
-		mint: TokenPermission
-	}
 }>
 
 export type RawExecutedActionBase<T extends ActionType> = Readonly<{

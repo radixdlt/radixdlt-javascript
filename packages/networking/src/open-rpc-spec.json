@@ -6,7 +6,7 @@
     },
     "methods": [
         {
-            "name": "networkId",
+            "name": "radix.networkId",
             "summary": "Get the network id, a number that uniquely identifies the network. This network id must match the one used to derive addresses.",
             "params": [],
             "result": {
@@ -27,7 +27,7 @@
             "paramStructure": "by-position"
         },
         {
-            "name": "nativeToken",
+            "name": "radix.nativeToken",
             "summary": "Returns information about the native token of the network.",
             "params": [],
             "result": {
@@ -48,11 +48,7 @@
                             "isSupplyMutable": false,
                             "currentSupply": "2147483648",
                             "tokenInfoURL": "http://www.radixdlt.com",
-                            "iconURL": "http://www.image.radixdlt.com",
-                            "tokenPermission": {
-                                "burn": "all",
-                                "mint": "none"
-                            }
+                            "iconURL": "http://www.image.radixdlt.com"
                         }
                     }
                 }
@@ -60,7 +56,7 @@
             "paramStructure": "by-position"
         },
         {
-            "name": "tokenInfo",
+            "name": "radix.tokenInfo",
             "summary": "Return token information on the provided RRI.",
             "params": [
                 {
@@ -89,11 +85,7 @@
                             "isSupplyMutable": false,
                             "currentSupply": "2147483648",
                             "tokenInfoURL": "http://www.radixdlt.com",
-                            "iconURL": "http://www.image.radixdlt.com",
-                            "tokenPermission": {
-                                "burn": "all",
-                                "mint": "none"
-                            }
+                            "iconURL": "http://www.image.radixdlt.com"
                         }
                     }
                 }
@@ -101,7 +93,7 @@
             "paramStructure": "by-position"
         },
         {
-            "name": "tokenBalances",
+            "name": "radix.tokenBalances",
             "summary": "Get the token balances for an address.",
             "params": [
                 {
@@ -170,7 +162,7 @@
             "paramStructure": "by-position"
         },
         {
-            "name": "transactionHistory",
+            "name": "radix.transactionHistory",
             "summary": "Get the paginated transaction history for an address.",
             "params": [
                 {
@@ -265,7 +257,7 @@
             "paramStructure": "by-position"
         },
         {
-            "name": "lookupTransaction",
+            "name": "radix.lookupTransaction",
             "summary": "Get a transaction from its txID.",
             "params": [
                 {
@@ -324,7 +316,7 @@
             "paramStructure": "by-position"
         },
         {
-            "name": "stakePositions",
+            "name": "radix.stakePositions",
             "summary": "Get stakes that have not been requested to be unstaked.",
             "params": [
                 {
@@ -377,7 +369,7 @@
             "paramStructure": "by-position"
         },
         {
-            "name": "unstakePositions",
+            "name": "radix.unstakePositions",
             "summary": "Get unstake history for an address.",
             "params": [
                 {
@@ -440,7 +432,7 @@
             "paramStructure": "by-position"
         },
         {
-            "name": "statusOfTransaction",
+            "name": "radix.statusOfTransaction",
             "summary": "Returns the status of a transaction.",
             "params": [
                 {
@@ -497,7 +489,7 @@
             "paramStructure": "by-position"
         },
         {
-            "name": "networkTransactionThroughput",
+            "name": "radix.networkTransactionThroughput",
             "summary": "Returns the average transaction per second in the network.",
             "params": [],
             "result": {
@@ -519,7 +511,7 @@
             "paramStructure": "by-position"
         },
         {
-            "name": "networkTransactionDemand",
+            "name": "radix.networkTransactionDemand",
             "summary": "Average transactions submitted to the mempool per second.",
             "params": [],
             "result": {
@@ -541,7 +533,7 @@
             "paramStructure": "by-position"
         },
         {
-            "name": "validators",
+            "name": "radix.validators",
             "summary": "Get a paginated validator list, ordered by XRD staked descending.",
             "params": [
                 {
@@ -608,7 +600,7 @@
             "paramStructure": "by-position"
         },
         {
-            "name": "lookupValidator",
+            "name": "radix.lookupValidator",
             "summary": "Lookup a single validator by its validator address.",
             "params": [
                 {
@@ -646,7 +638,7 @@
             "paramStructure": "by-position"
         },
         {
-            "name": "buildTransaction",
+            "name": "radix.buildTransaction",
             "summary": "Get an unsigned transaction.",
             "params": [
                 {
@@ -731,7 +723,7 @@
             "paramStructure": "by-position"
         },
         {
-            "name": "finalizeTransaction",
+            "name": "radix.finalizeTransaction",
             "summary": "Finalizes a signed transaction before submitting it.",
             "params": [
                 {
@@ -782,7 +774,7 @@
             "paramStructure": "by-position"
         },
         {
-            "name": "submitTransaction",
+            "name": "radix.submitTransaction",
             "summary": "Submits a transaction to be dispatched to Radix network.",
             "params": [
                 {
@@ -854,30 +846,6 @@
     ],
     "components": {
         "schemas": {
-            "tokenPermission": {
-                "type": "object",
-                "properties": {
-                    "burn": {
-                        "type": "string",
-                        "enum": [
-                            "ownerOnly",
-                            "all"
-                        ]
-                    },
-                    "mint": {
-                        "type": "string",
-                        "enum": [
-                            "ownerOnly",
-                            "all"
-                        ]
-                    }
-                },
-                "additionalProperties": false,
-                "required": [
-                    "burn",
-                    "mint"
-                ]
-            },
             "actions": {
                 "anyOf": [
                     {
@@ -1116,9 +1084,6 @@
                         },
                         "iconURL": {
                             "$ref": "#/components/schemas/url"
-                        },
-                        "tokenPermission": {
-                            "$ref": "#/components/schemas/tokenPermission"
                         }
                     },
                     "additionalProperties": false,
@@ -1130,8 +1095,7 @@
                         "isSupplyMutable",
                         "currentSupply",
                         "tokenInfoURL",
-                        "iconURL",
-                        "tokenPermission"
+                        "iconURL"
                     ]
                 }
             }
