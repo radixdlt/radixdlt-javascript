@@ -66,7 +66,7 @@
     "build:ts": "tsc -b -f tsconfig.json",
     "bundle": "ts-node -P scripts/tsconfig.json scripts/bundle.ts umd,esm",
     "clean": "lerna clean --yes && lerna run clean && rm -rf includes",
-    "test": "jest -c jest.config.js --rootDir=.",
+    "test": "jest -c jest.config.js --testTimeout 10000 --rootDir=.",
     "test:integration": "NODE_TLS_REJECT_UNAUTHORIZED=0 jest -c jest.config.integration.js --testTimeout 50000 --verbose true --rootDir=.",
     "release": "yarn build && yarn bootstrap && lerna publish --conventional-commits",
     "format": "prettier --write '**/*.{ts,tsx,js}' --config .prettierrc",

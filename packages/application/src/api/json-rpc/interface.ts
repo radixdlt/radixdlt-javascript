@@ -115,7 +115,7 @@ export const getAPI = (
 		[ApiMethod.UNSTAKES]: setupAPIResponse<
 			UnstakePositionsEndpoint.Input,
 			UnstakePositionsEndpoint.DecodedResponse
-		>(handleUnstakesResponse)('radix.stakePositions'),
+		>(handleUnstakesResponse)('radix.unstakePositions'),
 
 		[ApiMethod.TX_STATUS]: setupAPIResponse<
 			TransactionStatusEndpoint.Input,

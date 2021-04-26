@@ -25,7 +25,21 @@ import { makeWalletWithFunds } from '../../../account/test/utils'
 const fetch = require('node-fetch')
 
 //const NODE_URL = 'https://localhost:8080'
-const NODE_URL = 'https://54.73.253.49'
+const NODE_URL = 'https://18.168.73.103'
+
+const requestFaucet = async (address: string) => {
+	let request = {
+		params: {
+			address,
+		},
+	}
+
+	await fetch(`${NODE_URL}/faucet/request`, {
+		method: 'POST',
+		body: JSON.stringify(request),
+		headers: { 'Content-Type': 'application/json' },
+	})
+}
 
 describe('integration API tests', () => {
 	const subs = new Subscription()
@@ -188,45 +202,51 @@ describe('integration API tests', () => {
 		let balanceAfterTransfer: AmountT
 		let fee: AmountT
 
-		radix.tokenBalances
-			.subscribe((balance) => {
-				if (transferDone) {
-					balanceAfterTransfer = balance.tokenBalances[0].amount
+		radix.activeAddress.subscribe(async (address) => {
+			await requestFaucet(address.toString())
 
-					expect(
-						initialBalance
-							.subtracting(balanceAfterTransfer)
-							._unsafeUnwrap()
-							.equals(amountToSend.adding(fee)._unsafeUnwrap()),
-					).toEqual(true)
-					done()
-				} else {
-					initialBalance = balance.tokenBalances[0].amount
-				}
-			})
-			.add(subs)
+			radix.tokenBalances
+				.subscribe((balance) => {
+					if (transferDone) {
+						balanceAfterTransfer = balance.tokenBalances[0].amount
 
-		radix
-			.transferTokens({
-				transferInput: {
-					to: bob,
-					amount: amountToSend,
-					tokenIdentifier: `xrd_rb1qya85pwq`,
-				},
-				userConfirmation: 'skip',
-				pollTXStatusTrigger: interval(500),
-			})
-			.completion.subscribe((txID) => {
-				transferDone = true
-				radix.ledger
-					.lookupTransaction(txID)
-					.subscribe((tx) => {
-						fee = tx.fee
-						getTokenBalanceSubject.next(1)
-					})
-					.add(subs)
-			})
-			.add(subs)
+						expect(
+							initialBalance
+								.subtracting(balanceAfterTransfer)
+								._unsafeUnwrap()
+								.equals(
+									amountToSend.adding(fee)._unsafeUnwrap(),
+								),
+						).toEqual(true)
+						done()
+					} else {
+						initialBalance = balance.tokenBalances[0].amount
+					}
+				})
+				.add(subs)
+
+			radix
+				.transferTokens({
+					transferInput: {
+						to: bob,
+						amount: amountToSend,
+						tokenIdentifier: `xrd_rb1qya85pwq`,
+					},
+					userConfirmation: 'skip',
+					pollTXStatusTrigger: interval(500),
+				})
+				.completion.subscribe((txID) => {
+					transferDone = true
+					radix.ledger
+						.lookupTransaction(txID)
+						.subscribe((tx) => {
+							fee = tx.fee
+							getTokenBalanceSubject.next(1)
+						})
+						.add(subs)
+				})
+				.add(subs)
+		})
 	})
 
 	it('should increment transaction history with a new transaction after transfer', async (done) => {
@@ -236,7 +256,7 @@ describe('integration API tests', () => {
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
-		const pageSize = 50
+		const pageSize = 10
 
 		const fetchTxHistory = (cursor: string) => {
 			return new Promise<[string, number]>((resolve, _) => {
@@ -625,7 +645,7 @@ describe('integration API tests', () => {
 			.add(subs)
 	})
 
-	it.skip('can fetch stake positions', (done) => {
+	it('can fetch stake positions', (done) => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
@@ -675,8 +695,7 @@ describe('integration API tests', () => {
 			})
 	})
 
-	it.skip('can fetch unstake positions', (done) => {
-		// not implemented in core
+	it('can fetch unstake positions', (done) => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
@@ -684,10 +703,42 @@ describe('integration API tests', () => {
 			.withWallet(makeWalletWithFunds())
 			.withStakingFetchTrigger(interval(500))
 
-		radix.unstakingPositions.subscribe((values) => {
-			expect(values[0]).toBeDefined()
-			done()
-		})
+		const stakeAmount = Amount.fromUnsafe(1)._unsafeUnwrap()
+
+		radix.ledger
+			.validators({
+				size: 1,
+			})
+			.subscribe(({ validators }) => {
+				const validator = validators[0]
+
+				radix
+					.stakeTokens({
+						stakeInput: {
+							amount: stakeAmount,
+							validator: validator.address,
+						},
+						userConfirmation: 'skip',
+						pollTXStatusTrigger: interval(1000),
+					})
+					.completion.subscribe((_) => {
+						radix
+							.unstakeTokens({
+								unstakeInput: {
+									amount: stakeAmount,
+									validator: validator.address,
+								},
+								userConfirmation: 'skip',
+								pollTXStatusTrigger: interval(1000),
+							})
+							.completion.subscribe((_) => {
+								radix.unstakingPositions.subscribe((values) => {
+									// cannot assert right now because core immediately processes unstake
+									done()
+								})
+							})
+					})
+			})
 	})
 
 	describe('make tx single transfer', () => {
@@ -844,7 +895,6 @@ describe('integration API tests', () => {
 		})
 
 		it('should be able to call stake tokens', (done) => {
-			// not implemented in core
 			const radix = Radix.create({
 				network: NetworkT.BETANET,
 			})
