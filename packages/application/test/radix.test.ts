@@ -1858,7 +1858,6 @@ describe('radix_high_level_api', () => {
 				return {
 					...mockRadixCoreAPI(),
 					lookupTransaction: (_) => {
-						console.log(`👻 lookupTx`)
 						return of(makeTX())
 					},
 					transactionHistory: (_) => {

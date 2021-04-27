@@ -74,7 +74,6 @@ const __unsafeCreateWithPrivateKeyProvider = (
 			alsoSwitchTo?: boolean // defaults to false
 		}>,
 	): Observable<AccountT> => {
-		console.log(`🙋🏽‍♂️ deriving...`)
 		const { hdPath } = input
 		const alsoSwitchTo = input.alsoSwitchTo ?? false
 		log.verbose(

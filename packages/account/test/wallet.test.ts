@@ -30,14 +30,13 @@ const expectWalletsEqual = (
 	const { wallet1, wallet2 } = wallets
 	wallet1.provideNetworkId(of(NetworkT.BETANET))
 	wallet2.provideNetworkId(of(NetworkT.BETANET))
-	const wallet1Account1PublicKey$ = wallet1.deriveNext().pipe(map((a) => { console.log(`🔮 got account from wallet 1`);return a.publicKey })) //.derivePublicKey()
-	const wallet2Account1PublicKey$ = wallet2.deriveNext().pipe(map((a) => { console.log(`🔮 got account from wallet 2`);return a.publicKey })) //.derivePublicKey()
+	const wallet1Account1PublicKey$ = wallet1.deriveNext().pipe(map((a) => a.publicKey ))
+	const wallet2Account1PublicKey$ = wallet2.deriveNext().pipe(map((a) => a.publicKey ))
 	combineLatest(
 		wallet1Account1PublicKey$,
 		wallet2Account1PublicKey$,
 	).subscribe({
 		next: (keys: PublicKey[]) => {
-			console.log(`👻 jippie! got accounts...`)
 			expect(keys.length).toBe(2)
 			const a = keys[0]
 			const b = keys[1]
@@ -74,7 +73,6 @@ describe('wallet_type', () => {
 			)
 			.match(
 				(wallets) => {
-					console.log(`🔥 comparing wallets...`)
 					expectWalletsEqual(wallets, done)
 				},
 				(e) => done(e),
@@ -102,7 +100,7 @@ describe('wallet_type', () => {
 			.restoreAccountsUpToIndex(index)
 			.subscribe(
 				(accounts) => {
-					expect(accounts.size).toBe(index)
+					expect(accounts.size).toBe(index + 1)
 					done()
 				},
 				(e) => {
