@@ -1,18 +1,20 @@
 import { Amount } from '@radixdlt/primitives'
 import {
 	ActionType,
-	IntendedTransferTokensAction,
-	StakeTokensInput,
-	TransferTokensInput,
-	TransactionIntentBuilderT,
-	TransactionIntentBuilder,
-	IntendedStakeTokensAction,
 	carol,
 	erin,
+	IdentityManagerT,
+	IdentityT,
+	IntendedStakeTokensAction,
+	IntendedTransferTokensAction,
+	StakeTokensInput,
+	TransactionIntentBuilder,
+	TransactionIntentBuilderT,
+	TransferTokensInput,
 	xrd,
 } from '../src'
 import {
-	AccountAddressT, AccountT,
+	AccountAddressT,
 	isAccountAddress,
 	isValidatorAddress,
 	Mnemonic,
@@ -20,12 +22,12 @@ import {
 	ValidatorAddress,
 	ValidatorAddressT,
 	Wallet,
-	WalletT,
 } from '@radixdlt/account'
-import { combineLatest, merge, of, Subscription } from 'rxjs'
+import { merge, of, Subscription } from 'rxjs'
 
-import { map, mergeMap, take, toArray } from 'rxjs/operators'
+import { mergeMap, take, toArray } from 'rxjs/operators'
 import { restoreDefaultLogLevel, setLogLevel } from '@radixdlt/util'
+import { IdentityManager } from '../src/identityManager'
 
 describe('tx_intent_builder', () => {
 	const validatorCarol: ValidatorAddressT = ValidatorAddress.fromUnsafe(
@@ -39,19 +41,17 @@ describe('tx_intent_builder', () => {
 	const one = Amount.fromUnsafe(1)._unsafeUnwrap()
 	const xrdRRI = xrd.rri
 
-	const createSpecificWallet = (): WalletT => {
+	const createIM = (): IdentityManagerT => {
 		const mnemonic = Mnemonic.fromEnglishPhrase(
 			'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
 		)._unsafeUnwrap()
 		const wallet = Wallet.create({ mnemonic })
-		wallet.provideNetworkId(of(NetworkT.BETANET))
-		return wallet
+		return IdentityManager.create({ wallet, network: NetworkT.BETANET })
 	}
-	const wallet = createSpecificWallet()
+	const identityManager = createIM()
 
-	wallet.provideNetworkId(of(NetworkT.BETANET))
-	let aliceAccount: AccountT// = wallet.deriveNext()
-	let bobAccount: AccountT // = wallet.deriveNext()
+	let aliceIdentity: IdentityT // = wallet.deriveNext()
+	let bobIdentity: IdentityT // = wallet.deriveNext()
 	let alice: AccountAddressT
 	let bob: AccountAddressT
 
@@ -59,34 +59,29 @@ describe('tx_intent_builder', () => {
 
 	const plaintext = 'Hey Bob, how are you?'
 
-	beforeAll( (done) => {
-		wallet.deriveNext().subscribe((aliceAcc) => {
-			aliceAccount = aliceAcc
-			alice = aliceAcc.deriveAddress()
+	beforeAll((done) => {
+		identityManager
+			.deriveNextIdentity()
+			.subscribe(
+				(aliceId: IdentityT) => {
+					aliceIdentity = aliceId
+					alice = aliceId.accountAddress
 
-			wallet.deriveNext().subscribe((bobAcc) => {
-				bobAccount = bobAcc
-				bob = bobAcc.deriveAddress()
-				done()
-			}, (e) => done(e)).add(subs)
-
-		}, (e) => done(e)).add(subs)
-		// combineLatest([
-		// 	aliceAccount.deriveAddress(),
-		// 	bobAccount.deriveAddress(),
-		// ])
-		// 	.pipe(
-		// 		map(([aliceAddress, bobAddress]) => ({
-		// 			aliceAddress: aliceAddress as AccountAddressT,
-		// 			bobAddress: bobAddress as AccountAddressT,
-		// 		})),
-		// 	)
-		// 	.subscribe(({ aliceAddress, bobAddress }) => {
-		// 		alice = aliceAddress
-		// 		bob = bobAddress
-		// 		done()
-		// 	})
-		// 	.add(subs)
+					identityManager
+						.deriveNextIdentity()
+						.subscribe(
+							(bobId: IdentityT) => {
+								bobIdentity = bobId
+								bob = bobId.accountAddress
+								done()
+							},
+							(e) => done(e),
+						)
+						.add(subs)
+				},
+				(e) => done(e),
+			)
+			.add(subs)
 	})
 
 	type SimpleTransf = { amount: number; to: AccountAddressT }
@@ -213,18 +208,18 @@ describe('tx_intent_builder', () => {
 		return builder
 			.build({
 				spendingSender: of(alice),
-				encryptMessageIfAnyWithAccount: of(aliceAccount),
+				encryptMessageIfAnyWithIdentity: of(aliceIdentity),
 			})
 			.pipe(
 				mergeMap((txIntent) => {
 					const encryptedMessage = txIntent.message!
 
-					const aliceDecrypted$ = aliceAccount.decrypt({
+					const aliceDecrypted$ = aliceIdentity.decrypt({
 						encryptedMessage,
 						publicKeyOfOtherParty: bob.publicKey,
 					})
 
-					const bobDecrypted$ = bobAccount.decrypt({
+					const bobDecrypted$ = bobIdentity.decrypt({
 						encryptedMessage,
 						publicKeyOfOtherParty: alice.publicKey,
 					})
@@ -424,7 +419,7 @@ describe('tx_intent_builder', () => {
 				})
 
 			builder
-				.build({ encryptMessageIfAnyWithAccount: of(aliceAccount) })
+				.build({ encryptMessageIfAnyWithIdentity: of(aliceIdentity) })
 				.subscribe({
 					next: (_) => {
 						done(new Error('Expected error'))
@@ -452,7 +447,7 @@ describe('tx_intent_builder', () => {
 				})
 
 			builder
-				.build({ encryptMessageIfAnyWithAccount: of(aliceAccount) })
+				.build({ encryptMessageIfAnyWithIdentity: of(aliceIdentity) })
 				.subscribe({
 					next: (_) => {
 						done(new Error('Expected error'))
@@ -478,10 +473,10 @@ describe('tx_intent_builder', () => {
 			.message({ plaintext, encrypt: true })
 
 		builder
-			.build({ encryptMessageIfAnyWithAccount: of(aliceAccount) })
+			.build({ encryptMessageIfAnyWithIdentity: of(aliceIdentity) })
 			.pipe(
 				mergeMap(({ message }) => {
-					return aliceAccount.decrypt({
+					return aliceIdentity.decrypt({
 						encryptedMessage: message!,
 						publicKeyOfOtherParty: alice.publicKey,
 					})

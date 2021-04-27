@@ -607,7 +607,7 @@ describe('integration API tests', () => {
 			})
 			.build({
 				spendingSender: radix.activeAddress,
-				encryptMessageIfAnyWithAccount: radix.activeAccount,
+				encryptMessageIfAnyWithIdentity: radix.activeAccount,
 			})
 			.subscribe((intent) => {
 				radix.activeAddress.subscribe(async (address) => {

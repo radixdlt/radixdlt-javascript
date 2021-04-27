@@ -8,7 +8,6 @@ import { Observable } from 'rxjs'
 import { Option } from 'prelude-ts'
 import { HDPathRadixT, BIP32T } from './bip32'
 import { MnemomicT } from './bip39'
-import { AccountAddressT, NetworkT } from './addresses'
 
 /* A reactive counterpart of `Signer` in '@radixdlt/crypto' package  */
 export type Signing = Readonly<{
@@ -39,7 +38,6 @@ export type AccountT = Signing &
 	Readonly<{
 		publicKey: PublicKey
 		hdPath: HDPathRadixT
-		deriveAddress: () => AccountAddressT
 	}>
 
 /// A simple "interface" like type that this `account` package recognizes.
@@ -94,13 +92,10 @@ export type WalletT = Signing &
 
 		restoreAccountsUpToIndex: (index: number) => Observable<AccountsT>
 
-		// Call this once you can provide an observable providing network.
-		provideNetworkId: (network: Observable<NetworkT>) => void
 		deriveNext: (input?: DeriveNextAccountInput) => Observable<AccountT>
 
 		switchAccount: (input: SwitchAccountInput) => AccountT
 
 		observeActiveAccount: () => Observable<AccountT>
-		observeActiveAddress: () => Observable<AccountAddressT>
 		observeAccounts: () => Observable<AccountsT>
 	}>

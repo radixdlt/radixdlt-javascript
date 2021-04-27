@@ -5,6 +5,7 @@ import {
 	Subscription,
 	throwError,
 	combineLatest,
+	of,
 } from 'rxjs'
 import { Account } from './account'
 import {
@@ -21,7 +22,7 @@ import {
 	map,
 	distinctUntilChanged,
 	take,
-	skipWhile,
+	skipWhile, shareReplay,
 } from 'rxjs/operators'
 import { Keystore, KeystoreT, PrivateKey, Signature } from '@radixdlt/crypto'
 import { Option } from 'prelude-ts'
@@ -45,8 +46,6 @@ const __unsafeCreateWithPrivateKeyProvider = (
 	const masterSeed = HDMasterSeed.fromMnemonic({ mnemonic })
 	const hdNodeDeriverWithBip32Path = masterSeed.masterNode().derive
 
-	const subs = new Subscription()
-
 	const activeAccountSubject = new ReplaySubject<AccountT>()
 
 	const accountsSubject = new BehaviorSubject<Map<string, AccountT>>(
@@ -56,13 +55,6 @@ const __unsafeCreateWithPrivateKeyProvider = (
 	const revealMnemonic = (): MnemomicT => mnemonic
 
 	const numberOfAccounts = (): number => accountsSubject.getValue().size
-
-	const networkIdSubject = new ReplaySubject<NetworkT>()
-	const networkId$ = networkIdSubject.asObservable()
-
-	const provideNetworkId = (networkIdSource: Observable<NetworkT>): void => {
-		networkIdSource.subscribe((n) => networkIdSubject.next(n)).add(subs)
-	}
 
 	const _deriveWithPath = (
 		input: Readonly<{
@@ -78,42 +70,37 @@ const __unsafeCreateWithPrivateKeyProvider = (
 			} `,
 		)
 
-		return networkId$.pipe(
-			map((networkId: NetworkT) => {
-				const getNetwork = (): NetworkT => networkId
+		const newAccount =
+			__privateKeyProvider !== undefined
+				? Account.__unsafeFromPrivateKey({
+						privateKey: __privateKeyProvider(hdPath),
+						hdPath,
+				  })
+				: Account.byDerivingNodeAtPath({
+						hdPath,
+						deriveNodeAtPath: () =>
+							hdNodeDeriverWithBip32Path(hdPath),
+				  })
+		const accounts = accountsSubject.getValue()
 
-				const newAccount =
-					__privateKeyProvider !== undefined
-						? Account.__unsafeFromPrivateKey({
-								getNetwork,
-								privateKey: __privateKeyProvider(hdPath),
-								hdPath,
-						  })
-						: Account.byDerivingNodeAtPath({
-								getNetwork,
-								hdPath,
-								deriveNodeAtPath: () =>
-									hdNodeDeriverWithBip32Path(hdPath),
-						  })
-				const accounts = accountsSubject.getValue()
+		const key = newAccount.hdPath.toString()
 
-				const key = newAccount.hdPath.toString()
+		if (accounts.has(key)) {
+			const errMsg = `Incorrect implementation, wallet already contains account with hdPath: ${key}`
+			console.error(errMsg)
+			throw new Error(errMsg)
+		}
 
-				if (accounts.has(key)) {
-					const errMsg = `Incorrect implementation, wallet already contains account with hdPath: ${key}`
-					console.error(errMsg)
-					throw new Error(errMsg)
-				}
-
-				accounts.set(key, newAccount)
-				accountsSubject.next(accounts)
-
-				if (alsoSwitchTo) {
-					activeAccountSubject.next(newAccount)
-				}
-				return newAccount
-			}),
+		accounts.set(key, newAccount)
+		console.log(
+			`🧩🤡 accountsSubject.next with accounts of size: ${accounts.size}`,
 		)
+		accountsSubject.next(accounts)
+
+		if (alsoSwitchTo) {
+			activeAccountSubject.next(newAccount)
+		}
+		return of(newAccount)
 	}
 
 	const _deriveAtIndex = (
@@ -194,7 +181,7 @@ const __unsafeCreateWithPrivateKeyProvider = (
 		.asObservable()
 		.pipe(
 			distinctUntilChanged((a: AccountT, b: AccountT) =>
-				a.hdPath.equals(b.hdPath),
+				a.publicKey.equals(b.publicKey),
 			),
 		)
 
@@ -207,13 +194,18 @@ const __unsafeCreateWithPrivateKeyProvider = (
 				size: map.size,
 			}),
 		),
-		distinctUntilChanged((a: AccountsT, b: AccountsT): boolean =>
-			arraysEqual(a.all, b.all),
-		),
-	)
-
-	const activeAddress$ = activeAccount$.pipe(
-		map((activeAccount) => activeAccount.deriveAddress()),
+		distinctUntilChanged((a: AccountsT, b: AccountsT): boolean => {
+			// arraysEqual(a.all, b.all)
+			if (a.size !== b.size) {
+				return false
+			}
+			const aSet = new Set(a.all.map((a) => a.hdPath.toString()))
+			const bSet = new Set(b.all.map((a) => a.hdPath.toString()))
+			const aArray = Array.from(aSet).sort()
+			const bArray = Array.from(bSet).sort()
+			return arraysEqual(aArray, bArray)
+		}),
+		shareReplay(),
 	)
 
 	const restoreAccountsUpToIndex = (index: number): Observable<AccountsT> => {
@@ -238,8 +230,13 @@ const __unsafeCreateWithPrivateKeyProvider = (
 			)
 
 		return combineLatest(accountsObservableList).pipe(
-			mergeMap((_) => accounts$),
-			skipWhile((accounts: AccountsT) => accounts.size < index - 1),
+			mergeMap((_) => {
+				console.log(
+					`👻 finished '_deriveAtIndex' array, returning 'accounts$' now...`,
+				)
+				return accounts$
+			}),
+			// skipWhile((accounts: AccountsT) => accounts.size < index - 1),
 			take(1),
 		)
 	}
@@ -259,13 +256,11 @@ const __unsafeCreateWithPrivateKeyProvider = (
 			}
 			return account
 		},
-		provideNetworkId,
 		deriveNext,
 		switchAccount,
 		restoreAccountsUpToIndex,
 		observeAccounts: (): Observable<AccountsT> => accounts$,
 		observeActiveAccount: (): Observable<AccountT> => activeAccount$,
-		observeActiveAddress: (): Observable<AccountAddressT> => activeAddress$,
 		sign: (hashedMessage: Buffer): Observable<Signature> =>
 			activeAccount$.pipe(mergeMap((a) => a.sign(hashedMessage))),
 	}

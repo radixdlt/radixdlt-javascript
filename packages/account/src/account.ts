@@ -9,7 +9,7 @@ import {
 	Signature,
 } from '@radixdlt/crypto'
 import { map, mergeMap } from 'rxjs/operators'
-import { Observable, of } from 'rxjs'
+import { Observable } from 'rxjs'
 import { toObservable } from './resultAsync_observable'
 import {
 	AccountDecryptionInput,
@@ -20,7 +20,6 @@ import {
 import { HDMasterSeedT, HDNodeT } from './bip39'
 import { HDPathRadixT } from './bip32'
 import { okAsync, ResultAsync } from 'neverthrow'
-import { AccountAddress, AccountAddressT, NetworkT } from './addresses'
 
 type Decrypt = (input: AccountDecryptionInput) => Observable<string>
 type Encrypt = (input: AccountEncryptionInput) => Observable<EncryptedMessageT>
@@ -122,10 +121,9 @@ const fromPrivateKey = (
 	input: Readonly<{
 		privateKey: PrivateKey
 		hdPath: HDPathRadixT
-		getNetwork: () => NetworkT
 	}>,
 ): AccountT => {
-	const { privateKey, hdPath, getNetwork } = input
+	const { privateKey, hdPath } = input
 	const publicKey: PublicKey = privateKey.publicKey()
 	const sign = (hashedMessage: Buffer): Observable<Signature> =>
 		toObservable(privateKey.sign(hashedMessage))
@@ -138,26 +136,16 @@ const fromPrivateKey = (
 		sign: sign,
 		hdPath,
 		publicKey,
-		deriveAddress: () =>
-			AccountAddress.fromPublicKeyAndNetwork({
-				publicKey,
-				network: getNetwork(),
-			}),
 	}
 }
 
 const fromHDPathWithHardwareWallet = (
 	input: Readonly<{
 		hdPath: HDPathRadixT
-		getNetwork: () => NetworkT
 		onHardwareWalletConnect: Observable<HardwareWalletSimpleT>
 	}>,
 ): Observable<AccountT> => {
-	const {
-		hdPath,
-		getNetwork,
-		onHardwareWalletConnect: hardwareWallet$,
-	} = input
+	const { hdPath, onHardwareWalletConnect: hardwareWallet$ } = input
 
 	type Tmp = {
 		hardwareWalletSimple: HardwareWalletSimpleT
@@ -190,11 +178,6 @@ const fromHDPathWithHardwareWallet = (
 					},
 					decrypt: makeDecryptHW(hardwareWalletSimple, hdPath),
 					encrypt: makeEncryptHW(hardwareWalletSimple, hdPath),
-					deriveAddress: () =>
-						AccountAddress.fromPublicKeyAndNetwork({
-							publicKey,
-							network: getNetwork(),
-						}),
 				}
 			},
 		),
@@ -204,7 +187,6 @@ const fromHDPathWithHardwareWallet = (
 const byDerivingNodeAtPath = (
 	input: Readonly<{
 		hdPath: HDPathRadixT
-		getNetwork: () => NetworkT
 		deriveNodeAtPath: () => HDNodeT
 	}>,
 ): AccountT =>
@@ -216,7 +198,6 @@ const byDerivingNodeAtPath = (
 const fromHDPathWithHDMasterNode = (
 	input: Readonly<{
 		hdPath: HDPathRadixT
-		getNetwork: () => NetworkT
 		hdMasterNode: HDNodeT
 	}>,
 ): AccountT => {
@@ -227,7 +208,6 @@ const fromHDPathWithHDMasterNode = (
 const fromHDPathWithHDMasterSeed = (
 	input: Readonly<{
 		hdPath: HDPathRadixT
-		getNetwork: () => NetworkT
 		hdMasterSeed: HDMasterSeedT
 	}>,
 ): AccountT => {
@@ -241,7 +221,9 @@ export const isAccount = (something: unknown): something is AccountT => {
 		inspection.hdPath !== undefined &&
 		inspection.publicKey !== undefined &&
 		isPublicKey(inspection.publicKey) &&
-		inspection.sign !== undefined
+		inspection.sign !== undefined &&
+		inspection.encrypt !== undefined &&
+		inspection.decrypt !== undefined
 	)
 }
 

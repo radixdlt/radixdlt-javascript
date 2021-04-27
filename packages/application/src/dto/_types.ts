@@ -1,5 +1,4 @@
 import {
-	AccountT,
 	AccountAddressT,
 	ResourceIdentifierT,
 	ValidatorAddressT,
@@ -12,12 +11,12 @@ import {
 	StakeTokensInput,
 	TransferTokensInput,
 	UnstakeTokensInput,
-} from '../actions/_types'
+} from '../actions'
 import { AmountT } from '@radixdlt/primitives'
 import { PublicKey, Signature } from '@radixdlt/crypto'
 import { Observable } from 'rxjs'
 import { Result } from 'neverthrow'
-import { MessageInTransaction } from '../_types'
+import { IdentityT, MessageInTransaction } from '../_types'
 
 export type StakePosition = Readonly<{
 	validator: ValidatorAddressT
@@ -42,20 +41,13 @@ export type TransactionIdentifierT = Readonly<{
 	equals: (other: TransactionIdentifierT) => boolean
 }>
 
-export type IsOwnerOfToken = () => boolean
-
-export enum TokenTransition {
-	MINT = 'mint',
-	BURN = 'burn',
-}
-
 export type TransactionIntentBuilderState = Readonly<{
 	actionInputs: ActionInput[]
 	message?: MessageInTransaction
 }>
 
 export type TransactionIntentBuilderEncryptOption = Readonly<{
-	encryptMessageIfAnyWithAccount: Observable<AccountT>
+	encryptMessageIfAnyWithIdentity: Observable<IdentityT>
 	spendingSender?: Observable<AccountAddressT>
 }>
 

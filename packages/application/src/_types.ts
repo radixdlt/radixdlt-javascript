@@ -6,8 +6,13 @@ import {
 	MnemomicT,
 	SwitchAccountInput,
 	WalletT,
+	NetworkT,
+	HDPathRadixT,
+	Signing,
+	Encrypting,
+	Decrypting,
 } from '@radixdlt/account'
-import { KeystoreT } from '@radixdlt/crypto'
+import { KeystoreT, PublicKey } from '@radixdlt/crypto'
 import { RadixLogLevel } from '@radixdlt/util'
 import { Observable, ReplaySubject } from 'rxjs'
 import { NodeT, RadixAPI, RadixCoreAPI } from './api'
@@ -30,6 +35,7 @@ import {
 	TransferTokensInput,
 	UnstakeTokensInput,
 } from './actions'
+import { Option } from 'prelude-ts'
 
 export type ManualUserConfirmTX = {
 	txToConfirm: BuiltTransaction
@@ -66,6 +72,47 @@ export type UnstakeOptions = MakeTransactionOptions &
 		unstakeInput: UnstakeTokensInput
 	}>
 
+export type IdentityT = Signing &
+	Encrypting &
+	Decrypting &
+	Readonly<{
+		equals: (other: IdentityT) => boolean
+		account: AccountT
+		accountAddress: AccountAddressT
+
+		// sugar for account.publicKey/accountAddress.publicKey
+		publicKey: PublicKey
+		// sugar for accountAddress.network
+		network: NetworkT
+
+		// sugar for account.hdPath
+		hdPath: HDPathRadixT
+	}>
+
+export type IdentitiesT = Readonly<{
+	get: (hdPath: HDPathRadixT) => Option<IdentityT>
+	all: IdentityT[]
+	size: number
+}>
+
+export type IdentityManagerT = Readonly<{
+	// should only be used for testing
+	__unsafeGetIdentity: () => IdentityT
+
+	revealMnemonic: () => MnemomicT
+
+	restoreIdentitiesUpToIndex: (index: number) => Observable<IdentitiesT>
+
+	deriveNextIdentity: (
+		input?: DeriveNextAccountInput,
+	) => Observable<IdentityT>
+
+	switchIdentity: (input: SwitchAccountInput) => IdentityT
+
+	observeActiveIdentity: () => Observable<IdentityT>
+	observeIdentities: () => Observable<IdentitiesT>
+}>
+
 export type RadixT = Readonly<{
 	ledger: RadixAPI
 	// Input
@@ -75,7 +122,7 @@ export type RadixT = Readonly<{
 	__withAPI: (radixCoreAPI$: Observable<RadixCoreAPI>) => RadixT
 
 	withNodeConnection: (node$: Observable<NodeT>) => RadixT
-	withWallet: (wallet: WalletT) => RadixT
+	withIdentityManager: (identityManager: IdentityManagerT) => RadixT
 	login: (password: string, loadKeystore: () => Promise<KeystoreT>) => RadixT
 
 	// Wallet APIs
@@ -85,14 +132,14 @@ export type RadixT = Readonly<{
 	 *
 	 * @param {number} targetIndex - The index to restore account up to, this method will restore accounts from index 0 up to but excluding this index.
 	 */
-	restoreAccountsUpToIndex: (index: number) => Observable<AccountsT>
-	deriveNextAccount: (input?: DeriveNextAccountInput) => RadixT
-	switchAccount: (input: SwitchAccountInput) => RadixT
+	restoreIdentitiesUpToIndex: (index: number) => Observable<IdentitiesT>
+	deriveNextIdentity: (input?: DeriveNextAccountInput) => RadixT
+	switchIdentity: (input: SwitchAccountInput) => RadixT
 	revealMnemonic: () => Observable<MnemomicT>
 
 	activeAddress: Observable<AccountAddressT>
-	activeAccount: Observable<AccountT>
-	accounts: Observable<AccountsT>
+	activeIdentity: Observable<IdentityT>
+	identities: Observable<IdentitiesT>
 
 	// Active AccountAddress/Account APIs
 	tokenBalances: Observable<TokenBalances>
@@ -149,6 +196,6 @@ export type RadixT = Readonly<{
 
 	errors: Observable<ErrorNotification>
 
-	__wallet: Observable<WalletT>
+	__identityManager: Observable<IdentityManagerT>
 	__node: Observable<NodeT>
 }>

@@ -46,7 +46,7 @@ import {
 import { Option } from 'prelude-ts'
 import { isAmount } from '@radixdlt/primitives'
 import { log } from '@radixdlt/util'
-import { MessageInTransaction } from '../_types'
+import { IdentityT, MessageInTransaction } from '../_types'
 
 type IntendedActionsFrom = Readonly<{
 	intendedActions: IntendedAction[]
@@ -76,25 +76,25 @@ export const singleRecipientFromActions = (
 }
 
 type ActorsInEncryption = {
-	encryptingAccount: AccountT
+	encryptingIdentity: IdentityT
 	singleRecipientPublicKey: PublicKey
 }
 
 const ensureSingleRecipient = (
 	input: Readonly<{
 		intendedActionsFrom: IntendedActionsFrom
-		encryptingAccount: AccountT
+		encryptingIdentity: IdentityT
 	}>,
 ): Observable<ActorsInEncryption> => {
 	return toObservableFromResult(
 		singleRecipientFromActions(
-			input.encryptingAccount.publicKey,
+			input.encryptingIdentity.publicKey,
 			input.intendedActionsFrom.intendedActions,
 		),
 	).pipe(
 		map((singleRecipientPublicKey) => {
 			return {
-				encryptingAccount: input.encryptingAccount,
+				encryptingIdentity: input.encryptingIdentity,
 				singleRecipientPublicKey: singleRecipientPublicKey,
 			}
 		}),
@@ -217,8 +217,8 @@ const isTransactionIntentBuilderEncryptInput = (
 ): something is TransactionIntentBuilderEncryptOption => {
 	const inspection = something as TransactionIntentBuilderEncryptOption
 	return (
-		inspection.encryptMessageIfAnyWithAccount !== undefined &&
-		isObservable(inspection.encryptMessageIfAnyWithAccount) &&
+		inspection.encryptMessageIfAnyWithIdentity !== undefined &&
+		isObservable(inspection.encryptMessageIfAnyWithIdentity) &&
 		(inspection.spendingSender !== undefined
 			? isObservable(inspection.spendingSender)
 			: true)
@@ -382,11 +382,11 @@ const create = (): TransactionIntentBuilderT => {
 			throw new Error('Incorrect implementation')
 		}
 
-		const encryptingAccount$ = options.encryptMessageIfAnyWithAccount
+		const encryptingIdentity$ = options.encryptMessageIfAnyWithIdentity
 		const spendingSender: Observable<AccountAddressT> =
 			options.spendingSender ??
-			options.encryptMessageIfAnyWithAccount.pipe(
-				map((a) => a.deriveAddress()),
+			options.encryptMessageIfAnyWithIdentity.pipe(
+				map((identity) => identity.accountAddress),
 			)
 		return spendingSender.pipe(
 			mergeMap((from: AccountAddressT) =>
@@ -427,21 +427,21 @@ const create = (): TransactionIntentBuilderT => {
 								return throwError(new Error(errMsg))
 							}
 
-							return encryptingAccount$.pipe(
+							return encryptingIdentity$.pipe(
 								mergeMap(
 									(
-										encryptingAccount: AccountT,
+										encryptingIdentity: IdentityT,
 									): Observable<ActorsInEncryption> =>
 										ensureSingleRecipient({
 											intendedActionsFrom,
-											encryptingAccount,
+											encryptingIdentity,
 										}),
 								),
 								mergeMap(
 									(
 										actors: ActorsInEncryption,
 									): Observable<EncryptedMessageT> => {
-										return actors.encryptingAccount.encrypt(
+										return actors.encryptingIdentity.encrypt(
 											{
 												plaintext: msgInTx.plaintext,
 												publicKeyOfOtherParty:
