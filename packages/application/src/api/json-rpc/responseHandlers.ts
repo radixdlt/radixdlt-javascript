@@ -74,8 +74,8 @@ const networkDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
 		key !== undefined && keys.includes(key) && typeof value === 'number'
 			? value === 0
-				? ok(NetworkT.MAINNET)
-				: ok(NetworkT.BETANET)
+				? ok(NetworkT.BETANET)
+				: ok(NetworkT.MAINNET)
 			: undefined,
 	)
 
