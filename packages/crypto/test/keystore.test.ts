@@ -1,4 +1,4 @@
-import { secureRandomGenerator } from '@radixdlt/util'
+import { msgFromError, secureRandomGenerator } from '@radixdlt/util'
 import { Keystore, KeystoreT } from '../src'
 
 describe('keystore', () => {
@@ -54,5 +54,45 @@ describe('keystore', () => {
 		expect(decrypted.toString('utf-8')).toBe(
 			'My Bitcoins are burried underneath the oak.',
 		)
+	})
+
+	describe('keystore_fail_scenarios', () => {
+		beforeAll(() => {
+			jest.spyOn(console, 'error').mockImplementation(() => {})
+		})
+
+		afterAll(() => {
+			jest.clearAllMocks()
+		})
+
+		it('wrong password, no crash', async () => {
+			const mnemonicPhrase =
+				'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
+
+			const password = 'my_strong_unique_password'
+			const keystoreResult = await Keystore.encryptSecret({
+				secret: Buffer.from(mnemonicPhrase, 'utf-8'),
+				password,
+			})
+			const keystore = keystoreResult._unsafeUnwrap()
+
+			const wrongPassword = `${password}1234`
+			const decryptedResult = await Keystore.decrypt({
+				keystore,
+				password: wrongPassword,
+			})
+
+			decryptedResult.match(
+				(_) => {
+					throw new Error('Decrypted keystore, but expected error.')
+				},
+				(e) => {
+					const errMsg = msgFromError(e)
+					expect(errMsg).toBe(
+						`Failed to decrypt keystore, wrong password? Underlying error: 'AES decryption failed.'.`,
+					)
+				},
+			)
+		})
 	})
 })
