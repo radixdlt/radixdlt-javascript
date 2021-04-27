@@ -7,7 +7,7 @@ import {
 	stringifySimpleTXHistory,
 } from './stringifyTypes'
 
-describe('debugPrintRadixData', () => {
+describe.skip('debugPrintRadixData', () => {
 	const radix = Radix.create({ network: NetworkT.BETANET }).connect(
 		'https://18.168.73.103/rpc',
 	)
