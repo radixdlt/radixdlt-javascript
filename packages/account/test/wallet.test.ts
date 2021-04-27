@@ -1,20 +1,33 @@
-import { AccountAddressT, NetworkT, WalletT, Wallet, Mnemonic } from '../src'
+import {
+	AccountAddressT,
+	NetworkT,
+	WalletT,
+	Wallet,
+	Mnemonic,
+	AccountT,
+} from '../src'
 import { map, take, toArray } from 'rxjs/operators'
 import { KeystoreT, PublicKey } from '@radixdlt/crypto'
 import { combineLatest, of, Subject, Subscription } from 'rxjs'
 import { restoreDefaultLogLevel, setLogLevel } from '@radixdlt/util'
 import { mockErrorMsg } from '../../util/test/util'
 
-const createWallet = (network?: NetworkT): WalletT => {
+const createWallet = (
+	input?: Readonly<{ startWithAnAccount?: boolean }>,
+): WalletT => {
 	const mnemonic = Mnemonic.generateNew()
-	return Wallet.create({ mnemonic })
+	const startWithAnAccount = input?.startWithAnAccount ?? true
+	return Wallet.create({ startWithAnAccount, mnemonic })
 }
 
-const createSpecificWallet = (network?: NetworkT): WalletT => {
+const createSpecificWallet = (
+	input?: Readonly<{ startWithAnAccount?: boolean }>,
+): WalletT => {
 	const mnemonic = Mnemonic.fromEnglishPhrase(
 		'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
 	)._unsafeUnwrap()
-	return Wallet.create({ mnemonic })
+	const startWithAnAccount = input?.startWithAnAccount ?? true
+	return Wallet.create({ mnemonic, startWithAnAccount })
 }
 
 const expectWalletsEqual = (
@@ -82,23 +95,256 @@ describe('HD Wallet', () => {
 		expect(mnemonicRevealed.phrase).toBe(mnemonicPhrase)
 	})
 
-	it('wallet can restoreAccountsUpToIndex', (done) => {
-		const subs = new Subscription()
-		const wallet = createWallet()
+	describe('restoreAccountsUpToIndex functionality', () => {
+		const testRestoreAccountsUpToIndex = (
+			vectorIndex: number,
+			index: number,
+			deriveNumAccountsBefore: number,
+			startWithAnAccount: boolean,
+			expectedSize: number,
+		): void => {
+			it(`works_vectorIndex${vectorIndex}`, (done) => {
+				const assertAccountHasIndex = (
+					account: AccountT,
+					index: number,
+				): void => {
+					expect(account.hdPath.addressIndex.value()).toBe(index)
+				}
 
-		const index = 3
-		wallet
-			.restoreAccountsUpToIndex(index)
-			.subscribe(
-				(accounts) => {
-					expect(accounts.size).toBe(index + 1)
-					done()
-				},
-				(e) => {
-					done(e)
-				},
-			)
-			.add(subs)
+				const subs = new Subscription()
+				const wallet = createWallet({ startWithAnAccount })
+
+				for (let i = 0; i < deriveNumAccountsBefore; ++i) {
+					wallet.deriveNext()
+				}
+
+				wallet
+					.restoreAccountsUpToIndex(index)
+					.subscribe(
+						(accounts) => {
+							expect(accounts.size).toBe(expectedSize)
+
+							let next = 0
+							const assertAccountHasCorrectIndex = (
+								account: AccountT,
+							): void => {
+								assertAccountHasIndex(account, next)
+								next += 1
+							}
+
+							for (const account of accounts.all) {
+								assertAccountHasCorrectIndex(account)
+							}
+
+							done()
+						},
+						(e) => {
+							done(e)
+						},
+					)
+					.add(subs)
+			})
+		}
+
+		type Vector = {
+			index: number
+			deriveNumAccountsBefore: number
+			startWithAnAccount: boolean
+			expectedSize: number
+		}
+		const testVectors: Vector[] = [
+			{
+				index: 6,
+				deriveNumAccountsBefore: 5,
+				startWithAnAccount: true,
+				expectedSize: 6,
+			},
+			{
+				index: 1,
+				deriveNumAccountsBefore: 0,
+				startWithAnAccount: true,
+				expectedSize: 1,
+			},
+			{
+				index: 1,
+				deriveNumAccountsBefore: 0,
+				startWithAnAccount: false,
+				expectedSize: 1,
+			},
+			{
+				index: 1,
+				deriveNumAccountsBefore: 1,
+				startWithAnAccount: false,
+				expectedSize: 1,
+			},
+			{
+				index: 1,
+				deriveNumAccountsBefore: 1,
+				startWithAnAccount: true,
+				expectedSize: 2,
+			},
+			{
+				index: 1,
+				deriveNumAccountsBefore: 2,
+				startWithAnAccount: false,
+				expectedSize: 2,
+			},
+			{
+				index: 5,
+				deriveNumAccountsBefore: 0,
+				startWithAnAccount: false,
+				expectedSize: 5,
+			},
+			{
+				index: 3,
+				deriveNumAccountsBefore: 1,
+				startWithAnAccount: false,
+				expectedSize: 3,
+			},
+			{
+				index: 3,
+				deriveNumAccountsBefore: 1,
+				startWithAnAccount: true,
+				expectedSize: 3,
+			},
+			{
+				index: 3,
+				deriveNumAccountsBefore: 5,
+				startWithAnAccount: false,
+				expectedSize: 5,
+			},
+			{
+				index: 3,
+				deriveNumAccountsBefore: 5,
+				startWithAnAccount: true,
+				expectedSize: 6,
+			},
+			{
+				index: 2,
+				deriveNumAccountsBefore: 4,
+				startWithAnAccount: false,
+				expectedSize: 4,
+			},
+			{
+				index: 2,
+				deriveNumAccountsBefore: 4,
+				startWithAnAccount: true,
+				expectedSize: 5,
+			},
+			{
+				index: 0,
+				deriveNumAccountsBefore: 0,
+				startWithAnAccount: true,
+				expectedSize: 1,
+			},
+			{
+				index: 0,
+				deriveNumAccountsBefore: 1,
+				startWithAnAccount: false,
+				expectedSize: 1,
+			},
+			{
+				index: 0,
+				deriveNumAccountsBefore: 1,
+				startWithAnAccount: true,
+				expectedSize: 2,
+			},
+			{
+				index: 0,
+				deriveNumAccountsBefore: 0,
+				startWithAnAccount: false,
+				expectedSize: 0,
+			},
+			{
+				index: 0,
+				deriveNumAccountsBefore: 2,
+				startWithAnAccount: false,
+				expectedSize: 2,
+			},
+			{
+				index: 1,
+				deriveNumAccountsBefore: 2,
+				startWithAnAccount: true,
+				expectedSize: 3,
+			},
+			{
+				index: 1,
+				deriveNumAccountsBefore: 2,
+				startWithAnAccount: false,
+				expectedSize: 2,
+			},
+			{
+				index: 0,
+				deriveNumAccountsBefore: 2,
+				startWithAnAccount: true,
+				expectedSize: 3,
+			},
+			{
+				index: 5,
+				deriveNumAccountsBefore: 0,
+				startWithAnAccount: true,
+				expectedSize: 5,
+			},
+			{
+				index: 5,
+				deriveNumAccountsBefore: 6,
+				startWithAnAccount: false,
+				expectedSize: 6,
+			},
+		]
+
+		testVectors.forEach((v, vIndex) =>
+			testRestoreAccountsUpToIndex(
+				vIndex,
+				v.index,
+				v.deriveNumAccountsBefore,
+				v.startWithAnAccount,
+				v.expectedSize,
+			),
+		)
+
+		it('the accounts derived after restoreAccountsUpToIndex has correct index', (done) => {
+			const subs = new Subscription()
+			const wallet = createWallet({ startWithAnAccount: false })
+
+			const indexToRestoreTo = 3
+
+			const assertAccountHasIndex = (
+				account: AccountT,
+				index: number,
+			): void => {
+				expect(account.hdPath.addressIndex.value()).toBe(index)
+			}
+
+			wallet
+				.restoreAccountsUpToIndex(indexToRestoreTo)
+				.subscribe(
+					(accounts) => {
+						expect(accounts.size).toBe(indexToRestoreTo)
+
+						let next = 0
+						const assertAccountHasCorrectIndex = (
+							account: AccountT,
+						): void => {
+							assertAccountHasIndex(account, next)
+							next += 1
+						}
+
+						for (const account of accounts.all) {
+							assertAccountHasCorrectIndex(account)
+						}
+
+						assertAccountHasCorrectIndex(wallet.deriveNext())
+						assertAccountHasCorrectIndex(wallet.deriveNext())
+
+						done()
+					},
+					(e) => {
+						done(e)
+					},
+				)
+				.add(subs)
+		})
 	})
 
 	describe('failing wallet scenarios', () => {

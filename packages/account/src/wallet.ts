@@ -15,7 +15,13 @@ import {
 	SwitchToAccountIndex,
 	WalletT,
 } from './_types'
-import { mergeMap, map, distinctUntilChanged, skipWhile } from 'rxjs/operators'
+import {
+	mergeMap,
+	map,
+	distinctUntilChanged,
+	skipWhile,
+	take,
+} from 'rxjs/operators'
 import {
 	Keystore,
 	KeystoreT,
@@ -36,9 +42,11 @@ const __unsafeCreateWithPrivateKeyProvider = (
 	input: Readonly<{
 		mnemonic: MnemomicT
 		__privateKeyProvider?: (hdpath: HDPathRadixT) => PrivateKey
+		startWithAnAccount?: boolean
 	}>,
 ): WalletT => {
 	const { __privateKeyProvider, mnemonic } = input
+	const startWithAnAccount = input.startWithAnAccount ?? true
 	const masterSeed = HDMasterSeed.fromMnemonic({ mnemonic })
 	const hdNodeDeriverWithBip32Path = masterSeed.masterNode().derive
 
@@ -196,8 +204,9 @@ const __unsafeCreateWithPrivateKeyProvider = (
 		}
 	}
 
-	// Start by deriving first index (0).
-	deriveNext({ alsoSwitchTo: true })
+	if (startWithAnAccount) {
+		deriveNext({ alsoSwitchTo: true })
+	}
 
 	const activeAccount$ = activeAccountSubject
 		.asObservable()
@@ -217,7 +226,6 @@ const __unsafeCreateWithPrivateKeyProvider = (
 			}),
 		),
 		distinctUntilChanged((a: AccountsT, b: AccountsT): boolean =>
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-call
 			arraysEqual(a.all, b.all),
 		),
 	)
@@ -226,19 +234,26 @@ const __unsafeCreateWithPrivateKeyProvider = (
 		mergeMap((activeAccount) => activeAccount.deriveAddress()),
 	)
 
-	const restoreAccountsUpToIndex = (
-		targetIndex: number,
-	): Observable<AccountsT> => {
-		if (targetIndex < 0) {
+	const restoreAccountsUpToIndex = (index: number): Observable<AccountsT> => {
+		if (index < 0) {
 			const errMsg = `targetIndex must not be negative`
 			console.error(errMsg)
 			return throwError(new Error(errMsg))
 		}
-		Array(targetIndex)
+
+		const numberOfAccountsToCreate = index - numberOfAccounts()
+		if (numberOfAccountsToCreate < 0) {
+			return accounts$
+		}
+
+		Array(numberOfAccountsToCreate)
 			.fill(undefined)
-			.forEach((_, index) => _deriveAtIndex({ addressIndex: { index } }))
+			.forEach((_) => {
+				deriveNext()
+			})
 		return accounts$.pipe(
-			skipWhile((accounts: AccountsT) => accounts.size < targetIndex - 1),
+			skipWhile((accounts: AccountsT) => accounts.size < index - 1),
+			take(1),
 		)
 	}
 
@@ -275,6 +290,7 @@ const __unsafeCreateWithPrivateKeyProvider = (
 const create = (
 	input: Readonly<{
 		mnemonic: MnemomicT
+		startWithAnAccount?: boolean
 	}>,
 ): WalletT => __unsafeCreateWithPrivateKeyProvider({ ...input })
 
@@ -282,6 +298,7 @@ const byLoadingAndDecryptingKeystore = (
 	input: Readonly<{
 		password: string
 		load: () => Promise<KeystoreT>
+		startWithAnAccount?: boolean
 	}>,
 ): ResultAsync<WalletT, Error> => {
 	const loadKeystore = (): ResultAsync<KeystoreT, Error> =>
@@ -303,12 +320,16 @@ const fromKeystore = (
 	input: Readonly<{
 		keystore: KeystoreT
 		password: string
+		startWithAnAccount?: boolean
 	}>,
 ): ResultAsync<WalletT, Error> =>
 	Keystore.decrypt(input)
 		.map((entropy) => ({ entropy }))
 		.andThen(Mnemonic.fromEntropy)
-		.map((mnemonic) => ({ mnemonic }))
+		.map((mnemonic) => ({
+			mnemonic,
+			startWithAnAccount: input.startWithAnAccount,
+		}))
 		.map(create)
 
 const byEncryptingMnemonicAndSavingKeystore = (
@@ -316,9 +337,10 @@ const byEncryptingMnemonicAndSavingKeystore = (
 		mnemonic: MnemomicT
 		password: string
 		save: (keystoreToSave: KeystoreT) => Promise<void>
+		startWithAnAccount?: boolean
 	}>,
 ): ResultAsync<WalletT, Error> => {
-	const { mnemonic, password } = input
+	const { mnemonic, password, startWithAnAccount } = input
 
 	const save = (keystoreToSave: KeystoreT): ResultAsync<KeystoreT, Error> =>
 		ResultAsync.fromPromise(input.save(keystoreToSave), (e: unknown) => {
@@ -336,7 +358,11 @@ const byEncryptingMnemonicAndSavingKeystore = (
 		password,
 	})
 		.andThen(save)
-		.map((keystore: KeystoreT) => ({ keystore, password }))
+		.map((keystore: KeystoreT) => ({
+			keystore,
+			password,
+			startWithAnAccount,
+		}))
 		.andThen(Wallet.fromKeystore)
 }
 
