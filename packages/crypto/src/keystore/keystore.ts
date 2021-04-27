@@ -1,4 +1,4 @@
-import { err, ResultAsync, ok, Result } from 'neverthrow'
+import { err, ResultAsync, ok, Result, errAsync } from 'neverthrow'
 import { KeystoreCryptoT, KeystoreT } from './_types'
 import { AES_GCM } from '../symmetric-encryption/aes/aesGCM'
 import {
@@ -104,7 +104,16 @@ const decrypt = (
 					}
 				},
 			)
-			.andThen((inp) => AES_GCM.open(inp))
+			.andThen(
+				(inp): Result<Buffer, Error> => {
+					return AES_GCM.open(inp).mapErr((e) => {
+						const underlyingError = msgFromError(e)
+						const errMsg = `Failed to decrypt keystore, wrong password? Underlying error: '${underlyingError}'.`
+						console.error(errMsg)
+						return new Error(errMsg)
+					})
+				},
+			)
 			.map((decrypted) => {
 				log.debug(
 					`Successfully decrypted Keystore with id='${keystore.id}'`,
