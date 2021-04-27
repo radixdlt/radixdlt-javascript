@@ -694,138 +694,83 @@
             "errors": [
                 {
                     "code": 1300,
-                    "message": "MALFORMED_TX",
-                    "data": {
-                        "message": {
-                            "type": "string"
-                        }
-                    }
+                    "message": "MALFORMED_TX"
                 },
                 {
                     "code": 1301,
-                    "message": "INSUFFICIENT_FUNDS",
-                    "data": {
-                        "message": {
-                            "type": "string"
-                        }
-                    }
+                    "message": "INSUFFICIENT_FUNDS"
                 },
                 {
                     "code": 1302,
-                    "message": "NOT_PERMITTED",
-                    "data": {
-                        "message": {
-                            "type": "string"
-                        }
-                    }
+                    "message": "NOT_PERMITTED"
                 },
                 {
                     "code": 1303,
-                    "message": "ADDRESS_IS_MISSING",
-                    "data": {
-                        "message": {
-                            "type": "string"
-                        }
-                    }
+                    "message": "ADDRESS_IS_MISSING"
                 },
                 {
                     "code": 1304,
-                    "message": "NOT_PERMITTED",
-                    "data": {
-                        "message": {
-                            "type": "string"
-                        }
-                    }
+                    "message": "NOT_A_SYSTEM"
                 },
                 {
                     "code": 1305,
-                    "message": "NOT_PERMITTED",
-                    "data": {
-                        "message": {
-                            "type": "string"
-                        }
-                    }
+                    "message": "RRI_NOT_AVAILABLE"
                 },
                 {
                     "code": 1306,
-                    "message": "NOT_A_SYSTEM",
-                    "data": {
-                        "message": {
-                            "type": "string"
-                        }
-                    }
+                    "message": "ALREADY_A_VALIDATOR"
                 },
                 {
                     "code": 1307,
-                    "message": "RRI_NOT_AVAILABLE",
-                    "data": {
-                        "message": {
-                            "type": "string"
-                        }
-                    }
+                    "message": "INVALID_STATE"
                 },
                 {
                     "code": 1308,
-                    "message": "ALREADY_A_VALIDATOR",
-                    "data": {
-                        "message": {
-                            "type": "string"
-                        }
-                    }
+                    "message": "NO_SYSTEM_PARTICLE"
                 },
                 {
                     "code": 1309,
-                    "message": "INVALID_STATE",
-                    "data": {
-                        "message": {
-                            "type": "string"
-                        }
-                    }
+                    "message": "NOT_ENOUGH_STAKED"
                 },
                 {
                     "code": 1310,
-                    "message": "NO_SYSTEM_PARTICLE",
-                    "data": {
-                        "message": {
-                            "type": "string"
-                        }
-                    }
+                    "message": "NEXT_VIEW_LE_CURRENT"
                 },
                 {
                     "code": 1311,
-                    "message": "NOT_ENOUGH_STAKED",
-                    "data": {
-                        "message": {
-                            "type": "string"
-                        }
-                    }
+                    "message": "ALREADY_UNREGISTERED"
                 },
                 {
                     "code": 1312,
-                    "message": "NEXT_VIEW_LE_CURRENT",
-                    "data": {
-                        "message": {
-                            "type": "string"
-                        }
-                    }
+                    "message": "INSUFFICIENT_FUNDS_FOR_FEE"
                 },
                 {
                     "code": 1313,
-                    "message": "ALREADY_UNREGISTERED",
-                    "data": {
-                        "message": {
-                            "type": "string"
-                        }
-                    }
+                    "message": "DIFFERENT_SOURCE_ADDRESSES"
                 },
                 {
                     "code": 1314,
-                    "message": "INSUFFICIENT_FUNDS_FOR_FEE",
-                    "data": {
-                        "message": {
-                            "type": "string"
-                        }
-                    }
+                    "message": "INVALID_ACTION"
+                },
+                {
+                    "code": 1315,
+                    "message": "INVALID_ACTION_TYPE"
+                },
+                {
+                    "code": 1316,
+                    "message": "INVALID_RRI"
+                },
+                {
+                    "code": 1317,
+                    "message": "INVALID_ADDRESS"
+                },
+                {
+                    "code": 1318,
+                    "message": "INVALID_VALIDATOR_ADDRESS"
+                },
+                {
+                    "code": 1319,
+                    "message": "INVALID_AMOUNT"
                 }
             ],
             "paramStructure": "by-position"
@@ -941,12 +886,7 @@
             "errors": [
                 {
                     "code": 1500,
-                    "message": "SUBMISSION_FAILURE",
-                    "data": {
-                        "message": {
-                            "type": "string"
-                        }
-                    }
+                    "message": "SUBMISSION_FAILURE"
                 }
             ],
             "paramStructure": "by-position"
