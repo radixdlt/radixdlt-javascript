@@ -249,12 +249,10 @@ const __unsafeCreateWithPrivateKeyProvider = (
 		// should only be used for testing
 		__unsafeGetAccount: (): AccountT => {
 			const accounts = accountsSubject.getValue()
-			const keyAny = accounts.keys()?.next()
-			if (!keyAny) {
+			const key: string | undefined = accounts.keys()?.next().value
+			if (!key) {
 				throw new Error('No account')
 			}
-			const hdPath = (keyAny.value as unknown) as HDPathRadixT
-			const key = hdPath.toString()
 			const account = accounts.get(key)
 			if (!account) {
 				throw new Error('No account')
