@@ -37,7 +37,7 @@ import {
 	Subscription,
 	throwError,
 } from 'rxjs'
-import { EncryptedMessage, KeystoreT } from '@radixdlt/crypto'
+import { EncryptedMessage, KeystoreT, PublicKey } from '@radixdlt/crypto'
 import {
 	MakeTransactionOptions,
 	ManualUserConfirmTX,
@@ -481,12 +481,10 @@ const create = (
 							'hex',
 						)
 						return account.sign(msgToSignFromTx).pipe(
-							withLatestFrom(account.derivePublicKey()),
+							// withLatestFrom(account.derivePublicKey()),
 							map(
-								([
-									signature,
-									publicKeyOfSigner,
-								]): SignedTransaction => {
+								(signature): SignedTransaction => {
+									const publicKeyOfSigner = account.publicKey
 									txLog.verbose(
 										`Finished signing transaction`,
 									)
@@ -824,9 +822,9 @@ const create = (
 		input: TransferTokensOptions,
 	): TransactionTracking => {
 		radixLog.debug(`transferTokens`)
-		const builder = TransactionIntentBuilder.create().transferTokens(
-			input.transferInput,
-		)
+		const builder = TransactionIntentBuilder.create({
+			network: requestedNetwork,
+		}).transferTokens(input.transferInput)
 
 		let encryptMsgIfAny = false
 		if (input.message) {
@@ -848,7 +846,9 @@ const create = (
 	const stakeTokens = (input: StakeOptions) => {
 		radixLog.debug('stake')
 		return __makeTransactionFromBuilder(
-			TransactionIntentBuilder.create().stakeTokens(input.stakeInput),
+			TransactionIntentBuilder.create({
+				network: requestedNetwork,
+			}).stakeTokens(input.stakeInput),
 			{ ...input },
 		)
 	}
@@ -856,7 +856,9 @@ const create = (
 	const unstakeTokens = (input: UnstakeOptions) => {
 		radixLog.debug('unstake')
 		return __makeTransactionFromBuilder(
-			TransactionIntentBuilder.create().unstakeTokens(input.unstakeInput),
+			TransactionIntentBuilder.create({
+				network: requestedNetwork,
+			}).unstakeTokens(input.unstakeInput),
 			{ ...input },
 		)
 	}
@@ -891,36 +893,34 @@ const create = (
 		const encryptedMessage = encryptedMessageResult.value
 
 		return activeAccount.pipe(
-			mergeMap((account) => {
-				return account.derivePublicKey().pipe(
-					mergeMap((myPublicKey) => {
-						log.verbose(
-							`Trying to decrypt message with activeAccount with pubKey=${myPublicKey.toString()}`,
-						)
-						const publicKeyOfOtherPartyResult = singleRecipientFromActions(
-							myPublicKey,
-							input.actions,
-						)
-						if (!publicKeyOfOtherPartyResult.isOk()) {
-							return throwError(
-								new Error(
-									msgFromError(
-										publicKeyOfOtherPartyResult.error,
-									),
-								),
-							)
-						}
-						log.verbose(
-							`Trying to decrypt message with publicKeyOfOtherPartyResult=${publicKeyOfOtherPartyResult.toString()}`,
-						)
-
-						return account.decrypt({
-							encryptedMessage,
-							publicKeyOfOtherParty:
-								publicKeyOfOtherPartyResult.value,
-						})
-					}),
+			// map((account) => account.publicKey),
+			mergeMap((account: Account) => {
+				const myPublicKey = account.publicKey
+				log.verbose(
+					`Trying to decrypt message with activeAccount with pubKey=${myPublicKey.toString()}`,
 				)
+				const publicKeyOfOtherPartyResult = singleRecipientFromActions(
+					myPublicKey,
+					input.actions,
+				)
+				if (!publicKeyOfOtherPartyResult.isOk()) {
+					return throwError(
+						new Error(
+							msgFromError(
+								publicKeyOfOtherPartyResult.error,
+							),
+						),
+					)
+				}
+				log.verbose(
+					`Trying to decrypt message with publicKeyOfOtherPartyResult=${publicKeyOfOtherPartyResult.toString()}`,
+				)
+
+				return account.decrypt({
+					encryptedMessage,
+					publicKeyOfOtherParty:
+					publicKeyOfOtherPartyResult.value,
+				})
 			}),
 			take(1),
 		)
@@ -933,7 +933,7 @@ const create = (
 	deriveAccountSubject
 		.pipe(
 			withLatestFrom(wallet$),
-			tap(([derivation, w]) => w.deriveNext(derivation)),
+			mergeMap(([derivation, w]) => w.deriveNext(derivation)),
 		)
 		.subscribe()
 		.add(subs)

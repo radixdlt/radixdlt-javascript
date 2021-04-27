@@ -2,6 +2,7 @@ import {
 	DiffieHellman,
 	ECPointOnCurve,
 	EncryptedMessageT,
+	isPublicKey,
 	MessageEncryption,
 	PrivateKey,
 	PublicKey,
@@ -18,20 +19,112 @@ import {
 } from './_types'
 import { HDMasterSeedT, HDNodeT } from './bip39'
 import { HDPathRadixT } from './bip32'
-import { errAsync, okAsync, ResultAsync } from 'neverthrow'
-import { log } from '@radixdlt/util'
-import { AccountAddressT } from './addresses'
+import { okAsync, ResultAsync } from 'neverthrow'
+import { AccountAddress, AccountAddressT, NetworkT } from './addresses'
+
+type Decrypt = (input: AccountDecryptionInput) => Observable<string>
+type Encrypt = (input: AccountEncryptionInput) => Observable<EncryptedMessageT>
+
+const makeDecrypt = (diffieHellman: DiffieHellman): Decrypt => {
+	return (input: AccountDecryptionInput): Observable<string> => {
+		return toObservable(
+			MessageEncryption.decrypt({
+				...input,
+				diffieHellman,
+			}).map((buf: Buffer) => buf.toString('utf-8')),
+		)
+	}
+}
+
+const makeEncrypt = (diffieHellman: DiffieHellman): Encrypt => {
+	return (input: AccountEncryptionInput): Observable<EncryptedMessageT> => {
+		return toObservable(
+			MessageEncryption.encrypt({
+				...input,
+				diffieHellman,
+			}),
+		)
+	}
+}
+
+const makeDHFromPoint = (
+	dhPoint: ECPointOnCurve,
+	otherPubKey: PublicKey,
+): DiffieHellman => {
+	return (
+		publicKeyOfOtherParty: PublicKey,
+	): ResultAsync<ECPointOnCurve, Error> => {
+		if (!publicKeyOfOtherParty.equals(otherPubKey)) {
+			throw new Error(
+				`Incorrect implementation, expected 'publicKeyOfOtherParty' to match 'otherPubKey'`,
+			)
+		}
+		return okAsync(dhPoint)
+	}
+}
+
+const makeEncryptHW = (
+	hardwareWalletSimple: HardwareWalletSimpleT,
+	hdPath: HDPathRadixT,
+): Encrypt => {
+	return (input: AccountEncryptionInput): Observable<EncryptedMessageT> => {
+		return hardwareWalletSimple
+			.diffieHellman({
+				hdPath,
+				publicKeyOfOtherParty: input.publicKeyOfOtherParty,
+			})
+			.pipe(
+				mergeMap((dhPoint: ECPointOnCurve) =>
+					toObservable(
+						MessageEncryption.encrypt({
+							plaintext: input.plaintext,
+							publicKeyOfOtherParty: input.publicKeyOfOtherParty,
+							diffieHellman: makeDHFromPoint(
+								dhPoint,
+								input.publicKeyOfOtherParty,
+							),
+						}),
+					),
+				),
+			)
+	}
+}
+
+const makeDecryptHW = (
+	hardwareWalletSimple: HardwareWalletSimpleT,
+	hdPath: HDPathRadixT,
+): Decrypt => {
+	return (input: AccountDecryptionInput): Observable<string> => {
+		return hardwareWalletSimple
+			.diffieHellman({
+				hdPath,
+				publicKeyOfOtherParty: input.publicKeyOfOtherParty,
+			})
+			.pipe(
+				mergeMap((dhPoint: ECPointOnCurve) =>
+					toObservable(
+						MessageEncryption.decrypt({
+							encryptedMessage: input.encryptedMessage,
+							publicKeyOfOtherParty: input.publicKeyOfOtherParty,
+							diffieHellman: makeDHFromPoint(
+								dhPoint,
+								input.publicKeyOfOtherParty,
+							),
+						}),
+					),
+				),
+				map((b) => b.toString('utf8')),
+			)
+	}
+}
 
 const fromPrivateKey = (
 	input: Readonly<{
 		privateKey: PrivateKey
 		hdPath: HDPathRadixT
-		addressFromPublicKey: (
-			publicKey: PublicKey,
-		) => Observable<AccountAddressT>
 	}>,
 ): AccountT => {
-	const { privateKey, hdPath, addressFromPublicKey } = input
+	const { privateKey, hdPath } = input
 	const publicKey: PublicKey = privateKey.publicKey()
 	const sign = (hashedMessage: Buffer): Observable<Signature> =>
 		toObservable(privateKey.sign(hashedMessage))
@@ -39,132 +132,70 @@ const fromPrivateKey = (
 	const diffieHellman = privateKey.diffieHellman
 
 	return {
-		decrypt: (input: AccountDecryptionInput): Observable<string> => {
-			return toObservable(
-				MessageEncryption.decrypt({
-					...input,
-					diffieHellman,
-				}).map((buf: Buffer) => buf.toString('utf-8')),
-			)
-		},
-		encrypt: (
-			input: AccountEncryptionInput,
-		): Observable<EncryptedMessageT> => {
-			return toObservable(
-				MessageEncryption.encrypt({
-					...input,
-					diffieHellman,
-				}),
-			)
-		},
+		decrypt: makeDecrypt(diffieHellman),
+		encrypt: makeEncrypt(diffieHellman),
 		sign: sign,
 		hdPath,
-		derivePublicKey: () => of(publicKey),
-		__unsafeGetPublicKey: (): PublicKey => publicKey,
-		deriveAddress: () => addressFromPublicKey(publicKey),
+		publicKey,
+		addressOnNetwork: (network: NetworkT) =>
+			AccountAddress.fromPublicKeyAndNetwork({ publicKey, network }),
 	}
 }
 
 const fromHDPathWithHardwareWallet = (
 	input: Readonly<{
 		hdPath: HDPathRadixT
-		addressFromPublicKey: (
-			publicKey: PublicKey,
-		) => Observable<AccountAddressT>
 		onHardwareWalletConnect: Observable<HardwareWalletSimpleT>
 	}>,
-): AccountT => {
-	const {
-		hdPath,
-		onHardwareWalletConnect: hardwareWallet$,
-		addressFromPublicKey,
-	} = input
+): Observable<AccountT> => {
+	const { hdPath, onHardwareWalletConnect: hardwareWallet$ } = input
 
-	const derivePublicKey = (): Observable<PublicKey> =>
-		hardwareWallet$.pipe(
-			mergeMap((hw: HardwareWalletSimpleT) => hw.derivePublicKey(hdPath)),
-		)
-
-	const dhObservable = (
-		publicKeyUsedInKeyExchange: PublicKey,
-	): Observable<DiffieHellman> =>
-		hardwareWallet$.pipe(
-			mergeMap((hw) =>
-				hw.diffieHellman({
-					hdPath,
-					publicKeyOfOtherParty: publicKeyUsedInKeyExchange,
-				}),
-			),
-			map(
-				(dhKey: ECPointOnCurve): DiffieHellman => {
-					return (
-						publicKeyOfOtherParty: PublicKey,
-					): ResultAsync<ECPointOnCurve, Error> => {
-						if (
-							!publicKeyOfOtherParty.equals(
-								publicKeyUsedInKeyExchange,
-							)
-						) {
-							log.error(
-								`Mismatch betwen public key used in DH and input to this inlined DH function.`,
-							)
-							return errAsync(new Error('Key mismatch'))
-						}
-						return okAsync(dhKey)
-					}
-				},
-			),
-		)
-
-	return {
-		hdPath,
-		sign: (hashedMessage): Observable<Signature> =>
-			hardwareWallet$.pipe(
-				mergeMap((hw: HardwareWalletSimpleT) =>
-					hw.sign({ hashedMessage, hdPath }),
-				),
-			),
-		derivePublicKey,
-		deriveAddress: () =>
-			derivePublicKey().pipe(
-				mergeMap((pubKey) => addressFromPublicKey(pubKey)),
-			),
-		decrypt: (input: AccountDecryptionInput): Observable<string> => {
-			return dhObservable(input.publicKeyOfOtherParty).pipe(
-				mergeMap((diffieHellman: DiffieHellman) =>
-					toObservable(
-						MessageEncryption.decrypt({ ...input, diffieHellman }),
-					),
-				),
-				map((b) => b.toString('utf8')),
-			)
-		},
-		__unsafeGetPublicKey: (): PublicKey => {
-			const errMsg = `Tried to unsafely sync access public key of a hardware account, which is not possible. Crashing application now.`
-			log.error(errMsg)
-			throw new Error(errMsg)
-		},
-		encrypt: (
-			input: AccountEncryptionInput,
-		): Observable<EncryptedMessageT> => {
-			return dhObservable(input.publicKeyOfOtherParty).pipe(
-				mergeMap((diffieHellman: DiffieHellman) =>
-					toObservable(
-						MessageEncryption.encrypt({ ...input, diffieHellman }),
-					),
-				),
-			)
-		},
+	type Tmp = {
+		hardwareWalletSimple: HardwareWalletSimpleT
+		publicKey: PublicKey
 	}
+
+	return hardwareWallet$.pipe(
+		mergeMap(
+			(hw: HardwareWalletSimpleT): Observable<Tmp> => {
+				return hw.derivePublicKey(hdPath).pipe(
+					map(
+						(publicKey: PublicKey): Tmp => ({
+							publicKey,
+							hardwareWalletSimple: hw,
+						}),
+					),
+				)
+			},
+		),
+		map(
+			({ publicKey, hardwareWalletSimple }): AccountT => {
+				return {
+					publicKey,
+					hdPath,
+					sign: (hashedMessage: Buffer): Observable<Signature> => {
+						return hardwareWalletSimple.sign({
+							hashedMessage,
+							hdPath,
+						})
+					},
+					decrypt: makeDecryptHW(hardwareWalletSimple, hdPath),
+					encrypt: makeEncryptHW(hardwareWalletSimple, hdPath),
+					addressOnNetwork: (network: NetworkT): AccountAddressT =>
+						AccountAddress.fromPublicKeyAndNetwork({
+							publicKey,
+							network,
+						}),
+				}
+			},
+		),
+	)
 }
 
 const byDerivingNodeAtPath = (
 	input: Readonly<{
 		hdPath: HDPathRadixT
 		deriveNodeAtPath: () => HDNodeT
-		addressFromPublicKey: (
-			publicKey: PublicKey,
-		) => Observable<AccountAddressT>
 	}>,
 ): AccountT =>
 	fromPrivateKey({
@@ -202,7 +233,8 @@ export const isAccount = (something: unknown): something is AccountT => {
 	const inspection = something as AccountT
 	return (
 		inspection.hdPath !== undefined &&
-		inspection.derivePublicKey !== undefined &&
+		inspection.publicKey !== undefined &&
+		isPublicKey(inspection.publicKey) &&
 		inspection.sign !== undefined
 	)
 }

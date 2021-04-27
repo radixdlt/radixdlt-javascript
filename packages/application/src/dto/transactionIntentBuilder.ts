@@ -25,6 +25,7 @@ import {
 	isAccountAddress,
 	toObservableFromResult,
 	isResourceIdentifier,
+	NetworkT,
 } from '@radixdlt/account'
 import { isObservable, Observable, of, throwError } from 'rxjs'
 import { map, mergeMap } from 'rxjs/operators'
@@ -85,21 +86,17 @@ const ensureSingleRecipient = (
 		encryptingAccount: AccountT
 	}>,
 ): Observable<ActorsInEncryption> => {
-	return input.encryptingAccount.derivePublicKey().pipe(
-		mergeMap((pk: PublicKey) => {
-			return toObservableFromResult(
-				singleRecipientFromActions(
-					pk,
-					input.intendedActionsFrom.intendedActions,
-				),
-			).pipe(
-				map((singleRecipientPublicKey) => {
-					return {
-						encryptingAccount: input.encryptingAccount,
-						singleRecipientPublicKey: singleRecipientPublicKey,
-					}
-				}),
-			)
+	return toObservableFromResult(
+		singleRecipientFromActions(
+			input.encryptingAccount.publicKey,
+			input.intendedActionsFrom.intendedActions,
+		),
+	).pipe(
+		map((singleRecipientPublicKey) => {
+			return {
+				encryptingAccount: input.encryptingAccount,
+				singleRecipientPublicKey: singleRecipientPublicKey,
+			}
 		}),
 	)
 }
@@ -253,7 +250,8 @@ const isTransactionIntentBuilderDoNotEncryptOption = (
 	)
 }
 
-const create = (): TransactionIntentBuilderT => {
+const create = (input: Readonly<{ network: NetworkT }>): TransactionIntentBuilderT => {
+	const { network } = input
 	const intermediateActions: IntermediateAction[] = []
 	let maybePlaintextMsgToEncrypt: Option<MessageInTransaction> = Option.none()
 	const snapshotState = (): TransactionIntentBuilderState => ({
@@ -389,7 +387,7 @@ const create = (): TransactionIntentBuilderT => {
 		const spendingSender: Observable<AccountAddressT> =
 			options.spendingSender ??
 			options.encryptMessageIfAnyWithAccount.pipe(
-				mergeMap((a) => a.deriveAddress()),
+				map((a) => a.addressOnNetwork(network)),
 			)
 		return spendingSender.pipe(
 			mergeMap((from: AccountAddressT) =>

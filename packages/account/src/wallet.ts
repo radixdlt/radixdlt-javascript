@@ -4,6 +4,7 @@ import {
 	ReplaySubject,
 	Subscription,
 	throwError,
+	of,
 } from 'rxjs'
 import { Account } from './account'
 import {
@@ -15,7 +16,13 @@ import {
 	SwitchToAccountIndex,
 	WalletT,
 } from './_types'
-import { mergeMap, map, distinctUntilChanged, skipWhile } from 'rxjs/operators'
+import {
+	mergeMap,
+	map,
+	distinctUntilChanged,
+	skipWhile,
+	withLatestFrom,
+} from 'rxjs/operators'
 import {
 	Keystore,
 	KeystoreT,
@@ -66,7 +73,7 @@ const __unsafeCreateWithPrivateKeyProvider = (
 			hdPath: HDPathRadixT
 			alsoSwitchTo?: boolean // defaults to false
 		}>,
-	): AccountT => {
+	): Observable<AccountT> => {
 		const { hdPath } = input
 		const alsoSwitchTo = input.alsoSwitchTo ?? false
 		log.verbose(
@@ -79,42 +86,12 @@ const __unsafeCreateWithPrivateKeyProvider = (
 			__privateKeyProvider !== undefined
 				? Account.__unsafeFromPrivateKey({
 						privateKey: __privateKeyProvider(hdPath),
-						addressFromPublicKey: (
-							publicKey: PublicKey,
-						): Observable<AccountAddressT> => {
-							if (
-								!publicKey.equals(
-									__privateKeyProvider(hdPath).publicKey(),
-								)
-							) {
-								const errMsg = `Incorrect implementation: PublicKey does not match that of private key`
-								log.error(errMsg)
-								throw new Error(errMsg)
-							}
-							return networkId$.pipe(
-								map((network: NetworkT) =>
-									AccountAddress.fromPublicKeyAndNetwork({
-										publicKey,
-										network,
-									}),
-								),
-							)
-						},
 						hdPath,
 				  })
 				: Account.byDerivingNodeAtPath({
 						hdPath,
 						deriveNodeAtPath: () =>
 							hdNodeDeriverWithBip32Path(hdPath),
-						addressFromPublicKey: (publicKey: PublicKey) =>
-							networkId$.pipe(
-								map((network: NetworkT) =>
-									AccountAddress.fromPublicKeyAndNetwork({
-										publicKey,
-										network,
-									}),
-								),
-							),
 				  })
 		const accounts = accountsSubject.getValue()
 		accounts.set(newAccount.hdPath, newAccount)
@@ -123,7 +100,7 @@ const __unsafeCreateWithPrivateKeyProvider = (
 		if (alsoSwitchTo) {
 			activeAccountSubject.next(newAccount)
 		}
-		return newAccount
+		return of(newAccount)
 	}
 
 	const _deriveAtIndex = (
@@ -134,7 +111,7 @@ const __unsafeCreateWithPrivateKeyProvider = (
 			}>
 			alsoSwitchTo?: boolean // defaults to false
 		}>,
-	): AccountT =>
+	): Observable<AccountT> =>
 		_deriveWithPath({
 			hdPath: HDPathRadix.create({
 				address: input.addressIndex,
@@ -142,7 +119,7 @@ const __unsafeCreateWithPrivateKeyProvider = (
 			alsoSwitchTo: input.alsoSwitchTo,
 		})
 
-	const deriveNext = (input?: DeriveNextAccountInput): AccountT =>
+	const deriveNext = (input?: DeriveNextAccountInput): Observable<AccountT> =>
 		_deriveAtIndex({
 			addressIndex: {
 				index: numberOfAccounts(),
@@ -223,7 +200,10 @@ const __unsafeCreateWithPrivateKeyProvider = (
 	)
 
 	const activeAddress$ = activeAccount$.pipe(
-		mergeMap((activeAccount) => activeAccount.deriveAddress()),
+		withLatestFrom(networkId$),
+		map(([activeAccount, network]) =>
+			activeAccount.addressOnNetwork(network),
+		),
 	)
 
 	const restoreAccountsUpToIndex = (
@@ -265,8 +245,6 @@ const __unsafeCreateWithPrivateKeyProvider = (
 		observeAccounts: (): Observable<AccountsT> => accounts$,
 		observeActiveAccount: (): Observable<AccountT> => activeAccount$,
 		observeActiveAddress: (): Observable<AccountAddressT> => activeAddress$,
-		derivePublicKey: (): Observable<PublicKey> =>
-			activeAccount$.pipe(mergeMap((a) => a.derivePublicKey())),
 		sign: (hashedMessage: Buffer): Observable<Signature> =>
 			activeAccount$.pipe(mergeMap((a) => a.sign(hashedMessage))),
 	}

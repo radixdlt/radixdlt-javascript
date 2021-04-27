@@ -10,10 +10,6 @@ import { HDPathRadixT, BIP32T } from './bip32'
 import { MnemomicT } from './bip39'
 import { AccountAddressT, NetworkT } from './addresses'
 
-export type PublicKeyDeriving = Readonly<{
-	derivePublicKey: () => Observable<PublicKey>
-}>
-
 /* A reactive counterpart of `Signer` in '@radixdlt/crypto' package  */
 export type Signing = Readonly<{
 	sign: (hashedMessage: Buffer) => Observable<Signature>
@@ -37,14 +33,13 @@ export type Decrypting = Readonly<{
 	decrypt: (input: AccountDecryptionInput) => Observable<string>
 }>
 
-export type AccountT = PublicKeyDeriving &
-	Signing &
+export type AccountT = Signing &
 	Encrypting &
 	Decrypting &
 	Readonly<{
+		publicKey: PublicKey
 		hdPath: HDPathRadixT
-		deriveAddress: () => Observable<AccountAddressT>
-		__unsafeGetPublicKey: () => PublicKey
+		addressOnNetwork: (network: NetworkT) => AccountAddressT
 	}>
 
 /// A simple "interface" like type that this `account` package recognizes.
@@ -90,8 +85,7 @@ export type DeriveNextAccountInput =
 			alsoSwitchTo?: boolean // defaults to false
 	  }>
 
-export type WalletT = PublicKeyDeriving &
-	Signing &
+export type WalletT = Signing &
 	Readonly<{
 		// should only be used for testing
 		__unsafeGetAccount: () => AccountT
@@ -102,7 +96,7 @@ export type WalletT = PublicKeyDeriving &
 
 		// Call this once you can provide an observable providing network.
 		provideNetworkId: (network: Observable<NetworkT>) => void
-		deriveNext: (input?: DeriveNextAccountInput) => AccountT
+		deriveNext: (input?: DeriveNextAccountInput) => Observable<AccountT>
 
 		switchAccount: (input: SwitchAccountInput) => AccountT
 
