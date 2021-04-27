@@ -74,6 +74,7 @@ const __unsafeCreateWithPrivateKeyProvider = (
 			alsoSwitchTo?: boolean // defaults to false
 		}>,
 	): Observable<AccountT> => {
+		console.log(`🙋🏽‍♂️ deriving...`)
 		const { hdPath } = input
 		const alsoSwitchTo = input.alsoSwitchTo ?? false
 		log.verbose(
@@ -82,25 +83,33 @@ const __unsafeCreateWithPrivateKeyProvider = (
 			} `,
 		)
 
-		const newAccount =
-			__privateKeyProvider !== undefined
-				? Account.__unsafeFromPrivateKey({
-						privateKey: __privateKeyProvider(hdPath),
-						hdPath,
-				  })
-				: Account.byDerivingNodeAtPath({
-						hdPath,
-						deriveNodeAtPath: () =>
-							hdNodeDeriverWithBip32Path(hdPath),
-				  })
-		const accounts = accountsSubject.getValue()
-		accounts.set(newAccount.hdPath, newAccount)
-		accountsSubject.next(accounts)
+		return networkId$.pipe(
+			map((networkId: NetworkT) => {
+				const getNetwork = (): NetworkT => networkId
 
-		if (alsoSwitchTo) {
-			activeAccountSubject.next(newAccount)
-		}
-		return of(newAccount)
+				const newAccount =
+					__privateKeyProvider !== undefined
+						? Account.__unsafeFromPrivateKey({
+								getNetwork,
+								privateKey: __privateKeyProvider(hdPath),
+								hdPath,
+						  })
+						: Account.byDerivingNodeAtPath({
+								getNetwork,
+								hdPath,
+								deriveNodeAtPath: () =>
+									hdNodeDeriverWithBip32Path(hdPath),
+						  })
+				const accounts = accountsSubject.getValue()
+				accounts.set(newAccount.hdPath, newAccount)
+				accountsSubject.next(accounts)
+
+				if (alsoSwitchTo) {
+					activeAccountSubject.next(newAccount)
+				}
+				return newAccount
+			}),
+		)
 	}
 
 	const _deriveAtIndex = (
@@ -200,10 +209,7 @@ const __unsafeCreateWithPrivateKeyProvider = (
 	)
 
 	const activeAddress$ = activeAccount$.pipe(
-		withLatestFrom(networkId$),
-		map(([activeAccount, network]) =>
-			activeAccount.addressOnNetwork(network),
-		),
+		map((activeAccount) => activeAccount.deriveAddress()),
 	)
 
 	const restoreAccountsUpToIndex = (

@@ -122,9 +122,10 @@ const fromPrivateKey = (
 	input: Readonly<{
 		privateKey: PrivateKey
 		hdPath: HDPathRadixT
+		getNetwork: () => NetworkT
 	}>,
 ): AccountT => {
-	const { privateKey, hdPath } = input
+	const { privateKey, hdPath, getNetwork } = input
 	const publicKey: PublicKey = privateKey.publicKey()
 	const sign = (hashedMessage: Buffer): Observable<Signature> =>
 		toObservable(privateKey.sign(hashedMessage))
@@ -137,18 +138,26 @@ const fromPrivateKey = (
 		sign: sign,
 		hdPath,
 		publicKey,
-		addressOnNetwork: (network: NetworkT) =>
-			AccountAddress.fromPublicKeyAndNetwork({ publicKey, network }),
+		deriveAddress: () =>
+			AccountAddress.fromPublicKeyAndNetwork({
+				publicKey,
+				network: getNetwork(),
+			}),
 	}
 }
 
 const fromHDPathWithHardwareWallet = (
 	input: Readonly<{
 		hdPath: HDPathRadixT
+		getNetwork: () => NetworkT
 		onHardwareWalletConnect: Observable<HardwareWalletSimpleT>
 	}>,
 ): Observable<AccountT> => {
-	const { hdPath, onHardwareWalletConnect: hardwareWallet$ } = input
+	const {
+		hdPath,
+		getNetwork,
+		onHardwareWalletConnect: hardwareWallet$,
+	} = input
 
 	type Tmp = {
 		hardwareWalletSimple: HardwareWalletSimpleT
@@ -181,10 +190,10 @@ const fromHDPathWithHardwareWallet = (
 					},
 					decrypt: makeDecryptHW(hardwareWalletSimple, hdPath),
 					encrypt: makeEncryptHW(hardwareWalletSimple, hdPath),
-					addressOnNetwork: (network: NetworkT): AccountAddressT =>
+					deriveAddress: () =>
 						AccountAddress.fromPublicKeyAndNetwork({
 							publicKey,
-							network,
+							network: getNetwork(),
 						}),
 				}
 			},
@@ -195,6 +204,7 @@ const fromHDPathWithHardwareWallet = (
 const byDerivingNodeAtPath = (
 	input: Readonly<{
 		hdPath: HDPathRadixT
+		getNetwork: () => NetworkT
 		deriveNodeAtPath: () => HDNodeT
 	}>,
 ): AccountT =>
@@ -206,9 +216,7 @@ const byDerivingNodeAtPath = (
 const fromHDPathWithHDMasterNode = (
 	input: Readonly<{
 		hdPath: HDPathRadixT
-		addressFromPublicKey: (
-			publicKey: PublicKey,
-		) => Observable<AccountAddressT>
+		getNetwork: () => NetworkT
 		hdMasterNode: HDNodeT
 	}>,
 ): AccountT => {
@@ -219,9 +227,7 @@ const fromHDPathWithHDMasterNode = (
 const fromHDPathWithHDMasterSeed = (
 	input: Readonly<{
 		hdPath: HDPathRadixT
-		addressFromPublicKey: (
-			publicKey: PublicKey,
-		) => Observable<AccountAddressT>
+		getNetwork: () => NetworkT
 		hdMasterSeed: HDMasterSeedT
 	}>,
 ): AccountT => {

@@ -250,8 +250,7 @@ const isTransactionIntentBuilderDoNotEncryptOption = (
 	)
 }
 
-const create = (input: Readonly<{ network: NetworkT }>): TransactionIntentBuilderT => {
-	const { network } = input
+const create = (): TransactionIntentBuilderT => {
 	const intermediateActions: IntermediateAction[] = []
 	let maybePlaintextMsgToEncrypt: Option<MessageInTransaction> = Option.none()
 	const snapshotState = (): TransactionIntentBuilderState => ({
@@ -387,7 +386,7 @@ const create = (input: Readonly<{ network: NetworkT }>): TransactionIntentBuilde
 		const spendingSender: Observable<AccountAddressT> =
 			options.spendingSender ??
 			options.encryptMessageIfAnyWithAccount.pipe(
-				map((a) => a.addressOnNetwork(network)),
+				map((a) => a.deriveAddress()),
 			)
 		return spendingSender.pipe(
 			mergeMap((from: AccountAddressT) =>

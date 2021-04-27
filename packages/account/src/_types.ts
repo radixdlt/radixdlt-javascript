@@ -39,7 +39,7 @@ export type AccountT = Signing &
 	Readonly<{
 		publicKey: PublicKey
 		hdPath: HDPathRadixT
-		addressOnNetwork: (network: NetworkT) => AccountAddressT
+		deriveAddress: () => AccountAddressT
 	}>
 
 /// A simple "interface" like type that this `account` package recognizes.

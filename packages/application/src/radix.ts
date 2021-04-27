@@ -481,7 +481,6 @@ const create = (
 							'hex',
 						)
 						return account.sign(msgToSignFromTx).pipe(
-							// withLatestFrom(account.derivePublicKey()),
 							map(
 								(signature): SignedTransaction => {
 									const publicKeyOfSigner = account.publicKey
@@ -822,9 +821,7 @@ const create = (
 		input: TransferTokensOptions,
 	): TransactionTracking => {
 		radixLog.debug(`transferTokens`)
-		const builder = TransactionIntentBuilder.create({
-			network: requestedNetwork,
-		}).transferTokens(input.transferInput)
+		const builder = TransactionIntentBuilder.create().transferTokens(input.transferInput)
 
 		let encryptMsgIfAny = false
 		if (input.message) {
@@ -846,9 +843,7 @@ const create = (
 	const stakeTokens = (input: StakeOptions) => {
 		radixLog.debug('stake')
 		return __makeTransactionFromBuilder(
-			TransactionIntentBuilder.create({
-				network: requestedNetwork,
-			}).stakeTokens(input.stakeInput),
+			TransactionIntentBuilder.create().stakeTokens(input.stakeInput),
 			{ ...input },
 		)
 	}
@@ -856,9 +851,7 @@ const create = (
 	const unstakeTokens = (input: UnstakeOptions) => {
 		radixLog.debug('unstake')
 		return __makeTransactionFromBuilder(
-			TransactionIntentBuilder.create({
-				network: requestedNetwork,
-			}).unstakeTokens(input.unstakeInput),
+			TransactionIntentBuilder.create().unstakeTokens(input.unstakeInput),
 			{ ...input },
 		)
 	}
@@ -894,7 +887,7 @@ const create = (
 
 		return activeAccount.pipe(
 			// map((account) => account.publicKey),
-			mergeMap((account: Account) => {
+			mergeMap((account: AccountT) => {
 				const myPublicKey = account.publicKey
 				log.verbose(
 					`Trying to decrypt message with activeAccount with pubKey=${myPublicKey.toString()}`,

@@ -12,7 +12,7 @@ import {
 	xrd,
 } from '../src'
 import {
-	AccountAddressT,
+	AccountAddressT, AccountT,
 	isAccountAddress,
 	isValidatorAddress,
 	Mnemonic,
@@ -43,13 +43,15 @@ describe('tx_intent_builder', () => {
 		const mnemonic = Mnemonic.fromEnglishPhrase(
 			'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
 		)._unsafeUnwrap()
-		return Wallet.create({ mnemonic })
+		const wallet = Wallet.create({ mnemonic })
+		wallet.provideNetworkId(of(NetworkT.BETANET))
+		return wallet
 	}
 	const wallet = createSpecificWallet()
 
 	wallet.provideNetworkId(of(NetworkT.BETANET))
-	const aliceAccount = wallet.deriveNext()
-	const bobAccount = wallet.deriveNext()
+	let aliceAccount: AccountT// = wallet.deriveNext()
+	let bobAccount: AccountT // = wallet.deriveNext()
 	let alice: AccountAddressT
 	let bob: AccountAddressT
 
@@ -57,23 +59,34 @@ describe('tx_intent_builder', () => {
 
 	const plaintext = 'Hey Bob, how are you?'
 
-	beforeAll(async (done) => {
-		combineLatest([
-			aliceAccount.deriveAddress(),
-			bobAccount.deriveAddress(),
-		])
-			.pipe(
-				map(([aliceAddress, bobAddress]) => ({
-					aliceAddress: aliceAddress as AccountAddressT,
-					bobAddress: bobAddress as AccountAddressT,
-				})),
-			)
-			.subscribe(({ aliceAddress, bobAddress }) => {
-				alice = aliceAddress
-				bob = bobAddress
+	beforeAll( (done) => {
+		wallet.deriveNext().subscribe((aliceAcc) => {
+			aliceAccount = aliceAcc
+			alice = aliceAcc.deriveAddress()
+
+			wallet.deriveNext().subscribe((bobAcc) => {
+				bobAccount = bobAcc
+				bob = bobAcc.deriveAddress()
 				done()
-			})
-			.add(subs)
+			}, (e) => done(e)).add(subs)
+
+		}, (e) => done(e)).add(subs)
+		// combineLatest([
+		// 	aliceAccount.deriveAddress(),
+		// 	bobAccount.deriveAddress(),
+		// ])
+		// 	.pipe(
+		// 		map(([aliceAddress, bobAddress]) => ({
+		// 			aliceAddress: aliceAddress as AccountAddressT,
+		// 			bobAddress: bobAddress as AccountAddressT,
+		// 		})),
+		// 	)
+		// 	.subscribe(({ aliceAddress, bobAddress }) => {
+		// 		alice = aliceAddress
+		// 		bob = bobAddress
+		// 		done()
+		// 	})
+		// 	.add(subs)
 	})
 
 	type SimpleTransf = { amount: number; to: AccountAddressT }
