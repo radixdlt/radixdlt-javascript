@@ -4,7 +4,7 @@ import {
 	ReplaySubject,
 	Subscription,
 	throwError,
-	of,
+	combineLatest,
 } from 'rxjs'
 import { Account } from './account'
 import {
@@ -20,22 +20,16 @@ import {
 	mergeMap,
 	map,
 	distinctUntilChanged,
+	take,
 	skipWhile,
-	withLatestFrom,
 } from 'rxjs/operators'
-import {
-	Keystore,
-	KeystoreT,
-	PrivateKey,
-	PublicKey,
-	Signature,
-} from '@radixdlt/crypto'
+import { Keystore, KeystoreT, PrivateKey, Signature } from '@radixdlt/crypto'
 import { Option } from 'prelude-ts'
 import { HDPathRadix, HDPathRadixT, Int32 } from './bip32'
 import { isAccount } from './account'
 import { arraysEqual, msgFromError } from '@radixdlt/util'
 import { MnemomicT, HDMasterSeed, Mnemonic } from './bip39'
-import { AccountAddress, AccountAddressT, NetworkT } from './addresses'
+import { AccountAddressT, NetworkT } from './addresses'
 import { ResultAsync } from 'neverthrow'
 import { log } from '@radixdlt/util'
 
@@ -43,9 +37,11 @@ const __unsafeCreateWithPrivateKeyProvider = (
 	input: Readonly<{
 		mnemonic: MnemomicT
 		__privateKeyProvider?: (hdpath: HDPathRadixT) => PrivateKey
+		startWithAnAccount?: boolean
 	}>,
 ): WalletT => {
 	const { __privateKeyProvider, mnemonic } = input
+	const startWithAnAccount = input.startWithAnAccount ?? true
 	const masterSeed = HDMasterSeed.fromMnemonic({ mnemonic })
 	const hdNodeDeriverWithBip32Path = masterSeed.masterNode().derive
 
@@ -53,7 +49,7 @@ const __unsafeCreateWithPrivateKeyProvider = (
 
 	const activeAccountSubject = new ReplaySubject<AccountT>()
 
-	const accountsSubject = new BehaviorSubject<Map<HDPathRadixT, AccountT>>(
+	const accountsSubject = new BehaviorSubject<Map<string, AccountT>>(
 		new Map(),
 	)
 
@@ -100,7 +96,16 @@ const __unsafeCreateWithPrivateKeyProvider = (
 									hdNodeDeriverWithBip32Path(hdPath),
 						  })
 				const accounts = accountsSubject.getValue()
-				accounts.set(newAccount.hdPath, newAccount)
+
+				const key = newAccount.hdPath.toString()
+
+				if (accounts.has(key)) {
+					const errMsg = `Incorrect implementation, wallet already contains account with hdPath: ${key}`
+					console.error(errMsg)
+					throw new Error(errMsg)
+				}
+
+				accounts.set(key, newAccount)
 				accountsSubject.next(accounts)
 
 				if (alsoSwitchTo) {
@@ -181,8 +186,9 @@ const __unsafeCreateWithPrivateKeyProvider = (
 		}
 	}
 
-	// Start by deriving first index (0).
-	deriveNext({ alsoSwitchTo: true })
+	if (startWithAnAccount) {
+		deriveNext({ alsoSwitchTo: true })
+	}
 
 	const activeAccount$ = activeAccountSubject
 		.asObservable()
@@ -196,13 +202,12 @@ const __unsafeCreateWithPrivateKeyProvider = (
 		map(
 			(map): AccountsT => ({
 				get: (hdPath: HDPathRadixT): Option<AccountT> =>
-					Option.of(map.get(hdPath)),
+					Option.of(map.get(hdPath.toString())),
 				all: Array.from(map.values()),
 				size: map.size,
 			}),
 		),
 		distinctUntilChanged((a: AccountsT, b: AccountsT): boolean =>
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-call
 			arraysEqual(a.all, b.all),
 		),
 	)
@@ -211,19 +216,31 @@ const __unsafeCreateWithPrivateKeyProvider = (
 		map((activeAccount) => activeAccount.deriveAddress()),
 	)
 
-	const restoreAccountsUpToIndex = (
-		targetIndex: number,
-	): Observable<AccountsT> => {
-		if (targetIndex < 0) {
+	const restoreAccountsUpToIndex = (index: number): Observable<AccountsT> => {
+		if (index < 0) {
 			const errMsg = `targetIndex must not be negative`
 			console.error(errMsg)
 			return throwError(new Error(errMsg))
 		}
-		Array(targetIndex)
+
+		const numberOfAccountsToCreate = index - numberOfAccounts()
+		if (numberOfAccountsToCreate < 0) {
+			return accounts$
+		}
+		const offset = numberOfAccounts()
+
+		const accountsObservableList: Observable<AccountT>[] = Array(
+			numberOfAccountsToCreate,
+		)
 			.fill(undefined)
-			.forEach((_, index) => _deriveAtIndex({ addressIndex: { index } }))
-		return accounts$.pipe(
-			skipWhile((accounts: AccountsT) => accounts.size < targetIndex - 1),
+			.map((_, index) =>
+				_deriveAtIndex({ addressIndex: { index: offset + index } }),
+			)
+
+		return combineLatest(accountsObservableList).pipe(
+			mergeMap((_) => accounts$),
+			skipWhile((accounts: AccountsT) => accounts.size < index - 1),
+			take(1),
 		)
 	}
 
@@ -236,7 +253,8 @@ const __unsafeCreateWithPrivateKeyProvider = (
 			if (!keyAny) {
 				throw new Error('No account')
 			}
-			const key = (keyAny.value as unknown) as HDPathRadixT
+			const hdPath = (keyAny.value as unknown) as HDPathRadixT
+			const key = hdPath.toString()
 			const account = accounts.get(key)
 			if (!account) {
 				throw new Error('No account')
@@ -258,6 +276,7 @@ const __unsafeCreateWithPrivateKeyProvider = (
 const create = (
 	input: Readonly<{
 		mnemonic: MnemomicT
+		startWithAnAccount?: boolean
 	}>,
 ): WalletT => __unsafeCreateWithPrivateKeyProvider({ ...input })
 
@@ -265,6 +284,7 @@ const byLoadingAndDecryptingKeystore = (
 	input: Readonly<{
 		password: string
 		load: () => Promise<KeystoreT>
+		startWithAnAccount?: boolean
 	}>,
 ): ResultAsync<WalletT, Error> => {
 	const loadKeystore = (): ResultAsync<KeystoreT, Error> =>
@@ -286,12 +306,16 @@ const fromKeystore = (
 	input: Readonly<{
 		keystore: KeystoreT
 		password: string
+		startWithAnAccount?: boolean
 	}>,
 ): ResultAsync<WalletT, Error> =>
 	Keystore.decrypt(input)
 		.map((entropy) => ({ entropy }))
 		.andThen(Mnemonic.fromEntropy)
-		.map((mnemonic) => ({ mnemonic }))
+		.map((mnemonic) => ({
+			mnemonic,
+			startWithAnAccount: input.startWithAnAccount,
+		}))
 		.map(create)
 
 const byEncryptingMnemonicAndSavingKeystore = (
@@ -299,9 +323,10 @@ const byEncryptingMnemonicAndSavingKeystore = (
 		mnemonic: MnemomicT
 		password: string
 		save: (keystoreToSave: KeystoreT) => Promise<void>
+		startWithAnAccount?: boolean
 	}>,
 ): ResultAsync<WalletT, Error> => {
-	const { mnemonic, password } = input
+	const { mnemonic, password, startWithAnAccount } = input
 
 	const save = (keystoreToSave: KeystoreT): ResultAsync<KeystoreT, Error> =>
 		ResultAsync.fromPromise(input.save(keystoreToSave), (e: unknown) => {
@@ -319,7 +344,11 @@ const byEncryptingMnemonicAndSavingKeystore = (
 		password,
 	})
 		.andThen(save)
-		.map((keystore: KeystoreT) => ({ keystore, password }))
+		.map((keystore: KeystoreT) => ({
+			keystore,
+			password,
+			startWithAnAccount,
+		}))
 		.andThen(Wallet.fromKeystore)
 }
 
