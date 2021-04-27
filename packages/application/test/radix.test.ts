@@ -136,11 +136,12 @@ const mockTransformIntentToExecutedTX = (
 	return executedTx
 }
 
-const createWallet = (): WalletT => {
+const createWallet = (input?: { startWithAnAccount?: boolean }): WalletT => {
 	const mnemonic = Mnemonic.fromEnglishPhrase(
 		'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
 	)._unsafeUnwrap()
-	return Wallet.create({ mnemonic })
+	const startWithAnAccount = input?.startWithAnAccount ?? true
+	return Wallet.create({ mnemonic, startWithAnAccount })
 }
 
 const dummyNode = (urlString: string): Observable<NodeT> =>
@@ -321,20 +322,20 @@ describe('radix_high_level_api', () => {
 	it('radix can restoreAccountsUpToIndex', (done) => {
 		const subs = new Subscription()
 
-		const radix = Radix.create().withWallet(createWallet())
+		const radix = Radix.create().withWallet(
+			createWallet({ startWithAnAccount: false }),
+		)
 
 		const index = 3
 		radix
 			.restoreAccountsUpToIndex(index)
 			.subscribe(
 				(accounts) => {
-					expect(accounts.size).toBe(index + 1)
-					radix.activeAccount
-						.subscribe((a) => {
-							expect(a.hdPath.addressIndex.value()).toBe(0)
-							done()
-						})
-						.add(subs)
+					expect(accounts.size).toBe(index)
+					accounts.all.forEach((a, i) => {
+						expect(a.hdPath.addressIndex.value()).toBe(i)
+					})
+					done()
 				},
 				(e) => {
 					done(e)
@@ -1858,7 +1859,6 @@ describe('radix_high_level_api', () => {
 				return {
 					...mockRadixCoreAPI(),
 					lookupTransaction: (_) => {
-						console.log(`👻 lookupTx`)
 						return of(makeTX())
 					},
 					transactionHistory: (_) => {

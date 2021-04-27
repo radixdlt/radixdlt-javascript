@@ -79,6 +79,12 @@ export type RadixT = Readonly<{
 	login: (password: string, loadKeystore: () => Promise<KeystoreT>) => RadixT
 
 	// Wallet APIs
+
+	/**
+	 * Restores accounts in wallet up to and excluding `targetIndex`.
+	 *
+	 * @param {number} targetIndex - The index to restore account up to, this method will restore accounts from index 0 up to but excluding this index.
+	 */
 	restoreAccountsUpToIndex: (index: number) => Observable<AccountsT>
 	deriveNextAccount: (input?: DeriveNextAccountInput) => RadixT
 	switchAccount: (input: SwitchAccountInput) => RadixT
