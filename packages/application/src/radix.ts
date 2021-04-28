@@ -193,17 +193,7 @@ const create = (
 	const networkId: () => Observable<NetworkT> = fwdAPICall(
 		(a) => {
 			return (): Observable<NetworkT> => {
-				return a.networkId().pipe(
-					tap((actualNetwork) => {
-						if (actualNetwork !== requestedNetwork) {
-							const errMsg = `EMERGENCY actual network and requested network differs. STOP EVERYTHING YOU ARE DOING. You might lose funds.`
-							const errMsgToLog = `☣️ ${errMsg}`
-							console.error(errMsgToLog)
-							log.error(errMsgToLog)
-							throw new Error(errMsg)
-						}
-					}),
-				)
+				return a.networkId()
 			}
 		},
 		(m) => networkIdErr(m),
