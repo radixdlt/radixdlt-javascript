@@ -1,234 +1,226 @@
-describe('radix should have tests', function () {
-	it('works', () => {
-		expect(1).toBe(1)
+import {
+	AccountAddress,
+	AccountAddressT,
+	AccountT,
+	HDMasterSeed,
+	Mnemonic,
+	NetworkT,
+	ResourceIdentifier,
+	toObservable,
+	ValidatorAddress,
+	Wallet,
+	WalletT,
+} from '@radixdlt/account'
+import {
+	interval,
+	Observable,
+	of,
+	ReplaySubject,
+	Subscription,
+	throwError,
+} from 'rxjs'
+import { map, mergeMap, shareReplay, take, tap, toArray } from 'rxjs/operators'
+import {
+	KeystoreT,
+	MessageEncryption,
+	privateKeyFromScalar,
+	PublicKey,
+	publicKeyFromBytes,
+} from '@radixdlt/crypto'
+import {
+	ActionType,
+	alice,
+	APIError,
+	APIErrorCause,
+	balancesFor,
+	bob,
+	BuiltTransaction,
+	carol,
+	ErrorCategory,
+	ErrorCause,
+	ExecutedTransaction,
+	IdentityManagerT,
+	isStakeTokensAction,
+	isTransferTokensAction,
+	isUnstakeTokensAction,
+	ManualUserConfirmTX,
+	mockedAPI,
+	mockRadixCoreAPI,
+	NodeT,
+	Radix,
+	RadixCoreAPI,
+	RadixT,
+	SimpleTokenBalances,
+	TokenBalances,
+	TransactionIdentifier,
+	TransactionIdentifierT,
+	TransactionIntentBuilder,
+	TransactionStatus,
+	TransactionTrackingEventType,
+	TransactionType,
+	TransferTokensInput,
+	TransferTokensOptions,
+} from '../src'
+import { Amount, AmountT } from '@radixdlt/primitives'
+
+import { log, msgFromError, restoreDefaultLogLevel } from '@radixdlt/util'
+import { mockErrorMsg } from '../../util/test/util'
+import {
+	ExecutedAction,
+	ExecutedStakeTokensAction,
+	ExecutedTransferTokensAction,
+	ExecutedUnstakeTokensAction,
+	IntendedAction,
+	SimpleExecutedTransaction,
+	TransactionIntent,
+} from '..'
+import { signatureFromHexStrings } from '@radixdlt/crypto/test/utils'
+import { makeWalletWithFunds } from '@radixdlt/account/test/utils'
+import { UInt256 } from '@radixdlt/uint256'
+import { IdentityManager } from '../src/identityManager'
+
+const mockTransformIntentToExecutedTX = (
+	txIntent: TransactionIntent,
+): SimpleExecutedTransaction => {
+	const txID = TransactionIdentifier.create(
+		'deadbeef'.repeat(8),
+	)._unsafeUnwrap()
+
+	const mockTransformIntendedActionToExecutedAction = (
+		intendedAction: IntendedAction,
+	): ExecutedAction => {
+		if (isTransferTokensAction(intendedAction)) {
+			const tokenTransfer: ExecutedTransferTokensAction = {
+				...intendedAction,
+				rri: intendedAction.rri,
+			}
+			return tokenTransfer
+		} else if (isStakeTokensAction(intendedAction)) {
+			const stake: ExecutedStakeTokensAction = {
+				...intendedAction,
+			}
+			return stake
+		} else if (isUnstakeTokensAction(intendedAction)) {
+			const unstake: ExecutedUnstakeTokensAction = {
+				...intendedAction,
+			}
+			return unstake
+		} else {
+			throw new Error('Missed some action type...')
+		}
+	}
+
+	const msg = txIntent.message
+
+	if (!msg) {
+		log.info(`TX intent contains no message.`)
+	}
+
+	const executedTx: SimpleExecutedTransaction = {
+		txID,
+		sentAt: new Date(Date.now()),
+		fee: Amount.fromUnsafe(1)._unsafeUnwrap(),
+		message: msg?.toString('hex'),
+		actions: txIntent.actions.map(
+			mockTransformIntendedActionToExecutedAction,
+		),
+	}
+
+	if (executedTx.message) {
+		log.info(`Mocked executed TX contains a message.`)
+	}
+
+	return executedTx
+}
+
+const dummyNode = (urlString: string): Observable<NodeT> =>
+	of({
+		url: new URL(urlString),
+	})
+
+export type KeystoreForTest = {
+	keystore: KeystoreT
+	password: string
+	expectedSecret: string
+	expectedMnemonicPhrase: string
+	publicKeysCompressed: string[]
+}
+
+export const keystoreForTest: KeystoreForTest = {
+	password: 'my super strong passaword',
+	expectedMnemonicPhrase:
+		'legal winner thank year wave sausage worth useful legal winner thank yellow',
+	expectedSecret: '7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f',
+	keystore: {
+		crypto: {
+			cipher: 'AES-GCM',
+			cipherparams: {
+				nonce: 'd82fd275598b9b288b8c376d',
+			},
+			ciphertext: '208e520802bd17d7a569333df41dfd2d',
+			kdf: 'scrypt',
+			kdfparams: {
+				costParameterN: 8192,
+				costParameterC: 262144,
+				blockSize: 8,
+				parallelizationParameter: 1,
+				lengthOfDerivedKey: 32,
+				salt:
+					'cb2227c6782493df3e822c9f6cd1131dea14e135751215d66f48227383b80acd',
+			},
+			mac: '68bc72c6a6a89c7fe4eb5fda4f4163e0',
+		},
+		id: 'b34999409a491037',
+		version: 1,
+	},
+	// 1. input seed at https://iancoleman.io/bip39/
+	// 2. change to BIP32 and enter derivation path: m/44'/536'/0'/0
+	// 3. Check 'use hardened addresses' checkbox
+	// 4. Copy Public Key from table
+	publicKeysCompressed: [
+		'03df4d988d2d0dcd61718a8a443ad457722a7eab4614a97bd9aefc8170a2b1329f',
+		'0323f9ae3e9d8065a03c32480017fdbdb95622050c058f16c5c3ed897451654ed2',
+		'038fa13602d11511870600a38076f2c1acc1cfc294337bdbfa38f68b3b41a2040f',
+		'0398b922a1a6a324ed34e874f561e98323379078408cebddb6fd84fc46d350568e',
+		'0255ea4081fe32854c15a4c1b1d308e3e5e9290645ec6981c64500d6a2f6d41767',
+		'02d42d80130d68f10318f850156a35c135f212dbee07e1001363388a2e2b7c7a4d',
+	],
+}
+
+describe('radix_high_level_api', () => {
+	it('can load test keystore', async (done) => {
+		// keystoreForTest
+		await Wallet.byLoadingAndDecryptingKeystore({
+			password: keystoreForTest.password,
+			load: () => Promise.resolve(keystoreForTest.keystore),
+		}).match(
+			(wallet) => {
+				const revealedMnemonic = wallet.revealMnemonic()
+				expect(revealedMnemonic.phrase).toBe(
+					'legal winner thank year wave sausage worth useful legal winner thank yellow',
+				)
+				expect(revealedMnemonic.entropy.toString('hex')).toBe(
+					'7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f',
+				)
+				const masterSeed = HDMasterSeed.fromMnemonic({
+					mnemonic: revealedMnemonic,
+				})
+				expect(masterSeed.seed.toString('hex')).toBe(
+					'878386efb78845b3355bd15ea4d39ef97d179cb712b77d5c12b6be415fffeffe5f377ba02bf3f8544ab800b955e51fbff09828f682052a20faa6addbbddfb096',
+				)
+				done()
+			},
+			(error) => {
+				done(error)
+			},
+		)
+	})
+	it('can be created empty', () => {
+		const radix = Radix.create()
+		expect(radix).toBeDefined()
 	})
 })
-// import {
-// 	AccountAddress,
-// 	AccountAddressT,
-// 	AccountT,
-// 	HDMasterSeed,
-// 	Mnemonic,
-// 	NetworkT,
-// 	ResourceIdentifier,
-// 	toObservable,
-// 	ValidatorAddress,
-// 	Wallet,
-// 	WalletT,
-// } from '@radixdlt/account'
-// import {
-// 	interval,
-// 	Observable,
-// 	of,
-// 	ReplaySubject,
-// 	Subscription,
-// 	throwError,
-// } from 'rxjs'
-// import { map, mergeMap, shareReplay, take, tap, toArray } from 'rxjs/operators'
-// import {
-// 	KeystoreT,
-// 	MessageEncryption,
-// 	privateKeyFromScalar,
-// 	PublicKey,
-// 	publicKeyFromBytes,
-// } from '@radixdlt/crypto'
-// import {
-// 	ActionType,
-// 	alice,
-// 	APIError,
-// 	APIErrorCause,
-// 	balancesFor,
-// 	bob,
-// 	BuiltTransaction,
-// 	carol,
-// 	ErrorCategory,
-// 	ErrorCause,
-// 	ExecutedTransaction, IdentityManagerT,
-// 	isStakeTokensAction,
-// 	isTransferTokensAction,
-// 	isUnstakeTokensAction,
-// 	ManualUserConfirmTX,
-// 	mockedAPI,
-// 	mockRadixCoreAPI,
-// 	NodeT,
-// 	Radix,
-// 	RadixCoreAPI,
-// 	RadixT,
-// 	SimpleTokenBalances,
-// 	TokenBalances,
-// 	TransactionIdentifier,
-// 	TransactionIdentifierT,
-// 	TransactionIntentBuilder,
-// 	TransactionStatus,
-// 	TransactionTrackingEventType,
-// 	TransactionType,
-// 	TransferTokensInput,
-// 	TransferTokensOptions,
-// } from '../src'
-// import { Amount, AmountT } from '@radixdlt/primitives'
-//
-// import {
-// 	log,
-// 	msgFromError,
-// 	restoreDefaultLogLevel,
-// 	setLogLevel,
-// } from '@radixdlt/util'
-// import { mockErrorMsg } from '../../util/test/util'
-// import {
-// 	ExecutedAction,
-// 	ExecutedStakeTokensAction,
-// 	ExecutedTransferTokensAction,
-// 	ExecutedUnstakeTokensAction,
-// 	IntendedAction,
-// 	SimpleExecutedTransaction,
-// 	TransactionIntent,
-// } from '..'
-// import { signatureFromHexStrings } from '@radixdlt/crypto/test/utils'
-// import { makeWalletWithFunds } from '@radixdlt/account/test/utils'
-// import { UInt256 } from '@radixdlt/uint256'
-// import { IdentityManager } from '../src/identityManager'
-//
-// const mockTransformIntentToExecutedTX = (
-// 	txIntent: TransactionIntent,
-// ): SimpleExecutedTransaction => {
-// 	const txID = TransactionIdentifier.create(
-// 		'deadbeef'.repeat(8),
-// 	)._unsafeUnwrap()
-//
-// 	const mockTransformIntendedActionToExecutedAction = (
-// 		intendedAction: IntendedAction,
-// 	): ExecutedAction => {
-// 		if (isTransferTokensAction(intendedAction)) {
-// 			const tokenTransfer: ExecutedTransferTokensAction = {
-// 				...intendedAction,
-// 				rri: intendedAction.rri,
-// 			}
-// 			return tokenTransfer
-// 		} else if (isStakeTokensAction(intendedAction)) {
-// 			const stake: ExecutedStakeTokensAction = {
-// 				...intendedAction,
-// 			}
-// 			return stake
-// 		} else if (isUnstakeTokensAction(intendedAction)) {
-// 			const unstake: ExecutedUnstakeTokensAction = {
-// 				...intendedAction,
-// 			}
-// 			return unstake
-// 		} else {
-// 			throw new Error('Missed some action type...')
-// 		}
-// 	}
-//
-// 	const msg = txIntent.message
-//
-// 	if (!msg) {
-// 		log.info(`TX intent contains no message.`)
-// 	}
-//
-// 	const executedTx: SimpleExecutedTransaction = {
-// 		txID,
-// 		sentAt: new Date(Date.now()),
-// 		fee: Amount.fromUnsafe(1)._unsafeUnwrap(),
-// 		message: msg?.toString('hex'),
-// 		actions: txIntent.actions.map(
-// 			mockTransformIntendedActionToExecutedAction,
-// 		),
-// 	}
-//
-// 	if (executedTx.message) {
-// 		log.info(`Mocked executed TX contains a message.`)
-// 	}
-//
-// 	return executedTx
-// }
-//
-// const dummyNode = (urlString: string): Observable<NodeT> =>
-// 	of({
-// 		url: new URL(urlString),
-// 	})
-//
-// export type KeystoreForTest = {
-// 	keystore: KeystoreT
-// 	password: string
-// 	expectedSecret: string
-// 	expectedMnemonicPhrase: string
-// 	publicKeysCompressed: string[]
-// }
-//
-// export const keystoreForTest: KeystoreForTest = {
-// 	password: 'my super strong passaword',
-// 	expectedMnemonicPhrase:
-// 		'legal winner thank year wave sausage worth useful legal winner thank yellow',
-// 	expectedSecret: '7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f',
-// 	keystore: {
-// 		crypto: {
-// 			cipher: 'AES-GCM',
-// 			cipherparams: {
-// 				nonce: 'd82fd275598b9b288b8c376d',
-// 			},
-// 			ciphertext: '208e520802bd17d7a569333df41dfd2d',
-// 			kdf: 'scrypt',
-// 			kdfparams: {
-// 				costParameterN: 8192,
-// 				costParameterC: 262144,
-// 				blockSize: 8,
-// 				parallelizationParameter: 1,
-// 				lengthOfDerivedKey: 32,
-// 				salt:
-// 					'cb2227c6782493df3e822c9f6cd1131dea14e135751215d66f48227383b80acd',
-// 			},
-// 			mac: '68bc72c6a6a89c7fe4eb5fda4f4163e0',
-// 		},
-// 		id: 'b34999409a491037',
-// 		version: 1,
-// 	},
-// 	// 1. input seed at https://iancoleman.io/bip39/
-// 	// 2. change to BIP32 and enter derivation path: m/44'/536'/0'/0
-// 	// 3. Check 'use hardened addresses' checkbox
-// 	// 4. Copy Public Key from table
-// 	publicKeysCompressed: [
-// 		'03df4d988d2d0dcd61718a8a443ad457722a7eab4614a97bd9aefc8170a2b1329f',
-// 		'0323f9ae3e9d8065a03c32480017fdbdb95622050c058f16c5c3ed897451654ed2',
-// 		'038fa13602d11511870600a38076f2c1acc1cfc294337bdbfa38f68b3b41a2040f',
-// 		'0398b922a1a6a324ed34e874f561e98323379078408cebddb6fd84fc46d350568e',
-// 		'0255ea4081fe32854c15a4c1b1d308e3e5e9290645ec6981c64500d6a2f6d41767',
-// 		'02d42d80130d68f10318f850156a35c135f212dbee07e1001363388a2e2b7c7a4d',
-// 	],
-// }
-//
-// describe('radix_high_level_api', () => {
-// 	it('can load test keystore', async (done) => {
-// 		// keystoreForTest
-// 		await Wallet.byLoadingAndDecryptingKeystore({
-// 			password: keystoreForTest.password,
-// 			load: () => Promise.resolve(keystoreForTest.keystore),
-// 		}).match(
-// 			(wallet) => {
-// 				const revealedMnemonic = wallet.revealMnemonic()
-// 				expect(revealedMnemonic.phrase).toBe(
-// 					'legal winner thank year wave sausage worth useful legal winner thank yellow',
-// 				)
-// 				expect(revealedMnemonic.entropy.toString('hex')).toBe(
-// 					'7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f',
-// 				)
-// 				const masterSeed = HDMasterSeed.fromMnemonic({
-// 					mnemonic: revealedMnemonic,
-// 				})
-// 				expect(masterSeed.seed.toString('hex')).toBe(
-// 					'878386efb78845b3355bd15ea4d39ef97d179cb712b77d5c12b6be415fffeffe5f377ba02bf3f8544ab800b955e51fbff09828f682052a20faa6addbbddfb096',
-// 				)
-// 				done()
-// 			},
-// 			(error) => {
-// 				done(error)
-// 			},
-// 		)
-// 	})
-// 	it('can be created empty', () => {
-// 		const radix = Radix.create()
-// 		expect(radix).toBeDefined()
-// 	})
-//
+
 // 	it('can connect and is chainable', () => {
 // 		const radix = Radix.create().connect('https://www.radixdlt.com/')
 // 		expect(radix).toBeDefined()
