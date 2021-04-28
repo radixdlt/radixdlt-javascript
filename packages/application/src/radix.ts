@@ -425,19 +425,15 @@ const create = (
 		coreAPISubject.asObservable().pipe(map((api) => api.node)),
 	)
 
-	const activeIdentity: Observable<IdentityT> = throwError(
-		new Error('fix me'),
+	const activeIdentity: Observable<IdentityT> = identityManager$.pipe(
+		mergeMap((im) => im.observeActiveIdentity()),
+		shareReplay(1),
 	)
-	const identities: Observable<IdentitiesT> = throwError(new Error('fix me'))
-	// const activeIdentity = wallet$.pipe(
-	// 	mergeMap((wallet) => wallet.observeActiveAccount()),
-	// 	shareReplay(1),
-	// )
-	//
-	// const identities = wallet$.pipe(
-	// 	mergeMap((wallet) => wallet.observeAccounts()),
-	// 	shareReplay(1),
-	// )
+
+	const identities = identityManager$.pipe(
+		mergeMap((im) => im.observeIdentities()),
+		shareReplay(1),
+	)
 
 	const _withNode = (node: Observable<NodeT>): void => {
 		node.subscribe(
