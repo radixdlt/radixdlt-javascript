@@ -92,9 +92,6 @@ const __unsafeCreateWithPrivateKeyProvider = (
 		}
 
 		accounts.set(key, newAccount)
-		console.log(
-			`🧩🤡 accountsSubject.next with accounts of size: ${accounts.size}`,
-		)
 		accountsSubject.next(accounts)
 
 		if (alsoSwitchTo) {
@@ -231,9 +228,6 @@ const __unsafeCreateWithPrivateKeyProvider = (
 
 		return combineLatest(accountsObservableList).pipe(
 			mergeMap((_) => {
-				console.log(
-					`👻 finished '_deriveAtIndex' array, returning 'accounts$' now...`,
-				)
 				return accounts$
 			}),
 			// skipWhile((accounts: AccountsT) => accounts.size < index - 1),

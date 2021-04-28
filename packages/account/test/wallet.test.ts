@@ -105,8 +105,9 @@ describe('wallet_type', () => {
 			deriveNumAccountsBefore: number,
 			startWithAnAccount: boolean,
 			expectedSize: number,
+			subs: Subscription,
+			done: jest.DoneCallback,
 		): void => {
-			it(`works_vectorIndex${vectorIndex}`, (done) => {
 				const assertAccountHasIndex = (
 					account: AccountT,
 					index: number,
@@ -114,7 +115,6 @@ describe('wallet_type', () => {
 					expect(account.hdPath.addressIndex.value()).toBe(index)
 				}
 
-				const subs = new Subscription()
 				const wallet = createWallet({ startWithAnAccount })
 
 
@@ -123,29 +123,29 @@ describe('wallet_type', () => {
 				const triggerRestoreSubject = new Subject<string>()
 
 				triggerRestoreSubject.pipe(mergeMap((_) => {
-					console.log(`🎉👻🔮 calling restoreAccountsUpToIndex`)
 					return wallet.restoreAccountsUpToIndex(index)
 				}))
 					.subscribe(
 						(accounts) => {
-							console.log(
-								`🔥 got acocunts, i.e. restoreAccountsUpToIndex finished! :D `,
-							)
 							expect(accounts.size).toBe(expectedSize)
 
-							// let next = 0
-							// const assertAccountHasCorrectIndex = (
-							// 	account: AccountT,
-							// ): void => {
-							// 	assertAccountHasIndex(account, next)
-							// 	next += 1
-							// }
-							//
-							// for (const account of accounts.all) {
-							// 	assertAccountHasCorrectIndex(account)
-							// }
+							let next = 0
+							const assertAccountHasCorrectIndex = (
+								account: AccountT,
+							): void => {
+								assertAccountHasIndex(account, next)
+								next += 1
+							}
 
-							done()
+							for (const account of accounts.all) {
+								assertAccountHasCorrectIndex(account)
+							}
+
+							wallet.deriveNext().subscribe((next => {
+								assertAccountHasCorrectIndex(next)
+								done()
+							}), (e) => done(e))
+
 						},
 						(e) => {
 							done(e)
@@ -156,26 +156,18 @@ describe('wallet_type', () => {
 				triggerDeriveNext
 					.pipe(mergeMap((_) => { return wallet.deriveNext() }))
 					.subscribe((account) => {
-						console.log(`🚨 just derived: ${account.hdPath.toString()}`)
 						if (account.hdPath.addressIndex.value() - 1 === deriveNumAccountsBefore) {
-							console.log(`❤️ done deiving all initial accounts`)
 							triggerRestoreSubject.next('done deriving all inital accounts')
 						} else {
-							console.log(`💟 derived one account, but more remain`)
 							triggerDeriveNext.next('not done yet, derive yet another one')
 						}
 					}).add(subs)
 
 				if (deriveNumAccountsBefore > 0 ) {
-					console.log(`🥇 about to derive initial accounts`)
 					triggerDeriveNext.next('starting deriving initial accounts')
 				} else {
-					console.log(`❤️ no intial accounts => trigger triggerRestoreSubject`)
 					triggerRestoreSubject.next('no initial accounts, call restoreAccountsUpToIndex directly')
 				}
-
-
-			})
 		}
 
 		type Vector = {
@@ -185,19 +177,18 @@ describe('wallet_type', () => {
 			expectedSize: number
 		}
 		const testVectors: Vector[] = [
-			// {
-			// 	index: 6,
-			// 	deriveNumAccountsBefore: 5,
-			// 	startWithAnAccount: true,
-			// 	expectedSize: 6,
-			// },
-			// {
-			// 	index: 1,
-			// 	deriveNumAccountsBefore: 0,
-			// 	startWithAnAccount: true,
-			// 	expectedSize: 1,
-			// },
-			/*
+			{
+				index: 6,
+				deriveNumAccountsBefore: 5,
+				startWithAnAccount: true,
+				expectedSize: 6,
+			},
+			{
+				index: 1,
+				deriveNumAccountsBefore: 0,
+				startWithAnAccount: true,
+				expectedSize: 1,
+			},
 			{
 				index: 1,
 				deriveNumAccountsBefore: 0,
@@ -324,7 +315,6 @@ describe('wallet_type', () => {
 				startWithAnAccount: false,
 				expectedSize: 6,
 			},
-			*/
 			{
 				index: 6,
 				deriveNumAccountsBefore: 3,
@@ -333,15 +323,19 @@ describe('wallet_type', () => {
 			},
 		]
 
-		testVectors.forEach((v, vIndex) =>
-			testRestoreAccountsUpToIndex(
-				vIndex,
-				v.index,
-				v.deriveNumAccountsBefore,
-				v.startWithAnAccount,
-				v.expectedSize,
-			),
-		)
+		it(`works`, (done) => {
+			testVectors.forEach((v, vIndex) =>
+				testRestoreAccountsUpToIndex(
+					vIndex,
+					v.index,
+					v.deriveNumAccountsBefore,
+					v.startWithAnAccount,
+					v.expectedSize,
+					new Subscription(),
+					done
+				),
+			)
+		})
 
 		// it('the accounts derived after restoreAccountsUpToIndex has correct index', (done) => {
 		// 	const subs = new Subscription()
