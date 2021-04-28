@@ -221,59 +221,53 @@ describe('radix_high_level_api', () => {
 	})
 })
 
-// 	it('can connect and is chainable', () => {
-// 		const radix = Radix.create().connect('https://www.radixdlt.com/')
-// 		expect(radix).toBeDefined()
-// 		expect(radix.ledger.nativeToken).toBeDefined()
-// 		expect(radix.ledger.tokenBalancesForAddress).toBeDefined() // etc
-// 	})
-//
-// 	it('emits node connection without wallet', async (done) => {
-// 		const radix = Radix.create()
-// 		radix.__withAPI(mockedAPI)
-//
-// 		radix.__node.subscribe(
-// 			(node) => {
-// 				expect(node.url.host).toBe('www.radixdlt.com')
-// 				done()
-// 			},
-// 			(error) => done(error),
-// 		)
-// 	})
-//
-// 	const testChangeNode = async (
-// 		expectedValues: string[],
-// 		done: jest.DoneCallback,
-// 		emitNewValues: (radix: RadixT) => void,
-// 	): Promise<void> => {
-// 		const radix = Radix.create()
-//
-// 		radix.__node
-// 			.pipe(
-// 				map((n: NodeT) => n.url.toString()),
-// 				take(2),
-// 				toArray(),
-// 			)
-// 			.subscribe(
-// 				(nodes) => {
-// 					expect(nodes).toStrictEqual(expectedValues)
-// 					done()
-// 				},
-// 				(error) => done(error),
-// 			)
-//
-// 		emitNewValues(radix)
-// 	}
-//
-// 	it('can change node with nodeConnection', async (done) => {
-// 		const n1 = 'https://www.rewards.radixtokens.com/'
-// 		const n2 = 'https://www.radixdlt.com/'
-//
-// 		await testChangeNode([n1, n2], done, (radix: RadixT) => {
-// 			radix.withNodeConnection(dummyNode(n1))
-// 			radix.withNodeConnection(dummyNode(n2))
-// 		})
-// 	})
+
+	it('emits node connection without wallet', async (done) => {
+		const radix = Radix.create()
+		radix.__withAPI(mockedAPI)
+
+		radix.__node.subscribe(
+			(node) => {
+				expect(node.url.host).toBe('www.radixdlt.com')
+				done()
+			},
+			(error) => done(error),
+		)
+	})
+
+	const testChangeNode = async (
+		expectedValues: string[],
+		done: jest.DoneCallback,
+		emitNewValues: (radix: RadixT) => void,
+	): Promise<void> => {
+		const radix = Radix.create()
+
+		radix.__node
+			.pipe(
+				map((n: NodeT) => n.url.toString()),
+				take(2),
+				toArray(),
+			)
+			.subscribe(
+				(nodes) => {
+					expect(nodes).toStrictEqual(expectedValues)
+					done()
+				},
+				(error) => done(error),
+			)
+
+		emitNewValues(radix)
+	}
+
+	it('can change node with nodeConnection', async (done) => {
+		const n1 = 'https://www.rewards.radixtokens.com/'
+		const n2 = 'https://www.radixdlt.com/'
+
+		await testChangeNode([n1, n2], done, (radix: RadixT) => {
+			radix.withNodeConnection(dummyNode(n1))
+			radix.withNodeConnection(dummyNode(n2))
+		})
+	})
 //
 // 	it('can_change_node_connection', async (done) => {
 // 		const n1 = 'https://www.rewards.radixtokens.com/'
