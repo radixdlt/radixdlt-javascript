@@ -15,8 +15,14 @@ export const RPCClient: Client = (url: URL): Transport => {
 		endpoint: string,
 		...params: unknown[]
 	): Promise<unknown> => {
-		log.info(`Sending RPC request with endpoint ${endpoint}.`)
 		const filteredParams = params.filter((item) => !!item)
+		log.info(
+			`Sending RPC request with endpoint ${endpoint}. ${JSON.stringify(
+				filteredParams,
+				null,
+				2,
+			)}`,
+		)
 
 		/*
 		console.log(
@@ -33,7 +39,13 @@ export const RPCClient: Client = (url: URL): Transport => {
 			method: endpoint,
 			params: filteredParams,
 		})
-		log.verbose(`Response from call: ${JSON.stringify(response, null, 2)}`)
+		log.info(
+			`Response from ${endpoint} call: ${JSON.stringify(
+				response,
+				null,
+				2,
+			)}`,
+		)
 
 		//console.log(`response for ${endpoint} `, JSON.stringify(response, null, 2))
 		// TODO validate response

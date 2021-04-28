@@ -64,9 +64,9 @@ import { Amount, AmountT } from '@radixdlt/primitives'
 
 import {
 	log,
+	LogLevel,
 	msgFromError,
 	restoreDefaultLogLevel,
-	setLogLevel,
 } from '@radixdlt/util'
 import { mockErrorMsg } from '../../util/test/util'
 import {
@@ -452,7 +452,7 @@ describe('radix_high_level_api', () => {
 
 	describe('radix_api_failing_scenarios', () => {
 		beforeAll(() => {
-			setLogLevel('silent')
+			log.setLevel(LogLevel.SILENT)
 		})
 
 		afterAll(() => {
@@ -1646,7 +1646,7 @@ describe('radix_high_level_api', () => {
 							},
 						}),
 					)
-					.logLevel('silent')
+					.logLevel(LogLevel.SILENT)
 
 				const transactionTracking = radix.transferTokens(
 					transferTokens(),

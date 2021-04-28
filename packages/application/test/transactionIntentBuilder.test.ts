@@ -25,7 +25,7 @@ import {
 import { combineLatest, merge, of, Subscription } from 'rxjs'
 
 import { map, mergeMap, take, toArray } from 'rxjs/operators'
-import { restoreDefaultLogLevel, setLogLevel } from '@radixdlt/util'
+import { restoreDefaultLogLevel, log } from '@radixdlt/util'
 
 describe('tx_intent_builder', () => {
 	const validatorCarol: ValidatorAddressT = ValidatorAddress.fromUnsafe(
@@ -361,7 +361,7 @@ describe('tx_intent_builder', () => {
 
 	describe('failing scenarios', () => {
 		beforeAll(() => {
-			setLogLevel('silent')
+			log.setLevel('silent')
 			jest.spyOn(console, 'error').mockImplementation(() => {})
 		})
 

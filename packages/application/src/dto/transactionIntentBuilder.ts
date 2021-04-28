@@ -62,7 +62,7 @@ export const singleRecipientFromActions = (
 
 	if (others.length > 1) {
 		const errMsg = `Cannot encrypt/decrypt message for a transaction containing more than one recipient addresses.`
-		log.alert(errMsg)
+		log.error(errMsg)
 		throw new Error(errMsg)
 	}
 

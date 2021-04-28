@@ -9,7 +9,7 @@ import {
 import { map, take, toArray } from 'rxjs/operators'
 import { KeystoreT, PublicKey } from '@radixdlt/crypto'
 import { combineLatest, of, Subject, Subscription } from 'rxjs'
-import { restoreDefaultLogLevel, setLogLevel } from '@radixdlt/util'
+import { restoreDefaultLogLevel, log } from '@radixdlt/util'
 import { mockErrorMsg } from '../../util/test/util'
 
 const createWallet = (
@@ -349,7 +349,7 @@ describe('HD Wallet', () => {
 
 	describe('failing wallet scenarios', () => {
 		beforeAll(() => {
-			setLogLevel('silent')
+			log.setLevel('silent')
 		})
 
 		afterAll(() => {

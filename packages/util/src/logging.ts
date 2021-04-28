@@ -1,33 +1,57 @@
-/* eslint-disable */
+import log from 'loglevel'
+import chalk from 'chalk'
+import prefix from 'loglevel-plugin-prefix'
 
-type RadixLogLevel =
-	| 'emerg'
-	| 'alert'
-	| 'crit'
-	| 'error'
-	| 'warning'
-	| 'notice'
-	| 'info'
-	| 'debug'
-	| 'verbose'
-	| 'dev'
-
-const log = {
-	verbose: (input: any) => {},
-	dev: (input: any) => {},
-	silent: (input: any) => {},
-	debug: (input: any) => {},
-	error: (input: any) => {},
-	warn: (input: any) => {},
-	help: (input: any) => {},
-	data: (input: any) => {},
-	info: (input: any) => {},
-	alert: (input: any) => {},
-	warning: (input: any) => {},
+enum LogLevel {
+	SILENT = 'silent',
+	TRACE = 'trace',
+	DEBUG = 'debug',
+	INFO = 'info',
+	WARN = 'warn',
+	ERROR = 'error',
 }
 
-const restoreDefaultLogLevel = () => {}
+const defaultLogLevel = LogLevel.WARN
 
-const setLogLevel = (input: any) => {}
+const restoreDefaultLogLevel = (): void => {
+	log.setLevel(defaultLogLevel)
+}
 
-export { RadixLogLevel, log, restoreDefaultLogLevel, setLogLevel }
+restoreDefaultLogLevel()
+
+const logDecorations = {
+	trace: {
+		color: chalk.italic.cyan,
+		emoji: '💜',
+	},
+	debug: {
+		color: chalk.italic.cyan,
+		emoji: '💚',
+	},
+	info: {
+		color: chalk.blue,
+		emoji: '💙',
+	},
+	warn: {
+		color: chalk.yellow,
+		emoji: '💛',
+	},
+	error: {
+		color: chalk.red,
+		emoji: '❤️',
+	},
+}
+
+prefix.reg(log)
+
+prefix.apply(log, {
+	format: (level, name, timestamp) =>
+		`${chalk.gray(`[${timestamp.toString()}]`)} ${
+			logDecorations[level.toLowerCase() as Exclude<LogLevel, 'silent'>]
+				.emoji
+		} ${logDecorations[
+			level.toLowerCase() as Exclude<LogLevel, 'silent'>
+		].color(level)}`,
+})
+
+export { log, restoreDefaultLogLevel, LogLevel }
