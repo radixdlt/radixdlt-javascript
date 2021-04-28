@@ -337,65 +337,59 @@ describe('wallet_type', () => {
 			)
 		})
 
-		// it('the accounts derived after restoreAccountsUpToIndex has correct index', (done) => {
-		// 	const subs = new Subscription()
-		// 	const wallet = createWallet({ startWithAnAccount: false })
-		//
-		// 	const indexToRestoreTo = 3
-		//
-		// 	const assertAccountHasIndex = (
-		// 		account: AccountT,
-		// 		index: number,
-		// 	): void => {
-		// 		expect(account.hdPath.addressIndex.value()).toBe(index)
-		// 	}
-		//
-		// 	wallet
-		// 		.restoreAccountsUpToIndex(indexToRestoreTo)
-		// 		.subscribe(
-		// 			(accounts) => {
-		// 				console.log(
-		// 					`🔮 accounts: ${JSON.stringify(
-		// 						accounts.all.map((a) => a.hdPath.toString()),
-		// 						null,
-		// 						4,
-		// 					)}`,
-		// 				)
-		// 				expect(accounts.size).toBe(indexToRestoreTo)
-		//
-		// 				let next = 0
-		// 				const assertAccountHasCorrectIndex = (
-		// 					account: AccountT,
-		// 				): void => {
-		// 					assertAccountHasIndex(account, next)
-		// 					next += 1
-		// 				}
-		//
-		// 				for (const account of accounts.all) {
-		// 					assertAccountHasCorrectIndex(account)
-		// 				}
-		//
-		// 				wallet.deriveNext().subscribe(
-		// 					(another0) => {
-		// 						assertAccountHasCorrectIndex(another0)
-		//
-		// 						wallet.deriveNext().subscribe(
-		// 							(another1) => {
-		// 								assertAccountHasCorrectIndex(another1)
-		// 								done()
-		// 							},
-		// 							(e) => done(e),
-		// 						)
-		// 					},
-		// 					(e) => done(e),
-		// 				)
-		// 			},
-		// 			(e) => {
-		// 				done(e)
-		// 			},
-		// 		)
-		// 		.add(subs)
-		// })
+		it('the accounts derived after restoreAccountsUpToIndex has correct index', (done) => {
+			const subs = new Subscription()
+			const wallet = createWallet({ startWithAnAccount: false })
+
+			const indexToRestoreTo = 3
+
+			const assertAccountHasIndex = (
+				account: AccountT,
+				index: number,
+			): void => {
+				expect(account.hdPath.addressIndex.value()).toBe(index)
+			}
+
+			wallet
+				.restoreAccountsUpToIndex(indexToRestoreTo)
+				.subscribe(
+					(accounts) => {
+				
+						expect(accounts.size).toBe(indexToRestoreTo)
+
+						let next = 0
+						const assertAccountHasCorrectIndex = (
+							account: AccountT,
+						): void => {
+							assertAccountHasIndex(account, next)
+							next += 1
+						}
+
+						for (const account of accounts.all) {
+							assertAccountHasCorrectIndex(account)
+						}
+
+						wallet.deriveNext().subscribe(
+							(another0) => {
+								assertAccountHasCorrectIndex(another0)
+
+								wallet.deriveNext().subscribe(
+									(another1) => {
+										assertAccountHasCorrectIndex(another1)
+										done()
+									},
+									(e) => done(e),
+								)
+							},
+							(e) => done(e),
+						)
+					},
+					(e) => {
+						done(e)
+					},
+				)
+				.add(subs)
+		})
 	})
 	/*
 		describe('failing wallet scenarios', () => {
