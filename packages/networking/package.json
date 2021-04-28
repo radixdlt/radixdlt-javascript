@@ -1,6 +1,6 @@
 {
   "name": "@radixdlt/networking",
-  "version": "1.0.23",
+  "version": "1.0.24",
   "description": "Requesting and sending data from/to Radix Core RPC API over HTTP(s).",
   "keywords": [
     "RPCClient"
@@ -28,7 +28,7 @@
   "dependencies": {
     "@open-rpc/client-js": "^1.6.2",
     "@open-rpc/schema-utils-js": "^1.14.3",
-    "@radixdlt/util": "^1.0.18",
+    "@radixdlt/util": "^1.0.19",
     "neverthrow": "^4.0.1"
   }
 }
