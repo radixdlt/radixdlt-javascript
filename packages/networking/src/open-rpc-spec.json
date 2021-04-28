@@ -693,31 +693,84 @@
             },
             "errors": [
                 {
-                    "code": 290,
-                    "message": "MALFORMED_TX",
-                    "data": {
-                        "message": {
-                            "type": "string"
-                        }
-                    }
+                    "code": 1300,
+                    "message": "MALFORMED_TX"
                 },
                 {
-                    "code": 291,
-                    "message": "INSUFFICIENT_FUNDS",
-                    "data": {
-                        "message": {
-                            "type": "string"
-                        }
-                    }
+                    "code": 1301,
+                    "message": "INSUFFICIENT_FUNDS"
                 },
                 {
-                    "code": 292,
-                    "message": "NOT_PERMITTED",
-                    "data": {
-                        "message": {
-                            "type": "string"
-                        }
-                    }
+                    "code": 1302,
+                    "message": "NOT_PERMITTED"
+                },
+                {
+                    "code": 1303,
+                    "message": "ADDRESS_IS_MISSING"
+                },
+                {
+                    "code": 1304,
+                    "message": "NOT_A_SYSTEM"
+                },
+                {
+                    "code": 1305,
+                    "message": "RRI_NOT_AVAILABLE"
+                },
+                {
+                    "code": 1306,
+                    "message": "ALREADY_A_VALIDATOR"
+                },
+                {
+                    "code": 1307,
+                    "message": "INVALID_STATE"
+                },
+                {
+                    "code": 1308,
+                    "message": "NO_SYSTEM_PARTICLE"
+                },
+                {
+                    "code": 1309,
+                    "message": "NOT_ENOUGH_STAKED"
+                },
+                {
+                    "code": 1310,
+                    "message": "NEXT_VIEW_LE_CURRENT"
+                },
+                {
+                    "code": 1311,
+                    "message": "ALREADY_UNREGISTERED"
+                },
+                {
+                    "code": 1312,
+                    "message": "INSUFFICIENT_FUNDS_FOR_FEE"
+                },
+                {
+                    "code": 1313,
+                    "message": "DIFFERENT_SOURCE_ADDRESSES"
+                },
+                {
+                    "code": 1314,
+                    "message": "INVALID_ACTION"
+                },
+                {
+                    "code": 1315,
+                    "message": "INVALID_ACTION_TYPE"
+                },
+                {
+                    "code": 1316,
+                    "message": "INVALID_RRI"
+                },
+                {
+                    "code": 1317,
+                    "message": "INVALID_ADDRESS"
+                },
+                {
+                    "code": 1318,
+                    "message": "INVALID_VALIDATOR_ADDRESS"
+                },
+                {
+                    "code": 1319,
+                    "message": "INVALID_AMOUNT"
                 }
             ],
             "paramStructure": "by-position"
@@ -832,13 +885,8 @@
             },
             "errors": [
                 {
-                    "code": 310,
-                    "message": "SUBMISSION_FAILURE",
-                    "data": {
-                        "message": {
-                            "type": "string"
-                        }
-                    }
+                    "code": 1500,
+                    "message": "SUBMISSION_FAILURE"
                 }
             ],
             "paramStructure": "by-position"
