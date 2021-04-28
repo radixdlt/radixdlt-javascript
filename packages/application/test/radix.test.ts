@@ -1705,7 +1705,7 @@ describe('radix_high_level_api', () => {
 			jest.clearAllMocks()
 		})
 
-		it('error is thrown when wrong network', (done) => {
+		it.skip('error is thrown when wrong network', (done) => {
 			const subs = new Subscription()
 			const requestedNetwork = NetworkT.MAINNET
 			const radix = Radix.create({ network: requestedNetwork }).__withAPI(

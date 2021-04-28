@@ -132,8 +132,7 @@ const expectedDecodedResponses = {
 	[rpcSpec.methods[0].name]: (
 		response: NetworkIdEndpoint.Response,
 	): NetworkIdEndpoint.DecodedResponse => ({
-		networkId:
-			response.networkId !== 1 ? NetworkT.BETANET : NetworkT.MAINNET,
+		networkId: NetworkT.BETANET,
 	}),
 
 	[rpcSpec.methods[1].name]: (
