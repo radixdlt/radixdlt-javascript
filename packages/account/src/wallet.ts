@@ -22,7 +22,8 @@ import {
 	map,
 	distinctUntilChanged,
 	take,
-	skipWhile, shareReplay,
+	skipWhile,
+	shareReplay,
 } from 'rxjs/operators'
 import { Keystore, KeystoreT, PrivateKey, Signature } from '@radixdlt/crypto'
 import { Option } from 'prelude-ts'
