@@ -25,8 +25,8 @@ import {
 } from '@radixdlt/account'
 import { merge, of, Subscription } from 'rxjs'
 
-import { mergeMap, take, toArray } from 'rxjs/operators'
-import { restoreDefaultLogLevel, setLogLevel } from '@radixdlt/util'
+import { map, mergeMap, take, toArray } from 'rxjs/operators'
+import { restoreDefaultLogLevel, log } from '@radixdlt/util'
 import { IdentityManager } from '../src/identityManager'
 
 describe('tx_intent_builder', () => {
@@ -369,7 +369,7 @@ describe('tx_intent_builder', () => {
 
 	describe('failing scenarios', () => {
 		beforeAll(() => {
-			setLogLevel('silent')
+			log.setLevel('silent')
 			jest.spyOn(console, 'error').mockImplementation(() => {})
 		})
 

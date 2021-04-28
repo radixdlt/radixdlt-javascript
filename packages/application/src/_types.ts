@@ -13,7 +13,7 @@ import {
 	Decrypting,
 } from '@radixdlt/account'
 import { KeystoreT, PublicKey } from '@radixdlt/crypto'
-import { RadixLogLevel } from '@radixdlt/util'
+import { LogLevel } from '@radixdlt/util'
 import { Observable, ReplaySubject } from 'rxjs'
 import { NodeT, RadixAPI, RadixCoreAPI } from './api'
 import { ErrorNotification } from './errors'
@@ -146,7 +146,7 @@ export type RadixT = Readonly<{
 	stakingPositions: Observable<StakePositions>
 	unstakingPositions: Observable<UnstakePositions>
 
-	logLevel: (level: RadixLogLevel | 'silent') => RadixT
+	logLevel: (level: LogLevel) => RadixT
 
 	/**
 	 * Specify a trigger for when to fetch the token balances for the active address.

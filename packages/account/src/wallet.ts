@@ -64,7 +64,7 @@ const __unsafeCreateWithPrivateKeyProvider = (
 	): Observable<AccountT> => {
 		const { hdPath } = input
 		const alsoSwitchTo = input.alsoSwitchTo ?? false
-		log.verbose(
+		log.info(
 			`Deriving new account, hdPath: ${hdPath.toString()}, alsoSwitchTo: ${
 				alsoSwitchTo ? 'YES' : 'NO'
 			} `,
@@ -278,7 +278,7 @@ const byLoadingAndDecryptingKeystore = (
 		ResultAsync.fromPromise(input.load(), (e: unknown) => {
 			const underlyingError = msgFromError(e)
 			const errMsg = `Failed to load keystore, underlying error: '${underlyingError}'`
-			log.alert(errMsg)
+			log.error(errMsg)
 			return new Error(errMsg)
 		})
 	return loadKeystore()
@@ -319,7 +319,7 @@ const byEncryptingMnemonicAndSavingKeystore = (
 		ResultAsync.fromPromise(input.save(keystoreToSave), (e: unknown) => {
 			const underlyingError = msgFromError(e)
 			const errMsg = `Failed to save keystore, underlying error: '${underlyingError}'`
-			log.alert(errMsg)
+			log.error(errMsg)
 			return new Error(errMsg)
 		}).map(() => {
 			log.info('Keystore successfully saved.')

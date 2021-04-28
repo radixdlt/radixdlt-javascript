@@ -394,7 +394,7 @@ describe('wallet_type', () => {
 	/*
 		describe('failing wallet scenarios', () => {
 			beforeAll(() => {
-				setLogLevel('silent')
+				log.setLevel(LogLevel.SILENT)
 			})
 
 			afterAll(() => {
