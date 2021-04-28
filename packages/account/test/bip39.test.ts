@@ -7,7 +7,7 @@ import {
 } from '../src/bip39/mnemonic'
 import { LanguageT, StrengthT } from '../src/bip39/_types'
 import { HDMasterSeed } from '../src/bip39/hdMasterSeed'
-import { log, restoreDefaultLogLevel, setLogLevel } from '@radixdlt/util'
+import { restoreDefaultLogLevel, log } from '@radixdlt/util'
 
 describe('bip39', () => {
 	it('default strength is 12 words', () => {
@@ -53,7 +53,7 @@ describe('bip39', () => {
 	})
 	describe('failing scenarios', () => {
 		beforeAll(() => {
-			setLogLevel('silent')
+			log.setLevel('silent')
 		})
 
 		afterAll(() => {

@@ -69,7 +69,7 @@ import {
 	unstakesForAddressErr,
 	validatorsErr,
 } from './errors'
-import { log, msgFromError, RadixLogLevel, setLogLevel } from '@radixdlt/util'
+import { log, msgFromError, LogLevel } from '@radixdlt/util'
 import {
 	BuiltTransaction,
 	ExecutedTransaction,
@@ -455,14 +455,14 @@ const create = (
 	): TransactionTracking => {
 		const txLog = radixLog // TODO configure child loggers
 
-		txLog.verbose(
+		txLog.info(
 			`Start of transaction flow, inside constructor of 'TransactionTracking'.`,
 		)
 
 		const signUnsignedTx = (
 			unsignedTx: BuiltTransaction,
 		): Observable<SignedTransaction> => {
-			txLog.verbose('Starting signing transaction (async).')
+			txLog.info('Starting signing transaction (async).')
 			return activeAccount.pipe(
 				mergeMap(
 					(account: AccountT): Observable<SignedTransaction> => {
@@ -477,9 +477,7 @@ const create = (
 									signature,
 									publicKeyOfSigner,
 								]): SignedTransaction => {
-									txLog.verbose(
-										`Finished signing transaction`,
-									)
+									txLog.info(`Finished signing transaction`)
 									return {
 										transaction: unsignedTx.transaction,
 										signature,
@@ -499,7 +497,7 @@ const create = (
 		const userDidConfirmTransactionSubject = new ReplaySubject<0>()
 
 		if (shouldConfirmTransactionAutomatically(options.userConfirmation)) {
-			txLog.verbose(
+			txLog.info(
 				'Transaction has been setup to be automatically confirmed, requiring no final confirmation input from user.',
 			)
 			askUserToConfirmSubject
@@ -511,7 +509,7 @@ const create = (
 				})
 				.add(subs)
 		} else {
-			txLog.verbose(
+			txLog.info(
 				`Transaction has been setup so that it requires a manual final confirmation from user before being finalized.`,
 			)
 			const twoWayConfirmationSubject: Subject<ManualUserConfirmTX> =
@@ -519,7 +517,7 @@ const create = (
 
 			askUserToConfirmSubject
 				.subscribe((ux) => {
-					txLog.verbose(
+					txLog.info(
 						`Forwarding signedUnconfirmedTX and 'userDidConfirmTransactionSubject' to subject 'twoWayConfirmationSubject' now (inside subscribe to 'askUserToConfirmSubject')`,
 					)
 
@@ -550,7 +548,7 @@ const create = (
 				eventUpdateType: input.inStep,
 				error: input.error,
 			}
-			txLog.verbose(`Forwarding error to 'errorSubject'`)
+			txLog.info(`Forwarding error to 'errorSubject'`)
 			track(errorEvent)
 			completionSubject.error(errorEvent.error)
 		}
@@ -740,7 +738,7 @@ const create = (
 			.subscribe({
 				next: (statusOfTransaction) => {
 					const { status, txID } = statusOfTransaction
-					txLog.verbose(
+					txLog.info(
 						`Status ${status.toString()} of transaction with txID='${txID.toString()}'`,
 					)
 					track({
@@ -854,7 +852,7 @@ const create = (
 	const decryptTransaction = (
 		input: SimpleExecutedTransaction,
 	): Observable<string> => {
-		radixLog.verbose(
+		radixLog.info(
 			`Trying to decrypt transaction with txID=${input.txID.toString()}`,
 		)
 
@@ -874,7 +872,7 @@ const create = (
 			const errMessage = `Failed to parse message as 'EncryptedMessage' type, underlying error: '${msgFromError(
 				encryptedMessageResult.error,
 			)}'. Might not have been encrypted? Try decode string as UTF-8 string.`
-			log.warning(errMessage)
+			log.warn(errMessage)
 			return throwError(new Error(errMessage))
 		}
 
@@ -884,7 +882,7 @@ const create = (
 			mergeMap((account) => {
 				return account.derivePublicKey().pipe(
 					mergeMap((myPublicKey) => {
-						log.verbose(
+						log.info(
 							`Trying to decrypt message with activeAccount with pubKey=${myPublicKey.toString()}`,
 						)
 						const publicKeyOfOtherPartyResult = singleRecipientFromActions(
@@ -900,7 +898,7 @@ const create = (
 								),
 							)
 						}
-						log.verbose(
+						log.info(
 							`Trying to decrypt message with publicKeyOfOtherPartyResult=${publicKeyOfOtherPartyResult.toString()}`,
 						)
 
@@ -1004,8 +1002,8 @@ const create = (
 
 		decryptTransaction: decryptTransaction,
 
-		logLevel: function (level: RadixLogLevel | 'silent') {
-			setLogLevel(level)
+		logLevel: function (level: LogLevel) {
+			log.setLevel(level)
 			return this
 		},
 
