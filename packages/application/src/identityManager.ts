@@ -6,12 +6,12 @@ import {
 	AccountAddressT,
 	DeriveNextAccountInput,
 	AccountAddress,
-	MnemomicT,
 } from '@radixdlt/account'
 import { IdentityManagerT, IdentityT, IdentitiesT } from './_types'
 import { Observable } from 'rxjs'
 import { Identity } from './identity'
 import { map } from 'rxjs/operators'
+import { Option } from 'prelude-ts'
 
 const create = (
 	input: Readonly<{
@@ -29,7 +29,13 @@ const create = (
 	const aToI = (account: AccountT): IdentityT =>
 		Identity.create({ account, accountAddress: aToAddr(account) })
 	const asToIs = (accounts: AccountsT): IdentitiesT => {
-		return <IdentitiesT>{}
+		return {
+			all: accounts.all.map(aToI),
+			get: (hdPath): Option<IdentityT> => {
+				return accounts.get(hdPath).map(aToI)
+			},
+			size: accounts.size,
+		}
 	}
 
 	return {

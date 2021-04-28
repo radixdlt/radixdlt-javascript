@@ -28,6 +28,7 @@ import { merge, of, Subscription } from 'rxjs'
 import { map, mergeMap, take, toArray } from 'rxjs/operators'
 import { restoreDefaultLogLevel, log } from '@radixdlt/util'
 import { IdentityManager } from '../src/identityManager'
+import { createIM } from './util'
 
 describe('tx_intent_builder', () => {
 	const validatorCarol: ValidatorAddressT = ValidatorAddress.fromUnsafe(
@@ -41,13 +42,6 @@ describe('tx_intent_builder', () => {
 	const one = Amount.fromUnsafe(1)._unsafeUnwrap()
 	const xrdRRI = xrd.rri
 
-	const createIM = (): IdentityManagerT => {
-		const mnemonic = Mnemonic.fromEnglishPhrase(
-			'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
-		)._unsafeUnwrap()
-		const wallet = Wallet.create({ mnemonic })
-		return IdentityManager.create({ wallet, network: NetworkT.BETANET })
-	}
 	const identityManager = createIM()
 
 	let aliceIdentity: IdentityT // = wallet.deriveNext()

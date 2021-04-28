@@ -142,16 +142,6 @@ describe('radix should have tests', function () {
 // 	return executedTx
 // }
 //
-// const createIM = (input?: { startWithAnAccount?: boolean, network?: NetworkT }): IdentityManagerT => {
-// 	const mnemonic = Mnemonic.fromEnglishPhrase(
-// 		'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
-// 	)._unsafeUnwrap()
-// 	const startWithAnAccount = input?.startWithAnAccount ?? true
-// 	const wallet = Wallet.create({ mnemonic, startWithAnAccount })
-// 	const network = input?.network ?? NetworkT.BETANET
-// 	return IdentityManager.create({ wallet, network })
-// }
-//
 // const dummyNode = (urlString: string): Observable<NodeT> =>
 // 	of({
 // 		url: new URL(urlString),
