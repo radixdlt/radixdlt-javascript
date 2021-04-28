@@ -73,9 +73,9 @@ const transactionIdentifierDecoder = (...keys: string[]) =>
 const networkDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
 		key !== undefined && keys.includes(key) && typeof value === 'number'
-			? value !== 1
-				? ok(NetworkT.BETANET)
-				: ok(NetworkT.MAINNET)
+			? value === 1
+				? ok(NetworkT.MAINNET)
+				: ok(NetworkT.BETANET)
 			: undefined,
 	)
 
