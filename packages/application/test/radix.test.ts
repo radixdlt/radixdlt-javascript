@@ -11,22 +11,9 @@ import {
 	Wallet,
 	WalletT,
 } from '@radixdlt/account'
-import {
-	interval,
-	Observable,
-	of,
-	ReplaySubject,
-	Subscription,
-	throwError,
-} from 'rxjs'
-import { map, mergeMap, shareReplay, take, tap, toArray } from 'rxjs/operators'
-import {
-	KeystoreT,
-	MessageEncryption,
-	privateKeyFromScalar,
-	PublicKey,
-	publicKeyFromBytes,
-} from '@radixdlt/crypto'
+import { interval, Observable, of, ReplaySubject, Subscription, throwError } from 'rxjs'
+import { map, mergeMap, shareReplay, skipWhile, take, tap, toArray } from 'rxjs/operators'
+import { KeystoreT, MessageEncryption, privateKeyFromScalar, PublicKey, publicKeyFromBytes } from '@radixdlt/crypto'
 import {
 	ActionType,
 	alice,
@@ -62,12 +49,7 @@ import {
 } from '../src'
 import { Amount, AmountT } from '@radixdlt/primitives'
 
-import {
-	log,
-	LogLevel,
-	msgFromError,
-	restoreDefaultLogLevel,
-} from '@radixdlt/util'
+import { log, LogLevel, msgFromError, restoreDefaultLogLevel } from '@radixdlt/util'
 import { mockErrorMsg } from '../../util/test/util'
 import {
 	ExecutedAction,
@@ -1533,27 +1515,10 @@ describe('radix_high_level_api', () => {
 			)
 		})
 
-		it('manual confirmation', (done) => {
+		it('radix_tx_manual_confirmation', (done) => {
 			const radix = Radix.create()
 				.withWallet(createWallet())
 				.__withAPI(mockedAPI)
-
-			// Store these values in a way that vue can read and write to it
-			//@ts-ignore
-			let transaction
-			//@ts-ignore
-			let userHasBeenAskedToConfirmTX
-
-			const confirmTransaction = () => {
-				// Check that pin is valid
-				//@ts-ignore
-				transaction.confirm()
-			}
-
-			const shouldShowConfirmation = () => {
-				userHasBeenAskedToConfirmTX = true
-				confirmTransaction()
-			}
 
 			const userConfirmation = new ReplaySubject<ManualUserConfirmTX>()
 
@@ -1562,22 +1527,77 @@ describe('radix_high_level_api', () => {
 				userConfirmation,
 			})
 
+			let userHasBeenAskedToConfirmTX = false
+
 			subs.add(
-				userConfirmation.subscribe((txn) => {
-					// Opens a modal where the user clicks 'confirm'
-					//@ts-ignore
-					transaction = txn
-					shouldShowConfirmation()
-					// If I just call txn.confirm() it works but the user has no input
-					// txn.confirm()
+				userConfirmation.subscribe((confirmation) => {
+					userHasBeenAskedToConfirmTX = true
+					confirmation.confirm()
 				}),
 			)
 
 			subs.add(
 				transactionTracking.completion.subscribe({
 					next: (_txID) => {
-						//@ts-ignore
 						expect(userHasBeenAskedToConfirmTX).toBe(true)
+						done()
+					},
+					error: (e) => {
+						done(e)
+					},
+				}),
+			)
+		})
+
+		it('should not emit sign tx event when switching accounts', (done) => {
+			const radix = Radix.create()
+				.withWallet(createWallet())
+				.__withAPI(mockedAPI)
+				.logLevel(LogLevel.DEBUG)
+
+			const userConfirmation = new ReplaySubject<ManualUserConfirmTX>()
+
+			const transactionTracking = radix.transferTokens({
+				...transferTokens(),
+				userConfirmation,
+			})
+
+			let userHasBeenAskedToConfirmTXCounter = 0
+			let calledConfirmationWhenItWasNotReady = false
+
+			let confirmTx: () => void
+			confirmTx = (): void => { calledConfirmationWhenItWasNotReady = true }
+
+			let sub: Subscription
+
+			sub = userConfirmation.subscribe((confirmation) => {
+				console.log(`👻 userHasBeenAskedToConfirmTXCounter`, userHasBeenAskedToConfirmTXCounter)
+				userHasBeenAskedToConfirmTXCounter += 1
+				if (userHasBeenAskedToConfirmTXCounter === 1) {
+					confirmTx = confirmation.confirm
+					radix.deriveNextAccount({ alsoSwitchTo: true })
+				} else if (userHasBeenAskedToConfirmTXCounter > 4) { // break inf recursion.
+					console.log(`🤡 breaking recursion loop.`)
+					subs.remove(sub)
+					sub.unsubscribe()
+				}
+			})
+
+			subs.add(
+				sub
+			)
+
+			subs.add(radix.activeAccount.pipe(skipWhile(a => a.hdPath.addressIndex.value() === 0)).subscribe((n => {
+				expect(n.hdPath.addressIndex.value()).toBe(1)
+				console.log(`🎉 new account.`)
+				confirmTx() // => will trigger tx to continue with signing.
+			})))
+
+			subs.add(
+				transactionTracking.completion.subscribe({
+					next: (_txID) => {
+						expect(calledConfirmationWhenItWasNotReady).toBe(false)
+						expect(userHasBeenAskedToConfirmTXCounter).toBe(1)
 						done()
 					},
 					error: (e) => {
@@ -1958,4 +1978,6 @@ describe('radix_high_level_api', () => {
 			testTXType(false, false, TransactionType.UNRELATED, done)
 		})
 	})
+
+
 })
