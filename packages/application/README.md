@@ -496,9 +496,11 @@ Here we show how to transfer tokens, which is one of potentially several _action
 ```typescript
 import { Radix } from '@radixdlt/application'
 
-const radix = subs.add(Radix.create()
+const radix = Radix.create()
 	.login('my strong password', loadKeystore)
 	.connect(new URL('https://api.radixdlt.com'))
+
+subs.add(radix.subscribe(
 	.transferTokens(
 		{
 			transferInput: {
@@ -520,9 +522,11 @@ const radix = subs.add(Radix.create()
 ```typescript
 import { Radix } from '@radixdlt/application'
 
-const radix = subs.add(Radix.create()
+const radix = Radix.create()
 	.login('my strong password', loadKeystore)
 	.connect(new URL('https://api.radixdlt.com'))
+
+subs.add(radix
 	.stakeTokens(
 		{
 			stakeInput: {
@@ -543,9 +547,11 @@ const radix = subs.add(Radix.create()
 ```typescript
 import { Radix } from '@radixdlt/application'
 
-const radix = subs.add(Radix.create()
+const radix = Radix.create()
 	.login('my strong password', loadKeystore)
 	.connect(new URL('https://api.radixdlt.com'))
+
+subs.add(radix
 	.unstakeTokens(
 		{
 			unstakeInput: {
@@ -627,7 +633,7 @@ if (recipientAddressResult.isErr()) {
 const recipientAddress: AddressT = recipientAddressResult.value
 
 const fooToken: ResourceIdentifierT = selectedToken.id // or similar, read from `tokenBalances`.
-const tokenGranularity = subs.add(radix.ledger
+subs.add(radix.ledger
 	.tokenInfo(fooToken)
 	.subscribe((token) => {
 		console.log(`🔶🟠🔸 granularity of token ${token.name} : ${token.granularity.toString()}, any transfer of this token MUST be a multiple of this amount.`)
