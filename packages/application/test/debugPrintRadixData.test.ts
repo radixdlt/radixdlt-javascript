@@ -19,33 +19,43 @@ describe.skip('debugPrintRadixData', () => {
 	it('txHistorydate', (done) => {
 		const subs = new Subscription()
 
-		radix.ledger
-			.transactionHistory({ address: accountAddress, size: 5 })
-			.subscribe(
-				(history) => {
-					console.log(
-						`🔮 history.tx: ${stringifySimpleTXHistory(history)}`,
-					)
-					done()
-				},
-				(error) => {
-					done(new Error(`Failed to get tx: ${msgFromError(error)}`))
-				},
-			)
-			.add(subs)
+		subs.add(
+			radix.ledger
+				.transactionHistory({ address: accountAddress, size: 5 })
+				.subscribe(
+					(history) => {
+						console.log(
+							`🔮 history.tx: ${stringifySimpleTXHistory(
+								history,
+							)}`,
+						)
+						done()
+					},
+					(error) => {
+						done(
+							new Error(
+								`Failed to get tx: ${msgFromError(error)}`,
+							),
+						)
+					},
+				),
+		)
 	})
 
 	it('tokenBalances', (done) => {
 		const subs = new Subscription()
 
-		radix.ledger
-			.tokenBalancesForAddress(accountAddress)
-			.subscribe((tbs) => {
-				console.log(
-					`🔮 tokenBalances:\n${stringifySimpleTokenBalances(tbs)}`,
-				)
-				done()
-			})
-			.add(subs)
+		subs.add(
+			radix.ledger
+				.tokenBalancesForAddress(accountAddress)
+				.subscribe((tbs) => {
+					console.log(
+						`🔮 tokenBalances:\n${stringifySimpleTokenBalances(
+							tbs,
+						)}`,
+					)
+					done()
+				}),
+		)
 	})
 })

@@ -436,15 +436,17 @@ const create = (
 	)
 
 	const _withNode = (node: Observable<NodeT>): void => {
-		node.subscribe(
-			(n) => {
-				radixLog.debug(`Using node ${n.url.toString()}`)
-				nodeSubject.next(n)
-			},
-			(error: Error) => {
-				errorNotificationSubject.next(getNodeErr(error.message))
-			},
-		).add(subs)
+		subs.add(
+			node.subscribe(
+				(n) => {
+					radixLog.debug(`Using node ${n.url.toString()}`)
+					nodeSubject.next(n)
+				},
+				(error: Error) => {
+					errorNotificationSubject.next(getNodeErr(error.message))
+				},
+			),
+		)
 	}
 
 	const _withIdentityManager = (identityManager: IdentityManagerT): void => {
@@ -499,14 +501,14 @@ const create = (
 			txLog.debug(
 				'Transaction has been setup to be automatically confirmed, requiring no final confirmation input from user.',
 			)
-			askUserToConfirmSubject
-				.subscribe(() => {
+			subs.add(
+				askUserToConfirmSubject.subscribe(() => {
 					txLog.debug(
 						`askUserToConfirmSubject got 'next', calling 'next' on 'userDidConfirmTransactionSubject'`,
 					)
 					userDidConfirmTransactionSubject.next(0)
-				})
-				.add(subs)
+				}),
+			)
 		} else {
 			txLog.debug(
 				`Transaction has been setup so that it requires a manual final confirmation from user before being finalized.`,
@@ -514,9 +516,9 @@ const create = (
 			const twoWayConfirmationSubject: Subject<ManualUserConfirmTX> =
 				options.userConfirmation
 
-			askUserToConfirmSubject
-				.subscribe((ux) => {
-					txLog.debug(
+			subs.add(
+				askUserToConfirmSubject.subscribe((ux) => {
+					txLog.info(
 						`Forwarding signedUnconfirmedTX and 'userDidConfirmTransactionSubject' to subject 'twoWayConfirmationSubject' now (inside subscribe to 'askUserToConfirmSubject')`,
 					)
 
@@ -525,8 +527,8 @@ const create = (
 						confirm: () => userDidConfirmTransactionSubject.next(0),
 					}
 					twoWayConfirmationSubject.next(confirmation)
-				})
-				.add(subs)
+				}),
+			)
 		}
 
 		const trackingSubject = new ReplaySubject<TransactionStateUpdate>()
@@ -654,56 +656,57 @@ const create = (
 			}),
 		)
 
-		combineLatest([finalizedTx$, signedTransaction$])
-			.pipe(
-				mergeMap(
-					([
-						finalizedTx,
-						signedTx,
-					]): Observable<PendingTransaction> => {
-						return api.submitSignedTransaction({
-							...finalizedTx,
-							...signedTx,
-						})
-					},
-				),
-				catchError((e: Error) => {
-					txLog.error(
-						`API failed to submit transaction, error: ${JSON.stringify(
-							e,
-							null,
-							4,
-						)}`,
-					)
-					trackError({
-						error: e,
-						inStep: TransactionTrackingEventType.SUBMITTED,
-					})
-					return EMPTY
-				}),
-				tap({
-					next: (pendingTx: PendingTransaction) => {
-						txLog.debug(
-							`Submitted transaction with txID='${pendingTx.txID.toString()}', it is now pending.`,
-						)
-						track({
-							transactionState: pendingTx,
-							eventUpdateType:
-								TransactionTrackingEventType.SUBMITTED,
-						})
-						pendingTXSubject.next(pendingTx)
-					},
-					error: (submitTXError: Error) => {
-						// TODO would be great to have access to txID here, hopefully API includes it in error msg?
+		subs.add(
+			combineLatest([finalizedTx$, signedTransaction$])
+				.pipe(
+					mergeMap(
+						([
+							finalizedTx,
+							signedTx,
+						]): Observable<PendingTransaction> => {
+							return api.submitSignedTransaction({
+								...finalizedTx,
+								...signedTx,
+							})
+						},
+					),
+					catchError((e: Error) => {
 						txLog.error(
-							`Submission of signed transaction to API failed with error: ${submitTXError.message}`,
+							`API failed to submit transaction, error: ${JSON.stringify(
+								e,
+								null,
+								4,
+							)}`,
 						)
-						pendingTXSubject.error(submitTXError)
-					},
-				}),
-			)
-			.subscribe()
-			.add(subs)
+						trackError({
+							error: e,
+							inStep: TransactionTrackingEventType.SUBMITTED,
+						})
+						return EMPTY
+					}),
+					tap({
+						next: (pendingTx: PendingTransaction) => {
+							txLog.debug(
+								`Submitted transaction with txID='${pendingTx.txID.toString()}', it is now pending.`,
+							)
+							track({
+								transactionState: pendingTx,
+								eventUpdateType:
+									TransactionTrackingEventType.SUBMITTED,
+							})
+							pendingTXSubject.next(pendingTx)
+						},
+						error: (submitTXError: Error) => {
+							// TODO would be great to have access to txID here, hopefully API includes it in error msg?
+							txLog.error(
+								`Submission of signed transaction to API failed with error: ${submitTXError.message}`,
+							)
+							pendingTXSubject.error(submitTXError)
+						},
+					}),
+				)
+				.subscribe(),
+		)
 
 		const pollTxStatusTrigger = (
 			options.pollTXStatusTrigger ?? interval(1000)
@@ -733,8 +736,8 @@ const create = (
 			take(1),
 		)
 
-		transactionStatus$
-			.subscribe({
+		subs.add(
+			transactionStatus$.subscribe({
 				next: (statusOfTransaction) => {
 					const { status, txID } = statusOfTransaction
 					txLog.debug(
@@ -752,11 +755,11 @@ const create = (
 						`Failed to get status of transaction, error: ${transactionStatusError.message}`,
 					)
 				},
-			})
-			.add(subs)
+			}),
+		)
 
-		transactionCompletedWithStatusConfirmed$
-			.subscribe({
+		subs.add(
+			transactionCompletedWithStatusConfirmed$.subscribe({
 				next: (statusOfTransaction) => {
 					const { txID } = statusOfTransaction
 					txLog.info(
@@ -770,11 +773,11 @@ const create = (
 					completionSubject.next(txID)
 					completionSubject.complete()
 				},
-			})
-			.add(subs)
+			}),
+		)
 
-		transactionCompletedWithStatusFailed$
-			.subscribe((status) => {
+		subs.add(
+			transactionCompletedWithStatusFailed$.subscribe((status) => {
 				const errMsg = `API status of tx with id=${status.txID.toString()} returned 'FAILED'`
 				txLog.error(errMsg)
 				trackError({
@@ -782,8 +785,8 @@ const create = (
 					inStep:
 						TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
 				})
-			})
-			.add(subs)
+			}),
+		)
 
 		return {
 			completion: completionSubject.asObservable(),
@@ -924,24 +927,26 @@ const create = (
 		)
 	}
 
-	deriveIdentitySubject
-		.pipe(
-			withLatestFrom(identityManager$),
-			mergeMap(([derivation, im]) => {
-				// return w.deriveNext(derivation)
-				return im.deriveNextIdentity(derivation)
-			}),
-		)
-		.subscribe()
-		.add(subs)
+	subs.add(
+		deriveIdentitySubject
+			.pipe(
+				withLatestFrom(identityManager$),
+				mergeMap(([derivation, im]) => {
+					// return w.deriveNext(derivation)
+					return im.deriveNextIdentity(derivation)
+				}),
+			)
+			.subscribe(),
+	)
 
-	switchIdentitySubject
-		.pipe(
-			withLatestFrom(identityManager$),
-			tap(([switchTo, im]) => im.switchIdentity(switchTo)),
-		)
-		.subscribe()
-		.add(subs)
+	subs.add(
+		switchIdentitySubject
+			.pipe(
+				withLatestFrom(identityManager$),
+				tap(([switchTo, im]) => im.switchIdentity(switchTo)),
+			)
+			.subscribe(),
+	)
 
 	return {
 		// we forward the full `RadixAPI`, but we also provide some convenience methods based on active account/address.
@@ -959,7 +964,7 @@ const create = (
 		},
 
 		__withAPI: function (radixCoreAPI$: Observable<RadixCoreAPI>): RadixT {
-			radixCoreAPI$.subscribe((a) => coreAPISubject.next(a)).add(subs)
+			subs.add(radixCoreAPI$.subscribe((a) => coreAPISubject.next(a)))
 			return this
 		},
 
@@ -1041,12 +1046,12 @@ const create = (
 		},
 
 		withTokenBalanceFetchTrigger: function (trigger: Observable<number>) {
-			trigger.subscribe(tokenBalanceFetchSubject).add(subs)
+			subs.add(trigger.subscribe(tokenBalanceFetchSubject))
 			return this
 		},
 
 		withStakingFetchTrigger: function (trigger: Observable<number>) {
-			trigger.subscribe(stakingFetchSubject).add(subs)
+			subs.add(trigger.subscribe(stakingFetchSubject))
 			return this
 		},
 

@@ -54,28 +54,24 @@ describe('tx_intent_builder', () => {
 	const plaintext = 'Hey Bob, how are you?'
 
 	beforeAll((done) => {
-		identityManager
-			.deriveNextIdentity()
-			.subscribe(
+		subs.add(
+			identityManager.deriveNextIdentity().subscribe(
 				(aliceId: IdentityT) => {
 					aliceIdentity = aliceId
 					alice = aliceId.accountAddress
 
-					identityManager
-						.deriveNextIdentity()
-						.subscribe(
-							(bobId: IdentityT) => {
-								bobIdentity = bobId
-								bob = bobId.accountAddress
-								done()
-							},
-							(e) => done(e),
-						)
-						.add(subs)
+					identityManager.deriveNextIdentity().subscribe(
+						(bobId: IdentityT) => {
+							bobIdentity = bobId
+							bob = bobId.accountAddress
+							done()
+						},
+						(e) => done(e),
+					)
 				},
 				(e) => done(e),
-			)
-			.add(subs)
+			),
+		)
 	})
 
 	type SimpleTransf = { amount: number; to: AccountAddressT }
@@ -238,25 +234,29 @@ describe('tx_intent_builder', () => {
 	it('can transfer then attach message', (done) => {
 		const subs = new Subscription()
 
-		testWithMessage(
-			TransactionIntentBuilder.create()
-				.transferTokens(transfS(3, bob))
-				.message({ plaintext, encrypt: true }),
-			plaintext,
-			done,
-		).add(subs)
+		subs.add(
+			testWithMessage(
+				TransactionIntentBuilder.create()
+					.transferTokens(transfS(3, bob))
+					.message({ plaintext, encrypt: true }),
+				plaintext,
+				done,
+			),
+		)
 	})
 
 	it('can attach message then transfer', (done) => {
 		const subs = new Subscription()
 
-		testWithMessage(
-			TransactionIntentBuilder.create()
-				.message({ plaintext, encrypt: true })
-				.transferTokens(transfS(3, bob)),
-			plaintext,
-			done,
-		).add(subs)
+		subs.add(
+			testWithMessage(
+				TransactionIntentBuilder.create()
+					.message({ plaintext, encrypt: true })
+					.transferTokens(transfS(3, bob)),
+				plaintext,
+				done,
+			),
+		)
 	})
 
 	it('throws errors if no action was specified', () => {
@@ -277,25 +277,28 @@ describe('tx_intent_builder', () => {
 	it('can have transfer and attach message and skip encryption', (done) => {
 		const subs = new Subscription()
 
-		TransactionIntentBuilder.create()
-			.transferTokens(transfS(3, bob))
-			.message({ plaintext, encrypt: false })
-			.build({
-				skipEncryptionOfMessageIfAny: { spendingSender: of(alice) },
-			})
-			.subscribe((txIntent) => {
-				expect(txIntent.actions.length).toBe(1)
+		subs.add(
+			TransactionIntentBuilder.create()
+				.transferTokens(transfS(3, bob))
+				.message({ plaintext, encrypt: false })
+				.build({
+					skipEncryptionOfMessageIfAny: { spendingSender: of(alice) },
+				})
+				.subscribe((txIntent) => {
+					expect(txIntent.actions.length).toBe(1)
 
-				const attatchedMessage = txIntent.message
-				if (!attatchedMessage) {
-					done(new Error('Expected message...'))
-					return
-				} else {
-					expect(attatchedMessage.toString('utf8')).toBe(plaintext)
-					done()
-				}
-			})
-			.add(subs)
+					const attatchedMessage = txIntent.message
+					if (!attatchedMessage) {
+						done(new Error('Expected message...'))
+						return
+					} else {
+						expect(attatchedMessage.toString('utf8')).toBe(
+							plaintext,
+						)
+						done()
+					}
+				}),
+		)
 	})
 
 	it('can add transfer, stake, unstake then transfer', () => {

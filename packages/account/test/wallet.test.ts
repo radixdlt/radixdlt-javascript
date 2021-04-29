@@ -43,8 +43,12 @@ const expectWalletsEqual = (
 	const wallet2Account1PublicKey$ = wallet2
 		.deriveNext()
 		.pipe(map((a) => a.publicKey))
-	combineLatest(wallet1Account1PublicKey$, wallet2Account1PublicKey$)
-		.subscribe({
+
+	subs.add(
+		combineLatest(
+			wallet1Account1PublicKey$,
+			wallet2Account1PublicKey$,
+		).subscribe({
 			next: (keys: PublicKey[]) => {
 				expect(keys.length).toBe(2)
 				const a = keys[0]
@@ -53,8 +57,8 @@ const expectWalletsEqual = (
 				done()
 			},
 			error: (e) => done(e),
-		})
-		.add(subs)
+		}),
+	)
 }
 
 describe('wallet_type', () => {
@@ -113,9 +117,8 @@ describe('wallet_type', () => {
 			expect(account.hdPath.addressIndex.value()).toBe(index)
 		}
 
-		wallet
-			.restoreAccountsUpToIndex(indexToRestoreTo)
-			.subscribe(
+		subs.add(
+			wallet.restoreAccountsUpToIndex(indexToRestoreTo).subscribe(
 				(accounts) => {
 					expect(accounts.size).toBe(indexToRestoreTo)
 
@@ -149,8 +152,8 @@ describe('wallet_type', () => {
 				(e) => {
 					done(e)
 				},
-			)
-			.add(subs)
+			),
+		)
 	})
 
 	describe('failing wallet scenarios', () => {
