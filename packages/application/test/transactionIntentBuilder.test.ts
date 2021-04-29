@@ -44,8 +44,8 @@ describe('tx_intent_builder', () => {
 
 	const identityManager = createIM()
 
-	let aliceIdentity: IdentityT // = wallet.deriveNext()
-	let bobIdentity: IdentityT // = wallet.deriveNext()
+	let aliceIdentity: IdentityT
+	let bobIdentity: IdentityT
 	let alice: AccountAddressT
 	let bob: AccountAddressT
 

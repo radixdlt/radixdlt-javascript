@@ -1127,7 +1127,7 @@ describe('radix_high_level_api', () => {
 
 		const mockedAPI = mockRadixCoreAPI()
 		const radix = Radix.create()
-			.withIdentityManager(makeIdentitywithIdentityManagerWithFunds()) // returns
+			.withIdentityManager(makeIdentitywithIdentityManagerWithFunds())
 			.__withAPI(
 				of({
 					...mockedAPI,
@@ -1195,7 +1195,7 @@ describe('radix_high_level_api', () => {
 
 		const mockedAPI = mockRadixCoreAPI()
 		const radix = Radix.create()
-			.withIdentityManager(makeIdentitywithIdentityManagerWithFunds()) // returns
+			.withIdentityManager(makeIdentitywithIdentityManagerWithFunds())
 			.__withAPI(
 				of({
 					...mockedAPI,

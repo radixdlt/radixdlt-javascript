@@ -271,10 +271,6 @@ const create = (
 	const activeAddress = identityManager$.pipe(
 		mergeMap((a) => a.observeActiveIdentity()),
 		map((a) => a.accountAddress),
-		// withLatestFrom(networkId()),
-		// map(([publicKey, network]) =>
-		// 	AccountAddress.fromPublicKeyAndNetwork({ publicKey, network }),
-		// ),
 		shareReplay(1),
 	)
 
