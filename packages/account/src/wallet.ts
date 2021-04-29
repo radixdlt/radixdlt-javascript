@@ -220,7 +220,6 @@ const __unsafeCreateWithPrivateKeyProvider = (
 			mergeMap((_) => {
 				return accounts$
 			}),
-			// skipWhile((accounts: AccountsT) => accounts.size < index - 1),
 			take(1),
 		)
 	}
