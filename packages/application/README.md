@@ -45,15 +45,14 @@ However, we can also interact with the [Radix Core API](https://youtu.be/dQw4w9W
 ```typescript
 const subs = new Subscription()
 
-const radix = Radix.create()
+const radix = subs.add(Radix.create()
 	.connect(new URL('https://api.radixdlt.com/rpc'))
 	.setLogLevel(LogLevel.INFO)
 	.ledger // accessing all RPC methods
 	.nativeToken() // get token info about "XRD"
 	.subscribe(nativeToken => {
 		console.log(`💙 got nativeToken response: ${nativeToken}`)
-	})
-	.add(subs)
+	}))
 
 /* In the near future... */
 // "💙 got nativeToken response: {
@@ -87,9 +86,9 @@ We can subscribe to the active address, which will emit the formatted radix publ
 If we create and switch to a new account, we will see how both our active address, and our token balances would update automatically.
 
 ```typescript
-radix.activeAddress.subscribe(
+subs.add(radix.activeAddress.subscribe(
 	(address) => console.log(`🙋🏽‍♀️ my address is: '${address.toString()}'`)
-).add(subs)
+))
 
 /* Instant */
 // "🙋🏽‍♀️ my address is: '9S8khLHZa6FsyGo634xQo9QwLgSHGpXHHW764D5mPYBcrnfZV6RT'"
@@ -114,9 +113,9 @@ We subscribe to `activeAddress` which will automatically update with the address
 We can subscribe to all our accounts and list them using the observable property `accounts`, like so:
 
 ```typescript
-radix.accounts.subscribe(
+subs.add(radix.accounts.subscribe(
 	(accounts) => console.log(`[🙋🏾‍♀️, 🙋🏼‍♀️] my accounts are: ${accounts.toString()}`)
-).add(subs)
+))
 
 /* Instant */
 // "[🙋🏾‍♀️, 🙋🏼‍♀️] my accounts are: [
@@ -135,9 +134,9 @@ Well, that is not helpful! What are those? An account (of type `AccountT`) itsel
 You can also subscribe to just the single active account
 
 ```typescript
-radix.activeAccount.subscribe(
+subs.add(radix.activeAccount.subscribe(
 	(account) => console.log(`🙋🏾‍♀️ my active account: ${account.toString()}`)
-).add(subs)
+))
 
 /* Instant */
 // "🙋🏼‍ my active account: {
@@ -152,7 +151,7 @@ The `activeAccount` is probably not so useful, better to use the `activeAddress`
 In [the intro](#intro) we subscribed to the `tokenBalances`. This will get updated automatically when you switch account.
 
 ```typescript
-radix
+subs.add(radix
 	.tokenBalances
 	.subscribe(({ tokenBalances }) => {
 		console.log('💎 My token balances:')
@@ -166,7 +165,7 @@ radix
 			)
 		)
 	}
-).add(subs)
+))
 
 /* In the near future... */
 // 💎 My token balances:
@@ -265,16 +264,15 @@ You can "restore" all accounts up to some last known index. This does **not** sw
 const localStore = localPersistentStoreAt('some/local/path') // or similar
 const lastAccountIndex: number = localStore.loadLastAccountIndex() //  or similar
 
-radix.accounts.subscribe(
+subs.add(radix.accounts.subscribe(
 	(accounts) => console.log(`🙋🏾‍[] I have #${accounts.length} accounts`)
-).add(subs)
+))
 
-radix
+subs.add(radix
 	.restoreAccountsUpToIndex(lastAccountIndex)
 	.subscribe({
 		complete: () => console.log(`✅ Finished restoring accounts`)
-	})
-	.add(subs)
+	}))
 
 
 /* Later */
@@ -338,13 +336,12 @@ Use `withStakingFetchTrigger` to specify a fetch trigger for unstakes/stakes. Se
 You can decrypt encrypted messages using the private key of the active account in transactions like so:
 
 ```typescript
-radix
+subs.add(radix
 	.decryptTransaction(transaction) // e.g. from tx history.
 	.subscribe({
 		next: (decrypted) => { console.log(`✅🔓 successfully decrypted message: ${decrypted.message.toString()}`) },
 		error: (failure) => { console.log(`❌🔐 failed to decrypt message, wrong account? ${failure.toString()}`) },
-	})
-	.add(subs)
+	}))
 ```
 
 ## Methods resulting in RPC calls
@@ -356,11 +353,11 @@ A transaction is not a token transfer, however, a token transfer might be _one_ 
 Transaction history might be long, and is for that sake paginated. So `RadixT` needs some kind of _"cursor"_ together with a `size`, telling it where and how many transactions to fetch from the Radix Distributed Ledger. 
 
 ```typescript
-radix.transactionHistory({
+subs.add(radix.transactionHistory({
 	size: 3,
 }).subscribe(
 	(txs) => console.log(`📒⏱ transaction history: ${txs.toString()} ⏱📒`)
-).add(subs)
+))
 
 /* In the near future... */
 // "📒⏱ transaction history: 
@@ -445,7 +442,7 @@ import { Subject } from 'rxjs'
 const cursor: Option<TransactionIdentifierT> = none()
 const fetchTXTrigger = new Subject<number>()
 
-fetchTXTrigger.pipe(
+subs.add(fetchTXTrigger.pipe(
 	mergeMap((pageSize) => {
 		radix.transactionHistory({
 			size: pageSize,
@@ -457,7 +454,7 @@ fetchTXTrigger.pipe(
 		cursor = Option.of(txs.cursor)
 		console.log(`📒📃 got #${txs.size} transactions`)
 	}
-).add(subs)
+))
 
 fetchTXTrigger.next(20) // fetch tx 0-19
 fetchTXTrigger.next(20) // fetch tx 20-33
@@ -502,6 +499,8 @@ import { Radix } from '@radixdlt/application'
 const radix = Radix.create()
 	.login('my strong password', loadKeystore)
 	.connect(new URL('https://api.radixdlt.com'))
+
+subs.add(radix.subscribe(
 	.transferTokens(
 		{
 			transferInput: {
@@ -514,8 +513,7 @@ const radix = Radix.create()
 			userConfirmation: 'skip'
 		}
 	)
-	.subscribe((txID) => console.log(`✅ Stake with txID ${txID.toString()} completed successfully.`)
-	.add(subs)
+	.subscribe((txID) => console.log(`✅ Stake with txID ${txID.toString()} completed successfully.`))
 ```
 
 ### Stake tokens
@@ -527,6 +525,8 @@ import { Radix } from '@radixdlt/application'
 const radix = Radix.create()
 	.login('my strong password', loadKeystore)
 	.connect(new URL('https://api.radixdlt.com'))
+
+subs.add(radix
 	.stakeTokens(
 		{
 			stakeInput: {
@@ -538,8 +538,7 @@ const radix = Radix.create()
 			pollTXStatusTrigger: pollTXStatusTrigger,
 		}
 	)
-	.subscribe((txID) => console.log(`✅ Unstake with txID ${txID.toString()} completed successfully.`)
-	.add(subs)
+	.subscribe((txID) => console.log(`✅ Unstake with txID ${txID.toString()} completed successfully.`))
 ```
 
 ### Unstake tokens
@@ -551,6 +550,8 @@ import { Radix } from '@radixdlt/application'
 const radix = Radix.create()
 	.login('my strong password', loadKeystore)
 	.connect(new URL('https://api.radixdlt.com'))
+
+subs.add(radix
 	.unstakeTokens(
 		{
 			unstakeInput: {
@@ -562,8 +563,7 @@ const radix = Radix.create()
 			pollTXStatusTrigger: pollTXStatusTrigger,
 		}
 	)
-	.subscribe((txID) => console.log(`✅ TokenTransfer with txID ${txID.toString()} completed successfully.`)
-	.add(subs)
+	.subscribe((txID) => console.log(`✅ TokenTransfer with txID ${txID.toString()} completed successfully.`))
 ```
 
 
@@ -596,7 +596,7 @@ For convenience you can pass in unsafe types, such as `string` as input to all a
 ```typescript
 import { TransactionIntentBuilder } from '@radixdlt/application'
 
-TransactionIntentBuilder.create()
+subs.add(TransactionIntentBuilder.create()
 	.transferTokens({
 		to: '9SBZ9kzpXKAQ9oHHZngahVUQrLwU6DssiPbtCj5Qb6cxqxPC6stb',
 		amount: '12.57',
@@ -613,8 +613,7 @@ TransactionIntentBuilder.create()
 		(error) => {
 			console.log(`🤷‍♂️ Failed to create transaction intent: ${error}`)
 		},
-	)
-	.add(subs)
+	))
 ```
 
 Alternatively you can transform input to save types eagerly, display relevant info for validation errors, and then pass these safe types to the `TransactionIntent`.
@@ -634,11 +633,11 @@ if (recipientAddressResult.isErr()) {
 const recipientAddress: AddressT = recipientAddressResult.value
 
 const fooToken: ResourceIdentifierT = selectedToken.id // or similar, read from `tokenBalances`.
-const tokenGranularity = radix.ledger
+subs.add(radix.ledger
 	.tokenInfo(fooToken)
 	.subscribe((token) => {
 		console.log(`🔶🟠🔸 granularity of token ${token.name} : ${token.granularity.toString()}, any transfer of this token MUST be a multiple of this amount.`)
-	}).add(subs)
+	}))
 
 // Later when we know granularity of token.
 
@@ -658,7 +657,7 @@ if (!unsafeAmount.isMultipleOf(granularity)) {
 // ☑️ Amount is checked against token granularity, safe to send.
 const amount = unsafeAmount
 
-TransactionIntentBuilder.create()
+subs.add(TransactionIntentBuilder.create()
 	.transferTokens({
 		to: recipientAddress, // safe type `AddressT`
 		amount: amount, // safe type `AmounT`
@@ -666,8 +665,7 @@ TransactionIntentBuilder.create()
 	})
 	.message(`Thx for lunch Bob, here's for my salad.`)
 	.build(...)
-	.subscribe(...)
-	.add(subs)
+	.subscribe(...))
 
 ```
 
@@ -690,7 +688,7 @@ const askUserToConfirmTransactionSubject = new Subject<UnsignedTransaction>()
 const userDidConfirmTransactionSubject = new Subject<UnsignedTransaction>()
 const pendingTransactionsSubject = new Subject<SignedTransaction>()
 
-radix
+subs.add(radix
 	.buildTransactionFromIntent({ 
 		intent: transactionIntent, // from earlier
 	})
@@ -719,8 +717,7 @@ radix
 				console.log(`Unknown error building tx`)
 			}
 		},
-	})
-	.add(subs)
+	}))
 ```
 
 #### Confirm TX
@@ -732,22 +729,20 @@ Here follows some pseudocode for what to do in GUI wallet.
 Either **automatically confirm tx**
 
 ```typescript
-askUserToConfirmTransactionSubject
-	.subscribe((tx) => userDidConfirmTransactionSubject.next(tx))
-	.add(subs)
+subs.add(askUserToConfirmTransactionSubject
+	.subscribe((tx) => userDidConfirmTransactionSubject.next(tx)))
 ```
 
 Or **require manual confirmation**, we could protect tx sending with an app PIN code in this step.
 
 ```typescript
-askUserToConfirmTransactionSubject
+subs.add(askUserToConfirmTransactionSubject
 	.subscribe((tx) => {
 		// DISPLAY DIALOG with "Confirm TX" button, when clicked
 		function onConfirmButtonClick() { // when button
 			userDidConfirmTransactionSubject.next(tx)
 		}
-	})
-	.add(subs)
+	}))
 ```
 
 #### Submit TX
@@ -757,7 +752,7 @@ askUserToConfirmTransactionSubject
 When transaction is confirmed, either automatically or mannually by user, it is ready to be signed an submitted.
 
 ```typescript
-userDidConfirmTransactionSubject.pipe(
+subs.add(userDidConfirmTransactionSubject.pipe(
 	mergeMap((unsignedUserConfirmedTx) => radix.sign(unsignedUserConfirmedTx)),
 	tap((signedTransaction) => {
 		const txId = signedTransaction.id
@@ -778,8 +773,7 @@ userDidConfirmTransactionSubject.pipe(
 				console.log(`Unknown error submitting tx`)
 			}
 		},
-	})
-	.add(subs)
+	}))
 ```
 
 #### Poll TX status
@@ -810,17 +804,15 @@ const transactionConfirmed$ = transactionStatus$.pipe(
 	takeWhile(({ status, _ }) => status !== TransactionStatus.CONFIMRED),
 )
 
-transactionStatus$
-	.subscribe(({ status, id }) => console.log(`🔮 Status ${status.toString()} of tx with id: ${id.toString()}`)) 
-	.add(subs)
+subs.add(transactionStatus$
+	.subscribe(({ status, id }) => console.log(`🔮 Status ${status.toString()} of tx with id: ${id.toString()}`)))
 
 // 🔮 Status: INITIATED, 
 // 🔮 Status: PENDING, 
 // 🔮 Status: CONFIRMED, 
 
-transactionConfirmed$
-	.subscribe(({ _, id }) => console.log(`✅ Tx with id ${id.toString()} confirmed`))
-	.add(subs)
+subs.add(transactionConfirmed$
+	.subscribe(({ _, id }) => console.log(`✅ Tx with id ${id.toString()} confirmed`)))
 
 // ✅ Status confirmed`
 ```
@@ -1022,7 +1014,7 @@ It's impossible to say when appropriate, that is up to you.
 const subs = new Subscription()
 
 // Sometime you did
-someObservable.subscribe().add(subs)
+subs.add(someObservable.subscribe())
 
 // Later
 subs.unsubscribe()

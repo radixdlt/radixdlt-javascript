@@ -118,9 +118,8 @@ describe('HD Wallet', () => {
 					wallet.deriveNext()
 				}
 
-				wallet
-					.restoreAccountsUpToIndex(index)
-					.subscribe(
+				subs.add(
+					wallet.restoreAccountsUpToIndex(index).subscribe(
 						(accounts) => {
 							expect(accounts.size).toBe(expectedSize)
 
@@ -141,8 +140,8 @@ describe('HD Wallet', () => {
 						(e) => {
 							done(e)
 						},
-					)
-					.add(subs)
+					),
+				)
 			})
 		}
 
@@ -316,9 +315,8 @@ describe('HD Wallet', () => {
 				expect(account.hdPath.addressIndex.value()).toBe(index)
 			}
 
-			wallet
-				.restoreAccountsUpToIndex(indexToRestoreTo)
-				.subscribe(
+			subs.add(
+				wallet.restoreAccountsUpToIndex(indexToRestoreTo).subscribe(
 					(accounts) => {
 						expect(accounts.size).toBe(indexToRestoreTo)
 
@@ -342,8 +340,8 @@ describe('HD Wallet', () => {
 					(e) => {
 						done(e)
 					},
-				)
-				.add(subs)
+				),
+			)
 		})
 	})
 
