@@ -1,7 +1,8 @@
 import { privateKeyFromBuffer, sha256Twice } from '@radixdlt/crypto'
 import { ValidatorAddress } from '../src'
 import { NetworkT } from '../dist'
-import { msgFromError } from '@radixdlt/util'
+import { msgFromError, restoreDefaultLogLevel } from '@radixdlt/util'
+import { log } from '@radixdlt/util/dist/logging'
 
 describe('validator_address_on_bech32_format', () => {
 	describe('addr from seeded private key', () => {
@@ -74,10 +75,12 @@ describe('validator_address_on_bech32_format', () => {
 
 	describe('test non happy paths', () => {
 		beforeAll(() => {
+			log.setLevel('silent')
 			jest.spyOn(console, 'error').mockImplementation(() => {})
 		})
 
 		afterAll(() => {
+			restoreDefaultLogLevel()
 			jest.clearAllMocks()
 		})
 

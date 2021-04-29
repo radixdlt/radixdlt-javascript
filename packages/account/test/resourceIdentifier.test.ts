@@ -1,7 +1,8 @@
 import { isResourceIdentifier, NetworkT, ResourceIdentifier } from '../src'
-import { msgFromError } from '@radixdlt/util'
+import { msgFromError, restoreDefaultLogLevel } from '@radixdlt/util'
 import { privateKeyFromScalar } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
+import { log } from '@radixdlt/util/dist/logging'
 
 describe('rri_on_bech32_format', () => {
 	it('xrd rri can be parsed from string', () => {
@@ -135,16 +136,6 @@ describe('rri_on_bech32_format', () => {
 			},
 		]
 		const doTest = (vector: RRIDesVector, index: number): void => {
-			// it(`rri_serialization_vector_index${index}`, () => {
-			// 	const rri = ResourceIdentifier.withNameAndHash({
-			// 		hash: Buffer.from(vector.data, 'hex'),
-			// 		name: vector.name,
-			// 	})._unsafeUnwrap()
-			//
-			// 	expect(rri.toString()).toBe(vector.rri)
-			// 	expect(rri.name).toBe(vector.name)
-			// 	expect(rri.hash.toString('hex')).toBe(vector.data)
-			// })
 			it(`rri_deserialization_vector_index${index}`, () => {
 				const rri = ResourceIdentifier.fromUnsafe(
 					vector.rri,
@@ -221,10 +212,12 @@ describe('rri_on_bech32_format', () => {
 
 	describe('test non happy paths', () => {
 		beforeAll(() => {
+			log.setLevel('silent')
 			jest.spyOn(console, 'error').mockImplementation(() => {})
 		})
 
 		afterAll(() => {
+			restoreDefaultLogLevel()
 			jest.clearAllMocks()
 		})
 
