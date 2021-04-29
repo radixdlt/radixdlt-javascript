@@ -66,7 +66,7 @@ const __unsafeCreateWithPrivateKeyProvider = (
 	const networkId$ = networkIdSubject.asObservable()
 
 	const provideNetworkId = (networkIdSource: Observable<NetworkT>): void => {
-		networkIdSource.subscribe((n) => networkIdSubject.next(n)).add(subs)
+		subs.add(networkIdSource.subscribe((n) => networkIdSubject.next(n)))
 	}
 
 	const _deriveWithPath = (
