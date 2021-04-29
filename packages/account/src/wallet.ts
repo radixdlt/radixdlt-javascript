@@ -2,7 +2,6 @@ import {
 	Observable,
 	BehaviorSubject,
 	ReplaySubject,
-	Subscription,
 	throwError,
 	combineLatest,
 	of,
@@ -22,7 +21,6 @@ import {
 	map,
 	distinctUntilChanged,
 	take,
-	skipWhile,
 	shareReplay,
 } from 'rxjs/operators'
 import { Keystore, KeystoreT, PrivateKey, Signature } from '@radixdlt/crypto'
@@ -31,7 +29,6 @@ import { HDPathRadix, HDPathRadixT, Int32 } from './bip32'
 import { isAccount } from './account'
 import { arraysEqual, msgFromError } from '@radixdlt/util'
 import { MnemomicT, HDMasterSeed, Mnemonic } from './bip39'
-import { AccountAddressT, NetworkT } from './addresses'
 import { ResultAsync } from 'neverthrow'
 import { log } from '@radixdlt/util'
 
@@ -84,7 +81,7 @@ const __unsafeCreateWithPrivateKeyProvider = (
 				  })
 		const accounts = accountsSubject.getValue()
 
-		const key = newAccount.hdPath.toString()
+		const key = newAccount.toString()
 
 		if (accounts.has(key)) {
 			const errMsg = `Incorrect implementation, wallet already contains account with hdPath: ${key}`
@@ -151,9 +148,7 @@ const __unsafeCreateWithPrivateKeyProvider = (
 		} else if (isSwitchToAccount(input)) {
 			const toAccount = input.toAccount
 			activeAccountSubject.next(toAccount)
-			log.info(
-				`Active account switched to: ${toAccount.hdPath.toString()}`,
-			)
+			log.info(`Active account switched to: ${toAccount.toString()}`)
 			return toAccount
 		} else if (isSwitchToAccountIndex(input)) {
 			const unsafeTargetIndex = input.toIndex
@@ -177,11 +172,7 @@ const __unsafeCreateWithPrivateKeyProvider = (
 
 	const activeAccount$ = activeAccountSubject
 		.asObservable()
-		.pipe(
-			distinctUntilChanged((a: AccountT, b: AccountT) =>
-				a.publicKey.equals(b.publicKey),
-			),
-		)
+		.pipe(distinctUntilChanged((a: AccountT, b: AccountT) => a.equals(b)))
 
 	const accounts$ = accountsSubject.asObservable().pipe(
 		map(

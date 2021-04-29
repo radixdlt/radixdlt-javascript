@@ -342,96 +342,91 @@ describe('radix_high_level_api', () => {
 		)
 	})
 
-	// 	it('returns native token without wallet', async (done) => {
-	// 		const radix = Radix.create()
-	// 		radix.__withAPI(mockedAPI)
-	//
-	// 		radix.ledger.nativeToken().subscribe(
-	// 			(token) => {
-	// 				expect(token.symbol).toBe('XRD')
-	// 				done()
-	// 			},
-	// 			(error) => done(error),
-	// 		)
-	// 	})
-	//
-	// 	it('should be able to detect errors', (done) => {
-	// 		const invalidURLErrorMsg = 'invalid url'
-	// 		const failingNode: Observable<NodeT> = throwError(() => {
-	// 			return new Error(invalidURLErrorMsg)
-	// 		})
-	//
-	// 		const subs = new Subscription()
-	//
-	// 		const radix = Radix.create()
-	//
-	// 		radix.__node
-	// 			.subscribe((n) => {
-	// 				done(new Error('Expected error but did not get any'))
-	// 			})
-	// 			.add(subs)
-	//
-	// 		radix.errors
-	// 			.subscribe({
-	// 				next: (error) => {
-	// 					expect(error.category).toEqual(ErrorCategory.NODE)
-	// 					done()
-	// 				},
-	// 			})
-	// 			.add(subs)
-	//
-	// 		radix.withNodeConnection(failingNode)
-	// 	})
-	//
-	// 	it('login_with_wallet', async (done) => {
-	// 		const radix = Radix.create()
-	// 		radix.__wallet.subscribe(
-	// 			(wallet: WalletT) => {
-	// 				const account = wallet.__unsafeGetAccount()
-	// 				expect(account.hdPath.addressIndex.value()).toBe(0)
-	// 				account.derivePublicKey().subscribe(
-	// 					(pubKey) => {
-	// 						expect(pubKey.toString(true)).toBe(
-	// 							keystoreForTest.publicKeysCompressed[0],
-	// 						)
-	// 						done()
-	// 					},
-	// 					(error) => done(error),
-	// 				)
-	// 			},
-	// 			(e) => done(e),
-	// 		)
-	//
-	// 		const loadKeystore = (): Promise<KeystoreT> =>
-	// 			Promise.resolve(keystoreForTest.keystore)
-	//
-	// 		radix.login(keystoreForTest.password, loadKeystore)
-	// 	})
-	//
-	// 	it('radix can reveal mnemonic', (done) => {
-	// 		const subs = new Subscription()
-	//
-	// 		const radix = Radix.create()
-	//
-	// 		radix
-	// 			.revealMnemonic()
-	// 			.subscribe(
-	// 				(m) => {
-	// 					expect(m.phrase).toBe(
-	// 						keystoreForTest.expectedMnemonicPhrase,
-	// 					)
-	// 					done()
-	// 				},
-	// 				(e) => {
-	// 					done(e)
-	// 				},
-	// 			)
-	// 			.add(subs)
-	//
-	// 		radix.login(keystoreForTest.password, () =>
-	// 			Promise.resolve(keystoreForTest.keystore),
-	// 		)
-	// 	})
+	it('returns native token without wallet', async (done) => {
+		const radix = Radix.create()
+		radix.__withAPI(mockedAPI)
+
+		radix.ledger.nativeToken().subscribe(
+			(token) => {
+				expect(token.symbol).toBe('XRD')
+				done()
+			},
+			(error) => done(error),
+		)
+	})
+
+	it('should be able to detect errors', (done) => {
+		const invalidURLErrorMsg = 'invalid url'
+		const failingNode: Observable<NodeT> = throwError(() => {
+			return new Error(invalidURLErrorMsg)
+		})
+
+		const subs = new Subscription()
+
+		const radix = Radix.create()
+
+		radix.__node
+			.subscribe((n) => {
+				done(new Error('Expected error but did not get any'))
+			})
+			.add(subs)
+
+		radix.errors
+			.subscribe({
+				next: (error) => {
+					expect(error.category).toEqual(ErrorCategory.NODE)
+					done()
+				},
+			})
+			.add(subs)
+
+		radix.withNodeConnection(failingNode)
+	})
+
+	it('login_with_keystore', async (done) => {
+		const radix = Radix.create()
+		radix.__identityManager.subscribe(
+			(im: IdentityManagerT) => {
+				const identity = im.__unsafeGetIdentity()
+				expect(identity.hdPath.addressIndex.value()).toBe(0)
+				expect(identity.publicKey.toString(true)).toBe(
+					keystoreForTest.publicKeysCompressed[0],
+				)
+				done()
+			},
+			(e) => done(e),
+		)
+
+		const loadKeystore = (): Promise<KeystoreT> =>
+			Promise.resolve(keystoreForTest.keystore)
+
+		radix.login(keystoreForTest.password, loadKeystore)
+	})
+
+	it('radix can reveal mnemonic', (done) => {
+		const subs = new Subscription()
+
+		const radix = Radix.create()
+
+		radix
+			.revealMnemonic()
+			.subscribe(
+				(m) => {
+					expect(m.phrase).toBe(
+						keystoreForTest.expectedMnemonicPhrase,
+					)
+					done()
+				},
+				(e) => {
+					done(e)
+				},
+			)
+			.add(subs)
+
+		radix.login(keystoreForTest.password, () =>
+			Promise.resolve(keystoreForTest.keystore),
+		)
+	})
 	//
 	// 	describe('radix_api_failing_scenarios', () => {
 	// 		beforeAll(() => {

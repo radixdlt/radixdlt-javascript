@@ -15,6 +15,7 @@ import {
 	AccountDecryptionInput,
 	AccountEncryptionInput,
 	AccountT,
+	AccountType,
 	HardwareWalletSimpleT,
 } from './_types'
 import { HDMasterSeedT, HDNodeT } from './bip39'
@@ -117,6 +118,16 @@ const makeDecryptHW = (
 	}
 }
 
+const toString = (type: AccountType, path: HDPathRadixT): string =>
+	`${type.toString()}@${path.toString()}`
+
+export const accountKeyFrom = toString
+
+const isHardwareAccountType = (type: AccountType): boolean =>
+	type === AccountType.HARDWARE
+const isLocalAccountType = (type: AccountType): boolean =>
+	type === AccountType.LOCAL
+
 const fromPrivateKey = (
 	input: Readonly<{
 		privateKey: PrivateKey
@@ -130,12 +141,22 @@ const fromPrivateKey = (
 
 	const diffieHellman = privateKey.diffieHellman
 
+	const type = AccountType.LOCAL
+
 	return {
 		decrypt: makeDecrypt(diffieHellman),
 		encrypt: makeEncrypt(diffieHellman),
 		sign: sign,
 		hdPath,
 		publicKey,
+		type,
+		toString: (): string => toString(type, hdPath),
+		equals: (other: AccountT): boolean => {
+			return publicKey.equals(other.publicKey)
+		},
+
+		isHardwareAccount: isHardwareAccountType(type),
+		isLocalAccount: isLocalAccountType(type),
 	}
 }
 
@@ -167,6 +188,7 @@ const fromHDPathWithHardwareWallet = (
 		),
 		map(
 			({ publicKey, hardwareWalletSimple }): AccountT => {
+				const type = AccountType.HARDWARE
 				return {
 					publicKey,
 					hdPath,
@@ -178,6 +200,14 @@ const fromHDPathWithHardwareWallet = (
 					},
 					decrypt: makeDecryptHW(hardwareWalletSimple, hdPath),
 					encrypt: makeEncryptHW(hardwareWalletSimple, hdPath),
+					type,
+					toString: (): string => toString(type, hdPath),
+					equals: (other: AccountT): boolean => {
+						return publicKey.equals(other.publicKey)
+					},
+
+					isHardwareAccount: isHardwareAccountType(type),
+					isLocalAccount: isLocalAccountType(type),
 				}
 			},
 		),
@@ -223,7 +253,8 @@ export const isAccount = (something: unknown): something is AccountT => {
 		isPublicKey(inspection.publicKey) &&
 		inspection.sign !== undefined &&
 		inspection.encrypt !== undefined &&
-		inspection.decrypt !== undefined
+		inspection.decrypt !== undefined &&
+		inspection.type !== undefined
 	)
 }
 

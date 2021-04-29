@@ -32,12 +32,25 @@ export type Decrypting = Readonly<{
 	decrypt: (input: AccountDecryptionInput) => Observable<string>
 }>
 
+export enum AccountType {
+	HARDWARE = 'HARDWARE',
+	LOCAL = 'LOCAL',
+}
+
 export type AccountT = Signing &
 	Encrypting &
 	Decrypting &
 	Readonly<{
+		type: AccountType
 		publicKey: PublicKey
 		hdPath: HDPathRadixT
+
+		toString: () => string
+		equals: (other: AccountT) => boolean
+
+		// sugar
+		isHardwareAccount: boolean
+		isLocalAccount: boolean
 	}>
 
 /// A simple "interface" like type that this `account` package recognizes.
