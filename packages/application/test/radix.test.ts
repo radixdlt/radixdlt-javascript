@@ -63,7 +63,7 @@ import {
 } from '../src'
 import { Amount, AmountT } from '@radixdlt/primitives'
 
-import { log, msgFromError, restoreDefaultLogLevel } from '@radixdlt/util'
+import { log, LogLevel, msgFromError, restoreDefaultLogLevel } from '@radixdlt/util'
 import { mockErrorMsg } from '../../util/test/util'
 import {
 	ExecutedAction,
@@ -427,133 +427,136 @@ describe('radix_high_level_api', () => {
 			Promise.resolve(keystoreForTest.keystore),
 		)
 	})
-	//
-	// 	describe('radix_api_failing_scenarios', () => {
-	// 		beforeAll(() => {
-	// 			setLogLevel('silent')
-	// 		})
-	//
-	// 		afterAll(() => {
-	// 			restoreDefaultLogLevel()
-	// 		})
-	//
-	// 		it('should handle wallet error', (done) => {
-	// 			const radix = Radix.create()
-	//
-	// 			radix.__wallet.subscribe((wallet: WalletT) => {
-	// 				const account = wallet.__unsafeGetAccount()
-	// 				expect(account.hdPath.addressIndex.value()).toBe(0)
-	// 				account.derivePublicKey().subscribe(
-	// 					(pubKey) => {
-	// 						expect(pubKey.toString(true)).toBe(
-	// 							keystoreForTest.publicKeysCompressed[0],
-	// 						)
-	// 						done()
-	// 					},
-	// 					(error) => done(error),
-	// 				)
-	// 			})
-	//
-	// 			radix.errors.subscribe({
-	// 				next: (error) => {
-	// 					expect(error.category).toEqual(ErrorCategory.WALLET)
-	// 				},
-	// 			})
-	//
-	// 			const errMsg = mockErrorMsg('LoadError')
-	//
-	// 			const loadKeystoreError = (): Promise<KeystoreT> =>
-	// 				Promise.reject(new Error(errMsg))
-	//
-	// 			const loadKeystoreSuccess = (): Promise<KeystoreT> =>
-	// 				Promise.resolve(keystoreForTest.keystore)
-	//
-	// 			radix.login(keystoreForTest.password, loadKeystoreError)
-	// 			radix.login(keystoreForTest.password, loadKeystoreSuccess)
-	// 		})
-	//
-	// 		it('should forward an error when calling api', (done) => {
-	// 			const subs = new Subscription()
-	//
-	// 			const radix = Radix.create().__withAPI(
-	// 				of({
-	// 					...mockRadixCoreAPI(),
-	// 					tokenBalancesForAddress: () =>
-	// 						throwError(
-	// 							() =>
-	// 								new Error(
-	// 									'error that should trigger expected failure.',
-	// 								),
-	// 						),
-	// 				}),
-	// 			)
-	//
-	// 			radix.tokenBalances
-	// 				.subscribe({
-	// 					next: (_n) => {
-	// 						done(
-	// 							new Error(
-	// 								'Unexpectedly got tokenBalance, but expected error.',
-	// 							),
-	// 						)
-	// 					},
-	// 				})
-	// 				.add(subs)
-	//
-	// 			radix.errors
-	// 				.subscribe((error) => {
-	// 					expect(error.category).toEqual(ErrorCategory.API)
-	// 					expect(error.cause).toEqual(
-	// 						APIErrorCause.TOKEN_BALANCES_FAILED,
-	// 					)
-	// 					done()
-	// 				})
-	// 				.add(subs)
-	//
-	// 			radix.withWallet(createWallet())
-	// 		})
-	//
-	// 		it('does not kill property observables when rpc requests fail', async (done) => {
-	// 			const subs = new Subscription()
-	// 			let amountVal = 100
-	// 			let counter = 0
-	//
-	// 			const api = of(<RadixCoreAPI>{
-	// 				...mockRadixCoreAPI(),
-	// 				tokenBalancesForAddress: (
-	// 					a: AccountAddressT,
-	// 				): Observable<SimpleTokenBalances> => {
-	// 					if (counter > 2 && counter < 5) {
-	// 						counter++
-	// 						return throwError(() => new Error('Manual error'))
-	// 					} else {
-	// 						const observableBalance = of(balancesFor(a, amountVal))
-	// 						counter++
-	// 						amountVal += 100
-	// 						return observableBalance
-	// 					}
-	// 				},
-	// 			})
-	//
-	// 			const radix = Radix.create()
-	// 			radix.withWallet(createWallet())
-	// 			radix.__withAPI(api).withTokenBalanceFetchTrigger(interval(250))
-	//
-	// 			const expectedValues = [100, 200, 300]
-	//
-	// 			radix.tokenBalances
-	// 				.pipe(
-	// 					map((tb) => tb.tokenBalances[0].amount.valueOf()),
-	// 					take(expectedValues.length),
-	// 					toArray(),
-	// 				)
-	// 				.subscribe((amounts) => {
-	// 					expect(amounts).toEqual(expectedValues)
-	// 					done()
-	// 				})
-	// 				.add(subs)
-	// 		})
-	// 	})
+
+		describe('radix_api_failing_scenarios', () => {
+			beforeAll(() => {
+				log.setLevel('silent')
+			})
+
+			afterAll(() => {
+				restoreDefaultLogLevel()
+			})
+
+			it('should handle wallet error', (done) => {
+				const subs = new Subscription()
+				const radix = Radix.create()
+
+				let haveSeenError = false
+
+				radix.__identityManager.subscribe((identityManager: IdentityManagerT) => {
+					const identity = identityManager.__unsafeGetIdentity()
+					expect(identity.hdPath.addressIndex.value()).toBe(0)
+
+					expect(identity.publicKey.toString(true)).toBe(
+						keystoreForTest.publicKeysCompressed[0],
+					)
+
+					expect(haveSeenError).toBe(true)
+					done()
+
+				}, (error) => done(error)).add(subs)
+
+				radix.errors.subscribe({
+					next: (error) => {
+						haveSeenError = true
+						expect(error.category).toEqual(ErrorCategory.WALLET)
+					},
+				}).add(subs)
+
+				const errMsg = mockErrorMsg('LoadError')
+
+				const loadKeystoreError = (): Promise<KeystoreT> =>
+					Promise.reject(new Error(errMsg))
+
+				const loadKeystoreSuccess = (): Promise<KeystoreT> =>
+					Promise.resolve(keystoreForTest.keystore)
+
+				radix.login(keystoreForTest.password, loadKeystoreError)
+				radix.login(keystoreForTest.password, loadKeystoreSuccess)
+			})
+
+			it('should forward an error when calling api', (done) => {
+				const subs = new Subscription()
+
+				const radix = Radix.create().__withAPI(
+					of({
+						...mockRadixCoreAPI(),
+						tokenBalancesForAddress: () =>
+							throwError(
+								() =>
+									new Error(
+										'error that should trigger expected failure.',
+									),
+							),
+					}),
+				)
+
+				radix.tokenBalances
+					.subscribe({
+						next: (_n) => {
+							done(
+								new Error(
+									'Unexpectedly got tokenBalance, but expected error.',
+								),
+							)
+						},
+					})
+					.add(subs)
+
+				radix.errors
+					.subscribe((error) => {
+						expect(error.category).toEqual(ErrorCategory.API)
+						expect(error.cause).toEqual(
+							APIErrorCause.TOKEN_BALANCES_FAILED,
+						)
+						done()
+					})
+					.add(subs)
+
+				radix.withIdentityManager(createIM())
+			})
+
+			it('does not kill property observables when rpc requests fail', async (done) => {
+				const subs = new Subscription()
+				let amountVal = 100
+				let counter = 0
+
+				const api = of(<RadixCoreAPI>{
+					...mockRadixCoreAPI(),
+					tokenBalancesForAddress: (
+						a: AccountAddressT,
+					): Observable<SimpleTokenBalances> => {
+						if (counter > 2 && counter < 5) {
+							counter++
+							return throwError(() => new Error('Manual error'))
+						} else {
+							const observableBalance = of(balancesFor(a, amountVal))
+							counter++
+							amountVal += 100
+							return observableBalance
+						}
+					},
+				})
+
+				const radix = Radix.create()
+				radix.withIdentityManager(createIM())
+				radix.__withAPI(api).withTokenBalanceFetchTrigger(interval(250))
+
+				const expectedValues = [100, 200, 300]
+
+				radix.tokenBalances
+					.pipe(
+						map((tb) => tb.tokenBalances[0].amount.valueOf()),
+						take(expectedValues.length),
+						toArray(),
+					)
+					.subscribe((amounts) => {
+						expect(amounts).toEqual(expectedValues)
+						done()
+					})
+					.add(subs)
+			})
+		})
 	//
 	// 	it('radix can derive accounts', async (done) => {
 	// 		const subs = new Subscription()
