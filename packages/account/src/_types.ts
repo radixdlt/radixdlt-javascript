@@ -75,6 +75,7 @@ export type HardwareWalletSimpleT = Readonly<{
 }>
 
 export type AccountsT = Readonly<{
+	equals: (other: AccountsT) => boolean
 	get: (hdPath: HDPathRadixT) => Option<AccountT>
 	all: AccountT[]
 	size: number

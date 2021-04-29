@@ -176,23 +176,21 @@ const __unsafeCreateWithPrivateKeyProvider = (
 
 	const accounts$ = accountsSubject.asObservable().pipe(
 		map(
-			(map): AccountsT => ({
-				get: (hdPath: HDPathRadixT): Option<AccountT> =>
-					Option.of(map.get(hdPath.toString())),
-				all: Array.from(map.values()),
-				size: map.size,
-			}),
+			(map): AccountsT => {
+				const all = Array.from(map.values())
+				return {
+					equals: (other: AccountsT): boolean => {
+						return arraysEqual(other.all, all)
+					},
+					get: (hdPath: HDPathRadixT): Option<AccountT> =>
+						Option.of(map.get(hdPath.toString())),
+					all,
+					size: map.size,
+				}
+			},
 		),
 		distinctUntilChanged((a: AccountsT, b: AccountsT): boolean => {
-			// arraysEqual(a.all, b.all)
-			if (a.size !== b.size) {
-				return false
-			}
-			const aSet = new Set(a.all.map((a) => a.hdPath.toString()))
-			const bSet = new Set(b.all.map((a) => a.hdPath.toString()))
-			const aArray = Array.from(aSet).sort()
-			const bArray = Array.from(bSet).sort()
-			return arraysEqual(aArray, bArray)
+			return a.equals(b)
 		}),
 		shareReplay(),
 	)
