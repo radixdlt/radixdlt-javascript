@@ -386,22 +386,25 @@ describe('tx_intent_builder', () => {
 					encrypt: true,
 				})
 
-			builder
-				.build({
-					skipEncryptionOfMessageIfAny: { spendingSender: of(alice) },
-				})
-				.subscribe({
-					next: (_) => {
-						done(new Error('Expected error'))
-					},
-					error: (error: Error) => {
-						expect(error.message).toBe(
-							'Message in transaction specifies it should be encrypted, but input to TransactionIntentBuilder build method specifies that it (the builder) should not encrypt the message, and does not provide any account with which we can perform encryption.',
-						)
-						done()
-					},
-				})
-				.add(subs)
+			subs.add(
+				builder
+					.build({
+						skipEncryptionOfMessageIfAny: {
+							spendingSender: of(alice),
+						},
+					})
+					.subscribe({
+						next: (_) => {
+							done(new Error('Expected error'))
+						},
+						error: (error: Error) => {
+							expect(error.message).toBe(
+								'Message in transaction specifies it should be encrypted, but input to TransactionIntentBuilder build method specifies that it (the builder) should not encrypt the message, and does not provide any account with which we can perform encryption.',
+							)
+							done()
+						},
+					}),
+			)
 		})
 
 		it('an error is thrown when specifying plaintext for message but building intent with encrypting account', (done) => {
@@ -414,21 +417,24 @@ describe('tx_intent_builder', () => {
 						'No one will be able to see this because we will get a crash',
 					encrypt: false,
 				})
-
-			builder
-				.build({ encryptMessageIfAnyWithIdentity: of(aliceIdentity) })
-				.subscribe({
-					next: (_) => {
-						done(new Error('Expected error'))
-					},
-					error: (error: Error) => {
-						expect(error.message).toBe(
-							'You are trying to encrypt a message which was specified not to be encrypted.',
-						)
-						done()
-					},
-				})
-				.add(subs)
+			
+			subs.add(
+				builder
+					.build({
+						encryptMessageIfAnyWithIdentity: of(aliceIdentity),
+					})
+					.subscribe({
+						next: (_) => {
+							done(new Error('Expected error'))
+						},
+						error: (error: Error) => {
+							expect(error.message).toBe(
+								'You are trying to encrypt a message which was specified not to be encrypted.',
+							)
+							done()
+						},
+					}),
+			)
 		})
 
 		it('an error is thrown when trying to encrypt message of a transaction with multiple recipients', (done) => {
@@ -443,20 +449,23 @@ describe('tx_intent_builder', () => {
 					encrypt: true,
 				})
 
-			builder
-				.build({ encryptMessageIfAnyWithIdentity: of(aliceIdentity) })
-				.subscribe({
-					next: (_) => {
-						done(new Error('Expected error'))
-					},
-					error: (error: Error) => {
-						expect(error.message).toBe(
-							'Cannot encrypt/decrypt message for a transaction containing more than one recipient addresses.',
-						)
-						done()
-					},
-				})
-				.add(subs)
+			subs.add(
+				builder
+					.build({
+						encryptMessageIfAnyWithIdentity: of(aliceIdentity),
+					})
+					.subscribe({
+						next: (_) => {
+							done(new Error('Expected error'))
+						},
+						error: (error: Error) => {
+							expect(error.message).toBe(
+								'Cannot encrypt/decrypt message for a transaction containing more than one recipient addresses.',
+							)
+							done()
+						},
+					}),
+			)
 		})
 	})
 
@@ -469,25 +478,26 @@ describe('tx_intent_builder', () => {
 			.transferTokens(transfS(1, alice))
 			.message({ plaintext, encrypt: true })
 
-		builder
-			.build({ encryptMessageIfAnyWithIdentity: of(aliceIdentity) })
-			.pipe(
-				mergeMap(({ message }) => {
-					return aliceIdentity.decrypt({
-						encryptedMessage: message!,
-						publicKeyOfOtherParty: alice.publicKey,
-					})
+		subs.add(
+			builder
+				.build({ encryptMessageIfAnyWithIdentity: of(aliceIdentity) })
+				.pipe(
+					mergeMap(({ message }) => {
+						return aliceIdentity.decrypt({
+							encryptedMessage: message!,
+							publicKeyOfOtherParty: alice.publicKey,
+						})
+					}),
+				)
+				.subscribe({
+					next: (decryptedMessage) => {
+						expect(decryptedMessage).toBe(plaintext)
+						done()
+					},
+					error: (error: Error) => {
+						done(error)
+					},
 				}),
-			)
-			.subscribe({
-				next: (decryptedMessage) => {
-					expect(decryptedMessage).toBe(plaintext)
-					done()
-				},
-				error: (error: Error) => {
-					done(error)
-				},
-			})
-			.add(subs)
+		)
 	})
 })

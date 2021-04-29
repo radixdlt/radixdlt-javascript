@@ -590,38 +590,6 @@ describe('integration API tests', () => {
 		)
 	})
 
-	it('should get build transaction response', (done) => {
-		const radix = Radix.create({
-			network: NetworkT.BETANET,
-		})
-			.withWallet(makeWalletWithFunds())
-			.connect(`${NODE_URL}/rpc`)
-
-		TransactionIntentBuilder.create()
-			.transferTokens({
-				to: bob,
-				tokenIdentifier: 'xrd_rb1qya85pwq',
-				amount: 1,
-			})
-			.build({
-				spendingSender: radix.activeAddress,
-				encryptMessageIfAnyWithIdentity: radix.activeAccount,
-			})
-			.subscribe((intent) => {
-				radix.activeAddress.subscribe(async (address) => {
-					radix.ledger
-						.buildTransaction(intent)
-						.subscribe((unsignedTx) => {
-							expect(
-								(unsignedTx as { fee: AmountT }).fee.toString(),
-							).toEqual('100000000000000000')
-							done()
-						})
-						.add(subs)
-				})
-			})
-	})
-
 	it('should get network transaction demand response', (done) => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
