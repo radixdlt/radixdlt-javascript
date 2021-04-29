@@ -464,7 +464,7 @@ const create = (
 		const signUnsignedTx = (
 			unsignedTx: BuiltTransaction,
 		): Observable<SignedTransaction> => {
-			txLog.info('Starting signing transaction (async).')
+			txLog.info('🔮⚠️ Starting signing transaction (async).')
 			return activeAccount.pipe(
 				mergeMap(
 					(account: AccountT): Observable<SignedTransaction> => {
