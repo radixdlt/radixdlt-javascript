@@ -6,12 +6,14 @@ import {
 	AccountAddressT,
 	DeriveNextAccountInput,
 	AccountAddress,
+	HDPathRadixT,
 } from '@radixdlt/account'
 import { IdentityManagerT, IdentityT, IdentitiesT } from './_types'
 import { Observable } from 'rxjs'
 import { Identity } from './identity'
 import { map } from 'rxjs/operators'
 import { Option } from 'prelude-ts'
+import { PublicKey, publicKeyCompressedByteCount } from '@radixdlt/crypto'
 
 const create = (
 	input: Readonly<{
@@ -28,32 +30,34 @@ const create = (
 
 	const aToI = (account: AccountT): IdentityT =>
 		Identity.create({ account, accountAddress: aToAddr(account) })
+
 	const asToIs = (accounts: AccountsT): IdentitiesT => {
-		/*
-		* 	getByHDPath: (hdPath: HDPathRadixT) => Option<IdentityT>
-	// Get any identity by its public key
-	getByPublicKey: (publicKey: PublicKey) => Option<IdentityT>
+		const getIdentityWithHDAccountByHDPath = (
+			hdPath: HDPathRadixT,
+		): Option<IdentityT> => {
+			return accounts.getHDAccountByHDPath(hdPath).map(aToI)
+		}
 
-	// ALL identities, basically a concatenation of `identitiesWithHDAccounts || identitiesWithNonHDAccounts`
-	all: IdentityT[]
+		const getAnyIdentityByPublicKey = (
+			publicKey: PublicKey,
+		): Option<IdentityT> => {
+			return accounts.getAnyAccountByPublicKey(publicKey).map(aToI)
+		}
 
-	identitiesWithNonHDAccounts: IdentityT[]
+		const all = accounts.all.map(aToI)
 
-	identitiesWithLocalHDAccounts: IdentityT[]
-	identitiesWithHardwareHDAccounts: IdentityT[]
-
-	// Concatenation of `identitiesWithLocalHDAccounts || identitiesWithHardwareHDAccounts`
-	identitiesWithHDAccounts: IdentityT[]
-
-		* */
-		// return {
-		// 	all: accounts.all.map(aToI),
-		// 	get: (hdPath): Option<IdentityT> => {
-		// 		return accounts.get(hdPath).map(aToI)
-		// 	},
-		// 	size: accounts.size,
-		// }
-		throw new Error('impl me')
+		return {
+			all,
+			getIdentityWithHDAccountByHDPath,
+			getAnyIdentityByPublicKey,
+			identitiesWithHDAccounts: accounts.hdAccounts.map(aToI),
+			identitiesWithHardwareHDAccounts: accounts.hardwareHDAccounts.map(
+				aToI,
+			),
+			identitiesWithLocalHDAccounts: accounts.localHDAccounts.map(aToI),
+			identitiesWithNonHDAccounts: accounts.nonHDAccounts.map(aToI),
+			size: all.length,
+		}
 	}
 
 	return {

@@ -318,7 +318,7 @@ describe('radix_high_level_api', () => {
 
 		radix.activeIdentity.subscribe(
 			(identity) => {
-				expect(identity.hdPath.addressIndex.value()).toBe(0)
+				expect(identity.hdPath!.addressIndex.value()).toBe(0)
 				done()
 			},
 			(error) => done(error),
@@ -334,15 +334,15 @@ describe('radix_high_level_api', () => {
 
 		const index = 3
 		subs.add(
-			radix.restoreIdentitiesUpToIndex(index).subscribe(
+			radix.restoreIdentitiesForLocalHDAccountsUpToIndex(index).subscribe(
 				(identities) => {
 					expect(identities.size).toBe(index)
-					identities.all.forEach((a, i) => {
-						expect(a.hdPath.addressIndex.value()).toBe(i)
+					identities.all.forEach((identity: IdentityT, idx) => {
+						expect(identity.hdPath!.addressIndex.value()).toBe(idx)
 					})
 					done()
 				},
-				(e) => {
+				(e: Error) => {
 					done(e)
 				},
 			),
@@ -410,7 +410,7 @@ describe('radix_high_level_api', () => {
 		radix.__identityManager.subscribe(
 			(im: IdentityManagerT) => {
 				const identity = im.__unsafeGetIdentity()
-				expect(identity.hdPath.addressIndex.value()).toBe(0)
+				expect(identity.hdPath!.addressIndex.value()).toBe(0)
 				expect(identity.publicKey.toString(true)).toBe(
 					keystoreForTest.publicKeysCompressed[0],
 				)
@@ -468,7 +468,7 @@ describe('radix_high_level_api', () => {
 				radix.__identityManager.subscribe(
 					(identityManager: IdentityManagerT) => {
 						const identity = identityManager.__unsafeGetIdentity()
-						expect(identity.hdPath.addressIndex.value()).toBe(0)
+						expect(identity.hdPath!.addressIndex.value()).toBe(0)
 
 						expect(identity.publicKey.toString(true)).toBe(
 							keystoreForTest.publicKeysCompressed[0],
@@ -592,7 +592,7 @@ describe('radix_high_level_api', () => {
 		subs.add(
 			radix.activeIdentity
 				.pipe(
-					map((a) => a.hdPath.addressIndex.value()),
+					map((i) => i.hdPath!.addressIndex.value()),
 					take(2),
 					toArray(),
 				)
@@ -619,7 +619,7 @@ describe('radix_high_level_api', () => {
 		subs.add(
 			radix.activeIdentity
 				.pipe(
-					map((a) => a.hdPath.addressIndex.value()),
+					map((i) => i.hdPath!.addressIndex.value()),
 					take(expectedValues.length),
 					toArray(),
 				)
@@ -680,7 +680,7 @@ describe('radix_high_level_api', () => {
 		subs.add(
 			radix.activeIdentity
 				.pipe(
-					map((a) => a.hdPath.addressIndex.value()),
+					map((i) => i.hdPath!.addressIndex.value()),
 					take(expected.length),
 					toArray(),
 				)
@@ -1609,9 +1609,11 @@ describe('radix_high_level_api', () => {
 
 			subs.add(
 				radix.activeIdentity
-					.pipe(skipWhile((a) => a.hdPath.addressIndex.value() === 0))
-					.subscribe((n) => {
-						expect(n.hdPath.addressIndex.value()).toBe(1)
+					.pipe(
+						skipWhile((i) => i.hdPath!.addressIndex.value() === 0),
+					)
+					.subscribe((i) => {
+						expect(i.hdPath!.addressIndex.value()).toBe(1)
 						confirmTx() // => will trigger tx to continue with signing.
 					}),
 			)

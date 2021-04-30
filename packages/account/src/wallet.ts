@@ -2,7 +2,8 @@ import {
 	BehaviorSubject,
 	combineLatest,
 	Observable,
-	of, Subscription,
+	of,
+	Subscription,
 	throwError,
 } from 'rxjs'
 import { Account, isAccount } from './account'
@@ -12,7 +13,9 @@ import {
 	AccountTypeIdentifier,
 	DeriveNextAccountInput,
 	HDAccountTypeIdentifier,
-	SwitchAccountInput, SwitchToAccount, SwitchToAccountIndex,
+	SwitchAccountInput,
+	SwitchToAccount,
+	SwitchToAccountIndex,
 	WalletT,
 } from './_types'
 import {
@@ -20,7 +23,8 @@ import {
 	filter,
 	map,
 	mergeMap,
-	shareReplay, skipUntil,
+	shareReplay,
+	skipUntil,
 	take,
 	tap,
 } from 'rxjs/operators'
@@ -270,9 +274,11 @@ const __unsafeCreateWithPrivateKeyProvider = (
 
 	let maybeInitialAccountObs: Observable<unknown> = of(undefined)
 	if (startWithAnAccount) {
-		const startWithAccountObs = deriveNextLocalHDAccount({ alsoSwitchTo: true })
+		const startWithAccountObs = deriveNextLocalHDAccount({
+			alsoSwitchTo: true,
+		})
 		subs.add(startWithAccountObs.subscribe())
-		maybeInitialAccountObs = startWithAccountObs.pipe(map(a => undefined))
+		maybeInitialAccountObs = startWithAccountObs.pipe(map((a) => undefined))
 	}
 
 	const activeAccount$ = activeAccountSubject.asObservable().pipe(

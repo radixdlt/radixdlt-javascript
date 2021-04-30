@@ -91,9 +91,11 @@ export type IdentityT = Signing &
 
 export type IdentitiesT = Readonly<{
 	// Get only identities which account is a HD account, by its path
-	getByHDPath: (hdPath: HDPathRadixT) => Option<IdentityT>
+	getIdentityWithHDAccountByHDPath: (
+		hdPath: HDPathRadixT,
+	) => Option<IdentityT>
 	// Get any identity by its public key
-	getByPublicKey: (publicKey: PublicKey) => Option<IdentityT>
+	getAnyIdentityByPublicKey: (publicKey: PublicKey) => Option<IdentityT>
 
 	// ALL identities, basically a concatenation of `identitiesWithHDAccounts || identitiesWithNonHDAccounts`
 	all: IdentityT[]

@@ -66,7 +66,7 @@ const privateKeyFromValidatedScalar = (scalar: UInt256): PrivateKey => {
 		},
 
 		publicKey: () => {
-			throw new Error('Impl me')
+			throw new Error('Overridden below.')
 		},
 		toString: (): string => {
 			return scalar.toString(16)

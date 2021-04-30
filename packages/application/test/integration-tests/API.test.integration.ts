@@ -170,7 +170,7 @@ describe('integration API tests', () => {
 		subs.add(
 			radix.activeIdentity
 				.pipe(
-					map((a) => a.hdPath.addressIndex.value()),
+					map((i) => i.hdPath!.addressIndex.value()),
 					take(expected.length),
 					toArray(),
 				)
