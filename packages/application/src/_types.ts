@@ -85,13 +85,28 @@ export type IdentityT = Signing &
 		// sugar for accountAddress.network
 		network: NetworkT
 
-		// sugar for account.hdPath
-		hdPath: HDPathRadixT
+		// sugar for account.hdPath, if account type is HD account
+		hdPath?: HDPathRadixT
 	}>
 
 export type IdentitiesT = Readonly<{
-	get: (hdPath: HDPathRadixT) => Option<IdentityT>
+	// Get only identities which account is a HD account, by its path
+	getByHDPath: (hdPath: HDPathRadixT) => Option<IdentityT>
+	// Get any identity by its public key
+	getByPublicKey: (publicKey: PublicKey) => Option<IdentityT>
+
+	// ALL identities, basically a concatenation of `identitiesWithHDAccounts || identitiesWithNonHDAccounts`
 	all: IdentityT[]
+
+	identitiesWithNonHDAccounts: IdentityT[]
+
+	identitiesWithLocalHDAccounts: IdentityT[]
+	identitiesWithHardwareHDAccounts: IdentityT[]
+
+	// Concatenation of `identitiesWithLocalHDAccounts || identitiesWithHardwareHDAccounts`
+	identitiesWithHDAccounts: IdentityT[]
+
+	// size of `all`.
 	size: number
 }>
 
@@ -101,9 +116,11 @@ export type IdentityManagerT = Readonly<{
 
 	revealMnemonic: () => MnemomicT
 
-	restoreIdentitiesUpToIndex: (index: number) => Observable<IdentitiesT>
+	restoreIdentitiesForLocalHDAccountsUpToIndex: (
+		index: number,
+	) => Observable<IdentitiesT>
 
-	deriveNextIdentity: (
+	deriveNextLocalHDIdentity: (
 		input?: DeriveNextAccountInput,
 	) => Observable<IdentityT>
 
@@ -132,7 +149,9 @@ export type RadixT = Readonly<{
 	 *
 	 * @param {number} targetIndex - The index to restore account up to, this method will restore accounts from index 0 up to but excluding this index.
 	 */
-	restoreIdentitiesUpToIndex: (index: number) => Observable<IdentitiesT>
+	restoreIdentitiesForLocalHDAccountsUpToIndex: (
+		index: number,
+	) => Observable<IdentitiesT>
 	deriveNextIdentity: (input?: DeriveNextAccountInput) => RadixT
 	switchIdentity: (input: SwitchAccountInput) => RadixT
 	revealMnemonic: () => Observable<MnemomicT>

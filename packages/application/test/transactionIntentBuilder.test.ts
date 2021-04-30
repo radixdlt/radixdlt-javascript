@@ -55,12 +55,12 @@ describe('tx_intent_builder', () => {
 
 	beforeAll((done) => {
 		subs.add(
-			identityManager.deriveNextIdentity().subscribe(
+			identityManager.deriveNextLocalHDIdentity().subscribe(
 				(aliceId: IdentityT) => {
 					aliceIdentity = aliceId
 					alice = aliceId.accountAddress
 
-					identityManager.deriveNextIdentity().subscribe(
+					identityManager.deriveNextLocalHDIdentity().subscribe(
 						(bobId: IdentityT) => {
 							bobIdentity = bobId
 							bob = bobId.accountAddress

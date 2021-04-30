@@ -38,10 +38,10 @@ const expectWalletsEqual = (
 	const subs = new Subscription()
 	const { wallet1, wallet2 } = wallets
 	const wallet1Account1PublicKey$ = wallet1
-		.deriveNext()
+		.deriveNextLocalHDAccount()
 		.pipe(map((a) => a.publicKey))
 	const wallet2Account1PublicKey$ = wallet2
-		.deriveNext()
+		.deriveNextLocalHDAccount()
 		.pipe(map((a) => a.publicKey))
 
 	subs.add(
@@ -114,11 +114,11 @@ describe('wallet_type', () => {
 			account: AccountT,
 			index: number,
 		): void => {
-			expect(account.hdPath.addressIndex.value()).toBe(index)
+			expect(account.hdPath!.addressIndex.value()).toBe(index)
 		}
 
 		subs.add(
-			wallet.restoreAccountsUpToIndex(indexToRestoreTo).subscribe(
+			wallet.restoreLocalHDAccountsUpToIndex(indexToRestoreTo).subscribe(
 				(accounts) => {
 					expect(accounts.size).toBe(indexToRestoreTo)
 
@@ -134,11 +134,11 @@ describe('wallet_type', () => {
 						assertAccountHasCorrectIndex(account)
 					}
 
-					wallet.deriveNext().subscribe(
+					wallet.deriveNextLocalHDAccount().subscribe(
 						(another0) => {
 							assertAccountHasCorrectIndex(another0)
 
-							wallet.deriveNext().subscribe(
+							wallet.deriveNextLocalHDAccount().subscribe(
 								(another1) => {
 									assertAccountHasCorrectIndex(another1)
 									done()
@@ -206,8 +206,8 @@ describe('wallet_type', () => {
 		})
 	})
 
-	it('can observe accounts', (done) => {
-		const wallet = createWallet()
+	it('wallet can observe accounts', (done) => {
+		const wallet = createWallet({ startWithAnAccount: true })
 		wallet.observeAccounts().subscribe((result) => {
 			expect(result.all.length).toBe(1)
 			done()
@@ -218,10 +218,10 @@ describe('wallet_type', () => {
 		const wallet = createWallet()
 
 		wallet.observeActiveAccount().subscribe((active) => {
-			expect(active.hdPath.addressIndex.value()).toBe(0)
-			expect(active.hdPath.toString()).toBe(`m/44'/536'/0'/0/0'`)
+			expect(active.hdPath!.addressIndex.value()).toBe(0)
+			expect(active.hdPath!.toString()).toBe(`m/44'/536'/0'/0/0'`)
 			expect(
-				wallet.__unsafeGetAccount().hdPath.equals(active.hdPath),
+				wallet.__unsafeGetAccount().hdPath!.equals(active.hdPath),
 			).toBe(true)
 			done()
 		})
@@ -229,24 +229,24 @@ describe('wallet_type', () => {
 
 	it('should derive next but not switch to it by default', (done) => {
 		const wallet = createWallet()
-		wallet.deriveNext()
+		wallet.deriveNextLocalHDAccount()
 
 		wallet.observeActiveAccount().subscribe((active) => {
-			expect(active.hdPath.addressIndex.value()).toBe(0)
+			expect(active.hdPath!.addressIndex.value()).toBe(0)
 			done()
 		})
 	})
 
 	it('should derive next and switch to it if specified', async (done) => {
 		const wallet = createWallet()
-		wallet.deriveNext({ alsoSwitchTo: true })
+		wallet.deriveNextLocalHDAccount({ alsoSwitchTo: true })
 
 		const expectedValues = [0, 1] // we start at 0 by default, then switch to 1
 
 		wallet
 			.observeActiveAccount()
 			.pipe(
-				map((a) => a.hdPath.addressIndex.value()),
+				map((a) => a.hdPath!.addressIndex.value()),
 				take(2),
 				toArray(),
 			)
@@ -261,8 +261,8 @@ describe('wallet_type', () => {
 
 	it('can list all accounts that has been added', (done) => {
 		const wallet = createWallet()
-		wallet.deriveNext()
-		wallet.deriveNext()
+		wallet.deriveNextLocalHDAccount()
+		wallet.deriveNextLocalHDAccount()
 
 		wallet.observeAccounts().subscribe((result) => {
 			expect(result.all.length).toBe(3)
@@ -281,14 +281,14 @@ describe('wallet_type', () => {
 			.subscribe({
 				next: (accountList) => {
 					expect(
-						accountList.map((a) => a.hdPath.addressIndex.value()),
+						accountList.map((a) => a.hdPath!.addressIndex.value()),
 					).toStrictEqual(expectedAccountAddressIndices)
 					done()
 				},
 				error: (e) => done(e),
 			})
 
-		wallet.deriveNext({ alsoSwitchTo: true })
+		wallet.deriveNextLocalHDAccount({ alsoSwitchTo: true })
 		wallet.switchAccount({ toIndex: 0 })
 	})
 })

@@ -166,7 +166,7 @@ const create = (
 	const identityManagerSubject = new ReplaySubject<IdentityManagerT>()
 	const errorNotificationSubject = new Subject<ErrorNotification>()
 
-	const deriveIdentitySubject = new Subject<DeriveNextAccountInput>()
+	const deriveNextLocalHDIdentitySubject = new Subject<DeriveNextAccountInput>()
 	const switchIdentitySubject = new Subject<SwitchAccountInput>()
 
 	const tokenBalanceFetchSubject = new Subject<number>()
@@ -910,29 +910,22 @@ const create = (
 		)
 	}
 
-	const restoreIdentitiesUpToIndex = (
+	const restoreIdentitiesForLocalHDAccountsUpToIndex = (
 		index: number,
 	): Observable<IdentitiesT> => {
-		// return wallet$.pipe(
-		// 	mergeMap(
-		// 		(w): Observable<IdentitiesT> => {
-		// 			// w.restoreAccountsUpToIndex(index)
-		// 			throw new Error('impl me')
-		// 		},
-		// 	),
-		// )
 		return identityManager$.pipe(
-			mergeMap((im) => im.restoreIdentitiesUpToIndex(index)),
+			mergeMap((im) =>
+				im.restoreIdentitiesForLocalHDAccountsUpToIndex(index),
+			),
 		)
 	}
 
 	subs.add(
-		deriveIdentitySubject
+		deriveNextLocalHDIdentitySubject
 			.pipe(
 				withLatestFrom(identityManager$),
 				mergeMap(([derivation, im]) => {
-					// return w.deriveNext(derivation)
-					return im.deriveNextIdentity(derivation)
+					return im.deriveNextLocalHDIdentity(derivation)
 				}),
 			)
 			.subscribe(),
@@ -1010,7 +1003,7 @@ const create = (
 
 		deriveNextIdentity: function (input?: DeriveNextAccountInput): RadixT {
 			const derivation: DeriveNextAccountInput = input ?? {}
-			deriveIdentitySubject.next(derivation)
+			deriveNextLocalHDIdentitySubject.next(derivation)
 			return this
 		},
 
@@ -1019,7 +1012,7 @@ const create = (
 			return this
 		},
 
-		restoreIdentitiesUpToIndex,
+		restoreIdentitiesForLocalHDAccountsUpToIndex,
 
 		decryptTransaction: decryptTransaction,
 

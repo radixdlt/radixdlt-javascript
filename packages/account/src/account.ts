@@ -15,12 +15,87 @@ import {
 	AccountDecryptionInput,
 	AccountEncryptionInput,
 	AccountT,
-	AccountType,
+	AccountTypeHDT,
+	AccountTypeIdentifier,
+	AccountTypeNonHDT,
+	AccountTypeT,
 	HardwareWalletSimpleT,
+	HDAccountTypeIdentifier,
 } from './_types'
 import { HDMasterSeedT, HDNodeT } from './bip39'
 import { HDPathRadixT } from './bip32'
 import { okAsync, ResultAsync } from 'neverthrow'
+import { Option } from 'prelude-ts'
+
+/*
+* export enum HDAccountTypeIdentifier {
+	LOCAL = 'LOCAL',
+	HARDWARE_OR_REMOTE = 'HARDWARE_OR_REMOTE',
+}
+
+export enum AccountTypeIdentifier {
+	HD_ACCOUNT = 'HD_ACCOUNT',
+	NON_HD_ACCOUNT = 'NON_HD_ACCOUNT',
+}
+
+export type BaseAccountTypeT<T extends AccountTypeIdentifier> = Readonly<{
+	typeIdentifier: T
+}>
+
+export type AccountTypeHD = BaseAccountTypeT<AccountTypeIdentifier.HD_ACCOUNT> &
+	Readonly<{
+		hdAccountType: HDAccountTypeIdentifier
+		hdPath: HDPathRadixT
+	}>
+
+export type AccountTypeNonHD = BaseAccountTypeT<AccountTypeIdentifier.NON_HD_ACCOUNT> &
+	Readonly<{
+		name?: string
+	}>
+
+export type AccountTypeT = AccountTypeHD | AccountTypeNonHD
+* */
+
+const makeAccountTypeHD = (
+	input: Readonly<{
+		hdPath: HDPathRadixT
+		hdAccountType: HDAccountTypeIdentifier
+	}>,
+): AccountTypeHDT => {
+	const { hdPath, hdAccountType } = input
+	const isHardwareAccount =
+		hdAccountType === HDAccountTypeIdentifier.HARDWARE_OR_REMOTE
+	const uniqueKey = `${
+		isHardwareAccount ? 'Hardware' : 'Local'
+	}_HDaccount_at_path_${hdPath.toString()}`
+	return {
+		typeIdentifier: AccountTypeIdentifier.HD_ACCOUNT,
+		hdAccountType,
+		hdPath,
+		uniqueKey,
+		isHDAccount: true,
+		isHardwareAccount,
+	}
+}
+
+const makeAccountTypeNonHD = (
+	input: Readonly<{
+		publicKey: PublicKey
+		name?: string
+	}>,
+): AccountTypeNonHDT => {
+	const named = Option.of(input.name)
+		.map((n) => `named_${n}`)
+		.getOrElse('')
+	const uniqueKey = `Non_hd_${named}pubKey${input.publicKey.toString(true)}`
+	return {
+		typeIdentifier: AccountTypeIdentifier.NON_HD_ACCOUNT,
+		uniqueKey,
+		isHDAccount: false,
+		isHardwareAccount: false,
+		name: input.name,
+	}
+}
 
 type Decrypt = (input: AccountDecryptionInput) => Observable<string>
 type Encrypt = (input: AccountEncryptionInput) => Observable<EncryptedMessageT>
@@ -118,17 +193,7 @@ const makeDecryptHW = (
 	}
 }
 
-const toString = (type: AccountType, path: HDPathRadixT): string =>
-	`${type.toString()}@${path.toString()}`
-
-export const accountKeyFrom = toString
-
-const isHardwareAccountType = (type: AccountType): boolean =>
-	type === AccountType.HARDWARE
-const isLocalAccountType = (type: AccountType): boolean =>
-	type === AccountType.LOCAL
-
-const fromPrivateKey = (
+const fromPrivateKeyAtHDPath = (
 	input: Readonly<{
 		privateKey: PrivateKey
 		hdPath: HDPathRadixT
@@ -141,22 +206,24 @@ const fromPrivateKey = (
 
 	const diffieHellman = privateKey.diffieHellman
 
-	const type = AccountType.LOCAL
+	const type: AccountTypeT = makeAccountTypeHD({
+		hdPath,
+		hdAccountType: HDAccountTypeIdentifier.LOCAL,
+	})
 
 	return {
+		...type, // forward sugar for boolean account type getters
+		isLocalHDAccount: type.isHDAccount && !type.isHardwareAccount,
 		decrypt: makeDecrypt(diffieHellman),
 		encrypt: makeEncrypt(diffieHellman),
 		sign: sign,
 		hdPath,
 		publicKey,
 		type,
-		toString: (): string => toString(type, hdPath),
+		toString: (): string => type.uniqueKey,
 		equals: (other: AccountT): boolean => {
 			return publicKey.equals(other.publicKey)
 		},
-
-		isHardwareAccount: isHardwareAccountType(type),
-		isLocalAccount: isLocalAccountType(type),
 	}
 }
 
@@ -173,6 +240,11 @@ const fromHDPathWithHardwareWallet = (
 		publicKey: PublicKey
 	}
 
+	const type: AccountTypeT = makeAccountTypeHD({
+		hdPath,
+		hdAccountType: HDAccountTypeIdentifier.HARDWARE_OR_REMOTE,
+	})
+
 	return hardwareWallet$.pipe(
 		mergeMap(
 			(hw: HardwareWalletSimpleT): Observable<Tmp> => {
@@ -188,8 +260,9 @@ const fromHDPathWithHardwareWallet = (
 		),
 		map(
 			({ publicKey, hardwareWalletSimple }): AccountT => {
-				const type = AccountType.HARDWARE
 				return {
+					...type, // forward sugar for boolean account type getters
+					isLocalHDAccount: false, // hardware is not local
 					publicKey,
 					hdPath,
 					sign: (hashedMessage: Buffer): Observable<Signature> => {
@@ -201,13 +274,10 @@ const fromHDPathWithHardwareWallet = (
 					decrypt: makeDecryptHW(hardwareWalletSimple, hdPath),
 					encrypt: makeEncryptHW(hardwareWalletSimple, hdPath),
 					type,
-					toString: (): string => toString(type, hdPath),
+					toString: (): string => type.uniqueKey,
 					equals: (other: AccountT): boolean => {
 						return publicKey.equals(other.publicKey)
 					},
-
-					isHardwareAccount: isHardwareAccountType(type),
-					isLocalAccount: isLocalAccountType(type),
 				}
 			},
 		),
@@ -220,7 +290,7 @@ const byDerivingNodeAtPath = (
 		deriveNodeAtPath: () => HDNodeT
 	}>,
 ): AccountT =>
-	fromPrivateKey({
+	fromPrivateKeyAtHDPath({
 		...input,
 		privateKey: input.deriveNodeAtPath().privateKey,
 	})
@@ -232,7 +302,10 @@ const fromHDPathWithHDMasterNode = (
 	}>,
 ): AccountT => {
 	const hdNodeAtPath = input.hdMasterNode.derive(input.hdPath)
-	return fromPrivateKey({ ...input, privateKey: hdNodeAtPath.privateKey })
+	return fromPrivateKeyAtHDPath({
+		...input,
+		privateKey: hdNodeAtPath.privateKey,
+	})
 }
 
 const fromHDPathWithHDMasterSeed = (
@@ -259,7 +332,7 @@ export const isAccount = (something: unknown): something is AccountT => {
 }
 
 export const Account = {
-	__unsafeFromPrivateKey: fromPrivateKey,
+	__unsafeFromPrivateKeyAtHDPath: fromPrivateKeyAtHDPath,
 	byDerivingNodeAtPath,
 	fromHDPathWithHardwareWallet,
 	fromHDPathWithHDMasterNode,

@@ -32,25 +32,55 @@ export type Decrypting = Readonly<{
 	decrypt: (input: AccountDecryptionInput) => Observable<string>
 }>
 
-export enum AccountType {
-	HARDWARE = 'HARDWARE',
+export enum HDAccountTypeIdentifier {
 	LOCAL = 'LOCAL',
+	HARDWARE_OR_REMOTE = 'HARDWARE_OR_REMOTE',
 }
+
+export enum AccountTypeIdentifier {
+	HD_ACCOUNT = 'HD_ACCOUNT',
+	NON_HD_ACCOUNT = 'NON_HD_ACCOUNT',
+}
+
+export type BaseAccountTypeT<T extends AccountTypeIdentifier> = Readonly<{
+	typeIdentifier: T
+	isHDAccount: boolean
+	isHardwareAccount: boolean
+	uniqueKey: string
+}>
+
+export type AccountTypeHDT = BaseAccountTypeT<AccountTypeIdentifier.HD_ACCOUNT> &
+	Readonly<{
+		hdAccountType: HDAccountTypeIdentifier
+		hdPath: HDPathRadixT
+	}>
+
+export type AccountTypeNonHDT = BaseAccountTypeT<AccountTypeIdentifier.NON_HD_ACCOUNT> &
+	Readonly<{
+		name?: string
+	}>
+
+export type AccountTypeT = AccountTypeHDT | AccountTypeNonHDT
 
 export type AccountT = Signing &
 	Encrypting &
 	Decrypting &
 	Readonly<{
-		type: AccountType
+		type: AccountTypeT
 		publicKey: PublicKey
-		hdPath: HDPathRadixT
 
 		toString: () => string
 		equals: (other: AccountT) => boolean
 
-		// sugar
+		// Sugar for `type.hdPath`, iff, type.typeIdentifier === AccountTypeHDT
+		hdPath?: HDPathRadixT
+
+		// Sugar for `type.isHDAccount`
+		isHDAccount: boolean
+		// Sugar for `type.isHardwareAccount`
 		isHardwareAccount: boolean
-		isLocalAccount: boolean
+		// Sugar for `isHDAccount && !isHardwareAccount`
+		isLocalHDAccount: boolean
 	}>
 
 /// A simple "interface" like type that this `account` package recognizes.
@@ -76,8 +106,20 @@ export type HardwareWalletSimpleT = Readonly<{
 
 export type AccountsT = Readonly<{
 	equals: (other: AccountsT) => boolean
-	get: (hdPath: HDPathRadixT) => Option<AccountT>
+
+	// Get only HD account, by its path
+	getHDAccountByHDPath: (hdPath: HDPathRadixT) => Option<AccountT>
+	// Get any account by its public key
+	getAnyAccountByPublicKey: (publicKey: PublicKey) => Option<AccountT>
+
 	all: AccountT[]
+
+	hdAccounts: AccountT[]
+	localHDAccounts: AccountT[]
+	hardwareHDAccounts: AccountT[]
+	nonHDAccounts: AccountT[]
+
+	// size of `all` accounts.
 	size: number
 }>
 
@@ -104,9 +146,13 @@ export type WalletT = Signing &
 
 		revealMnemonic: () => MnemomicT
 
-		restoreAccountsUpToIndex: (index: number) => Observable<AccountsT>
+		restoreLocalHDAccountsUpToIndex: (
+			index: number,
+		) => Observable<AccountsT>
 
-		deriveNext: (input?: DeriveNextAccountInput) => Observable<AccountT>
+		deriveNextLocalHDAccount: (
+			input?: DeriveNextAccountInput,
+		) => Observable<AccountT>
 
 		switchAccount: (input: SwitchAccountInput) => AccountT
 

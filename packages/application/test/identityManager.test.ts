@@ -1,6 +1,4 @@
-import { NetworkT } from '@radixdlt/account'
 import { createIM } from './util'
-import { IdentityT } from '../src'
 import { map, take, toArray } from 'rxjs/operators'
 
 describe('identityManager', () => {
@@ -12,7 +10,7 @@ describe('identityManager', () => {
 		identityManager
 			.observeActiveIdentity()
 			.pipe(
-				map((i) => i.hdPath.addressIndex.value()),
+				map((i) => i.hdPath!.addressIndex.value()),
 				take(expectedValues.length),
 				toArray(),
 			)
@@ -24,7 +22,7 @@ describe('identityManager', () => {
 				(error) => done(error),
 			)
 
-		identityManager.deriveNextIdentity({ alsoSwitchTo: true })
-		identityManager.deriveNextIdentity({ alsoSwitchTo: true })
+		identityManager.deriveNextLocalHDIdentity({ alsoSwitchTo: true })
+		identityManager.deriveNextLocalHDIdentity({ alsoSwitchTo: true })
 	})
 })
