@@ -464,6 +464,7 @@ const create = (
 		): Observable<SignedTransaction> => {
 			txLog.debug('Starting signing transaction (async).')
 			return activeIdentity.pipe(
+				take(1), // IMPORTANT!
 				mergeMap(
 					(identity: IdentityT): Observable<SignedTransaction> => {
 						const msgToSignFromTx = Buffer.from(
@@ -799,7 +800,7 @@ const create = (
 		const intent$ = transactionIntentBuilderT.build(
 			builderOptions ?? {
 				skipEncryptionOfMessageIfAny: {
-					spendingSender: activeAddress,
+					spendingSender: activeAddress.pipe(take(1)),
 				},
 			},
 		)
@@ -825,7 +826,9 @@ const create = (
 			{ ...input },
 			encryptMsgIfAny
 				? {
-						encryptMessageIfAnyWithIdentity: activeIdentity,
+						encryptMessageIfAnyWithIdentity: activeIdentity.pipe(
+							take(1),
+						),
 				  }
 				: undefined,
 		)
@@ -877,7 +880,7 @@ const create = (
 		const encryptedMessage = encryptedMessageResult.value
 
 		return activeIdentity.pipe(
-			// map((account) => account.publicKey),
+			take(1),
 			mergeMap((identity: IdentityT) => {
 				const myPublicKey = identity.publicKey
 				log.debug(

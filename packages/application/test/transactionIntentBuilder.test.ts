@@ -417,7 +417,7 @@ describe('tx_intent_builder', () => {
 						'No one will be able to see this because we will get a crash',
 					encrypt: false,
 				})
-			
+
 			subs.add(
 				builder
 					.build({
