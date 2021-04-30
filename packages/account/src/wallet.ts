@@ -41,6 +41,32 @@ import { arraysEqual, log, msgFromError } from '@radixdlt/util'
 import { HDMasterSeed, MnemomicT, Mnemonic } from './bip39'
 import { ResultAsync } from 'neverthrow'
 
+const stringifyAccount = (account: AccountT): string => {
+	return `
+		type: ${account.type.typeIdentifier.toString()},
+		publicKey: ${account.publicKey.toString(true)},
+		hdPath?: ${Option.of<HDPathRadixT>(account.hdPath)
+			.map((hdp) => hdp.toString())
+			.getOrElse('NONE')},
+		isHDAccount: ${account.isHDAccount ? 'YES' : 'NO'},
+		isHardwareAccount: ${account.isHardwareAccount ? 'YES' : 'NO'},
+	`
+}
+
+const stringifyAccounts = (accounts: AccountsT): string => {
+	const allAccountsString = accounts.all.map(stringifyAccount).join(',\n')
+
+	return `
+		size: ${accounts.size},
+		#hdAccounts: ${accounts.hdAccounts.length},
+		#nonHDAccounts: ${accounts.nonHDAccounts.length},
+		#localHDAccounts: ${accounts.localHDAccounts.length},
+		#hardwareHDAccounts: ${accounts.hardwareHDAccounts.length},
+		
+		all: ${allAccountsString}
+	`
+}
+
 type MutableAccountsT = AccountsT &
 	Readonly<{
 		add: (account: AccountT) => void
@@ -160,7 +186,13 @@ const __unsafeCreateWithPrivateKeyProvider = (
 				)
 
 				const accounts = accountsSubject.getValue()
+				console.log(
+					`🚀🤷‍♀️ accounts BEFORE add: ${stringifyAccounts(accounts)}`,
+				)
 				accounts.add(newAccount)
+				console.log(
+					`🚀✅ accounts AFTER add: ${stringifyAccounts(accounts)}`
+				)
 				accountsSubject.next(accounts)
 
 				if (alsoSwitchTo) {
@@ -272,13 +304,12 @@ const __unsafeCreateWithPrivateKeyProvider = (
 		}
 	}
 
-	let maybeInitialAccountObs: Observable<unknown> = of(undefined)
 	if (startWithAnAccount) {
-		const startWithAccountObs = deriveNextLocalHDAccount({
-			alsoSwitchTo: true,
-		})
-		subs.add(startWithAccountObs.subscribe())
-		maybeInitialAccountObs = startWithAccountObs.pipe(map((a) => undefined))
+		subs.add(
+			deriveNextLocalHDAccount({
+				alsoSwitchTo: true,
+			}).subscribe(),
+		)
 	}
 
 	const activeAccount$ = activeAccountSubject.asObservable().pipe(
@@ -291,11 +322,22 @@ const __unsafeCreateWithPrivateKeyProvider = (
 	)
 
 	const accounts$ = accountsSubject.asObservable().pipe(
-		skipUntil(maybeInitialAccountObs),
 		distinctUntilChanged((a: AccountsT, b: AccountsT): boolean => {
 			return a.equals(b)
 		}),
 		shareReplay(),
+	)
+
+	subs.add(
+		accountsSubject.subscribe((n) => {
+			console.log(`👻 ${stringifyAccounts(n)}`)
+		}),
+	)
+
+	subs.add(
+		accounts$.subscribe((n) => {
+			console.log(`🔮 ${stringifyAccounts(n)}`)
+		}),
 	)
 
 	const restoreLocalHDAccountsUpToIndex = (

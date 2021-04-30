@@ -208,8 +208,12 @@ describe('wallet_type', () => {
 
 	it('wallet can observe accounts', (done) => {
 		const wallet = createWallet({ startWithAnAccount: true })
-		wallet.observeAccounts().subscribe((result) => {
-			expect(result.all.length).toBe(1)
+		const expected = [0, 1] // we start with 0 accounts but "immediately" derive a first one.
+		wallet.observeAccounts().pipe(
+			take(expected.length),
+			toArray()
+		).subscribe((values) => {
+			expect(values).toStrictEqual(expected)
 			done()
 		})
 	})
