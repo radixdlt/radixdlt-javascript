@@ -28,6 +28,7 @@ import {
 import {
 	combineLatest,
 	EMPTY,
+	forkJoin,
 	interval,
 	merge,
 	Observable,
@@ -333,6 +334,7 @@ const create = (
 					token: tokenInfo,
 				}),
 			),
+			take(1),
 		)
 	}
 
@@ -345,16 +347,23 @@ const create = (
 					decorateSimpleTokenBalanceWithTokenInfo,
 				)
 
-				return combineLatest(balanceOfTokensObservableList).pipe(
-					map(
-						(tokenBalances: TokenBalance[]): TokenBalances => {
-							return {
-								owner: simpleTokenBalances.owner,
-								tokenBalances,
-							}
-						},
-					),
-				)
+				return simpleTokenBalances.tokenBalances.length === 0
+					? of({
+							owner: simpleTokenBalances.owner,
+							tokenBalances: [],
+					  })
+					: forkJoin(balanceOfTokensObservableList).pipe(
+							map(
+								(
+									tokenBalances: TokenBalance[],
+								): TokenBalances => {
+									return {
+										owner: simpleTokenBalances.owner,
+										tokenBalances,
+									}
+								},
+							),
+					  )
 			},
 		),
 	)
@@ -831,7 +840,9 @@ const create = (
 			{ ...input },
 			encryptMsgIfAny
 				? {
-						encryptMessageIfAnyWithAccount: activeAccount.pipe(take(1)),
+						encryptMessageIfAnyWithAccount: activeAccount.pipe(
+							take(1),
+						),
 				  }
 				: undefined,
 		)
