@@ -1006,7 +1006,6 @@ const create = (
 
 		deriveNextAccount: function (input?: DeriveNextAccountInput): RadixT {
 			const derivation: DeriveNextAccountInput = input ?? {}
-			console.log('deriving')
 			deriveAccountSubject.next(derivation)
 			return this
 		},
