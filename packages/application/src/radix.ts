@@ -165,8 +165,8 @@ const create = (
 	const deriveAccountSubject = new Subject<DeriveNextAccountInput>()
 	const switchAccountSubject = new Subject<SwitchAccountInput>()
 
-	const tokenBalanceFetchSubject = new ReplaySubject<number>(0)
-	const stakingFetchSubject = new ReplaySubject<number>(0)
+	const tokenBalanceFetchSubject = new Subject<number>()
+	const stakingFetchSubject = new Subject<number>()
 	const wallet$ = walletSubject.asObservable()
 
 	const coreAPIViaNode$ = nodeSubject
