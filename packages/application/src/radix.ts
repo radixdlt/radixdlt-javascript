@@ -165,8 +165,8 @@ const create = (
 	const deriveAccountSubject = new Subject<DeriveNextAccountInput>()
 	const switchAccountSubject = new Subject<SwitchAccountInput>()
 
-	const tokenBalanceFetchSubject = new Subject<number>()
-	const stakingFetchSubject = new Subject<number>()
+	const tokenBalanceFetchSubject = new ReplaySubject<number>(0)
+	const stakingFetchSubject = new ReplaySubject<number>(0)
 	const wallet$ = walletSubject.asObservable()
 
 	const coreAPIViaNode$ = nodeSubject
@@ -183,7 +183,7 @@ const create = (
 	) => (...input: I) =>
 		coreAPI$.pipe(
 			mergeMap((a) => pickFn(a)(...input)),
-
+			take(1),
 			// We do NOT omit/supress error, we merely DECORATE the error
 			catchError((errors: unknown) => {
 				const underlyingError = msgFromError(errors)
@@ -333,8 +333,7 @@ const create = (
 					amount: simpleTokenBalance.amount,
 					token: tokenInfo,
 				}),
-			),
-			take(1),
+			)
 		)
 	}
 
