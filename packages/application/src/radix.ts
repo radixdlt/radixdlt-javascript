@@ -183,7 +183,7 @@ const create = (
 	) => (...input: I) =>
 		coreAPI$.pipe(
 			mergeMap((a) => pickFn(a)(...input)),
-
+			take(1),
 			// We do NOT omit/supress error, we merely DECORATE the error
 			catchError((errors: unknown) => {
 				const underlyingError = msgFromError(errors)
@@ -333,8 +333,7 @@ const create = (
 					amount: simpleTokenBalance.amount,
 					token: tokenInfo,
 				}),
-			),
-			take(1),
+			)
 		)
 	}
 
