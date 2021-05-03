@@ -333,7 +333,7 @@ const create = (
 					amount: simpleTokenBalance.amount,
 					token: tokenInfo,
 				}),
-			)
+			),
 		)
 	}
 
@@ -385,18 +385,13 @@ const create = (
 
 	const transactionHistory = (
 		input: TransactionHistoryActiveAccountRequestInput,
-	): Observable<TransactionHistory> => 
-		combineLatest([activeAddress, coreAPI$]).pipe(
-			switchMap(([activeAddress, api]) => 
+	): Observable<TransactionHistory> =>
+		activeAddress.pipe(
+			take(1),
+			switchMap((activeAddress) =>
 				api
 					.transactionHistory({ ...input, address: activeAddress })
 					.pipe(
-						catchError((error: Error) => {
-							errorNotificationSubject.next(
-								transactionHistoryErr(error.message),
-							)
-							return EMPTY
-						}),
 						map(
 							(
 								simpleTxHistory: SimpleTransactionHistory,
@@ -415,12 +410,9 @@ const create = (
 								}
 							},
 						),
-					)
+					),
 			),
-			take(1),
-			shareReplay(1)
 		)
-	
 
 	const node$ = merge(
 		nodeSubject.asObservable(),
