@@ -17,7 +17,7 @@ describe('account', () => {
 			hdMasterSeed,
 		})
 
-		expect(account.hdPath.equals(hdPath)).toBe(true)
+		expect(account.hdPath!.equals(hdPath)).toBe(true)
 
 		// Expected keys are known from Leger app development.
 		const matchingPrivateKey = privateKeyFromScalar(

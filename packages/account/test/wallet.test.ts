@@ -2,14 +2,13 @@ import {
 	AccountsT,
 	AccountT,
 	Mnemonic,
-	NetworkT,
 	Wallet,
 	WalletT,
 } from '../src'
-import { map, mergeMap, take, toArray } from 'rxjs/operators'
+import { map, take, toArray } from 'rxjs/operators'
 import { KeystoreT, PublicKey } from '@radixdlt/crypto'
-import { combineLatest, Observable, of, Subject, Subscription } from 'rxjs'
-import { LogLevel, msgFromError, restoreDefaultLogLevel } from '@radixdlt/util'
+import { combineLatest, Subscription } from 'rxjs'
+import { LogLevel, restoreDefaultLogLevel } from '@radixdlt/util'
 import { mockErrorMsg } from '../../util/test/util'
 import { log } from '@radixdlt/util/dist/logging'
 
@@ -207,19 +206,29 @@ describe('wallet_type', () => {
 	})
 
 	it('wallet can observe accounts', (done) => {
+
+		const subs = new Subscription()
 		const wallet = createWallet({ startWithAnAccount: true })
 		const expected = [0, 1] // we start with 0 accounts but "immediately" derive a first one.
-		wallet.observeAccounts().pipe(
-			take(expected.length),
-			toArray()
-		).subscribe((values) => {
-			expect(values).toStrictEqual(expected)
-			done()
-		})
+
+		subs.add(
+
+		wallet
+			.observeAccounts()
+			.pipe(take(expected.length), toArray())
+			.subscribe((values) => {
+				expect(values).toStrictEqual(expected)
+				done()
+			})
+		)
 	})
 
 	it('can observe active account', (done) => {
+
+		const subs = new Subscription()
 		const wallet = createWallet()
+
+		subs.add(
 
 		wallet.observeActiveAccount().subscribe((active) => {
 			expect(active.hdPath!.addressIndex.value()).toBe(0)
@@ -229,23 +238,37 @@ describe('wallet_type', () => {
 			).toBe(true)
 			done()
 		})
+		)
 	})
 
 	it('should derive next but not switch to it by default', (done) => {
 		const wallet = createWallet()
-		wallet.deriveNextLocalHDAccount()
+		const subs = new Subscription()
+
+		subs.add(
+			wallet.deriveNextLocalHDAccount().subscribe()
+		)
+
+		subs.add(
 
 		wallet.observeActiveAccount().subscribe((active) => {
 			expect(active.hdPath!.addressIndex.value()).toBe(0)
 			done()
 		})
+		)
 	})
 
 	it('should derive next and switch to it if specified', async (done) => {
+		const subs = new Subscription()
 		const wallet = createWallet()
-		wallet.deriveNextLocalHDAccount({ alsoSwitchTo: true })
+
+		subs.add(
+			wallet.deriveNextLocalHDAccount({ alsoSwitchTo: true }).subscribe()
+		)
 
 		const expectedValues = [0, 1] // we start at 0 by default, then switch to 1
+
+		subs.add(
 
 		wallet
 			.observeActiveAccount()
@@ -261,38 +284,66 @@ describe('wallet_type', () => {
 				},
 				error: (e) => done(e),
 			})
+		)
 	})
 
 	it('can list all accounts that has been added', (done) => {
-		const wallet = createWallet()
-		wallet.deriveNextLocalHDAccount()
-		wallet.deriveNextLocalHDAccount()
+		const testAccountsList = (mapAccountsToNum: (accounts: AccountsT) => number): void => {
+			const subs = new Subscription()
+			const wallet = createWallet()
+			const expectedValues = [1, 2, 3]
 
-		wallet.observeAccounts().subscribe((result) => {
-			expect(result.all.length).toBe(3)
-			done()
-		})
+			subs.add(
+				wallet.observeAccounts()
+					.pipe(
+						map(acs => mapAccountsToNum(acs)),//acs.localHDAccounts.length),
+						take(expectedValues.length),
+						toArray()
+					)
+					.subscribe((values) => {
+						expect(values).toStrictEqual(expectedValues)
+						// expect(result.all.length).toBe(3)
+						done()
+					}),
+			)
+
+			subs.add(wallet.deriveNextLocalHDAccount().subscribe())
+			subs.add(wallet.deriveNextLocalHDAccount().subscribe())
+		}
+		testAccountsList(acs => acs.localHDAccounts.length)
+		testAccountsList(acs => acs.all.length)
+		testAccountsList(acs => acs.size)
 	})
 
 	it('can switch account by number', (done) => {
+		const subs = new Subscription()
 		const wallet = createWallet()
 
 		const expectedAccountAddressIndices = [0, 1, 0]
 
-		wallet
-			.observeActiveAccount()
-			.pipe(take(expectedAccountAddressIndices.length), toArray())
-			.subscribe({
-				next: (accountList) => {
-					expect(
-						accountList.map((a) => a.hdPath!.addressIndex.value()),
-					).toStrictEqual(expectedAccountAddressIndices)
-					done()
-				},
-				error: (e) => done(e),
-			})
+		subs.add(
+			wallet
+				.observeActiveAccount()
+				.pipe(take(expectedAccountAddressIndices.length), toArray())
+				.subscribe({
+					next: (accountList) => {
+						expect(
+							accountList.map((a) =>
+								a.hdPath!.addressIndex.value(),
+							),
+						).toStrictEqual(expectedAccountAddressIndices)
+						done()
+					},
+					error: (e) => done(e),
+				}),
+		)
 
-		wallet.deriveNextLocalHDAccount({ alsoSwitchTo: true })
+		subs.add(
+			wallet.deriveNextLocalHDAccount({ alsoSwitchTo: true }).subscribe(),
+		)
+
+		// subs.add(
 		wallet.switchAccount({ toIndex: 0 })
+		// .subscribe())
 	})
 })

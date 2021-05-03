@@ -24,7 +24,6 @@ import {
 	map,
 	mergeMap,
 	shareReplay,
-	skipUntil,
 	take,
 	tap,
 } from 'rxjs/operators'
@@ -89,8 +88,19 @@ const createAccounts = (_all: AccountT[]): MutableAccountsT => {
 		}
 	}
 
-	const hdAccounts = [...localHDAccounts, ...hardwareHDAccounts]
-	const all = [...nonHDAccounts, ...hdAccounts]
+	let hdAccounts: AccountT[] = []
+	let all: AccountT[] = []
+	let size = 0
+
+	const __setArrays = (): void => {
+		hdAccounts = [...localHDAccounts, ...hardwareHDAccounts]
+		all = [...nonHDAccounts, ...hdAccounts]
+		size = all.length
+	}
+
+	if (localHDAccounts.length > 0 && all.length === 0) {
+		throw new Error('bad array concat logic.')
+	}
 
 	const getHDAccountByHDPath = (hdPath: HDPathRadixT): Option<AccountT> => {
 		const account = hdAccounts
@@ -120,7 +130,10 @@ const createAccounts = (_all: AccountT[]): MutableAccountsT => {
 		}
 		// new
 		array.push(account)
+		__setArrays()
 	}
+
+	__setArrays()
 
 	return <MutableAccountsT>{
 		equals: (other: AccountsT): boolean => {
@@ -132,7 +145,7 @@ const createAccounts = (_all: AccountT[]): MutableAccountsT => {
 		nonHDAccounts,
 		hdAccounts,
 		all,
-		size: all.length,
+		size,
 		getHDAccountByHDPath,
 		getAnyAccountByPublicKey,
 	}
@@ -186,13 +199,9 @@ const __unsafeCreateWithPrivateKeyProvider = (
 				)
 
 				const accounts = accountsSubject.getValue()
-				console.log(
-					`🚀🤷‍♀️ accounts BEFORE add: ${stringifyAccounts(accounts)}`,
-				)
+
 				accounts.add(newAccount)
-				console.log(
-					`🚀✅ accounts AFTER add: ${stringifyAccounts(accounts)}`
-				)
+
 				accountsSubject.next(accounts)
 
 				if (alsoSwitchTo) {
@@ -251,14 +260,16 @@ const __unsafeCreateWithPrivateKeyProvider = (
 
 	const deriveNextLocalHDAccount = (
 		input?: DeriveNextAccountInput,
-	): Observable<AccountT> =>
-		_deriveNextLocalHDAccountAtIndex({
+	): Observable<AccountT> => {
+		const index = numberOfLocalHDAccounts()
+		return _deriveNextLocalHDAccountAtIndex({
 			addressIndex: {
-				index: numberOfLocalHDAccounts(),
+				index,
 				isHardened: input?.isHardened ?? true,
 			},
 			alsoSwitchTo: input?.alsoSwitchTo,
 		})
+	}
 
 	const switchAccount = (input: SwitchAccountInput): AccountT => {
 		const isSwitchToAccount = (
@@ -326,18 +337,6 @@ const __unsafeCreateWithPrivateKeyProvider = (
 			return a.equals(b)
 		}),
 		shareReplay(),
-	)
-
-	subs.add(
-		accountsSubject.subscribe((n) => {
-			console.log(`👻 ${stringifyAccounts(n)}`)
-		}),
-	)
-
-	subs.add(
-		accounts$.subscribe((n) => {
-			console.log(`🔮 ${stringifyAccounts(n)}`)
-		}),
 	)
 
 	const restoreLocalHDAccountsUpToIndex = (
