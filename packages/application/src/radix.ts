@@ -385,11 +385,10 @@ const create = (
 
 	const transactionHistory = (
 		input: TransactionHistoryActiveAccountRequestInput,
-	): Observable<TransactionHistory> => {
-		return activeAddress.pipe(
-			withLatestFrom(coreAPI$),
-			switchMap(([activeAddress, api]) => {
-				return api
+	): Observable<TransactionHistory> => 
+		combineLatest([activeAddress, coreAPI$]).pipe(
+			switchMap(([activeAddress, api]) => 
+				api
 					.transactionHistory({ ...input, address: activeAddress })
 					.pipe(
 						catchError((error: Error) => {
@@ -417,10 +416,11 @@ const create = (
 							},
 						),
 					)
-			}),
-			shareReplay(1),
+			),
+			take(1),
+			shareReplay(1)
 		)
-	}
+	
 
 	const node$ = merge(
 		nodeSubject.asObservable(),
@@ -1006,6 +1006,7 @@ const create = (
 
 		deriveNextAccount: function (input?: DeriveNextAccountInput): RadixT {
 			const derivation: DeriveNextAccountInput = input ?? {}
+			console.log('deriving')
 			deriveAccountSubject.next(derivation)
 			return this
 		},
