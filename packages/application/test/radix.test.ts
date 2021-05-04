@@ -1574,7 +1574,6 @@ describe('radix_high_level_api', () => {
 			const radix = Radix.create()
 				.withIdentityManager(createIM())
 				.__withAPI(mockedAPI)
-				.logLevel(LogLevel.DEBUG)
 
 			const userConfirmation = new ReplaySubject<ManualUserConfirmTX>()
 
