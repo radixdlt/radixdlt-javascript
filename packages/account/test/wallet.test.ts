@@ -1,10 +1,10 @@
 import { AccountsT, AccountT, Mnemonic, Wallet, WalletT } from '../src'
-import { map, mergeMap, skipWhile, take, toArray } from 'rxjs/operators'
+import { map, take, toArray } from 'rxjs/operators'
 import { KeystoreT, PublicKey } from '@radixdlt/crypto'
 import { combineLatest, Subscription } from 'rxjs'
 import { LogLevel, restoreDefaultLogLevel } from '@radixdlt/util'
 import { mockErrorMsg } from '../../util/test/util'
-import { log } from '@radixdlt/util/dist/logging'
+import { log } from '@radixdlt/util'
 
 const createWallet = (
 	input?: Readonly<{ startWithAnAccount?: boolean }>,

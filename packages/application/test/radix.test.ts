@@ -1225,9 +1225,10 @@ describe('radix_high_level_api', () => {
 										receivedMsgHex,
 										'hex',
 									),
-									publicKeyOfOtherParty: bobPublicKey,
-									diffieHellman:
-										alicePrivateKey.diffieHellman,
+									diffieHellmanPoint: alicePrivateKey.diffieHellman.bind(
+										null,
+										bobPublicKey,
+									),
 								}),
 							)
 						},
@@ -1245,8 +1246,10 @@ describe('radix_high_level_api', () => {
 										receivedMsgHex,
 										'hex',
 									),
-									publicKeyOfOtherParty: alicePublicKey,
-									diffieHellman: bobPrivateKey.diffieHellman,
+									diffieHellmanPoint: bobPrivateKey.diffieHellman.bind(
+										null,
+										alicePublicKey,
+									),
 								}),
 							)
 						},

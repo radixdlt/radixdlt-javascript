@@ -262,9 +262,7 @@ const create = (
 		)
 	}
 
-	const activeAccount$ = activeAccountSubject.asObservable() //.pipe()
-	// distinctUntilChanged((a: AccountT, b: AccountT) => a.equals(b)),
-	// shareReplay()'',
+	const activeAccount$ = activeAccountSubject.asObservable()
 
 	const accounts$ = accountsSubject.asObservable().pipe(shareReplay())
 

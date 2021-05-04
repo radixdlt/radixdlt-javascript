@@ -27,16 +27,13 @@ import {
 	TransactionStatus,
 } from '../../src/dto/_types'
 import { Amount, AmountT } from '@radixdlt/primitives'
-import { TransactionIntentBuilder } from '../../src/dto/transactionIntentBuilder'
-import { TransactionTrackingEventType } from '../../src/dto/_types'
-import { TransferTokensInput } from '../../src/actions/_types'
-import { TransferTokensOptions } from '../../src/_types'
-import { makeWalletWithFunds } from '../../../account/test/utils'
+import {
+	TransferTokensOptions,
+	TransferTokensInput,
+	TransactionTrackingEventType,
+} from '../../src'
 import { UInt256 } from '@radixdlt/uint256'
 import { makeIdentitywithIdentityManagerWithFunds } from '../radix.test'
-import { stringifyAmount } from '../stringifyTypes'
-import { log } from '@radixdlt/util/dist/logging'
-import { LogLevel, restoreDefaultLogLevel } from '@radixdlt/util'
 const fetch = require('node-fetch')
 
 // local

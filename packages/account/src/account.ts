@@ -88,7 +88,9 @@ const makeDecrypt = (diffieHellman: DiffieHellman): Decrypt => {
 		return toObservable(
 			MessageEncryption.decrypt({
 				...input,
-				diffieHellman,
+				diffieHellmanPoint: (): ResultAsync<ECPointOnCurve, Error> => {
+					return diffieHellman(input.publicKeyOfOtherParty)
+				},
 			}).map((buf: Buffer) => buf.toString('utf-8')),
 		)
 	}
@@ -99,25 +101,11 @@ const makeEncrypt = (diffieHellman: DiffieHellman): Encrypt => {
 		return toObservable(
 			MessageEncryption.encrypt({
 				...input,
-				diffieHellman,
+				diffieHellmanPoint: (): ResultAsync<ECPointOnCurve, Error> => {
+					return diffieHellman(input.publicKeyOfOtherParty)
+				},
 			}),
 		)
-	}
-}
-
-const makeDHFromPoint = (
-	dhPoint: ECPointOnCurve,
-	otherPubKey: PublicKey,
-): DiffieHellman => {
-	return (
-		publicKeyOfOtherParty: PublicKey,
-	): ResultAsync<ECPointOnCurve, Error> => {
-		if (!publicKeyOfOtherParty.equals(otherPubKey)) {
-			throw new Error(
-				`Incorrect implementation, expected 'publicKeyOfOtherParty' to match 'otherPubKey'`,
-			)
-		}
-		return okAsync(dhPoint)
 	}
 }
 
@@ -136,11 +124,7 @@ const makeEncryptHW = (
 					toObservable(
 						MessageEncryption.encrypt({
 							plaintext: input.plaintext,
-							publicKeyOfOtherParty: input.publicKeyOfOtherParty,
-							diffieHellman: makeDHFromPoint(
-								dhPoint,
-								input.publicKeyOfOtherParty,
-							),
+							diffieHellmanPoint: () => okAsync(dhPoint),
 						}),
 					),
 				),
@@ -163,11 +147,12 @@ const makeDecryptHW = (
 					toObservable(
 						MessageEncryption.decrypt({
 							encryptedMessage: input.encryptedMessage,
-							publicKeyOfOtherParty: input.publicKeyOfOtherParty,
-							diffieHellman: makeDHFromPoint(
-								dhPoint,
-								input.publicKeyOfOtherParty,
-							),
+							diffieHellmanPoint: (): ResultAsync<
+								ECPointOnCurve,
+								Error
+							> => {
+								return okAsync(dhPoint)
+							},
 						}),
 					),
 				),

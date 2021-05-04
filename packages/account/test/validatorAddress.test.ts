@@ -1,8 +1,7 @@
 import { privateKeyFromBuffer, sha256Twice } from '@radixdlt/crypto'
-import { ValidatorAddress } from '../src'
-import { NetworkT } from '../dist'
+import { ValidatorAddress, NetworkT } from '../src'
 import { msgFromError, restoreDefaultLogLevel } from '@radixdlt/util'
-import { log } from '@radixdlt/util/dist/logging'
+import { log } from '@radixdlt/util'
 
 describe('validator_address_on_bech32_format', () => {
 	describe('addr from seeded private key', () => {
