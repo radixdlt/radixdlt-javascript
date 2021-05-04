@@ -13,7 +13,7 @@ import { Observable } from 'rxjs'
 import { Identity } from './identity'
 import { map } from 'rxjs/operators'
 import { Option } from 'prelude-ts'
-import { PublicKey, publicKeyCompressedByteCount } from '@radixdlt/crypto'
+import { PublicKey } from '@radixdlt/crypto'
 
 const create = (
 	input: Readonly<{

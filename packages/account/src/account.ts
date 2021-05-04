@@ -203,6 +203,7 @@ const fromPrivateKeyAtHDPath = (
 		hdPath,
 		publicKey,
 		type,
+		uniqueIdentifier: type.uniqueKey,
 		toString: (): string => {
 			throw new Error('Overriden below')
 		},
@@ -250,7 +251,7 @@ const fromHDPathWithHardwareWallet = (
 		),
 		map(
 			({ publicKey, hardwareWalletSimple }): AccountT => {
-				return {
+				const newAccount: AccountT = {
 					...type, // forward sugar for boolean account type getters
 					isLocalHDAccount: false, // hardware is not local
 					publicKey,
@@ -264,10 +265,18 @@ const fromHDPathWithHardwareWallet = (
 					decrypt: makeDecryptHW(hardwareWalletSimple, hdPath),
 					encrypt: makeEncryptHW(hardwareWalletSimple, hdPath),
 					type,
-					toString: (): string => type.uniqueKey,
+					uniqueIdentifier: type.uniqueKey,
+					toString: (): string => {
+						throw new Error('Overridden below.')
+					},
 					equals: (other: AccountT): boolean => {
 						return publicKey.equals(other.publicKey)
 					},
+				}
+
+				return {
+					...newAccount,
+					toString: (): string => stringifyAccount(newAccount),
 				}
 			},
 		),

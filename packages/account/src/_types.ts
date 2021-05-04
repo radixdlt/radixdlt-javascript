@@ -66,10 +66,17 @@ export type AccountT = Signing &
 	Encrypting &
 	Decrypting &
 	Readonly<{
+		// Type of account: `AccountTypeHDT` or `AccountTypeNonHDT`, where HD has `hdAccountType` which can be `LOCAL` or `HARDWARE_OR_REMOTE` (e.g. Ledger Nano)
 		type: AccountTypeT
 		publicKey: PublicKey
 
+		// sugar for `type.uniqueKey`
+		uniqueIdentifier: string
+
+		// Useful for debugging.
 		toString: () => string
+
+		// Sugar for thisAccount.publicKey.equals(other.publicKey)
 		equals: (other: AccountT) => boolean
 
 		// Sugar for `type.hdPath`, iff, type.typeIdentifier === AccountTypeHDT

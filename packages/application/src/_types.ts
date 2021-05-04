@@ -1,11 +1,9 @@
 import {
-	AccountsT,
 	AccountT,
 	AccountAddressT,
 	DeriveNextAccountInput,
 	MnemomicT,
 	SwitchAccountInput,
-	WalletT,
 	NetworkT,
 	HDPathRadixT,
 	Signing,

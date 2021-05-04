@@ -20,12 +20,10 @@ import {
 	TransactionIntentBuilderT,
 } from './_types'
 import {
-	AccountT,
 	AccountAddressT,
 	isAccountAddress,
 	toObservableFromResult,
 	isResourceIdentifier,
-	NetworkT,
 } from '@radixdlt/account'
 import { isObservable, Observable, of, throwError } from 'rxjs'
 import { map, mergeMap } from 'rxjs/operators'

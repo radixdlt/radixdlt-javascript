@@ -1,20 +1,23 @@
-import { err, ResultAsync, ok, Result, errAsync } from 'neverthrow'
+import { err, ResultAsync, ok, Result } from 'neverthrow'
 import { KeystoreCryptoT, KeystoreT } from './_types'
-import { AES_GCM } from '../symmetric-encryption/aes/aesGCM'
+import {
+	AES_GCM,
+	AES_GCM_SealedBox,
+	AES_GCM_OPEN_Input,
+	AES_GCM_SealedBoxT,
+} from '../symmetric-encryption'
 import {
 	SecureRandom,
 	secureRandomGenerator,
 	log,
 	msgFromError,
 } from '@radixdlt/util'
-import { ScryptParamsT } from '../key-derivation-functions/_types'
-import { Scrypt, ScryptParams } from '../key-derivation-functions/scrypt'
-import { AES_GCM_SealedBox } from '../symmetric-encryption/aes/aesGCMSealedBox'
 import {
-	AES_GCM_OPEN_Input,
-	AES_GCM_SealedBoxT,
-} from '../symmetric-encryption/aes/_types'
-import { sha256 } from '../hash/sha'
+	Scrypt,
+	ScryptParams,
+	ScryptParamsT,
+} from '../key-derivation-functions'
+import { sha256 } from '../hash'
 
 const validatePassword = (password: string): Result<string, Error> =>
 	ok(password) // no validation for now...

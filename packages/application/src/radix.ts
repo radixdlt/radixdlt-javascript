@@ -1,8 +1,5 @@
 import {
 	AccountAddressT,
-	AccountAddress,
-	AccountsT,
-	AccountT,
 	DeriveNextAccountInput,
 	MnemomicT,
 	NetworkT,
