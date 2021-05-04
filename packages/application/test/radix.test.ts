@@ -614,7 +614,7 @@ describe('radix_high_level_api', () => {
 		const subs = new Subscription()
 		const radix = Radix.create()
 
-		const expectedValues = [0, 1, 2, 3, 1, 0, 3]
+		const expectedValues = [0, 1, 2, 3, 1, 0, 3, 0]
 
 		subs.add(
 			radix.activeIdentity
@@ -632,14 +632,19 @@ describe('radix_high_level_api', () => {
 				),
 		)
 
+		const identityManager = createIM({ startWithAnAccount: true })
+
+		const firstIdentity = identityManager.__unsafeGetIdentity()
+
 		radix
-			.withIdentityManager(createIM()) //0
+			.withIdentityManager(identityManager) //0
 			.deriveNextIdentity({ alsoSwitchTo: true }) // 1
 			.deriveNextIdentity({ alsoSwitchTo: true }) // 2
 			.deriveNextIdentity({ alsoSwitchTo: true }) // 3
 			.switchIdentity({ toIndex: 1 })
 			.switchIdentity('first')
 			.switchIdentity('last')
+			.switchIdentity({ toIdentity: firstIdentity })
 	})
 
 	it('deriveNextIdentity method on radix updates accounts', (done) => {
