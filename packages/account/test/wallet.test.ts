@@ -113,7 +113,7 @@ describe('wallet_type', () => {
 		subs.add(
 			wallet.restoreLocalHDAccountsUpToIndex(indexToRestoreTo).subscribe(
 				(accounts) => {
-					expect(accounts.size).toBe(indexToRestoreTo)
+					expect(accounts.size()).toBe(indexToRestoreTo)
 
 					let next = 0
 					const assertAccountHasCorrectIndex = (
@@ -202,7 +202,7 @@ describe('wallet_type', () => {
 	it('wallet can observe accounts', (done) => {
 		const subs = new Subscription()
 		const wallet = createWallet({ startWithAnAccount: true })
-		const expected = [0, 1] // we start with 0 accounts but "immediately" derive a first one, before 0 can be emitted
+		const expected = [1, 2]
 
 		subs.add(
 			wallet
@@ -255,10 +255,6 @@ describe('wallet_type', () => {
 		const subs = new Subscription()
 		const wallet = createWallet()
 
-		subs.add(
-			wallet.deriveNextLocalHDAccount({ alsoSwitchTo: true }).subscribe(),
-		)
-
 		const expectedValues = [0, 1] // we start at 0 by default, then switch to 1
 
 		subs.add(
@@ -277,6 +273,10 @@ describe('wallet_type', () => {
 					error: (e) => done(e),
 				}),
 		)
+
+		subs.add(
+			wallet.deriveNextLocalHDAccount({ alsoSwitchTo: true }).subscribe(),
+		)
 	})
 
 	it('can list all accounts that has been added', (done) => {
@@ -285,8 +285,7 @@ describe('wallet_type', () => {
 		): void => {
 			const subs = new Subscription()
 			const wallet = createWallet()
-			const expectedValues = [1]//, 2, 3]
-
+			const expectedValues = [1, 2, 3]
 
 			subs.add(
 				wallet
@@ -297,34 +296,21 @@ describe('wallet_type', () => {
 						toArray(),
 					)
 					.subscribe((values) => {
-						console.log(`💟 3️⃣  NEXT`)
 						expect(values).toStrictEqual(expectedValues)
 						done()
 					}),
 			)
 
 			subs.add(
-				wallet.deriveNextLocalHDAccount().subscribe({
-					next: (_) => {
-						console.log(`💟  1️⃣ NEXT!!`)
-					},
-					complete: () => {
-						console.log(`💟  1️⃣ COMPLETE`)
-						subs.add(
-							wallet.deriveNextLocalHDAccount().subscribe({
-								complete: () => {
-									console.log(`💟  2️⃣  COMPLETE`)
-								},
-							}),
-						)
-					},
+				wallet.deriveNextLocalHDAccount().subscribe(() => {
+					subs.add(wallet.deriveNextLocalHDAccount().subscribe())
 				}),
 			)
 		}
 
 		// testAccountsList(acs => acs.localHDAccounts().length)
-		testAccountsList(acs => acs.all.length)
-		// testAccountsList((acs) => acs.size)
+		// testAccountsList(acs => acs.all.length)
+		testAccountsList((acs) => acs.size())
 	})
 
 	it('can switch account by number', (done) => {

@@ -59,7 +59,7 @@ const stringifyAccounts = (accounts: AccountsT): string => {
 	const allAccountsString = stringifyAccountsArray(accounts.all)
 
 	return `
-		size: ${accounts.size},
+		size: ${accounts.size()},
 		#hdAccounts: ${accounts.hdAccounts().length},
 		#nonHDAccounts: ${accounts.nonHDAccounts().length},
 		#localHDAccounts: ${accounts.localHDAccounts().length},
@@ -76,7 +76,6 @@ type MutableAccountsT = AccountsT &
 
 const createAccounts = (_all: AccountT[]): MutableAccountsT => {
 	const all: AccountT[] = []
-	let size = 0
 
 	const getHDAccountByHDPath = (hdPath: HDPathRadixT): Option<AccountT> => {
 		const account = all
@@ -98,7 +97,6 @@ const createAccounts = (_all: AccountT[]): MutableAccountsT => {
 	const hdAccounts = () => all.filter((a) => a.isHDAccount)
 
 	const add = (account: AccountT): void => {
-		// console.log(`🤡 Adding new account: ${stringifyAccount(account)}`)
 		if (
 			all.find((a) => a.type.uniqueKey === account.type.uniqueKey) !==
 			undefined
@@ -108,28 +106,7 @@ const createAccounts = (_all: AccountT[]): MutableAccountsT => {
 			return
 		}
 		// new
-		// console.log(`🤡 all: ${stringifyAccountsArray(all)}`)
 		all.push(account)
-		size = all.length
-		// console.log(`🤡 AFTER all: ${stringifyAccountsArray(all)}`)
-		// console.log(
-		// 	`🤡 AFTER localHDAccounts: ${stringifyAccountsArray(
-		// 		localHDAccounts(),
-		// 	)}`,
-		// )
-		// console.log(
-		// 	`🤡 AFTER hardwareHDAccounts: ${stringifyAccountsArray(
-		// 		hardwareHDAccounts(),
-		// 	)}`,
-		// )
-		// console.log(
-		// 	`🤡 AFTER nonHDAccounts: ${stringifyAccountsArray(
-		// 		nonHDAccounts(),
-		// 	)}`,
-		// )
-		// console.log(
-		// 	`🤡 AFTER hdAccounts: ${stringifyAccountsArray(hdAccounts())}`,
-		// )
 	}
 
 	return <MutableAccountsT>{
@@ -142,7 +119,7 @@ const createAccounts = (_all: AccountT[]): MutableAccountsT => {
 		nonHDAccounts,
 		hdAccounts,
 		all,
-		size,
+		size: () => all.length,
 		getHDAccountByHDPath,
 		getAnyAccountByPublicKey,
 	}
@@ -175,7 +152,7 @@ const __unsafeCreateWithPrivateKeyProvider = (
 
 	const revealMnemonic = (): MnemomicT => mnemonic
 
-	const numberOfAllAccounts = (): number => accountsSubject.getValue().size
+	const numberOfAllAccounts = (): number => accountsSubject.getValue().size()
 	const numberOfLocalHDAccounts = (): number =>
 		accountsSubject.getValue().localHDAccounts().length
 
@@ -197,11 +174,11 @@ const __unsafeCreateWithPrivateKeyProvider = (
 
 				const accounts = accountsSubject.getValue()
 
-				console.log(`🚀 BEFORE: ${stringifyAccounts(accounts)}`)
+				// console.log(`🚀 BEFORE: ${stringifyAccounts(accounts)}`)
 				accounts.add(newAccount)
 
 				accountsSubject.next(accounts)
-				console.log(`🚀 AFTER adding account - ${newAccount.toString()} result: ${stringifyAccounts(accounts)}`)
+				// console.log(`🚀 AFTER adding account - ${newAccount.toString()} result: ${stringifyAccounts(accounts)}`)
 
 				if (alsoSwitchTo) {
 					activeAccountSubject.next(Option.some(newAccount))
@@ -303,7 +280,7 @@ const __unsafeCreateWithPrivateKeyProvider = (
 			const unsafeTargetIndex = input.toIndex
 			const accounts = accountsSubject.getValue()
 
-			const safeTargetIndex = Math.min(unsafeTargetIndex, accounts.size)
+			const safeTargetIndex = Math.min(unsafeTargetIndex, accounts.size())
 
 			const firstAccount = Array.from(accounts.all)[safeTargetIndex]
 			if (!firstAccount) {

@@ -120,7 +120,7 @@ export type AccountsT = Readonly<{
 	nonHDAccounts: () => AccountT[]
 
 	// size of `all` accounts.
-	size: number
+	size: () => number
 }>
 
 export type SwitchToAccount = Readonly<{ toAccount: AccountT }>

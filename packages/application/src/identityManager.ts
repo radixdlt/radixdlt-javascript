@@ -50,13 +50,14 @@ const create = (
 			all,
 			getIdentityWithHDAccountByHDPath,
 			getAnyIdentityByPublicKey,
-			identitiesWithHDAccounts: accounts.hdAccounts().map(aToI),
-			identitiesWithHardwareHDAccounts: accounts
-				.hardwareHDAccounts()
-				.map(aToI),
-			identitiesWithLocalHDAccounts: accounts.localHDAccounts().map(aToI),
-			identitiesWithNonHDAccounts: accounts.nonHDAccounts().map(aToI),
-			size: all.length,
+			identitiesWithHDAccounts: () => accounts.hdAccounts().map(aToI),
+			identitiesWithHardwareHDAccounts: () =>
+				accounts.hardwareHDAccounts().map(aToI),
+			identitiesWithLocalHDAccounts: () =>
+				accounts.localHDAccounts().map(aToI),
+			identitiesWithNonHDAccounts: () =>
+				accounts.nonHDAccounts().map(aToI),
+			size: () => all.length,
 		}
 	}
 

@@ -100,16 +100,16 @@ export type IdentitiesT = Readonly<{
 	// ALL identities, basically a concatenation of `identitiesWithHDAccounts || identitiesWithNonHDAccounts`
 	all: IdentityT[]
 
-	identitiesWithNonHDAccounts: IdentityT[]
+	identitiesWithNonHDAccounts: () => IdentityT[]
 
-	identitiesWithLocalHDAccounts: IdentityT[]
-	identitiesWithHardwareHDAccounts: IdentityT[]
+	identitiesWithLocalHDAccounts: () => IdentityT[]
+	identitiesWithHardwareHDAccounts: () => IdentityT[]
 
 	// Concatenation of `identitiesWithLocalHDAccounts || identitiesWithHardwareHDAccounts`
-	identitiesWithHDAccounts: IdentityT[]
+	identitiesWithHDAccounts: () => IdentityT[]
 
 	// size of `all`.
-	size: number
+	size: () => number
 }>
 
 export type IdentityManagerT = Readonly<{
