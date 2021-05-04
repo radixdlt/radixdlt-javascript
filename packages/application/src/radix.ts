@@ -188,7 +188,7 @@ const create = (
 	) => (...input: I) =>
 		coreAPI$.pipe(
 			mergeMap((a) => pickFn(a)(...input)),
-
+			take(1),
 			// We do NOT omit/supress error, we merely DECORATE the error
 			catchError((errors: unknown) => {
 				const underlyingError = msgFromError(errors)
@@ -336,7 +336,6 @@ const create = (
 					token: tokenInfo,
 				}),
 			),
-			take(1),
 		)
 	}
 
@@ -388,19 +387,13 @@ const create = (
 
 	const transactionHistory = (
 		input: TransactionHistoryActiveAccountRequestInput,
-	): Observable<TransactionHistory> => {
-		return activeAddress.pipe(
-			withLatestFrom(coreAPI$),
-			switchMap(([activeAddress, api]) => {
-				return api
+	): Observable<TransactionHistory> =>
+		activeAddress.pipe(
+			take(1),
+			switchMap((activeAddress) =>
+				api
 					.transactionHistory({ ...input, address: activeAddress })
 					.pipe(
-						catchError((error: Error) => {
-							errorNotificationSubject.next(
-								transactionHistoryErr(error.message),
-							)
-							return EMPTY
-						}),
 						map(
 							(
 								simpleTxHistory: SimpleTransactionHistory,
@@ -419,11 +412,9 @@ const create = (
 								}
 							},
 						),
-					)
-			}),
-			shareReplay(1),
+					),
+			),
 		)
-	}
 
 	const node$ = merge(
 		nodeSubject.asObservable(),
