@@ -114,10 +114,10 @@ export type AccountsT = Readonly<{
 
 	all: AccountT[]
 
-	hdAccounts: AccountT[]
-	localHDAccounts: AccountT[]
-	hardwareHDAccounts: AccountT[]
-	nonHDAccounts: AccountT[]
+	hdAccounts: () => AccountT[]
+	localHDAccounts: () => AccountT[]
+	hardwareHDAccounts: () => AccountT[]
+	nonHDAccounts: () => AccountT[]
 
 	// size of `all` accounts.
 	size: number

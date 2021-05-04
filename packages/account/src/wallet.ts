@@ -52,15 +52,18 @@ const stringifyAccount = (account: AccountT): string => {
 	`
 }
 
+const stringifyAccountsArray = (accounts: AccountT[]): string =>
+	accounts.map(stringifyAccount).join(',\n')
+
 const stringifyAccounts = (accounts: AccountsT): string => {
-	const allAccountsString = accounts.all.map(stringifyAccount).join(',\n')
+	const allAccountsString = stringifyAccountsArray(accounts.all)
 
 	return `
 		size: ${accounts.size},
-		#hdAccounts: ${accounts.hdAccounts.length},
-		#nonHDAccounts: ${accounts.nonHDAccounts.length},
-		#localHDAccounts: ${accounts.localHDAccounts.length},
-		#hardwareHDAccounts: ${accounts.hardwareHDAccounts.length},
+		#hdAccounts: ${accounts.hdAccounts().length},
+		#nonHDAccounts: ${accounts.nonHDAccounts().length},
+		#localHDAccounts: ${accounts.localHDAccounts().length},
+		#hardwareHDAccounts: ${accounts.hardwareHDAccounts().length},
 		
 		all: ${allAccountsString}
 	`
@@ -72,42 +75,12 @@ type MutableAccountsT = AccountsT &
 	}>
 
 const createAccounts = (_all: AccountT[]): MutableAccountsT => {
-	const localHDAccounts: AccountT[] = []
-	const hardwareHDAccounts: AccountT[] = []
-	const nonHDAccounts: AccountT[] = []
-
-	const arrayForAccount = (account: AccountT): AccountT[] => {
-		if (account.type.typeIdentifier === AccountTypeIdentifier.HD_ACCOUNT) {
-			if (account.type.hdAccountType === HDAccountTypeIdentifier.LOCAL) {
-				return localHDAccounts
-			} else {
-				return hardwareHDAccounts
-			}
-		} else {
-			return nonHDAccounts
-		}
-	}
-
-	let hdAccounts: AccountT[] = []
-	let all: AccountT[] = []
+	const all: AccountT[] = []
 	let size = 0
 
-	const __setArrays = (): void => {
-		hdAccounts = [...localHDAccounts, ...hardwareHDAccounts]
-		all = [...nonHDAccounts, ...hdAccounts]
-		size = all.length
-	}
-
-	if (localHDAccounts.length > 0 && all.length === 0) {
-		throw new Error('bad array concat logic.')
-	}
-
 	const getHDAccountByHDPath = (hdPath: HDPathRadixT): Option<AccountT> => {
-		const account = hdAccounts
-			.filter(
-				(a) =>
-					a.type.typeIdentifier === AccountTypeIdentifier.HD_ACCOUNT,
-			)
+		const account = all
+			.filter((a) => a.isHDAccount)
 			.find((a) => a.hdPath!.equals(hdPath))
 		return Option.of(account)
 	}
@@ -119,21 +92,45 @@ const createAccounts = (_all: AccountT[]): MutableAccountsT => {
 		return Option.of(account)
 	}
 
+	const localHDAccounts = () => all.filter((a) => a.isLocalHDAccount)
+	const hardwareHDAccounts = () => all.filter((a) => a.isHardwareAccount)
+	const nonHDAccounts = () => all.filter((a) => !a.isHDAccount)
+	const hdAccounts = () => all.filter((a) => a.isHDAccount)
+
 	const add = (account: AccountT): void => {
-		const array = arrayForAccount(account)
+		// console.log(`🤡 Adding new account: ${stringifyAccount(account)}`)
 		if (
-			array.find((a) => a.type.uniqueKey === account.type.uniqueKey) !==
+			all.find((a) => a.type.uniqueKey === account.type.uniqueKey) !==
 			undefined
 		) {
 			// already there
+			console.log(`🤡❌ account already in list, skipping...`)
 			return
 		}
 		// new
-		array.push(account)
-		__setArrays()
+		// console.log(`🤡 all: ${stringifyAccountsArray(all)}`)
+		all.push(account)
+		size = all.length
+		// console.log(`🤡 AFTER all: ${stringifyAccountsArray(all)}`)
+		// console.log(
+		// 	`🤡 AFTER localHDAccounts: ${stringifyAccountsArray(
+		// 		localHDAccounts(),
+		// 	)}`,
+		// )
+		// console.log(
+		// 	`🤡 AFTER hardwareHDAccounts: ${stringifyAccountsArray(
+		// 		hardwareHDAccounts(),
+		// 	)}`,
+		// )
+		// console.log(
+		// 	`🤡 AFTER nonHDAccounts: ${stringifyAccountsArray(
+		// 		nonHDAccounts(),
+		// 	)}`,
+		// )
+		// console.log(
+		// 	`🤡 AFTER hdAccounts: ${stringifyAccountsArray(hdAccounts())}`,
+		// )
 	}
-
-	__setArrays()
 
 	return <MutableAccountsT>{
 		equals: (other: AccountsT): boolean => {
@@ -180,7 +177,7 @@ const __unsafeCreateWithPrivateKeyProvider = (
 
 	const numberOfAllAccounts = (): number => accountsSubject.getValue().size
 	const numberOfLocalHDAccounts = (): number =>
-		accountsSubject.getValue().localHDAccounts.length
+		accountsSubject.getValue().localHDAccounts().length
 
 	const _addNewAccount = (
 		input: Readonly<{
@@ -192,17 +189,19 @@ const __unsafeCreateWithPrivateKeyProvider = (
 
 		return input.newAccount$.pipe(
 			tap((newAccount: AccountT) => {
-				log.info(
-					`Deriving new account: ${newAccount.toString()}, alsoSwitchTo: ${
-						alsoSwitchTo ? 'YES' : 'NO'
-					} `,
-				)
+				// console.log(
+				// 	`🔥 Deriving new account: ${newAccount.toString()}, alsoSwitchTo: ${
+				// 		alsoSwitchTo ? 'YES' : 'NO'
+				// 	} `,
+				// )
 
 				const accounts = accountsSubject.getValue()
 
+				console.log(`🚀 BEFORE: ${stringifyAccounts(accounts)}`)
 				accounts.add(newAccount)
 
 				accountsSubject.next(accounts)
+				console.log(`🚀 AFTER adding account - ${newAccount.toString()} result: ${stringifyAccounts(accounts)}`)
 
 				if (alsoSwitchTo) {
 					activeAccountSubject.next(Option.some(newAccount))
@@ -262,6 +261,7 @@ const __unsafeCreateWithPrivateKeyProvider = (
 		input?: DeriveNextAccountInput,
 	): Observable<AccountT> => {
 		const index = numberOfLocalHDAccounts()
+		// console.log(`👻🔥 index: ${index}`)
 		return _deriveNextLocalHDAccountAtIndex({
 			addressIndex: {
 				index,
@@ -333,11 +333,22 @@ const __unsafeCreateWithPrivateKeyProvider = (
 	)
 
 	const accounts$ = accountsSubject.asObservable().pipe(
-		distinctUntilChanged((a: AccountsT, b: AccountsT): boolean => {
-			return a.equals(b)
-		}),
+		// distinctUntilChanged((a: AccountsT, b: AccountsT): boolean => {
+		// 	return a.equals(b)
+		// }),
 		shareReplay(),
 	)
+
+	// subs.add(
+	// 	accountsSubject.subscribe((acs) =>
+	// 		console.log(`👻 accountsSubject ${stringifyAccounts(acs)}`),
+	// 	),
+	// )
+	// subs.add(
+	// 	accounts$.subscribe((acs) =>
+	// 		console.log(`🔮 accounts$ ${stringifyAccounts(acs)}`),
+	// 	),
+	// )
 
 	const restoreLocalHDAccountsUpToIndex = (
 		index: number,
