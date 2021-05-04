@@ -336,7 +336,7 @@ describe('radix_high_level_api', () => {
 		subs.add(
 			radix.restoreIdentitiesForLocalHDAccountsUpToIndex(index).subscribe(
 				(identities) => {
-					expect(identities.size).toBe(index)
+					expect(identities.size()).toBe(index)
 					identities.all.forEach((identity: IdentityT, idx) => {
 						expect(identity.hdPath!.addressIndex.value()).toBe(idx)
 					})
@@ -654,7 +654,7 @@ describe('radix_high_level_api', () => {
 		subs.add(
 			radix.identities
 				.pipe(
-					map((a) => a.size),
+					map((i) => i.size()),
 					take(expected.length),
 					toArray(),
 				)

@@ -144,7 +144,7 @@ describe('integration API tests', () => {
 		subs.add(
 			radix.identities
 				.pipe(
-					map((a) => a.size),
+					map((i) => i.size()),
 					take(expected.length),
 					toArray(),
 				)
