@@ -322,8 +322,8 @@ describe('wallet_type', () => {
 			)
 		}
 
-		testAccountsList(acs => acs.localHDAccounts().length)
-		// testAccountsList(acs => acs.all.length)
+		// testAccountsList(acs => acs.localHDAccounts().length)
+		testAccountsList(acs => acs.all.length)
 		// testAccountsList((acs) => acs.size)
 	})
 
