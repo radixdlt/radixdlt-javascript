@@ -10,9 +10,7 @@ import { Account, isAccount } from './account'
 import {
 	AccountsT,
 	AccountT,
-	AccountTypeIdentifier,
 	DeriveNextAccountInput,
-	HDAccountTypeIdentifier,
 	SwitchAccountInput,
 	SwitchToAccount,
 	SwitchToAccountIndex,
@@ -40,20 +38,8 @@ import { arraysEqual, log, msgFromError } from '@radixdlt/util'
 import { HDMasterSeed, MnemomicT, Mnemonic } from './bip39'
 import { ResultAsync } from 'neverthrow'
 
-const stringifyAccount = (account: AccountT): string => {
-	return `
-		type: ${account.type.typeIdentifier.toString()},
-		publicKey: ${account.publicKey.toString(true)},
-		hdPath?: ${Option.of<HDPathRadixT>(account.hdPath)
-			.map((hdp) => hdp.toString())
-			.getOrElse('NONE')},
-		isHDAccount: ${account.isHDAccount ? 'YES' : 'NO'},
-		isHardwareAccount: ${account.isHardwareAccount ? 'YES' : 'NO'},
-	`
-}
-
 const stringifyAccountsArray = (accounts: AccountT[]): string =>
-	accounts.map(stringifyAccount).join(',\n')
+	accounts.map((a) => a.toString()).join(',\n')
 
 const stringifyAccounts = (accounts: AccountsT): string => {
 	const allAccountsString = stringifyAccountsArray(accounts.all)
@@ -102,14 +88,16 @@ const createAccounts = (_all: AccountT[]): MutableAccountsT => {
 			undefined
 		) {
 			// already there
-			console.log(`🤡❌ account already in list, skipping...`)
 			return
 		}
 		// new
 		all.push(account)
 	}
 
-	return <MutableAccountsT>{
+	const accounts: MutableAccountsT = {
+		toString: (): string => {
+			throw new Error('Overriden below')
+		},
 		equals: (other: AccountsT): boolean => {
 			return arraysEqual(other.all, all)
 		},
@@ -122,6 +110,11 @@ const createAccounts = (_all: AccountT[]): MutableAccountsT => {
 		size: () => all.length,
 		getHDAccountByHDPath,
 		getAnyAccountByPublicKey,
+	}
+
+	return {
+		...accounts,
+		toString: (): string => stringifyAccounts(accounts),
 	}
 }
 
@@ -166,19 +159,11 @@ const __unsafeCreateWithPrivateKeyProvider = (
 
 		return input.newAccount$.pipe(
 			tap((newAccount: AccountT) => {
-				// console.log(
-				// 	`🔥 Deriving new account: ${newAccount.toString()}, alsoSwitchTo: ${
-				// 		alsoSwitchTo ? 'YES' : 'NO'
-				// 	} `,
-				// )
-
 				const accounts = accountsSubject.getValue()
 
-				// console.log(`🚀 BEFORE: ${stringifyAccounts(accounts)}`)
 				accounts.add(newAccount)
 
 				accountsSubject.next(accounts)
-				// console.log(`🚀 AFTER adding account - ${newAccount.toString()} result: ${stringifyAccounts(accounts)}`)
 
 				if (alsoSwitchTo) {
 					activeAccountSubject.next(Option.some(newAccount))
@@ -238,7 +223,6 @@ const __unsafeCreateWithPrivateKeyProvider = (
 		input?: DeriveNextAccountInput,
 	): Observable<AccountT> => {
 		const index = numberOfLocalHDAccounts()
-		// console.log(`👻🔥 index: ${index}`)
 		return _deriveNextLocalHDAccountAtIndex({
 			addressIndex: {
 				index,
@@ -309,23 +293,7 @@ const __unsafeCreateWithPrivateKeyProvider = (
 		shareReplay(),
 	)
 
-	const accounts$ = accountsSubject.asObservable().pipe(
-		// distinctUntilChanged((a: AccountsT, b: AccountsT): boolean => {
-		// 	return a.equals(b)
-		// }),
-		shareReplay(),
-	)
-
-	// subs.add(
-	// 	accountsSubject.subscribe((acs) =>
-	// 		console.log(`👻 accountsSubject ${stringifyAccounts(acs)}`),
-	// 	),
-	// )
-	// subs.add(
-	// 	accounts$.subscribe((acs) =>
-	// 		console.log(`🔮 accounts$ ${stringifyAccounts(acs)}`),
-	// 	),
-	// )
+	const accounts$ = accountsSubject.asObservable().pipe(shareReplay())
 
 	const restoreLocalHDAccountsUpToIndex = (
 		index: number,

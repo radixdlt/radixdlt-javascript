@@ -105,6 +105,7 @@ export type HardwareWalletSimpleT = Readonly<{
 }>
 
 export type AccountsT = Readonly<{
+	toString: () => string
 	equals: (other: AccountsT) => boolean
 
 	// Get only HD account, by its path

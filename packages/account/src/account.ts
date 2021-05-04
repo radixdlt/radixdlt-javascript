@@ -27,34 +27,17 @@ import { HDPathRadixT } from './bip32'
 import { okAsync, ResultAsync } from 'neverthrow'
 import { Option } from 'prelude-ts'
 
-/*
-* export enum HDAccountTypeIdentifier {
-	LOCAL = 'LOCAL',
-	HARDWARE_OR_REMOTE = 'HARDWARE_OR_REMOTE',
+const stringifyAccount = (account: AccountT): string => {
+	return `
+		type: ${account.type.typeIdentifier.toString()},
+		publicKey: ${account.publicKey.toString(true)},
+		hdPath?: ${Option.of<HDPathRadixT>(account.hdPath)
+			.map((hdp) => hdp.toString())
+			.getOrElse('NONE')},
+		isHDAccount: ${account.isHDAccount ? 'YES' : 'NO'},
+		isHardwareAccount: ${account.isHardwareAccount ? 'YES' : 'NO'},
+	`
 }
-
-export enum AccountTypeIdentifier {
-	HD_ACCOUNT = 'HD_ACCOUNT',
-	NON_HD_ACCOUNT = 'NON_HD_ACCOUNT',
-}
-
-export type BaseAccountTypeT<T extends AccountTypeIdentifier> = Readonly<{
-	typeIdentifier: T
-}>
-
-export type AccountTypeHD = BaseAccountTypeT<AccountTypeIdentifier.HD_ACCOUNT> &
-	Readonly<{
-		hdAccountType: HDAccountTypeIdentifier
-		hdPath: HDPathRadixT
-	}>
-
-export type AccountTypeNonHD = BaseAccountTypeT<AccountTypeIdentifier.NON_HD_ACCOUNT> &
-	Readonly<{
-		name?: string
-	}>
-
-export type AccountTypeT = AccountTypeHD | AccountTypeNonHD
-* */
 
 const makeAccountTypeHD = (
 	input: Readonly<{
@@ -211,7 +194,7 @@ const fromPrivateKeyAtHDPath = (
 		hdAccountType: HDAccountTypeIdentifier.LOCAL,
 	})
 
-	return {
+	const newAccount = {
 		...type, // forward sugar for boolean account type getters
 		isLocalHDAccount: type.isHDAccount && !type.isHardwareAccount,
 		decrypt: makeDecrypt(diffieHellman),
@@ -220,10 +203,17 @@ const fromPrivateKeyAtHDPath = (
 		hdPath,
 		publicKey,
 		type,
-		toString: (): string => type.uniqueKey,
+		toString: (): string => {
+			throw new Error('Overriden below')
+		},
 		equals: (other: AccountT): boolean => {
 			return publicKey.equals(other.publicKey)
 		},
+	}
+
+	return {
+		...newAccount,
+		toString: () => stringifyAccount(newAccount),
 	}
 }
 
