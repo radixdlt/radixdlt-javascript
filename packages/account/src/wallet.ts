@@ -11,10 +11,10 @@ import { Account, isAccount } from './account'
 import {
 	AccountsT,
 	AccountT,
-	DeriveNextAccountInput,
+	DeriveNextInput,
 	SwitchAccountInput,
 	SwitchToAccount,
-	SwitchToAccountIndex,
+	SwitchToIndex,
 	WalletT,
 } from './_types'
 import { mergeMap, shareReplay, take } from 'rxjs/operators'
@@ -111,6 +111,13 @@ const createAccounts = (_all: AccountT[]): MutableAccountsT => {
 	}
 }
 
+export const isSwitchToIndex = (
+	something: unknown,
+): something is SwitchToIndex => {
+	const inspection = something as SwitchToIndex
+	return inspection.toIndex !== undefined
+}
+
 const MutableAccounts = {
 	create: createAccounts,
 }
@@ -194,7 +201,7 @@ const create = (
 		})
 
 	const deriveNextLocalHDAccount = (
-		input?: DeriveNextAccountInput,
+		input?: DeriveNextInput,
 	): Observable<AccountT> => {
 		const index = numberOfLocalHDAccounts()
 		return _deriveNextLocalHDAccountAtIndex({
@@ -217,13 +224,6 @@ const create = (
 			)
 		}
 
-		const isSwitchToAccountIndex = (
-			something: unknown,
-		): something is SwitchToAccountIndex => {
-			const inspection = input as SwitchToAccountIndex
-			return inspection.toIndex !== undefined
-		}
-
 		if (input === 'last') {
 			const lastIndex = numberOfAllAccounts() - 1
 			return switchAccount({ toIndex: lastIndex })
@@ -234,7 +234,7 @@ const create = (
 			setActiveAccount(toAccount)
 			log.info(`Active account switched to: ${toAccount.toString()}`)
 			return toAccount
-		} else if (isSwitchToAccountIndex(input)) {
+		} else if (isSwitchToIndex(input)) {
 			const unsafeTargetIndex = input.toIndex
 			const accounts = accountsSubject.getValue()
 

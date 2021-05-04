@@ -133,15 +133,15 @@ export type AccountsT = Readonly<{
 }>
 
 export type SwitchToAccount = Readonly<{ toAccount: AccountT }>
-export type SwitchToAccountIndex = Readonly<{ toIndex: number }>
+export type SwitchToIndex = Readonly<{ toIndex: number }>
 
 export type SwitchAccountInput =
 	| 'first'
 	| 'last'
 	| SwitchToAccount
-	| SwitchToAccountIndex
+	| SwitchToIndex
 
-export type DeriveNextAccountInput =
+export type DeriveNextInput =
 	| undefined
 	| Readonly<{
 			isHardened?: boolean // defaults to true
@@ -160,7 +160,7 @@ export type WalletT = Signing &
 		) => Observable<AccountsT>
 
 		deriveNextLocalHDAccount: (
-			input?: DeriveNextAccountInput,
+			input?: DeriveNextInput,
 		) => Observable<AccountT>
 
 		addAccountFromPrivateKey: (

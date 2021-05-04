@@ -1,9 +1,8 @@
 import {
 	AccountAddressT,
-	DeriveNextAccountInput,
+	DeriveNextInput,
 	MnemomicT,
 	NetworkT,
-	SwitchAccountInput,
 	Wallet,
 	WalletT,
 } from '@radixdlt/account'
@@ -45,6 +44,7 @@ import {
 	ManualUserConfirmTX,
 	RadixT,
 	StakeOptions,
+	SwitchIdentityInput,
 	TransactionConfirmationBeforeFinalization,
 	TransferTokensOptions,
 	UnstakeOptions,
@@ -164,8 +164,8 @@ const create = (
 	const identityManagerSubject = new ReplaySubject<IdentityManagerT>()
 	const errorNotificationSubject = new Subject<ErrorNotification>()
 
-	const deriveNextLocalHDIdentitySubject = new Subject<DeriveNextAccountInput>()
-	const switchIdentitySubject = new Subject<SwitchAccountInput>()
+	const deriveNextLocalHDIdentitySubject = new Subject<DeriveNextInput>()
+	const switchIdentitySubject = new Subject<SwitchIdentityInput>()
 
 	const tokenBalanceFetchSubject = new Subject<number>()
 	const stakingFetchSubject = new Subject<number>()
@@ -998,13 +998,13 @@ const create = (
 
 		errors: errorNotificationSubject.asObservable(),
 
-		deriveNextIdentity: function (input?: DeriveNextAccountInput): RadixT {
-			const derivation: DeriveNextAccountInput = input ?? {}
+		deriveNextIdentity: function (input?: DeriveNextInput): RadixT {
+			const derivation: DeriveNextInput = input ?? {}
 			deriveNextLocalHDIdentitySubject.next(derivation)
 			return this
 		},
 
-		switchIdentity: function (input: SwitchAccountInput): RadixT {
+		switchIdentity: function (input: SwitchIdentityInput): RadixT {
 			switchIdentitySubject.next(input)
 			return this
 		},

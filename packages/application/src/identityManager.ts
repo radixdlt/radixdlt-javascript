@@ -4,13 +4,19 @@ import {
 	AccountT,
 	AccountsT,
 	AccountAddressT,
-	DeriveNextAccountInput,
+	DeriveNextInput,
 	AccountAddress,
 	HDPathRadixT,
 } from '@radixdlt/account'
-import { IdentityManagerT, IdentityT, IdentitiesT } from './_types'
+import {
+	IdentityManagerT,
+	IdentityT,
+	IdentitiesT,
+	SwitchIdentityInput,
+	SwitchToIdentity,
+} from './_types'
 import { Observable } from 'rxjs'
-import { Identity } from './identity'
+import { Identity, isIdentity } from './identity'
 import { map } from 'rxjs/operators'
 import { Option } from 'prelude-ts'
 import { PublicKey } from '@radixdlt/crypto'
@@ -69,7 +75,7 @@ const create = (
 		revealMnemonic: wallet.revealMnemonic,
 
 		deriveNextLocalHDIdentity: (
-			input?: DeriveNextAccountInput,
+			input?: DeriveNextInput,
 		): Observable<IdentityT> => {
 			return wallet.deriveNextLocalHDAccount(input).pipe(map(aToI))
 		},
@@ -90,8 +96,26 @@ const create = (
 				.pipe(map(asToIs))
 		},
 
-		switchIdentity: (input): IdentityT => {
-			return aToI(wallet.switchAccount(input))
+		switchIdentity: (input: SwitchIdentityInput): IdentityT => {
+			const isSwitchToIdentity = (
+				something: unknown,
+			): something is SwitchToIdentity => {
+				const inspection = input as SwitchToIdentity
+				return (
+					inspection.toIdentity !== undefined &&
+					isIdentity(inspection.toIdentity)
+				)
+			}
+
+			if (isSwitchToIdentity(input)) {
+				return aToI(
+					wallet.switchAccount({
+						toAccount: input.toIdentity.account,
+					}),
+				)
+			} else {
+				return aToI(wallet.switchAccount(input))
+			}
 		},
 	}
 }

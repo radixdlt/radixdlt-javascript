@@ -1,14 +1,14 @@
 import {
 	AccountT,
 	AccountAddressT,
-	DeriveNextAccountInput,
+	DeriveNextInput,
 	MnemomicT,
-	SwitchAccountInput,
 	NetworkT,
 	HDPathRadixT,
 	Signing,
 	Encrypting,
 	Decrypting,
+	SwitchToIndex,
 } from '@radixdlt/account'
 import { KeystoreT, PublicKey } from '@radixdlt/crypto'
 import { LogLevel } from '@radixdlt/util'
@@ -110,6 +110,14 @@ export type IdentitiesT = Readonly<{
 	size: () => number
 }>
 
+export type SwitchToIdentity = Readonly<{ toIdentity: IdentityT }>
+
+export type SwitchIdentityInput =
+	| 'first'
+	| 'last'
+	| SwitchToIdentity
+	| SwitchToIndex
+
 export type IdentityManagerT = Readonly<{
 	// should only be used for testing
 	__unsafeGetIdentity: () => IdentityT
@@ -121,10 +129,10 @@ export type IdentityManagerT = Readonly<{
 	) => Observable<IdentitiesT>
 
 	deriveNextLocalHDIdentity: (
-		input?: DeriveNextAccountInput,
+		input?: DeriveNextInput,
 	) => Observable<IdentityT>
 
-	switchIdentity: (input: SwitchAccountInput) => IdentityT
+	switchIdentity: (input: SwitchIdentityInput) => IdentityT
 
 	observeActiveIdentity: () => Observable<IdentityT>
 	observeIdentities: () => Observable<IdentitiesT>
@@ -152,8 +160,8 @@ export type RadixT = Readonly<{
 	restoreIdentitiesForLocalHDAccountsUpToIndex: (
 		index: number,
 	) => Observable<IdentitiesT>
-	deriveNextIdentity: (input?: DeriveNextAccountInput) => RadixT
-	switchIdentity: (input: SwitchAccountInput) => RadixT
+	deriveNextIdentity: (input?: DeriveNextInput) => RadixT
+	switchIdentity: (input: SwitchIdentityInput) => RadixT
 	revealMnemonic: () => Observable<MnemomicT>
 
 	activeAddress: Observable<AccountAddressT>

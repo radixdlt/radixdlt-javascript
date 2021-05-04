@@ -1,5 +1,20 @@
-import { AccountT, AccountAddressT } from '@radixdlt/account'
+import {
+	AccountT,
+	AccountAddressT,
+	isAccount,
+	isAccountAddress,
+} from '@radixdlt/account'
 import { IdentityT } from './_types'
+
+export const isIdentity = (something: unknown): something is IdentityT => {
+	const inspection = something as IdentityT
+	return (
+		inspection.account !== undefined &&
+		isAccount(inspection.account) &&
+		inspection.accountAddress !== undefined &&
+		isAccountAddress(inspection.accountAddress)
+	)
+}
 
 const create = (
 	input: Readonly<{
