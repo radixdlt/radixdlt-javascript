@@ -2,6 +2,10 @@ import { privateKeyFromScalar, PublicKey, sha256Twice } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
 import { Account, HDMasterSeed, HDPathRadix, Mnemonic, NetworkT } from '../src'
 
+const privateKeyFromNum = (privateKeyScalar: number) => privateKeyFromScalar(
+	UInt256.valueOf(privateKeyScalar),
+)._unsafeUnwrap()
+
 describe('account', () => {
 	it('works', async (done) => {
 		const mnemonic = Mnemonic.fromEnglishPhrase(
@@ -40,5 +44,14 @@ describe('account', () => {
 			expect(sig.equals(expectedSignature)).toBe(true)
 			done()
 		})
+	})
+
+	it('can create hw accounts', () => {
+
+		const account = Account.fromPrivateKey({
+			privateKey: privateKeyFromNum(1)
+		})
+
+		expect(account.uniqueIdentifier).toBe(`Non_hd_pubKey0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798`)
 	})
 })
