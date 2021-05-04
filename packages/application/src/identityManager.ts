@@ -7,8 +7,6 @@ import {
 	DeriveNextInput,
 	AccountAddress,
 	HDPathRadixT,
-	SwitchToAccount,
-	isAccount,
 } from '@radixdlt/account'
 import {
 	IdentityManagerT,
