@@ -1,6 +1,7 @@
 import {
 	ECPointOnCurve,
 	EncryptedMessageT,
+	PrivateKey,
 	PublicKey,
 	Signature,
 } from '@radixdlt/crypto'
@@ -161,6 +162,15 @@ export type WalletT = Signing &
 		deriveNextLocalHDAccount: (
 			input?: DeriveNextAccountInput,
 		) => Observable<AccountT>
+
+		addAccountFromPrivateKey: (
+			input: Readonly<{
+				privateKey: PrivateKey
+				alsoSwitchTo?: boolean
+				// An optional context to where this private key comes from or its use. If preset, it can be read out from `type.name` on an account.
+				name?: string
+			}>,
+		) => AccountT
 
 		switchAccount: (input: SwitchAccountInput) => AccountT
 

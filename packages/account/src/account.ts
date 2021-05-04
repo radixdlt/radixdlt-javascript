@@ -176,23 +176,29 @@ const makeDecryptHW = (
 	}
 }
 
-const fromPrivateKeyAtHDPath = (
+const fromPrivateKeyNamedOrFromHDPath = (
 	input: Readonly<{
 		privateKey: PrivateKey
-		hdPath: HDPathRadixT
+		pathOrName?: HDPathRadixT | string
 	}>,
 ): AccountT => {
-	const { privateKey, hdPath } = input
+	const { privateKey } = input
 	const publicKey: PublicKey = privateKey.publicKey()
 	const sign = (hashedMessage: Buffer): Observable<Signature> =>
 		toObservable(privateKey.sign(hashedMessage))
 
 	const diffieHellman = privateKey.diffieHellman
 
-	const type: AccountTypeT = makeAccountTypeHD({
-		hdPath,
-		hdAccountType: HDAccountTypeIdentifier.LOCAL,
-	})
+	const type: AccountTypeT =
+		input.pathOrName === undefined || typeof input.pathOrName === 'string'
+			? makeAccountTypeNonHD({
+					publicKey,
+					name: input.pathOrName,
+			  })
+			: makeAccountTypeHD({
+					hdPath: input.pathOrName,
+					hdAccountType: HDAccountTypeIdentifier.LOCAL,
+			  })
 
 	const newAccount = {
 		...type, // forward sugar for boolean account type getters
@@ -200,7 +206,11 @@ const fromPrivateKeyAtHDPath = (
 		decrypt: makeDecrypt(diffieHellman),
 		encrypt: makeEncrypt(diffieHellman),
 		sign: sign,
-		hdPath,
+		hdPath:
+			input.pathOrName === undefined ||
+			typeof input.pathOrName === 'string'
+				? undefined
+				: input.pathOrName,
 		publicKey,
 		type,
 		uniqueIdentifier: type.uniqueKey,
@@ -217,6 +227,29 @@ const fromPrivateKeyAtHDPath = (
 		toString: () => stringifyAccount(newAccount),
 	}
 }
+
+const fromPrivateKeyAtHDPath = (
+	input: Readonly<{
+		privateKey: PrivateKey
+		hdPath: HDPathRadixT
+	}>,
+): AccountT =>
+	fromPrivateKeyNamedOrFromHDPath({
+		...input,
+		pathOrName: input.hdPath,
+	})
+
+const fromPrivateKey = (
+	input: Readonly<{
+		privateKey: PrivateKey
+		// An optional context to where this private key comes from or its use. If preset, it can be read out from `type.name` on an account.
+		name?: string
+	}>,
+): AccountT =>
+	fromPrivateKeyNamedOrFromHDPath({
+		...input,
+		pathOrName: input.name,
+	})
 
 const fromHDPathWithHardwareWallet = (
 	input: Readonly<{
@@ -320,7 +353,6 @@ const fromHDPathWithHDMasterSeed = (
 export const isAccount = (something: unknown): something is AccountT => {
 	const inspection = something as AccountT
 	return (
-		inspection.hdPath !== undefined &&
 		inspection.publicKey !== undefined &&
 		isPublicKey(inspection.publicKey) &&
 		inspection.sign !== undefined &&
@@ -332,6 +364,7 @@ export const isAccount = (something: unknown): something is AccountT => {
 
 export const Account = {
 	__unsafeFromPrivateKeyAtHDPath: fromPrivateKeyAtHDPath,
+	fromPrivateKey,
 	byDerivingNodeAtPath,
 	fromHDPathWithHardwareWallet,
 	fromHDPathWithHDMasterNode,

@@ -1810,11 +1810,6 @@ describe('radix_high_level_api', () => {
 					},
 				),
 		)
-
-		radix.deriveNextIdentity({ alsoSwitchTo: true })
-		radix.deriveNextIdentity({ alsoSwitchTo: true })
-		radix.deriveNextIdentity({ alsoSwitchTo: true })
-		radix.deriveNextIdentity({ alsoSwitchTo: true })
 	})
 
 	describe('tx history returns type of tx', () => {

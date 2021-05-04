@@ -3,6 +3,7 @@ import {
 	combineLatest,
 	Observable,
 	of,
+	ReplaySubject,
 	Subscription,
 	throwError,
 } from 'rxjs'
@@ -16,15 +17,7 @@ import {
 	SwitchToAccountIndex,
 	WalletT,
 } from './_types'
-import {
-	distinctUntilChanged,
-	filter,
-	map,
-	mergeMap,
-	shareReplay,
-	take,
-	tap,
-} from 'rxjs/operators'
+import { mergeMap, shareReplay, take } from 'rxjs/operators'
 import {
 	Keystore,
 	KeystoreT,
@@ -122,22 +115,24 @@ const MutableAccounts = {
 	create: createAccounts,
 }
 
-const __unsafeCreateWithPrivateKeyProvider = (
+const create = (
 	input: Readonly<{
 		mnemonic: MnemomicT
-		__privateKeyProvider?: (hdpath: HDPathRadixT) => PrivateKey
 		startWithAnAccount?: boolean
 	}>,
 ): WalletT => {
 	const subs = new Subscription()
-	const { __privateKeyProvider, mnemonic } = input
+	const { mnemonic } = input
 	const startWithAnAccount = input.startWithAnAccount ?? true
 	const masterSeed = HDMasterSeed.fromMnemonic({ mnemonic })
 	const hdNodeDeriverWithBip32Path = masterSeed.masterNode().derive
 
-	const activeAccountSubject = new BehaviorSubject<Option<AccountT>>(
-		Option.none<AccountT>(),
-	)
+	let unsafeActiveAccount: AccountT = (undefined as unknown) as AccountT
+	const activeAccountSubject = new ReplaySubject<AccountT>()
+	const setActiveAccount = (newAccount: AccountT): void => {
+		activeAccountSubject.next(newAccount)
+		unsafeActiveAccount = newAccount
+	}
 
 	const accountsSubject = new BehaviorSubject<MutableAccountsT>(
 		MutableAccounts.create([]),
@@ -149,28 +144,18 @@ const __unsafeCreateWithPrivateKeyProvider = (
 	const numberOfLocalHDAccounts = (): number =>
 		accountsSubject.getValue().localHDAccounts().length
 
-	const _addNewAccount = (
-		input: Readonly<{
-			newAccount$: Observable<AccountT>
-			alsoSwitchTo?: boolean // defaults to false
-		}>,
-	): Observable<AccountT> => {
-		const alsoSwitchTo = input.alsoSwitchTo ?? false
-
-		return input.newAccount$.pipe(
-			tap((newAccount: AccountT) => {
-				const accounts = accountsSubject.getValue()
-
-				accounts.add(newAccount)
-
-				accountsSubject.next(accounts)
-
-				if (alsoSwitchTo) {
-					activeAccountSubject.next(Option.some(newAccount))
-				}
-				return of(newAccount)
-			}),
-		)
+	const _addAndMaybeSwitchToNewAccount = (
+		newAccount: AccountT,
+		alsoSwitchTo?: boolean,
+	): AccountT => {
+		const alsoSwitchTo_ = alsoSwitchTo ?? false
+		const accounts = accountsSubject.getValue()
+		accounts.add(newAccount)
+		accountsSubject.next(accounts)
+		if (alsoSwitchTo_) {
+			setActiveAccount(newAccount)
+		}
+		return newAccount
 	}
 
 	const _deriveLocalHDAccountWithPath = (
@@ -180,27 +165,16 @@ const __unsafeCreateWithPrivateKeyProvider = (
 		}>,
 	): Observable<AccountT> => {
 		const { hdPath } = input
-		const deriveLocalHDAccount = (): Observable<AccountT> => {
-			return __privateKeyProvider !== undefined
-				? of(
-						Account.__unsafeFromPrivateKeyAtHDPath({
-							privateKey: __privateKeyProvider(hdPath),
-							hdPath,
-						}),
-				  )
-				: of(
-						Account.byDerivingNodeAtPath({
-							hdPath,
-							deriveNodeAtPath: () =>
-								hdNodeDeriverWithBip32Path(hdPath),
-						}),
-				  )
-		}
 
-		return _addNewAccount({
-			newAccount$: deriveLocalHDAccount(),
-			alsoSwitchTo: input.alsoSwitchTo,
-		})
+		const newAccount = _addAndMaybeSwitchToNewAccount(
+			Account.byDerivingNodeAtPath({
+				hdPath,
+				deriveNodeAtPath: () => hdNodeDeriverWithBip32Path(hdPath),
+			}),
+			input.alsoSwitchTo,
+		)
+
+		return of(newAccount)
 	}
 
 	const _deriveNextLocalHDAccountAtIndex = (
@@ -257,7 +231,7 @@ const __unsafeCreateWithPrivateKeyProvider = (
 			return switchAccount({ toIndex: 0 })
 		} else if (isSwitchToAccount(input)) {
 			const toAccount = input.toAccount
-			activeAccountSubject.next(Option.some(toAccount))
+			setActiveAccount(toAccount)
 			log.info(`Active account switched to: ${toAccount.toString()}`)
 			return toAccount
 		} else if (isSwitchToAccountIndex(input)) {
@@ -268,11 +242,15 @@ const __unsafeCreateWithPrivateKeyProvider = (
 
 			const firstAccount = Array.from(accounts.all)[safeTargetIndex]
 			if (!firstAccount) {
-				throw new Error('No accounts...')
+				const err = `No accounts.`
+				log.error(err)
+				throw new Error(err)
 			}
 			return switchAccount({ toAccount: firstAccount })
 		} else {
-			throw new Error('should never happen')
+			const err = `Incorrect implementation, failed to type check 'input' of switchAccount. Probably is 'isAccount' typeguard wrong.`
+			log.error(err)
+			throw new Error(err)
 		}
 	}
 
@@ -284,14 +262,9 @@ const __unsafeCreateWithPrivateKeyProvider = (
 		)
 	}
 
-	const activeAccount$ = activeAccountSubject.asObservable().pipe(
-		filter((oa) => oa.isSome()),
-		map((oa) =>
-			oa.getOrThrow(new Error('Incorrect impl, expected .some(account)')),
-		),
-		distinctUntilChanged((a: AccountT, b: AccountT) => a.equals(b)),
-		shareReplay(),
-	)
+	const activeAccount$ = activeAccountSubject.asObservable() //.pipe()
+	// distinctUntilChanged((a: AccountT, b: AccountT) => a.equals(b)),
+	// shareReplay()'',
 
 	const accounts$ = accountsSubject.asObservable().pipe(shareReplay())
 
@@ -328,30 +301,33 @@ const __unsafeCreateWithPrivateKeyProvider = (
 		)
 	}
 
+	const addAccountFromPrivateKey = (
+		input: Readonly<{
+			privateKey: PrivateKey
+			alsoSwitchTo?: boolean
+			// An optional context to where this private key comes from or its use. If preset, it can be read out from `type.name` on an account.
+			name?: string
+		}>,
+	): AccountT => {
+		const account = Account.fromPrivateKey(input)
+		_addAndMaybeSwitchToNewAccount(account, input.alsoSwitchTo)
+		return account
+	}
+
 	return {
 		revealMnemonic,
 		// should only be used for testing
-		__unsafeGetAccount: (): AccountT => {
-			return activeAccountSubject
-				.getValue()
-				.getOrThrow(new Error('No account'))
-		},
+		__unsafeGetAccount: (): AccountT => unsafeActiveAccount,
 		deriveNextLocalHDAccount,
 		switchAccount,
 		restoreLocalHDAccountsUpToIndex,
+		addAccountFromPrivateKey,
 		observeAccounts: (): Observable<AccountsT> => accounts$,
 		observeActiveAccount: (): Observable<AccountT> => activeAccount$,
 		sign: (hashedMessage: Buffer): Observable<Signature> =>
 			activeAccount$.pipe(mergeMap((a) => a.sign(hashedMessage))),
 	}
 }
-
-const create = (
-	input: Readonly<{
-		mnemonic: MnemomicT
-		startWithAnAccount?: boolean
-	}>,
-): WalletT => __unsafeCreateWithPrivateKeyProvider({ ...input })
 
 const byLoadingAndDecryptingKeystore = (
 	input: Readonly<{
@@ -426,7 +402,6 @@ const byEncryptingMnemonicAndSavingKeystore = (
 }
 
 export const Wallet = {
-	__unsafeCreateWithPrivateKeyProvider,
 	create,
 	fromKeystore,
 	byLoadingAndDecryptingKeystore,
