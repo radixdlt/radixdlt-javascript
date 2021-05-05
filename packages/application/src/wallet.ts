@@ -36,7 +36,7 @@ const create = (
 		})
 
 	const aToI = (signingKey: SigningKeyT): AccountT =>
-		Account.create({ signingKey, accountAddress: aToAddr(signingKey) })
+		Account.create({ signingKey, address: aToAddr(signingKey) })
 
 	const asToIs = (accounts: SigningKeysT): AccountsT => {
 		const getAccountWithHDSigningKeyByHDPath = (

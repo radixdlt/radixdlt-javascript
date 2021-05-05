@@ -270,7 +270,7 @@ const create = (
 
 	const activeAddress = wallet$.pipe(
 		mergeMap((a) => a.observeActiveAccount()),
-		map((a) => a.accountAddress),
+		map((a) => a.address),
 		shareReplay(1),
 	)
 

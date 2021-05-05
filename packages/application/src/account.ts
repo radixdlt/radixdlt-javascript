@@ -11,31 +11,31 @@ export const isAccount = (something: unknown): something is AccountT => {
 	return (
 		inspection.signingKey !== undefined &&
 		isSigningKey(inspection.signingKey) &&
-		inspection.accountAddress !== undefined &&
-		isAccountAddress(inspection.accountAddress)
+		inspection.address !== undefined &&
+		isAccountAddress(inspection.address)
 	)
 }
 
 const create = (
 	input: Readonly<{
-		accountAddress: AccountAddressT
+		address: AccountAddressT
 		signingKey: SigningKeyT
 	}>,
 ): AccountT => {
-	const { signingKey, accountAddress } = input
-	if (!signingKey.publicKey.equals(accountAddress.publicKey)) {
-		const errMsg = `Incorrect implementation, publicKey of accountAddress does not match publicKey of signingKey.`
+	const { signingKey, address } = input
+	if (!signingKey.publicKey.equals(address.publicKey)) {
+		const errMsg = `Incorrect implementation, publicKey of address does not match publicKey of signingKey.`
 		console.error(errMsg)
 		throw new Error(errMsg)
 	}
-	const network = accountAddress.network
+	const network = address.network
 	const publicKey = signingKey.publicKey
 	const hdPath = signingKey.hdPath
 	return {
 		...signingKey, // encrypt, decrypt, sign
 		equals: (other: AccountT): boolean => other.publicKey.equals(publicKey),
 		signingKey: signingKey,
-		accountAddress,
+		address,
 		network,
 		publicKey,
 		hdPath,

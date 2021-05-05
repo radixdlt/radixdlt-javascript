@@ -384,7 +384,7 @@ const create = (): TransactionIntentBuilderT => {
 		const spendingSender: Observable<AccountAddressT> =
 			options.spendingSender ??
 			options.encryptMessageIfAnyWithAccount.pipe(
-				map((account) => account.accountAddress),
+				map((account) => account.address),
 			)
 		return spendingSender.pipe(
 			mergeMap((from: AccountAddressT) =>

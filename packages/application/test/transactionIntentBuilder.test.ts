@@ -58,12 +58,12 @@ describe('tx_intent_builder', () => {
 			wallet.deriveNextLocalHDAccount().subscribe(
 				(aliceId: AccountT) => {
 					aliceAccount = aliceId
-					alice = aliceId.accountAddress
+					alice = aliceId.address
 
 					wallet.deriveNextLocalHDAccount().subscribe(
 						(bobId: AccountT) => {
 							bobAccount = bobId
-							bob = bobId.accountAddress
+							bob = bobId.address
 							done()
 						},
 						(e) => done(e),

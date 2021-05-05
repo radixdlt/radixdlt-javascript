@@ -12,7 +12,7 @@ describe.skip('debugPrintRadixData', () => {
 		'https://18.168.73.103/rpc',
 	)
 
-	const accountAddress = AccountAddress.fromUnsafe(
+	const address = AccountAddress.fromUnsafe(
 		'brx1qsp0we5yamtxqv5f2g94fml2z47j6n5kepd552dx980hs8y042ry5yq64vy06',
 	)._unsafeUnwrap()
 
@@ -21,7 +21,7 @@ describe.skip('debugPrintRadixData', () => {
 
 		subs.add(
 			radix.ledger
-				.transactionHistory({ address: accountAddress, size: 5 })
+				.transactionHistory({ address: address, size: 5 })
 				.subscribe(
 					(history) => {
 						console.log(
@@ -47,7 +47,7 @@ describe.skip('debugPrintRadixData', () => {
 
 		subs.add(
 			radix.ledger
-				.tokenBalancesForAddress(accountAddress)
+				.tokenBalancesForAddress(address)
 				.subscribe((tbs) => {
 					console.log(
 						`🔮 tokenBalances:\n${stringifySimpleTokenBalances(

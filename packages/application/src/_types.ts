@@ -77,11 +77,11 @@ export type AccountT = Signing &
 	Readonly<{
 		equals: (other: AccountT) => boolean
 		signingKey: SigningKeyT
-		accountAddress: AccountAddressT
+		address: AccountAddressT
 
-		// sugar for signingKey.publicKey/accountAddress.publicKey
+		// sugar for signingKey.publicKey/address.publicKey
 		publicKey: PublicKey
-		// sugar for accountAddress.network
+		// sugar for address.network
 		network: NetworkT
 
 		// sugar for signingKey.hdPath, if signingKey type is HD signingKey
