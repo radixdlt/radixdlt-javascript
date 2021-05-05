@@ -399,7 +399,7 @@ describe('tx_intent_builder', () => {
 						},
 						error: (error: Error) => {
 							expect(error.message).toBe(
-								'Message in transaction specifies it should be encrypted, but input to TransactionIntentBuilder build method specifies that it (the builder) should not encrypt the message, and does not provide any signingKey with which we can perform encryption.',
+								'Message in transaction specifies it should be encrypted, but input to TransactionIntentBuilder build method specifies that it (the builder) should not encrypt the message, and does not provide any account with which we can perform encryption.',
 							)
 							done()
 						},

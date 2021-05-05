@@ -361,7 +361,7 @@ const create = (): TransactionIntentBuilderT => {
 					.map((m) => m.encrypt)
 					.getOrElse(false)
 			) {
-				const errMsg = `Message in transaction specifies it should be encrypted, but input to TransactionIntentBuilder build method specifies that it (the builder) should not encrypt the message, and does not provide any signingKey with which we can perform encryption.`
+				const errMsg = `Message in transaction specifies it should be encrypted, but input to TransactionIntentBuilder build method specifies that it (the builder) should not encrypt the message, and does not provide any account with which we can perform encryption.`
 				console.error(errMsg)
 				log.error(errMsg)
 				return throwError(new Error(errMsg))
