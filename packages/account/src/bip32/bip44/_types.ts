@@ -27,10 +27,10 @@ export type HDPathRadixT = BIP44T &
 			level: 2
 			name: 'coin type'
 		}
-		signingKey: {
+		account: {
 			isHardened: true
 			level: 3
-			name: 'signingKey'
+			name: 'account'
 		}
 		change: BIP32PathComponentT & {
 			isHardened: true

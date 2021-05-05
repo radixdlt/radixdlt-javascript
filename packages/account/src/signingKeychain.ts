@@ -15,7 +15,7 @@ import {
 	SwitchSigningKeyInput,
 	SwitchToSigningKey,
 	SwitchToIndex,
-	WalletAddSigningKeyByPrivateKeyInput,
+	AddSigningKeyByPrivateKeyInput,
 	SigningKeychainT,
 } from './_types'
 import { mergeMap, shareReplay, take } from 'rxjs/operators'
@@ -307,7 +307,7 @@ const create = (
 	}
 
 	const addSigningKeyFromPrivateKey = (
-		input: WalletAddSigningKeyByPrivateKeyInput,
+		input: AddSigningKeyByPrivateKeyInput,
 	): SigningKeyT => {
 		const signingKey = SigningKey.fromPrivateKey(input)
 		_addAndMaybeSwitchToNewSigningKey(signingKey, input.alsoSwitchTo)

@@ -9,7 +9,7 @@ import {
 	Encrypting,
 	Decrypting,
 	SwitchToIndex,
-	WalletAddSigningKeyByPrivateKeyInput,
+	AddSigningKeyByPrivateKeyInput,
 } from '@radixdlt/account'
 import { KeystoreT, PrivateKey, PublicKey } from '@radixdlt/crypto'
 import { LogLevel } from '@radixdlt/util'
@@ -141,7 +141,7 @@ export type WalletT = Readonly<{
 	observeAccounts: () => Observable<AccountsT>
 }>
 
-export type AddAccountByPrivateKeyInput = WalletAddSigningKeyByPrivateKeyInput
+export type AddAccountByPrivateKeyInput = AddSigningKeyByPrivateKeyInput
 
 export type RadixT = Readonly<{
 	ledger: RadixAPI

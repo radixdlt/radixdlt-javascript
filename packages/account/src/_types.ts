@@ -153,7 +153,7 @@ export type DeriveNextInput =
 			alsoSwitchTo?: boolean // defaults to false
 	  }>
 
-export type WalletAddSigningKeyByPrivateKeyInput = PrivateKeyToSigningKeyInput & {
+export type AddSigningKeyByPrivateKeyInput = PrivateKeyToSigningKeyInput & {
 	alsoSwitchTo?: boolean
 }
 
@@ -173,7 +173,7 @@ export type SigningKeychainT = Signing &
 		) => Observable<SigningKeyT>
 
 		addSigningKeyFromPrivateKey: (
-			input: WalletAddSigningKeyByPrivateKeyInput,
+			input: AddSigningKeyByPrivateKeyInput,
 		) => SigningKeyT
 
 		switchSigningKey: (input: SwitchSigningKeyInput) => SigningKeyT
