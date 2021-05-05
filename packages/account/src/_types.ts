@@ -133,7 +133,7 @@ export type SigningKeysT = Readonly<{
 	hardwareHDSigningKeys: () => SigningKeyT[]
 	nonHDSigningKeys: () => SigningKeyT[]
 
-	// size of `all` accounts.
+	// size of `all.
 	size: () => number
 }>
 
