@@ -12,7 +12,7 @@ import {
 import { buffersEquals } from '@radixdlt/util'
 import { AccountAddressT, AddressTypeT, NetworkT } from './_types'
 
-export const isSigningKeyAddress = (
+export const isAccountAddress = (
 	something: unknown,
 ): something is AccountAddressT => {
 	if (!isAbstractAddress(something)) return false
@@ -69,14 +69,14 @@ const fromPublicKeyAndNetwork = (
 		network: input.network,
 		hrpFromNetwork,
 		addressType: AddressTypeT.ACCOUNT,
-		typeguard: isSigningKeyAddress,
+		typeguard: isAccountAddress,
 		formatDataToBech32Convert,
 		encoding,
 		maxLength,
 	})
 		.orElse((e) => {
 			throw new Error(
-				`Expected to always be able to create signingKey address from publicKey and network, but got error: ${e.message}`,
+				`Expected to always be able to create AccountAddress from publicKey and network, but got error: ${e.message}`,
 			)
 		})
 		._unsafeUnwrap({ withStackTrace: true })
@@ -86,34 +86,34 @@ const fromString = (bechString: string): Result<AccountAddressT, Error> =>
 		bechString,
 		addressType: AddressTypeT.ACCOUNT,
 		networkFromHRP,
-		typeguard: isSigningKeyAddress,
+		typeguard: isAccountAddress,
 		validateDataAndExtractPubKeyBytes,
 		encoding,
 		maxLength,
 	})
 
-export type SigningKeyAddressUnsafeInput = string
+export type AccountAddressUnsafeInput = string
 
-const isSigningKeyAddressUnsafeInput = (
+const isAccountAddressUnsafeInput = (
 	something: unknown,
-): something is SigningKeyAddressUnsafeInput => {
+): something is AccountAddressUnsafeInput => {
 	return typeof something === 'string'
 }
 
-export type AddressOrUnsafeInput = SigningKeyAddressUnsafeInput | AccountAddressT
+export type AddressOrUnsafeInput = AccountAddressUnsafeInput | AccountAddressT
 
-export const isSigningKeyAddressOrUnsafeInput = (
+export const isAccountAddressOrUnsafeInput = (
 	something: unknown,
 ): something is AddressOrUnsafeInput =>
-	isSigningKeyAddress(something) || isSigningKeyAddressUnsafeInput(something)
+	isAccountAddress(something) || isAccountAddressUnsafeInput(something)
 
 const fromUnsafe = (
 	input: AddressOrUnsafeInput,
 ): Result<AccountAddressT, Error> =>
-	isSigningKeyAddress(input) ? ok(input) : fromString(input)
+	isAccountAddress(input) ? ok(input) : fromString(input)
 
 export const AccountAddress = {
-	isSigningKeyAddress,
+	isAccountAddress,
 	fromUnsafe,
 	fromPublicKeyAndNetwork,
 }

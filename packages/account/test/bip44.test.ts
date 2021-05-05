@@ -1,5 +1,4 @@
-import { BIP44, HDPathRadix } from '../src/bip32/bip44/bip44'
-import { BIP44T, HDPathRadixT } from '../src/bip32/bip44/_types'
+import { BIP44T, HDPathRadixT, BIP44, HDPathRadix } from '../src'
 
 describe('BIP44', () => {
 	it('can create one for radix', () => {
@@ -25,12 +24,12 @@ describe('BIP44', () => {
 			expect(coinType.isHardened).toBe(true)
 			expect(coinType.index.toString(16)).toBe('80000218') // 0x218 = 536 dec
 
-			// Check 'signingKey' component
-			const signingKey = hdPath.signingKey
-			expect(signingKey.name).toBe('signingKey')
-			expect(signingKey.level).toBe(3)
-			expect(signingKey.isHardened).toBe(true)
-			expect(signingKey.index.toString(16)).toBe('80000000')
+			// Check 'account' component
+			const account = hdPath.account
+			expect(account.name).toBe('account')
+			expect(account.level).toBe(3)
+			expect(account.isHardened).toBe(true)
+			expect(account.index.toString(16)).toBe('80000000')
 
 			// Check 'change' component
 			const change = hdPath.change

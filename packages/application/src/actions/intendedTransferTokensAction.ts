@@ -6,7 +6,7 @@ import {
 import {
 	AccountAddress,
 	AccountAddressT,
-	isSigningKeyAddressOrUnsafeInput,
+	isAccountAddressOrUnsafeInput,
 	ResourceIdentifierT,
 	ResourceIdentifier,
 	isResourceIdentifierOrUnsafeInput,
@@ -19,7 +19,7 @@ export const isTransferTokensInput = (
 ): something is TransferTokensInput => {
 	const inspection = something as TransferTokensInput
 	return (
-		isSigningKeyAddressOrUnsafeInput(inspection.to) &&
+		isAccountAddressOrUnsafeInput(inspection.to) &&
 		isAmountOrUnsafeInput(inspection.amount) &&
 		isResourceIdentifierOrUnsafeInput(inspection.tokenIdentifier)
 	)

@@ -4,7 +4,7 @@ export type BIP44T = BIP32T &
 	Readonly<{
 		purpose: BIP32PathComponentT
 		coinType: BIP32PathComponentT
-		signingKey: BIP32PathComponentT
+		account: BIP32PathComponentT
 		change: BIP32PathComponentT
 		addressIndex: BIP32PathComponentT
 	}>

@@ -44,12 +44,12 @@ const bip44CoinType = (index: Int32): BIP32PathComponentT =>
 		name: 'coin type',
 	})
 
-const bip44SigningKey = (index: Int32): BIP32PathComponentT =>
+const bip44Account = (index: Int32): BIP32PathComponentT =>
 	bip44Component({
 		index: index,
 		isHardened: true,
 		level: 3,
-		name: 'signingKey',
+		name: 'account',
 	})
 
 const bip44Change = (index: BIP44ChangeIndex): BIP32PathComponentT =>
@@ -63,7 +63,7 @@ const bip44Change = (index: BIP44ChangeIndex): BIP32PathComponentT =>
 const create = (
 	input: Readonly<{
 		coinType?: Int32 // defauts to `536'` (Radix)
-		signingKey?: Int32 // defaults to `0'`
+		account?: Int32 // defaults to `0'`
 		change?: BIP44ChangeIndex // defaults to `0`
 		address: Readonly<{
 			index: Int32
@@ -73,7 +73,7 @@ const create = (
 ): BIP44T => {
 	const purpose = bip44Purpose
 	const coinType = bip44CoinType(input.coinType ?? RADIX_COIN_TYPE)
-	const signingKey = bip44SigningKey(input.signingKey ?? 0)
+	const account = bip44Account(input.account ?? 0)
 	const change = bip44Change(input.change ?? 0)
 	const addressIndex = bip44Component({
 		index: input.address.index,
@@ -81,14 +81,14 @@ const create = (
 		level: 5,
 		name: 'address index',
 	})
-	const pathComponents = [purpose, coinType, signingKey, change, addressIndex]
+	const pathComponents = [purpose, coinType, account, change, addressIndex]
 
 	const bip32 = BIP32.unsafeCreate(pathComponents)
 	return {
 		...bip32,
 		purpose,
 		coinType,
-		signingKey,
+		account,
 		change,
 		addressIndex,
 		pathComponents,
@@ -97,7 +97,7 @@ const create = (
 
 const createRadixPath = (
 	input: Readonly<{
-		signingKey?: Int32 // defaults to `0'`
+		account?: Int32 // defaults to `0'`
 		change?: BIP44ChangeIndex // defaults to `0`
 		address: Readonly<{
 			index: Int32
@@ -136,8 +136,8 @@ const validateBIP44CoinType = validateBIP44Component.bind(null, {
 	...bip44CoinType(0),
 	index: undefined,
 })
-const validateBIP44SigningKey = validateBIP44Component.bind(null, {
-	...bip44SigningKey(0),
+const validateBIP44Account = validateBIP44Component.bind(null, {
+	...bip44Account(0),
 	index: undefined,
 })
 const validateBIP44Change = validateBIP44Component.bind(null, {
@@ -159,7 +159,7 @@ const fromString = (path: string): Result<BIP44T, Error> => {
 			return combine([
 				validateBIP44Purpose({ ...components[0], name: 'purpose' }),
 				validateBIP44CoinType({ ...components[1], name: 'coin type' }),
-				validateBIP44SigningKey({ ...components[2], name: 'signingKey' }),
+				validateBIP44Account({ ...components[2], name: 'account' }),
 				validateBIP44Change({ ...components[3], name: 'change' }),
 				ok({ ...components[4], name: 'address index' }) as Result<
 					BIP32PathComponentT,
@@ -170,7 +170,7 @@ const fromString = (path: string): Result<BIP44T, Error> => {
 					...bip32,
 					purpose: bip44Components[0],
 					coinType: bip44Components[1],
-					signingKey: bip44Components[2],
+					account: bip44Components[2],
 					change: bip44Components[3],
 					addressIndex: bip44Components[4],
 					pathComponents: bip44Components,

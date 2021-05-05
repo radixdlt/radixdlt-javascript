@@ -21,7 +21,7 @@ import {
 } from './_types'
 import {
 	AccountAddressT,
-	isSigningKeyAddress,
+	isAccountAddress,
 	toObservableFromResult,
 	isResourceIdentifier,
 } from '@radixdlt/account'
@@ -113,8 +113,8 @@ export const isTransferTokensAction = (
 	const inspection = something as TransferTokensAction
 	return (
 		inspection.type === ActionType.TOKEN_TRANSFER &&
-		isSigningKeyAddress(inspection.to) &&
-		isSigningKeyAddress(inspection.from) &&
+		isAccountAddress(inspection.to) &&
+		isAccountAddress(inspection.from) &&
 		isAmount(inspection.amount) &&
 		isResourceIdentifier(inspection.rri)
 	)
@@ -126,8 +126,8 @@ export const isStakeTokensAction = (
 	const inspection = something as StakeTokensAction
 	return (
 		inspection.type === ActionType.STAKE_TOKENS &&
-		isSigningKeyAddress(inspection.from) &&
-		isSigningKeyAddress(inspection.validator) &&
+		isAccountAddress(inspection.from) &&
+		isAccountAddress(inspection.validator) &&
 		isAmount(inspection.amount)
 	)
 }
@@ -138,8 +138,8 @@ export const isUnstakeTokensAction = (
 	const inspection = something as UnstakeTokensAction
 	return (
 		inspection.type === ActionType.UNSTAKE_TOKENS &&
-		isSigningKeyAddress(inspection.from) &&
-		isSigningKeyAddress(inspection.validator) &&
+		isAccountAddress(inspection.from) &&
+		isAccountAddress(inspection.validator) &&
 		isAmount(inspection.amount)
 	)
 }

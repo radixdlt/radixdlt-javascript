@@ -15,7 +15,7 @@ import {
 } from '../src'
 import {
 	AccountAddressT,
-	isSigningKeyAddress,
+	isAccountAddress,
 	isValidatorAddress,
 	Mnemonic,
 	NetworkT,
@@ -336,8 +336,8 @@ describe('tx_intent_builder', () => {
 			} else {
 				const actualAddress: AnyAddress = actualAddressMaybe
 				if (
-					isSigningKeyAddress(expectedAddress) &&
-					isSigningKeyAddress(actualAddress)
+					isAccountAddress(expectedAddress) &&
+					isAccountAddress(actualAddress)
 				) {
 					expect(actualAddress.equals(expectedAddress)).toBe(true)
 				} else if (

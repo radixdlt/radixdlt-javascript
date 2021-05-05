@@ -318,19 +318,19 @@ describe('wallet_type', () => {
 		const subs = new Subscription()
 		const signingKeychain = createWallet()
 
-		const expectedSigningKeyAddressIndices = [0, 1, 0]
+		const expectedAccountAddressIndices = [0, 1, 0]
 
 		subs.add(
 			signingKeychain
 				.observeActiveSigningKey()
-				.pipe(take(expectedSigningKeyAddressIndices.length), toArray())
+				.pipe(take(expectedAccountAddressIndices.length), toArray())
 				.subscribe({
 					next: (accountList) => {
 						expect(
 							accountList.map((a) =>
 								a.hdPath!.addressIndex.value(),
 							),
-						).toStrictEqual(expectedSigningKeyAddressIndices)
+						).toStrictEqual(expectedAccountAddressIndices)
 						done()
 					},
 					error: (e) => done(e),

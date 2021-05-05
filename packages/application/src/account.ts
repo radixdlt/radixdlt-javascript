@@ -2,7 +2,7 @@ import {
 	SigningKeyT,
 	AccountAddressT,
 	isSigningKey,
-	isSigningKeyAddress,
+	isAccountAddress,
 } from '@radixdlt/account'
 import { AccountT } from './_types'
 
@@ -12,7 +12,7 @@ export const isIdentity = (something: unknown): something is AccountT => {
 		inspection.signingKey !== undefined &&
 		isSigningKey(inspection.signingKey) &&
 		inspection.accountAddress !== undefined &&
-		isSigningKeyAddress(inspection.accountAddress)
+		isAccountAddress(inspection.accountAddress)
 	)
 }
 
