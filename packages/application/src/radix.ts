@@ -89,7 +89,7 @@ import {
 	TokenBalance,
 	TokenBalances,
 	TransactionHistory,
-	TransactionHistoryActiveSigningKeyRequestInput,
+	TransactionHistoryActiveAccountRequestInput,
 	TransactionIdentifierT,
 	TransactionIntent,
 	TransactionIntentBuilder,
@@ -385,7 +385,7 @@ const create = (
 	)
 
 	const transactionHistory = (
-		input: TransactionHistoryActiveSigningKeyRequestInput,
+		input: TransactionHistoryActiveAccountRequestInput,
 	): Observable<TransactionHistory> =>
 		activeAddress.pipe(
 			take(1),
@@ -421,12 +421,12 @@ const create = (
 	)
 
 	const activeAccount: Observable<AccountT> = wallet$.pipe(
-		mergeMap((im) => im.observeActiveAccount()),
+		mergeMap((wallet) => wallet.observeActiveAccount()),
 		shareReplay(1),
 	)
 
 	const accounts = wallet$.pipe(
-		mergeMap((im) => im.observeAccounts()),
+		mergeMap((wallet) => wallet.observeAccounts()),
 		shareReplay(1),
 	)
 
@@ -913,7 +913,7 @@ const create = (
 		index: number,
 	): Observable<AccountsT> => {
 		return wallet$.pipe(
-			mergeMap((im) => im.restoreLocalHDAccountsToIndex(index)),
+			mergeMap((wallet) => wallet.restoreLocalHDAccountsToIndex(index)),
 		)
 	}
 
@@ -921,8 +921,8 @@ const create = (
 		deriveNextLocalHDAccountSubject
 			.pipe(
 				withLatestFrom(wallet$),
-				mergeMap(([derivation, im]) => {
-					return im.deriveNextLocalHDAccount(derivation)
+				mergeMap(([derivation, wallet]) => {
+					return wallet.deriveNextLocalHDAccount(derivation)
 				}),
 			)
 			.subscribe(),
@@ -932,8 +932,8 @@ const create = (
 		addAccountByPrivateKeySubject
 			.pipe(
 				withLatestFrom(wallet$),
-				mergeMap(([privateKeyInput, im]) => {
-					return im.addAccountFromPrivateKey(privateKeyInput)
+				mergeMap(([privateKeyInput, wallet]) => {
+					return wallet.addAccountFromPrivateKey(privateKeyInput)
 				}),
 			)
 			.subscribe(),
@@ -943,7 +943,7 @@ const create = (
 		switchAccountSubject
 			.pipe(
 				withLatestFrom(wallet$),
-				tap(([switchTo, im]) => im.switchAccount(switchTo)),
+				tap(([switchTo, wallet]) => wallet.switchAccount(switchTo)),
 			)
 			.subscribe(),
 	)

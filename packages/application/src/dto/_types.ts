@@ -138,7 +138,7 @@ export type TransactionHistoryOfKnownAddressRequestInput = Readonly<{
 	cursor?: string
 }>
 
-export type TransactionHistoryActiveSigningKeyRequestInput = TransactionHistoryOfKnownAddressRequestInput
+export type TransactionHistoryActiveAccountRequestInput = TransactionHistoryOfKnownAddressRequestInput
 
 export type TransactionHistoryRequestInput = TransactionHistoryOfKnownAddressRequestInput &
 	Readonly<{

@@ -20,7 +20,7 @@ import {
 	StakePositions,
 	StatusOfTransaction,
 	TokenBalances,
-	TransactionHistoryActiveSigningKeyRequestInput,
+	TransactionHistoryActiveAccountRequestInput,
 	UnstakePositions,
 	TransactionIdentifierT,
 	TransactionTracking,
@@ -196,11 +196,11 @@ export type RadixT = Readonly<{
 	/**
 	 * Transaction history of active signingKey.
 	 *
-	 * @param {TransactionHistoryActiveSigningKeyRequestInput} input - Pagination input, size and cursor.
+	 * @param {TransactionHistoryActiveAccountRequestInput} input - Pagination input, size and cursor.
 	 * @returns {TransactionHistory} A page from the transaction history.
 	 */
 	transactionHistory: (
-		input: TransactionHistoryActiveSigningKeyRequestInput,
+		input: TransactionHistoryActiveAccountRequestInput,
 	) => Observable<TransactionHistory>
 
 	/**

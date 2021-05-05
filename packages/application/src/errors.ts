@@ -8,7 +8,7 @@ export type ErrorT<Category extends ErrorCategory, Cause extends ErrorCause> = {
 
 export enum ErrorCategory {
 	NODE = 'node',
-	WALLET = 'signingKeychain',
+	WALLET = 'wallet',
 	API = 'api',
 }
 

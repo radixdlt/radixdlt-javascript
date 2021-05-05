@@ -78,7 +78,7 @@ describe('integration API tests', () => {
 		expect(radix.ledger.tokenBalancesForAddress).toBeDefined() // etc
 	})
 
-	it('emits node connection without signingKeychain', async (done) => {
+	it('emits node connection without wallet', async (done) => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		}).connect(`${NODE_URL}/rpc`)
@@ -112,7 +112,7 @@ describe('integration API tests', () => {
 		)
 	})
 
-	it('returns native token without signingKeychain', async (done) => {
+	it('returns native token without wallet', async (done) => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
