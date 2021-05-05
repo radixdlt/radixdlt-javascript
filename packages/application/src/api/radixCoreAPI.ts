@@ -2,7 +2,7 @@ import { NodeAPI, NodeT, RadixCoreAPI } from './_types'
 import { ResultAsync } from 'neverthrow'
 import { defer, Observable } from 'rxjs'
 import {
-	Acc0untAddressT,
+	AccountAddressT,
 	ResourceIdentifierT,
 	toObservable,
 	ValidatorAddressT,
@@ -70,7 +70,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 			),
 
 		tokenBalancesForAddress: (
-			address: Acc0untAddressT,
+			address: AccountAddressT,
 		): Observable<SimpleTokenBalances> =>
 			toObs((a) => a.tokenBalances, address.toString()),
 
@@ -89,12 +89,12 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 			toObs((a) => a.tokenInfo, rri.toString()),
 
 		stakesForAddress: (
-			address: Acc0untAddressT,
+			address: AccountAddressT,
 		): Observable<StakePositions> =>
 			toObs((a) => a.stakePositions, address.toString()),
 
 		unstakesForAddress: (
-			address: Acc0untAddressT,
+			address: AccountAddressT,
 		): Observable<UnstakePositions> =>
 			toObs((a) => a.unstakePositions, address.toString()),
 

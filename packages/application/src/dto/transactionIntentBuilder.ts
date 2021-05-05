@@ -20,7 +20,7 @@ import {
 	TransactionIntentBuilderT,
 } from './_types'
 import {
-	Acc0untAddressT,
+	AccountAddressT,
 	isSigningKeyAddress,
 	toObservableFromResult,
 	isResourceIdentifier,
@@ -48,7 +48,7 @@ import { AccountT, MessageInTransaction } from '../_types'
 
 type IntendedActionsFrom = Readonly<{
 	intendedActions: IntendedAction[]
-	from: Acc0untAddressT
+	from: AccountAddressT
 }>
 
 export const singleRecipientFromActions = (
@@ -151,12 +151,12 @@ export const getUniqueAddresses = (
 		includeFrom?: boolean
 		includeTo?: boolean
 	}>,
-): Acc0untAddressT[] => {
+): AccountAddressT[] => {
 	const action = input.action
 	const includeFrom = input.includeFrom ?? true
 	const includeTo = input.includeTo ?? true
 	if (isTransferTokensAction(action)) {
-		const addresses: Acc0untAddressT[] = []
+		const addresses: AccountAddressT[] = []
 		if (includeTo) {
 			addresses.push(action.to)
 		}
@@ -165,13 +165,13 @@ export const getUniqueAddresses = (
 		}
 		return addresses
 	} else if (isStakeTokensAction(action)) {
-		const addresses: Acc0untAddressT[] = []
+		const addresses: AccountAddressT[] = []
 		if (includeFrom) {
 			addresses.push(action.from)
 		}
 		return addresses
 	} else if (isUnstakeTokensAction(action)) {
-		const addresses: Acc0untAddressT[] = []
+		const addresses: AccountAddressT[] = []
 		if (includeFrom) {
 			addresses.push(action.from)
 		}
@@ -187,10 +187,10 @@ export const flatMapAddressesOf = (
 		includeFrom?: boolean
 		includeTo?: boolean
 	}>,
-): Acc0untAddressT[] => {
+): AccountAddressT[] => {
 	const { actions, includeFrom, includeTo } = input
 	const flatMapped = actions.reduce(
-		(acc: Acc0untAddressT[], action: UserAction) => {
+		(acc: AccountAddressT[], action: UserAction) => {
 			const uniqueAddressOfAction = getUniqueAddresses({
 				action,
 				includeFrom,
@@ -198,7 +198,7 @@ export const flatMapAddressesOf = (
 			})
 			return acc.concat(...uniqueAddressOfAction)
 		},
-		[] as Acc0untAddressT[],
+		[] as AccountAddressT[],
 	)
 
 	const set = new Set<string>()
@@ -298,7 +298,7 @@ const create = (): TransactionIntentBuilderT => {
 	}
 
 	const intendedActionsFromIntermediateActions = (
-		from: Acc0untAddressT,
+		from: AccountAddressT,
 	): Result<IntendedActionsFrom, Error> => {
 		if (intermediateActions.length === 0)
 			return err(mustHaveAtLeastOneAction)
@@ -338,7 +338,7 @@ const create = (): TransactionIntentBuilderT => {
 	}
 
 	const syncBuildDoNotEncryptMessageIfAny = (
-		from: Acc0untAddressT,
+		from: AccountAddressT,
 	): Result<TransactionIntent, Error> => {
 		return intendedActionsFromIntermediateActions(from).map(
 			({ intendedActions }) => ({
@@ -368,7 +368,7 @@ const create = (): TransactionIntentBuilderT => {
 			}
 
 			return options.skipEncryptionOfMessageIfAny.spendingSender.pipe(
-				mergeMap((from: Acc0untAddressT) =>
+				mergeMap((from: AccountAddressT) =>
 					toObservableFromResult(
 						syncBuildDoNotEncryptMessageIfAny(from),
 					),
@@ -381,13 +381,13 @@ const create = (): TransactionIntentBuilderT => {
 		}
 
 		const encryptingIdentity$ = options.encryptMessageIfAnyWithIdentity
-		const spendingSender: Observable<Acc0untAddressT> =
+		const spendingSender: Observable<AccountAddressT> =
 			options.spendingSender ??
 			options.encryptMessageIfAnyWithIdentity.pipe(
 				map((account) => account.accountAddress),
 			)
 		return spendingSender.pipe(
-			mergeMap((from: Acc0untAddressT) =>
+			mergeMap((from: AccountAddressT) =>
 				toObservableFromResult(
 					intendedActionsFromIntermediateActions(from),
 				),

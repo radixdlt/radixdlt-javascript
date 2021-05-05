@@ -101,11 +101,11 @@ export type SigningKeyT = Signing &
 	}>
 
 /// A simple "interface" like type that this `signingKey` package recognizes.
-/// The `hardware-signingKeychain` package will mark its type being this type +
-/// additional decoration. We want the `hardware-signingKeychain` package to be
+/// The `hardware-wallet` package will mark its type being this type +
+/// additional decoration. We want the `hardware-wallet` package to be
 /// dependent on this package, not the other way around, thus we need
 /// some kind of simple "interface" like type here.
-export type HardwareWalletSimpleT = Readonly<{
+export type HardwareSigningKeyT = Readonly<{
 	diffieHellman: (
 		input: Readonly<{
 			hdPath: BIP32T

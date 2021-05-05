@@ -1,5 +1,5 @@
 import {
-	Acc0untAddressT,
+	AccountAddressT,
 	ResourceIdentifierT,
 	ValidatorAddressT,
 } from '@radixdlt/account'
@@ -48,11 +48,11 @@ export type TransactionIntentBuilderState = Readonly<{
 
 export type TransactionIntentBuilderEncryptOption = Readonly<{
 	encryptMessageIfAnyWithIdentity: Observable<AccountT>
-	spendingSender?: Observable<Acc0untAddressT>
+	spendingSender?: Observable<AccountAddressT>
 }>
 
 export type TransactionIntentBuilderDoNotEncryptInput = Readonly<{
-	spendingSender: Observable<Acc0untAddressT>
+	spendingSender: Observable<AccountAddressT>
 }>
 
 export type TransactionIntentBuilderDoNotEncryptOption = Readonly<{
@@ -72,7 +72,7 @@ export type TransactionIntentBuilderT = Readonly<{
 
 	// Build
 	__syncBuildDoNotEncryptMessageIfAny: (
-		from: Acc0untAddressT,
+		from: AccountAddressT,
 	) => Result<TransactionIntent, Error>
 
 	build: (
@@ -87,7 +87,7 @@ export type TransactionIntent = Readonly<{
 
 export type ValidatorsRequestInput = Readonly<{
 	size: number
-	// Acc0untAddress of last seen validator in list
+	// AccountAddress of last seen validator in list
 	cursor?: string
 }>
 
@@ -142,7 +142,7 @@ export type TransactionHistoryActiveSigningKeyRequestInput = TransactionHistoryO
 
 export type TransactionHistoryRequestInput = TransactionHistoryOfKnownAddressRequestInput &
 	Readonly<{
-		address: Acc0untAddressT
+		address: AccountAddressT
 	}>
 
 export type SimpleExecutedTransaction = Readonly<{
@@ -277,12 +277,12 @@ export type RawExecutedAction =
 	| RawOtherExecutedAction
 
 export type SimpleTokenBalances = Readonly<{
-	owner: Acc0untAddressT
+	owner: AccountAddressT
 	tokenBalances: SimpleTokenBalance[]
 }>
 
 export type TokenBalances = Readonly<{
-	owner: Acc0untAddressT
+	owner: AccountAddressT
 	tokenBalances: TokenBalance[]
 }>
 
@@ -298,7 +298,7 @@ export type TransactionHistory = SimpleTransactionHistory &
 
 export type Validator = Readonly<{
 	address: ValidatorAddressT
-	ownerAddress: Acc0untAddressT
+	ownerAddress: AccountAddressT
 	name: string
 	infoURL: URL
 	totalDelegatedStake: AmountT

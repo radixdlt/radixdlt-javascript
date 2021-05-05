@@ -1,6 +1,6 @@
 import {
 	SigningKeyT,
-	Acc0untAddressT,
+	AccountAddressT,
 	isSigningKey,
 	isSigningKeyAddress,
 } from '@radixdlt/account'
@@ -18,7 +18,7 @@ export const isIdentity = (something: unknown): something is AccountT => {
 
 const create = (
 	input: Readonly<{
-		accountAddress: Acc0untAddressT
+		accountAddress: AccountAddressT
 		signingKey: SigningKeyT
 	}>,
 ): AccountT => {

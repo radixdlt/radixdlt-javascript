@@ -1,6 +1,6 @@
 import {
 	SigningKeyT,
-	Acc0untAddressT,
+	AccountAddressT,
 	DeriveNextInput,
 	MnemomicT,
 	NetworkT,
@@ -77,7 +77,7 @@ export type AccountT = Signing &
 	Readonly<{
 		equals: (other: AccountT) => boolean
 		signingKey: SigningKeyT
-		accountAddress: Acc0untAddressT
+		accountAddress: AccountAddressT
 
 		// sugar for signingKey.publicKey/accountAddress.publicKey
 		publicKey: PublicKey
@@ -174,11 +174,11 @@ export type RadixT = Readonly<{
 	switchIdentity: (input: SwitchIdentityInput) => RadixT
 	revealMnemonic: () => Observable<MnemomicT>
 
-	activeAddress: Observable<Acc0untAddressT>
+	activeAddress: Observable<AccountAddressT>
 	activeIdentity: Observable<AccountT>
 	identities: Observable<IdentitiesT>
 
-	// Active Acc0untAddress/SigningKey APIs
+	// Active AccountAddress/SigningKey APIs
 	tokenBalances: Observable<TokenBalances>
 	stakingPositions: Observable<StakePositions>
 	unstakingPositions: Observable<UnstakePositions>

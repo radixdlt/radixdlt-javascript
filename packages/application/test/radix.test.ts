@@ -1,6 +1,6 @@
 import {
-	Acc0untAddress,
-	Acc0untAddressT,
+	AccountAddress,
+	AccountAddressT,
 	SigningKeyT,
 	HDMasterSeed,
 	HDPathRadixT,
@@ -550,7 +550,7 @@ describe('radix_high_level_api', () => {
 			const api = of(<RadixCoreAPI>{
 				...mockRadixCoreAPI(),
 				tokenBalancesForAddress: (
-					a: Acc0untAddressT,
+					a: AccountAddressT,
 				): Observable<SimpleTokenBalances> => {
 					if (counter > 2 && counter < 5) {
 						counter++
@@ -1183,7 +1183,7 @@ describe('radix_high_level_api', () => {
 			UInt256.valueOf(2),
 		)._unsafeUnwrap()
 		const bobPublicKey = bobPrivateKey.publicKey()
-		const bob = Acc0untAddress.fromPublicKeyAndNetwork({
+		const bob = AccountAddress.fromPublicKeyAndNetwork({
 			publicKey: bobPublicKey,
 			network: NetworkT.BETANET,
 		})
@@ -1302,7 +1302,7 @@ describe('radix_high_level_api', () => {
 		const recipientPK = publicKeyFromBytes(
 			Buffer.from(keystoreForTest.publicKeysCompressed[1], 'hex'),
 		)._unsafeUnwrap()
-		const recipientAddress = Acc0untAddress.fromPublicKeyAndNetwork({
+		const recipientAddress = AccountAddress.fromPublicKeyAndNetwork({
 			publicKey: recipientPK,
 			network: NetworkT.BETANET,
 		})
@@ -1804,7 +1804,7 @@ describe('radix_high_level_api', () => {
 		subs.add(
 			radix.activeAddress
 				.pipe(
-					map((a: Acc0untAddressT) => a.toString()),
+					map((a: AccountAddressT) => a.toString()),
 					take(expectedAddresses.length),
 					toArray(),
 				)
@@ -1839,8 +1839,8 @@ describe('radix_high_level_api', () => {
 
 			const makeTransfer = (
 				input: Readonly<{
-					from: Acc0untAddressT
-					to: Acc0untAddressT
+					from: AccountAddressT
+					to: AccountAddressT
 					amount?: number
 				}>,
 			): ExecutedTransferTokensAction => {
@@ -1856,7 +1856,7 @@ describe('radix_high_level_api', () => {
 
 			const wallet = makeIdentitywithWalletWithFunds()
 			const network = NetworkT.BETANET
-			const myAddress = Acc0untAddress.fromPublicKeyAndNetwork({
+			const myAddress = AccountAddress.fromPublicKeyAndNetwork({
 				publicKey: wallet.__unsafeGetIdentity().publicKey,
 				network,
 			})

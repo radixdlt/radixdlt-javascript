@@ -3,9 +3,9 @@ import {
 	NetworkT,
 	SigningKeyT,
 	SigningKeysT,
-	Acc0untAddressT,
+	AccountAddressT,
 	DeriveNextInput,
-	Acc0untAddress,
+	AccountAddress,
 	HDPathRadixT,
 } from '@radixdlt/account'
 import {
@@ -29,8 +29,8 @@ const create = (
 	}>,
 ): WalletT => {
 	const { network, signingKeychain } = input
-	const aToAddr = (signingKey: SigningKeyT): Acc0untAddressT =>
-		Acc0untAddress.fromPublicKeyAndNetwork({
+	const aToAddr = (signingKey: SigningKeyT): AccountAddressT =>
+		AccountAddress.fromPublicKeyAndNetwork({
 			network,
 			publicKey: signingKey.publicKey,
 		})

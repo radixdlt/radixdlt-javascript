@@ -14,7 +14,7 @@ import {
 	xrd,
 } from '../src'
 import {
-	Acc0untAddressT,
+	AccountAddressT,
 	isSigningKeyAddress,
 	isValidatorAddress,
 	Mnemonic,
@@ -46,8 +46,8 @@ describe('tx_intent_builder', () => {
 
 	let aliceIdentity: AccountT
 	let bobIdentity: AccountT
-	let alice: Acc0untAddressT
-	let bob: Acc0untAddressT
+	let alice: AccountAddressT
+	let bob: AccountAddressT
 
 	const subs = new Subscription()
 
@@ -74,7 +74,7 @@ describe('tx_intent_builder', () => {
 		)
 	})
 
-	type SimpleTransf = { amount: number; to: Acc0untAddressT }
+	type SimpleTransf = { amount: number; to: AccountAddressT }
 	const transfT = (input: SimpleTransf): TransferTokensInput => ({
 		to: input.to,
 		amount: Amount.fromUnsafe(input.amount)._unsafeUnwrap(),
@@ -83,7 +83,7 @@ describe('tx_intent_builder', () => {
 
 	const transfS = (
 		amount: number,
-		to: Acc0untAddressT,
+		to: AccountAddressT,
 	): TransferTokensInput => transfT({ amount, to })
 
 	const stakeS = (
@@ -317,7 +317,7 @@ describe('tx_intent_builder', () => {
 			txIntent.actions.map((a) => parseInt(a.amount.toString())),
 		).toStrictEqual([3, 4, 5, 6])
 
-		type AnyAddress = ValidatorAddressT | Acc0untAddressT
+		type AnyAddress = ValidatorAddressT | AccountAddressT
 
 		const assertAddr = (
 			index: number,

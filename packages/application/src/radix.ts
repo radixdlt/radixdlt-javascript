@@ -1,5 +1,5 @@
 import {
-	Acc0untAddressT,
+	AccountAddressT,
 	SigningKeyT,
 	DeriveNextInput,
 	MnemomicT,
@@ -109,7 +109,7 @@ import { Wallet } from './wallet'
 const txTypeFromActions = (
 	input: Readonly<{
 		actions: ExecutedAction[]
-		activeAddress: Acc0untAddressT
+		activeAddress: AccountAddressT
 	}>,
 ): TransactionType => {
 	const { activeAddress } = input
@@ -139,7 +139,7 @@ const txTypeFromActions = (
 
 const decorateSimpleExecutedTransactionWithType = (
 	simpleExecutedTX: SimpleExecutedTransaction,
-	activeAddress: Acc0untAddressT,
+	activeAddress: AccountAddressT,
 ): ExecutedTransaction => ({
 	...simpleExecutedTX,
 	transactionType: txTypeFromActions({
@@ -298,7 +298,7 @@ const create = (
 		trigger: Observable<number>,
 		pickFn: (
 			api: RadixCoreAPI,
-		) => (address: Acc0untAddressT) => Observable<O>,
+		) => (address: AccountAddressT) => Observable<O>,
 		errorFn: (errorMessage: string) => APIError,
 	): Observable<O> =>
 		merge(
@@ -1071,7 +1071,7 @@ const create = (
 		activeIdentity,
 		identities,
 
-		// Active Acc0untAddress/SigningKey APIs
+		// Active AccountAddress/SigningKey APIs
 		tokenBalances,
 		stakingPositions,
 		unstakingPositions,

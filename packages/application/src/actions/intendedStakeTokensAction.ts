@@ -4,7 +4,7 @@ import {
 	StakeTokensInput,
 } from './_types'
 import {
-	Acc0untAddressT,
+	AccountAddressT,
 	isValidatorAddressOrUnsafeInput,
 	ValidatorAddress,
 	ValidatorAddressT,
@@ -24,7 +24,7 @@ export const isStakeTokensInput = (
 
 export const __createIntendedStakeAction = (
 	input: StakeTokensInput,
-	from: Acc0untAddressT,
+	from: AccountAddressT,
 ): Result<IntendedStakeTokensAction, Error> => {
 	return combine([
 		ValidatorAddress.fromUnsafe(input.validator),

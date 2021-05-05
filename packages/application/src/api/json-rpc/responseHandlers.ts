@@ -2,7 +2,7 @@ import { decoder, JSONDecoding } from '@radixdlt/data-formats'
 import { err, ok, Result } from 'neverthrow'
 
 import {
-	Acc0untAddress,
+	AccountAddress,
 	ValidatorAddress,
 	ResourceIdentifier,
 	NetworkT,
@@ -80,7 +80,7 @@ const networkDecoder = (...keys: string[]) =>
 const addressDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
 		key !== undefined && keys.includes(key) && isString(value)
-			? Acc0untAddress.fromUnsafe(value)
+			? AccountAddress.fromUnsafe(value)
 			: undefined,
 	)
 

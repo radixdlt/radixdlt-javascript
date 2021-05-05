@@ -15,7 +15,7 @@ import {
 	SigningKeyTypeHDT,
 	BIP32T,
 	BIP44T,
-	HardwareWalletSimpleT,
+	HardwareSigningKeyT,
 	HDSigningKeyTypeIdentifier,
 	HDMasterSeed,
 	HDNodeT,
@@ -92,11 +92,11 @@ describe('account_type', () => {
 	it('hw signingKey', (done) => {
 		const subs = new Subscription()
 
-		const hwWalletConnectSubject = new Subject<HardwareWalletSimpleT>()
+		const hwWalletConnectSubject = new Subject<HardwareSigningKeyT>()
 
 		const mockHWWallet = (
 			hardwareMnemonic?: string,
-		): HardwareWalletSimpleT => {
+		): HardwareSigningKeyT => {
 			const mnemonic = Mnemonic.fromEnglishPhrase(
 				hardwareMnemonic ??
 					'equip will roof matter pink blind book anxiety banner elbow sun young',

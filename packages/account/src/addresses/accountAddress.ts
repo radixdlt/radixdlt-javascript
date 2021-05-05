@@ -10,11 +10,11 @@ import {
 	ValidateDataAndExtractPubKeyBytes,
 } from './abstractAddress'
 import { buffersEquals } from '@radixdlt/util'
-import { Acc0untAddressT, AddressTypeT, NetworkT } from './_types'
+import { AccountAddressT, AddressTypeT, NetworkT } from './_types'
 
 export const isSigningKeyAddress = (
 	something: unknown,
-): something is Acc0untAddressT => {
+): something is AccountAddressT => {
 	if (!isAbstractAddress(something)) return false
 	return something.addressType === AddressTypeT.ACCOUNT
 }
@@ -63,7 +63,7 @@ const fromPublicKeyAndNetwork = (
 		publicKey: PublicKey
 		network: NetworkT
 	}>,
-): Acc0untAddressT =>
+): AccountAddressT =>
 	AbstractAddress.byFormattingPublicKeyDataAndBech32ConvertingIt({
 		...input,
 		network: input.network,
@@ -81,7 +81,7 @@ const fromPublicKeyAndNetwork = (
 		})
 		._unsafeUnwrap({ withStackTrace: true })
 
-const fromString = (bechString: string): Result<Acc0untAddressT, Error> =>
+const fromString = (bechString: string): Result<AccountAddressT, Error> =>
 	AbstractAddress.fromString({
 		bechString,
 		addressType: AddressTypeT.ACCOUNT,
@@ -100,7 +100,7 @@ const isSigningKeyAddressUnsafeInput = (
 	return typeof something === 'string'
 }
 
-export type AddressOrUnsafeInput = SigningKeyAddressUnsafeInput | Acc0untAddressT
+export type AddressOrUnsafeInput = SigningKeyAddressUnsafeInput | AccountAddressT
 
 export const isSigningKeyAddressOrUnsafeInput = (
 	something: unknown,
@@ -109,10 +109,10 @@ export const isSigningKeyAddressOrUnsafeInput = (
 
 const fromUnsafe = (
 	input: AddressOrUnsafeInput,
-): Result<Acc0untAddressT, Error> =>
+): Result<AccountAddressT, Error> =>
 	isSigningKeyAddress(input) ? ok(input) : fromString(input)
 
-export const Acc0untAddress = {
+export const AccountAddress = {
 	isSigningKeyAddress,
 	fromUnsafe,
 	fromPublicKeyAndNetwork,

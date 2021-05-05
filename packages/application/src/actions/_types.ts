@@ -1,6 +1,6 @@
 import {
 	AddressOrUnsafeInput,
-	Acc0untAddressT,
+	AccountAddressT,
 	ValidatorAddressT,
 	ValidatorAddressOrUnsafeInput,
 	ResourceIdentifierOrUnsafeInput,
@@ -51,8 +51,8 @@ export type ActionInput =
 // ####                         #####
 // ##################################
 export type TransferTokensProps = Readonly<{
-	to: Acc0untAddressT
-	from: Acc0untAddressT
+	to: AccountAddressT
+	from: AccountAddressT
 	amount: AmountT
 	rri: ResourceIdentifierT
 }>
@@ -61,7 +61,7 @@ export type TransferTokensAction = TransferTokensProps &
 	Action<ActionType.TOKEN_TRANSFER>
 
 export type StakeAndUnstakeTokensProps = Readonly<{
-	from: Acc0untAddressT
+	from: AccountAddressT
 	validator: ValidatorAddressT
 	amount: AmountT
 }>
@@ -78,7 +78,7 @@ export type UnstakeTokensAction = UnstakeTokensProps &
 // Radix Core API.
 export type IntendedActionBase<T extends ActionType> = Action<T> &
 	Readonly<{
-		from: Acc0untAddressT
+		from: AccountAddressT
 	}>
 
 export type IntendedTransferTokensAction = IntendedActionBase<ActionType.TOKEN_TRANSFER> &

@@ -4,8 +4,8 @@ import {
 	TransferTokensInput,
 } from './_types'
 import {
-	Acc0untAddress,
-	Acc0untAddressT,
+	AccountAddress,
+	AccountAddressT,
 	isSigningKeyAddressOrUnsafeInput,
 	ResourceIdentifierT,
 	ResourceIdentifier,
@@ -27,15 +27,15 @@ export const isTransferTokensInput = (
 
 export const create = (
 	input: TransferTokensInput,
-	from: Acc0untAddressT,
+	from: AccountAddressT,
 ): Result<IntendedTransferTokensAction, Error> => {
 	return combine([
-		Acc0untAddress.fromUnsafe(input.to),
+		AccountAddress.fromUnsafe(input.to),
 		Amount.fromUnsafe(input.amount),
 		ResourceIdentifier.fromUnsafe(input.tokenIdentifier),
 	]).map(
 		(resultList): IntendedTransferTokensAction => {
-			const to = resultList[0] as Acc0untAddressT
+			const to = resultList[0] as AccountAddressT
 			const amount = resultList[1] as AmountT
 			const rri = resultList[2] as ResourceIdentifierT
 

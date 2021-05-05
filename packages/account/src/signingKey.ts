@@ -19,7 +19,7 @@ import {
 	SigningKeyTypeIdentifier,
 	SigningKeyTypeNonHDT,
 	SigningKeyTypeT,
-	HardwareWalletSimpleT,
+	HardwareSigningKeyT,
 	HDSigningKeyTypeIdentifier, PrivateKeyToSigningKeyInput,
 } from './_types'
 import { HDMasterSeedT, HDNodeT } from './bip39'
@@ -110,11 +110,11 @@ const makeEncrypt = (diffieHellman: DiffieHellman): Encrypt => {
 }
 
 const makeEncryptHW = (
-	hardwareWalletSimple: HardwareWalletSimpleT,
+	hardwareSigningKey: HardwareSigningKeyT,
 	hdPath: HDPathRadixT,
 ): Encrypt => {
 	return (input: SigningKeyEncryptionInput): Observable<EncryptedMessageT> => {
-		return hardwareWalletSimple
+		return hardwareSigningKey
 			.diffieHellman({
 				hdPath,
 				publicKeyOfOtherParty: input.publicKeyOfOtherParty,
@@ -133,11 +133,11 @@ const makeEncryptHW = (
 }
 
 const makeDecryptHW = (
-	hardwareWalletSimple: HardwareWalletSimpleT,
+	hardwareSigningKey: HardwareSigningKeyT,
 	hdPath: HDPathRadixT,
 ): Decrypt => {
 	return (input: SigningKeyDecryptionInput): Observable<string> => {
-		return hardwareWalletSimple
+		return hardwareSigningKey
 			.diffieHellman({
 				hdPath,
 				publicKeyOfOtherParty: input.publicKeyOfOtherParty,
@@ -234,13 +234,13 @@ const fromPrivateKey = (input: PrivateKeyToSigningKeyInput): SigningKeyT =>
 const fromHDPathWithHardwareWallet = (
 	input: Readonly<{
 		hdPath: HDPathRadixT
-		hardwareWalletConnection: Observable<HardwareWalletSimpleT>
+		hardwareWalletConnection: Observable<HardwareSigningKeyT>
 	}>,
 ): Observable<SigningKeyT> => {
 	const { hdPath, hardwareWalletConnection: hardwareWallet$ } = input
 
 	type Tmp = {
-		hardwareWalletSimple: HardwareWalletSimpleT
+		hardwareSigningKey: HardwareSigningKeyT
 		publicKey: PublicKey
 	}
 
@@ -251,13 +251,13 @@ const fromHDPathWithHardwareWallet = (
 
 	return hardwareWallet$.pipe(
 		mergeMap(
-			(hw: HardwareWalletSimpleT): Observable<Tmp> => {
+			(hw: HardwareSigningKeyT): Observable<Tmp> => {
 				return hw.derivePublicKey(hdPath).pipe(
 					map(
 						(publicKey: PublicKey): Tmp => {
 							return {
 								publicKey,
-								hardwareWalletSimple: hw,
+								hardwareSigningKey: hw,
 							}
 						},
 					),
@@ -265,20 +265,20 @@ const fromHDPathWithHardwareWallet = (
 			},
 		),
 		map(
-			({ publicKey, hardwareWalletSimple }): SigningKeyT => {
+			({ publicKey, hardwareSigningKey }): SigningKeyT => {
 				const newSigningKey: SigningKeyT = {
 					...type, // forward sugar for boolean signingKey type getters
 					isLocalHDSigningKey: false, // hardware is not local
 					publicKey,
 					hdPath,
 					sign: (hashedMessage: Buffer): Observable<Signature> => {
-						return hardwareWalletSimple.sign({
+						return hardwareSigningKey.sign({
 							hashedMessage,
 							hdPath,
 						})
 					},
-					decrypt: makeDecryptHW(hardwareWalletSimple, hdPath),
-					encrypt: makeEncryptHW(hardwareWalletSimple, hdPath),
+					decrypt: makeDecryptHW(hardwareSigningKey, hdPath),
+					encrypt: makeEncryptHW(hardwareSigningKey, hdPath),
 					type,
 					uniqueIdentifier: type.uniqueKey,
 					toString: (): string => {

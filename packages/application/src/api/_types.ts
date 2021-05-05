@@ -2,7 +2,7 @@ import { getAPI } from './json-rpc'
 
 import { Observable } from 'rxjs'
 import {
-	Acc0untAddressT,
+	AccountAddressT,
 	ResourceIdentifierT,
 	ValidatorAddressT,
 	NetworkT,
@@ -44,7 +44,7 @@ export type NodeT = Readonly<{
 
 export type RadixAPI = Readonly<{
 	tokenBalancesForAddress: (
-		address: Acc0untAddressT,
+		address: AccountAddressT,
 	) => Observable<SimpleTokenBalances>
 
 	transactionHistory: (
@@ -55,9 +55,9 @@ export type RadixAPI = Readonly<{
 
 	tokenInfo: (rri: ResourceIdentifierT) => Observable<Token>
 
-	stakesForAddress: (address: Acc0untAddressT) => Observable<StakePositions>
+	stakesForAddress: (address: AccountAddressT) => Observable<StakePositions>
 	unstakesForAddress: (
-		address: Acc0untAddressT,
+		address: AccountAddressT,
 	) => Observable<UnstakePositions>
 
 	transactionStatus: (
