@@ -32,18 +32,18 @@ import { arraysEqual, log, msgFromError } from '@radixdlt/util'
 import { HDMasterSeed, MnemomicT, Mnemonic } from './bip39'
 import { ResultAsync } from 'neverthrow'
 
-const stringifySigningKeysArray = (accounts: SigningKeyT[]): string =>
-	accounts.map((a) => a.toString()).join(',\n')
+const stringifySigningKeysArray = (signingKeys: SigningKeyT[]): string =>
+	signingKeys.map((a) => a.toString()).join(',\n')
 
-const stringifySigningKeys = (accounts: SigningKeysT): string => {
-	const allSigningKeysString = stringifySigningKeysArray(accounts.all)
+const stringifySigningKeys = (signingKeys: SigningKeysT): string => {
+	const allSigningKeysString = stringifySigningKeysArray(signingKeys.all)
 
 	return `
-		size: ${accounts.size()},
-		#hdSigningKeys: ${accounts.hdSigningKeys().length},
-		#nonHDSigningKeys: ${accounts.nonHDSigningKeys().length},
-		#localHDSigningKeys: ${accounts.localHDSigningKeys().length},
-		#hardwareHDSigningKeys: ${accounts.hardwareHDSigningKeys().length},
+		size: ${signingKeys.size()},
+		#hdSigningKeys: ${signingKeys.hdSigningKeys().length},
+		#nonHDSigningKeys: ${signingKeys.nonHDSigningKeys().length},
+		#localHDSigningKeys: ${signingKeys.localHDSigningKeys().length},
+		#hardwareHDSigningKeys: ${signingKeys.hardwareHDSigningKeys().length},
 		
 		all: ${allSigningKeysString}
 	`
@@ -91,7 +91,7 @@ const createSigningKeys = (_all: SigningKeyT[]): MutableSigningKeysT => {
 		all.push(signingKey)
 	}
 
-	const accounts: MutableSigningKeysT = {
+	const signingKeys: MutableSigningKeysT = {
 		toString: (): string => {
 			throw new Error('Overriden below')
 		},
@@ -110,8 +110,8 @@ const createSigningKeys = (_all: SigningKeyT[]): MutableSigningKeysT => {
 	}
 
 	return {
-		...accounts,
-		toString: (): string => stringifySigningKeys(accounts),
+		...signingKeys,
+		toString: (): string => stringifySigningKeys(signingKeys),
 	}
 }
 
@@ -145,25 +145,25 @@ const create = (
 		unsafeActiveSigningKey = newSigningKey
 	}
 
-	const accountsSubject = new BehaviorSubject<MutableSigningKeysT>(
+	const signingKeysSubject = new BehaviorSubject<MutableSigningKeysT>(
 		MutableSigningKeys.create([]),
 	)
 
 	const revealMnemonic = (): MnemomicT => mnemonic
 
 	const numberOfAllSigningKeys = (): number =>
-		accountsSubject.getValue().size()
+		signingKeysSubject.getValue().size()
 	const numberOfLocalHDSigningKeys = (): number =>
-		accountsSubject.getValue().localHDSigningKeys().length
+		signingKeysSubject.getValue().localHDSigningKeys().length
 
 	const _addAndMaybeSwitchToNewSigningKey = (
 		newSigningKey: SigningKeyT,
 		alsoSwitchTo?: boolean,
 	): SigningKeyT => {
 		const alsoSwitchTo_ = alsoSwitchTo ?? false
-		const accounts = accountsSubject.getValue()
-		accounts.add(newSigningKey)
-		accountsSubject.next(accounts)
+		const signingKeys = signingKeysSubject.getValue()
+		signingKeys.add(newSigningKey)
+		signingKeysSubject.next(signingKeys)
 		if (alsoSwitchTo_) {
 			setActiveSigningKey(newSigningKey)
 		}
@@ -243,13 +243,13 @@ const create = (
 			return toSigningKey
 		} else if (isSwitchToIndex(input)) {
 			const unsafeTargetIndex = input.toIndex
-			const accounts = accountsSubject.getValue()
+			const signingKeys = signingKeysSubject.getValue()
 
-			const safeTargetIndex = Math.min(unsafeTargetIndex, accounts.size())
+			const safeTargetIndex = Math.min(unsafeTargetIndex, signingKeys.size())
 
-			const firstSigningKey = Array.from(accounts.all)[safeTargetIndex]
+			const firstSigningKey = Array.from(signingKeys.all)[safeTargetIndex]
 			if (!firstSigningKey) {
-				const err = `No accounts.`
+				const err = `No signingKeys.`
 				log.error(err)
 				throw new Error(err)
 			}
@@ -271,7 +271,7 @@ const create = (
 
 	const activeSigningKey$ = activeSigningKeySubject.asObservable()
 
-	const accounts$ = accountsSubject.asObservable().pipe(shareReplay())
+	const signingKeys$ = signingKeysSubject.asObservable().pipe(shareReplay())
 
 	const restoreLocalHDSigningKeysUpToIndex = (
 		index: number,
@@ -285,10 +285,10 @@ const create = (
 		const localHDSigningKeysSize = numberOfLocalHDSigningKeys()
 		const numberOfSigningKeysToCreate = index - localHDSigningKeysSize
 		if (numberOfSigningKeysToCreate < 0) {
-			return accounts$
+			return signingKeys$
 		}
 
-		const accountsObservableList: Observable<SigningKeyT>[] = Array(
+		const signingKeysObservableList: Observable<SigningKeyT>[] = Array(
 			numberOfSigningKeysToCreate,
 		)
 			.fill(undefined)
@@ -298,9 +298,9 @@ const create = (
 				}),
 			)
 
-		return combineLatest(accountsObservableList).pipe(
+		return combineLatest(signingKeysObservableList).pipe(
 			mergeMap((_) => {
-				return accounts$
+				return signingKeys$
 			}),
 			take(1),
 		)
@@ -322,7 +322,7 @@ const create = (
 		switchSigningKey,
 		restoreLocalHDSigningKeysUpToIndex,
 		addSigningKeyFromPrivateKey,
-		observeSigningKeys: (): Observable<SigningKeysT> => accounts$,
+		observeSigningKeys: (): Observable<SigningKeysT> => signingKeys$,
 		observeActiveSigningKey: (): Observable<SigningKeyT> =>
 			activeSigningKey$,
 		sign: (hashedMessage: Buffer): Observable<Signature> =>
