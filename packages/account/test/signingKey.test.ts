@@ -92,9 +92,9 @@ describe('signingKey_type', () => {
 	it('hw signingKey', (done) => {
 		const subs = new Subscription()
 
-		const hwWalletConnectSubject = new Subject<HardwareSigningKeyT>()
+		const hwSigningKeychainConnectSubject = new Subject<HardwareSigningKeyT>()
 
-		const mockHWWallet = (
+		const mockHWSigningKeychain = (
 			hardwareMnemonic?: string,
 		): HardwareSigningKeyT => {
 			const mnemonic = Mnemonic.fromEnglishPhrase(
@@ -155,7 +155,7 @@ describe('signingKey_type', () => {
 		subs.add(
 			SigningKey.fromHDPathWithHardwareWallet({
 				hdPath,
-				hardwareWalletConnection: hwWalletConnectSubject.asObservable(),
+				hardwareWalletConnection: hwSigningKeychainConnectSubject.asObservable(),
 			}).subscribe(
 				(hwSigningKey) => {
 					expect(hwSigningKey.isHDSigningKey).toBe(true)
@@ -215,6 +215,6 @@ describe('signingKey_type', () => {
 			),
 		)
 
-		hwWalletConnectSubject.next(mockHWWallet())
+		hwSigningKeychainConnectSubject.next(mockHWSigningKeychain())
 	})
 })

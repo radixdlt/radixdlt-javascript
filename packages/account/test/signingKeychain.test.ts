@@ -14,7 +14,7 @@ import { mockErrorMsg } from '../../util/test/util'
 import { log } from '@radixdlt/util'
 import { UInt256 } from '@radixdlt/uint256'
 
-const createWallet = (
+const createSigningKeychain = (
 	input?: Readonly<{ startWithAnSigningKey?: boolean }>,
 ): SigningKeychainT => {
 	const mnemonic = Mnemonic.generateNew()
@@ -22,7 +22,7 @@ const createWallet = (
 	return SigningKeychain.create({ startWithAnSigningKey, mnemonic })
 }
 
-const createSpecificWallet = (
+const createSpecificSigningKeychain = (
 	input?: Readonly<{ startWithAnSigningKey?: boolean }>,
 ): SigningKeychainT => {
 	const mnemonic = Mnemonic.fromEnglishPhrase(
@@ -32,23 +32,23 @@ const createSpecificWallet = (
 	return SigningKeychain.create({ mnemonic, startWithAnSigningKey })
 }
 
-const expectWalletsEqual = (
-	wallets: { wallet1: SigningKeychainT; wallet2: SigningKeychainT },
+const expectSigningKeychainsEqual = (
+	signingKeychains: { signingKeychain1: SigningKeychainT; signingKeychain2: SigningKeychainT },
 	done: jest.DoneCallback,
 ): void => {
 	const subs = new Subscription()
-	const { wallet1, wallet2 } = wallets
-	const wallet1SigningKey1PublicKey$ = wallet1
+	const { signingKeychain1, signingKeychain2 } = signingKeychains
+	const signingKeychain1SigningKey1PublicKey$ = signingKeychain1
 		.deriveNextLocalHDSigningKey()
 		.pipe(map((a) => a.publicKey))
-	const wallet2SigningKey1PublicKey$ = wallet2
+	const signingKeychain2SigningKey1PublicKey$ = signingKeychain2
 		.deriveNextLocalHDSigningKey()
 		.pipe(map((a) => a.publicKey))
 
 	subs.add(
 		combineLatest(
-			wallet1SigningKey1PublicKey$,
-			wallet2SigningKey1PublicKey$,
+			signingKeychain1SigningKey1PublicKey$,
+			signingKeychain2SigningKey1PublicKey$,
 		).subscribe({
 			next: (keys: PublicKey[]) => {
 				expect(keys.length).toBe(2)
@@ -62,7 +62,7 @@ const expectWalletsEqual = (
 	)
 }
 
-describe('wallet_type', () => {
+describe('signingKeychain_type', () => {
 	it('can be created via keystore', async (done) => {
 		const mnemonic = Mnemonic.generateNew()
 
@@ -77,18 +77,18 @@ describe('wallet_type', () => {
 				return Promise.resolve(undefined)
 			},
 		})
-			.andThen((wallet1) =>
+			.andThen((signingKeychain1) =>
 				SigningKeychain.byLoadingAndDecryptingKeystore({
 					password,
 					load,
-				}).map((wallet2) => ({
-					wallet1,
-					wallet2,
+				}).map((signingKeychain2) => ({
+					signingKeychain1,
+					signingKeychain2,
 				})),
 			)
 			.match(
-				(wallets) => {
-					expectWalletsEqual(wallets, done)
+				(signingKeychains) => {
+					expectSigningKeychainsEqual(signingKeychains, done)
 				},
 				(e) => done(e),
 			)
@@ -108,7 +108,7 @@ describe('wallet_type', () => {
 
 	it('the accounts derived after restoreSigningKeysUpToIndex has correct index', (done) => {
 		const subs = new Subscription()
-		const signingKeychain = createWallet({ startWithAnSigningKey: false })
+		const signingKeychain = createSigningKeychain({ startWithAnSigningKey: false })
 
 		const indexToRestoreTo = 3
 
@@ -216,7 +216,7 @@ describe('wallet_type', () => {
 
 	it('signingKeychain can observe accounts', (done) => {
 		const subs = new Subscription()
-		const signingKeychain = createWallet({ startWithAnSigningKey: true })
+		const signingKeychain = createSigningKeychain({ startWithAnSigningKey: true })
 		const expected = [1, 2]
 
 		subs.add(
@@ -238,7 +238,7 @@ describe('wallet_type', () => {
 
 	it('can observe active signingKey', (done) => {
 		const subs = new Subscription()
-		const signingKeychain = createWallet()
+		const signingKeychain = createSigningKeychain()
 
 		subs.add(
 			signingKeychain.observeActiveSigningKey().subscribe((active) => {
@@ -255,7 +255,7 @@ describe('wallet_type', () => {
 	})
 
 	it('should derive next but not switch to it by default', (done) => {
-		const signingKeychain = createWallet()
+		const signingKeychain = createSigningKeychain()
 		const subs = new Subscription()
 
 		subs.add(signingKeychain.deriveNextLocalHDSigningKey().subscribe())
@@ -270,7 +270,7 @@ describe('wallet_type', () => {
 
 	it('should derive next and switch to it if specified', async (done) => {
 		const subs = new Subscription()
-		const signingKeychain = createWallet()
+		const signingKeychain = createSigningKeychain()
 
 		const expectedValues = [0, 1] // we start at 0 by default, then switch to 1
 
@@ -303,7 +303,7 @@ describe('wallet_type', () => {
 			mapSigningKeysToNum: (accounts: SigningKeysT) => number,
 		): void => {
 			const subs = new Subscription()
-			const signingKeychain = createWallet()
+			const signingKeychain = createSigningKeychain()
 			const expectedValues = [1, 2, 3]
 
 			subs.add(
@@ -338,7 +338,7 @@ describe('wallet_type', () => {
 
 	it('can switch signingKey by number', (done) => {
 		const subs = new Subscription()
-		const signingKeychain = createWallet()
+		const signingKeychain = createSigningKeychain()
 
 		const expectedAccountAddressIndices = [0, 1, 0]
 
@@ -374,7 +374,7 @@ describe('wallet_type', () => {
 				UInt256.valueOf(privateKeyScalar),
 			)._unsafeUnwrap()
 
-		const signingKeychain = createWallet({ startWithAnSigningKey: true })
+		const signingKeychain = createSigningKeychain({ startWithAnSigningKey: true })
 		const subs = new Subscription()
 
 		const expectedValues = [1, 2]

@@ -125,7 +125,7 @@ export type WalletT = Readonly<{
 
 	revealMnemonic: () => MnemomicT
 
-	restoreAccountsForLocalHDSigningKeysUpToIndex: (
+	restoreLocalHDAccountsToIndex: (
 		index: number,
 	) => Observable<AccountsT>
 
@@ -155,14 +155,14 @@ export type RadixT = Readonly<{
 	withWallet: (wallet: WalletT) => RadixT
 	login: (password: string, loadKeystore: () => Promise<KeystoreT>) => RadixT
 
-	// SigningKeychain APIs
+	// Wallet APIs
 
 	/**
-	 * Restores accounts in signingKeychain up to and excluding `targetIndex`.
+	 * Restores accounts in wallet up to and excluding `targetIndex`.
 	 *
-	 * @param {number} targetIndex - The index to restore signingKey up to, this method will restore accounts from index 0 up to but excluding this index.
+	 * @param {number} targetIndex - The index to restore account up to, this method will restore accounts from index 0 up to but excluding this index.
 	 */
-	restoreAccountsForLocalHDSigningKeysUpToIndex: (
+	restoreLocalHDAccountsToIndex: (
 		index: number,
 	) => Observable<AccountsT>
 	deriveNextAccount: (input?: DeriveNextInput) => RadixT
@@ -176,7 +176,7 @@ export type RadixT = Readonly<{
 	activeAccount: Observable<AccountT>
 	accounts: Observable<AccountsT>
 
-	// Active AccountAddress/SigningKey APIs
+	// Active AccountAddress/Account APIs
 	tokenBalances: Observable<TokenBalances>
 	stakingPositions: Observable<StakePositions>
 	unstakingPositions: Observable<UnstakePositions>

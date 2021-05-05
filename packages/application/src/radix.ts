@@ -909,12 +909,12 @@ const create = (
 		)
 	}
 
-	const restoreAccountsForLocalHDSigningKeysUpToIndex = (
+	const restoreLocalHDAccountsToIndex = (
 		index: number,
 	): Observable<AccountsT> => {
 		return wallet$.pipe(
 			mergeMap((im) =>
-				im.restoreAccountsForLocalHDSigningKeysUpToIndex(index),
+				im.restoreLocalHDAccountsToIndex(index),
 			),
 		)
 	}
@@ -951,7 +951,7 @@ const create = (
 	)
 
 	return {
-		// we forward the full `RadixAPI`, but we also provide some convenience methods based on active signingKey/address.
+		// we forward the full `RadixAPI`, but we also provide some convenience methods based on active account/address.
 		ledger: {
 			...api,
 		},
@@ -987,8 +987,8 @@ const create = (
 			void SigningKeychain.byLoadingAndDecryptingKeystore({
 				password,
 				load: loadKeystore,
-			}).then((walletResult) => {
-				walletResult.match(
+			}).then((signingKeychainResult) => {
+				signingKeychainResult.match(
 					(signingKeychain: SigningKeychainT) => {
 						const wallet = Wallet.create({
 							signingKeychain,
@@ -1027,7 +1027,7 @@ const create = (
 			return this
 		},
 
-		restoreAccountsForLocalHDSigningKeysUpToIndex,
+		restoreLocalHDAccountsToIndex,
 
 		decryptTransaction: decryptTransaction,
 
@@ -1062,13 +1062,13 @@ const create = (
 			return this
 		},
 
-		// SigningKeychain APIs
+		// Wallet APIs
 		revealMnemonic,
 		activeAddress,
 		activeAccount,
 		accounts,
 
-		// Active AccountAddress/SigningKey APIs
+		// Active AccountAddress/Account APIs
 		tokenBalances,
 		stakingPositions,
 		unstakingPositions,

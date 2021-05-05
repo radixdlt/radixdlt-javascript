@@ -104,7 +104,7 @@ const create = (
 			)
 		},
 
-		restoreAccountsForLocalHDSigningKeysUpToIndex: (
+		restoreLocalHDAccountsToIndex: (
 			index: number,
 		): Observable<AccountsT> => {
 			return signingKeychain

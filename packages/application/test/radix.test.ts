@@ -331,7 +331,7 @@ describe('radix_high_level_api', () => {
 		const index = 3
 		subs.add(
 			radix
-				.restoreAccountsForLocalHDSigningKeysUpToIndex(index)
+				.restoreLocalHDAccountsToIndex(index)
 				.subscribe(
 					(accounts) => {
 						expect(accounts.size()).toBe(index)
