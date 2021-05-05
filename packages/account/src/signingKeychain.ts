@@ -22,7 +22,6 @@ import { mergeMap, shareReplay, take } from 'rxjs/operators'
 import {
 	Keystore,
 	KeystoreT,
-	PrivateKey,
 	PublicKey,
 	Signature,
 } from '@radixdlt/crypto'

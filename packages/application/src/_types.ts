@@ -11,7 +11,7 @@ import {
 	SwitchToIndex,
 	AddSigningKeyByPrivateKeyInput,
 } from '@radixdlt/account'
-import { KeystoreT, PrivateKey, PublicKey } from '@radixdlt/crypto'
+import { KeystoreT, PublicKey } from '@radixdlt/crypto'
 import { LogLevel } from '@radixdlt/util'
 import { Observable, ReplaySubject } from 'rxjs'
 import { NodeT, RadixAPI, RadixCoreAPI } from './api'
