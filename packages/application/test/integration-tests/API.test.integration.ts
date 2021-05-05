@@ -27,12 +27,13 @@ import {
 	TransactionStatus,
 } from '../../src/dto/_types'
 import { Amount, AmountT } from '@radixdlt/primitives'
-import { TransactionIntentBuilder } from '../../src/dto/transactionIntentBuilder'
-import { TransactionTrackingEventType } from '../../src/dto/_types'
-import { TransferTokensInput } from '../../src/actions/_types'
-import { TransferTokensOptions } from '../../src/_types'
-import { makeWalletWithFunds } from '../../../account/test/utils'
+import {
+	TransferTokensOptions,
+	TransferTokensInput,
+	TransactionTrackingEventType,
+} from '../../src'
 import { UInt256 } from '@radixdlt/uint256'
+import { makeWalletWithFunds } from '../radix.test'
 const fetch = require('node-fetch')
 
 // local
@@ -128,7 +129,7 @@ describe('integration API tests', () => {
 		)
 	})
 
-	it('deriveNextAccount method on radix updates accounts', (done) => {
+	it('deriveNextSigningKey method on radix updates accounts', (done) => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
@@ -140,7 +141,7 @@ describe('integration API tests', () => {
 		subs.add(
 			radix.accounts
 				.pipe(
-					map((a) => a.size),
+					map((i) => i.size()),
 					take(expected.length),
 					toArray(),
 				)
@@ -154,7 +155,7 @@ describe('integration API tests', () => {
 		radix.deriveNextAccount({ alsoSwitchTo: false })
 	})
 
-	it('deriveNextAccount alsoSwitchTo method on radix updates activeAccount', (done) => {
+	it('deriveNextSigningKey alsoSwitchTo method on radix updates activeSigningKey', (done) => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
@@ -166,7 +167,7 @@ describe('integration API tests', () => {
 		subs.add(
 			radix.activeAccount
 				.pipe(
-					map((a) => a.hdPath.addressIndex.value()),
+					map((account) => account.hdPath!.addressIndex.value()),
 					take(expected.length),
 					toArray(),
 				)
@@ -181,7 +182,7 @@ describe('integration API tests', () => {
 		radix.deriveNextAccount({ alsoSwitchTo: true })
 	})
 
-	it('deriveNextAccount alsoSwitchTo method on radix updates activeAddress', (done) => {
+	it('deriveNextSigningKey alsoSwitchTo method on radix updates activeAddress', (done) => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
@@ -218,7 +219,9 @@ describe('integration API tests', () => {
 		getTokenBalanceSubject.next(1)
 
 		let transferDone = false
-		const amountToSend = Amount.fromUnsafe(1)._unsafeUnwrap()
+		const amountToSend = Amount.fromUnsafe(
+			`1${'0'.repeat(18)}`,
+		)._unsafeUnwrap()
 
 		let initialBalance: AmountT
 		let balanceAfterTransfer: AmountT
@@ -245,7 +248,7 @@ describe('integration API tests', () => {
 							initialBalance
 								.sub(balanceAfterTransfer)
 								.eq(amountToSend.add(fee)),
-						).toEqual(true)
+						).toBe(true)
 						done()
 					} else {
 						initialBalance = getXRDBalanceOrZero()

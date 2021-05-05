@@ -5,6 +5,6 @@ export * from './addresses'
 
 export * from './_types'
 
-export * from './wallet'
+export * from './signingKeychain'
 export * from './resultAsync_observable'
-export * from './account'
+export * from './signingKey'

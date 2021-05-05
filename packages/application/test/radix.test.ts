@@ -1,19 +1,38 @@
 import {
 	AccountAddress,
 	AccountAddressT,
-	AccountT,
 	HDMasterSeed,
-	Mnemonic,
 	NetworkT,
 	ResourceIdentifier,
 	toObservable,
 	ValidatorAddress,
-	Wallet,
-	WalletT,
+	SigningKeychain,
 } from '@radixdlt/account'
-import { interval, Observable, of, ReplaySubject, Subscription, throwError } from 'rxjs'
-import { map, mergeMap, shareReplay, skipWhile, take, tap, toArray } from 'rxjs/operators'
-import { KeystoreT, MessageEncryption, privateKeyFromScalar, PublicKey, publicKeyFromBytes } from '@radixdlt/crypto'
+import {
+	interval,
+	Observable,
+	of,
+	ReplaySubject,
+	Subscription,
+	throwError,
+} from 'rxjs'
+import {
+	map,
+	mergeMap,
+	shareReplay,
+	skipWhile,
+	take,
+	tap,
+	toArray,
+} from 'rxjs/operators'
+import {
+	KeystoreT,
+	MessageEncryption,
+	PrivateKey,
+	privateKeyFromScalar,
+	PublicKey,
+	publicKeyFromBytes,
+} from '@radixdlt/crypto'
 import {
 	ActionType,
 	alice,
@@ -26,6 +45,8 @@ import {
 	ErrorCategory,
 	ErrorCause,
 	ExecutedTransaction,
+	WalletT,
+	AccountT,
 	isStakeTokensAction,
 	isTransferTokensAction,
 	isUnstakeTokensAction,
@@ -46,10 +67,16 @@ import {
 	TransactionType,
 	TransferTokensInput,
 	TransferTokensOptions,
+	Wallet,
 } from '../src'
 import { Amount, AmountT } from '@radixdlt/primitives'
 
-import { log, LogLevel, msgFromError, restoreDefaultLogLevel } from '@radixdlt/util'
+import {
+	log,
+	LogLevel,
+	msgFromError,
+	restoreDefaultLogLevel,
+} from '@radixdlt/util'
 import { mockErrorMsg } from '../../util/test/util'
 import {
 	ExecutedAction,
@@ -61,8 +88,16 @@ import {
 	TransactionIntent,
 } from '..'
 import { signatureFromHexStrings } from '@radixdlt/crypto/test/utils'
-import { makeWalletWithFunds } from '@radixdlt/account/test/utils'
+import { makeSigningKeyChainWithFunds } from '@radixdlt/account/test/utils'
 import { UInt256 } from '@radixdlt/uint256'
+import { createWallet } from './util'
+
+export const makeWalletWithFunds = (): WalletT => {
+	return Wallet.create({
+		signingKeychain: makeSigningKeyChainWithFunds(),
+		network: NetworkT.BETANET,
+	})
+}
 
 const mockTransformIntentToExecutedTX = (
 	txIntent: TransactionIntent,
@@ -116,14 +151,6 @@ const mockTransformIntentToExecutedTX = (
 	}
 
 	return executedTx
-}
-
-const createWallet = (input?: { startWithAnAccount?: boolean }): WalletT => {
-	const mnemonic = Mnemonic.fromEnglishPhrase(
-		'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
-	)._unsafeUnwrap()
-	const startWithAnAccount = input?.startWithAnAccount ?? true
-	return Wallet.create({ mnemonic, startWithAnAccount })
 }
 
 const dummyNode = (urlString: string): Observable<NodeT> =>
@@ -183,12 +210,12 @@ export const keystoreForTest: KeystoreForTest = {
 describe('radix_high_level_api', () => {
 	it('can load test keystore', async (done) => {
 		// keystoreForTest
-		await Wallet.byLoadingAndDecryptingKeystore({
+		await SigningKeychain.byLoadingAndDecryptingKeystore({
 			password: keystoreForTest.password,
 			load: () => Promise.resolve(keystoreForTest.keystore),
 		}).match(
-			(wallet) => {
-				const revealedMnemonic = wallet.revealMnemonic()
+			(signingKeychain) => {
+				const revealedMnemonic = signingKeychain.revealMnemonic()
 				expect(revealedMnemonic.phrase).toBe(
 					'legal winner thank year wave sausage worth useful legal winner thank yellow',
 				)
@@ -213,14 +240,7 @@ describe('radix_high_level_api', () => {
 		expect(radix).toBeDefined()
 	})
 
-	it('can connect and is chainable', () => {
-		const radix = Radix.create().connect('https://www.radixdlt.com/')
-		expect(radix).toBeDefined()
-		expect(radix.ledger.nativeToken).toBeDefined()
-		expect(radix.ledger.tokenBalancesForAddress).toBeDefined() // etc
-	})
-
-	it('emits node connection without wallet', async (done) => {
+	it('emits node connection without signingKeychain', async (done) => {
 		const radix = Radix.create()
 		radix.__withAPI(mockedAPI)
 
@@ -289,36 +309,36 @@ describe('radix_high_level_api', () => {
 
 	it('can observe active account without API', async (done) => {
 		const radix = Radix.create()
-		const wallet = createWallet()
+		const wallet = createWallet({ startWithInitialSigningKey: true })
 		radix.withWallet(wallet)
 
 		radix.activeAccount.subscribe(
 			(account) => {
-				expect(account.hdPath.addressIndex.value()).toBe(0)
+				expect(account.hdPath!.addressIndex.value()).toBe(0)
 				done()
 			},
 			(error) => done(error),
 		)
 	})
 
-	it('radix can restoreAccountsUpToIndex', (done) => {
+	it('radix can restoreSigningKeysUpToIndex', (done) => {
 		const subs = new Subscription()
 
 		const radix = Radix.create().withWallet(
-			createWallet({ startWithAnAccount: false }),
+			createWallet({ startWithInitialSigningKey: false }),
 		)
 
 		const index = 3
 		subs.add(
-			radix.restoreAccountsUpToIndex(index).subscribe(
+			radix.restoreLocalHDAccountsToIndex(index).subscribe(
 				(accounts) => {
-					expect(accounts.size).toBe(index)
-					accounts.all.forEach((a, i) => {
-						expect(a.hdPath.addressIndex.value()).toBe(i)
+					expect(accounts.size()).toBe(index)
+					accounts.all.forEach((account: AccountT, idx) => {
+						expect(account.hdPath!.addressIndex.value()).toBe(idx)
 					})
 					done()
 				},
-				(e) => {
+				(e: Error) => {
 					done(e)
 				},
 			),
@@ -340,7 +360,7 @@ describe('radix_high_level_api', () => {
 		)
 	})
 
-	it('returns native token without wallet', async (done) => {
+	it('returns native token without signingKeychain', async (done) => {
 		const radix = Radix.create()
 		radix.__withAPI(mockedAPI)
 
@@ -381,21 +401,16 @@ describe('radix_high_level_api', () => {
 		radix.withNodeConnection(failingNode)
 	})
 
-	it('login_with_wallet', async (done) => {
+	it('login_with_keystore', async (done) => {
 		const radix = Radix.create()
 		radix.__wallet.subscribe(
-			(wallet: WalletT) => {
-				const account = wallet.__unsafeGetAccount()
-				expect(account.hdPath.addressIndex.value()).toBe(0)
-				account.derivePublicKey().subscribe(
-					(pubKey) => {
-						expect(pubKey.toString(true)).toBe(
-							keystoreForTest.publicKeysCompressed[0],
-						)
-						done()
-					},
-					(error) => done(error),
+			(im: WalletT) => {
+				const account = im.__unsafeGetAccount()
+				expect(account.hdPath!.addressIndex.value()).toBe(0)
+				expect(account.publicKey.toString(true)).toBe(
+					keystoreForTest.publicKeysCompressed[0],
 				)
+				done()
 			},
 			(e) => done(e),
 		)
@@ -432,35 +447,44 @@ describe('radix_high_level_api', () => {
 
 	describe('radix_api_failing_scenarios', () => {
 		beforeAll(() => {
-			log.setLevel(LogLevel.SILENT)
+			log.setLevel('silent')
 		})
 
 		afterAll(() => {
 			restoreDefaultLogLevel()
 		})
 
-		it('should handle wallet error', (done) => {
+		it('should handle signingKeychain error', (done) => {
+			const subs = new Subscription()
 			const radix = Radix.create()
 
-			radix.__wallet.subscribe((wallet: WalletT) => {
-				const account = wallet.__unsafeGetAccount()
-				expect(account.hdPath.addressIndex.value()).toBe(0)
-				account.derivePublicKey().subscribe(
-					(pubKey) => {
-						expect(pubKey.toString(true)).toBe(
+			let haveSeenError = false
+
+			subs.add(
+				radix.__wallet.subscribe(
+					(wallet: WalletT) => {
+						const account = wallet.__unsafeGetAccount()
+						expect(account.hdPath!.addressIndex.value()).toBe(0)
+
+						expect(account.publicKey.toString(true)).toBe(
 							keystoreForTest.publicKeysCompressed[0],
 						)
+
+						expect(haveSeenError).toBe(true)
 						done()
 					},
 					(error) => done(error),
-				)
-			})
+				),
+			)
 
-			radix.errors.subscribe({
-				next: (error) => {
-					expect(error.category).toEqual(ErrorCategory.WALLET)
-				},
-			})
+			subs.add(
+				radix.errors.subscribe({
+					next: (error) => {
+						haveSeenError = true
+						expect(error.category).toEqual(ErrorCategory.WALLET)
+					},
+				}),
+			)
 
 			const errMsg = mockErrorMsg('LoadError')
 
@@ -501,7 +525,6 @@ describe('radix_high_level_api', () => {
 					},
 				}),
 			)
-
 			subs.add(
 				radix.errors.subscribe((error) => {
 					expect(error.category).toEqual(ErrorCategory.API)
@@ -565,7 +588,7 @@ describe('radix_high_level_api', () => {
 		subs.add(
 			radix.activeAccount
 				.pipe(
-					map((a) => a.hdPath.addressIndex.value()),
+					map((account) => account.hdPath!.addressIndex.value()),
 					take(2),
 					toArray(),
 				)
@@ -587,12 +610,12 @@ describe('radix_high_level_api', () => {
 		const subs = new Subscription()
 		const radix = Radix.create()
 
-		const expectedValues = [0, 1, 2, 3, 1, 0, 3]
+		const expectedValues = [0, 1, 2, 3, 1, 0, 3, 0]
 
 		subs.add(
 			radix.activeAccount
 				.pipe(
-					map((a) => a.hdPath.addressIndex.value()),
+					map((account) => account.hdPath!.addressIndex.value()),
 					take(expectedValues.length),
 					toArray(),
 				)
@@ -605,14 +628,19 @@ describe('radix_high_level_api', () => {
 				),
 		)
 
+		const wallet = createWallet({ startWithInitialSigningKey: true })
+
+		const firstAccount = wallet.__unsafeGetAccount()
+
 		radix
-			.withWallet(createWallet()) //0
+			.withWallet(wallet) //0
 			.deriveNextAccount({ alsoSwitchTo: true }) // 1
 			.deriveNextAccount({ alsoSwitchTo: true }) // 2
 			.deriveNextAccount({ alsoSwitchTo: true }) // 3
 			.switchAccount({ toIndex: 1 })
 			.switchAccount('first')
 			.switchAccount('last')
+			.switchAccount({ toAccount: firstAccount })
 	})
 
 	it('deriveNextAccount method on radix updates accounts', (done) => {
@@ -627,7 +655,7 @@ describe('radix_high_level_api', () => {
 		subs.add(
 			radix.accounts
 				.pipe(
-					map((a) => a.size),
+					map((i) => i.size()),
 					take(expected.length),
 					toArray(),
 				)
@@ -641,7 +669,7 @@ describe('radix_high_level_api', () => {
 		radix.deriveNextAccount({ alsoSwitchTo: false })
 	})
 
-	it('deriveNextAccount alsoSwitchTo method on radix updates activeAccount', (done) => {
+	it('deriveNextAccount alsoSwitchTo method on radix updates activeSigningKey', (done) => {
 		const subs = new Subscription()
 
 		const radix = Radix.create()
@@ -653,7 +681,7 @@ describe('radix_high_level_api', () => {
 		subs.add(
 			radix.activeAccount
 				.pipe(
-					map((a) => a.hdPath.addressIndex.value()),
+					map((account) => account.hdPath!.addressIndex.value()),
 					take(expected.length),
 					toArray(),
 				)
@@ -1088,19 +1116,6 @@ describe('radix_high_level_api', () => {
 
 		let receivedMsg = 'not_set'
 
-		// const alicePrivateKey = privateKeyFromScalar(
-		// 	UInt256.valueOf(1),
-		// )._unsafeUnwrap()
-		// const alicePublicKey = alicePrivateKey.publicKey()
-		// const bobPrivateKey = privateKeyFromScalar(
-		// 	UInt256.valueOf(2),
-		// )._unsafeUnwrap()
-		// const bobPublicKey = bobPrivateKey.publicKey()
-		// const bob = AccountAddress.fromPublicKeyAndNetwork({
-		// 	publicKey: bobPublicKey,
-		// 	network: NetworkT.BETANET,
-		// })
-
 		const plaintext =
 			'Hey Bob, this is Alice, you and I can read this message, but no one else.'
 
@@ -1108,7 +1123,7 @@ describe('radix_high_level_api', () => {
 
 		const mockedAPI = mockRadixCoreAPI()
 		const radix = Radix.create()
-			.withWallet(makeWalletWithFunds()) // returns
+			.withWallet(makeWalletWithFunds())
 			.__withAPI(
 				of({
 					...mockedAPI,
@@ -1176,7 +1191,7 @@ describe('radix_high_level_api', () => {
 
 		const mockedAPI = mockRadixCoreAPI()
 		const radix = Radix.create()
-			.withWallet(makeWalletWithFunds()) // returns
+			.withWallet(makeWalletWithFunds())
 			.__withAPI(
 				of({
 					...mockedAPI,
@@ -1211,9 +1226,10 @@ describe('radix_high_level_api', () => {
 										receivedMsgHex,
 										'hex',
 									),
-									publicKeyOfOtherParty: bobPublicKey,
-									diffieHellman:
-										alicePrivateKey.diffieHellman,
+									diffieHellmanPoint: alicePrivateKey.diffieHellman.bind(
+										null,
+										bobPublicKey,
+									),
 								}),
 							)
 						},
@@ -1231,8 +1247,10 @@ describe('radix_high_level_api', () => {
 										receivedMsgHex,
 										'hex',
 									),
-									publicKeyOfOtherParty: alicePublicKey,
-									diffieHellman: bobPrivateKey.diffieHellman,
+									diffieHellmanPoint: bobPrivateKey.diffieHellman.bind(
+										null,
+										alicePublicKey,
+									),
 								}),
 							)
 						},
@@ -1269,8 +1287,8 @@ describe('radix_high_level_api', () => {
 
 		type SystemUnderTest = {
 			plaintext: string
-			pkOfActiveAccount0: PublicKey
-			pkOfActiveAccount1: PublicKey
+			pkOfActiveSigningKey0: PublicKey
+			pkOfActiveSigningKey1: PublicKey
 			recipient: PublicKey
 			tx: SimpleExecutedTransaction
 			decrypted0: string
@@ -1304,9 +1322,9 @@ describe('radix_high_level_api', () => {
 			radix.__wallet
 				.pipe(
 					map(
-						(w: WalletT): AccountT => {
-							const account = w.__unsafeGetAccount()
-							sut.pkOfActiveAccount0 = account.__unsafeGetPublicKey()
+						(im: WalletT): AccountT => {
+							const account = im.__unsafeGetAccount()
+							sut.pkOfActiveSigningKey0 = account.publicKey
 							return account
 						},
 					),
@@ -1341,8 +1359,8 @@ describe('radix_high_level_api', () => {
 						return radix.activeAccount
 					}),
 					tap(
-						(a) =>
-							(sut.pkOfActiveAccount1 = a.__unsafeGetPublicKey()),
+						(account: AccountT) =>
+							(sut.pkOfActiveSigningKey1 = account.publicKey),
 					),
 					mergeMap((_) => radix.decryptTransaction(sut.tx)),
 					tap((decrypted) => (sut.decrypted1 = decrypted)),
@@ -1353,8 +1371,8 @@ describe('radix_high_level_api', () => {
 						expect(sut.plaintext).toBeDefined()
 						expect(sut.decrypted0).toBeDefined()
 						expect(sut.decrypted1).toBeDefined()
-						expect(sut.pkOfActiveAccount0).toBeDefined()
-						expect(sut.pkOfActiveAccount1).toBeDefined()
+						expect(sut.pkOfActiveSigningKey0).toBeDefined()
+						expect(sut.pkOfActiveSigningKey1).toBeDefined()
 						expect(sut.recipient).toBeDefined()
 						expect(sut.tx).toBeDefined()
 						expect(sut.tx.message).toBeDefined()
@@ -1369,12 +1387,12 @@ describe('radix_high_level_api', () => {
 						).toBe(true)
 
 						expect(
-							sut.pkOfActiveAccount0.equals(
-								sut.pkOfActiveAccount1,
+							sut.pkOfActiveSigningKey0.equals(
+								sut.pkOfActiveSigningKey1,
 							),
 						).toBe(false)
 						expect(
-							sut.pkOfActiveAccount1.equals(sut.recipient),
+							sut.pkOfActiveSigningKey1.equals(sut.recipient),
 						).toBe(true)
 
 						expect(sut.tx.message).not.toBe(sut.plaintext) // because encrypted
@@ -1396,6 +1414,7 @@ describe('radix_high_level_api', () => {
 	})
 
 	it('should be able to handle error on API call', (done) => {
+		const subs = new Subscription()
 		const errorMsg = 'failed to fetch native token'
 
 		const radix = Radix.create()
@@ -1409,16 +1428,18 @@ describe('radix_high_level_api', () => {
 				}),
 			)
 
-		radix.ledger.nativeToken().subscribe({
-			next: (token) => {
-				done(Error('Should throw'))
-			},
-			error: (e: APIError) => {
-				expect(e.errors.length).toEqual(1)
-				expect(e.errors[0].message).toEqual(errorMsg)
-				done()
-			},
-		})
+		subs.add(
+			radix.ledger.nativeToken().subscribe({
+				next: (token) => {
+					done(Error('Should throw'))
+				},
+				error: (e: APIError) => {
+					expect(e.errors.length).toEqual(1)
+					expect(e.errors[0].message).toEqual(errorMsg)
+					done()
+				},
+			}),
+		)
 	})
 
 	describe('make tx single transfer', () => {
@@ -1553,7 +1574,6 @@ describe('radix_high_level_api', () => {
 			const radix = Radix.create()
 				.withWallet(createWallet())
 				.__withAPI(mockedAPI)
-				.logLevel(LogLevel.DEBUG)
 
 			const userConfirmation = new ReplaySubject<ManualUserConfirmTX>()
 
@@ -1566,32 +1586,36 @@ describe('radix_high_level_api', () => {
 			let calledConfirmationWhenItWasNotReady = false
 
 			let confirmTx: () => void
-			confirmTx = (): void => { calledConfirmationWhenItWasNotReady = true }
+			confirmTx = (): void => {
+				calledConfirmationWhenItWasNotReady = true
+			}
 
 			let sub: Subscription
 
 			sub = userConfirmation.subscribe((confirmation) => {
-				console.log(`👻 userHasBeenAskedToConfirmTXCounter`, userHasBeenAskedToConfirmTXCounter)
 				userHasBeenAskedToConfirmTXCounter += 1
 				if (userHasBeenAskedToConfirmTXCounter === 1) {
 					confirmTx = confirmation.confirm
 					radix.deriveNextAccount({ alsoSwitchTo: true })
-				} else if (userHasBeenAskedToConfirmTXCounter > 4) { // break inf recursion.
-					console.log(`🤡 breaking recursion loop.`)
+				} else if (userHasBeenAskedToConfirmTXCounter > 4) {
+					// break inf recursion.
 					subs.remove(sub)
 					sub.unsubscribe()
 				}
 			})
 
-			subs.add(
-				sub
-			)
+			subs.add(sub)
 
-			subs.add(radix.activeAccount.pipe(skipWhile(a => a.hdPath.addressIndex.value() === 0)).subscribe((n => {
-				expect(n.hdPath.addressIndex.value()).toBe(1)
-				console.log(`🎉 new account.`)
-				confirmTx() // => will trigger tx to continue with signing.
-			})))
+			subs.add(
+				radix.activeAccount
+					.pipe(
+						skipWhile((i) => i.hdPath!.addressIndex.value() === 0),
+					)
+					.subscribe((i) => {
+						expect(i.hdPath!.addressIndex.value()).toBe(1)
+						confirmTx() // => will trigger tx to continue with signing.
+					}),
+			)
 
 			subs.add(
 				transactionTracking.completion.subscribe({
@@ -1745,44 +1769,7 @@ describe('radix_high_level_api', () => {
 		})
 	})
 
-	describe('failing scenarios', function () {
-		beforeAll(() => {
-			jest.spyOn(console, 'error').mockImplementation(() => {})
-		})
-
-		afterAll(() => {
-			jest.clearAllMocks()
-		})
-
-		it.skip('error is thrown when wrong network', (done) => {
-			const subs = new Subscription()
-			const requestedNetwork = NetworkT.MAINNET
-			const radix = Radix.create({ network: requestedNetwork }).__withAPI(
-				of({
-					...mockRadixCoreAPI(),
-					networkId: () => of(NetworkT.BETANET),
-				}),
-			)
-
-			subs.add(
-				radix.ledger.networkId().subscribe(
-					(network) => {
-						const wrong = `Expected failure but got success, got networkID: ${network.toString()}`
-						console.error(wrong)
-						done(new Error(wrong))
-					},
-					(e) => {
-						expect(msgFromError(e)).toBe(
-							`EMERGENCY actual network and requested network differs. STOP EVERYTHING YOU ARE DOING. You might lose funds.`,
-						)
-						done()
-					},
-				),
-			)
-		})
-	})
-
-	it('special wallet with preallocated funds', (done) => {
+	it('special signingKeychain with preallocated funds', (done) => {
 		const subs = new Subscription()
 
 		const walletWithFunds = makeWalletWithFunds()
@@ -1823,11 +1810,6 @@ describe('radix_high_level_api', () => {
 					},
 				),
 		)
-
-		radix.deriveNextAccount({ alsoSwitchTo: true })
-		radix.deriveNextAccount({ alsoSwitchTo: true })
-		radix.deriveNextAccount({ alsoSwitchTo: true })
-		radix.deriveNextAccount({ alsoSwitchTo: true })
 	})
 
 	describe('tx history returns type of tx', () => {
@@ -1867,7 +1849,7 @@ describe('radix_high_level_api', () => {
 			const wallet = makeWalletWithFunds()
 			const network = NetworkT.BETANET
 			const myAddress = AccountAddress.fromPublicKeyAndNetwork({
-				publicKey: wallet.__unsafeGetAccount().__unsafeGetPublicKey(),
+				publicKey: wallet.__unsafeGetAccount().publicKey,
 				network,
 			})
 
@@ -1978,6 +1960,4 @@ describe('radix_high_level_api', () => {
 			testTXType(false, false, TransactionType.UNRELATED, done)
 		})
 	})
-
-
 })

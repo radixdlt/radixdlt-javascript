@@ -18,8 +18,10 @@ describe('message encryption', () => {
 		): Promise<EncryptedMessageT> => {
 			const res = await MessageEncryption.encrypt({
 				plaintext,
-				publicKeyOfOtherParty: to,
-				diffieHellman: alice.privateKey.diffieHellman,
+				diffieHellmanPoint: alice.privateKey.diffieHellman.bind(
+					null,
+					to,
+				),
 			})
 			return res._unsafeUnwrap()
 		}
@@ -34,8 +36,10 @@ describe('message encryption', () => {
 		): Promise<string> => {
 			const res = await MessageEncryption.decrypt({
 				encryptedMessage,
-				diffieHellman,
-				publicKeyOfOtherParty,
+				diffieHellmanPoint: diffieHellman.bind(
+					null,
+					publicKeyOfOtherParty,
+				),
 			}).map((b) => b.toString('utf-8'))
 			return res._unsafeUnwrap()
 		}
@@ -112,8 +116,10 @@ describe('message encryption', () => {
 
 			MessageEncryption.encrypt({
 				plaintext: tooLongMsg,
-				publicKeyOfOtherParty: bob,
-				diffieHellman: alicePrivateKey.diffieHellman,
+				diffieHellmanPoint: alicePrivateKey.diffieHellman.bind(
+					null,
+					bob,
+				),
 			}).match(
 				(_) => {
 					done(new Error('Expected failure.'))
@@ -161,8 +167,10 @@ describe('message encryption', () => {
 
 			await MessageEncryption.decrypt({
 				encryptedMessage: encryptedMessageByAliceToBobBuf,
-				publicKeyOfOtherParty,
-				diffieHellman,
+				diffieHellmanPoint: diffieHellman.bind(
+					null,
+					publicKeyOfOtherParty,
+				),
 			}).match(
 				(decrypted) => {
 					expect(decrypted.toString('utf8')).toBe(plaintext)

@@ -1,9 +1,5 @@
-import { DiffieHellman, ECPointOnCurve, PublicKey } from '../_types'
+import { ECPointOnCurve, PublicKey } from '../_types'
 import { secureRandomGenerator } from '@radixdlt/util'
-import {
-	AES_GCM,
-	aesGCMSealDeterministic,
-} from '../symmetric-encryption/aes/aesGCM'
 import { combine, errAsync, okAsync, Result, ResultAsync } from 'neverthrow'
 import {
 	EncryptedMessageT,
@@ -11,31 +7,33 @@ import {
 	MessageEncryptionInput,
 	SealedMessageT,
 } from './_types'
-import { Scrypt, ScryptParams } from '../key-derivation-functions/scrypt'
-import { AES_GCM_SealedBoxT } from '../symmetric-encryption/aes/_types'
-import { generateKeyPair } from '../elliptic-curve/keyPair'
-import { sha256 } from '../hash/sha'
-import { AES_GCM_SealedBox } from '../symmetric-encryption/aes/aesGCMSealedBox'
+import { Scrypt, ScryptParams } from '../key-derivation-functions'
+import {
+	AES_GCM_SealedBoxT,
+	AES_GCM_SealedBox,
+	AES_GCM,
+	aesGCMSealDeterministic,
+} from '../symmetric-encryption'
+import { generateKeyPair } from '../elliptic-curve'
+import { sha256 } from '../hash'
 import { EncryptedMessage } from './encryptedMessage'
 import { SealedMessage } from './sealedMessage'
 import { EncryptionScheme } from './encryptionScheme'
 
 type CalculateSharedSecretInput = Readonly<{
 	ephemeralPublicKey: PublicKey
-	publicKeyOfOtherParty: PublicKey
-	diffieHellman: DiffieHellman
+	diffieHellmanPoint: () => ResultAsync<ECPointOnCurve, Error>
 }>
 
 const calculateSharedSecret = (
 	input: CalculateSharedSecretInput,
 ): ResultAsync<Buffer, Error> => {
-	return input.diffieHellman(input.publicKeyOfOtherParty).map(
-		(dhKey: ECPointOnCurve): Buffer => {
-			const ephemeralPoint = input.ephemeralPublicKey.decodeToPointOnCurve()
-			const sharedSecretPoint = dhKey.add(ephemeralPoint)
-			return Buffer.from(sharedSecretPoint.x.toString(16), 'hex')
-		},
-	)
+	const { diffieHellmanPoint } = input
+	return diffieHellmanPoint().map((dhKey: ECPointOnCurve) => {
+		const ephemeralPoint = input.ephemeralPublicKey.decodeToPointOnCurve()
+		const sharedSecretPoint = dhKey.add(ephemeralPoint)
+		return Buffer.from(sharedSecretPoint.x.toString(16), 'hex')
+	})
 }
 
 const kdf = (secret: Buffer, nonce: Buffer): ResultAsync<Buffer, Error> => {
@@ -78,8 +76,7 @@ const aesSealedBoxFromSealedMessage = (
 const decryptSealedMessageWithKeysOfParties = (
 	input: Readonly<{
 		sealedMessage: SealedMessageT
-		publicKeyOfOtherParty: PublicKey
-		diffieHellman: DiffieHellman
+		diffieHellmanPoint: () => ResultAsync<ECPointOnCurve, Error>
 	}>,
 ): ResultAsync<Buffer, Error> => {
 	const ephemeralPublicKey = input.sealedMessage.ephemeralPublicKey
@@ -112,8 +109,7 @@ const decryptSealedMessageWithKeysOfParties = (
 const decryptMessage = (
 	input: Readonly<{
 		encryptedMessage: EncryptedMessageT
-		publicKeyOfOtherParty: PublicKey
-		diffieHellman: DiffieHellman
+		diffieHellmanPoint: () => ResultAsync<ECPointOnCurve, Error>
 	}>,
 ): ResultAsync<Buffer, Error> => {
 	const { encryptedMessage } = input
@@ -128,8 +124,7 @@ const decryptMessage = (
 const decryptEncryptedMessageBuffer = (
 	input: Readonly<{
 		encryptedMessageBuffer: Buffer
-		publicKeyOfOtherParty: PublicKey
-		diffieHellman: DiffieHellman
+		diffieHellmanPoint: () => ResultAsync<ECPointOnCurve, Error>
 	}>,
 ): ResultAsync<Buffer, Error> =>
 	EncryptedMessage.fromBuffer(input.encryptedMessageBuffer)

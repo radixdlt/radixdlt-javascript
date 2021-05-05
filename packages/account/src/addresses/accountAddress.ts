@@ -76,7 +76,7 @@ const fromPublicKeyAndNetwork = (
 	})
 		.orElse((e) => {
 			throw new Error(
-				`Expected to always be able to create account address from publicKey and network, but got error: ${e.message}`,
+				`Expected to always be able to create AccountAddress from publicKey and network, but got error: ${e.message}`,
 			)
 		})
 		._unsafeUnwrap({ withStackTrace: true })

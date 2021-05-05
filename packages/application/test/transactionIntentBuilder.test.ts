@@ -1,14 +1,16 @@
 import { Amount } from '@radixdlt/primitives'
 import {
 	ActionType,
-	IntendedTransferTokensAction,
-	StakeTokensInput,
-	TransferTokensInput,
-	TransactionIntentBuilderT,
-	TransactionIntentBuilder,
-	IntendedStakeTokensAction,
 	carol,
 	erin,
+	WalletT,
+	AccountT,
+	IntendedStakeTokensAction,
+	IntendedTransferTokensAction,
+	StakeTokensInput,
+	TransactionIntentBuilder,
+	TransactionIntentBuilderT,
+	TransferTokensInput,
 	xrd,
 } from '../src'
 import {
@@ -19,13 +21,14 @@ import {
 	NetworkT,
 	ValidatorAddress,
 	ValidatorAddressT,
-	Wallet,
-	WalletT,
+	SigningKeychain,
 } from '@radixdlt/account'
-import { combineLatest, merge, of, Subscription } from 'rxjs'
+import { merge, of, Subscription } from 'rxjs'
 
 import { map, mergeMap, take, toArray } from 'rxjs/operators'
 import { restoreDefaultLogLevel, log } from '@radixdlt/util'
+import { Wallet } from '../src/wallet'
+import { createWallet } from './util'
 
 describe('tx_intent_builder', () => {
 	const validatorCarol: ValidatorAddressT = ValidatorAddress.fromUnsafe(
@@ -39,17 +42,10 @@ describe('tx_intent_builder', () => {
 	const one = Amount.fromUnsafe(1)._unsafeUnwrap()
 	const xrdRRI = xrd.rri
 
-	const createSpecificWallet = (): WalletT => {
-		const mnemonic = Mnemonic.fromEnglishPhrase(
-			'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
-		)._unsafeUnwrap()
-		return Wallet.create({ mnemonic })
-	}
-	const wallet = createSpecificWallet()
+	const wallet = createWallet()
 
-	wallet.provideNetworkId(of(NetworkT.BETANET))
-	const aliceAccount = wallet.deriveNext()
-	const bobAccount = wallet.deriveNext()
+	let aliceAccount: AccountT
+	let bobAccount: AccountT
 	let alice: AccountAddressT
 	let bob: AccountAddressT
 
@@ -57,23 +53,24 @@ describe('tx_intent_builder', () => {
 
 	const plaintext = 'Hey Bob, how are you?'
 
-	beforeAll(async (done) => {
+	beforeAll((done) => {
 		subs.add(
-			combineLatest([
-				aliceAccount.deriveAddress(),
-				bobAccount.deriveAddress(),
-			])
-				.pipe(
-					map(([aliceAddress, bobAddress]) => ({
-						aliceAddress: aliceAddress as AccountAddressT,
-						bobAddress: bobAddress as AccountAddressT,
-					})),
-				)
-				.subscribe(({ aliceAddress, bobAddress }) => {
-					alice = aliceAddress
-					bob = bobAddress
-					done()
-				}),
+			wallet.deriveNextLocalHDAccount().subscribe(
+				(aliceId: AccountT) => {
+					aliceAccount = aliceId
+					alice = aliceId.address
+
+					wallet.deriveNextLocalHDAccount().subscribe(
+						(bobId: AccountT) => {
+							bobAccount = bobId
+							bob = bobId.address
+							done()
+						},
+						(e) => done(e),
+					)
+				},
+				(e) => done(e),
+			),
 		)
 	})
 
@@ -423,7 +420,9 @@ describe('tx_intent_builder', () => {
 
 			subs.add(
 				builder
-					.build({ encryptMessageIfAnyWithAccount: of(aliceAccount) })
+					.build({
+						encryptMessageIfAnyWithAccount: of(aliceAccount),
+					})
 					.subscribe({
 						next: (_) => {
 							done(new Error('Expected error'))
@@ -452,7 +451,9 @@ describe('tx_intent_builder', () => {
 
 			subs.add(
 				builder
-					.build({ encryptMessageIfAnyWithAccount: of(aliceAccount) })
+					.build({
+						encryptMessageIfAnyWithAccount: of(aliceAccount),
+					})
 					.subscribe({
 						next: (_) => {
 							done(new Error('Expected error'))

@@ -1,16 +1,37 @@
-import { PrivateKey, privateKeyFromScalar } from '@radixdlt/crypto'
+import { privateKeyFromScalar } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
-import { HDPathRadixT, Mnemonic, Wallet, WalletT } from '../src'
+import { Mnemonic, SigningKeychain, SigningKeychainT } from '../src'
 
-export const makeWalletWithFunds = (): WalletT => {
-	return Wallet.__unsafeCreateWithPrivateKeyProvider({
+export const makeSigningKeyChainWithFunds = (): SigningKeychainT => {
+	const signingKeychain = SigningKeychain.create({
+		startWithInitialSigningKey: false,
 		mnemonic: Mnemonic.generateNew(), // not used,
-		__privateKeyProvider: (hdPath: HDPathRadixT): PrivateKey => {
-			const privateKeyScalar: number =
-				(hdPath.addressIndex.value() % 10000) + 1 // `0` is not a valid key.
-			return privateKeyFromScalar(
-				UInt256.valueOf(privateKeyScalar),
-			)._unsafeUnwrap()
-		},
 	})
+
+	const addPK = (privateKeyScalar: number): void => {
+		const privateKey = privateKeyFromScalar(
+			UInt256.valueOf(privateKeyScalar),
+		)._unsafeUnwrap()
+		signingKeychain.addSigningKeyFromPrivateKey({
+			privateKey,
+			alsoSwitchTo: true,
+			name: `SigningKey with funds, privateKey: ${privateKeyScalar}`,
+		})
+	}
+
+	addPK(1)
+	addPK(2)
+	addPK(3)
+	addPK(4)
+	addPK(5)
+
+	signingKeychain.switchSigningKey('first')
+	if (
+		signingKeychain.__unsafeGetSigningKey().publicKey.toString(true) !==
+		'0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798'
+	) {
+		throw new Error('incorrect imple')
+	}
+
+	return signingKeychain
 }

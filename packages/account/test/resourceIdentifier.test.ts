@@ -2,7 +2,7 @@ import { isResourceIdentifier, NetworkT, ResourceIdentifier } from '../src'
 import { msgFromError, restoreDefaultLogLevel } from '@radixdlt/util'
 import { privateKeyFromScalar } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
-import { log } from '@radixdlt/util/dist/logging'
+import { log } from '@radixdlt/util'
 
 describe('rri_on_bech32_format', () => {
 	it('xrd rri can be parsed from string', () => {

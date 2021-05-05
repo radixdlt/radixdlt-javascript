@@ -209,7 +209,7 @@ describe('BIP32', () => {
 	})
 
 	/// These tests seems great because they use bip44 paths which consists of fewer than 5 components
-	/// AND also test "nested" derivations, with 'sub wallets'.
+	/// AND also test "nested" derivations, with 'sub signingKeychains'.
 	/// https://github.com/wuminzhe/bip44/blob/master/test/bip44_test.rb
 	describe('wuminzhe/bip44 tests', () => {
 		/// https://github.com/wuminzhe/bip44/blob/master/test/bip44_test.rb#L10-L16
@@ -249,10 +249,10 @@ describe('BIP32', () => {
 
 			const first_wallet = masterNode.derive(firstHDPath)
 
-			const wallet = HDNode.fromExtendedPrivateKey(
+			const signingKeychain = HDNode.fromExtendedPrivateKey(
 				first_wallet.toJSON().xpriv,
 			)._unsafeUnwrap()
-			const subwallet = wallet.derive(
+			const subwallet = signingKeychain.derive(
 				BIP32.fromString(`M/0`)._unsafeUnwrap(),
 			)
 

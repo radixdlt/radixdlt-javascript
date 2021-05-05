@@ -10,9 +10,10 @@ import {
 import { AmountT } from '@radixdlt/primitives'
 
 export const stringifyAmount = (amount: AmountT) => {
-	const baseline = new BigNumber('0000000000000000001e-18')
+	const factor = new BigNumber('1e18')
 	const bigNumber = new BigNumber(amount.toString())
-	return bigNumber.multipliedBy(baseline).precision(4).toFormat()
+	const precision = 4
+	return bigNumber.dividedToIntegerBy(factor).toFormat(precision)
 }
 
 export const stringifyAction = (action: ExecutedAction): string => {

@@ -20,7 +20,6 @@ import {
 	TransactionIntentBuilderT,
 } from './_types'
 import {
-	AccountT,
 	AccountAddressT,
 	isAccountAddress,
 	toObservableFromResult,
@@ -45,7 +44,7 @@ import {
 import { Option } from 'prelude-ts'
 import { isAmount } from '@radixdlt/primitives'
 import { log } from '@radixdlt/util'
-import { MessageInTransaction } from '../_types'
+import { AccountT, MessageInTransaction } from '../_types'
 
 type IntendedActionsFrom = Readonly<{
 	intendedActions: IntendedAction[]
@@ -85,21 +84,17 @@ const ensureSingleRecipient = (
 		encryptingAccount: AccountT
 	}>,
 ): Observable<ActorsInEncryption> => {
-	return input.encryptingAccount.derivePublicKey().pipe(
-		mergeMap((pk: PublicKey) => {
-			return toObservableFromResult(
-				singleRecipientFromActions(
-					pk,
-					input.intendedActionsFrom.intendedActions,
-				),
-			).pipe(
-				map((singleRecipientPublicKey) => {
-					return {
-						encryptingAccount: input.encryptingAccount,
-						singleRecipientPublicKey: singleRecipientPublicKey,
-					}
-				}),
-			)
+	return toObservableFromResult(
+		singleRecipientFromActions(
+			input.encryptingAccount.publicKey,
+			input.intendedActionsFrom.intendedActions,
+		),
+	).pipe(
+		map((singleRecipientPublicKey) => {
+			return {
+				encryptingAccount: input.encryptingAccount,
+				singleRecipientPublicKey: singleRecipientPublicKey,
+			}
 		}),
 	)
 }
@@ -389,7 +384,7 @@ const create = (): TransactionIntentBuilderT => {
 		const spendingSender: Observable<AccountAddressT> =
 			options.spendingSender ??
 			options.encryptMessageIfAnyWithAccount.pipe(
-				mergeMap((a) => a.deriveAddress()),
+				map((account) => account.address),
 			)
 		return spendingSender.pipe(
 			mergeMap((from: AccountAddressT) =>
