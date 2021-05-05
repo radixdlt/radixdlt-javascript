@@ -74,25 +74,25 @@ export const singleRecipientFromActions = (
 }
 
 type ActorsInEncryption = {
-	encryptingIdentity: AccountT
+	encryptingAccount: AccountT
 	singleRecipientPublicKey: PublicKey
 }
 
 const ensureSingleRecipient = (
 	input: Readonly<{
 		intendedActionsFrom: IntendedActionsFrom
-		encryptingIdentity: AccountT
+		encryptingAccount: AccountT
 	}>,
 ): Observable<ActorsInEncryption> => {
 	return toObservableFromResult(
 		singleRecipientFromActions(
-			input.encryptingIdentity.publicKey,
+			input.encryptingAccount.publicKey,
 			input.intendedActionsFrom.intendedActions,
 		),
 	).pipe(
 		map((singleRecipientPublicKey) => {
 			return {
-				encryptingIdentity: input.encryptingIdentity,
+				encryptingAccount: input.encryptingAccount,
 				singleRecipientPublicKey: singleRecipientPublicKey,
 			}
 		}),
@@ -215,8 +215,8 @@ const isTransactionIntentBuilderEncryptInput = (
 ): something is TransactionIntentBuilderEncryptOption => {
 	const inspection = something as TransactionIntentBuilderEncryptOption
 	return (
-		inspection.encryptMessageIfAnyWithIdentity !== undefined &&
-		isObservable(inspection.encryptMessageIfAnyWithIdentity) &&
+		inspection.encryptMessageIfAnyWithAccount !== undefined &&
+		isObservable(inspection.encryptMessageIfAnyWithAccount) &&
 		(inspection.spendingSender !== undefined
 			? isObservable(inspection.spendingSender)
 			: true)
@@ -380,10 +380,10 @@ const create = (): TransactionIntentBuilderT => {
 			throw new Error('Incorrect implementation')
 		}
 
-		const encryptingIdentity$ = options.encryptMessageIfAnyWithIdentity
+		const encryptingAccount$ = options.encryptMessageIfAnyWithAccount
 		const spendingSender: Observable<AccountAddressT> =
 			options.spendingSender ??
-			options.encryptMessageIfAnyWithIdentity.pipe(
+			options.encryptMessageIfAnyWithAccount.pipe(
 				map((account) => account.accountAddress),
 			)
 		return spendingSender.pipe(
@@ -425,21 +425,21 @@ const create = (): TransactionIntentBuilderT => {
 								return throwError(new Error(errMsg))
 							}
 
-							return encryptingIdentity$.pipe(
+							return encryptingAccount$.pipe(
 								mergeMap(
 									(
-										encryptingIdentity: AccountT,
+										encryptingAccount: AccountT,
 									): Observable<ActorsInEncryption> =>
 										ensureSingleRecipient({
 											intendedActionsFrom,
-											encryptingIdentity,
+											encryptingAccount,
 										}),
 								),
 								mergeMap(
 									(
 										actors: ActorsInEncryption,
 									): Observable<EncryptedMessageT> => {
-										return actors.encryptingIdentity.encrypt(
+										return actors.encryptingAccount.encrypt(
 											{
 												plaintext: msgInTx.plaintext,
 												publicKeyOfOtherParty:

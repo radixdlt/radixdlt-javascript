@@ -11,13 +11,13 @@ import {
 import {
 	WalletT,
 	AccountT,
-	IdentitiesT,
-	SwitchIdentityInput,
-	SwitchToIdentity,
-	AddIdentityByPrivateKeyInput,
+	AccountsT,
+	SwitchAccountInput,
+	SwitchToAccount,
+	AddAccountByPrivateKeyInput,
 } from './_types'
 import { Observable, of } from 'rxjs'
-import { Account, isIdentity } from './account'
+import { Account, isAccount } from './account'
 import { map } from 'rxjs/operators'
 import { Option } from 'prelude-ts'
 import { PublicKey } from '@radixdlt/crypto'
@@ -38,14 +38,14 @@ const create = (
 	const aToI = (signingKey: SigningKeyT): AccountT =>
 		Account.create({ signingKey, accountAddress: aToAddr(signingKey) })
 
-	const asToIs = (accounts: SigningKeysT): IdentitiesT => {
-		const getIdentityWithHDSigningKeyByHDPath = (
+	const asToIs = (accounts: SigningKeysT): AccountsT => {
+		const getAccountWithHDSigningKeyByHDPath = (
 			hdPath: HDPathRadixT,
 		): Option<AccountT> => {
 			return accounts.getHDSigningKeyByHDPath(hdPath).map(aToI)
 		}
 
-		const getAnyIdentityByPublicKey = (
+		const getAnyAccountByPublicKey = (
 			publicKey: PublicKey,
 		): Option<AccountT> => {
 			return accounts.getAnySigningKeyByPublicKey(publicKey).map(aToI)
@@ -55,69 +55,69 @@ const create = (
 
 		return {
 			all,
-			getIdentityWithHDSigningKeyByHDPath,
-			getAnyIdentityByPublicKey,
-			identitiesWithHDSigningKeys: () => accounts.hdSigningKeys().map(aToI),
-			identitiesWithHardwareHDSigningKeys: () =>
+			getAccountWithHDSigningKeyByHDPath,
+			getAnyAccountByPublicKey,
+			accountsWithHDSigningKeys: () => accounts.hdSigningKeys().map(aToI),
+			accountsWithHardwareHDSigningKeys: () =>
 				accounts.hardwareHDSigningKeys().map(aToI),
-			identitiesWithLocalHDSigningKeys: () =>
+			accountsWithLocalHDSigningKeys: () =>
 				accounts.localHDSigningKeys().map(aToI),
-			identitiesWithNonHDSigningKeys: () =>
+			accountsWithNonHDSigningKeys: () =>
 				accounts.nonHDSigningKeys().map(aToI),
 			size: () => all.length,
 		}
 	}
 
 	return {
-		__unsafeGetIdentity: (): AccountT => {
+		__unsafeGetAccount: (): AccountT => {
 			return aToI(signingKeychain.__unsafeGetSigningKey())
 		},
 
 		revealMnemonic: signingKeychain.revealMnemonic,
 
-		deriveNextLocalHDIdentity: (
+		deriveNextLocalHDAccount: (
 			input?: DeriveNextInput,
 		): Observable<AccountT> => {
 			return signingKeychain.deriveNextLocalHDSigningKey(input).pipe(map(aToI))
 		},
 
-		observeActiveIdentity: (): Observable<AccountT> => {
+		observeActiveAccount: (): Observable<AccountT> => {
 			return signingKeychain.observeActiveSigningKey().pipe(map(aToI))
 		},
 
-		observeIdentities: (): Observable<IdentitiesT> => {
+		observeAccounts: (): Observable<AccountsT> => {
 			return signingKeychain.observeSigningKeys().pipe(map(asToIs))
 		},
 
-		addIdentityFromPrivateKey: (
-			input: AddIdentityByPrivateKeyInput,
+		addAccountFromPrivateKey: (
+			input: AddAccountByPrivateKeyInput,
 		): Observable<AccountT> => {
 			return of(aToI(signingKeychain.addSigningKeyFromPrivateKey(input)))
 		},
 
-		restoreIdentitiesForLocalHDSigningKeysUpToIndex: (
+		restoreAccountsForLocalHDSigningKeysUpToIndex: (
 			index: number,
-		): Observable<IdentitiesT> => {
+		): Observable<AccountsT> => {
 			return signingKeychain
 				.restoreLocalHDSigningKeysUpToIndex(index)
 				.pipe(map(asToIs))
 		},
 
-		switchIdentity: (input: SwitchIdentityInput): AccountT => {
-			const isSwitchToIdentity = (
+		switchAccount: (input: SwitchAccountInput): AccountT => {
+			const isSwitchToAccount = (
 				something: unknown,
-			): something is SwitchToIdentity => {
-				const inspection = input as SwitchToIdentity
+			): something is SwitchToAccount => {
+				const inspection = input as SwitchToAccount
 				return (
-					inspection.toIdentity !== undefined &&
-					isIdentity(inspection.toIdentity)
+					inspection.toAccount !== undefined &&
+					isAccount(inspection.toAccount)
 				)
 			}
 
-			if (isSwitchToIdentity(input)) {
+			if (isSwitchToAccount(input)) {
 				return aToI(
 					signingKeychain.switchSigningKey({
-						toSigningKey: input.toIdentity.signingKey,
+						toSigningKey: input.toAccount.signingKey,
 					}),
 				)
 			} else {

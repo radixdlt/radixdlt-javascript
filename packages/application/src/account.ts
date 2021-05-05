@@ -6,7 +6,7 @@ import {
 } from '@radixdlt/account'
 import { AccountT } from './_types'
 
-export const isIdentity = (something: unknown): something is AccountT => {
+export const isAccount = (something: unknown): something is AccountT => {
 	const inspection = something as AccountT
 	return (
 		inspection.signingKey !== undefined &&

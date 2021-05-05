@@ -44,8 +44,8 @@ describe('tx_intent_builder', () => {
 
 	const wallet = createWallet()
 
-	let aliceIdentity: AccountT
-	let bobIdentity: AccountT
+	let aliceAccount: AccountT
+	let bobAccount: AccountT
 	let alice: AccountAddressT
 	let bob: AccountAddressT
 
@@ -55,14 +55,14 @@ describe('tx_intent_builder', () => {
 
 	beforeAll((done) => {
 		subs.add(
-			wallet.deriveNextLocalHDIdentity().subscribe(
+			wallet.deriveNextLocalHDAccount().subscribe(
 				(aliceId: AccountT) => {
-					aliceIdentity = aliceId
+					aliceAccount = aliceId
 					alice = aliceId.accountAddress
 
-					wallet.deriveNextLocalHDIdentity().subscribe(
+					wallet.deriveNextLocalHDAccount().subscribe(
 						(bobId: AccountT) => {
-							bobIdentity = bobId
+							bobAccount = bobId
 							bob = bobId.accountAddress
 							done()
 						},
@@ -198,18 +198,18 @@ describe('tx_intent_builder', () => {
 		return builder
 			.build({
 				spendingSender: of(alice),
-				encryptMessageIfAnyWithIdentity: of(aliceIdentity),
+				encryptMessageIfAnyWithAccount: of(aliceAccount),
 			})
 			.pipe(
 				mergeMap((txIntent) => {
 					const encryptedMessage = txIntent.message!
 
-					const aliceDecrypted$ = aliceIdentity.decrypt({
+					const aliceDecrypted$ = aliceAccount.decrypt({
 						encryptedMessage,
 						publicKeyOfOtherParty: bob.publicKey,
 					})
 
-					const bobDecrypted$ = bobIdentity.decrypt({
+					const bobDecrypted$ = bobAccount.decrypt({
 						encryptedMessage,
 						publicKeyOfOtherParty: alice.publicKey,
 					})
@@ -421,7 +421,7 @@ describe('tx_intent_builder', () => {
 			subs.add(
 				builder
 					.build({
-						encryptMessageIfAnyWithIdentity: of(aliceIdentity),
+						encryptMessageIfAnyWithAccount: of(aliceAccount),
 					})
 					.subscribe({
 						next: (_) => {
@@ -452,7 +452,7 @@ describe('tx_intent_builder', () => {
 			subs.add(
 				builder
 					.build({
-						encryptMessageIfAnyWithIdentity: of(aliceIdentity),
+						encryptMessageIfAnyWithAccount: of(aliceAccount),
 					})
 					.subscribe({
 						next: (_) => {
@@ -480,10 +480,10 @@ describe('tx_intent_builder', () => {
 
 		subs.add(
 			builder
-				.build({ encryptMessageIfAnyWithIdentity: of(aliceIdentity) })
+				.build({ encryptMessageIfAnyWithAccount: of(aliceAccount) })
 				.pipe(
 					mergeMap(({ message }) => {
-						return aliceIdentity.decrypt({
+						return aliceAccount.decrypt({
 							encryptedMessage: message!,
 							publicKeyOfOtherParty: alice.publicKey,
 						})

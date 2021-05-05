@@ -3,7 +3,7 @@ import { map, take, toArray } from 'rxjs/operators'
 import { Subscription } from 'rxjs'
 
 describe('wallet', () => {
-	it('can observeActiveIdentity', (done) => {
+	it('can observeActiveAccount', (done) => {
 		const subs = new Subscription()
 		const wallet = createWallet()
 
@@ -11,7 +11,7 @@ describe('wallet', () => {
 
 		subs.add(
 			wallet
-				.observeActiveIdentity()
+				.observeActiveAccount()
 				.pipe(
 					map((i) => i.hdPath!.addressIndex.value()),
 					take(expectedValues.length),
@@ -28,11 +28,11 @@ describe('wallet', () => {
 
 		subs.add(
 			wallet
-				.deriveNextLocalHDIdentity({ alsoSwitchTo: true })
+				.deriveNextLocalHDAccount({ alsoSwitchTo: true })
 				.subscribe((_) => {
 					subs.add(
 						wallet
-							.deriveNextLocalHDIdentity({ alsoSwitchTo: true })
+							.deriveNextLocalHDAccount({ alsoSwitchTo: true })
 							.subscribe(),
 					)
 				}),

@@ -47,7 +47,7 @@ export type TransactionIntentBuilderState = Readonly<{
 }>
 
 export type TransactionIntentBuilderEncryptOption = Readonly<{
-	encryptMessageIfAnyWithIdentity: Observable<AccountT>
+	encryptMessageIfAnyWithAccount: Observable<AccountT>
 	spendingSender?: Observable<AccountAddressT>
 }>
 

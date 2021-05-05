@@ -38,15 +38,15 @@ import {
 } from 'rxjs'
 import { EncryptedMessage, KeystoreT, PrivateKey } from '@radixdlt/crypto'
 import {
-	AddIdentityByPrivateKeyInput,
-	IdentitiesT,
+	AddAccountByPrivateKeyInput,
+	AccountsT,
 	WalletT,
 	AccountT,
 	MakeTransactionOptions,
 	ManualUserConfirmTX,
 	RadixT,
 	StakeOptions,
-	SwitchIdentityInput,
+	SwitchAccountInput,
 	TransactionConfirmationBeforeFinalization,
 	TransferTokensOptions,
 	UnstakeOptions,
@@ -166,9 +166,9 @@ const create = (
 	const walletSubject = new ReplaySubject<WalletT>()
 	const errorNotificationSubject = new Subject<ErrorNotification>()
 
-	const deriveNextLocalHDIdentitySubject = new Subject<DeriveNextInput>()
-	const addIdentityByPrivateKeySubject = new Subject<AddIdentityByPrivateKeyInput>()
-	const switchIdentitySubject = new Subject<SwitchIdentityInput>()
+	const deriveNextLocalHDAccountSubject = new Subject<DeriveNextInput>()
+	const addAccountByPrivateKeySubject = new Subject<AddAccountByPrivateKeyInput>()
+	const switchAccountSubject = new Subject<SwitchAccountInput>()
 
 	const tokenBalanceFetchSubject = new Subject<number>()
 	const stakingFetchSubject = new Subject<number>()
@@ -270,7 +270,7 @@ const create = (
 	}
 
 	const activeAddress = wallet$.pipe(
-		mergeMap((a) => a.observeActiveIdentity()),
+		mergeMap((a) => a.observeActiveAccount()),
 		map((a) => a.accountAddress),
 		shareReplay(1),
 	)
@@ -421,13 +421,13 @@ const create = (
 		coreAPISubject.asObservable().pipe(map((api) => api.node)),
 	)
 
-	const activeIdentity: Observable<AccountT> = wallet$.pipe(
-		mergeMap((im) => im.observeActiveIdentity()),
+	const activeAccount: Observable<AccountT> = wallet$.pipe(
+		mergeMap((im) => im.observeActiveAccount()),
 		shareReplay(1),
 	)
 
-	const identities = wallet$.pipe(
-		mergeMap((im) => im.observeIdentities()),
+	const accounts = wallet$.pipe(
+		mergeMap((im) => im.observeAccounts()),
 		shareReplay(1),
 	)
 
@@ -463,7 +463,7 @@ const create = (
 			unsignedTx: BuiltTransaction,
 		): Observable<SignedTransaction> => {
 			txLog.debug('Starting signing transaction (async).')
-			return activeIdentity.pipe(
+			return activeAccount.pipe(
 				take(1), // IMPORTANT!
 				mergeMap(
 					(account: AccountT): Observable<SignedTransaction> => {
@@ -826,7 +826,7 @@ const create = (
 			{ ...input },
 			encryptMsgIfAny
 				? {
-						encryptMessageIfAnyWithIdentity: activeIdentity.pipe(
+						encryptMessageIfAnyWithAccount: activeAccount.pipe(
 							take(1),
 						),
 				  }
@@ -879,7 +879,7 @@ const create = (
 
 		const encryptedMessage = encryptedMessageResult.value
 
-		return activeIdentity.pipe(
+		return activeAccount.pipe(
 			take(1),
 			mergeMap((account: AccountT) => {
 				const myPublicKey = account.publicKey
@@ -910,43 +910,43 @@ const create = (
 		)
 	}
 
-	const restoreIdentitiesForLocalHDSigningKeysUpToIndex = (
+	const restoreAccountsForLocalHDSigningKeysUpToIndex = (
 		index: number,
-	): Observable<IdentitiesT> => {
+	): Observable<AccountsT> => {
 		return wallet$.pipe(
 			mergeMap((im) =>
-				im.restoreIdentitiesForLocalHDSigningKeysUpToIndex(index),
+				im.restoreAccountsForLocalHDSigningKeysUpToIndex(index),
 			),
 		)
 	}
 
 	subs.add(
-		deriveNextLocalHDIdentitySubject
+		deriveNextLocalHDAccountSubject
 			.pipe(
 				withLatestFrom(wallet$),
 				mergeMap(([derivation, im]) => {
-					return im.deriveNextLocalHDIdentity(derivation)
+					return im.deriveNextLocalHDAccount(derivation)
 				}),
 			)
 			.subscribe(),
 	)
 
 	subs.add(
-		addIdentityByPrivateKeySubject
+		addAccountByPrivateKeySubject
 			.pipe(
 				withLatestFrom(wallet$),
 				mergeMap(([privateKeyInput, im]) => {
-					return im.addIdentityFromPrivateKey(privateKeyInput)
+					return im.addAccountFromPrivateKey(privateKeyInput)
 				}),
 			)
 			.subscribe(),
 	)
 
 	subs.add(
-		switchIdentitySubject
+		switchAccountSubject
 			.pipe(
 				withLatestFrom(wallet$),
-				tap(([switchTo, im]) => im.switchIdentity(switchTo)),
+				tap(([switchTo, im]) => im.switchAccount(switchTo)),
 			)
 			.subscribe(),
 	)
@@ -1012,25 +1012,25 @@ const create = (
 
 		errors: errorNotificationSubject.asObservable(),
 
-		deriveNextIdentity: function (input?: DeriveNextInput): RadixT {
+		deriveNextAccount: function (input?: DeriveNextInput): RadixT {
 			const derivation: DeriveNextInput = input ?? {}
-			deriveNextLocalHDIdentitySubject.next(derivation)
+			deriveNextLocalHDAccountSubject.next(derivation)
 			return this
 		},
 
-		addIdentityFromPrivateKey: function (
-			input: AddIdentityByPrivateKeyInput,
+		addAccountFromPrivateKey: function (
+			input: AddAccountByPrivateKeyInput,
 		): RadixT {
-			addIdentityByPrivateKeySubject.next(input)
+			addAccountByPrivateKeySubject.next(input)
 			return this
 		},
 
-		switchIdentity: function (input: SwitchIdentityInput): RadixT {
-			switchIdentitySubject.next(input)
+		switchAccount: function (input: SwitchAccountInput): RadixT {
+			switchAccountSubject.next(input)
 			return this
 		},
 
-		restoreIdentitiesForLocalHDSigningKeysUpToIndex,
+		restoreAccountsForLocalHDSigningKeysUpToIndex,
 
 		decryptTransaction: decryptTransaction,
 
@@ -1068,8 +1068,8 @@ const create = (
 		// SigningKeychain APIs
 		revealMnemonic,
 		activeAddress,
-		activeIdentity,
-		identities,
+		activeAccount,
+		accounts,
 
 		// Active AccountAddress/SigningKey APIs
 		tokenBalances,

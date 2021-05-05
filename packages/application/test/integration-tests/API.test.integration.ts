@@ -33,7 +33,7 @@ import {
 	TransactionTrackingEventType,
 } from '../../src'
 import { UInt256 } from '@radixdlt/uint256'
-import { makeIdentitywithWalletWithFunds } from '../radix.test'
+import { makeAccountwithWalletWithFunds } from '../radix.test'
 const fetch = require('node-fetch')
 
 // local
@@ -98,7 +98,7 @@ describe('integration API tests', () => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeIdentitywithWalletWithFunds())
+			.withWallet(makeAccountwithWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		subs.add(
@@ -133,13 +133,13 @@ describe('integration API tests', () => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeIdentitywithWalletWithFunds())
+			.withWallet(makeAccountwithWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		const expected = [1, 2, 3]
 
 		subs.add(
-			radix.identities
+			radix.accounts
 				.pipe(
 					map((i) => i.size()),
 					take(expected.length),
@@ -151,21 +151,21 @@ describe('integration API tests', () => {
 				}),
 		)
 
-		radix.deriveNextIdentity({ alsoSwitchTo: true })
-		radix.deriveNextIdentity({ alsoSwitchTo: false })
+		radix.deriveNextAccount({ alsoSwitchTo: true })
+		radix.deriveNextAccount({ alsoSwitchTo: false })
 	})
 
 	it('deriveNextSigningKey alsoSwitchTo method on radix updates activeSigningKey', (done) => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeIdentitywithWalletWithFunds())
+			.withWallet(makeAccountwithWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		const expected = [0, 1, 3]
 
 		subs.add(
-			radix.activeIdentity
+			radix.activeAccount
 				.pipe(
 					map((i) => i.hdPath!.addressIndex.value()),
 					take(expected.length),
@@ -177,16 +177,16 @@ describe('integration API tests', () => {
 				}),
 		)
 
-		radix.deriveNextIdentity({ alsoSwitchTo: true })
-		radix.deriveNextIdentity({ alsoSwitchTo: false })
-		radix.deriveNextIdentity({ alsoSwitchTo: true })
+		radix.deriveNextAccount({ alsoSwitchTo: true })
+		radix.deriveNextAccount({ alsoSwitchTo: false })
+		radix.deriveNextAccount({ alsoSwitchTo: true })
 	})
 
 	it('deriveNextSigningKey alsoSwitchTo method on radix updates activeAddress', (done) => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeIdentitywithWalletWithFunds())
+			.withWallet(makeAccountwithWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		const expectedCount = 3
@@ -200,16 +200,16 @@ describe('integration API tests', () => {
 				}),
 		)
 
-		radix.deriveNextIdentity({ alsoSwitchTo: true })
-		radix.deriveNextIdentity({ alsoSwitchTo: false })
-		radix.deriveNextIdentity({ alsoSwitchTo: true })
+		radix.deriveNextAccount({ alsoSwitchTo: true })
+		radix.deriveNextAccount({ alsoSwitchTo: false })
+		radix.deriveNextAccount({ alsoSwitchTo: true })
 	})
 
 	it('should compare token balance before and after transfer', (done) => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeIdentitywithWalletWithFunds())
+			.withWallet(makeAccountwithWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		const getTokenBalanceSubject = new Subject<number>()
@@ -286,7 +286,7 @@ describe('integration API tests', () => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeIdentitywithWalletWithFunds())
+			.withWallet(makeAccountwithWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		const pageSize = 3
@@ -375,7 +375,7 @@ describe('integration API tests', () => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeIdentitywithWalletWithFunds())
+			.withWallet(makeAccountwithWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		radix
@@ -424,7 +424,7 @@ describe('integration API tests', () => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeIdentitywithWalletWithFunds())
+			.withWallet(makeAccountwithWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		const expectedValues: TransactionStatus[] = [
@@ -470,7 +470,7 @@ describe('integration API tests', () => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeIdentitywithWalletWithFunds())
+			.withWallet(makeAccountwithWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		const { completion } = radix.transferTokens({
@@ -500,7 +500,7 @@ describe('integration API tests', () => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeIdentitywithWalletWithFunds())
+			.withWallet(makeAccountwithWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		subs.add(
@@ -529,7 +529,7 @@ describe('integration API tests', () => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeIdentitywithWalletWithFunds())
+			.withWallet(makeAccountwithWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		subs.add(
@@ -549,7 +549,7 @@ describe('integration API tests', () => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeIdentitywithWalletWithFunds())
+			.withWallet(makeAccountwithWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		subs.add(
@@ -597,7 +597,7 @@ describe('integration API tests', () => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeIdentitywithWalletWithFunds())
+			.withWallet(makeAccountwithWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		subs.add(
@@ -612,7 +612,7 @@ describe('integration API tests', () => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeIdentitywithWalletWithFunds())
+			.withWallet(makeAccountwithWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		subs.add(
@@ -629,7 +629,7 @@ describe('integration API tests', () => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeIdentitywithWalletWithFunds())
+			.withWallet(makeAccountwithWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 			.withStakingFetchTrigger(triggerSubject)
 
@@ -717,7 +717,7 @@ describe('integration API tests', () => {
 			network: NetworkT.BETANET,
 		})
 			.connect(`${NODE_URL}/rpc`)
-			.withWallet(makeIdentitywithWalletWithFunds())
+			.withWallet(makeAccountwithWalletWithFunds())
 			.withStakingFetchTrigger(triggerSubject)
 
 		const stakeAmount = Amount.fromUnsafe(1)._unsafeUnwrap()
@@ -773,7 +773,7 @@ describe('integration API tests', () => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeIdentitywithWalletWithFunds())
+			.withWallet(makeAccountwithWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		subs.add(
@@ -843,7 +843,7 @@ describe('integration API tests', () => {
 			const radix = Radix.create({
 				network: NetworkT.BETANET,
 			})
-				.withWallet(makeIdentitywithWalletWithFunds())
+				.withWallet(makeAccountwithWalletWithFunds())
 				.connect(`${NODE_URL}/rpc`)
 
 			const expectedValues = [
@@ -888,7 +888,7 @@ describe('integration API tests', () => {
 			const radix = Radix.create({
 				network: NetworkT.BETANET,
 			})
-				.withWallet(makeIdentitywithWalletWithFunds())
+				.withWallet(makeAccountwithWalletWithFunds())
 				.connect(`${NODE_URL}/rpc`)
 
 			subs.add(
@@ -916,7 +916,7 @@ describe('integration API tests', () => {
 			const radix = Radix.create({
 				network: NetworkT.BETANET,
 			})
-				.withWallet(makeIdentitywithWalletWithFunds())
+				.withWallet(makeAccountwithWalletWithFunds())
 				.connect(`${NODE_URL}/rpc`)
 
 			//@ts-ignore

@@ -88,62 +88,62 @@ export type AccountT = Signing &
 		hdPath?: HDPathRadixT
 	}>
 
-export type IdentitiesT = Readonly<{
-	// Get only identities which signingKey is a HD signingKey, by its path
-	getIdentityWithHDSigningKeyByHDPath: (
+export type AccountsT = Readonly<{
+	// Get only accounts which signingKey is a HD signingKey, by its path
+	getAccountWithHDSigningKeyByHDPath: (
 		hdPath: HDPathRadixT,
 	) => Option<AccountT>
 	// Get any account by its public key
-	getAnyIdentityByPublicKey: (publicKey: PublicKey) => Option<AccountT>
+	getAnyAccountByPublicKey: (publicKey: PublicKey) => Option<AccountT>
 
-	// ALL identities, basically a concatenation of `identitiesWithHDSigningKeys || identitiesWithNonHDSigningKeys`
+	// ALL accounts, basically a concatenation of `accountsWithHDSigningKeys || accountsWithNonHDSigningKeys`
 	all: AccountT[]
 
-	identitiesWithNonHDSigningKeys: () => AccountT[]
+	accountsWithNonHDSigningKeys: () => AccountT[]
 
-	identitiesWithLocalHDSigningKeys: () => AccountT[]
-	identitiesWithHardwareHDSigningKeys: () => AccountT[]
+	accountsWithLocalHDSigningKeys: () => AccountT[]
+	accountsWithHardwareHDSigningKeys: () => AccountT[]
 
-	// Concatenation of `identitiesWithLocalHDSigningKeys || identitiesWithHardwareHDSigningKeys`
-	identitiesWithHDSigningKeys: () => AccountT[]
+	// Concatenation of `accountsWithLocalHDSigningKeys || accountsWithHardwareHDSigningKeys`
+	accountsWithHDSigningKeys: () => AccountT[]
 
 	// size of `all`.
 	size: () => number
 }>
 
-export type SwitchToIdentity = Readonly<{ toIdentity: AccountT }>
+export type SwitchToAccount = Readonly<{ toAccount: AccountT }>
 
-export type SwitchIdentityInput =
+export type SwitchAccountInput =
 	| 'first'
 	| 'last'
-	| SwitchToIdentity
+	| SwitchToAccount
 	| SwitchToIndex
 
 export type WalletT = Readonly<{
 	// should only be used for testing
-	__unsafeGetIdentity: () => AccountT
+	__unsafeGetAccount: () => AccountT
 
 	revealMnemonic: () => MnemomicT
 
-	restoreIdentitiesForLocalHDSigningKeysUpToIndex: (
+	restoreAccountsForLocalHDSigningKeysUpToIndex: (
 		index: number,
-	) => Observable<IdentitiesT>
+	) => Observable<AccountsT>
 
-	deriveNextLocalHDIdentity: (
+	deriveNextLocalHDAccount: (
 		input?: DeriveNextInput,
 	) => Observable<AccountT>
 
-	addIdentityFromPrivateKey: (
-		input: AddIdentityByPrivateKeyInput,
+	addAccountFromPrivateKey: (
+		input: AddAccountByPrivateKeyInput,
 	) => Observable<AccountT>
 
-	switchIdentity: (input: SwitchIdentityInput) => AccountT
+	switchAccount: (input: SwitchAccountInput) => AccountT
 
-	observeActiveIdentity: () => Observable<AccountT>
-	observeIdentities: () => Observable<IdentitiesT>
+	observeActiveAccount: () => Observable<AccountT>
+	observeAccounts: () => Observable<AccountsT>
 }>
 
-export type AddIdentityByPrivateKeyInput = WalletAddSigningKeyByPrivateKeyInput
+export type AddAccountByPrivateKeyInput = WalletAddSigningKeyByPrivateKeyInput
 
 export type RadixT = Readonly<{
 	ledger: RadixAPI
@@ -164,19 +164,19 @@ export type RadixT = Readonly<{
 	 *
 	 * @param {number} targetIndex - The index to restore signingKey up to, this method will restore accounts from index 0 up to but excluding this index.
 	 */
-	restoreIdentitiesForLocalHDSigningKeysUpToIndex: (
+	restoreAccountsForLocalHDSigningKeysUpToIndex: (
 		index: number,
-	) => Observable<IdentitiesT>
-	deriveNextIdentity: (input?: DeriveNextInput) => RadixT
+	) => Observable<AccountsT>
+	deriveNextAccount: (input?: DeriveNextInput) => RadixT
 
-	addIdentityFromPrivateKey: (input: AddIdentityByPrivateKeyInput) => RadixT
+	addAccountFromPrivateKey: (input: AddAccountByPrivateKeyInput) => RadixT
 
-	switchIdentity: (input: SwitchIdentityInput) => RadixT
+	switchAccount: (input: SwitchAccountInput) => RadixT
 	revealMnemonic: () => Observable<MnemomicT>
 
 	activeAddress: Observable<AccountAddressT>
-	activeIdentity: Observable<AccountT>
-	identities: Observable<IdentitiesT>
+	activeAccount: Observable<AccountT>
+	accounts: Observable<AccountsT>
 
 	// Active AccountAddress/SigningKey APIs
 	tokenBalances: Observable<TokenBalances>
