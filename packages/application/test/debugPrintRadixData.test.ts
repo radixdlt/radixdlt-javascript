@@ -46,16 +46,12 @@ describe.skip('debugPrintRadixData', () => {
 		const subs = new Subscription()
 
 		subs.add(
-			radix.ledger
-				.tokenBalancesForAddress(address)
-				.subscribe((tbs) => {
-					console.log(
-						`🔮 tokenBalances:\n${stringifySimpleTokenBalances(
-							tbs,
-						)}`,
-					)
-					done()
-				}),
+			radix.ledger.tokenBalancesForAddress(address).subscribe((tbs) => {
+				console.log(
+					`🔮 tokenBalances:\n${stringifySimpleTokenBalances(tbs)}`,
+				)
+				done()
+			}),
 		)
 	})
 })

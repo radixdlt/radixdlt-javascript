@@ -19,12 +19,7 @@ import {
 	SigningKeychainT,
 } from './_types'
 import { mergeMap, shareReplay, take } from 'rxjs/operators'
-import {
-	Keystore,
-	KeystoreT,
-	PublicKey,
-	Signature,
-} from '@radixdlt/crypto'
+import { Keystore, KeystoreT, PublicKey, Signature } from '@radixdlt/crypto'
 import { Option } from 'prelude-ts'
 import { HDPathRadix, HDPathRadixT, Int32 } from './bip32'
 import { arraysEqual, log, msgFromError } from '@radixdlt/util'

@@ -344,8 +344,9 @@ const testRpcMethod = (method: MethodObject, index: number) => {
 
 		const expected = expectedDecodedResponses[method.name](mockedResult)
 
-		const result = // @ts-ignore
-		(await client[method.name.split('.')[1]](undefined))._unsafeUnwrap({
+		const result = ( // @ts-ignore
+			await client[method.name.split('.')[1]](undefined)
+		)._unsafeUnwrap({
 			withStackTrace: true,
 		})
 

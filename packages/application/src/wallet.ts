@@ -29,48 +29,51 @@ const create = (
 	}>,
 ): WalletT => {
 	const { network, signingKeychain } = input
-	const aToAddr = (signingKey: SigningKeyT): AccountAddressT =>
+	const skToAccountAddress = (signingKey: SigningKeyT): AccountAddressT =>
 		AccountAddress.fromPublicKeyAndNetwork({
 			network,
 			publicKey: signingKey.publicKey,
 		})
 
-	const aToI = (signingKey: SigningKeyT): AccountT =>
-		Account.create({ signingKey, address: aToAddr(signingKey) })
+	const skToAccount = (signingKey: SigningKeyT): AccountT =>
+		Account.create({ signingKey, address: skToAccountAddress(signingKey) })
 
-	const asToIs = (accounts: SigningKeysT): AccountsT => {
+	const sksToAccounts = (signingKeys: SigningKeysT): AccountsT => {
 		const getAccountWithHDSigningKeyByHDPath = (
 			hdPath: HDPathRadixT,
 		): Option<AccountT> => {
-			return accounts.getHDSigningKeyByHDPath(hdPath).map(aToI)
+			return signingKeys.getHDSigningKeyByHDPath(hdPath).map(skToAccount)
 		}
 
 		const getAnyAccountByPublicKey = (
 			publicKey: PublicKey,
 		): Option<AccountT> => {
-			return accounts.getAnySigningKeyByPublicKey(publicKey).map(aToI)
+			return signingKeys
+				.getAnySigningKeyByPublicKey(publicKey)
+				.map(skToAccount)
 		}
 
-		const all = accounts.all.map(aToI)
+		const all = signingKeys.all.map(skToAccount)
 
 		return {
 			all,
 			getAccountWithHDSigningKeyByHDPath,
 			getAnyAccountByPublicKey,
-			accountsWithHDSigningKeys: () => accounts.hdSigningKeys().map(aToI),
+			accountsWithHDSigningKeys: () =>
+				signingKeys.hdSigningKeys().map(skToAccount),
 			accountsWithHardwareHDSigningKeys: () =>
-				accounts.hardwareHDSigningKeys().map(aToI),
+				signingKeys.hardwareHDSigningKeys().map(skToAccount),
 			accountsWithLocalHDSigningKeys: () =>
-				accounts.localHDSigningKeys().map(aToI),
+				signingKeys.localHDSigningKeys().map(skToAccount),
 			accountsWithNonHDSigningKeys: () =>
-				accounts.nonHDSigningKeys().map(aToI),
+				signingKeys.nonHDSigningKeys().map(skToAccount),
 			size: () => all.length,
 		}
 	}
 
 	return {
 		__unsafeGetAccount: (): AccountT => {
-			return aToI(signingKeychain.__unsafeGetSigningKey())
+			return skToAccount(signingKeychain.__unsafeGetSigningKey())
 		},
 
 		revealMnemonic: signingKeychain.revealMnemonic,
@@ -80,21 +83,25 @@ const create = (
 		): Observable<AccountT> => {
 			return signingKeychain
 				.deriveNextLocalHDSigningKey(input)
-				.pipe(map(aToI))
+				.pipe(map(skToAccount))
 		},
 
 		observeActiveAccount: (): Observable<AccountT> => {
-			return signingKeychain.observeActiveSigningKey().pipe(map(aToI))
+			return signingKeychain
+				.observeActiveSigningKey()
+				.pipe(map(skToAccount))
 		},
 
 		observeAccounts: (): Observable<AccountsT> => {
-			return signingKeychain.observeSigningKeys().pipe(map(asToIs))
+			return signingKeychain.observeSigningKeys().pipe(map(sksToAccounts))
 		},
 
 		addAccountFromPrivateKey: (
 			input: AddAccountByPrivateKeyInput,
 		): Observable<AccountT> => {
-			return of(aToI(signingKeychain.addSigningKeyFromPrivateKey(input)))
+			return of(
+				skToAccount(signingKeychain.addSigningKeyFromPrivateKey(input)),
+			)
 		},
 
 		restoreAccountsForLocalHDSigningKeysUpToIndex: (
@@ -102,7 +109,7 @@ const create = (
 		): Observable<AccountsT> => {
 			return signingKeychain
 				.restoreLocalHDSigningKeysUpToIndex(index)
-				.pipe(map(asToIs))
+				.pipe(map(sksToAccounts))
 		},
 
 		switchAccount: (input: SwitchAccountInput): AccountT => {
@@ -117,13 +124,13 @@ const create = (
 			}
 
 			if (isSwitchToAccount(input)) {
-				return aToI(
+				return skToAccount(
 					signingKeychain.switchSigningKey({
 						toSigningKey: input.toAccount.signingKey,
 					}),
 				)
 			} else {
-				return aToI(signingKeychain.switchSigningKey(input))
+				return skToAccount(signingKeychain.switchSigningKey(input))
 			}
 		},
 	}
