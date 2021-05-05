@@ -31,7 +31,7 @@ import { Observable, of, Subject, Subscription, throwError } from 'rxjs'
 const privateKeyFromNum = (privateKeyScalar: number) =>
 	privateKeyFromScalar(UInt256.valueOf(privateKeyScalar))._unsafeUnwrap()
 
-describe('account_type', () => {
+describe('signingKey_type', () => {
 	it('works', async (done) => {
 		const mnemonic = Mnemonic.fromEnglishPhrase(
 			'equip will roof matter pink blind book anxiety banner elbow sun young',
@@ -170,7 +170,7 @@ describe('account_type', () => {
 							.hdSigningKeyType,
 					).toBe(HDSigningKeyTypeIdentifier.HARDWARE_OR_REMOTE)
 					expect(hwSigningKey.uniqueIdentifier).toBe(
-						`Hardware_HDaccount_at_path_m/44'/536'/2'/1/3`,
+						`Hardware_HD_signingKey_at_path_m/44'/536'/2'/1/3`,
 					)
 					expect(
 						hwSigningKey.equals(<SigningKeyT>{

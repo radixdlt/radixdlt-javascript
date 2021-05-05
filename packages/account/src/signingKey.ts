@@ -51,7 +51,7 @@ const makeSigningKeyTypeHD = (
 		hdSigningKeyType === HDSigningKeyTypeIdentifier.HARDWARE_OR_REMOTE
 	const uniqueKey = `${
 		isHardwareSigningKey ? 'Hardware' : 'Local'
-	}_HDaccount_at_path_${hdPath.toString()}`
+	}_HD_signingKey_at_path_${hdPath.toString()}`
 	return {
 		typeIdentifier: SigningKeyTypeIdentifier.HD_SIGNING_KEY,
 		hdSigningKeyType,
