@@ -20,7 +20,8 @@ import {
 	SigningKeyTypeNonHDT,
 	SigningKeyTypeT,
 	HardwareSigningKeyT,
-	HDSigningKeyTypeIdentifier, PrivateKeyToSigningKeyInput,
+	HDSigningKeyTypeIdentifier,
+	PrivateKeyToSigningKeyInput,
 } from './_types'
 import { HDMasterSeedT, HDNodeT } from './bip39'
 import { HDPathRadixT } from './bip32'
@@ -81,7 +82,9 @@ const makeSigningKeyTypeNonHD = (
 }
 
 type Decrypt = (input: SigningKeyDecryptionInput) => Observable<string>
-type Encrypt = (input: SigningKeyEncryptionInput) => Observable<EncryptedMessageT>
+type Encrypt = (
+	input: SigningKeyEncryptionInput,
+) => Observable<EncryptedMessageT>
 
 const makeDecrypt = (diffieHellman: DiffieHellman): Decrypt => {
 	return (input: SigningKeyDecryptionInput): Observable<string> => {
@@ -97,7 +100,9 @@ const makeDecrypt = (diffieHellman: DiffieHellman): Decrypt => {
 }
 
 const makeEncrypt = (diffieHellman: DiffieHellman): Encrypt => {
-	return (input: SigningKeyEncryptionInput): Observable<EncryptedMessageT> => {
+	return (
+		input: SigningKeyEncryptionInput,
+	): Observable<EncryptedMessageT> => {
 		return toObservable(
 			MessageEncryption.encrypt({
 				...input,
@@ -113,7 +118,9 @@ const makeEncryptHW = (
 	hardwareSigningKey: HardwareSigningKeyT,
 	hdPath: HDPathRadixT,
 ): Encrypt => {
-	return (input: SigningKeyEncryptionInput): Observable<EncryptedMessageT> => {
+	return (
+		input: SigningKeyEncryptionInput,
+	): Observable<EncryptedMessageT> => {
 		return hardwareSigningKey
 			.diffieHellman({
 				hdPath,

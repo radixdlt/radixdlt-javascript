@@ -13,7 +13,7 @@ describe('wallet', () => {
 			wallet
 				.observeActiveAccount()
 				.pipe(
-					map((i) => i.hdPath!.addressIndex.value()),
+					map((account) => account.hdPath!.addressIndex.value()),
 					take(expectedValues.length),
 					toArray(),
 				)

@@ -1,16 +1,12 @@
 import {
 	AccountAddress,
 	AccountAddressT,
-	SigningKeyT,
 	HDMasterSeed,
-	HDPathRadixT,
-	Mnemonic,
 	NetworkT,
 	ResourceIdentifier,
 	toObservable,
 	ValidatorAddress,
 	SigningKeychain,
-	SigningKeychainT,
 } from '@radixdlt/account'
 import {
 	interval,
@@ -71,6 +67,7 @@ import {
 	TransactionType,
 	TransferTokensInput,
 	TransferTokensOptions,
+	Wallet,
 } from '../src'
 import { Amount, AmountT } from '@radixdlt/primitives'
 
@@ -91,14 +88,13 @@ import {
 	TransactionIntent,
 } from '..'
 import { signatureFromHexStrings } from '@radixdlt/crypto/test/utils'
-import { makeWalletWithFunds } from '@radixdlt/account/test/utils'
+import { makeSigningKeyChainWithFunds } from '@radixdlt/account/test/utils'
 import { UInt256 } from '@radixdlt/uint256'
-import { Wallet } from '../src/wallet'
 import { createWallet } from './util'
 
-export const makeAccountwithWalletWithFunds = (): WalletT => {
+export const makeWalletWithFunds = (): WalletT => {
 	return Wallet.create({
-		signingKeychain: makeWalletWithFunds(),
+		signingKeychain: makeSigningKeyChainWithFunds(),
 		network: NetworkT.BETANET,
 	})
 }
@@ -592,7 +588,7 @@ describe('radix_high_level_api', () => {
 		subs.add(
 			radix.activeAccount
 				.pipe(
-					map((i) => i.hdPath!.addressIndex.value()),
+					map((account) => account.hdPath!.addressIndex.value()),
 					take(2),
 					toArray(),
 				)
@@ -619,7 +615,7 @@ describe('radix_high_level_api', () => {
 		subs.add(
 			radix.activeAccount
 				.pipe(
-					map((i) => i.hdPath!.addressIndex.value()),
+					map((account) => account.hdPath!.addressIndex.value()),
 					take(expectedValues.length),
 					toArray(),
 				)
@@ -685,7 +681,7 @@ describe('radix_high_level_api', () => {
 		subs.add(
 			radix.activeAccount
 				.pipe(
-					map((i) => i.hdPath!.addressIndex.value()),
+					map((account) => account.hdPath!.addressIndex.value()),
 					take(expected.length),
 					toArray(),
 				)
@@ -1127,7 +1123,7 @@ describe('radix_high_level_api', () => {
 
 		const mockedAPI = mockRadixCoreAPI()
 		const radix = Radix.create()
-			.withWallet(makeAccountwithWalletWithFunds())
+			.withWallet(makeWalletWithFunds())
 			.__withAPI(
 				of({
 					...mockedAPI,
@@ -1195,7 +1191,7 @@ describe('radix_high_level_api', () => {
 
 		const mockedAPI = mockRadixCoreAPI()
 		const radix = Radix.create()
-			.withWallet(makeAccountwithWalletWithFunds())
+			.withWallet(makeWalletWithFunds())
 			.__withAPI(
 				of({
 					...mockedAPI,
@@ -1780,7 +1776,7 @@ describe('radix_high_level_api', () => {
 	it('special signingKeychain with preallocated funds', (done) => {
 		const subs = new Subscription()
 
-		const walletWithFunds = makeAccountwithWalletWithFunds()
+		const walletWithFunds = makeWalletWithFunds()
 
 		const radix = Radix.create()
 			.__withAPI(
@@ -1854,7 +1850,7 @@ describe('radix_high_level_api', () => {
 				}
 			}
 
-			const wallet = makeAccountwithWalletWithFunds()
+			const wallet = makeWalletWithFunds()
 			const network = NetworkT.BETANET
 			const myAddress = AccountAddress.fromPublicKeyAndNetwork({
 				publicKey: wallet.__unsafeGetAccount().publicKey,

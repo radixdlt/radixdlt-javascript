@@ -33,8 +33,7 @@ const create = (
 	const hdPath = signingKey.hdPath
 	return {
 		...signingKey, // encrypt, decrypt, sign
-		equals: (other: AccountT): boolean =>
-			other.publicKey.equals(publicKey),
+		equals: (other: AccountT): boolean => other.publicKey.equals(publicKey),
 		signingKey: signingKey,
 		accountAddress,
 		network,

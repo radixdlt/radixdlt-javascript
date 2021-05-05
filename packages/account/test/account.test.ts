@@ -166,7 +166,8 @@ describe('account_type', () => {
 						expectedPublicKey,
 					)
 					expect(
-						(hwSigningKey.type as SigningKeyTypeHDT).hdSigningKeyType,
+						(hwSigningKey.type as SigningKeyTypeHDT)
+							.hdSigningKeyType,
 					).toBe(HDSigningKeyTypeIdentifier.HARDWARE_OR_REMOTE)
 					expect(hwSigningKey.uniqueIdentifier).toBe(
 						`Hardware_HDaccount_at_path_m/44'/536'/2'/1/3`,

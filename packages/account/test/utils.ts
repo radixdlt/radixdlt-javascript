@@ -2,7 +2,7 @@ import { privateKeyFromScalar } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
 import { Mnemonic, SigningKeychain, SigningKeychainT } from '../src'
 
-export const makeWalletWithFunds = (): SigningKeychainT => {
+export const makeSigningKeyChainWithFunds = (): SigningKeychainT => {
 	const signingKeychain = SigningKeychain.create({
 		startWithAnSigningKey: false,
 		mnemonic: Mnemonic.generateNew(), // not used,

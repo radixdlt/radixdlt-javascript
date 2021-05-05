@@ -9,7 +9,10 @@ export const createWallet = (
 		'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
 	)._unsafeUnwrap()
 	const startWithAnSigningKey = input?.startWithAnSigningKey ?? true
-	const signingKeychain = SigningKeychain.create({ mnemonic, startWithAnSigningKey })
+	const signingKeychain = SigningKeychain.create({
+		mnemonic,
+		startWithAnSigningKey,
+	})
 
 	const network = input?.network ?? NetworkT.BETANET
 

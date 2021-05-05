@@ -129,9 +129,7 @@ export type WalletT = Readonly<{
 		index: number,
 	) => Observable<AccountsT>
 
-	deriveNextLocalHDAccount: (
-		input?: DeriveNextInput,
-	) => Observable<AccountT>
+	deriveNextLocalHDAccount: (input?: DeriveNextInput) => Observable<AccountT>
 
 	addAccountFromPrivateKey: (
 		input: AddAccountByPrivateKeyInput,

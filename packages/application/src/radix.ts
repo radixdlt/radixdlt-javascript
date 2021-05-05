@@ -976,9 +976,7 @@ const create = (
 			return this
 		},
 
-		withWallet: function (
-			wallet: WalletT,
-		): RadixT {
+		withWallet: function (wallet: WalletT): RadixT {
 			_withWallet(wallet)
 			return this
 		},

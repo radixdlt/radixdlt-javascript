@@ -14,7 +14,8 @@ import {
 	DeriveNextInput,
 	SwitchSigningKeyInput,
 	SwitchToSigningKey,
-	SwitchToIndex, WalletAddSigningKeyByPrivateKeyInput,
+	SwitchToIndex,
+	WalletAddSigningKeyByPrivateKeyInput,
 	SigningKeychainT,
 } from './_types'
 import { mergeMap, shareReplay, take } from 'rxjs/operators'
@@ -56,7 +57,9 @@ type MutableSigningKeysT = SigningKeysT &
 const createSigningKeys = (_all: SigningKeyT[]): MutableSigningKeysT => {
 	const all: SigningKeyT[] = []
 
-	const getHDSigningKeyByHDPath = (hdPath: HDPathRadixT): Option<SigningKeyT> => {
+	const getHDSigningKeyByHDPath = (
+		hdPath: HDPathRadixT,
+	): Option<SigningKeyT> => {
 		const signingKey = all
 			.filter((a) => a.isHDSigningKey)
 			.find((a) => a.hdPath!.equals(hdPath))
@@ -71,7 +74,8 @@ const createSigningKeys = (_all: SigningKeyT[]): MutableSigningKeysT => {
 	}
 
 	const localHDSigningKeys = () => all.filter((a) => a.isLocalHDSigningKey)
-	const hardwareHDSigningKeys = () => all.filter((a) => a.isHardwareSigningKey)
+	const hardwareHDSigningKeys = () =>
+		all.filter((a) => a.isHardwareSigningKey)
 	const nonHDSigningKeys = () => all.filter((a) => !a.isHDSigningKey)
 	const hdSigningKeys = () => all.filter((a) => a.isHDSigningKey)
 
@@ -147,7 +151,8 @@ const create = (
 
 	const revealMnemonic = (): MnemomicT => mnemonic
 
-	const numberOfAllSigningKeys = (): number => accountsSubject.getValue().size()
+	const numberOfAllSigningKeys = (): number =>
+		accountsSubject.getValue().size()
 	const numberOfLocalHDSigningKeys = (): number =>
 		accountsSubject.getValue().localHDSigningKeys().length
 
@@ -232,7 +237,9 @@ const create = (
 		} else if (isSwitchToSigningKey(input)) {
 			const toSigningKey = input.toSigningKey
 			setActiveSigningKey(toSigningKey)
-			log.info(`Active signingKey switched to: ${toSigningKey.toString()}`)
+			log.info(
+				`Active signingKey switched to: ${toSigningKey.toString()}`,
+			)
 			return toSigningKey
 		} else if (isSwitchToIndex(input)) {
 			const unsafeTargetIndex = input.toIndex
@@ -316,7 +323,8 @@ const create = (
 		restoreLocalHDSigningKeysUpToIndex,
 		addSigningKeyFromPrivateKey,
 		observeSigningKeys: (): Observable<SigningKeysT> => accounts$,
-		observeActiveSigningKey: (): Observable<SigningKeyT> => activeSigningKey$,
+		observeActiveSigningKey: (): Observable<SigningKeyT> =>
+			activeSigningKey$,
 		sign: (hashedMessage: Buffer): Observable<Signature> =>
 			activeSigningKey$.pipe(mergeMap((a) => a.sign(hashedMessage))),
 	}

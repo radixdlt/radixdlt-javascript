@@ -78,7 +78,9 @@ const create = (
 		deriveNextLocalHDAccount: (
 			input?: DeriveNextInput,
 		): Observable<AccountT> => {
-			return signingKeychain.deriveNextLocalHDSigningKey(input).pipe(map(aToI))
+			return signingKeychain
+				.deriveNextLocalHDSigningKey(input)
+				.pipe(map(aToI))
 		},
 
 		observeActiveAccount: (): Observable<AccountT> => {

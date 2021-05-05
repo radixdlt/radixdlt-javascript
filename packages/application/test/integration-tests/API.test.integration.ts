@@ -33,7 +33,7 @@ import {
 	TransactionTrackingEventType,
 } from '../../src'
 import { UInt256 } from '@radixdlt/uint256'
-import { makeAccountwithWalletWithFunds } from '../radix.test'
+import { makeWalletWithFunds } from '../radix.test'
 const fetch = require('node-fetch')
 
 // local
@@ -98,7 +98,7 @@ describe('integration API tests', () => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeAccountwithWalletWithFunds())
+			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		subs.add(
@@ -133,7 +133,7 @@ describe('integration API tests', () => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeAccountwithWalletWithFunds())
+			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		const expected = [1, 2, 3]
@@ -159,7 +159,7 @@ describe('integration API tests', () => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeAccountwithWalletWithFunds())
+			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		const expected = [0, 1, 3]
@@ -167,7 +167,7 @@ describe('integration API tests', () => {
 		subs.add(
 			radix.activeAccount
 				.pipe(
-					map((i) => i.hdPath!.addressIndex.value()),
+					map((account) => account.hdPath!.addressIndex.value()),
 					take(expected.length),
 					toArray(),
 				)
@@ -186,7 +186,7 @@ describe('integration API tests', () => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeAccountwithWalletWithFunds())
+			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		const expectedCount = 3
@@ -209,7 +209,7 @@ describe('integration API tests', () => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeAccountwithWalletWithFunds())
+			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		const getTokenBalanceSubject = new Subject<number>()
@@ -286,7 +286,7 @@ describe('integration API tests', () => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeAccountwithWalletWithFunds())
+			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		const pageSize = 3
@@ -375,7 +375,7 @@ describe('integration API tests', () => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeAccountwithWalletWithFunds())
+			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		radix
@@ -424,7 +424,7 @@ describe('integration API tests', () => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeAccountwithWalletWithFunds())
+			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		const expectedValues: TransactionStatus[] = [
@@ -470,7 +470,7 @@ describe('integration API tests', () => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeAccountwithWalletWithFunds())
+			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		const { completion } = radix.transferTokens({
@@ -500,7 +500,7 @@ describe('integration API tests', () => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeAccountwithWalletWithFunds())
+			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		subs.add(
@@ -529,7 +529,7 @@ describe('integration API tests', () => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeAccountwithWalletWithFunds())
+			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		subs.add(
@@ -549,7 +549,7 @@ describe('integration API tests', () => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeAccountwithWalletWithFunds())
+			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		subs.add(
@@ -597,7 +597,7 @@ describe('integration API tests', () => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeAccountwithWalletWithFunds())
+			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		subs.add(
@@ -612,7 +612,7 @@ describe('integration API tests', () => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeAccountwithWalletWithFunds())
+			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		subs.add(
@@ -629,7 +629,7 @@ describe('integration API tests', () => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeAccountwithWalletWithFunds())
+			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 			.withStakingFetchTrigger(triggerSubject)
 
@@ -717,7 +717,7 @@ describe('integration API tests', () => {
 			network: NetworkT.BETANET,
 		})
 			.connect(`${NODE_URL}/rpc`)
-			.withWallet(makeAccountwithWalletWithFunds())
+			.withWallet(makeWalletWithFunds())
 			.withStakingFetchTrigger(triggerSubject)
 
 		const stakeAmount = Amount.fromUnsafe(1)._unsafeUnwrap()
@@ -773,7 +773,7 @@ describe('integration API tests', () => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
-			.withWallet(makeAccountwithWalletWithFunds())
+			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}/rpc`)
 
 		subs.add(
@@ -843,7 +843,7 @@ describe('integration API tests', () => {
 			const radix = Radix.create({
 				network: NetworkT.BETANET,
 			})
-				.withWallet(makeAccountwithWalletWithFunds())
+				.withWallet(makeWalletWithFunds())
 				.connect(`${NODE_URL}/rpc`)
 
 			const expectedValues = [
@@ -888,7 +888,7 @@ describe('integration API tests', () => {
 			const radix = Radix.create({
 				network: NetworkT.BETANET,
 			})
-				.withWallet(makeAccountwithWalletWithFunds())
+				.withWallet(makeWalletWithFunds())
 				.connect(`${NODE_URL}/rpc`)
 
 			subs.add(
@@ -916,7 +916,7 @@ describe('integration API tests', () => {
 			const radix = Radix.create({
 				network: NetworkT.BETANET,
 			})
-				.withWallet(makeAccountwithWalletWithFunds())
+				.withWallet(makeWalletWithFunds())
 				.connect(`${NODE_URL}/rpc`)
 
 			//@ts-ignore

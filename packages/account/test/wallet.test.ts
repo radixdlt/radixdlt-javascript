@@ -1,4 +1,11 @@
-import { SigningKey, SigningKeysT, SigningKeyT, Mnemonic, SigningKeychain, SigningKeychainT } from '../src'
+import {
+	SigningKey,
+	SigningKeysT,
+	SigningKeyT,
+	Mnemonic,
+	SigningKeychain,
+	SigningKeychainT,
+} from '../src'
 import { map, skip, take, toArray } from 'rxjs/operators'
 import { KeystoreT, privateKeyFromScalar, PublicKey } from '@radixdlt/crypto'
 import { combineLatest, Subscription } from 'rxjs'
@@ -71,12 +78,13 @@ describe('wallet_type', () => {
 			},
 		})
 			.andThen((wallet1) =>
-				SigningKeychain.byLoadingAndDecryptingKeystore({ password, load }).map(
-					(wallet2) => ({
-						wallet1,
-						wallet2,
-					}),
-				),
+				SigningKeychain.byLoadingAndDecryptingKeystore({
+					password,
+					load,
+				}).map((wallet2) => ({
+					wallet1,
+					wallet2,
+				})),
 			)
 			.match(
 				(wallets) => {
@@ -112,41 +120,47 @@ describe('wallet_type', () => {
 		}
 
 		subs.add(
-			signingKeychain.restoreLocalHDSigningKeysUpToIndex(indexToRestoreTo).subscribe(
-				(accounts) => {
-					expect(accounts.size()).toBe(indexToRestoreTo)
+			signingKeychain
+				.restoreLocalHDSigningKeysUpToIndex(indexToRestoreTo)
+				.subscribe(
+					(accounts) => {
+						expect(accounts.size()).toBe(indexToRestoreTo)
 
-					let next = 0
-					const assertSigningKeyHasCorrectIndex = (
-						signingKey: SigningKeyT,
-					): void => {
-						assertSigningKeyHasIndex(signingKey, next)
-						next += 1
-					}
+						let next = 0
+						const assertSigningKeyHasCorrectIndex = (
+							signingKey: SigningKeyT,
+						): void => {
+							assertSigningKeyHasIndex(signingKey, next)
+							next += 1
+						}
 
-					for (const signingKey of accounts.all) {
-						assertSigningKeyHasCorrectIndex(signingKey)
-					}
+						for (const signingKey of accounts.all) {
+							assertSigningKeyHasCorrectIndex(signingKey)
+						}
 
-					signingKeychain.deriveNextLocalHDSigningKey().subscribe(
-						(another0) => {
-							assertSigningKeyHasCorrectIndex(another0)
+						signingKeychain.deriveNextLocalHDSigningKey().subscribe(
+							(another0) => {
+								assertSigningKeyHasCorrectIndex(another0)
 
-							signingKeychain.deriveNextLocalHDSigningKey().subscribe(
-								(another1) => {
-									assertSigningKeyHasCorrectIndex(another1)
-									done()
-								},
-								(e) => done(e),
-							)
-						},
-						(e) => done(e),
-					)
-				},
-				(e) => {
-					done(e)
-				},
-			),
+								signingKeychain
+									.deriveNextLocalHDSigningKey()
+									.subscribe(
+										(another1) => {
+											assertSigningKeyHasCorrectIndex(
+												another1,
+											)
+											done()
+										},
+										(e) => done(e),
+									)
+							},
+							(e) => done(e),
+						)
+					},
+					(e) => {
+						done(e)
+					},
+				),
 		)
 	})
 
@@ -231,7 +245,9 @@ describe('wallet_type', () => {
 				expect(active.hdPath!.addressIndex.value()).toBe(0)
 				expect(active.hdPath!.toString()).toBe(`m/44'/536'/0'/0/0'`)
 				expect(
-					signingKeychain.__unsafeGetSigningKey().hdPath!.equals(active.hdPath),
+					signingKeychain
+						.__unsafeGetSigningKey()
+						.hdPath!.equals(active.hdPath),
 				).toBe(true)
 				done()
 			}),
@@ -276,7 +292,9 @@ describe('wallet_type', () => {
 		)
 
 		subs.add(
-			signingKeychain.deriveNextLocalHDSigningKey({ alsoSwitchTo: true }).subscribe(),
+			signingKeychain
+				.deriveNextLocalHDSigningKey({ alsoSwitchTo: true })
+				.subscribe(),
 		)
 	})
 
@@ -304,7 +322,11 @@ describe('wallet_type', () => {
 
 			subs.add(
 				signingKeychain.deriveNextLocalHDSigningKey().subscribe(() => {
-					subs.add(signingKeychain.deriveNextLocalHDSigningKey().subscribe())
+					subs.add(
+						signingKeychain
+							.deriveNextLocalHDSigningKey()
+							.subscribe(),
+					)
 				}),
 			)
 		}
@@ -338,7 +360,9 @@ describe('wallet_type', () => {
 		)
 
 		subs.add(
-			signingKeychain.deriveNextLocalHDSigningKey({ alsoSwitchTo: true }).subscribe(),
+			signingKeychain
+				.deriveNextLocalHDSigningKey({ alsoSwitchTo: true })
+				.subscribe(),
 		)
 
 		signingKeychain.switchSigningKey({ toIndex: 0 })
@@ -379,11 +403,15 @@ describe('wallet_type', () => {
 									expect(signingKey.uniqueIdentifier).toBe(
 										`Non_hd_pubKey${expPubKey}`,
 									)
-									expect(signingKey.isHDSigningKey).toBe(false)
-									expect(signingKey.isLocalHDSigningKey).toBe(false)
-									expect(signingKey.isHardwareSigningKey).toBe(
+									expect(signingKey.isHDSigningKey).toBe(
 										false,
 									)
+									expect(signingKey.isLocalHDSigningKey).toBe(
+										false,
+									)
+									expect(
+										signingKey.isHardwareSigningKey,
+									).toBe(false)
 									done()
 								}),
 						)
