@@ -307,7 +307,7 @@ describe('radix_high_level_api', () => {
 		})
 	})
 
-	it('can observe active signingKey without API', async (done) => {
+	it('can observe active account without API', async (done) => {
 		const radix = Radix.create()
 		const wallet = createWallet({ startWithAnSigningKey: true })
 		radix.withWallet(wallet)
@@ -723,7 +723,7 @@ describe('radix_high_level_api', () => {
 		radix.deriveNextAccount({ alsoSwitchTo: true })
 	})
 
-	it('mocked API returns different but deterministic tokenBalances per signingKey', (done) => {
+	it('mocked API returns different but deterministic tokenBalances per account', (done) => {
 		const subs = new Subscription()
 
 		const radix = Radix.create().__withAPI(mockedAPI)
@@ -811,7 +811,7 @@ describe('radix_high_level_api', () => {
 		)
 	})
 
-	it('mocked API returns different but deterministic transaction history per signingKey', (done) => {
+	it('mocked API returns different but deterministic transaction history per account', (done) => {
 		const subs = new Subscription()
 
 		const radix = Radix.create().__withAPI(mockedAPI)

@@ -375,7 +375,7 @@ describe('tx_intent_builder', () => {
 			restoreDefaultLogLevel()
 		})
 
-		it('an error is thrown when specifying encryption for message but building intent without encrypting signingKey', (done) => {
+		it('an error is thrown when specifying encryption for message but building intent without encrypting account', (done) => {
 			const subs = new Subscription()
 
 			const builder = TransactionIntentBuilder.create()
@@ -407,7 +407,7 @@ describe('tx_intent_builder', () => {
 			)
 		})
 
-		it('an error is thrown when specifying plaintext for message but building intent with encrypting signingKey', (done) => {
+		it('an error is thrown when specifying plaintext for message but building intent with encrypting account', (done) => {
 			const subs = new Subscription()
 
 			const builder = TransactionIntentBuilder.create()
