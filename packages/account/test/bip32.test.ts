@@ -249,10 +249,10 @@ describe('BIP32', () => {
 
 			const first_wallet = masterNode.derive(firstHDPath)
 
-			const wallet = HDNode.fromExtendedPrivateKey(
+			const signingKeychain = HDNode.fromExtendedPrivateKey(
 				first_wallet.toJSON().xpriv,
 			)._unsafeUnwrap()
-			const subwallet = wallet.derive(
+			const subwallet = signingKeychain.derive(
 				BIP32.fromString(`M/0`)._unsafeUnwrap(),
 			)
 

@@ -1,5 +1,5 @@
 import {
-	AccountAddressT,
+	Acc0untAddressT,
 	ResourceIdentifierT,
 	ValidatorAddressT,
 } from '@radixdlt/account'
@@ -16,7 +16,7 @@ import { AmountT } from '@radixdlt/primitives'
 import { PublicKey, Signature } from '@radixdlt/crypto'
 import { Observable } from 'rxjs'
 import { Result } from 'neverthrow'
-import { IdentityT, MessageInTransaction } from '../_types'
+import { AccountT, MessageInTransaction } from '../_types'
 
 export type StakePosition = Readonly<{
 	validator: ValidatorAddressT
@@ -47,12 +47,12 @@ export type TransactionIntentBuilderState = Readonly<{
 }>
 
 export type TransactionIntentBuilderEncryptOption = Readonly<{
-	encryptMessageIfAnyWithIdentity: Observable<IdentityT>
-	spendingSender?: Observable<AccountAddressT>
+	encryptMessageIfAnyWithIdentity: Observable<AccountT>
+	spendingSender?: Observable<Acc0untAddressT>
 }>
 
 export type TransactionIntentBuilderDoNotEncryptInput = Readonly<{
-	spendingSender: Observable<AccountAddressT>
+	spendingSender: Observable<Acc0untAddressT>
 }>
 
 export type TransactionIntentBuilderDoNotEncryptOption = Readonly<{
@@ -72,7 +72,7 @@ export type TransactionIntentBuilderT = Readonly<{
 
 	// Build
 	__syncBuildDoNotEncryptMessageIfAny: (
-		from: AccountAddressT,
+		from: Acc0untAddressT,
 	) => Result<TransactionIntent, Error>
 
 	build: (
@@ -87,7 +87,7 @@ export type TransactionIntent = Readonly<{
 
 export type ValidatorsRequestInput = Readonly<{
 	size: number
-	// AccountAddress of last seen validator in list
+	// Acc0untAddress of last seen validator in list
 	cursor?: string
 }>
 
@@ -138,11 +138,11 @@ export type TransactionHistoryOfKnownAddressRequestInput = Readonly<{
 	cursor?: string
 }>
 
-export type TransactionHistoryActiveAccountRequestInput = TransactionHistoryOfKnownAddressRequestInput
+export type TransactionHistoryActiveSigningKeyRequestInput = TransactionHistoryOfKnownAddressRequestInput
 
 export type TransactionHistoryRequestInput = TransactionHistoryOfKnownAddressRequestInput &
 	Readonly<{
-		address: AccountAddressT
+		address: Acc0untAddressT
 	}>
 
 export type SimpleExecutedTransaction = Readonly<{
@@ -277,12 +277,12 @@ export type RawExecutedAction =
 	| RawOtherExecutedAction
 
 export type SimpleTokenBalances = Readonly<{
-	owner: AccountAddressT
+	owner: Acc0untAddressT
 	tokenBalances: SimpleTokenBalance[]
 }>
 
 export type TokenBalances = Readonly<{
-	owner: AccountAddressT
+	owner: Acc0untAddressT
 	tokenBalances: TokenBalance[]
 }>
 
@@ -298,7 +298,7 @@ export type TransactionHistory = SimpleTransactionHistory &
 
 export type Validator = Readonly<{
 	address: ValidatorAddressT
-	ownerAddress: AccountAddressT
+	ownerAddress: Acc0untAddressT
 	name: string
 	infoURL: URL
 	totalDelegatedStake: AmountT

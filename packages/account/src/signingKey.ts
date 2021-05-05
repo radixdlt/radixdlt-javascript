@@ -12,79 +12,79 @@ import { map, mergeMap } from 'rxjs/operators'
 import { Observable } from 'rxjs'
 import { toObservable } from './resultAsync_observable'
 import {
-	AccountDecryptionInput,
-	AccountEncryptionInput,
-	AccountT,
-	AccountTypeHDT,
-	AccountTypeIdentifier,
-	AccountTypeNonHDT,
-	AccountTypeT,
+	SigningKeyDecryptionInput,
+	SigningKeyEncryptionInput,
+	SigningKeyT,
+	SigningKeyTypeHDT,
+	SigningKeyTypeIdentifier,
+	SigningKeyTypeNonHDT,
+	SigningKeyTypeT,
 	HardwareWalletSimpleT,
-	HDAccountTypeIdentifier, PrivateKeyToAccountInput,
+	HDSigningKeyTypeIdentifier, PrivateKeyToSigningKeyInput,
 } from './_types'
 import { HDMasterSeedT, HDNodeT } from './bip39'
 import { HDPathRadixT } from './bip32'
 import { okAsync, ResultAsync } from 'neverthrow'
 import { Option } from 'prelude-ts'
 
-const stringifyAccount = (account: AccountT): string => {
+const stringifySigningKey = (signingKey: SigningKeyT): string => {
 	return `
-		type: ${account.type.typeIdentifier.toString()},
-		publicKey: ${account.publicKey.toString(true)},
-		hdPath?: ${Option.of<HDPathRadixT>(account.hdPath)
+		type: ${signingKey.type.typeIdentifier.toString()},
+		publicKey: ${signingKey.publicKey.toString(true)},
+		hdPath?: ${Option.of<HDPathRadixT>(signingKey.hdPath)
 			.map((hdp) => hdp.toString())
 			.getOrElse('NONE')},
-		isHDAccount: ${account.isHDAccount ? 'YES' : 'NO'},
-		isHardwareAccount: ${account.isHardwareAccount ? 'YES' : 'NO'},
+		isHDSigningKey: ${signingKey.isHDSigningKey ? 'YES' : 'NO'},
+		isHardwareSigningKey: ${signingKey.isHardwareSigningKey ? 'YES' : 'NO'},
 	`
 }
 
-const makeAccountTypeHD = (
+const makeSigningKeyTypeHD = (
 	input: Readonly<{
 		hdPath: HDPathRadixT
-		hdAccountType: HDAccountTypeIdentifier
+		hdSigningKeyType: HDSigningKeyTypeIdentifier
 	}>,
-): AccountTypeHDT => {
-	const { hdPath, hdAccountType } = input
-	const isHardwareAccount =
-		hdAccountType === HDAccountTypeIdentifier.HARDWARE_OR_REMOTE
+): SigningKeyTypeHDT => {
+	const { hdPath, hdSigningKeyType } = input
+	const isHardwareSigningKey =
+		hdSigningKeyType === HDSigningKeyTypeIdentifier.HARDWARE_OR_REMOTE
 	const uniqueKey = `${
-		isHardwareAccount ? 'Hardware' : 'Local'
+		isHardwareSigningKey ? 'Hardware' : 'Local'
 	}_HDaccount_at_path_${hdPath.toString()}`
 	return {
-		typeIdentifier: AccountTypeIdentifier.HD_ACCOUNT,
-		hdAccountType,
+		typeIdentifier: SigningKeyTypeIdentifier.HD_ACCOUNT,
+		hdSigningKeyType,
 		hdPath,
 		uniqueKey,
-		isHDAccount: true,
-		isHardwareAccount,
+		isHDSigningKey: true,
+		isHardwareSigningKey,
 	}
 }
 
-const makeAccountTypeNonHD = (
+const makeSigningKeyTypeNonHD = (
 	input: Readonly<{
 		publicKey: PublicKey
 		name?: string
 	}>,
-): AccountTypeNonHDT => {
+): SigningKeyTypeNonHDT => {
 	const named = Option.of(input.name)
 		.map((n) => `named_${n}`)
 		.getOrElse('')
 	const uniqueKey = `Non_hd_${named}pubKey${input.publicKey.toString(true)}`
 	return {
-		typeIdentifier: AccountTypeIdentifier.NON_HD_ACCOUNT,
+		typeIdentifier: SigningKeyTypeIdentifier.NON_HD_ACCOUNT,
 		uniqueKey,
-		isHDAccount: false,
-		isHardwareAccount: false,
+		isHDSigningKey: false,
+		isHardwareSigningKey: false,
 		name: input.name,
 	}
 }
 
-type Decrypt = (input: AccountDecryptionInput) => Observable<string>
-type Encrypt = (input: AccountEncryptionInput) => Observable<EncryptedMessageT>
+type Decrypt = (input: SigningKeyDecryptionInput) => Observable<string>
+type Encrypt = (input: SigningKeyEncryptionInput) => Observable<EncryptedMessageT>
 
 const makeDecrypt = (diffieHellman: DiffieHellman): Decrypt => {
-	return (input: AccountDecryptionInput): Observable<string> => {
+	return (input: SigningKeyDecryptionInput): Observable<string> => {
 		return toObservable(
 			MessageEncryption.decrypt({
 				...input,
@@ -97,7 +97,7 @@ const makeDecrypt = (diffieHellman: DiffieHellman): Decrypt => {
 }
 
 const makeEncrypt = (diffieHellman: DiffieHellman): Encrypt => {
-	return (input: AccountEncryptionInput): Observable<EncryptedMessageT> => {
+	return (input: SigningKeyEncryptionInput): Observable<EncryptedMessageT> => {
 		return toObservable(
 			MessageEncryption.encrypt({
 				...input,
@@ -113,7 +113,7 @@ const makeEncryptHW = (
 	hardwareWalletSimple: HardwareWalletSimpleT,
 	hdPath: HDPathRadixT,
 ): Encrypt => {
-	return (input: AccountEncryptionInput): Observable<EncryptedMessageT> => {
+	return (input: SigningKeyEncryptionInput): Observable<EncryptedMessageT> => {
 		return hardwareWalletSimple
 			.diffieHellman({
 				hdPath,
@@ -136,7 +136,7 @@ const makeDecryptHW = (
 	hardwareWalletSimple: HardwareWalletSimpleT,
 	hdPath: HDPathRadixT,
 ): Decrypt => {
-	return (input: AccountDecryptionInput): Observable<string> => {
+	return (input: SigningKeyDecryptionInput): Observable<string> => {
 		return hardwareWalletSimple
 			.diffieHellman({
 				hdPath,
@@ -166,7 +166,7 @@ const fromPrivateKeyNamedOrFromHDPath = (
 		privateKey: PrivateKey
 		pathOrName?: HDPathRadixT | string
 	}>,
-): AccountT => {
+): SigningKeyT => {
 	const { privateKey } = input
 	const publicKey: PublicKey = privateKey.publicKey()
 	const sign = (hashedMessage: Buffer): Observable<Signature> =>
@@ -174,20 +174,20 @@ const fromPrivateKeyNamedOrFromHDPath = (
 
 	const diffieHellman = privateKey.diffieHellman
 
-	const type: AccountTypeT =
+	const type: SigningKeyTypeT =
 		input.pathOrName === undefined || typeof input.pathOrName === 'string'
-			? makeAccountTypeNonHD({
+			? makeSigningKeyTypeNonHD({
 					publicKey,
 					name: input.pathOrName,
 			  })
-			: makeAccountTypeHD({
+			: makeSigningKeyTypeHD({
 					hdPath: input.pathOrName,
-					hdAccountType: HDAccountTypeIdentifier.LOCAL,
+					hdSigningKeyType: HDSigningKeyTypeIdentifier.LOCAL,
 			  })
 
-	const newAccount = {
-		...type, // forward sugar for boolean account type getters
-		isLocalHDAccount: type.isHDAccount && !type.isHardwareAccount,
+	const newSigningKey = {
+		...type, // forward sugar for boolean signingKey type getters
+		isLocalHDSigningKey: type.isHDSigningKey && !type.isHardwareSigningKey,
 		decrypt: makeDecrypt(diffieHellman),
 		encrypt: makeEncrypt(diffieHellman),
 		sign: sign,
@@ -202,15 +202,15 @@ const fromPrivateKeyNamedOrFromHDPath = (
 		toString: (): string => {
 			throw new Error('Overriden below')
 		},
-		equals: (other: AccountT): boolean => {
+		equals: (other: SigningKeyT): boolean => {
 			return publicKey.equals(other.publicKey)
 		},
 		__diffieHellman: diffieHellman,
 	}
 
 	return {
-		...newAccount,
-		toString: () => stringifyAccount(newAccount),
+		...newSigningKey,
+		toString: () => stringifySigningKey(newSigningKey),
 	}
 }
 
@@ -219,13 +219,13 @@ const fromPrivateKeyAtHDPath = (
 		privateKey: PrivateKey
 		hdPath: HDPathRadixT
 	}>,
-): AccountT =>
+): SigningKeyT =>
 	fromPrivateKeyNamedOrFromHDPath({
 		...input,
 		pathOrName: input.hdPath,
 	})
 
-const fromPrivateKey = (input: PrivateKeyToAccountInput): AccountT =>
+const fromPrivateKey = (input: PrivateKeyToSigningKeyInput): SigningKeyT =>
 	fromPrivateKeyNamedOrFromHDPath({
 		...input,
 		pathOrName: input.name,
@@ -236,7 +236,7 @@ const fromHDPathWithHardwareWallet = (
 		hdPath: HDPathRadixT
 		hardwareWalletConnection: Observable<HardwareWalletSimpleT>
 	}>,
-): Observable<AccountT> => {
+): Observable<SigningKeyT> => {
 	const { hdPath, hardwareWalletConnection: hardwareWallet$ } = input
 
 	type Tmp = {
@@ -244,9 +244,9 @@ const fromHDPathWithHardwareWallet = (
 		publicKey: PublicKey
 	}
 
-	const type: AccountTypeT = makeAccountTypeHD({
+	const type: SigningKeyTypeT = makeSigningKeyTypeHD({
 		hdPath,
-		hdAccountType: HDAccountTypeIdentifier.HARDWARE_OR_REMOTE,
+		hdSigningKeyType: HDSigningKeyTypeIdentifier.HARDWARE_OR_REMOTE,
 	})
 
 	return hardwareWallet$.pipe(
@@ -265,10 +265,10 @@ const fromHDPathWithHardwareWallet = (
 			},
 		),
 		map(
-			({ publicKey, hardwareWalletSimple }): AccountT => {
-				const newAccount: AccountT = {
-					...type, // forward sugar for boolean account type getters
-					isLocalHDAccount: false, // hardware is not local
+			({ publicKey, hardwareWalletSimple }): SigningKeyT => {
+				const newSigningKey: SigningKeyT = {
+					...type, // forward sugar for boolean signingKey type getters
+					isLocalHDSigningKey: false, // hardware is not local
 					publicKey,
 					hdPath,
 					sign: (hashedMessage: Buffer): Observable<Signature> => {
@@ -284,7 +284,7 @@ const fromHDPathWithHardwareWallet = (
 					toString: (): string => {
 						throw new Error('Overridden below.')
 					},
-					equals: (other: AccountT): boolean => {
+					equals: (other: SigningKeyT): boolean => {
 						return publicKey.equals(other.publicKey)
 					},
 					__diffieHellman: (
@@ -295,8 +295,8 @@ const fromHDPathWithHardwareWallet = (
 				}
 
 				return {
-					...newAccount,
-					toString: (): string => stringifyAccount(newAccount),
+					...newSigningKey,
+					toString: (): string => stringifySigningKey(newSigningKey),
 				}
 			},
 		),
@@ -308,7 +308,7 @@ const byDerivingNodeAtPath = (
 		hdPath: HDPathRadixT
 		deriveNodeAtPath: () => HDNodeT
 	}>,
-): AccountT =>
+): SigningKeyT =>
 	fromPrivateKeyAtHDPath({
 		...input,
 		privateKey: input.deriveNodeAtPath().privateKey,
@@ -319,7 +319,7 @@ const fromHDPathWithHDMasterNode = (
 		hdPath: HDPathRadixT
 		hdMasterNode: HDNodeT
 	}>,
-): AccountT => {
+): SigningKeyT => {
 	const hdNodeAtPath = input.hdMasterNode.derive(input.hdPath)
 	return fromPrivateKeyAtHDPath({
 		...input,
@@ -332,13 +332,13 @@ const fromHDPathWithHDMasterSeed = (
 		hdPath: HDPathRadixT
 		hdMasterSeed: HDMasterSeedT
 	}>,
-): AccountT => {
+): SigningKeyT => {
 	const hdMasterNode = input.hdMasterSeed.masterNode()
 	return fromHDPathWithHDMasterNode({ ...input, hdMasterNode })
 }
 
-export const isAccount = (something: unknown): something is AccountT => {
-	const inspection = something as AccountT
+export const isSigningKey = (something: unknown): something is SigningKeyT => {
+	const inspection = something as SigningKeyT
 	return (
 		inspection.publicKey !== undefined &&
 		isPublicKey(inspection.publicKey) &&
@@ -349,7 +349,7 @@ export const isAccount = (something: unknown): something is AccountT => {
 	)
 }
 
-export const Account = {
+export const SigningKey = {
 	__unsafeFromPrivateKeyAtHDPath: fromPrivateKeyAtHDPath,
 	fromPrivateKey,
 	byDerivingNodeAtPath,

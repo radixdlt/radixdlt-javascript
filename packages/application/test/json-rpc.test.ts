@@ -37,7 +37,7 @@ import {
 	OpenrpcDocument,
 } from '@open-rpc/meta-schema'
 import {
-	AccountAddress,
+	Acc0untAddress,
 	NetworkT,
 	ResourceIdentifier,
 	ValidatorAddress,
@@ -73,10 +73,10 @@ const executedActionFromRaw = (action: RawExecutedAction): ExecutedAction => {
 		const executed: ExecutedTransferTokensAction = {
 			...action,
 			// transactionType: TransactionType.OUTGOING,
-			from: AccountAddress.fromUnsafe(action.from)._unsafeUnwrap({
+			from: Acc0untAddress.fromUnsafe(action.from)._unsafeUnwrap({
 				withStackTrace: true,
 			}),
-			to: AccountAddress.fromUnsafe(action.to)._unsafeUnwrap({
+			to: Acc0untAddress.fromUnsafe(action.to)._unsafeUnwrap({
 				withStackTrace: true,
 			}),
 			rri: ResourceIdentifier.fromUnsafe(action.rri)._unsafeUnwrap({
@@ -93,7 +93,7 @@ const executedActionFromRaw = (action: RawExecutedAction): ExecutedAction => {
 	) {
 		return {
 			...action,
-			from: AccountAddress.fromUnsafe(action.from)._unsafeUnwrap({
+			from: Acc0untAddress.fromUnsafe(action.from)._unsafeUnwrap({
 				withStackTrace: true,
 			}),
 			validator: ValidatorAddress.fromUnsafe(
@@ -146,7 +146,7 @@ const expectedDecodedResponses = {
 	[rpcSpec.methods[3].name]: (
 		response: TokenBalancesEndpoint.Response,
 	): TokenBalancesEndpoint.DecodedResponse => ({
-		owner: AccountAddress.fromUnsafe(response.owner)._unsafeUnwrap(),
+		owner: Acc0untAddress.fromUnsafe(response.owner)._unsafeUnwrap(),
 		tokenBalances: [
 			{
 				tokenIdentifier: ResourceIdentifier.fromUnsafe(
@@ -264,7 +264,7 @@ const expectedDecodedResponses = {
 				address: ValidatorAddress.fromUnsafe(
 					response.validators[0].address,
 				)._unsafeUnwrap({ withStackTrace: true }),
-				ownerAddress: AccountAddress.fromUnsafe(
+				ownerAddress: Acc0untAddress.fromUnsafe(
 					response.validators[0].ownerAddress,
 				)._unsafeUnwrap({ withStackTrace: true }),
 				name: response.validators[0].name,
@@ -287,7 +287,7 @@ const expectedDecodedResponses = {
 		address: ValidatorAddress.fromUnsafe(response.address)._unsafeUnwrap({
 			withStackTrace: true,
 		}),
-		ownerAddress: AccountAddress.fromUnsafe(
+		ownerAddress: Acc0untAddress.fromUnsafe(
 			response.ownerAddress,
 		)._unsafeUnwrap({
 			withStackTrace: true,

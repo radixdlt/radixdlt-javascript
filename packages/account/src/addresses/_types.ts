@@ -26,10 +26,10 @@ export type AbstractAddressT = Readonly<{
 	equals: (other: AbstractAddressT) => boolean
 }>
 
-export type AccountAddressT = AbstractAddressT &
+export type Acc0untAddressT = AbstractAddressT &
 	Readonly<{
 		addressType: AddressTypeT.ACCOUNT
-		equals: (other: AccountAddressT) => boolean
+		equals: (other: Acc0untAddressT) => boolean
 	}>
 
 export type ValidatorAddressT = AbstractAddressT &

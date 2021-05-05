@@ -10,11 +10,11 @@ import {
 	ValidateDataAndExtractPubKeyBytes,
 } from './abstractAddress'
 import { buffersEquals } from '@radixdlt/util'
-import { AccountAddressT, AddressTypeT, NetworkT } from './_types'
+import { Acc0untAddressT, AddressTypeT, NetworkT } from './_types'
 
-export const isAccountAddress = (
+export const isSigningKeyAddress = (
 	something: unknown,
-): something is AccountAddressT => {
+): something is Acc0untAddressT => {
 	if (!isAbstractAddress(something)) return false
 	return something.addressType === AddressTypeT.ACCOUNT
 }
@@ -63,57 +63,57 @@ const fromPublicKeyAndNetwork = (
 		publicKey: PublicKey
 		network: NetworkT
 	}>,
-): AccountAddressT =>
+): Acc0untAddressT =>
 	AbstractAddress.byFormattingPublicKeyDataAndBech32ConvertingIt({
 		...input,
 		network: input.network,
 		hrpFromNetwork,
 		addressType: AddressTypeT.ACCOUNT,
-		typeguard: isAccountAddress,
+		typeguard: isSigningKeyAddress,
 		formatDataToBech32Convert,
 		encoding,
 		maxLength,
 	})
 		.orElse((e) => {
 			throw new Error(
-				`Expected to always be able to create account address from publicKey and network, but got error: ${e.message}`,
+				`Expected to always be able to create signingKey address from publicKey and network, but got error: ${e.message}`,
 			)
 		})
 		._unsafeUnwrap({ withStackTrace: true })
 
-const fromString = (bechString: string): Result<AccountAddressT, Error> =>
+const fromString = (bechString: string): Result<Acc0untAddressT, Error> =>
 	AbstractAddress.fromString({
 		bechString,
 		addressType: AddressTypeT.ACCOUNT,
 		networkFromHRP,
-		typeguard: isAccountAddress,
+		typeguard: isSigningKeyAddress,
 		validateDataAndExtractPubKeyBytes,
 		encoding,
 		maxLength,
 	})
 
-export type AccountAddressUnsafeInput = string
+export type SigningKeyAddressUnsafeInput = string
 
-const isAccountAddressUnsafeInput = (
+const isSigningKeyAddressUnsafeInput = (
 	something: unknown,
-): something is AccountAddressUnsafeInput => {
+): something is SigningKeyAddressUnsafeInput => {
 	return typeof something === 'string'
 }
 
-export type AddressOrUnsafeInput = AccountAddressUnsafeInput | AccountAddressT
+export type AddressOrUnsafeInput = SigningKeyAddressUnsafeInput | Acc0untAddressT
 
-export const isAccountAddressOrUnsafeInput = (
+export const isSigningKeyAddressOrUnsafeInput = (
 	something: unknown,
 ): something is AddressOrUnsafeInput =>
-	isAccountAddress(something) || isAccountAddressUnsafeInput(something)
+	isSigningKeyAddress(something) || isSigningKeyAddressUnsafeInput(something)
 
 const fromUnsafe = (
 	input: AddressOrUnsafeInput,
-): Result<AccountAddressT, Error> =>
-	isAccountAddress(input) ? ok(input) : fromString(input)
+): Result<Acc0untAddressT, Error> =>
+	isSigningKeyAddress(input) ? ok(input) : fromString(input)
 
-export const AccountAddress = {
-	isAccountAddress,
+export const Acc0untAddress = {
+	isSigningKeyAddress,
 	fromUnsafe,
 	fromPublicKeyAndNetwork,
 }

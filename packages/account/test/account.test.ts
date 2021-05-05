@@ -10,13 +10,13 @@ import {
 } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
 import {
-	Account,
-	AccountT,
-	AccountTypeHDT,
+	SigningKey,
+	SigningKeyT,
+	SigningKeyTypeHDT,
 	BIP32T,
 	BIP44T,
 	HardwareWalletSimpleT,
-	HDAccountTypeIdentifier,
+	HDSigningKeyTypeIdentifier,
 	HDMasterSeed,
 	HDNodeT,
 	HDPathRadix,
@@ -24,7 +24,7 @@ import {
 	Mnemonic,
 	NetworkT,
 	toObservable,
-	Wallet,
+	SigningKeychain,
 } from '../src'
 import { Observable, of, Subject, Subscription, throwError } from 'rxjs'
 
@@ -41,16 +41,16 @@ describe('account_type', () => {
 			`m/44'/536'/2'/1/3`,
 		)._unsafeUnwrap()
 
-		const account = Account.fromHDPathWithHDMasterSeed({
+		const signingKey = SigningKey.fromHDPathWithHDMasterSeed({
 			hdPath,
 			hdMasterSeed,
 		})
 
-		expect(account.isHDAccount).toBe(true)
-		expect(account.isLocalHDAccount).toBe(true)
-		expect(account.isHardwareAccount).toBe(false)
+		expect(signingKey.isHDSigningKey).toBe(true)
+		expect(signingKey.isLocalHDSigningKey).toBe(true)
+		expect(signingKey.isHardwareSigningKey).toBe(false)
 
-		expect(account.hdPath!.equals(hdPath)).toBe(true)
+		expect(signingKey.hdPath!.equals(hdPath)).toBe(true)
 
 		// Expected keys are known from Leger app development.
 		const matchingPrivateKey = privateKeyFromScalar(
@@ -65,31 +65,31 @@ describe('account_type', () => {
 			await matchingPrivateKey.signUnhashed({ msgToHash: message })
 		)._unsafeUnwrap()
 
-		expect(account.publicKey.toString(true)).toBe(
+		expect(signingKey.publicKey.toString(true)).toBe(
 			'026d5e07cfde5df84b5ef884b629d28d15b0f6c66be229680699767cd57c618288',
 		)
 
-		account.sign(sha256Twice(message)).subscribe((sig) => {
+		signingKey.sign(sha256Twice(message)).subscribe((sig) => {
 			expect(sig.equals(expectedSignature)).toBe(true)
 			done()
 		})
 	})
 
 	it('can create accounts from private key', () => {
-		const account = Account.fromPrivateKey({
+		const signingKey = SigningKey.fromPrivateKey({
 			privateKey: privateKeyFromNum(1),
 		})
 
 		const expPubKey =
 			'0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798'
-		expect(account.publicKey.toString(true)).toBe(expPubKey)
-		expect(account.uniqueIdentifier).toBe(`Non_hd_pubKey${expPubKey}`)
-		expect(account.isHDAccount).toBe(false)
-		expect(account.isLocalHDAccount).toBe(false)
-		expect(account.isHardwareAccount).toBe(false)
+		expect(signingKey.publicKey.toString(true)).toBe(expPubKey)
+		expect(signingKey.uniqueIdentifier).toBe(`Non_hd_pubKey${expPubKey}`)
+		expect(signingKey.isHDSigningKey).toBe(false)
+		expect(signingKey.isLocalHDSigningKey).toBe(false)
+		expect(signingKey.isHardwareSigningKey).toBe(false)
 	})
 
-	it('hw account', (done) => {
+	it('hw signingKey', (done) => {
 		const subs = new Subscription()
 
 		const hwWalletConnectSubject = new Subject<HardwareWalletSimpleT>()
@@ -102,11 +102,11 @@ describe('account_type', () => {
 					'equip will roof matter pink blind book anxiety banner elbow sun young',
 			)._unsafeUnwrap()
 			const masterSeed = HDMasterSeed.fromMnemonic({ mnemonic })
-			const accountFromHDPath = (bip32Path: BIP32T): AccountT => {
+			const accountFromHDPath = (bip32Path: BIP32T): SigningKeyT => {
 				const bip44RadixPath = HDPathRadix.fromString(
 					bip32Path.toString(),
 				)._unsafeUnwrap()
-				return Account.byDerivingNodeAtPath({
+				return SigningKey.byDerivingNodeAtPath({
 					hdPath: bip44RadixPath,
 					deriveNodeAtPath: () =>
 						masterSeed.masterNode().derive(bip44RadixPath),
@@ -153,26 +153,26 @@ describe('account_type', () => {
 			'026d5e07cfde5df84b5ef884b629d28d15b0f6c66be229680699767cd57c618288'
 
 		subs.add(
-			Account.fromHDPathWithHardwareWallet({
+			SigningKey.fromHDPathWithHardwareWallet({
 				hdPath,
 				hardwareWalletConnection: hwWalletConnectSubject.asObservable(),
 			}).subscribe(
-				(hwAccount) => {
-					expect(hwAccount.isHDAccount).toBe(true)
-					expect(hwAccount.isHardwareAccount).toBe(true)
-					expect(hwAccount.isLocalHDAccount).toBe(false)
-					expect(hwAccount.hdPath!.toString()).toBe(path)
-					expect(hwAccount.publicKey.toString(true)).toBe(
+				(hwSigningKey) => {
+					expect(hwSigningKey.isHDSigningKey).toBe(true)
+					expect(hwSigningKey.isHardwareSigningKey).toBe(true)
+					expect(hwSigningKey.isLocalHDSigningKey).toBe(false)
+					expect(hwSigningKey.hdPath!.toString()).toBe(path)
+					expect(hwSigningKey.publicKey.toString(true)).toBe(
 						expectedPublicKey,
 					)
 					expect(
-						(hwAccount.type as AccountTypeHDT).hdAccountType,
-					).toBe(HDAccountTypeIdentifier.HARDWARE_OR_REMOTE)
-					expect(hwAccount.uniqueIdentifier).toBe(
+						(hwSigningKey.type as SigningKeyTypeHDT).hdSigningKeyType,
+					).toBe(HDSigningKeyTypeIdentifier.HARDWARE_OR_REMOTE)
+					expect(hwSigningKey.uniqueIdentifier).toBe(
 						`Hardware_HDaccount_at_path_m/44'/536'/2'/1/3`,
 					)
 					expect(
-						hwAccount.equals(<AccountT>{
+						hwSigningKey.equals(<SigningKeyT>{
 							publicKey: publicKeyFromBytes(
 								Buffer.from(expectedPublicKey, 'hex'),
 							)._unsafeUnwrap(),
@@ -182,7 +182,7 @@ describe('account_type', () => {
 					const plaintext = 'Hello Bob!'
 
 					subs.add(
-						hwAccount
+						hwSigningKey
 							.encrypt({
 								plaintext,
 								publicKeyOfOtherParty: bobPubKey,
@@ -192,7 +192,7 @@ describe('account_type', () => {
 									encryptedMessage,
 									diffieHellmanPoint: bobPrivateKey.diffieHellman.bind(
 										null,
-										hwAccount.publicKey,
+										hwSigningKey.publicKey,
 									),
 								}).match(
 									(decrypted) => {

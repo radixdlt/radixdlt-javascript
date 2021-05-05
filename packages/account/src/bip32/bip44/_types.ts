@@ -4,7 +4,7 @@ export type BIP44T = BIP32T &
 	Readonly<{
 		purpose: BIP32PathComponentT
 		coinType: BIP32PathComponentT
-		account: BIP32PathComponentT
+		signingKey: BIP32PathComponentT
 		change: BIP32PathComponentT
 		addressIndex: BIP32PathComponentT
 	}>
@@ -27,10 +27,10 @@ export type HDPathRadixT = BIP44T &
 			level: 2
 			name: 'coin type'
 		}
-		account: {
+		signingKey: {
 			isHardened: true
 			level: 3
-			name: 'account'
+			name: 'signingKey'
 		}
 		change: BIP32PathComponentT & {
 			isHardened: true

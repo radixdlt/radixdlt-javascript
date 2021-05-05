@@ -1,20 +1,20 @@
-import { IdentityManagerT } from '../src'
-import { IdentityManager } from '../src/identityManager'
-import { Mnemonic, NetworkT, Wallet } from '@radixdlt/account'
+import { WalletT } from '../src'
+import { Wallet } from '../src/wallet'
+import { Mnemonic, NetworkT, SigningKeychain } from '@radixdlt/account'
 
 export const createIM = (
-	input?: Readonly<{ network?: NetworkT; startWithAnAccount?: boolean }>,
-): IdentityManagerT => {
+	input?: Readonly<{ network?: NetworkT; startWithAnSigningKey?: boolean }>,
+): WalletT => {
 	const mnemonic = Mnemonic.fromEnglishPhrase(
 		'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
 	)._unsafeUnwrap()
-	const startWithAnAccount = input?.startWithAnAccount ?? true
-	const wallet = Wallet.create({ mnemonic, startWithAnAccount })
+	const startWithAnSigningKey = input?.startWithAnSigningKey ?? true
+	const signingKeychain = SigningKeychain.create({ mnemonic, startWithAnSigningKey })
 
 	const network = input?.network ?? NetworkT.BETANET
 
-	return IdentityManager.create({
-		wallet,
+	return Wallet.create({
+		signingKeychain,
 		network,
 	})
 }

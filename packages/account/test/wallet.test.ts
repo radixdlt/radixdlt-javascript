@@ -1,4 +1,4 @@
-import { Account, AccountsT, AccountT, Mnemonic, Wallet, WalletT } from '../src'
+import { SigningKey, SigningKeysT, SigningKeyT, Mnemonic, SigningKeychain, SigningKeychainT } from '../src'
 import { map, skip, take, toArray } from 'rxjs/operators'
 import { KeystoreT, privateKeyFromScalar, PublicKey } from '@radixdlt/crypto'
 import { combineLatest, Subscription } from 'rxjs'
@@ -8,40 +8,40 @@ import { log } from '@radixdlt/util'
 import { UInt256 } from '@radixdlt/uint256'
 
 const createWallet = (
-	input?: Readonly<{ startWithAnAccount?: boolean }>,
-): WalletT => {
+	input?: Readonly<{ startWithAnSigningKey?: boolean }>,
+): SigningKeychainT => {
 	const mnemonic = Mnemonic.generateNew()
-	const startWithAnAccount = input?.startWithAnAccount ?? true
-	return Wallet.create({ startWithAnAccount, mnemonic })
+	const startWithAnSigningKey = input?.startWithAnSigningKey ?? true
+	return SigningKeychain.create({ startWithAnSigningKey, mnemonic })
 }
 
 const createSpecificWallet = (
-	input?: Readonly<{ startWithAnAccount?: boolean }>,
-): WalletT => {
+	input?: Readonly<{ startWithAnSigningKey?: boolean }>,
+): SigningKeychainT => {
 	const mnemonic = Mnemonic.fromEnglishPhrase(
 		'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
 	)._unsafeUnwrap()
-	const startWithAnAccount = input?.startWithAnAccount ?? true
-	return Wallet.create({ mnemonic, startWithAnAccount })
+	const startWithAnSigningKey = input?.startWithAnSigningKey ?? true
+	return SigningKeychain.create({ mnemonic, startWithAnSigningKey })
 }
 
 const expectWalletsEqual = (
-	wallets: { wallet1: WalletT; wallet2: WalletT },
+	wallets: { wallet1: SigningKeychainT; wallet2: SigningKeychainT },
 	done: jest.DoneCallback,
 ): void => {
 	const subs = new Subscription()
 	const { wallet1, wallet2 } = wallets
-	const wallet1Account1PublicKey$ = wallet1
-		.deriveNextLocalHDAccount()
+	const wallet1SigningKey1PublicKey$ = wallet1
+		.deriveNextLocalHDSigningKey()
 		.pipe(map((a) => a.publicKey))
-	const wallet2Account1PublicKey$ = wallet2
-		.deriveNextLocalHDAccount()
+	const wallet2SigningKey1PublicKey$ = wallet2
+		.deriveNextLocalHDSigningKey()
 		.pipe(map((a) => a.publicKey))
 
 	subs.add(
 		combineLatest(
-			wallet1Account1PublicKey$,
-			wallet2Account1PublicKey$,
+			wallet1SigningKey1PublicKey$,
+			wallet2SigningKey1PublicKey$,
 		).subscribe({
 			next: (keys: PublicKey[]) => {
 				expect(keys.length).toBe(2)
@@ -62,7 +62,7 @@ describe('wallet_type', () => {
 		const password = 'super secret password'
 
 		let load: () => Promise<KeystoreT>
-		await Wallet.byEncryptingMnemonicAndSavingKeystore({
+		await SigningKeychain.byEncryptingMnemonicAndSavingKeystore({
 			mnemonic,
 			password,
 			save: (keystoreToSave: KeystoreT) => {
@@ -71,7 +71,7 @@ describe('wallet_type', () => {
 			},
 		})
 			.andThen((wallet1) =>
-				Wallet.byLoadingAndDecryptingKeystore({ password, load }).map(
+				SigningKeychain.byLoadingAndDecryptingKeystore({ password, load }).map(
 					(wallet2) => ({
 						wallet1,
 						wallet2,
@@ -92,49 +92,49 @@ describe('wallet_type', () => {
 		const mnemonic = Mnemonic.fromEnglishPhrase(
 			mnemonicPhrase,
 		)._unsafeUnwrap()
-		const wallet = Wallet.create({ mnemonic })
-		const mnemonicRevealed = wallet.revealMnemonic()
+		const signingKeychain = SigningKeychain.create({ mnemonic })
+		const mnemonicRevealed = signingKeychain.revealMnemonic()
 		expect(mnemonicRevealed.equals(mnemonic)).toBe(true)
 		expect(mnemonicRevealed.phrase).toBe(mnemonicPhrase)
 	})
 
-	it('the accounts derived after restoreAccountsUpToIndex has correct index', (done) => {
+	it('the accounts derived after restoreSigningKeysUpToIndex has correct index', (done) => {
 		const subs = new Subscription()
-		const wallet = createWallet({ startWithAnAccount: false })
+		const signingKeychain = createWallet({ startWithAnSigningKey: false })
 
 		const indexToRestoreTo = 3
 
-		const assertAccountHasIndex = (
-			account: AccountT,
+		const assertSigningKeyHasIndex = (
+			signingKey: SigningKeyT,
 			index: number,
 		): void => {
-			expect(account.hdPath!.addressIndex.value()).toBe(index)
+			expect(signingKey.hdPath!.addressIndex.value()).toBe(index)
 		}
 
 		subs.add(
-			wallet.restoreLocalHDAccountsUpToIndex(indexToRestoreTo).subscribe(
+			signingKeychain.restoreLocalHDSigningKeysUpToIndex(indexToRestoreTo).subscribe(
 				(accounts) => {
 					expect(accounts.size()).toBe(indexToRestoreTo)
 
 					let next = 0
-					const assertAccountHasCorrectIndex = (
-						account: AccountT,
+					const assertSigningKeyHasCorrectIndex = (
+						signingKey: SigningKeyT,
 					): void => {
-						assertAccountHasIndex(account, next)
+						assertSigningKeyHasIndex(signingKey, next)
 						next += 1
 					}
 
-					for (const account of accounts.all) {
-						assertAccountHasCorrectIndex(account)
+					for (const signingKey of accounts.all) {
+						assertSigningKeyHasCorrectIndex(signingKey)
 					}
 
-					wallet.deriveNextLocalHDAccount().subscribe(
+					signingKeychain.deriveNextLocalHDSigningKey().subscribe(
 						(another0) => {
-							assertAccountHasCorrectIndex(another0)
+							assertSigningKeyHasCorrectIndex(another0)
 
-							wallet.deriveNextLocalHDAccount().subscribe(
+							signingKeychain.deriveNextLocalHDSigningKey().subscribe(
 								(another1) => {
-									assertAccountHasCorrectIndex(another1)
+									assertSigningKeyHasCorrectIndex(another1)
 									done()
 								},
 								(e) => done(e),
@@ -150,7 +150,7 @@ describe('wallet_type', () => {
 		)
 	})
 
-	describe('failing wallet scenarios', () => {
+	describe('failing signingKeychain scenarios', () => {
 		beforeAll(() => {
 			log.setLevel(LogLevel.SILENT)
 		})
@@ -165,7 +165,7 @@ describe('wallet_type', () => {
 
 			const errMsg = mockErrorMsg('SaveError')
 
-			await Wallet.byEncryptingMnemonicAndSavingKeystore({
+			await SigningKeychain.byEncryptingMnemonicAndSavingKeystore({
 				mnemonic,
 				password,
 				save: (_) => Promise.reject(new Error(errMsg)),
@@ -185,7 +185,7 @@ describe('wallet_type', () => {
 
 			const errMsg = mockErrorMsg('LoadError')
 
-			await Wallet.byLoadingAndDecryptingKeystore({
+			await SigningKeychain.byLoadingAndDecryptingKeystore({
 				password,
 				load: () => Promise.reject(new Error(errMsg)),
 			}).match(
@@ -200,14 +200,14 @@ describe('wallet_type', () => {
 		})
 	})
 
-	it('wallet can observe accounts', (done) => {
+	it('signingKeychain can observe accounts', (done) => {
 		const subs = new Subscription()
-		const wallet = createWallet({ startWithAnAccount: true })
+		const signingKeychain = createWallet({ startWithAnSigningKey: true })
 		const expected = [1, 2]
 
 		subs.add(
-			wallet
-				.observeAccounts()
+			signingKeychain
+				.observeSigningKeys()
 				.pipe(
 					map((a) => a.all.length),
 					take(expected.length),
@@ -219,19 +219,19 @@ describe('wallet_type', () => {
 				}),
 		)
 
-		subs.add(wallet.deriveNextLocalHDAccount().subscribe())
+		subs.add(signingKeychain.deriveNextLocalHDSigningKey().subscribe())
 	})
 
-	it('can observe active account', (done) => {
+	it('can observe active signingKey', (done) => {
 		const subs = new Subscription()
-		const wallet = createWallet()
+		const signingKeychain = createWallet()
 
 		subs.add(
-			wallet.observeActiveAccount().subscribe((active) => {
+			signingKeychain.observeActiveSigningKey().subscribe((active) => {
 				expect(active.hdPath!.addressIndex.value()).toBe(0)
 				expect(active.hdPath!.toString()).toBe(`m/44'/536'/0'/0/0'`)
 				expect(
-					wallet.__unsafeGetAccount().hdPath!.equals(active.hdPath),
+					signingKeychain.__unsafeGetSigningKey().hdPath!.equals(active.hdPath),
 				).toBe(true)
 				done()
 			}),
@@ -239,13 +239,13 @@ describe('wallet_type', () => {
 	})
 
 	it('should derive next but not switch to it by default', (done) => {
-		const wallet = createWallet()
+		const signingKeychain = createWallet()
 		const subs = new Subscription()
 
-		subs.add(wallet.deriveNextLocalHDAccount().subscribe())
+		subs.add(signingKeychain.deriveNextLocalHDSigningKey().subscribe())
 
 		subs.add(
-			wallet.observeActiveAccount().subscribe((active) => {
+			signingKeychain.observeActiveSigningKey().subscribe((active) => {
 				expect(active.hdPath!.addressIndex.value()).toBe(0)
 				done()
 			}),
@@ -254,13 +254,13 @@ describe('wallet_type', () => {
 
 	it('should derive next and switch to it if specified', async (done) => {
 		const subs = new Subscription()
-		const wallet = createWallet()
+		const signingKeychain = createWallet()
 
 		const expectedValues = [0, 1] // we start at 0 by default, then switch to 1
 
 		subs.add(
-			wallet
-				.observeActiveAccount()
+			signingKeychain
+				.observeActiveSigningKey()
 				.pipe(
 					map((a) => a.hdPath!.addressIndex.value()),
 					take(2),
@@ -276,23 +276,23 @@ describe('wallet_type', () => {
 		)
 
 		subs.add(
-			wallet.deriveNextLocalHDAccount({ alsoSwitchTo: true }).subscribe(),
+			signingKeychain.deriveNextLocalHDSigningKey({ alsoSwitchTo: true }).subscribe(),
 		)
 	})
 
 	it('can list all accounts that has been added', (done) => {
-		const testAccountsList = (
-			mapAccountsToNum: (accounts: AccountsT) => number,
+		const testSigningKeysList = (
+			mapSigningKeysToNum: (accounts: SigningKeysT) => number,
 		): void => {
 			const subs = new Subscription()
-			const wallet = createWallet()
+			const signingKeychain = createWallet()
 			const expectedValues = [1, 2, 3]
 
 			subs.add(
-				wallet
-					.observeAccounts()
+				signingKeychain
+					.observeSigningKeys()
 					.pipe(
-						map((acs) => mapAccountsToNum(acs)),
+						map((acs) => mapSigningKeysToNum(acs)),
 						take(expectedValues.length),
 						toArray(),
 					)
@@ -303,34 +303,34 @@ describe('wallet_type', () => {
 			)
 
 			subs.add(
-				wallet.deriveNextLocalHDAccount().subscribe(() => {
-					subs.add(wallet.deriveNextLocalHDAccount().subscribe())
+				signingKeychain.deriveNextLocalHDSigningKey().subscribe(() => {
+					subs.add(signingKeychain.deriveNextLocalHDSigningKey().subscribe())
 				}),
 			)
 		}
 
-		testAccountsList((acs) => acs.localHDAccounts().length)
-		testAccountsList((acs) => acs.all.length)
-		testAccountsList((acs) => acs.size())
+		testSigningKeysList((acs) => acs.localHDSigningKeys().length)
+		testSigningKeysList((acs) => acs.all.length)
+		testSigningKeysList((acs) => acs.size())
 	})
 
-	it('can switch account by number', (done) => {
+	it('can switch signingKey by number', (done) => {
 		const subs = new Subscription()
-		const wallet = createWallet()
+		const signingKeychain = createWallet()
 
-		const expectedAccountAddressIndices = [0, 1, 0]
+		const expectedSigningKeyAddressIndices = [0, 1, 0]
 
 		subs.add(
-			wallet
-				.observeActiveAccount()
-				.pipe(take(expectedAccountAddressIndices.length), toArray())
+			signingKeychain
+				.observeActiveSigningKey()
+				.pipe(take(expectedSigningKeyAddressIndices.length), toArray())
 				.subscribe({
 					next: (accountList) => {
 						expect(
 							accountList.map((a) =>
 								a.hdPath!.addressIndex.value(),
 							),
-						).toStrictEqual(expectedAccountAddressIndices)
+						).toStrictEqual(expectedSigningKeyAddressIndices)
 						done()
 					},
 					error: (e) => done(e),
@@ -338,26 +338,26 @@ describe('wallet_type', () => {
 		)
 
 		subs.add(
-			wallet.deriveNextLocalHDAccount({ alsoSwitchTo: true }).subscribe(),
+			signingKeychain.deriveNextLocalHDSigningKey({ alsoSwitchTo: true }).subscribe(),
 		)
 
-		wallet.switchAccount({ toIndex: 0 })
+		signingKeychain.switchSigningKey({ toIndex: 0 })
 	})
 
-	it('wallet can add private key account', (done) => {
+	it('signingKeychain can add private key signingKey', (done) => {
 		const privateKeyFromNum = (privateKeyScalar: number) =>
 			privateKeyFromScalar(
 				UInt256.valueOf(privateKeyScalar),
 			)._unsafeUnwrap()
 
-		const wallet = createWallet({ startWithAnAccount: true })
+		const signingKeychain = createWallet({ startWithAnSigningKey: true })
 		const subs = new Subscription()
 
 		const expectedValues = [1, 2]
 
 		subs.add(
-			wallet
-				.observeAccounts()
+			signingKeychain
+				.observeSigningKeys()
 				.pipe(
 					map((acs) => acs.size()),
 					take(expectedValues.length),
@@ -367,21 +367,21 @@ describe('wallet_type', () => {
 					(values) => {
 						expect(values).toStrictEqual(expectedValues)
 						subs.add(
-							wallet
-								.observeActiveAccount()
+							signingKeychain
+								.observeActiveSigningKey()
 								.pipe(skip(1))
-								.subscribe((account) => {
+								.subscribe((signingKey) => {
 									const expPubKey =
 										'0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798'
 									expect(
-										account.publicKey.toString(true),
+										signingKey.publicKey.toString(true),
 									).toBe(expPubKey)
-									expect(account.uniqueIdentifier).toBe(
+									expect(signingKey.uniqueIdentifier).toBe(
 										`Non_hd_pubKey${expPubKey}`,
 									)
-									expect(account.isHDAccount).toBe(false)
-									expect(account.isLocalHDAccount).toBe(false)
-									expect(account.isHardwareAccount).toBe(
+									expect(signingKey.isHDSigningKey).toBe(false)
+									expect(signingKey.isLocalHDSigningKey).toBe(false)
+									expect(signingKey.isHardwareSigningKey).toBe(
 										false,
 									)
 									done()
@@ -396,7 +396,7 @@ describe('wallet_type', () => {
 
 		const privateKey = privateKeyFromNum(1)
 
-		wallet.addAccountFromPrivateKey({
+		signingKeychain.addSigningKeyFromPrivateKey({
 			privateKey,
 			alsoSwitchTo: true,
 		})

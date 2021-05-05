@@ -1,10 +1,10 @@
 import { privateKeyFromScalar } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
-import { Mnemonic, Wallet, WalletT } from '../src'
+import { Mnemonic, SigningKeychain, SigningKeychainT } from '../src'
 
-export const makeWalletWithFunds = (): WalletT => {
-	const wallet = Wallet.create({
-		startWithAnAccount: false,
+export const makeWalletWithFunds = (): SigningKeychainT => {
+	const signingKeychain = SigningKeychain.create({
+		startWithAnSigningKey: false,
 		mnemonic: Mnemonic.generateNew(), // not used,
 	})
 
@@ -12,10 +12,10 @@ export const makeWalletWithFunds = (): WalletT => {
 		const privateKey = privateKeyFromScalar(
 			UInt256.valueOf(privateKeyScalar),
 		)._unsafeUnwrap()
-		wallet.addAccountFromPrivateKey({
+		signingKeychain.addSigningKeyFromPrivateKey({
 			privateKey,
 			alsoSwitchTo: true,
-			name: `Account with funds, privateKey: ${privateKeyScalar}`,
+			name: `SigningKey with funds, privateKey: ${privateKeyScalar}`,
 		})
 	}
 
@@ -25,13 +25,13 @@ export const makeWalletWithFunds = (): WalletT => {
 	addPK(4)
 	addPK(5)
 
-	wallet.switchAccount('first')
+	signingKeychain.switchSigningKey('first')
 	if (
-		wallet.__unsafeGetAccount().publicKey.toString(true) !==
+		signingKeychain.__unsafeGetSigningKey().publicKey.toString(true) !==
 		'0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798'
 	) {
 		throw new Error('incorrect imple')
 	}
 
-	return wallet
+	return signingKeychain
 }

@@ -4,7 +4,7 @@ import {
 	IntendedUnstakeTokensAction,
 	UnstakeTokensInput,
 } from './_types'
-import { AccountAddressT } from '@radixdlt/account'
+import { Acc0untAddressT } from '@radixdlt/account'
 import {
 	__createIntendedStakeAction,
 	isStakeTokensInput,
@@ -17,7 +17,7 @@ export const isUnstakeTokensInput = (
 
 const create = (
 	input: UnstakeTokensInput,
-	from: AccountAddressT,
+	from: Acc0untAddressT,
 ): Result<IntendedUnstakeTokensAction, Error> =>
 	__createIntendedStakeAction(input, from).map(
 		(a: IntendedStakeTokensAction) => ({

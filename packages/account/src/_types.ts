@@ -16,68 +16,68 @@ export type Signing = Readonly<{
 	sign: (hashedMessage: Buffer) => Observable<Signature>
 }>
 
-export type AccountEncryptionInput = Readonly<{
+export type SigningKeyEncryptionInput = Readonly<{
 	plaintext: Buffer | string
 	publicKeyOfOtherParty: PublicKey
 }>
 
 export type Encrypting = Readonly<{
-	encrypt: (input: AccountEncryptionInput) => Observable<EncryptedMessageT>
+	encrypt: (input: SigningKeyEncryptionInput) => Observable<EncryptedMessageT>
 }>
 
-export type AccountDecryptionInput = Readonly<{
+export type SigningKeyDecryptionInput = Readonly<{
 	encryptedMessage: Buffer | EncryptedMessageT
 	publicKeyOfOtherParty: PublicKey
 }>
 
 export type Decrypting = Readonly<{
-	decrypt: (input: AccountDecryptionInput) => Observable<string>
+	decrypt: (input: SigningKeyDecryptionInput) => Observable<string>
 }>
 
-export enum HDAccountTypeIdentifier {
+export enum HDSigningKeyTypeIdentifier {
 	LOCAL = 'LOCAL',
 	HARDWARE_OR_REMOTE = 'HARDWARE_OR_REMOTE',
 }
 
-export enum AccountTypeIdentifier {
+export enum SigningKeyTypeIdentifier {
 	HD_ACCOUNT = 'HD_ACCOUNT',
 	NON_HD_ACCOUNT = 'NON_HD_ACCOUNT',
 }
 
-export type BaseAccountTypeT<T extends AccountTypeIdentifier> = Readonly<{
+export type BaseSigningKeyTypeT<T extends SigningKeyTypeIdentifier> = Readonly<{
 	typeIdentifier: T
-	isHDAccount: boolean
-	isHardwareAccount: boolean
+	isHDSigningKey: boolean
+	isHardwareSigningKey: boolean
 	uniqueKey: string
 }>
 
-export type AccountTypeHDT = BaseAccountTypeT<AccountTypeIdentifier.HD_ACCOUNT> &
+export type SigningKeyTypeHDT = BaseSigningKeyTypeT<SigningKeyTypeIdentifier.HD_ACCOUNT> &
 	Readonly<{
-		hdAccountType: HDAccountTypeIdentifier
+		hdSigningKeyType: HDSigningKeyTypeIdentifier
 		hdPath: HDPathRadixT
 	}>
 
-export type AccountTypeNonHDT = BaseAccountTypeT<AccountTypeIdentifier.NON_HD_ACCOUNT> &
+export type SigningKeyTypeNonHDT = BaseSigningKeyTypeT<SigningKeyTypeIdentifier.NON_HD_ACCOUNT> &
 	Readonly<{
 		name?: string
 	}>
 
-export type AccountTypeT = AccountTypeHDT | AccountTypeNonHDT
+export type SigningKeyTypeT = SigningKeyTypeHDT | SigningKeyTypeNonHDT
 
-export type PrivateKeyToAccountInput = Readonly<{
+export type PrivateKeyToSigningKeyInput = Readonly<{
 	privateKey: PrivateKey
 	name?: string
 }>
 
-export type AccountT = Signing &
+export type SigningKeyT = Signing &
 	Encrypting &
 	Decrypting &
 	Readonly<{
 		// useful for testing.
 		__diffieHellman: DiffieHellman
 
-		// Type of account: `AccountTypeHDT` or `AccountTypeNonHDT`, where HD has `hdAccountType` which can be `LOCAL` or `HARDWARE_OR_REMOTE` (e.g. Ledger Nano)
-		type: AccountTypeT
+		// Type of signingKey: `SigningKeyTypeHDT` or `SigningKeyTypeNonHDT`, where HD has `hdSigningKeyType` which can be `LOCAL` or `HARDWARE_OR_REMOTE` (e.g. Ledger Nano)
+		type: SigningKeyTypeT
 		publicKey: PublicKey
 
 		// sugar for `type.uniqueKey`
@@ -86,23 +86,23 @@ export type AccountT = Signing &
 		// Useful for debugging.
 		toString: () => string
 
-		// Sugar for thisAccount.publicKey.equals(other.publicKey)
-		equals: (other: AccountT) => boolean
+		// Sugar for thisSigningKey.publicKey.equals(other.publicKey)
+		equals: (other: SigningKeyT) => boolean
 
-		// Sugar for `type.hdPath`, iff, type.typeIdentifier === AccountTypeHDT
+		// Sugar for `type.hdPath`, iff, type.typeIdentifier === SigningKeyTypeHDT
 		hdPath?: HDPathRadixT
 
-		// Sugar for `type.isHDAccount`
-		isHDAccount: boolean
-		// Sugar for `type.isHardwareAccount`
-		isHardwareAccount: boolean
-		// Sugar for `isHDAccount && !isHardwareAccount`
-		isLocalHDAccount: boolean
+		// Sugar for `type.isHDSigningKey`
+		isHDSigningKey: boolean
+		// Sugar for `type.isHardwareSigningKey`
+		isHardwareSigningKey: boolean
+		// Sugar for `isHDSigningKey && !isHardwareSigningKey`
+		isLocalHDSigningKey: boolean
 	}>
 
-/// A simple "interface" like type that this `account` package recognizes.
-/// The `hardware-wallet` package will mark its type being this type +
-/// additional decoration. We want the `hardware-wallet` package to be
+/// A simple "interface" like type that this `signingKey` package recognizes.
+/// The `hardware-signingKeychain` package will mark its type being this type +
+/// additional decoration. We want the `hardware-signingKeychain` package to be
 /// dependent on this package, not the other way around, thus we need
 /// some kind of simple "interface" like type here.
 export type HardwareWalletSimpleT = Readonly<{
@@ -121,33 +121,33 @@ export type HardwareWalletSimpleT = Readonly<{
 	) => Observable<Signature>
 }>
 
-export type AccountsT = Readonly<{
+export type SigningKeysT = Readonly<{
 	toString: () => string
-	equals: (other: AccountsT) => boolean
+	equals: (other: SigningKeysT) => boolean
 
-	// Get only HD account, by its path
-	getHDAccountByHDPath: (hdPath: HDPathRadixT) => Option<AccountT>
-	// Get any account by its public key
-	getAnyAccountByPublicKey: (publicKey: PublicKey) => Option<AccountT>
+	// Get only HD signingKey, by its path
+	getHDSigningKeyByHDPath: (hdPath: HDPathRadixT) => Option<SigningKeyT>
+	// Get any signingKey by its public key
+	getAnySigningKeyByPublicKey: (publicKey: PublicKey) => Option<SigningKeyT>
 
-	all: AccountT[]
+	all: SigningKeyT[]
 
-	hdAccounts: () => AccountT[]
-	localHDAccounts: () => AccountT[]
-	hardwareHDAccounts: () => AccountT[]
-	nonHDAccounts: () => AccountT[]
+	hdSigningKeys: () => SigningKeyT[]
+	localHDSigningKeys: () => SigningKeyT[]
+	hardwareHDSigningKeys: () => SigningKeyT[]
+	nonHDSigningKeys: () => SigningKeyT[]
 
 	// size of `all` accounts.
 	size: () => number
 }>
 
-export type SwitchToAccount = Readonly<{ toAccount: AccountT }>
+export type SwitchToSigningKey = Readonly<{ toSigningKey: SigningKeyT }>
 export type SwitchToIndex = Readonly<{ toIndex: number }>
 
-export type SwitchAccountInput =
+export type SwitchSigningKeyInput =
 	| 'first'
 	| 'last'
-	| SwitchToAccount
+	| SwitchToSigningKey
 	| SwitchToIndex
 
 export type DeriveNextInput =
@@ -157,31 +157,31 @@ export type DeriveNextInput =
 			alsoSwitchTo?: boolean // defaults to false
 	  }>
 
-export type WalletAddAccountByPrivateKeyInput = PrivateKeyToAccountInput & {
+export type WalletAddSigningKeyByPrivateKeyInput = PrivateKeyToSigningKeyInput & {
 	alsoSwitchTo?: boolean
 }
 
-export type WalletT = Signing &
+export type SigningKeychainT = Signing &
 	Readonly<{
 		// should only be used for testing
-		__unsafeGetAccount: () => AccountT
+		__unsafeGetSigningKey: () => SigningKeyT
 
 		revealMnemonic: () => MnemomicT
 
-		restoreLocalHDAccountsUpToIndex: (
+		restoreLocalHDSigningKeysUpToIndex: (
 			index: number,
-		) => Observable<AccountsT>
+		) => Observable<SigningKeysT>
 
-		deriveNextLocalHDAccount: (
+		deriveNextLocalHDSigningKey: (
 			input?: DeriveNextInput,
-		) => Observable<AccountT>
+		) => Observable<SigningKeyT>
 
-		addAccountFromPrivateKey: (
-			input: WalletAddAccountByPrivateKeyInput,
-		) => AccountT
+		addSigningKeyFromPrivateKey: (
+			input: WalletAddSigningKeyByPrivateKeyInput,
+		) => SigningKeyT
 
-		switchAccount: (input: SwitchAccountInput) => AccountT
+		switchSigningKey: (input: SwitchSigningKeyInput) => SigningKeyT
 
-		observeActiveAccount: () => Observable<AccountT>
-		observeAccounts: () => Observable<AccountsT>
+		observeActiveSigningKey: () => Observable<SigningKeyT>
+		observeSigningKeys: () => Observable<SigningKeysT>
 	}>

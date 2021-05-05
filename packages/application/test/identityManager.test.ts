@@ -2,15 +2,15 @@ import { createIM } from './util'
 import { map, take, toArray } from 'rxjs/operators'
 import { Subscription } from 'rxjs'
 
-describe('identityManager', () => {
+describe('wallet', () => {
 	it('can observeActiveIdentity', (done) => {
 		const subs = new Subscription()
-		const identityManager = createIM()
+		const wallet = createIM()
 
 		const expectedValues = [0, 1, 2]
 
 		subs.add(
-			identityManager
+			wallet
 				.observeActiveIdentity()
 				.pipe(
 					map((i) => i.hdPath!.addressIndex.value()),
@@ -27,11 +27,11 @@ describe('identityManager', () => {
 		)
 
 		subs.add(
-			identityManager
+			wallet
 				.deriveNextLocalHDIdentity({ alsoSwitchTo: true })
 				.subscribe((_) => {
 					subs.add(
-						identityManager
+						wallet
 							.deriveNextLocalHDIdentity({ alsoSwitchTo: true })
 							.subscribe(),
 					)

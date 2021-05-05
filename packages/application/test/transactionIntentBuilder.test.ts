@@ -3,8 +3,8 @@ import {
 	ActionType,
 	carol,
 	erin,
-	IdentityManagerT,
-	IdentityT,
+	WalletT,
+	AccountT,
 	IntendedStakeTokensAction,
 	IntendedTransferTokensAction,
 	StakeTokensInput,
@@ -14,20 +14,20 @@ import {
 	xrd,
 } from '../src'
 import {
-	AccountAddressT,
-	isAccountAddress,
+	Acc0untAddressT,
+	isSigningKeyAddress,
 	isValidatorAddress,
 	Mnemonic,
 	NetworkT,
 	ValidatorAddress,
 	ValidatorAddressT,
-	Wallet,
+	SigningKeychain,
 } from '@radixdlt/account'
 import { merge, of, Subscription } from 'rxjs'
 
 import { map, mergeMap, take, toArray } from 'rxjs/operators'
 import { restoreDefaultLogLevel, log } from '@radixdlt/util'
-import { IdentityManager } from '../src/identityManager'
+import { Wallet } from '../src/wallet'
 import { createIM } from './util'
 
 describe('tx_intent_builder', () => {
@@ -42,12 +42,12 @@ describe('tx_intent_builder', () => {
 	const one = Amount.fromUnsafe(1)._unsafeUnwrap()
 	const xrdRRI = xrd.rri
 
-	const identityManager = createIM()
+	const wallet = createIM()
 
-	let aliceIdentity: IdentityT
-	let bobIdentity: IdentityT
-	let alice: AccountAddressT
-	let bob: AccountAddressT
+	let aliceIdentity: AccountT
+	let bobIdentity: AccountT
+	let alice: Acc0untAddressT
+	let bob: Acc0untAddressT
 
 	const subs = new Subscription()
 
@@ -55,13 +55,13 @@ describe('tx_intent_builder', () => {
 
 	beforeAll((done) => {
 		subs.add(
-			identityManager.deriveNextLocalHDIdentity().subscribe(
-				(aliceId: IdentityT) => {
+			wallet.deriveNextLocalHDIdentity().subscribe(
+				(aliceId: AccountT) => {
 					aliceIdentity = aliceId
 					alice = aliceId.accountAddress
 
-					identityManager.deriveNextLocalHDIdentity().subscribe(
-						(bobId: IdentityT) => {
+					wallet.deriveNextLocalHDIdentity().subscribe(
+						(bobId: AccountT) => {
 							bobIdentity = bobId
 							bob = bobId.accountAddress
 							done()
@@ -74,7 +74,7 @@ describe('tx_intent_builder', () => {
 		)
 	})
 
-	type SimpleTransf = { amount: number; to: AccountAddressT }
+	type SimpleTransf = { amount: number; to: Acc0untAddressT }
 	const transfT = (input: SimpleTransf): TransferTokensInput => ({
 		to: input.to,
 		amount: Amount.fromUnsafe(input.amount)._unsafeUnwrap(),
@@ -83,7 +83,7 @@ describe('tx_intent_builder', () => {
 
 	const transfS = (
 		amount: number,
-		to: AccountAddressT,
+		to: Acc0untAddressT,
 	): TransferTokensInput => transfT({ amount, to })
 
 	const stakeS = (
@@ -317,7 +317,7 @@ describe('tx_intent_builder', () => {
 			txIntent.actions.map((a) => parseInt(a.amount.toString())),
 		).toStrictEqual([3, 4, 5, 6])
 
-		type AnyAddress = ValidatorAddressT | AccountAddressT
+		type AnyAddress = ValidatorAddressT | Acc0untAddressT
 
 		const assertAddr = (
 			index: number,
@@ -336,8 +336,8 @@ describe('tx_intent_builder', () => {
 			} else {
 				const actualAddress: AnyAddress = actualAddressMaybe
 				if (
-					isAccountAddress(expectedAddress) &&
-					isAccountAddress(actualAddress)
+					isSigningKeyAddress(expectedAddress) &&
+					isSigningKeyAddress(actualAddress)
 				) {
 					expect(actualAddress.equals(expectedAddress)).toBe(true)
 				} else if (
@@ -375,7 +375,7 @@ describe('tx_intent_builder', () => {
 			restoreDefaultLogLevel()
 		})
 
-		it('an error is thrown when specifying encryption for message but building intent without encrypting account', (done) => {
+		it('an error is thrown when specifying encryption for message but building intent without encrypting signingKey', (done) => {
 			const subs = new Subscription()
 
 			const builder = TransactionIntentBuilder.create()
@@ -399,7 +399,7 @@ describe('tx_intent_builder', () => {
 						},
 						error: (error: Error) => {
 							expect(error.message).toBe(
-								'Message in transaction specifies it should be encrypted, but input to TransactionIntentBuilder build method specifies that it (the builder) should not encrypt the message, and does not provide any account with which we can perform encryption.',
+								'Message in transaction specifies it should be encrypted, but input to TransactionIntentBuilder build method specifies that it (the builder) should not encrypt the message, and does not provide any signingKey with which we can perform encryption.',
 							)
 							done()
 						},
@@ -407,7 +407,7 @@ describe('tx_intent_builder', () => {
 			)
 		})
 
-		it('an error is thrown when specifying plaintext for message but building intent with encrypting account', (done) => {
+		it('an error is thrown when specifying plaintext for message but building intent with encrypting signingKey', (done) => {
 			const subs = new Subscription()
 
 			const builder = TransactionIntentBuilder.create()

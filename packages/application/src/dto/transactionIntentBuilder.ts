@@ -20,8 +20,8 @@ import {
 	TransactionIntentBuilderT,
 } from './_types'
 import {
-	AccountAddressT,
-	isAccountAddress,
+	Acc0untAddressT,
+	isSigningKeyAddress,
 	toObservableFromResult,
 	isResourceIdentifier,
 } from '@radixdlt/account'
@@ -44,11 +44,11 @@ import {
 import { Option } from 'prelude-ts'
 import { isAmount } from '@radixdlt/primitives'
 import { log } from '@radixdlt/util'
-import { IdentityT, MessageInTransaction } from '../_types'
+import { AccountT, MessageInTransaction } from '../_types'
 
 type IntendedActionsFrom = Readonly<{
 	intendedActions: IntendedAction[]
-	from: AccountAddressT
+	from: Acc0untAddressT
 }>
 
 export const singleRecipientFromActions = (
@@ -74,14 +74,14 @@ export const singleRecipientFromActions = (
 }
 
 type ActorsInEncryption = {
-	encryptingIdentity: IdentityT
+	encryptingIdentity: AccountT
 	singleRecipientPublicKey: PublicKey
 }
 
 const ensureSingleRecipient = (
 	input: Readonly<{
 		intendedActionsFrom: IntendedActionsFrom
-		encryptingIdentity: IdentityT
+		encryptingIdentity: AccountT
 	}>,
 ): Observable<ActorsInEncryption> => {
 	return toObservableFromResult(
@@ -113,8 +113,8 @@ export const isTransferTokensAction = (
 	const inspection = something as TransferTokensAction
 	return (
 		inspection.type === ActionType.TOKEN_TRANSFER &&
-		isAccountAddress(inspection.to) &&
-		isAccountAddress(inspection.from) &&
+		isSigningKeyAddress(inspection.to) &&
+		isSigningKeyAddress(inspection.from) &&
 		isAmount(inspection.amount) &&
 		isResourceIdentifier(inspection.rri)
 	)
@@ -126,8 +126,8 @@ export const isStakeTokensAction = (
 	const inspection = something as StakeTokensAction
 	return (
 		inspection.type === ActionType.STAKE_TOKENS &&
-		isAccountAddress(inspection.from) &&
-		isAccountAddress(inspection.validator) &&
+		isSigningKeyAddress(inspection.from) &&
+		isSigningKeyAddress(inspection.validator) &&
 		isAmount(inspection.amount)
 	)
 }
@@ -138,8 +138,8 @@ export const isUnstakeTokensAction = (
 	const inspection = something as UnstakeTokensAction
 	return (
 		inspection.type === ActionType.UNSTAKE_TOKENS &&
-		isAccountAddress(inspection.from) &&
-		isAccountAddress(inspection.validator) &&
+		isSigningKeyAddress(inspection.from) &&
+		isSigningKeyAddress(inspection.validator) &&
 		isAmount(inspection.amount)
 	)
 }
@@ -151,12 +151,12 @@ export const getUniqueAddresses = (
 		includeFrom?: boolean
 		includeTo?: boolean
 	}>,
-): AccountAddressT[] => {
+): Acc0untAddressT[] => {
 	const action = input.action
 	const includeFrom = input.includeFrom ?? true
 	const includeTo = input.includeTo ?? true
 	if (isTransferTokensAction(action)) {
-		const addresses: AccountAddressT[] = []
+		const addresses: Acc0untAddressT[] = []
 		if (includeTo) {
 			addresses.push(action.to)
 		}
@@ -165,13 +165,13 @@ export const getUniqueAddresses = (
 		}
 		return addresses
 	} else if (isStakeTokensAction(action)) {
-		const addresses: AccountAddressT[] = []
+		const addresses: Acc0untAddressT[] = []
 		if (includeFrom) {
 			addresses.push(action.from)
 		}
 		return addresses
 	} else if (isUnstakeTokensAction(action)) {
-		const addresses: AccountAddressT[] = []
+		const addresses: Acc0untAddressT[] = []
 		if (includeFrom) {
 			addresses.push(action.from)
 		}
@@ -187,10 +187,10 @@ export const flatMapAddressesOf = (
 		includeFrom?: boolean
 		includeTo?: boolean
 	}>,
-): AccountAddressT[] => {
+): Acc0untAddressT[] => {
 	const { actions, includeFrom, includeTo } = input
 	const flatMapped = actions.reduce(
-		(acc: AccountAddressT[], action: UserAction) => {
+		(acc: Acc0untAddressT[], action: UserAction) => {
 			const uniqueAddressOfAction = getUniqueAddresses({
 				action,
 				includeFrom,
@@ -198,7 +198,7 @@ export const flatMapAddressesOf = (
 			})
 			return acc.concat(...uniqueAddressOfAction)
 		},
-		[] as AccountAddressT[],
+		[] as Acc0untAddressT[],
 	)
 
 	const set = new Set<string>()
@@ -298,7 +298,7 @@ const create = (): TransactionIntentBuilderT => {
 	}
 
 	const intendedActionsFromIntermediateActions = (
-		from: AccountAddressT,
+		from: Acc0untAddressT,
 	): Result<IntendedActionsFrom, Error> => {
 		if (intermediateActions.length === 0)
 			return err(mustHaveAtLeastOneAction)
@@ -338,7 +338,7 @@ const create = (): TransactionIntentBuilderT => {
 	}
 
 	const syncBuildDoNotEncryptMessageIfAny = (
-		from: AccountAddressT,
+		from: Acc0untAddressT,
 	): Result<TransactionIntent, Error> => {
 		return intendedActionsFromIntermediateActions(from).map(
 			({ intendedActions }) => ({
@@ -361,14 +361,14 @@ const create = (): TransactionIntentBuilderT => {
 					.map((m) => m.encrypt)
 					.getOrElse(false)
 			) {
-				const errMsg = `Message in transaction specifies it should be encrypted, but input to TransactionIntentBuilder build method specifies that it (the builder) should not encrypt the message, and does not provide any account with which we can perform encryption.`
+				const errMsg = `Message in transaction specifies it should be encrypted, but input to TransactionIntentBuilder build method specifies that it (the builder) should not encrypt the message, and does not provide any signingKey with which we can perform encryption.`
 				console.error(errMsg)
 				log.error(errMsg)
 				return throwError(new Error(errMsg))
 			}
 
 			return options.skipEncryptionOfMessageIfAny.spendingSender.pipe(
-				mergeMap((from: AccountAddressT) =>
+				mergeMap((from: Acc0untAddressT) =>
 					toObservableFromResult(
 						syncBuildDoNotEncryptMessageIfAny(from),
 					),
@@ -381,13 +381,13 @@ const create = (): TransactionIntentBuilderT => {
 		}
 
 		const encryptingIdentity$ = options.encryptMessageIfAnyWithIdentity
-		const spendingSender: Observable<AccountAddressT> =
+		const spendingSender: Observable<Acc0untAddressT> =
 			options.spendingSender ??
 			options.encryptMessageIfAnyWithIdentity.pipe(
-				map((identity) => identity.accountAddress),
+				map((account) => account.accountAddress),
 			)
 		return spendingSender.pipe(
-			mergeMap((from: AccountAddressT) =>
+			mergeMap((from: Acc0untAddressT) =>
 				toObservableFromResult(
 					intendedActionsFromIntermediateActions(from),
 				),
@@ -428,7 +428,7 @@ const create = (): TransactionIntentBuilderT => {
 							return encryptingIdentity$.pipe(
 								mergeMap(
 									(
-										encryptingIdentity: IdentityT,
+										encryptingIdentity: AccountT,
 									): Observable<ActorsInEncryption> =>
 										ensureSingleRecipient({
 											intendedActionsFrom,

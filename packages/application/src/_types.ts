@@ -1,6 +1,6 @@
 import {
-	AccountT,
-	AccountAddressT,
+	SigningKeyT,
+	Acc0untAddressT,
 	DeriveNextInput,
 	MnemomicT,
 	NetworkT,
@@ -9,7 +9,7 @@ import {
 	Encrypting,
 	Decrypting,
 	SwitchToIndex,
-	WalletAddAccountByPrivateKeyInput,
+	WalletAddSigningKeyByPrivateKeyInput,
 } from '@radixdlt/account'
 import { KeystoreT, PrivateKey, PublicKey } from '@radixdlt/crypto'
 import { LogLevel } from '@radixdlt/util'
@@ -20,7 +20,7 @@ import {
 	StakePositions,
 	StatusOfTransaction,
 	TokenBalances,
-	TransactionHistoryActiveAccountRequestInput,
+	TransactionHistoryActiveSigningKeyRequestInput,
 	UnstakePositions,
 	TransactionIdentifierT,
 	TransactionTracking,
@@ -71,47 +71,47 @@ export type UnstakeOptions = MakeTransactionOptions &
 		unstakeInput: UnstakeTokensInput
 	}>
 
-export type IdentityT = Signing &
+export type AccountT = Signing &
 	Encrypting &
 	Decrypting &
 	Readonly<{
-		equals: (other: IdentityT) => boolean
-		account: AccountT
-		accountAddress: AccountAddressT
+		equals: (other: AccountT) => boolean
+		signingKey: SigningKeyT
+		accountAddress: Acc0untAddressT
 
-		// sugar for account.publicKey/accountAddress.publicKey
+		// sugar for signingKey.publicKey/accountAddress.publicKey
 		publicKey: PublicKey
 		// sugar for accountAddress.network
 		network: NetworkT
 
-		// sugar for account.hdPath, if account type is HD account
+		// sugar for signingKey.hdPath, if signingKey type is HD signingKey
 		hdPath?: HDPathRadixT
 	}>
 
 export type IdentitiesT = Readonly<{
-	// Get only identities which account is a HD account, by its path
-	getIdentityWithHDAccountByHDPath: (
+	// Get only identities which signingKey is a HD signingKey, by its path
+	getIdentityWithHDSigningKeyByHDPath: (
 		hdPath: HDPathRadixT,
-	) => Option<IdentityT>
-	// Get any identity by its public key
-	getAnyIdentityByPublicKey: (publicKey: PublicKey) => Option<IdentityT>
+	) => Option<AccountT>
+	// Get any account by its public key
+	getAnyIdentityByPublicKey: (publicKey: PublicKey) => Option<AccountT>
 
-	// ALL identities, basically a concatenation of `identitiesWithHDAccounts || identitiesWithNonHDAccounts`
-	all: IdentityT[]
+	// ALL identities, basically a concatenation of `identitiesWithHDSigningKeys || identitiesWithNonHDSigningKeys`
+	all: AccountT[]
 
-	identitiesWithNonHDAccounts: () => IdentityT[]
+	identitiesWithNonHDSigningKeys: () => AccountT[]
 
-	identitiesWithLocalHDAccounts: () => IdentityT[]
-	identitiesWithHardwareHDAccounts: () => IdentityT[]
+	identitiesWithLocalHDSigningKeys: () => AccountT[]
+	identitiesWithHardwareHDSigningKeys: () => AccountT[]
 
-	// Concatenation of `identitiesWithLocalHDAccounts || identitiesWithHardwareHDAccounts`
-	identitiesWithHDAccounts: () => IdentityT[]
+	// Concatenation of `identitiesWithLocalHDSigningKeys || identitiesWithHardwareHDSigningKeys`
+	identitiesWithHDSigningKeys: () => AccountT[]
 
 	// size of `all`.
 	size: () => number
 }>
 
-export type SwitchToIdentity = Readonly<{ toIdentity: IdentityT }>
+export type SwitchToIdentity = Readonly<{ toIdentity: AccountT }>
 
 export type SwitchIdentityInput =
 	| 'first'
@@ -119,31 +119,31 @@ export type SwitchIdentityInput =
 	| SwitchToIdentity
 	| SwitchToIndex
 
-export type IdentityManagerT = Readonly<{
+export type WalletT = Readonly<{
 	// should only be used for testing
-	__unsafeGetIdentity: () => IdentityT
+	__unsafeGetIdentity: () => AccountT
 
 	revealMnemonic: () => MnemomicT
 
-	restoreIdentitiesForLocalHDAccountsUpToIndex: (
+	restoreIdentitiesForLocalHDSigningKeysUpToIndex: (
 		index: number,
 	) => Observable<IdentitiesT>
 
 	deriveNextLocalHDIdentity: (
 		input?: DeriveNextInput,
-	) => Observable<IdentityT>
+	) => Observable<AccountT>
 
 	addIdentityFromPrivateKey: (
 		input: AddIdentityByPrivateKeyInput,
-	) => Observable<IdentityT>
+	) => Observable<AccountT>
 
-	switchIdentity: (input: SwitchIdentityInput) => IdentityT
+	switchIdentity: (input: SwitchIdentityInput) => AccountT
 
-	observeActiveIdentity: () => Observable<IdentityT>
+	observeActiveIdentity: () => Observable<AccountT>
 	observeIdentities: () => Observable<IdentitiesT>
 }>
 
-export type AddIdentityByPrivateKeyInput = WalletAddAccountByPrivateKeyInput
+export type AddIdentityByPrivateKeyInput = WalletAddSigningKeyByPrivateKeyInput
 
 export type RadixT = Readonly<{
 	ledger: RadixAPI
@@ -154,17 +154,17 @@ export type RadixT = Readonly<{
 	__withAPI: (radixCoreAPI$: Observable<RadixCoreAPI>) => RadixT
 
 	withNodeConnection: (node$: Observable<NodeT>) => RadixT
-	withIdentityManager: (identityManager: IdentityManagerT) => RadixT
+	withWallet: (wallet: WalletT) => RadixT
 	login: (password: string, loadKeystore: () => Promise<KeystoreT>) => RadixT
 
-	// Wallet APIs
+	// SigningKeychain APIs
 
 	/**
-	 * Restores accounts in wallet up to and excluding `targetIndex`.
+	 * Restores accounts in signingKeychain up to and excluding `targetIndex`.
 	 *
-	 * @param {number} targetIndex - The index to restore account up to, this method will restore accounts from index 0 up to but excluding this index.
+	 * @param {number} targetIndex - The index to restore signingKey up to, this method will restore accounts from index 0 up to but excluding this index.
 	 */
-	restoreIdentitiesForLocalHDAccountsUpToIndex: (
+	restoreIdentitiesForLocalHDSigningKeysUpToIndex: (
 		index: number,
 	) => Observable<IdentitiesT>
 	deriveNextIdentity: (input?: DeriveNextInput) => RadixT
@@ -174,11 +174,11 @@ export type RadixT = Readonly<{
 	switchIdentity: (input: SwitchIdentityInput) => RadixT
 	revealMnemonic: () => Observable<MnemomicT>
 
-	activeAddress: Observable<AccountAddressT>
-	activeIdentity: Observable<IdentityT>
+	activeAddress: Observable<Acc0untAddressT>
+	activeIdentity: Observable<AccountT>
 	identities: Observable<IdentitiesT>
 
-	// Active AccountAddress/Account APIs
+	// Active Acc0untAddress/SigningKey APIs
 	tokenBalances: Observable<TokenBalances>
 	stakingPositions: Observable<StakePositions>
 	unstakingPositions: Observable<UnstakePositions>
@@ -200,13 +200,13 @@ export type RadixT = Readonly<{
 	withStakingFetchTrigger: (trigger: Observable<number>) => RadixT
 
 	/**
-	 * Transaction history of active account.
+	 * Transaction history of active signingKey.
 	 *
-	 * @param {TransactionHistoryActiveAccountRequestInput} input - Pagination input, size and cursor.
+	 * @param {TransactionHistoryActiveSigningKeyRequestInput} input - Pagination input, size and cursor.
 	 * @returns {TransactionHistory} A page from the transaction history.
 	 */
 	transactionHistory: (
-		input: TransactionHistoryActiveAccountRequestInput,
+		input: TransactionHistoryActiveSigningKeyRequestInput,
 	) => Observable<TransactionHistory>
 
 	/**
@@ -233,6 +233,6 @@ export type RadixT = Readonly<{
 
 	errors: Observable<ErrorNotification>
 
-	__identityManager: Observable<IdentityManagerT>
+	__wallet: Observable<WalletT>
 	__node: Observable<NodeT>
 }>

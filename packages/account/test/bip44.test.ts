@@ -25,12 +25,12 @@ describe('BIP44', () => {
 			expect(coinType.isHardened).toBe(true)
 			expect(coinType.index.toString(16)).toBe('80000218') // 0x218 = 536 dec
 
-			// Check 'account' component
-			const account = hdPath.account
-			expect(account.name).toBe('account')
-			expect(account.level).toBe(3)
-			expect(account.isHardened).toBe(true)
-			expect(account.index.toString(16)).toBe('80000000')
+			// Check 'signingKey' component
+			const signingKey = hdPath.signingKey
+			expect(signingKey.name).toBe('signingKey')
+			expect(signingKey.level).toBe(3)
+			expect(signingKey.isHardened).toBe(true)
+			expect(signingKey.index.toString(16)).toBe('80000000')
 
 			// Check 'change' component
 			const change = hdPath.change

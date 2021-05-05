@@ -1,4 +1,4 @@
-import { AccountAddress } from '../src'
+import { Acc0untAddress } from '../src'
 
 import {
 	privateKeyFromBuffer,
@@ -55,14 +55,14 @@ describe('account_address_on_bech32_format', () => {
 				const privateKey = privateKeyFromBuffer(hash)._unsafeUnwrap()
 				const publicKey = privateKey.publicKey()
 
-				const addr = AccountAddress.fromPublicKeyAndNetwork({
+				const addr = Acc0untAddress.fromPublicKeyAndNetwork({
 					publicKey,
 					network: vector.network,
 				})
 				expect(addr.toString()).toBe(vector.expectedAddr)
 				expect(addr.network).toBe(vector.network)
 
-				const parsedAddress = AccountAddress.fromUnsafe(
+				const parsedAddress = Acc0untAddress.fromUnsafe(
 					vector.expectedAddr,
 				)._unsafeUnwrap()
 				expect(parsedAddress.toString()).toBe(vector.expectedAddr)
@@ -92,7 +92,7 @@ describe('account_address_on_bech32_format', () => {
 		]
 		const doTest = (vector: RRIDesVector, index: number): void => {
 			it(`rri_deserialization_vector_index${index}`, () => {
-				const address = AccountAddress.fromUnsafe(
+				const address = Acc0untAddress.fromUnsafe(
 					vector.address,
 				)._unsafeUnwrap()
 				expect(address.toString()).toBe(vector.address)
@@ -139,7 +139,7 @@ describe('account_address_on_bech32_format', () => {
 
 		const doTest = (invalidVector: InvalidVector, index: number): void => {
 			it(`invalid_vector_index${index}`, () => {
-				AccountAddress.fromUnsafe(invalidVector.invalidAddr).match(
+				Acc0untAddress.fromUnsafe(invalidVector.invalidAddr).match(
 					(_) => {
 						throw new Error(
 							`Got success, but expected failure, rri: ${invalidVector.invalidAddr}`,
