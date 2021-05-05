@@ -205,6 +205,7 @@ const fromPrivateKeyNamedOrFromHDPath = (
 		equals: (other: AccountT): boolean => {
 			return publicKey.equals(other.publicKey)
 		},
+		__diffieHellman: diffieHellman,
 	}
 
 	return {
@@ -239,10 +240,10 @@ const fromPrivateKey = (
 const fromHDPathWithHardwareWallet = (
 	input: Readonly<{
 		hdPath: HDPathRadixT
-		onHardwareWalletConnect: Observable<HardwareWalletSimpleT>
+		hardwareWalletConnection: Observable<HardwareWalletSimpleT>
 	}>,
 ): Observable<AccountT> => {
-	const { hdPath, onHardwareWalletConnect: hardwareWallet$ } = input
+	const { hdPath, hardwareWalletConnection: hardwareWallet$ } = input
 
 	type Tmp = {
 		hardwareWalletSimple: HardwareWalletSimpleT
@@ -259,10 +260,12 @@ const fromHDPathWithHardwareWallet = (
 			(hw: HardwareWalletSimpleT): Observable<Tmp> => {
 				return hw.derivePublicKey(hdPath).pipe(
 					map(
-						(publicKey: PublicKey): Tmp => ({
-							publicKey,
-							hardwareWalletSimple: hw,
-						}),
+						(publicKey: PublicKey): Tmp => {
+							return {
+								publicKey,
+								hardwareWalletSimple: hw,
+							}
+						},
 					),
 				)
 			},
@@ -289,6 +292,11 @@ const fromHDPathWithHardwareWallet = (
 					},
 					equals: (other: AccountT): boolean => {
 						return publicKey.equals(other.publicKey)
+					},
+					__diffieHellman: (
+						_publicKeyOfOtherParty: PublicKey,
+					): ResultAsync<ECPointOnCurve, Error> => {
+						throw new Error('No Dh here, only used for testing.')
 					},
 				}
 

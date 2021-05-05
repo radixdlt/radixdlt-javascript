@@ -1,4 +1,5 @@
 import {
+	DiffieHellman,
 	ECPointOnCurve,
 	EncryptedMessageT,
 	PrivateKey,
@@ -67,6 +68,9 @@ export type AccountT = Signing &
 	Encrypting &
 	Decrypting &
 	Readonly<{
+		// useful for testing.
+		__diffieHellman: DiffieHellman
+
 		// Type of account: `AccountTypeHDT` or `AccountTypeNonHDT`, where HD has `hdAccountType` which can be `LOCAL` or `HARDWARE_OR_REMOTE` (e.g. Ledger Nano)
 		type: AccountTypeT
 		publicKey: PublicKey
