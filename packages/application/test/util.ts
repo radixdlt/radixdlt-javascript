@@ -2,7 +2,7 @@ import { WalletT } from '../src'
 import { Wallet } from '../src/wallet'
 import { Mnemonic, NetworkT, SigningKeychain } from '@radixdlt/account'
 
-export const createIM = (
+export const createWallet = (
 	input?: Readonly<{ network?: NetworkT; startWithAnSigningKey?: boolean }>,
 ): WalletT => {
 	const mnemonic = Mnemonic.fromEnglishPhrase(

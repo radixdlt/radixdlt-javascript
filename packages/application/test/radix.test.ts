@@ -94,7 +94,7 @@ import { signatureFromHexStrings } from '@radixdlt/crypto/test/utils'
 import { makeWalletWithFunds } from '@radixdlt/account/test/utils'
 import { UInt256 } from '@radixdlt/uint256'
 import { Wallet } from '../src/wallet'
-import { createIM } from './util'
+import { createWallet } from './util'
 
 export const makeIdentitywithWalletWithFunds = (): WalletT => {
 	return Wallet.create({
@@ -313,7 +313,7 @@ describe('radix_high_level_api', () => {
 
 	it('can observe active signingKey without API', async (done) => {
 		const radix = Radix.create()
-		const wallet = createIM({ startWithAnSigningKey: true })
+		const wallet = createWallet({ startWithAnSigningKey: true })
 		radix.withWallet(wallet)
 
 		radix.activeIdentity.subscribe(
@@ -329,7 +329,7 @@ describe('radix_high_level_api', () => {
 		const subs = new Subscription()
 
 		const radix = Radix.create().withWallet(
-			createIM({ startWithAnSigningKey: false }),
+			createWallet({ startWithAnSigningKey: false }),
 		)
 
 		const index = 3
@@ -351,7 +351,7 @@ describe('radix_high_level_api', () => {
 
 	it('provides networkId for wallets', async (done) => {
 		const radix = Radix.create()
-		const wallet = createIM()
+		const wallet = createWallet()
 		radix.withWallet(wallet)
 		radix.__withAPI(mockedAPI)
 
@@ -539,7 +539,7 @@ describe('radix_high_level_api', () => {
 				}),
 			)
 
-			radix.withWallet(createIM())
+			radix.withWallet(createWallet())
 		})
 
 		it('does not kill property observables when rpc requests fail', async (done) => {
@@ -565,7 +565,7 @@ describe('radix_high_level_api', () => {
 			})
 
 			const radix = Radix.create()
-			radix.withWallet(createIM())
+			radix.withWallet(createWallet())
 			radix.__withAPI(api).withTokenBalanceFetchTrigger(interval(250))
 
 			const expectedValues = [100, 200, 300]
@@ -606,7 +606,7 @@ describe('radix_high_level_api', () => {
 		)
 
 		radix
-			.withWallet(createIM())
+			.withWallet(createWallet())
 			.deriveNextIdentity()
 			.deriveNextIdentity({ alsoSwitchTo: true })
 	})
@@ -632,7 +632,7 @@ describe('radix_high_level_api', () => {
 				),
 		)
 
-		const wallet = createIM({ startWithAnSigningKey: true })
+		const wallet = createWallet({ startWithAnSigningKey: true })
 
 		const firstIdentity = wallet.__unsafeGetIdentity()
 
@@ -651,7 +651,7 @@ describe('radix_high_level_api', () => {
 		const subs = new Subscription()
 
 		const radix = Radix.create()
-			.withWallet(createIM())
+			.withWallet(createWallet())
 			.__withAPI(mockedAPI)
 
 		const expected = [1, 2, 3]
@@ -677,7 +677,7 @@ describe('radix_high_level_api', () => {
 		const subs = new Subscription()
 
 		const radix = Radix.create()
-			.withWallet(createIM())
+			.withWallet(createWallet())
 			.__withAPI(mockedAPI)
 
 		const expected = [0, 1, 3]
@@ -704,7 +704,7 @@ describe('radix_high_level_api', () => {
 		const subs = new Subscription()
 
 		const radix = Radix.create()
-			.withWallet(createIM())
+			.withWallet(createWallet())
 			.__withAPI(mockedAPI)
 
 		const expectedCount = 3
@@ -1426,7 +1426,7 @@ describe('radix_high_level_api', () => {
 		const errorMsg = 'failed to fetch native token'
 
 		const radix = Radix.create()
-			.withWallet(createIM())
+			.withWallet(createWallet())
 			.__withAPI(
 				of({
 					...mockRadixCoreAPI(),
@@ -1478,7 +1478,7 @@ describe('radix_high_level_api', () => {
 
 		it('events emits expected values', (done) => {
 			const radix = Radix.create()
-				.withWallet(createIM())
+				.withWallet(createWallet())
 				.__withAPI(mockedAPI)
 
 			const expectedValues = [
@@ -1520,7 +1520,7 @@ describe('radix_high_level_api', () => {
 
 		it('automatic confirmation', (done) => {
 			const radix = Radix.create()
-				.withWallet(createIM())
+				.withWallet(createWallet())
 				.__withAPI(mockedAPI)
 
 			let gotTXId = false
@@ -1546,7 +1546,7 @@ describe('radix_high_level_api', () => {
 
 		it('radix_tx_manual_confirmation', (done) => {
 			const radix = Radix.create()
-				.withWallet(createIM())
+				.withWallet(createWallet())
 				.__withAPI(mockedAPI)
 
 			const userConfirmation = new ReplaySubject<ManualUserConfirmTX>()
@@ -1580,7 +1580,7 @@ describe('radix_high_level_api', () => {
 
 		it('should not emit sign tx event when switching accounts', (done) => {
 			const radix = Radix.create()
-				.withWallet(createIM())
+				.withWallet(createWallet())
 				.__withAPI(mockedAPI)
 
 			const userConfirmation = new ReplaySubject<ManualUserConfirmTX>()
@@ -1641,7 +1641,7 @@ describe('radix_high_level_api', () => {
 
 		it('should be able to call stake tokens', (done) => {
 			const radix = Radix.create()
-				.withWallet(createIM())
+				.withWallet(createWallet())
 				.__withAPI(mockedAPI)
 
 			subs.add(
@@ -1672,7 +1672,7 @@ describe('radix_high_level_api', () => {
 
 		it('should be able to call unstake tokens', (done) => {
 			const radix = Radix.create()
-				.withWallet(createIM())
+				.withWallet(createWallet())
 				.__withAPI(mockedAPI)
 
 			subs.add(
@@ -1718,7 +1718,7 @@ describe('radix_high_level_api', () => {
 				const errorMsg = mockErrorMsg(`TXFlow`)
 
 				const radix = Radix.create()
-					.withWallet(createIM())
+					.withWallet(createWallet())
 					.__withAPI(
 						of({
 							...mockRadixCoreAPI(),

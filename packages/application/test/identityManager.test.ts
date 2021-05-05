@@ -1,11 +1,11 @@
-import { createIM } from './util'
+import { createWallet } from './util'
 import { map, take, toArray } from 'rxjs/operators'
 import { Subscription } from 'rxjs'
 
 describe('wallet', () => {
 	it('can observeActiveIdentity', (done) => {
 		const subs = new Subscription()
-		const wallet = createIM()
+		const wallet = createWallet()
 
 		const expectedValues = [0, 1, 2]
 

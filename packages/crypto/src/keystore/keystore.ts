@@ -26,7 +26,7 @@ const encryptSecret = (
 	input: Readonly<{
 		secret: Buffer
 		password: string
-		memo?: string // e.g. 'Business signingKeychain' or 'My husbands signingKeychain' etc.
+		memo?: string // e.g. 'Business wallet' or 'My husbands wallet' etc.
 		kdf?: string
 		kdfParams?: ScryptParamsT
 		secureRandom?: SecureRandom

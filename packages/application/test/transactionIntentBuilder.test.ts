@@ -28,7 +28,7 @@ import { merge, of, Subscription } from 'rxjs'
 import { map, mergeMap, take, toArray } from 'rxjs/operators'
 import { restoreDefaultLogLevel, log } from '@radixdlt/util'
 import { Wallet } from '../src/wallet'
-import { createIM } from './util'
+import { createWallet } from './util'
 
 describe('tx_intent_builder', () => {
 	const validatorCarol: ValidatorAddressT = ValidatorAddress.fromUnsafe(
@@ -42,7 +42,7 @@ describe('tx_intent_builder', () => {
 	const one = Amount.fromUnsafe(1)._unsafeUnwrap()
 	const xrdRRI = xrd.rri
 
-	const wallet = createIM()
+	const wallet = createWallet()
 
 	let aliceIdentity: AccountT
 	let bobIdentity: AccountT
