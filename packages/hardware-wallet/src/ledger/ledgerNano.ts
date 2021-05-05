@@ -1,10 +1,10 @@
 import { from, Observable } from 'rxjs'
+import { LedgerNanoTransport } from './ledgerNanoTransport'
 import {
 	CreateLedgerNanoTransportInput,
 	LedgerNanoT,
 	RadixAPDUT,
 } from './_types'
-import { LedgerNanoTransport } from './ledgerNanoTransport'
 
 const createLedgerNano = (
 	input: CreateLedgerNanoTransportInput,

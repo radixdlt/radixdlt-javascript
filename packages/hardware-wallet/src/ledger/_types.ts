@@ -1,5 +1,8 @@
 import { from, Observable } from 'rxjs'
 
+
+export type LedgerDeviceTransport = Transport<'Ledger'>
+
 export enum DeviceResponseStatusCode {
 	OK = 0x9000,
 }
@@ -58,6 +61,7 @@ export type LedgerNanoT = Readonly<{
 
 
 import { LedgerInstruction } from '../_types'
+import Transport from '@ledgerhq/hw-transport'
 
 export type CreateLedgerNanoTransportInput = Readonly<{
 	openTimeout?: number

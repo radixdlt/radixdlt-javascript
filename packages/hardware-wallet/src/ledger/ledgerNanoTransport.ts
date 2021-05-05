@@ -1,20 +1,17 @@
-import Transport, { Descriptor } from '@ledgerhq/hw-transport'
+import Transport from '@ledgerhq/hw-transport'
 import {
 	APDUT,
 	CreateLedgerNanoTransportInput,
 	DeviceResponseStatusCode,
+	LedgerDeviceTransport,
 	LedgerNanoTransportT,
 } from './_types'
 
-const createLedgerNanoTransportWithTransportPromise = (
-	transportPromise: Promise<Transport<Descriptor>>,
-	input: CreateLedgerNanoTransportInput,
-): LedgerNanoTransportT => {
-	const transportPromise = Transport.create(
-		input.openTimeout,
-		input.listenTimeout,
-	)
 
+
+const createWithTransportPromise = (
+	transportPromise: Promise<LedgerDeviceTransport>,
+): LedgerNanoTransportT => {
 	const sendAPDUCommandToDevice = (
 		input: Readonly<{
 			apdu: APDUT
@@ -40,35 +37,16 @@ const createLedgerNanoTransportWithTransportPromise = (
 	}
 }
 
-const createLedgerNanoTransport = (
+const create = (
 	input: CreateLedgerNanoTransportInput,
 ): LedgerNanoTransportT => {
 	const transportPromise = Transport.create(
 		input.openTimeout,
 		input.listenTimeout,
 	)
-	return createLedgerNanoTransportWithTransportPromise(
-		transportPromise,
-		input,
-	)
-}
-
-const withMockedTransport = (): LedgerNanoTransportT => {
-	// createLedgerNanoTransportWithTransportPromise
+	return createWithTransportPromise(transportPromise)
 }
 
 export const LedgerNanoTransport = {
-	create: createLedgerNanoTransport,
-
-	// Used by tests.
-	__withMockedTransport: createLedgerNanoTransportWithTransportPromise,
+	create,
 }
-
-
-/*
-*  const store = RecordStore.fromString(`
-    => e016000000
-    <= 000000050107426974636f696e034254439000
-  `);
-  const Transport = createTransportReplayer(store);
-* */

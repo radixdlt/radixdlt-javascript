@@ -1,4 +1,4 @@
-import { HardwareWalletSimpleT, HDPathRadixT } from '@radixdlt/account'
+import { HDPathRadixT } from '@radixdlt/account'
 import { Observable } from 'rxjs'
 import { ECPointOnCurve, PublicKey, Signature } from '@radixdlt/crypto'
 
