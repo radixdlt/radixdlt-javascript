@@ -20,7 +20,7 @@ import {
 	AccountTypeNonHDT,
 	AccountTypeT,
 	HardwareWalletSimpleT,
-	HDAccountTypeIdentifier,
+	HDAccountTypeIdentifier, PrivateKeyToAccountInput,
 } from './_types'
 import { HDMasterSeedT, HDNodeT } from './bip39'
 import { HDPathRadixT } from './bip32'
@@ -225,13 +225,7 @@ const fromPrivateKeyAtHDPath = (
 		pathOrName: input.hdPath,
 	})
 
-const fromPrivateKey = (
-	input: Readonly<{
-		privateKey: PrivateKey
-		// An optional context to where this private key comes from or its use. If preset, it can be read out from `type.name` on an account.
-		name?: string
-	}>,
-): AccountT =>
+const fromPrivateKey = (input: PrivateKeyToAccountInput): AccountT =>
 	fromPrivateKeyNamedOrFromHDPath({
 		...input,
 		pathOrName: input.name,

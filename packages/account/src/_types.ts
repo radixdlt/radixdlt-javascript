@@ -64,6 +64,11 @@ export type AccountTypeNonHDT = BaseAccountTypeT<AccountTypeIdentifier.NON_HD_AC
 
 export type AccountTypeT = AccountTypeHDT | AccountTypeNonHDT
 
+export type PrivateKeyToAccountInput = Readonly<{
+	privateKey: PrivateKey
+	name?: string
+}>
+
 export type AccountT = Signing &
 	Encrypting &
 	Decrypting &
@@ -152,6 +157,10 @@ export type DeriveNextInput =
 			alsoSwitchTo?: boolean // defaults to false
 	  }>
 
+export type WalletAddAccountByPrivateKeyInput = PrivateKeyToAccountInput & {
+	alsoSwitchTo?: boolean
+}
+
 export type WalletT = Signing &
 	Readonly<{
 		// should only be used for testing
@@ -168,12 +177,7 @@ export type WalletT = Signing &
 		) => Observable<AccountT>
 
 		addAccountFromPrivateKey: (
-			input: Readonly<{
-				privateKey: PrivateKey
-				alsoSwitchTo?: boolean
-				// An optional context to where this private key comes from or its use. If preset, it can be read out from `type.name` on an account.
-				name?: string
-			}>,
+			input: WalletAddAccountByPrivateKeyInput,
 		) => AccountT
 
 		switchAccount: (input: SwitchAccountInput) => AccountT

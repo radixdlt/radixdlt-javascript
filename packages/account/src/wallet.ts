@@ -14,7 +14,7 @@ import {
 	DeriveNextInput,
 	SwitchAccountInput,
 	SwitchToAccount,
-	SwitchToIndex,
+	SwitchToIndex, WalletAddAccountByPrivateKeyInput,
 	WalletT,
 } from './_types'
 import { mergeMap, shareReplay, take } from 'rxjs/operators'
@@ -300,12 +300,7 @@ const create = (
 	}
 
 	const addAccountFromPrivateKey = (
-		input: Readonly<{
-			privateKey: PrivateKey
-			alsoSwitchTo?: boolean
-			// An optional context to where this private key comes from or its use. If preset, it can be read out from `type.name` on an account.
-			name?: string
-		}>,
+		input: WalletAddAccountByPrivateKeyInput,
 	): AccountT => {
 		const account = Account.fromPrivateKey(input)
 		_addAndMaybeSwitchToNewAccount(account, input.alsoSwitchTo)
