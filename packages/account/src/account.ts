@@ -20,7 +20,7 @@ import {
 	AccountTypeNonHDT,
 	AccountTypeT,
 	HardwareWalletSimpleT,
-	HDAccountTypeIdentifier,
+	HDAccountTypeIdentifier, PrivateKeyToAccountInput,
 } from './_types'
 import { HDMasterSeedT, HDNodeT } from './bip39'
 import { HDPathRadixT } from './bip32'
@@ -205,6 +205,7 @@ const fromPrivateKeyNamedOrFromHDPath = (
 		equals: (other: AccountT): boolean => {
 			return publicKey.equals(other.publicKey)
 		},
+		__diffieHellman: diffieHellman,
 	}
 
 	return {
@@ -224,13 +225,7 @@ const fromPrivateKeyAtHDPath = (
 		pathOrName: input.hdPath,
 	})
 
-const fromPrivateKey = (
-	input: Readonly<{
-		privateKey: PrivateKey
-		// An optional context to where this private key comes from or its use. If preset, it can be read out from `type.name` on an account.
-		name?: string
-	}>,
-): AccountT =>
+const fromPrivateKey = (input: PrivateKeyToAccountInput): AccountT =>
 	fromPrivateKeyNamedOrFromHDPath({
 		...input,
 		pathOrName: input.name,
@@ -239,10 +234,10 @@ const fromPrivateKey = (
 const fromHDPathWithHardwareWallet = (
 	input: Readonly<{
 		hdPath: HDPathRadixT
-		onHardwareWalletConnect: Observable<HardwareWalletSimpleT>
+		hardwareWalletConnection: Observable<HardwareWalletSimpleT>
 	}>,
 ): Observable<AccountT> => {
-	const { hdPath, onHardwareWalletConnect: hardwareWallet$ } = input
+	const { hdPath, hardwareWalletConnection: hardwareWallet$ } = input
 
 	type Tmp = {
 		hardwareWalletSimple: HardwareWalletSimpleT
@@ -259,10 +254,12 @@ const fromHDPathWithHardwareWallet = (
 			(hw: HardwareWalletSimpleT): Observable<Tmp> => {
 				return hw.derivePublicKey(hdPath).pipe(
 					map(
-						(publicKey: PublicKey): Tmp => ({
-							publicKey,
-							hardwareWalletSimple: hw,
-						}),
+						(publicKey: PublicKey): Tmp => {
+							return {
+								publicKey,
+								hardwareWalletSimple: hw,
+							}
+						},
 					),
 				)
 			},
@@ -289,6 +286,11 @@ const fromHDPathWithHardwareWallet = (
 					},
 					equals: (other: AccountT): boolean => {
 						return publicKey.equals(other.publicKey)
+					},
+					__diffieHellman: (
+						_publicKeyOfOtherParty: PublicKey,
+					): ResultAsync<ECPointOnCurve, Error> => {
+						throw new Error('No Dh here, only used for testing.')
 					},
 				}
 

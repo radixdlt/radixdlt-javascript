@@ -1,5 +1,6 @@
 import {
 	AccountAddressT,
+	AccountT,
 	DeriveNextInput,
 	MnemomicT,
 	NetworkT,
@@ -35,8 +36,9 @@ import {
 	Subscription,
 	throwError,
 } from 'rxjs'
-import { EncryptedMessage, KeystoreT } from '@radixdlt/crypto'
+import { EncryptedMessage, KeystoreT, PrivateKey } from '@radixdlt/crypto'
 import {
+	AddIdentityByPrivateKeyInput,
 	IdentitiesT,
 	IdentityManagerT,
 	IdentityT,
@@ -165,6 +167,7 @@ const create = (
 	const errorNotificationSubject = new Subject<ErrorNotification>()
 
 	const deriveNextLocalHDIdentitySubject = new Subject<DeriveNextInput>()
+	const addIdentityByPrivateKeySubject = new Subject<AddIdentityByPrivateKeyInput>()
 	const switchIdentitySubject = new Subject<SwitchIdentityInput>()
 
 	const tokenBalanceFetchSubject = new Subject<number>()
@@ -929,6 +932,17 @@ const create = (
 	)
 
 	subs.add(
+		addIdentityByPrivateKeySubject
+			.pipe(
+				withLatestFrom(identityManager$),
+				mergeMap(([privateKeyInput, im]) => {
+					return im.addIdentityFromPrivateKey(privateKeyInput)
+				}),
+			)
+			.subscribe(),
+	)
+
+	subs.add(
 		switchIdentitySubject
 			.pipe(
 				withLatestFrom(identityManager$),
@@ -1001,6 +1015,13 @@ const create = (
 		deriveNextIdentity: function (input?: DeriveNextInput): RadixT {
 			const derivation: DeriveNextInput = input ?? {}
 			deriveNextLocalHDIdentitySubject.next(derivation)
+			return this
+		},
+
+		addIdentityFromPrivateKey: function (
+			input: AddIdentityByPrivateKeyInput,
+		): RadixT {
+			addIdentityByPrivateKeySubject.next(input)
 			return this
 		},
 

@@ -9,8 +9,9 @@ import {
 	Encrypting,
 	Decrypting,
 	SwitchToIndex,
+	WalletAddAccountByPrivateKeyInput,
 } from '@radixdlt/account'
-import { KeystoreT, PublicKey } from '@radixdlt/crypto'
+import { KeystoreT, PrivateKey, PublicKey } from '@radixdlt/crypto'
 import { LogLevel } from '@radixdlt/util'
 import { Observable, ReplaySubject } from 'rxjs'
 import { NodeT, RadixAPI, RadixCoreAPI } from './api'
@@ -132,11 +133,17 @@ export type IdentityManagerT = Readonly<{
 		input?: DeriveNextInput,
 	) => Observable<IdentityT>
 
+	addIdentityFromPrivateKey: (
+		input: AddIdentityByPrivateKeyInput,
+	) => Observable<IdentityT>
+
 	switchIdentity: (input: SwitchIdentityInput) => IdentityT
 
 	observeActiveIdentity: () => Observable<IdentityT>
 	observeIdentities: () => Observable<IdentitiesT>
 }>
+
+export type AddIdentityByPrivateKeyInput = WalletAddAccountByPrivateKeyInput
 
 export type RadixT = Readonly<{
 	ledger: RadixAPI
@@ -161,6 +168,9 @@ export type RadixT = Readonly<{
 		index: number,
 	) => Observable<IdentitiesT>
 	deriveNextIdentity: (input?: DeriveNextInput) => RadixT
+
+	addIdentityFromPrivateKey: (input: AddIdentityByPrivateKeyInput) => RadixT
+
 	switchIdentity: (input: SwitchIdentityInput) => RadixT
 	revealMnemonic: () => Observable<MnemomicT>
 

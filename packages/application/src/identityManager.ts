@@ -14,8 +14,9 @@ import {
 	IdentitiesT,
 	SwitchIdentityInput,
 	SwitchToIdentity,
+	AddIdentityByPrivateKeyInput,
 } from './_types'
-import { Observable } from 'rxjs'
+import { Observable, of } from 'rxjs'
 import { Identity, isIdentity } from './identity'
 import { map } from 'rxjs/operators'
 import { Option } from 'prelude-ts'
@@ -86,6 +87,12 @@ const create = (
 
 		observeIdentities: (): Observable<IdentitiesT> => {
 			return wallet.observeAccounts().pipe(map(asToIs))
+		},
+
+		addIdentityFromPrivateKey: (
+			input: AddIdentityByPrivateKeyInput,
+		): Observable<IdentityT> => {
+			return of(aToI(wallet.addAccountFromPrivateKey(input)))
 		},
 
 		restoreIdentitiesForLocalHDAccountsUpToIndex: (

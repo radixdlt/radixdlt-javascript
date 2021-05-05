@@ -1,10 +1,11 @@
-import { AccountsT, AccountT, Mnemonic, Wallet, WalletT } from '../src'
-import { map, take, toArray } from 'rxjs/operators'
-import { KeystoreT, PublicKey } from '@radixdlt/crypto'
+import { Account, AccountsT, AccountT, Mnemonic, Wallet, WalletT } from '../src'
+import { map, skip, take, toArray } from 'rxjs/operators'
+import { KeystoreT, privateKeyFromScalar, PublicKey } from '@radixdlt/crypto'
 import { combineLatest, Subscription } from 'rxjs'
 import { LogLevel, restoreDefaultLogLevel } from '@radixdlt/util'
 import { mockErrorMsg } from '../../util/test/util'
 import { log } from '@radixdlt/util'
+import { UInt256 } from '@radixdlt/uint256'
 
 const createWallet = (
 	input?: Readonly<{ startWithAnAccount?: boolean }>,
@@ -308,8 +309,8 @@ describe('wallet_type', () => {
 			)
 		}
 
-		// testAccountsList(acs => acs.localHDAccounts().length)
-		// testAccountsList(acs => acs.all.length)
+		testAccountsList((acs) => acs.localHDAccounts().length)
+		testAccountsList((acs) => acs.all.length)
 		testAccountsList((acs) => acs.size())
 	})
 
@@ -340,8 +341,64 @@ describe('wallet_type', () => {
 			wallet.deriveNextLocalHDAccount({ alsoSwitchTo: true }).subscribe(),
 		)
 
-		// subs.add(
 		wallet.switchAccount({ toIndex: 0 })
-		// .subscribe())
+	})
+
+	it('wallet can add private key account', (done) => {
+		const privateKeyFromNum = (privateKeyScalar: number) =>
+			privateKeyFromScalar(
+				UInt256.valueOf(privateKeyScalar),
+			)._unsafeUnwrap()
+
+		const wallet = createWallet({ startWithAnAccount: true })
+		const subs = new Subscription()
+
+		const expectedValues = [1, 2]
+
+		subs.add(
+			wallet
+				.observeAccounts()
+				.pipe(
+					map((acs) => acs.size()),
+					take(expectedValues.length),
+					toArray(),
+				)
+				.subscribe(
+					(values) => {
+						expect(values).toStrictEqual(expectedValues)
+						subs.add(
+							wallet
+								.observeActiveAccount()
+								.pipe(skip(1))
+								.subscribe((account) => {
+									const expPubKey =
+										'0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798'
+									expect(
+										account.publicKey.toString(true),
+									).toBe(expPubKey)
+									expect(account.uniqueIdentifier).toBe(
+										`Non_hd_pubKey${expPubKey}`,
+									)
+									expect(account.isHDAccount).toBe(false)
+									expect(account.isLocalHDAccount).toBe(false)
+									expect(account.isHardwareAccount).toBe(
+										false,
+									)
+									done()
+								}),
+						)
+					},
+					(e) => {
+						done(e)
+					},
+				),
+		)
+
+		const privateKey = privateKeyFromNum(1)
+
+		wallet.addAccountFromPrivateKey({
+			privateKey,
+			alsoSwitchTo: true,
+		})
 	})
 })
