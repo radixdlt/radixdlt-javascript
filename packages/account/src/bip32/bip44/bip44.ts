@@ -152,7 +152,7 @@ const fromString = (path: string): Result<BIP44T, Error> => {
 			if (components.length !== 5)
 				return err(
 					new Error(
-						`We require BIP44 to have five components: purpose / cointype / signingKey / change / address`,
+						`We require BIP44 to have five components: purpose / cointype / account / change / address`,
 					),
 				)
 
