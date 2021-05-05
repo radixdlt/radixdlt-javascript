@@ -15,21 +15,21 @@ import { log } from '@radixdlt/util'
 import { UInt256 } from '@radixdlt/uint256'
 
 const createSigningKeychain = (
-	input?: Readonly<{ startWithAnSigningKey?: boolean }>,
+	input?: Readonly<{ startWithInitialSigningKey?: boolean }>,
 ): SigningKeychainT => {
 	const mnemonic = Mnemonic.generateNew()
-	const startWithAnSigningKey = input?.startWithAnSigningKey ?? true
-	return SigningKeychain.create({ startWithAnSigningKey, mnemonic })
+	const startWithInitialSigningKey = input?.startWithInitialSigningKey ?? true
+	return SigningKeychain.create({ startWithInitialSigningKey, mnemonic })
 }
 
 const createSpecificSigningKeychain = (
-	input?: Readonly<{ startWithAnSigningKey?: boolean }>,
+	input?: Readonly<{ startWithInitialSigningKey?: boolean }>,
 ): SigningKeychainT => {
 	const mnemonic = Mnemonic.fromEnglishPhrase(
 		'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
 	)._unsafeUnwrap()
-	const startWithAnSigningKey = input?.startWithAnSigningKey ?? true
-	return SigningKeychain.create({ mnemonic, startWithAnSigningKey })
+	const startWithInitialSigningKey = input?.startWithInitialSigningKey ?? true
+	return SigningKeychain.create({ mnemonic, startWithInitialSigningKey })
 }
 
 const expectSigningKeychainsEqual = (
@@ -108,7 +108,7 @@ describe('signingKeychain_type', () => {
 
 	it('the accounts derived after restoreSigningKeysUpToIndex has correct index', (done) => {
 		const subs = new Subscription()
-		const signingKeychain = createSigningKeychain({ startWithAnSigningKey: false })
+		const signingKeychain = createSigningKeychain({ startWithInitialSigningKey: false })
 
 		const indexToRestoreTo = 3
 
@@ -216,7 +216,7 @@ describe('signingKeychain_type', () => {
 
 	it('signingKeychain can observe accounts', (done) => {
 		const subs = new Subscription()
-		const signingKeychain = createSigningKeychain({ startWithAnSigningKey: true })
+		const signingKeychain = createSigningKeychain({ startWithInitialSigningKey: true })
 		const expected = [1, 2]
 
 		subs.add(
@@ -374,7 +374,7 @@ describe('signingKeychain_type', () => {
 				UInt256.valueOf(privateKeyScalar),
 			)._unsafeUnwrap()
 
-		const signingKeychain = createSigningKeychain({ startWithAnSigningKey: true })
+		const signingKeychain = createSigningKeychain({ startWithInitialSigningKey: true })
 		const subs = new Subscription()
 
 		const expectedValues = [1, 2]

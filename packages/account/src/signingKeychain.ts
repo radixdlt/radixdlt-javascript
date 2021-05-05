@@ -16,7 +16,7 @@ import {
 	SwitchToSigningKey,
 	SwitchToIndex,
 	AddSigningKeyByPrivateKeyInput,
-	SigningKeychainT,
+	SigningKeychainT, KeychainByEncryptingMnemonicAndSavingKeystore,
 } from './_types'
 import { mergeMap, shareReplay, take } from 'rxjs/operators'
 import { Keystore, KeystoreT, PublicKey, Signature } from '@radixdlt/crypto'
@@ -123,12 +123,12 @@ const MutableSigningKeys = {
 const create = (
 	input: Readonly<{
 		mnemonic: MnemomicT
-		startWithAnSigningKey?: boolean
+		startWithInitialSigningKey?: boolean
 	}>,
 ): SigningKeychainT => {
 	const subs = new Subscription()
 	const { mnemonic } = input
-	const startWithAnSigningKey = input.startWithAnSigningKey ?? true
+	const startWithInitialSigningKey = input.startWithInitialSigningKey ?? true
 	const masterSeed = HDMasterSeed.fromMnemonic({ mnemonic })
 	const hdNodeDeriverWithBip32Path = masterSeed.masterNode().derive
 
@@ -258,7 +258,7 @@ const create = (
 		}
 	}
 
-	if (startWithAnSigningKey) {
+	if (startWithInitialSigningKey) {
 		subs.add(
 			deriveNextLocalHDSigningKey({
 				alsoSwitchTo: true,
@@ -331,7 +331,7 @@ const byLoadingAndDecryptingKeystore = (
 	input: Readonly<{
 		password: string
 		load: () => Promise<KeystoreT>
-		startWithAnSigningKey?: boolean
+		startWithInitialSigningKey?: boolean
 	}>,
 ): ResultAsync<SigningKeychainT, Error> => {
 	const loadKeystore = (): ResultAsync<KeystoreT, Error> =>
@@ -353,7 +353,7 @@ const fromKeystore = (
 	input: Readonly<{
 		keystore: KeystoreT
 		password: string
-		startWithAnSigningKey?: boolean
+		startWithInitialSigningKey?: boolean
 	}>,
 ): ResultAsync<SigningKeychainT, Error> =>
 	Keystore.decrypt(input)
@@ -361,19 +361,16 @@ const fromKeystore = (
 		.andThen(Mnemonic.fromEntropy)
 		.map((mnemonic) => ({
 			mnemonic,
-			startWithAnSigningKey: input.startWithAnSigningKey,
+			startWithInitialSigningKey: input.startWithInitialSigningKey,
 		}))
 		.map(create)
 
+
+
 const byEncryptingMnemonicAndSavingKeystore = (
-	input: Readonly<{
-		mnemonic: MnemomicT
-		password: string
-		save: (keystoreToSave: KeystoreT) => Promise<void>
-		startWithAnSigningKey?: boolean
-	}>,
+	input: KeychainByEncryptingMnemonicAndSavingKeystore,
 ): ResultAsync<SigningKeychainT, Error> => {
-	const { mnemonic, password, startWithAnSigningKey } = input
+	const { mnemonic, password, startWithInitialSigningKey } = input
 
 	const save = (keystoreToSave: KeystoreT): ResultAsync<KeystoreT, Error> =>
 		ResultAsync.fromPromise(input.save(keystoreToSave), (e: unknown) => {
@@ -394,7 +391,7 @@ const byEncryptingMnemonicAndSavingKeystore = (
 		.map((keystore: KeystoreT) => ({
 			keystore,
 			password,
-			startWithAnSigningKey,
+			startWithInitialSigningKey,
 		}))
 		.andThen(SigningKeychain.fromKeystore)
 }

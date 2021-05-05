@@ -309,7 +309,7 @@ describe('radix_high_level_api', () => {
 
 	it('can observe active account without API', async (done) => {
 		const radix = Radix.create()
-		const wallet = createWallet({ startWithAnSigningKey: true })
+		const wallet = createWallet({ startWithInitialSigningKey: true })
 		radix.withWallet(wallet)
 
 		radix.activeAccount.subscribe(
@@ -325,7 +325,7 @@ describe('radix_high_level_api', () => {
 		const subs = new Subscription()
 
 		const radix = Radix.create().withWallet(
-			createWallet({ startWithAnSigningKey: false }),
+			createWallet({ startWithInitialSigningKey: false }),
 		)
 
 		const index = 3
@@ -632,7 +632,7 @@ describe('radix_high_level_api', () => {
 				),
 		)
 
-		const wallet = createWallet({ startWithAnSigningKey: true })
+		const wallet = createWallet({ startWithInitialSigningKey: true })
 
 		const firstAccount = wallet.__unsafeGetAccount()
 

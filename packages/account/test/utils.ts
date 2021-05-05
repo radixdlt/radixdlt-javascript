@@ -4,7 +4,7 @@ import { Mnemonic, SigningKeychain, SigningKeychainT } from '../src'
 
 export const makeSigningKeyChainWithFunds = (): SigningKeychainT => {
 	const signingKeychain = SigningKeychain.create({
-		startWithAnSigningKey: false,
+		startWithInitialSigningKey: false,
 		mnemonic: Mnemonic.generateNew(), // not used,
 	})
 
