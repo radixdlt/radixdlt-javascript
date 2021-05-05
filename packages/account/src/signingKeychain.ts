@@ -245,7 +245,10 @@ const create = (
 			const unsafeTargetIndex = input.toIndex
 			const signingKeys = signingKeysSubject.getValue()
 
-			const safeTargetIndex = Math.min(unsafeTargetIndex, signingKeys.size())
+			const safeTargetIndex = Math.min(
+				unsafeTargetIndex,
+				signingKeys.size(),
+			)
 
 			const firstSigningKey = Array.from(signingKeys.all)[safeTargetIndex]
 			if (!firstSigningKey) {

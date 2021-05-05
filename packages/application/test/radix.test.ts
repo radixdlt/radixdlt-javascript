@@ -330,18 +330,22 @@ describe('radix_high_level_api', () => {
 
 		const index = 3
 		subs.add(
-			radix.restoreAccountsForLocalHDSigningKeysUpToIndex(index).subscribe(
-				(accounts) => {
-					expect(accounts.size()).toBe(index)
-					accounts.all.forEach((account: AccountT, idx) => {
-						expect(account.hdPath!.addressIndex.value()).toBe(idx)
-					})
-					done()
-				},
-				(e: Error) => {
-					done(e)
-				},
-			),
+			radix
+				.restoreAccountsForLocalHDSigningKeysUpToIndex(index)
+				.subscribe(
+					(accounts) => {
+						expect(accounts.size()).toBe(index)
+						accounts.all.forEach((account: AccountT, idx) => {
+							expect(account.hdPath!.addressIndex.value()).toBe(
+								idx,
+							)
+						})
+						done()
+					},
+					(e: Error) => {
+						done(e)
+					},
+				),
 		)
 	})
 
@@ -1329,16 +1333,12 @@ describe('radix_high_level_api', () => {
 						},
 					),
 					mergeMap(
-						(
-							account: AccountT,
-						): Observable<TransactionIntent> => {
+						(account: AccountT): Observable<TransactionIntent> => {
 							return txIntentBuilder
 								.transferTokens(tokenTransferInput)
 								.message({ plaintext, encrypt: true })
 								.build({
-									encryptMessageIfAnyWithAccount: of(
-										account,
-									),
+									encryptMessageIfAnyWithAccount: of(account),
 								})
 						},
 					),
