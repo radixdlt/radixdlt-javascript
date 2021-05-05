@@ -16,7 +16,7 @@ import {
 	SwitchToSigningKey,
 	SwitchToIndex,
 	AddSigningKeyByPrivateKeyInput,
-	SigningKeychainT, KeychainByEncryptingMnemonicAndSavingKeystore,
+	SigningKeychainT,
 } from './_types'
 import { mergeMap, shareReplay, take } from 'rxjs/operators'
 import { Keystore, KeystoreT, PublicKey, Signature } from '@radixdlt/crypto'
@@ -365,10 +365,13 @@ const fromKeystore = (
 		}))
 		.map(create)
 
-
-
 const byEncryptingMnemonicAndSavingKeystore = (
-	input: KeychainByEncryptingMnemonicAndSavingKeystore,
+	input: Readonly<{
+		mnemonic: MnemomicT
+		password: string
+		save: (keystoreToSave: KeystoreT) => Promise<void>
+		startWithInitialSigningKey?: boolean
+	}>,
 ): ResultAsync<SigningKeychainT, Error> => {
 	const { mnemonic, password, startWithInitialSigningKey } = input
 

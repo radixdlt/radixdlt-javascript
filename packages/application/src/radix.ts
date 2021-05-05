@@ -913,9 +913,7 @@ const create = (
 		index: number,
 	): Observable<AccountsT> => {
 		return wallet$.pipe(
-			mergeMap((im) =>
-				im.restoreLocalHDAccountsToIndex(index),
-			),
+			mergeMap((im) => im.restoreLocalHDAccountsToIndex(index)),
 		)
 	}
 

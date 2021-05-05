@@ -330,22 +330,18 @@ describe('radix_high_level_api', () => {
 
 		const index = 3
 		subs.add(
-			radix
-				.restoreLocalHDAccountsToIndex(index)
-				.subscribe(
-					(accounts) => {
-						expect(accounts.size()).toBe(index)
-						accounts.all.forEach((account: AccountT, idx) => {
-							expect(account.hdPath!.addressIndex.value()).toBe(
-								idx,
-							)
-						})
-						done()
-					},
-					(e: Error) => {
-						done(e)
-					},
-				),
+			radix.restoreLocalHDAccountsToIndex(index).subscribe(
+				(accounts) => {
+					expect(accounts.size()).toBe(index)
+					accounts.all.forEach((account: AccountT, idx) => {
+						expect(account.hdPath!.addressIndex.value()).toBe(idx)
+					})
+					done()
+				},
+				(e: Error) => {
+					done(e)
+				},
+			),
 		)
 	})
 

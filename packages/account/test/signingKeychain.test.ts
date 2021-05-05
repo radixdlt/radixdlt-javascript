@@ -33,7 +33,10 @@ const createSpecificSigningKeychain = (
 }
 
 const expectSigningKeychainsEqual = (
-	signingKeychains: { signingKeychain1: SigningKeychainT; signingKeychain2: SigningKeychainT },
+	signingKeychains: {
+		signingKeychain1: SigningKeychainT
+		signingKeychain2: SigningKeychainT
+	},
 	done: jest.DoneCallback,
 ): void => {
 	const subs = new Subscription()
@@ -108,7 +111,9 @@ describe('signingKeychain_type', () => {
 
 	it('the accounts derived after restoreSigningKeysUpToIndex has correct index', (done) => {
 		const subs = new Subscription()
-		const signingKeychain = createSigningKeychain({ startWithInitialSigningKey: false })
+		const signingKeychain = createSigningKeychain({
+			startWithInitialSigningKey: false,
+		})
 
 		const indexToRestoreTo = 3
 
@@ -216,7 +221,9 @@ describe('signingKeychain_type', () => {
 
 	it('signingKeychain can observe accounts', (done) => {
 		const subs = new Subscription()
-		const signingKeychain = createSigningKeychain({ startWithInitialSigningKey: true })
+		const signingKeychain = createSigningKeychain({
+			startWithInitialSigningKey: true,
+		})
 		const expected = [1, 2]
 
 		subs.add(
@@ -374,7 +381,9 @@ describe('signingKeychain_type', () => {
 				UInt256.valueOf(privateKeyScalar),
 			)._unsafeUnwrap()
 
-		const signingKeychain = createSigningKeychain({ startWithInitialSigningKey: true })
+		const signingKeychain = createSigningKeychain({
+			startWithInitialSigningKey: true,
+		})
 		const subs = new Subscription()
 
 		const expectedValues = [1, 2]

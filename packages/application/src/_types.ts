@@ -125,9 +125,7 @@ export type WalletT = Readonly<{
 
 	revealMnemonic: () => MnemomicT
 
-	restoreLocalHDAccountsToIndex: (
-		index: number,
-	) => Observable<AccountsT>
+	restoreLocalHDAccountsToIndex: (index: number) => Observable<AccountsT>
 
 	deriveNextLocalHDAccount: (input?: DeriveNextInput) => Observable<AccountT>
 
@@ -162,9 +160,7 @@ export type RadixT = Readonly<{
 	 *
 	 * @param {number} targetIndex - The index to restore account up to, this method will restore accounts from index 0 up to but excluding this index.
 	 */
-	restoreLocalHDAccountsToIndex: (
-		index: number,
-	) => Observable<AccountsT>
+	restoreLocalHDAccountsToIndex: (index: number) => Observable<AccountsT>
 	deriveNextAccount: (input?: DeriveNextInput) => RadixT
 
 	addAccountFromPrivateKey: (input: AddAccountByPrivateKeyInput) => RadixT
