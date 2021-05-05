@@ -52,7 +52,7 @@ const makeSigningKeyTypeHD = (
 		isHardwareSigningKey ? 'Hardware' : 'Local'
 	}_HDaccount_at_path_${hdPath.toString()}`
 	return {
-		typeIdentifier: SigningKeyTypeIdentifier.HD_ACCOUNT,
+		typeIdentifier: SigningKeyTypeIdentifier.HD_SIGNING_KEY,
 		hdSigningKeyType,
 		hdPath,
 		uniqueKey,
@@ -72,7 +72,7 @@ const makeSigningKeyTypeNonHD = (
 		.getOrElse('')
 	const uniqueKey = `Non_hd_${named}pubKey${input.publicKey.toString(true)}`
 	return {
-		typeIdentifier: SigningKeyTypeIdentifier.NON_HD_ACCOUNT,
+		typeIdentifier: SigningKeyTypeIdentifier.NON_HD_SIGNING_KEY,
 		uniqueKey,
 		isHDSigningKey: false,
 		isHardwareSigningKey: false,

@@ -40,8 +40,8 @@ export enum HDSigningKeyTypeIdentifier {
 }
 
 export enum SigningKeyTypeIdentifier {
-	HD_ACCOUNT = 'HD_ACCOUNT',
-	NON_HD_ACCOUNT = 'NON_HD_ACCOUNT',
+	HD_SIGNING_KEY = 'HD_SIGNING_KEY',
+	NON_HD_SIGNING_KEY = 'NON_HD_SIGNING_KEY',
 }
 
 export type BaseSigningKeyTypeT<T extends SigningKeyTypeIdentifier> = Readonly<{
@@ -51,13 +51,13 @@ export type BaseSigningKeyTypeT<T extends SigningKeyTypeIdentifier> = Readonly<{
 	uniqueKey: string
 }>
 
-export type SigningKeyTypeHDT = BaseSigningKeyTypeT<SigningKeyTypeIdentifier.HD_ACCOUNT> &
+export type SigningKeyTypeHDT = BaseSigningKeyTypeT<SigningKeyTypeIdentifier.HD_SIGNING_KEY> &
 	Readonly<{
 		hdSigningKeyType: HDSigningKeyTypeIdentifier
 		hdPath: HDPathRadixT
 	}>
 
-export type SigningKeyTypeNonHDT = BaseSigningKeyTypeT<SigningKeyTypeIdentifier.NON_HD_ACCOUNT> &
+export type SigningKeyTypeNonHDT = BaseSigningKeyTypeT<SigningKeyTypeIdentifier.NON_HD_SIGNING_KEY> &
 	Readonly<{
 		name?: string
 	}>
@@ -100,11 +100,7 @@ export type SigningKeyT = Signing &
 		isLocalHDSigningKey: boolean
 	}>
 
-/// A simple "interface" like type that this `signingKey` package recognizes.
-/// The `hardware-wallet` package will mark its type being this type +
-/// additional decoration. We want the `hardware-wallet` package to be
-/// dependent on this package, not the other way around, thus we need
-/// some kind of simple "interface" like type here.
+// Used by `hardware-wallet` package
 export type HardwareSigningKeyT = Readonly<{
 	diffieHellman: (
 		input: Readonly<{
