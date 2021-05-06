@@ -17,7 +17,6 @@ describe('wrappedTransport', () => {
 			let sentData: Buffer | undefined
 			let sentStatusList: number[] | undefined
 
-
 			const mockedTransport = WrappedLedgerTransport.mock({
 				send: (
 					cla: number,
@@ -32,7 +31,8 @@ describe('wrappedTransport', () => {
 					sentP1 = p1
 					sentP2 = p2
 					sentData = data
-					sentStatusList = statusList !== undefined ? [...statusList] : undefined
+					sentStatusList =
+						statusList !== undefined ? [...statusList] : undefined
 					return of(Buffer.from(mockedLedgerResponse, 'hex'))
 				},
 			})
@@ -42,10 +42,12 @@ describe('wrappedTransport', () => {
 			const hdPath = HDPathRadix.create({
 				account: 0x66aabbcc, // automatically hardened
 				change: 1,
-				address: { index: 0x55ffeedd, isHardened: false }
+				address: { index: 0x55ffeedd, isHardened: false },
 			})
 
-			expect(hdPath.toString()).toBe(`m/44'/536'/1722465228'/1/1442836189`)
+			expect(hdPath.toString()).toBe(
+				`m/44'/536'/1722465228'/1/1442836189`,
+			)
 
 			subs.add(
 				ledgerNano
@@ -59,7 +61,9 @@ describe('wrappedTransport', () => {
 							expect(sentP1).toBe(0)
 							expect(sentP2).toBe(0)
 							expect(sentData).toBeDefined()
-							expect(sentData!.toString('hex')).toBe('66aabbcc0000000155ffeedd')
+							expect(sentData!.toString('hex')).toBe(
+								'66aabbcc0000000155ffeedd',
+							)
 							expect(sentStatusList).toBeDefined()
 							expect(sentStatusList!).toStrictEqual([0x9000])
 							expect(buf.toString('hex')).toBe(

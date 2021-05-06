@@ -7,7 +7,7 @@ export type LedgerDeviceTransport = Transport<'Ledger'>
 export type WLTExchange = (apdu: Buffer) => Promise<Buffer>
 export type WLTSetScrambleKey = (key: string) => void
 export type WLTClose = () => Promise<void>
-export type WLTOnOff = (eventName: string, cb: Function) => void
+export type WLTOnOff = (eventName: string, cb: any) => void
 export type WLTSetDebugMode = (debug: boolean | ((log: string) => void)) => void
 export type WLTSetExchangeTimeout = (exchangeTimeout: number) => void
 export type WLTSend = (
