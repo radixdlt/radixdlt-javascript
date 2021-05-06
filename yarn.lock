@@ -653,14 +653,6 @@
   resolved "https://registry.yarnpkg.com/@ledgerhq/errors/-/errors-5.50.0.tgz#e3a6834cb8c19346efca214c1af84ed28e69dad9"
   integrity sha512-gu6aJ/BHuRlpU7kgVpy2vcYk6atjB4iauP2ymF7Gk0ez0Y/6VSMVSJvubeEQN+IV60+OBK0JgeIZG7OiHaw8ow==
 
-"@ledgerhq/hw-transport-mocker@^5.50.0":
-  version "5.50.0"
-  resolved "https://registry.yarnpkg.com/@ledgerhq/hw-transport-mocker/-/hw-transport-mocker-5.50.0.tgz#48327dae67bf69b5d6b35cced89879defc38dd66"
-  integrity sha512-/whS7SDhnir8OzaHdHGk5ZE0N8RL0as5ypluqcT2QuLZ3jxkswOTU1KjTZTP7z6Y9yBHdMm81N3Qgz+rrXU0DA==
-  dependencies:
-    "@ledgerhq/hw-transport" "^5.50.0"
-    "@ledgerhq/logs" "^5.50.0"
-
 "@ledgerhq/hw-transport-node-hid-noevents@^5.50.0":
   version "5.50.0"
   resolved "https://registry.yarnpkg.com/@ledgerhq/hw-transport-node-hid-noevents/-/hw-transport-node-hid-noevents-5.50.0.tgz#b846bff843a0a8cfa92e8c4fbb4c00bcba79aaec"

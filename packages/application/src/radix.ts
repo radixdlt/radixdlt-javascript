@@ -187,7 +187,7 @@ const create = (
 	) => (...input: I) =>
 		coreAPI$.pipe(
 			mergeMap((a) => pickFn(a)(...input)),
-			take(1),
+			take(1), // Important!
 			// We do NOT omit/supress error, we merely DECORATE the error
 			catchError((errors: unknown) => {
 				const underlyingError = msgFromError(errors)
@@ -423,6 +423,7 @@ const create = (
 	const activeAccount: Observable<AccountT> = wallet$.pipe(
 		mergeMap((wallet) => wallet.observeActiveAccount()),
 		shareReplay(1),
+		distinctUntilChanged((prev, cur) => prev.equals(cur)),
 	)
 
 	const accounts = wallet$.pipe(
@@ -799,7 +800,7 @@ const create = (
 		const intent$ = transactionIntentBuilderT.build(
 			builderOptions ?? {
 				skipEncryptionOfMessageIfAny: {
-					spendingSender: activeAddress.pipe(take(1)),
+					spendingSender: activeAddress.pipe(take(1)), // IMPORTANT !
 				},
 			},
 		)
@@ -826,7 +827,7 @@ const create = (
 			encryptMsgIfAny
 				? {
 						encryptMessageIfAnyWithAccount: activeAccount.pipe(
-							take(1),
+							take(1), // Important !
 						),
 				  }
 				: undefined,

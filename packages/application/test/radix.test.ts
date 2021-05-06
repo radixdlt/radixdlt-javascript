@@ -13,10 +13,12 @@ import {
 	Observable,
 	of,
 	ReplaySubject,
+	Subject,
 	Subscription,
 	throwError,
 } from 'rxjs'
 import {
+	filter,
 	map,
 	mergeMap,
 	shareReplay,
@@ -1577,51 +1579,56 @@ describe('radix_high_level_api', () => {
 
 			const userConfirmation = new ReplaySubject<ManualUserConfirmTX>()
 
+			let userConfirmationTriggerCount = 0
+
 			const transactionTracking = radix.transferTokens({
 				...transferTokens(),
 				userConfirmation,
 			})
 
-			let userHasBeenAskedToConfirmTXCounter = 0
-			let calledConfirmationWhenItWasNotReady = false
-
-			let confirmTx: () => void
-			confirmTx = (): void => {
-				calledConfirmationWhenItWasNotReady = true
+			let confirmTXFn: () => void = () => {
+				throw new Error('Confirm tx closure not set!')
 			}
 
-			let sub: Subscription
+			subs.add(
+				userConfirmation.subscribe((n) => {
+					userConfirmationTriggerCount += 1
+					confirmTXFn = n.confirm
+				}),
+			)
 
-			sub = userConfirmation.subscribe((confirmation) => {
-				userHasBeenAskedToConfirmTXCounter += 1
-				if (userHasBeenAskedToConfirmTXCounter === 1) {
-					confirmTx = confirmation.confirm
-					radix.deriveNextAccount({ alsoSwitchTo: true })
-				} else if (userHasBeenAskedToConfirmTXCounter > 4) {
-					// break inf recursion.
-					subs.remove(sub)
-					sub.unsubscribe()
-				}
-			})
-
-			subs.add(sub)
+			const confirmTxSubject = new Subject<undefined>()
 
 			subs.add(
-				radix.activeAccount
+				confirmTxSubject.subscribe((_) => {
+					confirmTXFn()
+				}),
+			)
+
+			const accountSizeMin = 3
+			const accountSizeMax = accountSizeMin + 2
+
+			subs.add(
+				radix.accounts
 					.pipe(
-						skipWhile((i) => i.hdPath!.addressIndex.value() === 0),
+						map((acs) => acs.size()),
+						skipWhile(
+							(accountCount) => accountCount < accountSizeMin,
+						),
+						filter((acsSize) => acsSize < accountSizeMax),
 					)
-					.subscribe((i) => {
-						expect(i.hdPath!.addressIndex.value()).toBe(1)
-						confirmTx() // => will trigger tx to continue with signing.
+					.subscribe((acsSize) => {
+						confirmTxSubject.next(undefined)
 					}),
 			)
+
+			radix.deriveNextAccount({ alsoSwitchTo: true })
+			radix.deriveNextAccount({ alsoSwitchTo: true })
 
 			subs.add(
 				transactionTracking.completion.subscribe({
 					next: (_txID) => {
-						expect(calledConfirmationWhenItWasNotReady).toBe(false)
-						expect(userHasBeenAskedToConfirmTXCounter).toBe(1)
+						expect(userConfirmationTriggerCount).toBe(1)
 						done()
 					},
 					error: (e) => {
@@ -1629,6 +1636,8 @@ describe('radix_high_level_api', () => {
 					},
 				}),
 			)
+
+			radix.deriveNextAccount({ alsoSwitchTo: true })
 		})
 
 		it('should be able to call stake tokens', (done) => {

@@ -7,8 +7,6 @@ import {
 	LedgerNanoTransportT,
 } from './_types'
 
-
-
 const createWithTransportPromise = (
 	transportPromise: Promise<LedgerDeviceTransport>,
 ): LedgerNanoTransportT => {

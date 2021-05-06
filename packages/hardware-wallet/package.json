@@ -29,7 +29,6 @@
     "node": ">=15.5.0 <16"
   },
   "dependencies": {
-    "@ledgerhq/hw-transport-mocker": "^5.50.0",
     "@ledgerhq/hw-transport-node-hid": "^5.50.0",
     "@radixdlt/account": "^1.0.32",
     "@radixdlt/crypto": "^1.0.27",

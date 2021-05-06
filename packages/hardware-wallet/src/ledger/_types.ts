@@ -1,6 +1,5 @@
 import { from, Observable } from 'rxjs'
 
-
 export type LedgerDeviceTransport = Transport<'Ledger'>
 
 export enum DeviceResponseStatusCode {
@@ -32,7 +31,6 @@ export type RadixAPDUT = APDUT &
 		ins: LedgerInstruction
 	}>
 
-
 // Wrapper for this: https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/ledgerhq__hw-transport/index.d.ts
 export type LedgerNanoTransportT = Readonly<{
 	// Wrapper for `send`: https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/ledgerhq__hw-transport/index.d.ts#L23-L36
@@ -59,7 +57,6 @@ export type LedgerNanoT = Readonly<{
 	) => Observable<Buffer>
 }>
 
-
 import { LedgerInstruction } from '../_types'
 import Transport from '@ledgerhq/hw-transport'
 
@@ -67,4 +64,3 @@ export type CreateLedgerNanoTransportInput = Readonly<{
 	openTimeout?: number
 	listenTimeout?: number
 }>
-
