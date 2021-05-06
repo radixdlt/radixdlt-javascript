@@ -19,13 +19,16 @@ const hdPathToBuffer = (hdPath: HDPathRadixT): Buffer => {
 
 	const data = Buffer.alloc(12)
 
-	const write = (pathComponent: BIP32PathComponentT): void => {
-		data.writeInt16BE(pathComponent.value())
+	const write = (
+		pathComponent: BIP32PathComponentT,
+		offset: number,
+	): void => {
+		data.writeInt32BE(pathComponent.value(), offset)
 	}
 
-	write(hdPath.account)
-	write(hdPath.change)
-	write(hdPath.addressIndex)
+	write(hdPath.account, 0)
+	write(hdPath.change, 4)
+	write(hdPath.addressIndex, 8)
 
 	return data
 }

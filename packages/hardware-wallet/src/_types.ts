@@ -40,8 +40,5 @@ export type HardwareWalletT = Readonly<{
 }>
 
 export enum LedgerInstruction {
-	GET_VERSION = 0x00,
-	GET_PUBLIC_KEY = 0x01,
-	DO_KEY_EXCHANGE = 0x02,
-	DO_SIGN_HASH = 0x03,
+	GET_PUBLIC_KEY = 0x08,
 }

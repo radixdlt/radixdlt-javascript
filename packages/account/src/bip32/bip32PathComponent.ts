@@ -11,12 +11,12 @@ export const validateIndexValue = (index: Int32): Result<Int32, Error> =>
 	!Number.isInteger(index)
 		? err(new Error('Fatal error, non integers not allowed.'))
 		: index > INT32_MAX_VALUE
-		? err(new Error('Index larger than Int32 max value.'))
+		? err(new Error(`Index larger than Int32 max value. Got: 0d${index.toString(10)} / 0x${index.toString(16)}, but max is: 0d${INT32_MAX_VALUE.toString(10)} / 0x${INT32_MAX_VALUE.toString(16)}`))
 		: index < INT32_MIN_VALUE
-		? err(new Error('Index smaller than Int32 min value.'))
+		? err(new Error(`Index smaller than Int32 min value.`))
 		: ok(index)
 
-const hardenedIncrement: Int64 = fromValue(0x80000000)
+export const hardenedIncrement: Int64 = fromValue(0x80000000)
 
 export const valueFrom = (pathComponent: BIP32PathSimpleT): Int32 => {
 	const { index, isHardened } = pathComponent
