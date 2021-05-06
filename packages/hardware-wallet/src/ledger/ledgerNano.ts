@@ -1,22 +1,19 @@
-import { from, Observable } from 'rxjs'
-import { LedgerNanoTransport } from './ledgerNanoTransport'
+import { LedgerNanoTransport } from './wrapped/ledgerNanoTransport'
 import {
 	CreateLedgerNanoTransportInput,
 	LedgerNanoT,
 	RadixAPDUT,
 } from './_types'
+import { from, Observable } from 'rxjs'
+import { LedgerNanoTransportT, WrappedLedgerTransportT } from './wrapped'
 
-const createLedgerNano = (
-	input: CreateLedgerNanoTransportInput,
-): LedgerNanoT => {
-	const ledgerNanoTransport_ = LedgerNanoTransport.create(input)
-
+const createWithTransport = (transport: LedgerNanoTransportT): LedgerNanoT => {
 	const sendAPDUCommandToDevice = (
 		input: Readonly<{
 			apdu: RadixAPDUT
 		}>,
 	): Observable<Buffer> => {
-		return from(ledgerNanoTransport_.sendAPDUCommandToDevice(input))
+		return from(transport.sendAPDUCommandToDevice(input))
 	}
 
 	return {
@@ -24,6 +21,18 @@ const createLedgerNano = (
 	}
 }
 
+const create = (input: CreateLedgerNanoTransportInput): LedgerNanoT => {
+	const transport = LedgerNanoTransport.create(input)
+	return createWithTransport(transport)
+}
+
+const mock = (wrappedTransport: WrappedLedgerTransportT): LedgerNanoT => {
+	return createWithTransport(
+		LedgerNanoTransport.withWrappedTransport(wrappedTransport),
+	)
+}
+
 export const LedgerNano = {
-	create: createLedgerNano,
+	create,
+	mock,
 }

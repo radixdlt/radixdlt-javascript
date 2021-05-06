@@ -1,14 +1,15 @@
 import Transport from '@ledgerhq/hw-transport'
 import {
 	APDUT,
-	CreateLedgerNanoTransportInput,
 	DeviceResponseStatusCode,
-	LedgerDeviceTransport,
 	LedgerNanoTransportT,
+	WrappedLedgerTransportT,
 } from './_types'
+import { WrappedLedgerTransport } from './wrappedTransport'
+import { CreateLedgerNanoTransportInput } from '../_types'
 
 const createWithTransportPromise = (
-	transportPromise: Promise<LedgerDeviceTransport>,
+	transportPromise: Promise<WrappedLedgerTransportT>,
 ): LedgerNanoTransportT => {
 	const sendAPDUCommandToDevice = (
 		input: Readonly<{
@@ -41,10 +42,17 @@ const create = (
 	const transportPromise = Transport.create(
 		input.openTimeout,
 		input.listenTimeout,
-	)
+	).then((transport_) => WrappedLedgerTransport.from(transport_))
 	return createWithTransportPromise(transportPromise)
+}
+
+const withWrappedTransport = (
+	wrappedTransport: WrappedLedgerTransportT,
+): LedgerNanoTransportT => {
+	return createWithTransportPromise(Promise.resolve(wrappedTransport))
 }
 
 export const LedgerNanoTransport = {
 	create,
+	withWrappedTransport,
 }

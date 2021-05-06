@@ -39,7 +39,7 @@
     "long": "^4.0.0",
     "neverthrow": "^4.0.1",
     "prelude-ts": "^1.0.2",
-    "rxjs": "7.0.0-beta.13"
+    "rxjs": "^7.0.0"
   },
   "devDependencies": {
     "@types/hdkey": "^0.7.1",

@@ -2,24 +2,6 @@ import { HDPathRadixT } from '@radixdlt/account'
 import { Observable } from 'rxjs'
 import { ECPointOnCurve, PublicKey, Signature } from '@radixdlt/crypto'
 
-/*
-* export type HardwareWalletSimpleT = Readonly<{
-	diffieHellman: (
-		input: Readonly<{
-			hdPath: BIP32T
-			publicKeyOfOtherParty: PublicKey
-		}>,
-	) => Observable<ECPointOnCurve>
-	derivePublicKey: (hdPath: BIP32T) => Observable<PublicKey>
-	sign: (
-		input: Readonly<{
-			hashedMessage: Buffer
-			hdPath: BIP32T
-		}>,
-	) => Observable<Signature>
-}>
-* */
-
 // Semantic versioning, e.g. 1.0.5
 export type SemVer = Readonly<{
 	major: number
