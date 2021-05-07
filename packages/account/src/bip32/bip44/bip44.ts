@@ -6,6 +6,7 @@ import { BIP32PathComponent, valueFrom } from '../bip32PathComponent'
 
 import { BIP32PathComponentT, BIP32T, Int32 } from '../_types'
 import { BIP44T, BIP44ChangeIndex, HDPathRadixT } from './_types'
+import { msgFromError } from '@radixdlt/util'
 
 export const RADIX_COIN_TYPE: Int32 = 536
 
@@ -20,7 +21,9 @@ const bip44Component = (
 	const componentResult = BIP32PathComponent.create(input)
 	if (componentResult.isErr()) {
 		throw new Error(
-			'Incorrect implementation, should always be able to create BIP44 component. Please check values used.',
+			`Incorrect implementation, should always be able to create BIP44 component. Underlying error: '${msgFromError(
+				componentResult.error,
+			)}'.`,
 		)
 	}
 	return {

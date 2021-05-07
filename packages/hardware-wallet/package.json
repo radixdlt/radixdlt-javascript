@@ -27,5 +27,16 @@
   },
   "engines": {
     "node": ">=15.5.0 <16"
+  },
+  "dependencies": {
+    "@ledgerhq/hw-transport-node-hid": "^5.50.0",
+    "@radixdlt/account": "^1.0.32",
+    "@radixdlt/crypto": "^1.0.27",
+    "@radixdlt/primitives": "^1.0.23",
+    "@radixdlt/util": "^1.0.19",
+    "rxjs": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/ledgerhq__hw-transport-node-hid": "^4.22.2"
   }
 }
