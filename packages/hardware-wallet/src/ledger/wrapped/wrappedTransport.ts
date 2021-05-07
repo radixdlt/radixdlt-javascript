@@ -11,17 +11,8 @@ import {
 	WrappedLedgerTransportInput,
 	WrappedLedgerTransportT,
 } from './_types'
-import { firstValueFrom, Observable, of, throwError } from 'rxjs'
-import {
-	HDMasterSeed,
-	HDNodeT,
-	HDPathRadix,
-	MnemomicT,
-} from '@radixdlt/account'
-import { radixCLA } from '../_types'
-import { LedgerResponseCodes, LedgerInstruction } from '../../_types'
-import { ledgerInstruction } from '../ledgerInstruction'
-import { BIP44ChangeIndex } from '@radixdlt/account/dist/bip32/bip44/_types'
+import { firstValueFrom, Observable } from 'rxjs'
+import { HDMasterSeed, MnemomicT } from '@radixdlt/account'
 import { emulateSend } from './emulatedLedger'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */

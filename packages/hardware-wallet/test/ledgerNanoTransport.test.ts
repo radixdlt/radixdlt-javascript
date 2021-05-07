@@ -3,7 +3,6 @@ import { LedgerNano } from '../src/ledger/ledgerNano'
 import { RadixAPDU } from '../src/ledger/apdu'
 import { HDPathRadix, Mnemonic } from '@radixdlt/account'
 import { Observable, of, Subscription } from 'rxjs'
-import { arraysEqual, buffersEquals } from '@radixdlt/util'
 import { HardwareWallet } from '../src/hardwareWallet'
 import { PublicKey } from '@radixdlt/crypto'
 
@@ -17,7 +16,7 @@ describe('wrappedTransport', () => {
 					'equip will roof matter pink blind book anxiety banner elbow sun young',
 				)._unsafeUnwrap(),
 			})
-			
+
 			const store = ledgerNano.store
 
 			let hardwareWallet = HardwareWallet.ledger(ledgerNano)
@@ -26,7 +25,9 @@ describe('wrappedTransport', () => {
 				hardwareWallet
 					.getPublicKey({
 						// both Account and Address will be hardened.
-						path: HDPathRadix.fromString(`m/44'/536'/2'/1/3`)._unsafeUnwrap(),
+						path: HDPathRadix.fromString(
+							`m/44'/536'/2'/1/3`,
+						)._unsafeUnwrap(),
 					})
 					.subscribe(
 						(publicKey: PublicKey) => {
@@ -108,7 +109,12 @@ describe('wrappedTransport', () => {
 
 			subs.add(
 				ledgerNano
-					.sendAPDUToDevice(RadixAPDU.getPublicKey({ hdPath, requireConfirmationOnDevice: false }))
+					.sendAPDUToDevice(
+						RadixAPDU.getPublicKey({
+							hdPath,
+							requireConfirmationOnDevice: false,
+						}),
+					)
 					.subscribe(
 						(buf) => {
 							expect(sentCla).toBe(0xaa)

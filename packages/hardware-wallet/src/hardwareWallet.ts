@@ -1,16 +1,4 @@
-/*
-* export type HardwareWalletT = Readonly<{
-	deviceConnectionStatus: Observable<HardwareWalletDeviceConnectionStatus>
-	getVersion: () => Observable<SemVer>
-	getPublicKey: (input: AtPath) => Observable<PublicKey>
-	doSign: (input: SignInput) => Observable<Signature>
-	doKeyExchange: (input: KeyExchangeInput) => Observable<ECPointOnCurve>
-}>
-
-* */
-
 import {
-	AtPath,
 	GetPublicKeyInput,
 	HardwareWalletDeviceConnectionStatus,
 	HardwareWalletT,
@@ -54,10 +42,10 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 	const deviceConnectionStatus: Observable<HardwareWalletDeviceConnectionStatus> = throwError(
 		new Error('not impl'),
 	)
-	const doSign = (input: SignInput): Observable<Signature> =>
+	const doSign = (_input: SignInput): Observable<Signature> =>
 		throwError(new Error('not impl'))
 	const doKeyExchange = (
-		input: KeyExchangeInput,
+		_input: KeyExchangeInput,
 	): Observable<ECPointOnCurve> => throwError(new Error('not impl'))
 
 	return {
