@@ -6790,6 +6790,11 @@ neverthrow@^4.0.1:
   resolved "https://registry.yarnpkg.com/neverthrow/-/neverthrow-4.0.1.tgz#74a264db31ef771dc3288b8a03d0cff7d7131345"
   integrity sha512-qQfNyQWZx6cJsJu4pndtF4S1frUCqxBNVEdFEcdwlGgh09ToSTgOI6du+rb0Veh8TwalW1mIKqk4rg/9yzzr7A==
 
+neverthrow@^4.2.1:
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/neverthrow/-/neverthrow-4.2.1.tgz#c582dee4772528d15c9a170599c5382d366fd419"
+  integrity sha512-faWQGNqVQrXOuG8K7E0PRzsfBHzfVqeDX9nwawKDseuH/qEGIH02Nrq03OJOs5eTFML03xeol3otzagPoHyEPA==
+
 nice-try@^1.0.4:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/nice-try/-/nice-try-1.0.5.tgz#a3378a7696ce7d223e88fc9b764bd7ef1089e366"

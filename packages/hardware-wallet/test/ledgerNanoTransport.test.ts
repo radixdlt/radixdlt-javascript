@@ -1,10 +1,66 @@
 import { WrappedLedgerTransport } from '../src/ledger/wrapped/wrappedTransport'
 import { LedgerNano } from '../src/ledger/ledgerNano'
 import { RadixAPDU } from '../src/ledger/apdu'
-import { HDPathRadix } from '@radixdlt/account'
+import { HDPathRadix, Mnemonic } from '@radixdlt/account'
 import { Observable, of, Subscription } from 'rxjs'
+import { arraysEqual, buffersEquals } from '@radixdlt/util'
+import { HardwareWallet } from '../src/hardwareWallet'
+import { PublicKey } from '@radixdlt/crypto'
 
 describe('wrappedTransport', () => {
+	describe('recorded', () => {
+		it('getPublicKey', (done) => {
+			const subs = new Subscription()
+
+			const ledgerNano = LedgerNano.emulate({
+				mnemonic: Mnemonic.fromEnglishPhrase(
+					'equip will roof matter pink blind book anxiety banner elbow sun young',
+				)._unsafeUnwrap(),
+			})
+			
+			const store = ledgerNano.store
+
+			let hardwareWallet = HardwareWallet.ledger(ledgerNano)
+
+			subs.add(
+				hardwareWallet
+					.getPublicKey({
+						path: HDPathRadix.fromString(`m/44'/536'/2'/1/3`)._unsafeUnwrap(),
+					})
+					.subscribe(
+						(publicKey: PublicKey) => {
+							const request = store.lastRequest()
+							const response = store.lastResponse()
+
+							// Assert request
+							expect(request.cla).toBe(0xaa)
+							expect(request.ins).toBe(0x08)
+							expect(request.p1).toBe(0)
+							expect(request.p2).toBe(0)
+							expect(request.data).toBeDefined()
+							expect(request.data!.toString('hex')).toBe(
+								'000000020000000100000003',
+							)
+							expect(
+								request.requiredResponseStatusCodeFromDevice!,
+							).toStrictEqual([0x9000])
+
+							// Assert response
+							expect(publicKey.toString(true)).toBe(
+								response.data.toString('hex'),
+							)
+							expect(publicKey.toString(true)).toBe(
+								'026d5e07cfde5df84b5ef884b629d28d15b0f6c66be229680699767cd57c618288',
+							)
+
+							done()
+						},
+						(e) => done(e),
+					),
+			)
+		})
+	})
+
 	describe('mocked', () => {
 		it('getPublicKey', (done) => {
 			const subs = new Subscription()
@@ -37,7 +93,7 @@ describe('wrappedTransport', () => {
 				},
 			})
 
-			const ledgerNano = LedgerNano.mock(mockedTransport)
+			const ledgerNano = LedgerNano.wrappedTransport(mockedTransport)
 
 			const hdPath = HDPathRadix.create({
 				account: 0x66aabbcc, // automatically hardened
@@ -51,9 +107,7 @@ describe('wrappedTransport', () => {
 
 			subs.add(
 				ledgerNano
-					.sendAPDUCommandToDevice({
-						apdu: RadixAPDU.getPublicKey({ hdPath }),
-					})
+					.sendAPDUToDevice(RadixAPDU.getPublicKey({ hdPath, requireConfirmationOnDevice: false }))
 					.subscribe(
 						(buf) => {
 							expect(sentCla).toBe(0xaa)

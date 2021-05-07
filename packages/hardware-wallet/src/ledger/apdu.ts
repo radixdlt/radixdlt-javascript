@@ -1,6 +1,6 @@
-import { RadixAPDUT, radixCLA } from './_types'
+import { PartialAPDUT, RadixAPDUT, radixCLA } from './_types'
 import { HDPathRadixT, RADIX_COIN_TYPE } from '@radixdlt/account'
-import { LedgerInstruction } from '../_types'
+import { LedgerInstruction, LedgerResponseCodes } from '../_types'
 import { BIP32PathComponentT } from '@radixdlt/account/dist/bip32/_types'
 
 // ##### Follows https://github.com/radixdlt/radixdlt-ledger-app/blob/main/APDUSPEC.md #####
@@ -33,19 +33,23 @@ const hdPathToBuffer = (hdPath: HDPathRadixT): Buffer => {
 	return data
 }
 
-const makeAPDU = (input: Omit<RadixAPDUT, 'cla'>): RadixAPDUT => {
+const makeAPDU = (input: Omit<PartialAPDUT, 'cla'>): RadixAPDUT => {
 	return {
-		...input,
 		cla: radixCLA,
+		ins: input.ins,
+		p1: input.p1 ?? 0,
+		p2: input.p2 ?? 0,
+		data: input.data,
+		requiredResponseStatusCodeFromDevice: input.requiredResponseStatusCodeFromDevice ?? [
+			LedgerResponseCodes.SW_OK,
+		],
 	}
 }
 
 const getPublicKey = (
 	input: Readonly<{
 		hdPath: HDPathRadixT
-
-		// defaults to 'false' (convenient for testing)
-		requireConfirmationOnDevice?: boolean
+		requireConfirmationOnDevice: boolean
 	}>,
 ): RadixAPDUT => {
 	const p1: number = input.requireConfirmationOnDevice ? 0x01 : 0x00

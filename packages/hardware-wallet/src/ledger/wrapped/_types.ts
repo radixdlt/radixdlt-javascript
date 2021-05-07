@@ -1,4 +1,5 @@
 import Transport from '@ledgerhq/hw-transport'
+import { LedgerResponseCodes } from '../../_types'
 
 export type LedgerDeviceTransport = Transport<'Ledger'>
 
@@ -50,26 +51,22 @@ export type WrappedLedgerTransportInput = Readonly<{
 
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
-export enum DeviceResponseStatusCode {
-	OK = 0x9000,
-}
-
 export type APDUT = Readonly<{
 	// (type: 'number') Always to '0xAA'
 	cla: number
 	ins: number
 
 	//  Will default to `0` if undefined
-	p1?: number
+	p1: number
 
 	// Should not be present if `p1` is 'undefined'. Will default to `0` if undefined
-	p2?: number
+	p2: number
 
 	// defaults to zero length buffer
 	data?: Buffer
 
-	// defaults to: `[]`
-	requiredResponseStatusCodeFromDevice?: DeviceResponseStatusCode[]
+	// defaults to: `[SW_OK]`
+	requiredResponseStatusCodeFromDevice: LedgerResponseCodes[]
 }>
 
 // Wrapper for this: https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/ledgerhq__hw-transport/index.d.ts

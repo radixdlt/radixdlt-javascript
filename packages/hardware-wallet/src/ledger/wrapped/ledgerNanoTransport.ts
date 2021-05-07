@@ -1,10 +1,5 @@
 import Transport from '@ledgerhq/hw-transport'
-import {
-	APDUT,
-	DeviceResponseStatusCode,
-	LedgerNanoTransportT,
-	WrappedLedgerTransportT,
-} from './_types'
+import { APDUT, LedgerNanoTransportT, WrappedLedgerTransportT } from './_types'
 import { WrappedLedgerTransport } from './wrappedTransport'
 import { CreateLedgerNanoTransportInput } from '../_types'
 
@@ -17,12 +12,15 @@ const createWithTransportPromise = (
 		}>,
 	): Promise<Buffer> => {
 		const { apdu } = input
-		const { cla, ins, data } = apdu
-		const p1 = apdu.p1 ?? 0
-		const p2 = apdu.p2 ?? 0
-		const requiredResponseStatusCodeFromDevice = apdu.requiredResponseStatusCodeFromDevice ?? [
-			DeviceResponseStatusCode.OK,
-		]
+		const {
+			cla,
+			ins,
+			p1,
+			p2,
+			data,
+			requiredResponseStatusCodeFromDevice,
+		} = apdu
+
 		const statusList: ReadonlyArray<number> = [
 			...requiredResponseStatusCodeFromDevice.map((c) => c.valueOf()),
 		]

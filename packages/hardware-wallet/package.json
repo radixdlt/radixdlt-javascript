@@ -34,9 +34,13 @@
     "@radixdlt/crypto": "^1.0.27",
     "@radixdlt/primitives": "^1.0.23",
     "@radixdlt/util": "^1.0.19",
-    "rxjs": "^7.0.0"
+    "neverthrow": "^4.2.1",
+    "prelude-ts": "^1.0.2",
+    "rxjs": "^7.0.0",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@types/ledgerhq__hw-transport-node-hid": "^4.22.2"
+    "@types/ledgerhq__hw-transport-node-hid": "^4.22.2",
+    "@types/uuid": "^8.3.0"
   }
 }

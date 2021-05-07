@@ -11,7 +11,18 @@ import {
 	WrappedLedgerTransportInput,
 	WrappedLedgerTransportT,
 } from './_types'
-import { firstValueFrom, Observable } from 'rxjs'
+import { firstValueFrom, Observable, of, throwError } from 'rxjs'
+import {
+	HDMasterSeed,
+	HDNodeT,
+	HDPathRadix,
+	MnemomicT,
+} from '@radixdlt/account'
+import { radixCLA } from '../_types'
+import { LedgerResponseCodes, LedgerInstruction } from '../../_types'
+import { ledgerInstruction } from '../ledgerInstruction'
+import { BIP44ChangeIndex } from '@radixdlt/account/dist/bip32/bip44/_types'
+import { emulateSend } from './emulatedLedger'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -112,8 +123,20 @@ const from = (transport: LedgerDeviceTransport): WrappedLedgerTransportT => {
 	return create({ ...transport })
 }
 
+const emulate = (
+	input: Readonly<{ mnemonic: MnemomicT; passphrase?: string }>,
+): WrappedLedgerTransportT => {
+	const masterSeed = HDMasterSeed.fromMnemonic(input)
+	const hdMasterNode = masterSeed.masterNode()
+
+	return create({
+		send: emulateSend(hdMasterNode),
+	})
+}
+
 export const WrappedLedgerTransport = {
 	mock,
+	emulate,
 	from,
 }
 
