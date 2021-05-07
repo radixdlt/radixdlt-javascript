@@ -75,6 +75,25 @@ describe('signingKey_type', () => {
 		})
 	})
 
+	it('radix_hd_path_hardened', () => {
+		const mnemonic = Mnemonic.fromEnglishPhrase(
+			'equip will roof matter pink blind book anxiety banner elbow sun young',
+		)._unsafeUnwrap()
+		const hdMasterSeed = HDMasterSeed.fromMnemonic({ mnemonic })
+		const hdPath = HDPathRadix.fromString(
+			`m/44'/536'/2'/1/3'`,
+		)._unsafeUnwrap()
+
+		const signingKey = SigningKey.fromHDPathWithHDMasterSeed({
+			hdPath,
+			hdMasterSeed,
+		})
+
+		expect(signingKey.publicKey.toString(true)).toBe(
+			'02a61e5f4dd2bdc5352243264aa431702c988e77ecf9e61bbcd0b0dd26ad2280fc',
+		)
+	})
+
 	it('can create accounts from private key', () => {
 		const signingKey = SigningKey.fromPrivateKey({
 			privateKey: privateKeyFromNum(1),

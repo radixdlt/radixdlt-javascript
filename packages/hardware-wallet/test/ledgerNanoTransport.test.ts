@@ -25,6 +25,7 @@ describe('wrappedTransport', () => {
 			subs.add(
 				hardwareWallet
 					.getPublicKey({
+						// both Account and Address will be hardened.
 						path: HDPathRadix.fromString(`m/44'/536'/2'/1/3`)._unsafeUnwrap(),
 					})
 					.subscribe(
@@ -50,7 +51,7 @@ describe('wrappedTransport', () => {
 								response.data.toString('hex'),
 							)
 							expect(publicKey.toString(true)).toBe(
-								'026d5e07cfde5df84b5ef884b629d28d15b0f6c66be229680699767cd57c618288',
+								'02a61e5f4dd2bdc5352243264aa431702c988e77ecf9e61bbcd0b0dd26ad2280fc',
 							)
 
 							done()
