@@ -3,7 +3,7 @@ import {
 	HardwareWalletDeviceConnectionStatus,
 	HardwareWalletT,
 	KeyExchangeInput,
-	SemVer,
+	SemVerT,
 	SignInput,
 } from './_types'
 import { LedgerNanoT } from './ledger'
@@ -17,6 +17,8 @@ import {
 import { RadixAPDU } from './ledger/apdu'
 import { HDPathRadix, toObservableFromResult } from '@radixdlt/account'
 import { mergeMap } from 'rxjs/operators'
+import { SemVer } from './ledger/semVer'
+import { err, Result } from 'neverthrow'
 
 const path000H = HDPathRadix.create({ address: { index: 0, isHardened: true } })
 
@@ -37,8 +39,12 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 			)
 	}
 
-	const getVersion = (): Observable<SemVer> =>
-		throwError(new Error('not impl'))
+	const getVersion = (): Observable<SemVerT> => {
+		return ledgerNano
+			.sendAPDUToDevice(RadixAPDU.getVersion())
+			.pipe(mergeMap((buf) => toObservableFromResult(SemVer.from(buf))))
+	}
+
 	const deviceConnectionStatus: Observable<HardwareWalletDeviceConnectionStatus> = throwError(
 		new Error('not impl'),
 	)

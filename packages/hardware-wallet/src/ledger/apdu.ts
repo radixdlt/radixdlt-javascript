@@ -1,7 +1,7 @@
 import { PartialAPDUT, RadixAPDUT, radixCLA } from './_types'
 import { HDPathRadixT, RADIX_COIN_TYPE } from '@radixdlt/account'
 import { LedgerInstruction, LedgerResponseCodes } from '../_types'
-import { BIP32PathComponentT } from '@radixdlt/account/dist/bip32/_types'
+import { BIP32PathComponentT } from '@radixdlt/account'
 
 // ##### Follows https://github.com/radixdlt/radixdlt-ledger-app/blob/main/APDUSPEC.md #####
 
@@ -46,6 +46,11 @@ const makeAPDU = (input: Omit<PartialAPDUT, 'cla'>): RadixAPDUT => {
 	}
 }
 
+const getVersion = (): RadixAPDUT =>
+	makeAPDU({
+		ins: LedgerInstruction.GET_VERSION,
+	})
+
 const getPublicKey = (
 	input: Readonly<{
 		hdPath: HDPathRadixT
@@ -64,5 +69,6 @@ const getPublicKey = (
 }
 
 export const RadixAPDU = {
+	getVersion,
 	getPublicKey,
 }

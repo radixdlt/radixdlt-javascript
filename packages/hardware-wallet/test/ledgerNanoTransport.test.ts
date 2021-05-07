@@ -5,9 +5,55 @@ import { HDPathRadix, Mnemonic } from '@radixdlt/account'
 import { Observable, of, Subscription } from 'rxjs'
 import { HardwareWallet } from '../src/hardwareWallet'
 import { PublicKey } from '@radixdlt/crypto'
+import { SemVerT } from '../src'
 
 describe('wrappedTransport', () => {
 	describe('recorded', () => {
+		it('getVersion', (done) => {
+			const subs = new Subscription()
+
+			const ledgerNano = LedgerNano.emulate({
+				mnemonic: Mnemonic.fromEnglishPhrase(
+					'equip will roof matter pink blind book anxiety banner elbow sun young',
+				)._unsafeUnwrap(),
+			})
+
+			const store = ledgerNano.store
+
+			let hardwareWallet = HardwareWallet.ledger(ledgerNano)
+
+			subs.add(
+				hardwareWallet.getVersion().subscribe(
+					(semVer: SemVerT) => {
+						expect(store.recorded.length).toBe(1)
+						const request = store.lastRequest()
+						const response = store.lastResponse()
+
+						// Assert request
+						expect(request.cla).toBe(0xaa)
+						expect(request.ins).toBe(0x00)
+						expect(request.p1).toBe(0)
+						expect(request.p2).toBe(0)
+						expect(request.data).toBeUndefined()
+						expect(
+							request.requiredResponseStatusCodeFromDevice!,
+						).toStrictEqual([0x9000])
+
+						// Assert response
+						expect(semVer.toString()).toBe('1.2.3')
+						const major = response.data.readUInt8(0)
+						const minor = response.data.readUInt8(1)
+						const patch = response.data.readUInt8(2)
+						expect(semVer.major).toBe(major)
+						expect(semVer.minor).toBe(minor)
+						expect(semVer.patch).toBe(patch)
+						done()
+					},
+					(e) => done(e),
+				),
+			)
+		})
+
 		it('getPublicKey', (done) => {
 			const subs = new Subscription()
 
@@ -31,6 +77,7 @@ describe('wrappedTransport', () => {
 					})
 					.subscribe(
 						(publicKey: PublicKey) => {
+							expect(store.recorded.length).toBe(1)
 							const request = store.lastRequest()
 							const response = store.lastResponse()
 

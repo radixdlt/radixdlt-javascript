@@ -6,6 +6,8 @@ export const ledgerInstruction = (
 ): Result<LedgerInstruction, Error> => {
 	if (ins === LedgerInstruction.GET_PUBLIC_KEY) {
 		return ok(LedgerInstruction.GET_PUBLIC_KEY)
+	} else if (ins === LedgerInstruction.GET_VERSION) {
+		return ok(LedgerInstruction.GET_VERSION)
 	}
 	return err(new Error(`Unrecognized instruction: ${ins}`))
 }

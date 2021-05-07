@@ -14,6 +14,8 @@ import {
 import { firstValueFrom, Observable } from 'rxjs'
 import { HDMasterSeed, MnemomicT } from '@radixdlt/account'
 import { emulateSend } from './emulatedLedger'
+import { SemVerT } from '../../_types'
+import { SemVer } from '../semVer'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -115,13 +117,19 @@ const from = (transport: LedgerDeviceTransport): WrappedLedgerTransportT => {
 }
 
 const emulate = (
-	input: Readonly<{ mnemonic: MnemomicT; passphrase?: string }>,
+	input: Readonly<{
+		mnemonic: MnemomicT
+		passphrase?: string
+		version?: SemVerT
+	}>,
 ): WrappedLedgerTransportT => {
 	const masterSeed = HDMasterSeed.fromMnemonic(input)
 	const hdMasterNode = masterSeed.masterNode()
+	const hardcodedVersion =
+		input.version ?? SemVer.create({ major: 1, minor: 2, patch: 3 })
 
 	return create({
-		send: emulateSend(hdMasterNode),
+		send: emulateSend({ hdMasterNode, hardcodedVersion }),
 	})
 }
 

@@ -3,10 +3,13 @@ import { Observable } from 'rxjs'
 import { ECPointOnCurve, PublicKey, Signature } from '@radixdlt/crypto'
 
 // Semantic versioning, e.g. 1.0.5
-export type SemVer = Readonly<{
+export type SemVerT = Readonly<{
 	major: number
 	minor: number
 	patch: number
+
+	// '{major}.{minor}.{patch}'
+	toString: () => string
 }>
 
 export type AtPath = Readonly<{
@@ -38,13 +41,14 @@ export enum HardwareWalletDeviceConnectionStatus {
 
 export type HardwareWalletT = Readonly<{
 	deviceConnectionStatus: Observable<HardwareWalletDeviceConnectionStatus>
-	getVersion: () => Observable<SemVer>
+	getVersion: () => Observable<SemVerT>
 	getPublicKey: (input: GetPublicKeyInput) => Observable<PublicKey>
 	doSign: (input: SignInput) => Observable<Signature>
 	doKeyExchange: (input: KeyExchangeInput) => Observable<ECPointOnCurve>
 }>
 
 export enum LedgerInstruction {
+	GET_VERSION = 0x00,
 	GET_PUBLIC_KEY = 0x08,
 }
 
