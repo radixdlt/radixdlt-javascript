@@ -90,6 +90,7 @@ describe('wrappedTransport', () => {
 							expect(request.ins).toBe(0x08)
 							expect(request.p1).toBe(0)
 							expect(request.p2).toBe(0)
+
 							expect(request.data).toBeDefined()
 							expect(request.data!.toString('hex')).toBe(
 								'000000020000000100000003',
@@ -134,6 +135,8 @@ describe('wrappedTransport', () => {
 			),
 		)._unsafeUnwrap()
 
+		expect(publicKeyOfOtherParty.toString(false)).toBe('0479be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8')
+
 		subs.add(
 			hardwareWallet
 				.doKeyExchange({
@@ -151,11 +154,11 @@ describe('wrappedTransport', () => {
 
 						// Assert request
 						expect(request.cla).toBe(0xaa)
-						expect(request.ins).toBe(0x08)
+						expect(request.ins).toBe(0x04)
 						expect(request.p1).toBe(0)
 						expect(request.p2).toBe(0)
 						expect(request.data).toBeDefined()
-						expect(request.data!.toString('hex')).toBe('apa')
+						expect(request.data!.toString('hex')).toBe('0000000200000001000000030479be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8')
 						expect(
 							request.requiredResponseStatusCodeFromDevice!,
 						).toStrictEqual([0x9000])

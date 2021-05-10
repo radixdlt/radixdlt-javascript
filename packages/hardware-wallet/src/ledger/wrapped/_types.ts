@@ -11,6 +11,15 @@ export type WLTClose = () => Promise<void>
 export type WLTOnOff = (eventName: string, cb: any) => void
 export type WLTSetDebugMode = (debug: boolean | ((log: string) => void)) => void
 export type WLTSetExchangeTimeout = (exchangeTimeout: number) => void
+
+export type WLTSendAPDU = Readonly<{
+	cla: number
+	ins: number
+	p1: number
+	p2: number
+	data?: Buffer
+	statusList?: ReadonlyArray<number>
+}>
 export type WLTSend = (
 	cla: number,
 	ins: number,

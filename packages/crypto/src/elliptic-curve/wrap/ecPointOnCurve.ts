@@ -5,7 +5,7 @@ import { curve, ec } from 'elliptic'
 import { ECPointOnCurveT, PrivateKey } from '../../_types'
 import { ValidationWitness } from '@radixdlt/util'
 import { bnFromUInt256, uint256FromBN } from '@radixdlt/primitives'
-import { log } from '@radixdlt/util/dist/logging'
+import { log } from '@radixdlt/util'
 
 const thirdPartyLibEllipticSecp256k1 = new ec('secp256k1')
 
@@ -124,10 +124,10 @@ const fromBuffer = (buffer: Buffer): Result<ECPointOnCurveT, Error> => {
 		log.error(errMsg)
 		return err(new Error(errMsg))
 	}
-	const x = new UInt256(buffer.slice(0, expectedByteCount / 2))
-	const y = new UInt256(
-		buffer.slice(expectedByteCount / 2, expectedByteCount),
-	)
+	const xBuf = buffer.slice(0, expectedByteCount / 2)
+	const yBuf = buffer.slice(expectedByteCount / 2)
+	const x = new UInt256(xBuf.toString('hex'), 16)
+	const y = new UInt256(yBuf.toString('hex'), 16)
 	return fromXY({ x, y })
 }
 
