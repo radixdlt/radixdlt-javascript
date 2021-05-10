@@ -30,7 +30,7 @@ const create = (): MockedLedgerNanoRecorderT => {
 		}
 		rNr.push(rr)
 		// Remove from requests
-		requests = requests.splice(requestIndex, 1)
+		requests.splice(requestIndex, 1)
 		return rr
 	}
 
