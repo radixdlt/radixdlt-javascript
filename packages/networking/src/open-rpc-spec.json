@@ -23,8 +23,7 @@
                     ],
                     "additionalProperties": false
                 }
-            },
-            "paramStructure": "by-position"
+            }
         },
         {
             "name": "radix.nativeToken",
@@ -52,8 +51,7 @@
                         }
                     }
                 }
-            ],
-            "paramStructure": "by-position"
+            ]
         },
         {
             "name": "radix.tokenInfo",
@@ -89,8 +87,7 @@
                         }
                     }
                 }
-            ],
-            "paramStructure": "by-position"
+            ]
         },
         {
             "name": "radix.tokenBalances",
@@ -158,8 +155,7 @@
                         }
                     }
                 }
-            ],
-            "paramStructure": "by-position"
+            ]
         },
         {
             "name": "radix.transactionHistory",
@@ -253,8 +249,7 @@
                         }
                     }
                 }
-            ],
-            "paramStructure": "by-position"
+            ]
         },
         {
             "name": "radix.lookupTransaction",
@@ -312,8 +307,7 @@
                         }
                     }
                 }
-            ],
-            "paramStructure": "by-position"
+            ]
         },
         {
             "name": "radix.stakePositions",
@@ -365,8 +359,7 @@
                         ]
                     }
                 }
-            ],
-            "paramStructure": "by-position"
+            ]
         },
         {
             "name": "radix.unstakePositions",
@@ -428,8 +421,7 @@
                         ]
                     }
                 }
-            ],
-            "paramStructure": "by-position"
+            ]
         },
         {
             "name": "radix.statusOfTransaction",
@@ -485,8 +477,7 @@
                         }
                     }
                 }
-            ],
-            "paramStructure": "by-position"
+            ]
         },
         {
             "name": "radix.networkTransactionThroughput",
@@ -507,8 +498,7 @@
                         "tps"
                     ]
                 }
-            },
-            "paramStructure": "by-position"
+            }
         },
         {
             "name": "radix.networkTransactionDemand",
@@ -529,8 +519,7 @@
                         "tps"
                     ]
                 }
-            },
-            "paramStructure": "by-position"
+            }
         },
         {
             "name": "radix.validators",
@@ -596,8 +585,7 @@
                         }
                     }
                 }
-            ],
-            "paramStructure": "by-position"
+            ]
         },
         {
             "name": "radix.lookupValidator",
@@ -634,8 +622,7 @@
                         }
                     }
                 }
-            ],
-            "paramStructure": "by-position"
+            ]
         },
         {
             "name": "radix.buildTransaction",
@@ -772,8 +759,7 @@
                     "code": 1319,
                     "message": "INVALID_AMOUNT"
                 }
-            ],
-            "paramStructure": "by-position"
+            ]
         },
         {
             "name": "radix.finalizeTransaction",
@@ -823,8 +809,7 @@
                         "txID"
                     ]
                 }
-            },
-            "paramStructure": "by-position"
+            }
         },
         {
             "name": "radix.submitTransaction",
@@ -888,8 +873,7 @@
                     "code": 1500,
                     "message": "SUBMISSION_FAILURE"
                 }
-            ],
-            "paramStructure": "by-position"
+            ]
         }
     ],
     "components": {
