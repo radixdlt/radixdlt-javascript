@@ -16,6 +16,7 @@ import { HDMasterSeed, MnemomicT } from '@radixdlt/account'
 import { emulateSend } from './emulatedLedger'
 import { SemVerT } from '../../_types'
 import { SemVer } from '../semVer'
+import { MockedLedgerNanoRecorderT } from '../_types'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -118,6 +119,7 @@ const from = (transport: LedgerDeviceTransport): WrappedLedgerTransportT => {
 
 const emulate = (
 	input: Readonly<{
+		recorder: MockedLedgerNanoRecorderT
 		mnemonic: MnemomicT
 		passphrase?: string
 		version?: SemVerT
@@ -129,7 +131,7 @@ const emulate = (
 		input.version ?? SemVer.create({ major: 1, minor: 2, patch: 3 })
 
 	return create({
-		send: emulateSend({ hdMasterNode, hardcodedVersion }),
+		send: emulateSend({ ...input, hdMasterNode, hardcodedVersion }),
 	})
 }
 

@@ -27,7 +27,7 @@ export type GetPublicKeyInput = AtPath &
 		requireConfirmationOnDevice?: boolean
 	}>
 
-export type KeyExchangeInput = AtPath &
+export type KeyExchangeInput = GetPublicKeyInput &
 	Readonly<{
 		publicKeyOfOtherParty: PublicKey
 	}>

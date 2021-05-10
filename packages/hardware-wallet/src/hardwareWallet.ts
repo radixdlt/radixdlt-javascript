@@ -59,6 +59,7 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 				RadixAPDU.doKeyExchange({
 					...input,
 					path: input.path ?? path000H,
+					requireConfirmationOnDevice: input.requireConfirmationOnDevice ?? false
 				}),
 			)
 			.pipe(

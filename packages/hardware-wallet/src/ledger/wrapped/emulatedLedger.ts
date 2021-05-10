@@ -6,10 +6,11 @@ import {
 } from '@radixdlt/account'
 import { LedgerInstruction, LedgerResponseCodes, SemVerT } from '../../_types'
 import { WLTSend, WLTSendAPDU } from './_types'
-import { radixCLA } from '../_types'
+import { MockedLedgerNanoRecorderT, radixCLA } from '../_types'
 import { ledgerInstruction } from '../ledgerInstruction'
 import { err, ok, Result } from 'neverthrow'
 import { publicKeyFromBytes } from '@radixdlt/crypto'
+import { Observable, Observer, Subscription } from 'rxjs'
 
 const pathDataByteCount = 12
 const publicKeyByteCount = 64
@@ -49,11 +50,14 @@ const hdPathFromBuffer = (
 const emulateDoKeyExchange = (
 	input: Readonly<{
 		hdMasterNode: HDNodeT
+		recorder: MockedLedgerNanoRecorderT
 		apdu: WLTSendAPDU
 	}>,
 ): Promise<Buffer> => {
-	const { apdu, hdMasterNode } = input
-	const { data } = apdu
+	const subs = new Subscription()
+	const { apdu, hdMasterNode, recorder } = input
+	const { data, p1 } = apdu
+	const { usersInputOnLedger, promptUserForInputOnLedger } = recorder
 
 	const expectLength = pathDataByteCount + publicKeyByteCount
 
@@ -82,19 +86,66 @@ const emulateDoKeyExchange = (
 			.diffieHellman(publicKeyOfOtherParty)
 			.map((a) => a.toBuffer())
 			.match(
-				(buf) => resolve(buf),
+				(buf) => {
+					if (p1 === 1) {
+						subs.add(
+							usersInputOnLedger.subscribe({
+								next: (userInput) => {
+									if (
+										userInput ===
+										LedgerButtonPress.LEFT_REJECT
+									) {
+										reject(
+											LedgerResponseCodes.SW_USER_REJECTED,
+										)
+									} else {
+										resolve(buf)
+									}
+								},
+							}),
+						)
+
+						// Require confirmation on device
+						promptUserForInputOnLedger.next({
+							type: PromptUserForInputType.REQUIRE_CONFIRMATION,
+							instruction: LedgerInstruction.DO_KEY_EXCHANGE,
+						})
+					} else {
+						// TODO need to append status code and length of data?
+						resolve(buf)
+					}
+				},
 				(error) => reject(error),
 			)
 	})
 }
 
+export enum LedgerButtonPress {
+	LEFT_REJECT = 'LEFT_REJECT',
+	RIGHT_ACCEPT = 'RIGHT_ACCEPT',
+	BOTH_CONFIRM = 'BOTH',
+}
+
+export enum PromptUserForInputType {
+	REQUIRE_CONFIRMATION,
+}
+
+export type PromptUserForInput = Readonly<{
+	type: PromptUserForInputType
+	instruction: LedgerInstruction
+}>
+
 const emulateGetPublicKey = (
 	input: Readonly<{
+		recorder: MockedLedgerNanoRecorderT
 		hdMasterNode: HDNodeT
 		apdu: WLTSendAPDU
 	}>,
 ): Promise<Buffer> => {
-	const { apdu, hdMasterNode } = input
+	const subs = new Subscription()
+	const { apdu, hdMasterNode, recorder } = input
+	const { usersInputOnLedger, promptUserForInputOnLedger } = recorder
+
 	const { p1, data } = apdu
 	if (p1 > 1) {
 		return Promise.reject(LedgerResponseCodes.SW_INVALID_PARAM)
@@ -109,15 +160,30 @@ const emulateGetPublicKey = (
 	const publicKey = derivedNode.publicKey
 	const response = publicKey.asData({ compressed: true })
 
-	if (p1 === 1) {
-		// require confirmation on device, how to emulate?
-		return Promise.reject(
-			'Cannot emulate device requiring user to confirm.',
-		)
-	}
+	return new Promise((resolve, reject) => {
+		if (p1 === 1) {
+			subs.add(
+				usersInputOnLedger.subscribe({
+					next: (userInput) => {
+						if (userInput === LedgerButtonPress.LEFT_REJECT) {
+							reject(LedgerResponseCodes.SW_USER_REJECTED)
+						} else {
+							resolve(response)
+						}
+					},
+				}),
+			)
 
-	// TODO need to append status code and length of data?
-	return Promise.resolve(response)
+			// Require confirmation on device
+			promptUserForInputOnLedger.next({
+				type: PromptUserForInputType.REQUIRE_CONFIRMATION,
+				instruction: LedgerInstruction.GET_PUBLIC_KEY,
+			})
+		} else {
+			// TODO need to append status code and length of data?
+			resolve(response)
+		}
+	})
 }
 
 const emulateGetVersion = (
@@ -148,11 +214,12 @@ const emulateGetVersion = (
 
 export const emulateSend = (
 	input: Readonly<{
+		recorder: MockedLedgerNanoRecorderT
 		hdMasterNode: HDNodeT
 		hardcodedVersion: SemVerT
 	}>,
 ): WLTSend => {
-	const { hdMasterNode, hardcodedVersion } = input
+	const { hardcodedVersion } = input
 	return (
 		cla: number,
 		ins: number,
@@ -181,13 +248,13 @@ export const emulateSend = (
 		switch (instruction) {
 			case LedgerInstruction.GET_PUBLIC_KEY: {
 				return emulateGetPublicKey({
-					hdMasterNode,
+					...input,
 					apdu,
 				})
 			}
 			case LedgerInstruction.DO_KEY_EXCHANGE: {
 				return emulateDoKeyExchange({
-					hdMasterNode,
+					...input,
 					apdu,
 				})
 			}

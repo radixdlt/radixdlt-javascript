@@ -73,12 +73,14 @@ const getPublicKey = (input: APDUGetPublicKeyInput): RadixAPDUT => {
 	})
 }
 
-type APDUDoKeyExchageInput = WithPath &
+type APDUDoKeyExchageInput = APDUGetPublicKeyInput &
 	Readonly<{
 		publicKeyOfOtherParty: PublicKey
 	}>
 
 const doKeyExchange = (input: APDUDoKeyExchageInput): RadixAPDUT => {
+	const p1: number = input.requireConfirmationOnDevice ? 0x01 : 0x00
+
 	const publicKeyData = input.publicKeyOfOtherParty.asData({
 		compressed: false,
 	})
@@ -87,6 +89,7 @@ const doKeyExchange = (input: APDUDoKeyExchageInput): RadixAPDUT => {
 
 	return makeAPDU({
 		ins: LedgerInstruction.DO_KEY_EXCHANGE,
+		p1,
 		data,
 	})
 }

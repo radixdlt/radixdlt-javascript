@@ -2,14 +2,16 @@ import { WrappedLedgerTransport } from '../src/ledger/wrapped/wrappedTransport'
 import { LedgerNano } from '../src/ledger/ledgerNano'
 import { RadixAPDU } from '../src/ledger/apdu'
 import { HDPathRadix, Mnemonic } from '@radixdlt/account'
-import { Observable, of, Subscription } from 'rxjs'
+import { Observable, Observer, of, Subject, Subscription } from 'rxjs'
 import { HardwareWallet } from '../src/hardwareWallet'
 import {
 	ECPointOnCurveT,
 	PublicKey,
 	publicKeyFromBytes,
 } from '@radixdlt/crypto'
-import { SemVerT } from '../src'
+import { LedgerInstruction, SemVerT } from '../src'
+import { LedgerButtonPress, PromptUserForInput, PromptUserForInputType } from '../src/ledger/wrapped/emulatedLedger'
+import { MockedLedgerNanoRecorder } from '../src/ledger/mockedLedgerNanoRecorder'
 
 describe('wrappedTransport', () => {
 	describe('recorded', () => {
@@ -61,12 +63,38 @@ describe('wrappedTransport', () => {
 		it('getPublicKey', (done) => {
 			const subs = new Subscription()
 
+
+			const usersInputOnLedger = new Subject<LedgerButtonPress>()
+			const promptUserForInputOnLedger = new Subject<PromptUserForInput>()
+
+
+			const recorder = MockedLedgerNanoRecorder.create({
+				io: {
+					usersInputOnLedger,
+					promptUserForInputOnLedger
+				}})
+
+
+			let userWasPromptedToConfirmPubKey = false
+
+			subs.add(
+				promptUserForInputOnLedger.subscribe({
+					next: ((prompt) => {
+						if (prompt.type === PromptUserForInputType.REQUIRE_CONFIRMATION) {
+							userWasPromptedToConfirmPubKey = prompt.instruction === LedgerInstruction.GET_PUBLIC_KEY
+							usersInputOnLedger.next(LedgerButtonPress.RIGHT_ACCEPT)
+						}
+					})
+				})
+			)
+
+			
 			const ledgerNano = LedgerNano.emulate({
+				recorder,
 				mnemonic: Mnemonic.fromEnglishPhrase(
 					'equip will roof matter pink blind book anxiety banner elbow sun young',
 				)._unsafeUnwrap(),
 			})
-
 			const store = ledgerNano.store
 
 			let hardwareWallet = HardwareWallet.ledger(ledgerNano)
@@ -78,9 +106,13 @@ describe('wrappedTransport', () => {
 						path: HDPathRadix.fromString(
 							`m/44'/536'/2'/1/3`,
 						)._unsafeUnwrap(),
+						requireConfirmationOnDevice: true,
 					})
 					.subscribe(
 						(publicKey: PublicKey) => {
+
+							expect(userWasPromptedToConfirmPubKey).toBe(true)
+							expect(store.userIO.length).toBe(1)
 							expect(store.recorded.length).toBe(1)
 							const request = store.lastRequest()
 							const response = store.lastResponse()
@@ -88,7 +120,7 @@ describe('wrappedTransport', () => {
 							// Assert request
 							expect(request.cla).toBe(0xaa)
 							expect(request.ins).toBe(0x08)
-							expect(request.p1).toBe(0)
+							expect(request.p1).toBe(1)
 							expect(request.p2).toBe(0)
 
 							expect(request.data).toBeDefined()
@@ -118,11 +150,35 @@ describe('wrappedTransport', () => {
 	it('doKeyExchange', (done) => {
 		const subs = new Subscription()
 
+		const usersInputOnLedger = new Subject<LedgerButtonPress>()
+		const promptUserForInputOnLedger = new Subject<PromptUserForInput>()
+
+
+		const recorder = MockedLedgerNanoRecorder.create({
+			io: {
+				usersInputOnLedger,
+				promptUserForInputOnLedger
+			}})
+
 		const ledgerNano = LedgerNano.emulate({
 			mnemonic: Mnemonic.fromEnglishPhrase(
 				'equip will roof matter pink blind book anxiety banner elbow sun young',
 			)._unsafeUnwrap(),
+			recorder,
 		})
+
+		let userWasPromptedToConfirmKeyExchange = false
+
+		subs.add(
+			promptUserForInputOnLedger.subscribe({
+				next: ((prompt) => {
+					if (prompt.type === PromptUserForInputType.REQUIRE_CONFIRMATION) {
+						userWasPromptedToConfirmKeyExchange = prompt.instruction === LedgerInstruction.DO_KEY_EXCHANGE
+						usersInputOnLedger.next(LedgerButtonPress.RIGHT_ACCEPT)
+					}
+				})
+			})
+		)
 
 		const store = ledgerNano.store
 
@@ -145,9 +201,14 @@ describe('wrappedTransport', () => {
 						`m/44'/536'/2'/1/3`,
 					)._unsafeUnwrap(),
 					publicKeyOfOtherParty,
+					requireConfirmationOnDevice: true
 				})
 				.subscribe(
 					(ecPointOnCurve: ECPointOnCurveT) => {
+
+						expect(userWasPromptedToConfirmKeyExchange).toBe(true)
+						expect(store.userIO.length).toBe(1)
+
 						expect(store.recorded.length).toBe(1)
 						const request = store.lastRequest()
 						const response = store.lastResponse()
@@ -155,7 +216,7 @@ describe('wrappedTransport', () => {
 						// Assert request
 						expect(request.cla).toBe(0xaa)
 						expect(request.ins).toBe(0x04)
-						expect(request.p1).toBe(0)
+						expect(request.p1).toBe(1)
 						expect(request.p2).toBe(0)
 						expect(request.data).toBeDefined()
 						expect(request.data!.toString('hex')).toBe('0000000200000001000000030479be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8')

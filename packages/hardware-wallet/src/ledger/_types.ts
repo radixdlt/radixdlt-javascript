@@ -1,6 +1,7 @@
-import { Observable } from 'rxjs'
+import { Observable, Observer, Subject } from 'rxjs'
 import { LedgerInstruction, LedgerResponseCodes } from '../_types'
 import { APDUT } from './wrapped'
+import { LedgerButtonPress, PromptUserForInput } from './wrapped/emulatedLedger'
 
 export type CreateLedgerNanoTransportInput = Readonly<{
 	openTimeout?: number
@@ -52,17 +53,35 @@ export type RequestAndResponse = Readonly<{
 	response: LedgerResponse
 }>
 
+export type UserOutputAndInput = Readonly<{
+	toUser: PromptUserForInput
+	fromUser: LedgerButtonPress
+}>
+
 export type MockedLedgerNanoStoreT = Readonly<{
+	// IO between GUI wallet and Ledger Nano
 	recorded: RequestAndResponse[]
 	lastRnR: () => RequestAndResponse
 	lastRequest: () => RadixAPDUT
 	lastResponse: () => LedgerResponse
+
+	// Input from user using buttons and output to user on display
+	userIO: UserOutputAndInput[]
+	lastUserInput: () => LedgerButtonPress
+	lastPromptToUser: () => PromptUserForInput
 }>
 
-export type MockedLedgerNanoRecorderT = MockedLedgerNanoStoreT & {
-	recordRequest: (request: LedgerRequest) => void
-	recordResponse: (response: LedgerResponse) => RequestAndResponse
-}
+export type EmulatedLedgerIO = Readonly<{
+	usersInputOnLedger: Subject<LedgerButtonPress>
+	promptUserForInputOnLedger: Subject<PromptUserForInput>
+}>
+
+export type MockedLedgerNanoRecorderT = MockedLedgerNanoStoreT &
+	EmulatedLedgerIO &
+	Readonly<{
+		recordRequest: (request: LedgerRequest) => void
+		recordResponse: (response: LedgerResponse) => RequestAndResponse
+	}>
 
 export type MockedLedgerNanoT = LedgerNanoT &
 	Readonly<{

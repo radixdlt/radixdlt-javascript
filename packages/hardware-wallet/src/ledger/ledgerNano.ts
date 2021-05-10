@@ -13,8 +13,8 @@ import { LedgerNanoTransportT, WrappedLedgerTransportT } from './wrapped'
 import { MnemomicT, Mnemonic } from '@radixdlt/account'
 import { map, tap } from 'rxjs/operators'
 import { v4 as uuidv4 } from 'uuid'
-import { MockedLedgerNanoRecorder } from './mockedLedgerNanoRecorder'
 import { WrappedLedgerTransport } from './wrapped/wrappedTransport'
+import { MockedLedgerNanoRecorder } from './mockedLedgerNanoRecorder'
 
 const createWithTransport = (
 	input: Readonly<{
@@ -62,15 +62,20 @@ const wrappedTransport = (transport: WrappedLedgerTransportT): LedgerNanoT => {
 }
 
 const emulate = (
-	input?: Readonly<{
+	input: Readonly<{
+		recorder?: MockedLedgerNanoRecorderT
 		mnemonic?: MnemomicT
 		passphrase?: string
 	}>,
 ): MockedLedgerNanoT => {
-	const passphrase = input?.passphrase
-	const mnemonic = input?.mnemonic ?? Mnemonic.generateNew()
-	const recorder = MockedLedgerNanoRecorder.create()
+	const passphrase = input.passphrase
+	const mnemonic = input.mnemonic ?? Mnemonic.generateNew()
+
+	const recorder = input.recorder ?? MockedLedgerNanoRecorder.create()
+
 	const emulatedTransport = WrappedLedgerTransport.emulate({
+		...input,
+		recorder,
 		mnemonic,
 		passphrase,
 	})
@@ -80,7 +85,7 @@ const emulate = (
 
 	const ledgerNano = createWithTransport({
 		transport,
-		recorder,
+		recorder: recorder,
 	})
 
 	return {
