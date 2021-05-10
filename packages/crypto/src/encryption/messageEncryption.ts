@@ -1,4 +1,4 @@
-import { ECPointOnCurve, PublicKey } from '../_types'
+import { ECPointOnCurveT, PublicKey } from '../_types'
 import { secureRandomGenerator } from '@radixdlt/util'
 import { combine, errAsync, okAsync, Result, ResultAsync } from 'neverthrow'
 import {
@@ -22,14 +22,14 @@ import { EncryptionScheme } from './encryptionScheme'
 
 type CalculateSharedSecretInput = Readonly<{
 	ephemeralPublicKey: PublicKey
-	diffieHellmanPoint: () => ResultAsync<ECPointOnCurve, Error>
+	diffieHellmanPoint: () => ResultAsync<ECPointOnCurveT, Error>
 }>
 
 const calculateSharedSecret = (
 	input: CalculateSharedSecretInput,
 ): ResultAsync<Buffer, Error> => {
 	const { diffieHellmanPoint } = input
-	return diffieHellmanPoint().map((dhKey: ECPointOnCurve) => {
+	return diffieHellmanPoint().map((dhKey: ECPointOnCurveT) => {
 		const ephemeralPoint = input.ephemeralPublicKey.decodeToPointOnCurve()
 		const sharedSecretPoint = dhKey.add(ephemeralPoint)
 		return Buffer.from(sharedSecretPoint.x.toString(16), 'hex')
@@ -76,7 +76,7 @@ const aesSealedBoxFromSealedMessage = (
 const decryptSealedMessageWithKeysOfParties = (
 	input: Readonly<{
 		sealedMessage: SealedMessageT
-		diffieHellmanPoint: () => ResultAsync<ECPointOnCurve, Error>
+		diffieHellmanPoint: () => ResultAsync<ECPointOnCurveT, Error>
 	}>,
 ): ResultAsync<Buffer, Error> => {
 	const ephemeralPublicKey = input.sealedMessage.ephemeralPublicKey
@@ -109,7 +109,7 @@ const decryptSealedMessageWithKeysOfParties = (
 const decryptMessage = (
 	input: Readonly<{
 		encryptedMessage: EncryptedMessageT
-		diffieHellmanPoint: () => ResultAsync<ECPointOnCurve, Error>
+		diffieHellmanPoint: () => ResultAsync<ECPointOnCurveT, Error>
 	}>,
 ): ResultAsync<Buffer, Error> => {
 	const { encryptedMessage } = input
@@ -124,7 +124,7 @@ const decryptMessage = (
 const decryptEncryptedMessageBuffer = (
 	input: Readonly<{
 		encryptedMessageBuffer: Buffer
-		diffieHellmanPoint: () => ResultAsync<ECPointOnCurve, Error>
+		diffieHellmanPoint: () => ResultAsync<ECPointOnCurveT, Error>
 	}>,
 ): ResultAsync<Buffer, Error> =>
 	EncryptedMessage.fromBuffer(input.encryptedMessageBuffer)

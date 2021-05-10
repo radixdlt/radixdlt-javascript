@@ -10,6 +10,7 @@ import { LedgerNanoT } from './ledger'
 import { Observable, throwError } from 'rxjs'
 import {
 	ECPointOnCurve,
+	ECPointOnCurveT,
 	PublicKey,
 	publicKeyFromBytes,
 	Signature,
@@ -18,7 +19,6 @@ import { RadixAPDU } from './ledger/apdu'
 import { HDPathRadix, toObservableFromResult } from '@radixdlt/account'
 import { mergeMap } from 'rxjs/operators'
 import { SemVer } from './ledger/semVer'
-import { err, Result } from 'neverthrow'
 
 const path000H = HDPathRadix.create({ address: { index: 0, isHardened: true } })
 
@@ -27,7 +27,7 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 		return ledgerNano
 			.sendAPDUToDevice(
 				RadixAPDU.getPublicKey({
-					hdPath: input.path ?? path000H,
+					path: input.path ?? path000H,
 					requireConfirmationOnDevice:
 						input.requireConfirmationOnDevice ?? false, // passing 'false' is convenient for testing
 				}),
@@ -50,9 +50,23 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 	)
 	const doSign = (_input: SignInput): Observable<Signature> =>
 		throwError(new Error('not impl'))
+
 	const doKeyExchange = (
-		_input: KeyExchangeInput,
-	): Observable<ECPointOnCurve> => throwError(new Error('not impl'))
+		input: KeyExchangeInput,
+	): Observable<ECPointOnCurveT> => {
+		return ledgerNano
+			.sendAPDUToDevice(
+				RadixAPDU.doKeyExchange({
+					...input,
+					path: input.path ?? path000H,
+				}),
+			)
+			.pipe(
+				mergeMap((buf) =>
+					toObservableFromResult(ECPointOnCurve.fromBuffer(buf)),
+				),
+			)
+	}
 
 	return {
 		deviceConnectionStatus,

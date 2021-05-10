@@ -14,7 +14,7 @@ import {
 	PublicKey,
 	PrivateKey,
 	Hasher,
-	ECPointOnCurve,
+	ECPointOnCurveT,
 	DiffieHellman,
 } from '../_types'
 import { publicKeyFromPrivateKey } from './wrap/publicKeyWrapped'
@@ -41,7 +41,7 @@ const privateKeyFromValidatedScalar = (scalar: UInt256): PrivateKey => {
 
 	const diffieHellman: DiffieHellman = (
 		publicKeyOfOtherParty: PublicKey,
-	): ResultAsync<ECPointOnCurve, Error> => {
+	): ResultAsync<ECPointOnCurveT, Error> => {
 		return okAsync(
 			publicKeyOfOtherParty
 				.decodeToPointOnCurve()

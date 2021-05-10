@@ -8,11 +8,11 @@ import {
 	generateKeyPair,
 	sha256,
 	publicKeyCompressedByteCount,
+	ECPointOnCurve,
 } from '../src/index'
 
 import { UInt256 } from '@radixdlt/uint256'
 import { publicKeyFromPrivateKeyScalar } from '../src/elliptic-curve/wrap/publicKeyWrapped'
-import { pointOnCurve } from '../src/elliptic-curve/wrap/ecPointOnCurve'
 import { signatureFromHexStrings } from './utils'
 import { msgFromError } from '@radixdlt/util'
 
@@ -214,7 +214,7 @@ describe('elliptic curve cryptography', () => {
 	})
 
 	it('can construct ECPoint from X and Y', () => {
-		const manualG = pointOnCurve({
+		const manualG = ECPointOnCurve.fromXY({
 			x: new UInt256(
 				'79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
 				16,
@@ -228,7 +228,7 @@ describe('elliptic curve cryptography', () => {
 	})
 
 	it('cannot construct points that is not on the curve', () => {
-		pointOnCurve({
+		ECPointOnCurve.fromXY({
 			x: UInt256.valueOf(1337),
 			y: UInt256.valueOf(1337),
 		}).match(

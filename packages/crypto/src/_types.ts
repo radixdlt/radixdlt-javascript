@@ -5,7 +5,7 @@ export type Hasher = (input: Buffer | string) => Buffer
 
 export type DiffieHellman = (
 	publicKeyOfOtherParty: PublicKey,
-) => ResultAsync<ECPointOnCurve, Error>
+) => ResultAsync<ECPointOnCurveT, Error>
 
 export type Signer = Readonly<{
 	sign: (hashedMessage: Buffer) => ResultAsync<Signature, Error>
@@ -26,14 +26,15 @@ export type Signature = Readonly<{
 }>
 
 // A non-infinity point on the EC curve (e.g. `secp256k1`)
-export type ECPointOnCurve = Readonly<{
+export type ECPointOnCurveT = Readonly<{
 	x: UInt256
 	y: UInt256
 	toBuffer: () => Buffer
-	equals: (other: ECPointOnCurve) => boolean
-	add: (other: ECPointOnCurve) => ECPointOnCurve
-	multiply: (by: UInt256) => ECPointOnCurve
-	multiplyWithPrivateKey: (privateKey: PrivateKey) => ECPointOnCurve
+	toString: () => string
+	equals: (other: ECPointOnCurveT) => boolean
+	add: (other: ECPointOnCurveT) => ECPointOnCurveT
+	multiply: (by: UInt256) => ECPointOnCurveT
+	multiplyWithPrivateKey: (privateKey: PrivateKey) => ECPointOnCurveT
 }>
 
 export const publicKeyCompressedByteCount = 33
@@ -48,7 +49,7 @@ export type PublicKey = Readonly<{
 			hashedMessage: Buffer
 		}>,
 	) => boolean
-	decodeToPointOnCurve: () => ECPointOnCurve
+	decodeToPointOnCurve: () => ECPointOnCurveT
 	equals: (other: PublicKey) => boolean
 }>
 

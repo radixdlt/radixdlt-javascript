@@ -1,5 +1,5 @@
 import {
-	ECPointOnCurve,
+	ECPointOnCurveT,
 	MessageEncryption,
 	privateKeyFromScalar,
 	PublicKey,
@@ -75,7 +75,7 @@ describe('signingKey_type', () => {
 		})
 	})
 
-	it('radix_hd_path_hardened', () => {
+	it('radix_hd_path_hardened', async () => {
 		const mnemonic = Mnemonic.fromEnglishPhrase(
 			'equip will roof matter pink blind book anxiety banner elbow sun young',
 		)._unsafeUnwrap()
@@ -88,6 +88,19 @@ describe('signingKey_type', () => {
 			hdPath,
 			hdMasterSeed,
 		})
+
+		const otherPubKey = publicKeyFromBytes(
+			Buffer.from(
+				'0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
+				'hex',
+			),
+		)._unsafeUnwrap()
+		const keyExchange = (
+			await signingKey.__diffieHellman(otherPubKey)
+		)._unsafeUnwrap()
+		expect(keyExchange.toString()).toBe(
+			'a61e5f4dd2bdc5352243264aa431702c988e77ecf9e61bbcd0b0dd26ad2280fcf2a8c7dc20f325655b8de617c5b5425a8fca413a033f50790b69588b0a5f7986',
+		)
 
 		expect(signingKey.publicKey.toString(true)).toBe(
 			'02a61e5f4dd2bdc5352243264aa431702c988e77ecf9e61bbcd0b0dd26ad2280fc',
@@ -137,7 +150,7 @@ describe('signingKey_type', () => {
 						hdPath: BIP32T
 						publicKeyOfOtherParty: PublicKey
 					}>,
-				): Observable<ECPointOnCurve> => {
+				): Observable<ECPointOnCurveT> => {
 					return toObservable(
 						accountFromHDPath(input.hdPath).__diffieHellman(
 							input.publicKeyOfOtherParty,

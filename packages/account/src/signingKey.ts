@@ -1,6 +1,6 @@
 import {
 	DiffieHellman,
-	ECPointOnCurve,
+	ECPointOnCurveT,
 	EncryptedMessageT,
 	isPublicKey,
 	MessageEncryption,
@@ -91,7 +91,7 @@ const makeDecrypt = (diffieHellman: DiffieHellman): Decrypt => {
 		return toObservable(
 			MessageEncryption.decrypt({
 				...input,
-				diffieHellmanPoint: (): ResultAsync<ECPointOnCurve, Error> => {
+				diffieHellmanPoint: (): ResultAsync<ECPointOnCurveT, Error> => {
 					return diffieHellman(input.publicKeyOfOtherParty)
 				},
 			}).map((buf: Buffer) => buf.toString('utf-8')),
@@ -106,7 +106,7 @@ const makeEncrypt = (diffieHellman: DiffieHellman): Encrypt => {
 		return toObservable(
 			MessageEncryption.encrypt({
 				...input,
-				diffieHellmanPoint: (): ResultAsync<ECPointOnCurve, Error> => {
+				diffieHellmanPoint: (): ResultAsync<ECPointOnCurveT, Error> => {
 					return diffieHellman(input.publicKeyOfOtherParty)
 				},
 			}),
@@ -127,7 +127,7 @@ const makeEncryptHW = (
 				publicKeyOfOtherParty: input.publicKeyOfOtherParty,
 			})
 			.pipe(
-				mergeMap((dhPoint: ECPointOnCurve) =>
+				mergeMap((dhPoint: ECPointOnCurveT) =>
 					toObservable(
 						MessageEncryption.encrypt({
 							plaintext: input.plaintext,
@@ -150,12 +150,12 @@ const makeDecryptHW = (
 				publicKeyOfOtherParty: input.publicKeyOfOtherParty,
 			})
 			.pipe(
-				mergeMap((dhPoint: ECPointOnCurve) =>
+				mergeMap((dhPoint: ECPointOnCurveT) =>
 					toObservable(
 						MessageEncryption.decrypt({
 							encryptedMessage: input.encryptedMessage,
 							diffieHellmanPoint: (): ResultAsync<
-								ECPointOnCurve,
+								ECPointOnCurveT,
 								Error
 							> => {
 								return okAsync(dhPoint)
@@ -296,7 +296,7 @@ const fromHDPathWithHardwareWallet = (
 					},
 					__diffieHellman: (
 						_publicKeyOfOtherParty: PublicKey,
-					): ResultAsync<ECPointOnCurve, Error> => {
+					): ResultAsync<ECPointOnCurveT, Error> => {
 						throw new Error('No Dh here, only used for testing.')
 					},
 				}

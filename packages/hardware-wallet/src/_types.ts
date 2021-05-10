@@ -1,6 +1,6 @@
 import { HDPathRadixT } from '@radixdlt/account'
 import { Observable } from 'rxjs'
-import { ECPointOnCurve, PublicKey, Signature } from '@radixdlt/crypto'
+import { ECPointOnCurveT, PublicKey, Signature } from '@radixdlt/crypto'
 
 // Semantic versioning, e.g. 1.0.5
 export type SemVerT = Readonly<{
@@ -44,11 +44,12 @@ export type HardwareWalletT = Readonly<{
 	getVersion: () => Observable<SemVerT>
 	getPublicKey: (input: GetPublicKeyInput) => Observable<PublicKey>
 	doSign: (input: SignInput) => Observable<Signature>
-	doKeyExchange: (input: KeyExchangeInput) => Observable<ECPointOnCurve>
+	doKeyExchange: (input: KeyExchangeInput) => Observable<ECPointOnCurveT>
 }>
 
 export enum LedgerInstruction {
 	GET_VERSION = 0x00,
+	DO_KEY_EXCHANGE = 0x04,
 	GET_PUBLIC_KEY = 0x08,
 }
 

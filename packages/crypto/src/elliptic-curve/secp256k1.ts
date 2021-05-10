@@ -1,8 +1,8 @@
-import { ECPointOnCurve } from '../_types'
-import { pointOnCurve } from './wrap/ecPointOnCurve'
+import { ECPointOnCurveT } from '../_types'
 import { UInt256 } from '@radixdlt/uint256'
+import { ECPointOnCurve } from './wrap/ecPointOnCurve'
 
-const generator = pointOnCurve({
+const generator = ECPointOnCurve.fromXY({
 	x: new UInt256(
 		'79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
 		16,
@@ -37,7 +37,7 @@ export type Curve = Readonly<{
 	/// a.k.a. `P` or `mod`
 	fieldSize: UInt256
 	/// a.k.a. `G`
-	generator: ECPointOnCurve
+	generator: ECPointOnCurveT
 }>
 
 /// The curve E: `y² = x³ + ax + b` over Fp

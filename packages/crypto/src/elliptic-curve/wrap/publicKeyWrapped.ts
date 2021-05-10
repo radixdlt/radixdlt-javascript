@@ -1,11 +1,11 @@
 import { err, ok, Result } from 'neverthrow'
 import { curve, ec } from 'elliptic'
 import BN from 'bn.js'
-import { ECPointOnCurve, PrivateKey, PublicKey, Signature } from '../../_types'
+import { ECPointOnCurveT, PrivateKey, PublicKey, Signature } from '../../_types'
 import { buffersEquals, msgFromError } from '@radixdlt/util'
 import { bnFromUInt256 } from '@radixdlt/primitives'
-import { pointOnCurveFromEllipticShortPoint } from './ecPointOnCurve'
 import { UInt256 } from '@radixdlt/uint256'
+import { __pointOnCurveFromEllipticShortPoint } from './ecPointOnCurve'
 
 const thirdPartyLibEllipticSecp256k1 = new ec('secp256k1')
 
@@ -53,9 +53,9 @@ const publicKeyFromEllipticKey = (
 		toString,
 		isValidSignature: isValidSignature,
 		equals: equals,
-		decodeToPointOnCurve: (): ECPointOnCurve => {
+		decodeToPointOnCurve: (): ECPointOnCurveT => {
 			const shortPoint = ecKeyPair.getPublic() as curve.short.ShortPoint
-			const pointOnCurveResult = pointOnCurveFromEllipticShortPoint(
+			const pointOnCurveResult = __pointOnCurveFromEllipticShortPoint(
 				shortPoint,
 			)
 			if (pointOnCurveResult.isErr())

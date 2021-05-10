@@ -1,16 +1,16 @@
 import { Byte, SecureRandom } from '@radixdlt/util'
-import { PublicKey, ECPointOnCurve } from '../_types'
+import { PublicKey, ECPointOnCurveT } from '../_types'
 import { ResultAsync } from 'neverthrow'
 
 export type MessageEncryptionInput = Readonly<{
 	plaintext: Buffer | string
-	diffieHellmanPoint: () => ResultAsync<ECPointOnCurve, Error>
+	diffieHellmanPoint: () => ResultAsync<ECPointOnCurveT, Error>
 	secureRandom?: SecureRandom
 }>
 
 export type MessageDecryptionInput = Readonly<{
 	encryptedMessage: Buffer | EncryptedMessageT
-	diffieHellmanPoint: () => ResultAsync<ECPointOnCurve, Error>
+	diffieHellmanPoint: () => ResultAsync<ECPointOnCurveT, Error>
 }>
 
 export type EncryptionSchemeT = Readonly<{

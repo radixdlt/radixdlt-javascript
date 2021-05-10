@@ -2,6 +2,7 @@ import { PartialAPDUT, RadixAPDUT, radixCLA } from './_types'
 import { HDPathRadixT, RADIX_COIN_TYPE } from '@radixdlt/account'
 import { LedgerInstruction, LedgerResponseCodes } from '../_types'
 import { BIP32PathComponentT } from '@radixdlt/account'
+import { PublicKey } from '@radixdlt/crypto'
 
 // ##### Follows https://github.com/radixdlt/radixdlt-ledger-app/blob/main/APDUSPEC.md #####
 
@@ -51,15 +52,19 @@ const getVersion = (): RadixAPDUT =>
 		ins: LedgerInstruction.GET_VERSION,
 	})
 
-const getPublicKey = (
-	input: Readonly<{
-		hdPath: HDPathRadixT
+type WithPath = Readonly<{
+	path: HDPathRadixT
+}>
+
+type APDUGetPublicKeyInput = WithPath &
+	Readonly<{
 		requireConfirmationOnDevice: boolean
-	}>,
-): RadixAPDUT => {
+	}>
+
+const getPublicKey = (input: APDUGetPublicKeyInput): RadixAPDUT => {
 	const p1: number = input.requireConfirmationOnDevice ? 0x01 : 0x00
 
-	const data = hdPathToBuffer(input.hdPath)
+	const data = hdPathToBuffer(input.path)
 
 	return makeAPDU({
 		ins: LedgerInstruction.GET_PUBLIC_KEY,
@@ -68,7 +73,26 @@ const getPublicKey = (
 	})
 }
 
+type APDUDoKeyExchageInput = WithPath &
+	Readonly<{
+		publicKeyOfOtherParty: PublicKey
+	}>
+
+const doKeyExchange = (input: APDUDoKeyExchageInput): RadixAPDUT => {
+	const publicKeyData = input.publicKeyOfOtherParty.asData({
+		compressed: false,
+	})
+	const pathData = hdPathToBuffer(input.path)
+	const data = Buffer.concat([pathData, publicKeyData])
+
+	return makeAPDU({
+		ins: LedgerInstruction.DO_KEY_EXCHANGE,
+		data,
+	})
+}
+
 export const RadixAPDU = {
 	getVersion,
 	getPublicKey,
+	doKeyExchange,
 }

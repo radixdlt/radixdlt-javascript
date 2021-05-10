@@ -1,6 +1,6 @@
 import {
 	DiffieHellman,
-	ECPointOnCurve,
+	ECPointOnCurveT,
 	EncryptedMessageT,
 	PrivateKey,
 	PublicKey,
@@ -107,7 +107,7 @@ export type HardwareSigningKeyT = Readonly<{
 			hdPath: BIP32T
 			publicKeyOfOtherParty: PublicKey
 		}>,
-	) => Observable<ECPointOnCurve>
+	) => Observable<ECPointOnCurveT>
 	derivePublicKey: (hdPath: BIP32T) => Observable<PublicKey>
 	sign: (
 		input: Readonly<{
