@@ -35,11 +35,11 @@ const createWithTransportPromise = (
 }
 
 const create = (
-	input: CreateLedgerNanoTransportInput,
+	input?: CreateLedgerNanoTransportInput | undefined,
 ): LedgerNanoTransportT => {
 	const transportPromise = Transport.create(
-		input.openTimeout,
-		input.listenTimeout,
+		input?.openTimeout,
+		input?.listenTimeout,
 	).then((transport_) => WrappedLedgerTransport.from(transport_))
 	return createWithTransportPromise(transportPromise)
 }

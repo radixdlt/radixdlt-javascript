@@ -50,7 +50,9 @@ const createWithTransport = (
 	}
 }
 
-const create = (input: CreateLedgerNanoTransportInput): LedgerNanoT => {
+const create = (
+	input?: CreateLedgerNanoTransportInput | undefined,
+): LedgerNanoT => {
 	const transport = LedgerNanoTransport.create(input)
 	return createWithTransport({ transport })
 }
