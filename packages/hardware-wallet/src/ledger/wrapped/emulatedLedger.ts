@@ -9,8 +9,8 @@ import { WLTSend, WLTSendAPDU } from './_types'
 import { MockedLedgerNanoRecorderT, radixCLA } from '../_types'
 import { ledgerInstruction } from '../ledgerInstruction'
 import { err, ok, Result } from 'neverthrow'
-import { publicKeyFromBytes } from '@radixdlt/crypto'
-import { Observable, Observer, Subscription } from 'rxjs'
+import { Subscription } from 'rxjs'
+import { PublicKey } from '@radixdlt/crypto'
 
 const pathDataByteCount = 12
 const publicKeyByteCount = 64
@@ -47,6 +47,75 @@ const hdPathFromBuffer = (
 	return ok(hdPath)
 }
 
+const emulateDoSignHash = (
+	input: Readonly<{
+		hdMasterNode: HDNodeT
+		recorder: MockedLedgerNanoRecorderT
+		apdu: WLTSendAPDU
+	}>,
+): Promise<Buffer> => {
+	const subs = new Subscription()
+	const { apdu, hdMasterNode, recorder } = input
+	const { data, p1 } = apdu
+	const { usersInputOnLedger, promptUserForInputOnLedger } = recorder
+
+	const sha256HashByteCount = 32
+	const expectLength = pathDataByteCount + sha256HashByteCount
+
+	if (!data || data.length < expectLength) {
+		return Promise.reject(LedgerResponseCodes.SW_INVALID_PARAM)
+	}
+
+	const hdPathResult = hdPathFromBuffer(data)
+	if (!hdPathResult.isOk()) {
+		return Promise.reject(LedgerResponseCodes.SW_INVALID_PARAM)
+	}
+	const hashedData = data.slice(pathDataByteCount)
+	const derivedNode = hdMasterNode.derive(hdPathResult.value)
+
+	const privateKey = derivedNode.privateKey
+
+	return new Promise((resolve, reject) => {
+		void privateKey
+			// .diffieHellman(publicKeyOfOtherParty)
+			.sign(hashedData)
+			.map((a) => a.toDER())
+			.map((der) => Buffer.from(der, 'hex'))
+			.match(
+				(buf) => {
+					if (p1 === 1) {
+						subs.add(
+							usersInputOnLedger.subscribe({
+								next: (userInput) => {
+									if (
+										userInput ===
+										LedgerButtonPress.LEFT_REJECT
+									) {
+										reject(
+											LedgerResponseCodes.SW_USER_REJECTED,
+										)
+									} else {
+										resolve(buf)
+									}
+								},
+							}),
+						)
+
+						// Require confirmation on device
+						promptUserForInputOnLedger.next({
+							type: PromptUserForInputType.REQUIRE_CONFIRMATION,
+							instruction: LedgerInstruction.DO_SIGN_HASH,
+						})
+					} else {
+						// TODO need to append status code and length of data?
+						resolve(buf)
+					}
+				},
+				(error) => reject(error),
+			)
+	})
+}
+
 const emulateDoKeyExchange = (
 	input: Readonly<{
 		hdMasterNode: HDNodeT
@@ -70,7 +139,7 @@ const emulateDoKeyExchange = (
 		return Promise.reject(LedgerResponseCodes.SW_INVALID_PARAM)
 	}
 	const publicKeyOfOtherPartyBytes = data.slice(pathDataByteCount)
-	const publicKeyOfOtherPartyBytesResult = publicKeyFromBytes(
+	const publicKeyOfOtherPartyBytesResult = PublicKey.fromBuffer(
 		publicKeyOfOtherPartyBytes,
 	)
 	if (!publicKeyOfOtherPartyBytesResult.isOk()) {
@@ -254,6 +323,12 @@ export const emulateSend = (
 			}
 			case LedgerInstruction.DO_KEY_EXCHANGE: {
 				return emulateDoKeyExchange({
+					...input,
+					apdu,
+				})
+			}
+			case LedgerInstruction.DO_SIGN_HASH: {
+				return emulateDoSignHash({
 					...input,
 					apdu,
 				})

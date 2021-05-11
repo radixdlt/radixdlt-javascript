@@ -1,14 +1,13 @@
 import { combine, err, Result } from 'neverthrow'
 import { readBuffer } from '@radixdlt/util'
-import { publicKeyFromBytes } from '../elliptic-curve/publicKey'
 import { AES_GCM, AES_GCM_SealedBoxT } from '../symmetric-encryption'
-import { PublicKey, publicKeyCompressedByteCount } from '../_types'
 import { SealedMessageT } from './_types'
 import { validateLength } from '../utils'
+import { PublicKey, PublicKeyT } from '../elliptic-curve'
 
 const create = (
 	input: Readonly<{
-		ephemeralPublicKey: PublicKey
+		ephemeralPublicKey: PublicKeyT
 		nonce: Buffer
 		authTag: Buffer
 		ciphertext: Buffer
@@ -56,7 +55,7 @@ const sealedMessageFromBuffer = (
 	const sealedMessageLength = buffer.length
 	const lengthOfCiphertext =
 		sealedMessageLength -
-		publicKeyCompressedByteCount -
+		PublicKey.compressedByteCount -
 		sealedMessageNonceLength -
 		sealedMessageAuthTagLength
 
@@ -66,14 +65,14 @@ const sealedMessageFromBuffer = (
 	const readNextBuffer = readBuffer.bind(null, buffer)()
 
 	return combine([
-		readNextBuffer(publicKeyCompressedByteCount).andThen(
-			publicKeyFromBytes,
+		readNextBuffer(PublicKey.compressedByteCount).andThen(
+			PublicKey.fromBuffer,
 		),
 		readNextBuffer(sealedMessageNonceLength),
 		readNextBuffer(sealedMessageAuthTagLength),
 		readNextBuffer(lengthOfCiphertext),
 	]).andThen((resultList) => {
-		const ephemeralPublicKey = resultList[0] as PublicKey
+		const ephemeralPublicKey = resultList[0] as PublicKeyT
 		const nonce = resultList[1] as Buffer
 		const authTag = resultList[2] as Buffer
 		const ciphertext = resultList[3] as Buffer
@@ -89,7 +88,7 @@ const sealedMessageFromBuffer = (
 
 const sealedMsgFromAESSealedBox = (
 	aesSealedBox: AES_GCM_SealedBoxT,
-	ephemeralPublicKey: PublicKey,
+	ephemeralPublicKey: PublicKeyT,
 ): Result<SealedMessageT, Error> =>
 	create({ ...aesSealedBox, ephemeralPublicKey })
 

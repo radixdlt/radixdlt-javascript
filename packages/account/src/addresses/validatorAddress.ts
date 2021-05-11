@@ -1,5 +1,5 @@
 import { err, ok, Result } from 'neverthrow'
-import { PublicKey } from '@radixdlt/crypto'
+import { PublicKeyT } from '@radixdlt/crypto'
 import { Encoding } from '../bech32'
 import {
 	AbstractAddress,
@@ -39,7 +39,7 @@ const networkFromHRP: NetworkFromHRP = (hrp) => {
 
 const fromPublicKeyAndNetwork = (
 	input: Readonly<{
-		publicKey: PublicKey
+		publicKey: PublicKeyT
 		network: NetworkT
 	}>,
 ): ValidatorAddressT =>

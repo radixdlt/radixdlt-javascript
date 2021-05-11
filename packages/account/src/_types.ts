@@ -2,9 +2,9 @@ import {
 	DiffieHellman,
 	ECPointOnCurveT,
 	EncryptedMessageT,
-	PrivateKey,
-	PublicKey,
-	Signature,
+	PrivateKeyT,
+	PublicKeyT,
+	SignatureT,
 } from '@radixdlt/crypto'
 import { Observable } from 'rxjs'
 import { Option } from 'prelude-ts'
@@ -13,12 +13,12 @@ import { MnemomicT } from './bip39'
 
 /* A reactive counterpart of `Signer` in '@radixdlt/crypto' package  */
 export type Signing = Readonly<{
-	sign: (hashedMessage: Buffer) => Observable<Signature>
+	sign: (hashedMessage: Buffer) => Observable<SignatureT>
 }>
 
 export type SigningKeyEncryptionInput = Readonly<{
 	plaintext: Buffer | string
-	publicKeyOfOtherParty: PublicKey
+	publicKeyOfOtherParty: PublicKeyT
 }>
 
 export type Encrypting = Readonly<{
@@ -27,7 +27,7 @@ export type Encrypting = Readonly<{
 
 export type SigningKeyDecryptionInput = Readonly<{
 	encryptedMessage: Buffer | EncryptedMessageT
-	publicKeyOfOtherParty: PublicKey
+	publicKeyOfOtherParty: PublicKeyT
 }>
 
 export type Decrypting = Readonly<{
@@ -65,7 +65,7 @@ export type SigningKeyTypeNonHDT = BaseSigningKeyTypeT<SigningKeyTypeIdentifier.
 export type SigningKeyTypeT = SigningKeyTypeHDT | SigningKeyTypeNonHDT
 
 export type PrivateKeyToSigningKeyInput = Readonly<{
-	privateKey: PrivateKey
+	privateKey: PrivateKeyT
 	name?: string
 }>
 
@@ -78,7 +78,7 @@ export type SigningKeyT = Signing &
 
 		// Type of signingKey: `SigningKeyTypeHDT` or `SigningKeyTypeNonHDT`, where HD has `hdSigningKeyType` which can be `LOCAL` or `HARDWARE_OR_REMOTE` (e.g. Ledger Nano)
 		type: SigningKeyTypeT
-		publicKey: PublicKey
+		publicKey: PublicKeyT
 
 		// sugar for `type.uniqueKey`
 		uniqueIdentifier: string
@@ -105,16 +105,16 @@ export type HardwareSigningKeyT = Readonly<{
 	diffieHellman: (
 		input: Readonly<{
 			hdPath: BIP32T
-			publicKeyOfOtherParty: PublicKey
+			publicKeyOfOtherParty: PublicKeyT
 		}>,
 	) => Observable<ECPointOnCurveT>
-	derivePublicKey: (hdPath: BIP32T) => Observable<PublicKey>
+	derivePublicKey: (hdPath: BIP32T) => Observable<PublicKeyT>
 	sign: (
 		input: Readonly<{
 			hashedMessage: Buffer
 			hdPath: BIP32T
 		}>,
-	) => Observable<Signature>
+	) => Observable<SignatureT>
 }>
 
 export type SigningKeysT = Readonly<{
@@ -124,7 +124,7 @@ export type SigningKeysT = Readonly<{
 	// Get only HD signingKey, by its path
 	getHDSigningKeyByHDPath: (hdPath: HDPathRadixT) => Option<SigningKeyT>
 	// Get any signingKey by its public key
-	getAnySigningKeyByPublicKey: (publicKey: PublicKey) => Option<SigningKeyT>
+	getAnySigningKeyByPublicKey: (publicKey: PublicKeyT) => Option<SigningKeyT>
 
 	all: SigningKeyT[]
 

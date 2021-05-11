@@ -2,13 +2,13 @@ import { HDMasterSeedT, HDNodeT, MnemomicT } from './_types'
 import { mnemonicToSeedSync } from 'bip39'
 import HDNodeThirdParty from 'hdkey'
 import { BIP32T } from '../bip32/_types'
-import { privateKeyFromBuffer } from '@radixdlt/crypto'
 import { Result, err, ok } from 'neverthrow'
+import { PrivateKey } from '@radixdlt/crypto'
 
 const hdNodeFromHDNodeThirdParty = (
 	hdNodeThirdParty: HDNodeThirdParty,
 ): HDNodeT => {
-	const privateKeyResult = privateKeyFromBuffer(hdNodeThirdParty.privateKey)
+	const privateKeyResult = PrivateKey.fromBuffer(hdNodeThirdParty.privateKey)
 	if (privateKeyResult.isErr())
 		throw new Error(
 			`Incorrect implementation, failed to get private key from HDNode, third party lib 'hdkey' might be buggy?`,

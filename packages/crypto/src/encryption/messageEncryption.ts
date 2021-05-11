@@ -1,4 +1,3 @@
-import { ECPointOnCurveT, PublicKey } from '../_types'
 import { secureRandomGenerator } from '@radixdlt/util'
 import { combine, errAsync, okAsync, Result, ResultAsync } from 'neverthrow'
 import {
@@ -14,14 +13,14 @@ import {
 	AES_GCM,
 	aesGCMSealDeterministic,
 } from '../symmetric-encryption'
-import { generateKeyPair } from '../elliptic-curve'
 import { sha256 } from '../hash'
 import { EncryptedMessage } from './encryptedMessage'
 import { SealedMessage } from './sealedMessage'
 import { EncryptionScheme } from './encryptionScheme'
+import { ECPointOnCurveT, KeyPair, PublicKeyT } from '../elliptic-curve'
 
 type CalculateSharedSecretInput = Readonly<{
-	ephemeralPublicKey: PublicKey
+	ephemeralPublicKey: PublicKeyT
 	diffieHellmanPoint: () => ResultAsync<ECPointOnCurveT, Error>
 }>
 
@@ -148,7 +147,7 @@ const decrypt = (input: MessageDecryptionInput): ResultAsync<Buffer, Error> =>
 type DeterministicMessageEncryptionInput = MessageEncryptionInput &
 	Readonly<{
 		nonce: Buffer
-		ephemeralPublicKey: PublicKey
+		ephemeralPublicKey: PublicKeyT
 	}>
 
 const encodePlaintext = (plaintext: Buffer | string): Buffer => {
@@ -207,7 +206,7 @@ const encrypt = (
 		'hex',
 	)
 
-	const ephemeralKeyPair = generateKeyPair(secureRandom)
+	const ephemeralKeyPair = KeyPair.generateNew(secureRandom)
 
 	const ephemeralPublicKey = ephemeralKeyPair.publicKey
 

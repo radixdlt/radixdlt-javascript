@@ -2,10 +2,10 @@ import { UInt256 } from '@radixdlt/uint256'
 
 import { combine, err, ok, Result } from 'neverthrow'
 import { curve, ec } from 'elliptic'
-import { ECPointOnCurveT, PrivateKey } from '../../_types'
 import { ValidationWitness } from '@radixdlt/util'
 import { bnFromUInt256, uint256FromBN } from '@radixdlt/primitives'
 import { log } from '@radixdlt/util'
+import { ECPointOnCurveT, PrivateKeyT } from './_types'
 
 const thirdPartyLibEllipticSecp256k1 = new ec('secp256k1')
 
@@ -83,7 +83,7 @@ const ecPointOnCurveFromCoordinates = (
 			return sumPoint.value
 		},
 		multiply: multiplyByScalar,
-		multiplyWithPrivateKey: (privateKey: PrivateKey): ECPointOnCurveT =>
+		multiplyWithPrivateKey: (privateKey: PrivateKeyT): ECPointOnCurveT =>
 			multiplyByScalar(privateKey.scalar),
 	}
 }

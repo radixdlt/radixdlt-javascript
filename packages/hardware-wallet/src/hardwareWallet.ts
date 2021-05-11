@@ -4,7 +4,7 @@ import {
 	HardwareWalletT,
 	KeyExchangeInput,
 	SemVerT,
-	SignInput,
+	SignHashInput,
 } from './_types'
 import { LedgerNanoT } from './ledger'
 import { Observable, throwError } from 'rxjs'
@@ -12,18 +12,19 @@ import {
 	ECPointOnCurve,
 	ECPointOnCurveT,
 	PublicKey,
-	publicKeyFromBytes,
-	Signature,
+	PublicKeyT,
+	SignatureT,
 } from '@radixdlt/crypto'
 import { RadixAPDU } from './ledger/apdu'
 import { HDPathRadix, toObservableFromResult } from '@radixdlt/account'
 import { mergeMap } from 'rxjs/operators'
 import { SemVer } from './ledger/semVer'
+import { Signature } from '@radixdlt/crypto/dist/elliptic-curve/signature'
 
 const path000H = HDPathRadix.create({ address: { index: 0, isHardened: true } })
 
 const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
-	const getPublicKey = (input: GetPublicKeyInput): Observable<PublicKey> => {
+	const getPublicKey = (input: GetPublicKeyInput): Observable<PublicKeyT> => {
 		return ledgerNano
 			.sendAPDUToDevice(
 				RadixAPDU.getPublicKey({
@@ -34,7 +35,7 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 			)
 			.pipe(
 				mergeMap((buf) =>
-					toObservableFromResult(publicKeyFromBytes(buf)),
+					toObservableFromResult(PublicKey.fromBuffer(buf)),
 				),
 			)
 	}
@@ -48,8 +49,23 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 	const deviceConnectionStatus: Observable<HardwareWalletDeviceConnectionStatus> = throwError(
 		new Error('not impl'),
 	)
-	const doSign = (_input: SignInput): Observable<Signature> =>
-		throwError(new Error('not impl'))
+
+	const doSignHash = (input: SignHashInput): Observable<SignatureT> => {
+		return ledgerNano
+			.sendAPDUToDevice(
+				RadixAPDU.doSignHash({
+					path: input.path ?? path000H,
+					requireConfirmationOnDevice:
+						input.requireConfirmationOnDevice ?? false,
+					hashToSign: input.hashToSign,
+				}),
+			)
+			.pipe(
+				mergeMap((buf) =>
+					toObservableFromResult(Signature.fromDER(buf)),
+				),
+			)
+	}
 
 	const doKeyExchange = (
 		input: KeyExchangeInput,
@@ -74,7 +90,7 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 		deviceConnectionStatus,
 		getPublicKey,
 		getVersion,
-		doSign,
+		doSignHash,
 		doKeyExchange,
 	}
 }

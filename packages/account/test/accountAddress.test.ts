@@ -1,10 +1,6 @@
 import { AccountAddress } from '../src'
 
-import {
-	privateKeyFromBuffer,
-	publicKeyCompressedByteCount,
-	sha256Twice,
-} from '@radixdlt/crypto'
+import { PrivateKey, PublicKey, sha256Twice } from '@radixdlt/crypto'
 import { NetworkT } from '../src'
 import { msgFromError } from '@radixdlt/util'
 
@@ -52,7 +48,7 @@ describe('account_address_on_bech32_format', () => {
 			it(`vector_index${index}`, () => {
 				const seed = Buffer.from(vector.privateKeySeed, 'hex')
 				const hash = sha256Twice(seed)
-				const privateKey = privateKeyFromBuffer(hash)._unsafeUnwrap()
+				const privateKey = PrivateKey.fromBuffer(hash)._unsafeUnwrap()
 				const publicKey = privateKey.publicKey()
 
 				const addr = AccountAddress.fromPublicKeyAndNetwork({
@@ -87,7 +83,7 @@ describe('account_address_on_bech32_format', () => {
 			{
 				address:
 					'brx1qspqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqs7cr9az',
-				data: '02'.repeat(publicKeyCompressedByteCount),
+				data: '02'.repeat(PublicKey.compressedByteCount),
 			},
 		]
 		const doTest = (vector: RRIDesVector, index: number): void => {

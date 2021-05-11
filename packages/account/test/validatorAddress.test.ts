@@ -1,4 +1,4 @@
-import { privateKeyFromBuffer, sha256Twice } from '@radixdlt/crypto'
+import { PrivateKey, sha256Twice } from '@radixdlt/crypto'
 import { ValidatorAddress, NetworkT } from '../src'
 import { msgFromError, restoreDefaultLogLevel } from '@radixdlt/util'
 import { log } from '@radixdlt/util'
@@ -47,7 +47,7 @@ describe('validator_address_on_bech32_format', () => {
 			it(`vector_index${index}`, () => {
 				const seed = Buffer.from(vector.privateKeySeed, 'hex')
 				const hash = sha256Twice(seed)
-				const privateKey = privateKeyFromBuffer(hash)._unsafeUnwrap()
+				const privateKey = PrivateKey.fromBuffer(hash)._unsafeUnwrap()
 				const publicKey = privateKey.publicKey()
 
 				const addr = ValidatorAddress.fromPublicKeyAndNetwork({

@@ -1,6 +1,6 @@
-import { ECPointOnCurveT } from '../_types'
 import { UInt256 } from '@radixdlt/uint256'
-import { ECPointOnCurve } from './wrap/ecPointOnCurve'
+import { ECPointOnCurve } from './ecPointOnCurve'
+import { ECPointOnCurveT } from './_types'
 
 const generator = ECPointOnCurve.fromXY({
 	x: new UInt256(

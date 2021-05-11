@@ -1,6 +1,6 @@
 import { Byte, SecureRandom } from '@radixdlt/util'
-import { PublicKey, ECPointOnCurveT } from '../_types'
 import { ResultAsync } from 'neverthrow'
+import { ECPointOnCurveT, PublicKeyT } from '../elliptic-curve'
 
 export type MessageEncryptionInput = Readonly<{
 	plaintext: Buffer | string
@@ -23,7 +23,7 @@ export type EncryptionSchemeT = Readonly<{
 
 export type SealedMessageT = Readonly<{
 	/* The public key of the ephemeral key pair. 33 bytes */
-	ephemeralPublicKey: PublicKey
+	ephemeralPublicKey: PublicKeyT
 
 	/* The nonce used to encrypt the data. 12 bytes. AKA "IV". */
 	nonce: Buffer

@@ -2,13 +2,9 @@ import { WrappedLedgerTransport } from '../src/ledger/wrapped/wrappedTransport'
 import { LedgerNano } from '../src/ledger/ledgerNano'
 import { RadixAPDU } from '../src/ledger/apdu'
 import { HDPathRadix, Mnemonic } from '@radixdlt/account'
-import { Observable, Observer, of, Subject, Subscription } from 'rxjs'
+import { Observable, of, Subject, Subscription } from 'rxjs'
 import { HardwareWallet } from '../src/hardwareWallet'
-import {
-	ECPointOnCurveT,
-	PublicKey,
-	publicKeyFromBytes,
-} from '@radixdlt/crypto'
+import { ECPointOnCurveT, PublicKey, PublicKeyT } from '@radixdlt/crypto'
 import {
 	EmulatedLedgerIO,
 	HardwareWalletT,
@@ -123,7 +119,7 @@ describe('wrappedTransport', () => {
 						requireConfirmationOnDevice: true,
 					})
 					.subscribe(
-						(publicKey: PublicKey) => {
+						(publicKey: PublicKeyT) => {
 							expect(userWasPromptedToConfirmPubKey).toBe(true)
 							expect(store.userIO.length).toBe(1)
 							expect(store.recorded.length).toBe(1)
@@ -172,7 +168,7 @@ describe('wrappedTransport', () => {
 		const assertMockedLedgerState =
 			input.assertMockedLedgerState ?? ((_) => {})
 
-		const publicKeyOfOtherParty = publicKeyFromBytes(
+		const publicKeyOfOtherParty = PublicKey.fromBuffer(
 			Buffer.from(
 				'0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
 				'hex',
@@ -228,7 +224,7 @@ describe('wrappedTransport', () => {
 		doTestKeyExchange({
 			subs,
 			hardwareWallet,
-			done
+			done,
 		})
 	})
 

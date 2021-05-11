@@ -31,9 +31,8 @@ import {
 	KeystoreT,
 	MessageEncryption,
 	PrivateKey,
-	privateKeyFromScalar,
+	PublicKeyT,
 	PublicKey,
-	publicKeyFromBytes,
 } from '@radixdlt/crypto'
 import {
 	ActionType,
@@ -1173,11 +1172,11 @@ describe('radix_high_level_api', () => {
 
 		let receivedMsgHex = 'not_set'
 
-		const alicePrivateKey = privateKeyFromScalar(
+		const alicePrivateKey = PrivateKey.fromScalar(
 			UInt256.valueOf(1),
 		)._unsafeUnwrap()
 		const alicePublicKey = alicePrivateKey.publicKey()
-		const bobPrivateKey = privateKeyFromScalar(
+		const bobPrivateKey = PrivateKey.fromScalar(
 			UInt256.valueOf(2),
 		)._unsafeUnwrap()
 		const bobPublicKey = bobPrivateKey.publicKey()
@@ -1289,15 +1288,15 @@ describe('radix_high_level_api', () => {
 
 		type SystemUnderTest = {
 			plaintext: string
-			pkOfActiveSigningKey0: PublicKey
-			pkOfActiveSigningKey1: PublicKey
-			recipient: PublicKey
+			pkOfActiveSigningKey0: PublicKeyT
+			pkOfActiveSigningKey1: PublicKeyT
+			recipient: PublicKeyT
 			tx: SimpleExecutedTransaction
 			decrypted0: string
 			decrypted1: string
 		}
 
-		const recipientPK = publicKeyFromBytes(
+		const recipientPK = PublicKey.fromBuffer(
 			Buffer.from(keystoreForTest.publicKeysCompressed[1], 'hex'),
 		)._unsafeUnwrap()
 		const recipientAddress = AccountAddress.fromPublicKeyAndNetwork({

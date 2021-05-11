@@ -1,9 +1,9 @@
 import { BIP32T } from '../'
-import { PublicKey, PrivateKey } from '@radixdlt/crypto'
+import { PublicKeyT, PrivateKeyT } from '@radixdlt/crypto'
 
 export type HDNodeT = Readonly<{
-	publicKey: PublicKey
-	privateKey: PrivateKey
+	publicKey: PublicKeyT
+	privateKey: PrivateKeyT
 	chainCode: Buffer
 	derive: (path: BIP32T) => HDNodeT
 	toJSON: () => Readonly<{

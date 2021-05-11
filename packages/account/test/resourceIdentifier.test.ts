@@ -1,6 +1,6 @@
 import { isResourceIdentifier, NetworkT, ResourceIdentifier } from '../src'
 import { msgFromError, restoreDefaultLogLevel } from '@radixdlt/util'
-import { privateKeyFromScalar } from '@radixdlt/crypto'
+import { PrivateKey } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
 import { log } from '@radixdlt/util'
 
@@ -83,7 +83,7 @@ describe('rri_on_bech32_format', () => {
 
 		const doTest = (vector: Vector, index: number): void => {
 			it(`vector_index${index}`, () => {
-				const publicKey = privateKeyFromScalar(
+				const publicKey = PrivateKey.fromScalar(
 					UInt256.valueOf(vector.pkScalar),
 				)
 					._unsafeUnwrap()

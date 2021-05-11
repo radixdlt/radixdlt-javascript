@@ -1,12 +1,11 @@
 import {
 	ECPointOnCurveT,
 	MessageEncryption,
-	privateKeyFromScalar,
+	PublicKeyT,
 	PublicKey,
-	publicKeyCompressedByteCount,
-	publicKeyFromBytes,
+	PrivateKey,
 	sha256Twice,
-	Signature,
+	SignatureT,
 } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
 import {
@@ -29,7 +28,7 @@ import {
 import { Observable, of, Subject, Subscription, throwError } from 'rxjs'
 
 const privateKeyFromNum = (privateKeyScalar: number) =>
-	privateKeyFromScalar(UInt256.valueOf(privateKeyScalar))._unsafeUnwrap()
+	PrivateKey.fromScalar(UInt256.valueOf(privateKeyScalar))._unsafeUnwrap()
 
 describe('signingKey_type', () => {
 	it('works', async (done) => {
@@ -53,7 +52,7 @@ describe('signingKey_type', () => {
 		expect(signingKey.hdPath!.equals(hdPath)).toBe(true)
 
 		// Expected keys are known from Leger app development.
-		const matchingPrivateKey = privateKeyFromScalar(
+		const matchingPrivateKey = PrivateKey.fromScalar(
 			new UInt256(
 				'f423ae3097703022b86b87c15424367ce827d11676fae5c7fe768de52d9cce2e',
 				16,
@@ -89,7 +88,7 @@ describe('signingKey_type', () => {
 			hdMasterSeed,
 		})
 
-		const otherPubKey = publicKeyFromBytes(
+		const otherPubKey = PublicKey.fromBuffer(
 			Buffer.from(
 				'0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
 				'hex',
@@ -148,7 +147,7 @@ describe('signingKey_type', () => {
 				diffieHellman: (
 					input: Readonly<{
 						hdPath: BIP32T
-						publicKeyOfOtherParty: PublicKey
+						publicKeyOfOtherParty: PublicKeyT
 					}>,
 				): Observable<ECPointOnCurveT> => {
 					return toObservable(
@@ -157,14 +156,14 @@ describe('signingKey_type', () => {
 						),
 					)
 				},
-				derivePublicKey: (hdPath: BIP32T): Observable<PublicKey> =>
+				derivePublicKey: (hdPath: BIP32T): Observable<PublicKeyT> =>
 					of(accountFromHDPath(hdPath).publicKey),
 				sign: (
 					input: Readonly<{
 						hashedMessage: Buffer
 						hdPath: BIP32T
 					}>,
-				): Observable<Signature> => {
+				): Observable<SignatureT> => {
 					return accountFromHDPath(input.hdPath).sign(
 						input.hashedMessage,
 					)
@@ -176,7 +175,7 @@ describe('signingKey_type', () => {
 
 		const hdPath = HDPathRadix.fromString(path)._unsafeUnwrap()
 
-		const bobPrivateKey = privateKeyFromScalar(
+		const bobPrivateKey = PrivateKey.fromScalar(
 			UInt256.valueOf(1),
 		)._unsafeUnwrap()
 		const bobPubKey = bobPrivateKey.publicKey()
@@ -206,7 +205,7 @@ describe('signingKey_type', () => {
 					)
 					expect(
 						hwSigningKey.equals(<SigningKeyT>{
-							publicKey: publicKeyFromBytes(
+							publicKey: PublicKey.fromBuffer(
 								Buffer.from(expectedPublicKey, 'hex'),
 							)._unsafeUnwrap(),
 						}),

@@ -1,6 +1,6 @@
 import { err, ok, Result } from 'neverthrow'
 import { buffersEquals, msgFromError } from '@radixdlt/util'
-import { PublicKey, sha256Twice } from '@radixdlt/crypto'
+import { PublicKeyT, sha256Twice } from '@radixdlt/crypto'
 import { Bech32, Encoding } from '../bech32'
 import { NetworkT, ResourceIdentifierT } from './_types'
 import { HRPFromNetwork, NetworkFromHRP } from './abstractAddress'
@@ -262,7 +262,7 @@ const hashByteCount = 26
 const pkToHash = (
 	input: Readonly<{
 		name: string
-		publicKey: PublicKey
+		publicKey: PublicKeyT
 	}>,
 ): Buffer => {
 	const { name, publicKey } = input
@@ -275,7 +275,7 @@ const pkToHash = (
 
 const fromPublicKeyAndNameAndNetwork = (
 	input: Readonly<{
-		publicKey: PublicKey
+		publicKey: PublicKeyT
 		name: string
 		network: NetworkT
 	}>,

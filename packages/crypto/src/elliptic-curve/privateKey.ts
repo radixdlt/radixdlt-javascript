@@ -6,24 +6,45 @@ import {
 
 import { UInt256 } from '@radixdlt/uint256'
 
-import { signDataWithPrivateKey } from './wrap/sign'
-
 import { err, errAsync, ok, okAsync, Result, ResultAsync } from 'neverthrow'
-import {
-	Signature,
-	PublicKey,
-	PrivateKey,
-	Hasher,
-	ECPointOnCurveT,
-	DiffieHellman,
-} from '../_types'
-import { publicKeyFromPrivateKey } from './wrap/publicKeyWrapped'
+
 import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
 import { Secp256k1 } from './secp256k1'
 import { sha256Twice } from '../hash'
+import { ec } from 'elliptic'
+import { PublicKey } from './publicKey'
+import {
+	DiffieHellman,
+	ECPointOnCurveT,
+	PrivateKeyT,
+	PublicKeyT,
+	SignatureT,
+} from './_types'
+import { Hasher } from '../_types'
+import { Signature } from './signature'
 
-const privateKeyFromValidatedScalar = (scalar: UInt256): PrivateKey => {
-	const sign = (hashedMessage: Buffer): ResultAsync<Signature, Error> => {
+const __signDataWithPrivateKey = (
+	input: Readonly<{
+		privateKey: UInt256
+		data: Buffer
+	}>,
+): Result<SignatureT, Error> => {
+	// log.info(`Signing ${input.data.toString()} with private key.`)
+	const thirdPartyLibEllipticSecp256k1 = new ec('secp256k1')
+
+	const privateKey = thirdPartyLibEllipticSecp256k1.keyFromPrivate(
+		input.privateKey.toString(16),
+	)
+
+	const ellipticSignature: ec.Signature = privateKey.sign(input.data, {
+		canonical: true,
+	})
+
+	return Signature.fromIndutnyElliptic(ellipticSignature)
+}
+
+const __privateKeyFromValidatedScalar = (scalar: UInt256): PrivateKeyT => {
+	const sign = (hashedMessage: Buffer): ResultAsync<SignatureT, Error> => {
 		if (hashedMessage.length !== 32) {
 			return errAsync(
 				new Error(
@@ -32,7 +53,7 @@ const privateKeyFromValidatedScalar = (scalar: UInt256): PrivateKey => {
 			)
 		}
 		return resultToAsync(
-			signDataWithPrivateKey({
+			__signDataWithPrivateKey({
 				privateKey: scalar,
 				data: hashedMessage,
 			}),
@@ -40,7 +61,7 @@ const privateKeyFromValidatedScalar = (scalar: UInt256): PrivateKey => {
 	}
 
 	const diffieHellman: DiffieHellman = (
-		publicKeyOfOtherParty: PublicKey,
+		publicKeyOfOtherParty: PublicKeyT,
 	): ResultAsync<ECPointOnCurveT, Error> => {
 		return okAsync(
 			publicKeyOfOtherParty
@@ -57,7 +78,7 @@ const privateKeyFromValidatedScalar = (scalar: UInt256): PrivateKey => {
 				msgToHash: Buffer | string
 				hasher?: Hasher
 			}>,
-		): ResultAsync<Signature, Error> => {
+		): ResultAsync<SignatureT, Error> => {
 			const hasher = input.hasher ?? sha256Twice
 
 			const hashedMessage = hasher(input.msgToHash)
@@ -76,34 +97,31 @@ const privateKeyFromValidatedScalar = (scalar: UInt256): PrivateKey => {
 
 	return {
 		...privateKey,
-		publicKey: (): PublicKey => publicKeyFromPrivateKey({ privateKey }),
+		publicKey: (): PublicKeyT => PublicKey.fromPrivateKey({ privateKey }),
 	}
 }
 
-export const privateKeyFromBuffer = (
-	buffer: Buffer,
-): Result<PrivateKey, Error> => privateKeyFromHex(buffer.toString('hex'))
+export const fromBuffer = (buffer: Buffer): Result<PrivateKeyT, Error> =>
+	fromHex(buffer.toString('hex'))
 
-export const privateKeyFromHex = (
+export const fromHex = (
 	privateKeyHexString: string,
-): Result<PrivateKey, Error> =>
-	privateKeyFromScalar(new UInt256(privateKeyHexString, 16))
+): Result<PrivateKeyT, Error> =>
+	fromScalar(new UInt256(privateKeyHexString, 16))
 
-export const privateKeyFromScalar = (
-	scalar: UInt256,
-): Result<PrivateKey, Error> => {
+const fromScalar = (scalar: UInt256): Result<PrivateKeyT, Error> => {
 	if (!validateSecp256k1PrivateKey(scalar))
 		return err(new Error('Invalid private key scalar.'))
 
-	return ok(privateKeyFromValidatedScalar(scalar))
+	return ok(__privateKeyFromValidatedScalar(scalar))
 }
 
 const validateSecp256k1PrivateKey = (scalar: UInt256): boolean =>
 	scalar.gte(UInt256.valueOf(1)) && scalar.lte(Secp256k1.order)
 
-export const generatePrivateKey = (
+const generateNew = (
 	secureRandom: SecureRandom = secureRandomGenerator,
-): PrivateKey => {
+): PrivateKeyT => {
 	// eslint-disable-next-line functional/no-let
 	let scalar: UInt256 = uint256Max
 	// eslint-disable-next-line functional/no-loop-statement
@@ -111,5 +129,12 @@ export const generatePrivateKey = (
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
 		scalar = secureRandomUInt256(secureRandom)
 	}
-	return privateKeyFromValidatedScalar(scalar)
+	return __privateKeyFromValidatedScalar(scalar)
+}
+
+export const PrivateKey = {
+	generateNew,
+	fromScalar,
+	fromHex,
+	fromBuffer,
 }

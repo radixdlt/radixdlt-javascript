@@ -4,13 +4,13 @@ import { EncryptionScheme, encryptionSchemeLength } from './encryptionScheme'
 import { readBuffer } from '@radixdlt/util'
 import { SealedMessage } from './sealedMessage'
 import { validateMaxLength, validateMinLength } from '../utils'
-import { publicKeyCompressedByteCount } from '../_types'
+import { PublicKey } from '../elliptic-curve'
 
 export const maxLengthEncryptedMessage = 255
 const minLengthEncryptedMessage =
 	SealedMessage.authTagByteCount +
 	SealedMessage.nonceByteCount +
-	publicKeyCompressedByteCount +
+	PublicKey.compressedByteCount +
 	encryptionSchemeLength
 const maxLengthOfCipherTextOfSealedMsg =
 	maxLengthEncryptedMessage - minLengthEncryptedMessage

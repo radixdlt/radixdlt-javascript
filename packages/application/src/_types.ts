@@ -11,7 +11,7 @@ import {
 	SwitchToIndex,
 	AddSigningKeyByPrivateKeyInput,
 } from '@radixdlt/account'
-import { KeystoreT, PublicKey } from '@radixdlt/crypto'
+import { KeystoreT, PublicKeyT } from '@radixdlt/crypto'
 import { LogLevel } from '@radixdlt/util'
 import { Observable, ReplaySubject } from 'rxjs'
 import { NodeT, RadixAPI, RadixCoreAPI } from './api'
@@ -80,7 +80,7 @@ export type AccountT = Signing &
 		address: AccountAddressT
 
 		// sugar for signingKey.publicKey/address.publicKey
-		publicKey: PublicKey
+		publicKey: PublicKeyT
 		// sugar for address.network
 		network: NetworkT
 
@@ -94,7 +94,7 @@ export type AccountsT = Readonly<{
 		hdPath: HDPathRadixT,
 	) => Option<AccountT>
 	// Get any account by its public key
-	getAnyAccountByPublicKey: (publicKey: PublicKey) => Option<AccountT>
+	getAnyAccountByPublicKey: (publicKey: PublicKeyT) => Option<AccountT>
 
 	// ALL accounts, basically a concatenation of `accountsWithHDSigningKeys || accountsWithNonHDSigningKeys`
 	all: AccountT[]

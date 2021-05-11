@@ -1,6 +1,6 @@
 import { HDPathRadixT } from '@radixdlt/account'
 import { Observable } from 'rxjs'
-import { ECPointOnCurveT, PublicKey, Signature } from '@radixdlt/crypto'
+import { ECPointOnCurveT, PublicKeyT, SignatureT } from '@radixdlt/crypto'
 
 // Semantic versioning, e.g. 1.0.5
 export type SemVerT = Readonly<{
@@ -17,19 +17,19 @@ export type AtPath = Readonly<{
 	path?: HDPathRadixT
 }>
 
-export type SignInput = AtPath &
-	Readonly<{
-		hash: Buffer
-	}>
-
 export type GetPublicKeyInput = AtPath &
 	Readonly<{
 		requireConfirmationOnDevice?: boolean
 	}>
 
+export type SignHashInput = GetPublicKeyInput &
+	Readonly<{
+		hashToSign: Buffer
+	}>
+
 export type KeyExchangeInput = GetPublicKeyInput &
 	Readonly<{
-		publicKeyOfOtherParty: PublicKey
+		publicKeyOfOtherParty: PublicKeyT
 	}>
 
 export enum HardwareWalletDeviceConnectionStatus {
@@ -42,13 +42,14 @@ export enum HardwareWalletDeviceConnectionStatus {
 export type HardwareWalletT = Readonly<{
 	deviceConnectionStatus: Observable<HardwareWalletDeviceConnectionStatus>
 	getVersion: () => Observable<SemVerT>
-	getPublicKey: (input: GetPublicKeyInput) => Observable<PublicKey>
-	doSign: (input: SignInput) => Observable<Signature>
+	getPublicKey: (input: GetPublicKeyInput) => Observable<PublicKeyT>
+	doSignHash: (input: SignHashInput) => Observable<SignatureT>
 	doKeyExchange: (input: KeyExchangeInput) => Observable<ECPointOnCurveT>
 }>
 
 export enum LedgerInstruction {
 	GET_VERSION = 0x00,
+	DO_SIGN_HASH = 0x02,
 	DO_KEY_EXCHANGE = 0x04,
 	GET_PUBLIC_KEY = 0x08,
 }

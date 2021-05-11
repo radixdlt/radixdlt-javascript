@@ -1,19 +1,22 @@
-import { MessageEncryption } from '../src/encryption/messageEncryption'
-import { generateKeyPair } from '../src/elliptic-curve/keyPair'
-import { EncryptedMessageT } from '../src/encryption/_types'
-import { PublicKey, DiffieHellman } from '../src/_types'
-import { privateKeyFromScalar } from '../src/elliptic-curve/privateKey'
+import {
+	EncryptedMessageT,
+	EncryptedMessage,
+	MessageEncryption,
+	KeyPair,
+	PublicKeyT,
+	DiffieHellman,
+	PrivateKey,
+	PrivateKeyT,
+} from '../src'
 import { UInt256 } from '@radixdlt/uint256'
-import { EncryptedMessage } from '../src/encryption/encryptedMessage'
-import { PrivateKey } from '../src/_types'
 
 describe('message encryption', () => {
 	describe('can decrypt newly encrypted message', () => {
-		const alice = generateKeyPair()
-		const bob = generateKeyPair()
+		const alice = KeyPair.generateNew()
+		const bob = KeyPair.generateNew()
 
 		const aliceEncryptTo = async (
-			to: PublicKey,
+			to: PublicKeyT,
 			plaintext: string,
 		): Promise<EncryptedMessageT> => {
 			const res = await MessageEncryption.encrypt({
@@ -31,7 +34,7 @@ describe('message encryption', () => {
 
 		const decrypt = async (
 			diffieHellman: DiffieHellman,
-			publicKeyOfOtherParty: PublicKey,
+			publicKeyOfOtherParty: PublicKeyT,
 			encryptedMessage: EncryptedMessageT,
 		): Promise<string> => {
 			const res = await MessageEncryption.decrypt({
@@ -97,11 +100,11 @@ describe('message encryption', () => {
 			expect(EncryptedMessage.maxLengthOfCipherTextOfSealedMsg).toBe(162)
 		})
 
-		const alicePrivateKey = privateKeyFromScalar(
+		const alicePrivateKey = PrivateKey.fromScalar(
 			UInt256.valueOf(1),
 		)._unsafeUnwrap()
 		const alice = alicePrivateKey.publicKey()
-		const bobPrivateKey = privateKeyFromScalar(
+		const bobPrivateKey = PrivateKey.fromScalar(
 			UInt256.valueOf(2),
 		)._unsafeUnwrap()
 		const bob = bobPrivateKey.publicKey()
@@ -135,11 +138,11 @@ describe('message encryption', () => {
 	})
 
 	describe('can decrypt message from buffer that was encrypted earlier', () => {
-		const alicePrivateKey = privateKeyFromScalar(
+		const alicePrivateKey = PrivateKey.fromScalar(
 			UInt256.valueOf(1),
 		)._unsafeUnwrap()
 		const alice = alicePrivateKey.publicKey()
-		const bobPrivateKey = privateKeyFromScalar(
+		const bobPrivateKey = PrivateKey.fromScalar(
 			UInt256.valueOf(2),
 		)._unsafeUnwrap()
 		const bob = bobPrivateKey.publicKey()
@@ -159,9 +162,9 @@ describe('message encryption', () => {
 			decryptor: Decryptor,
 			done: jest.DoneCallback,
 		): Promise<void> => {
-			const publicKeyOfOtherParty: PublicKey =
+			const publicKeyOfOtherParty: PublicKeyT =
 				decryptor === 'bob' ? alice : bob
-			const privKey: PrivateKey =
+			const privKey: PrivateKeyT =
 				decryptor === 'bob' ? bobPrivateKey : alicePrivateKey
 			const diffieHellman = privKey.diffieHellman
 

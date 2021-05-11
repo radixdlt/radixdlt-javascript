@@ -1,4 +1,4 @@
-import { Observable, Observer, Subject } from 'rxjs'
+import { Observable, Subject } from 'rxjs'
 import { LedgerInstruction, LedgerResponseCodes } from '../_types'
 import { APDUT } from './wrapped'
 import { LedgerButtonPress, PromptUserForInput } from './wrapped/emulatedLedger'

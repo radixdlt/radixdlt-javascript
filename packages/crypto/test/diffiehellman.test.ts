@@ -1,9 +1,9 @@
-import { generateKeyPair } from '../src/elliptic-curve/keyPair'
+import { KeyPair } from '../src'
 
 describe('diffiehellman', () => {
 	it('works between two', async () => {
-		const alice = generateKeyPair()
-		const bob = generateKeyPair()
+		const alice = KeyPair.generateNew()
+		const bob = KeyPair.generateNew()
 
 		const dhAB = (
 			await alice.privateKey.diffieHellman(bob.publicKey)

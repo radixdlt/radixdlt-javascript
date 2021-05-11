@@ -10,6 +10,8 @@ export const ledgerInstruction = (
 		return ok(LedgerInstruction.GET_VERSION)
 	} else if (ins === LedgerInstruction.DO_KEY_EXCHANGE) {
 		return ok(LedgerInstruction.DO_KEY_EXCHANGE)
+	} else if (ins === LedgerInstruction.DO_SIGN_HASH) {
+		return ok(LedgerInstruction.DO_SIGN_HASH)
 	}
 	return err(new Error(`Unrecognized instruction: ${ins}`))
 }
