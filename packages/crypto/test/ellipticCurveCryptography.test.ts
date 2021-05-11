@@ -95,32 +95,23 @@ describe('elliptic curve cryptography', () => {
 		const r = signature.r.toString(16)
 		const s = signature.s.toString(16)
 
-		const expectedRHex = '934b1ea10a4b3c1757e2b0c017d0b6143ce3c9a7e6a4a49860d7a6ab210ee3d8'
-		expect(r).toBe(
-			expectedRHex,
-		)
+		const expectedRHex =
+			'934b1ea10a4b3c1757e2b0c017d0b6143ce3c9a7e6a4a49860d7a6ab210ee3d8'
+		expect(r).toBe(expectedRHex)
 
-		const expectedSHex = '2442ce9d2b916064108014783e923ec36b49743e2ffa1c4496f01a512aafd9e5'
-		expect(s).toBe(
-			expectedSHex,
-		)
+		const expectedSHex =
+			'2442ce9d2b916064108014783e923ec36b49743e2ffa1c4496f01a512aafd9e5'
+		expect(s).toBe(expectedSHex)
 
-		const derString = '3045022100934b1ea10a4b3c1757e2b0c017d0b6143ce3c9a7e6a4a49860d7a6ab210ee3d802202442ce9d2b916064108014783e923ec36b49743e2ffa1c4496f01a512aafd9e5'
-		expect(signature.toDER()).toBe(
-			derString,
-		)
+		const derString =
+			'3045022100934b1ea10a4b3c1757e2b0c017d0b6143ce3c9a7e6a4a49860d7a6ab210ee3d802202442ce9d2b916064108014783e923ec36b49743e2ffa1c4496f01a512aafd9e5'
+		expect(signature.toDER()).toBe(derString)
 
 		const signatureFromDER = Signature.fromDER(derString)._unsafeUnwrap()
-		expect(signatureFromDER.toDER()).toBe(
-			derString,
-		)
-		expect(signatureFromDER.r).toBe(
-			expectedRHex,
-		)
+		expect(signatureFromDER.toDER()).toBe(derString)
+		expect(signatureFromDER.r.toString(16)).toBe(expectedRHex)
 
-		expect(signatureFromDER.s).toBe(
-			expectedSHex,
-		)
+		expect(signatureFromDER.s.toString(16)).toBe(expectedSHex)
 		expect(signature.equals(signatureFromDER)).toBe(true)
 	})
 

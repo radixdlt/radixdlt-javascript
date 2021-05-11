@@ -1,148 +1,144 @@
 // @ts-nocheck
 /* eslint-disable */
-var BN = require('bn.js');
+var BN = require('bn.js')
 
 function Position() {
-	this.place = 0;
+	this.place = 0
 }
 
 function getLength(buf, p) {
-	var initial = buf[p.place++];
+	var initial = buf[p.place++]
 	if (!(initial & 0x80)) {
-		return initial;
+		return initial
 	}
-	var octetLen = initial & 0xf;
+	var octetLen = initial & 0xf
 
 	// Indefinite length or overflow
 	if (octetLen === 0 || octetLen > 4) {
-		return false;
+		return false
 	}
 
-	var val = 0;
+	var val = 0
 	for (var i = 0, off = p.place; i < octetLen; i++, off++) {
-		val <<= 8;
-		val |= buf[off];
-		val >>>= 0;
+		val <<= 8
+		val |= buf[off]
+		val >>>= 0
 	}
 
 	// Leading zeroes
 	if (val <= 0x7f) {
-		return false;
+		return false
 	}
 
-	p.place = off;
-	return val;
+	p.place = off
+	return val
 }
 
 function rmPadding(buf) {
-	var i = 0;
-	var len = buf.length - 1;
+	var i = 0
+	var len = buf.length - 1
 	while (!buf[i] && !(buf[i + 1] & 0x80) && i < len) {
-		i++;
+		i++
 	}
 	if (i === 0) {
-		return buf;
+		return buf
 	}
-	return buf.slice(i);
+	return buf.slice(i)
 }
 
 function toArray(msg, enc) {
-	if (Array.isArray(msg))
-		return msg.slice();
-	if (!msg)
-		return [];
-	var res = [];
+	if (Array.isArray(msg)) return msg.slice()
+	if (!msg) return []
+	var res = []
 	if (typeof msg !== 'string') {
-		for (var i = 0; i < msg.length; i++)
-			res[i] = msg[i] | 0;
-		return res;
+		for (var i = 0; i < msg.length; i++) res[i] = msg[i] | 0
+		return res
 	}
 	if (enc === 'hex') {
-		msg = msg.replace(/[^a-z0-9]+/ig, '');
-		if (msg.length % 2 !== 0)
-			msg = '0' + msg;
+		msg = msg.replace(/[^a-z0-9]+/gi, '')
+		if (msg.length % 2 !== 0) msg = '0' + msg
 		for (var i = 0; i < msg.length; i += 2)
-			res.push(parseInt(msg[i] + msg[i + 1], 16));
+			res.push(parseInt(msg[i] + msg[i + 1], 16))
 	} else {
 		for (var i = 0; i < msg.length; i++) {
-			var c = msg.charCodeAt(i);
-			var hi = c >> 8;
-			var lo = c & 0xff;
-			if (hi)
-				res.push(hi, lo);
-			else
-				res.push(lo);
+			var c = msg.charCodeAt(i)
+			var hi = c >> 8
+			var lo = c & 0xff
+			if (hi) res.push(hi, lo)
+			else res.push(lo)
 		}
 	}
-	return res;
+	return res
 }
 
-export function __js_importDER(data, enc) {
-	data = toArray(data, enc);
-	var p = new Position();
+function __js_importDER(data, enc) {
+	data = toArray(data, enc)
+	var p = new Position()
 	if (data[p.place++] !== 0x30) {
-		return null;
+		return null
 	}
-	var len = getLength(data, p);
+	var len = getLength(data, p)
 	if (len === false) {
-		return null;
+		return null
 	}
-	if ((len + p.place) !== data.length) {
-		return null;
+	if (len + p.place !== data.length) {
+		return null
 	}
 	if (data[p.place++] !== 0x02) {
-		return null;
+		return null
 	}
-	var rlen = getLength(data, p);
+	var rlen = getLength(data, p)
 	if (rlen === false) {
-		return null;
+		return null
 	}
-	var r = data.slice(p.place, rlen + p.place);
-	p.place += rlen;
+	var r = data.slice(p.place, rlen + p.place)
+	p.place += rlen
 	if (data[p.place++] !== 0x02) {
-		return null;
+		return null
 	}
-	var slen = getLength(data, p);
+	var slen = getLength(data, p)
 	if (slen === false) {
-		return null;
+		return null
 	}
 	if (data.length !== slen + p.place) {
-		return null;
+		return null
 	}
-	var s = data.slice(p.place, slen + p.place);
+	var s = data.slice(p.place, slen + p.place)
 	if (r[0] === 0) {
 		if (r[1] & 0x80) {
-			r = r.slice(1);
+			r = r.slice(1)
 		} else {
 			// Leading zeroes
-			return null;
+			return null
 		}
 	}
 	if (s[0] === 0) {
 		if (s[1] & 0x80) {
-			s = s.slice(1);
+			s = s.slice(1)
 		} else {
 			// Leading zeroes
-			return null;
+			return null
 		}
 	}
 
 	return {
-	 r: new BN(r),
-	 s: new BN(s),
-	};
-};
+		r: new BN(r),
+		s: new BN(s),
+	}
+}
 
 function constructLength(arr, len) {
 	if (len < 0x80) {
-		arr.push(len);
-		return;
+		arr.push(len)
+		return
 	}
-	var octets = 1 + (Math.log(len) / Math.LN2 >>> 3);
-	arr.push(octets | 0x80);
+	var octets = 1 + ((Math.log(len) / Math.LN2) >>> 3)
+	arr.push(octets | 0x80)
 	while (--octets) {
-		arr.push((len >>> (octets << 3)) & 0xff);
+		arr.push((len >>> (octets << 3)) & 0xff)
 	}
-	arr.push(len);
+	arr.push(len)
 }
+
+module.exports = __js_importDER
 /* eslint-enable */

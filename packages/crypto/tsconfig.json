@@ -4,7 +4,6 @@
     "rootDir": "src",
     "outDir": "dist",
     "allowJs": true,
-    "typeRoots": ["src/elliptic-curve/typings"]
   },
   "include": [
     "src"

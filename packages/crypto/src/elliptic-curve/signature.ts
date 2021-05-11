@@ -1,9 +1,12 @@
 import { SignatureT } from './_types'
-import { combine, err, Result } from 'neverthrow'
+import { combine, err, ok, Result } from 'neverthrow'
 import { UInt256 } from '@radixdlt/uint256'
 import { ec } from 'elliptic'
 import { uint256FromBN } from '@radixdlt/primitives'
-import { importDER } from './typings/importDER'
+
+// @ts-ignore
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const jsImportDER = require('./indutnyEllipticImportDER')
 
 const __fromRSAndDER = (
 	input: Readonly<{
@@ -17,7 +20,7 @@ const __fromRSAndDER = (
 		r,
 		s,
 		toDER: () => der,
-		equals: (other: SignatureT): boolean => r.eq(other.r) && s.eq(other.s),
+		equals: (other: SignatureT): boolean => other.toDER() === der,
 	}
 }
 
@@ -43,16 +46,21 @@ const fromIndutnyElliptic = (
 	})
 }
 
-const fromDER = (buffer: Buffer): Result<SignatureT, Error> => {
-	const importedDER = importDER(buffer, 'hex')
+const fromDER = (buffer: Buffer | string): Result<SignatureT, Error> => {
+	const dataHex = typeof buffer === 'string' ? buffer : buffer.toString('hex')
+	/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
+	const importedDER = jsImportDER(dataHex, 'hex')
 	if (!importedDER) {
 		return err(new Error('Failed to import DER'))
 	}
-	const sig: ec.Signature = <ec.Signature>{}
-	sig.r = importedDER.r
-	sig.s = importedDER.s
-	sig.recoveryParam = null
-	return fromIndutnyElliptic(sig)
+	return ok(
+		__fromRSAndDER({
+			r: importedDER.r,
+			s: importedDER.s,
+			der: buffer.toString('hex'),
+		}),
+	)
+	/* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 }
 
 export const Signature = {
