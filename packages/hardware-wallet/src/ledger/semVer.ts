@@ -1,5 +1,7 @@
-import { err, ok, Result } from 'neverthrow'
+import { combine, err, ok, Result } from 'neverthrow'
 import { SemVerT } from '../_types'
+
+const separator = '.'
 
 const create = (
 	input: Readonly<{ major: number; minor: number; patch: number }>,
@@ -10,18 +12,27 @@ const create = (
 			.map((n: number): string => {
 				return n.toString()
 			})
-			.join('.')
+			.join(separator)
+	}
+
+	const equals = (other: SemVerT): boolean => {
+		return (
+			other.major === major &&
+			other.minor === minor &&
+			other.patch === patch
+		)
 	}
 
 	return {
 		major,
 		minor,
 		patch,
+		equals,
 		toString,
 	}
 }
 
-const from = (buf: Buffer): Result<SemVerT, Error> => {
+const fromBuffer = (buf: Buffer): Result<SemVerT, Error> => {
 	const expectedByteCount = 3
 	if (buf.length !== expectedByteCount) {
 		return err(
@@ -38,7 +49,45 @@ const from = (buf: Buffer): Result<SemVerT, Error> => {
 	return ok(create({ major, minor, patch }))
 }
 
+const fromString = (versionString: string): Result<SemVerT, Error> => {
+	const components = versionString.split(separator)
+	const expectedComponentCount = 3
+	if (components.length !== expectedComponentCount) {
+		return err(
+			new Error(
+				`Expected semantic version to contain ${expectedComponentCount} components.`,
+			),
+		)
+	}
+	const numAtIndex = (index: number): Result<number, Error> => {
+		let parsedInt = undefined
+		try {
+			parsedInt = parseInt(components[index], 10)
+		} catch (e) {
+			return err(new Error('Failed to parse integer'))
+		}
+		if (!Number.isInteger(parsedInt)) {
+			return err(new Error('Found no integer'))
+		}
+		return ok(parsedInt)
+	}
+
+	return combine([numAtIndex(0), numAtIndex(1), numAtIndex(2)]).map(
+		(resultList) => {
+			const major = resultList[0]
+			const minor = resultList[1]
+			const patch = resultList[2]
+			return create({
+				major,
+				minor,
+				patch,
+			})
+		},
+	)
+}
+
 export const SemVer = {
-	from,
+	fromBuffer,
+	fromString,
 	create,
 }

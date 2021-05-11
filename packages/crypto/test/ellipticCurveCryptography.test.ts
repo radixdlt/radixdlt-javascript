@@ -35,7 +35,9 @@ describe('elliptic curve cryptography', () => {
 			},
 			(e) => {
 				throw new Error(
-					'0202... is not a valid public key, but we expected it to be.',
+					`0202... is not a valid public key, but we expected it to be. Underlying error: ${msgFromError(
+						e,
+					)}`,
 				)
 			},
 		)
@@ -57,7 +59,7 @@ describe('elliptic curve cryptography', () => {
 			PublicKey.fromBuffer(
 				Buffer.from(publicKeyCompressedHexString, 'hex'),
 			).match(
-				(s) => {
+				(_) => {
 					throw new Error(
 						`We expected ${publicKeyCompressedHexString} to be invalid, but it is not.`,
 					)
@@ -73,7 +75,7 @@ describe('elliptic curve cryptography', () => {
 
 	it('can securely generate private keys', () => {
 		const privateKeys = [...Array(1024)]
-			.map((_, i) => PrivateKey.generateNew())
+			.map((_) => PrivateKey.generateNew())
 			.map((privateKey: PrivateKeyT): string => privateKey.toString())
 		const uniquePrivateKeys = new Set(privateKeys)
 		// Probability of collision is: 2^10/2^256 <=> 1/2^246<=> Very very very very low probability.

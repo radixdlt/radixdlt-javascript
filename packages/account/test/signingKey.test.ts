@@ -37,7 +37,7 @@ describe('signingKey_type', () => {
 		)._unsafeUnwrap()
 		const hdMasterSeed = HDMasterSeed.fromMnemonic({ mnemonic })
 		const hdPath = HDPathRadix.fromString(
-			`m/44'/536'/2'/1/3`,
+			`m/44'/536'/2'/1/3'`,
 		)._unsafeUnwrap()
 
 		const signingKey = SigningKey.fromHDPathWithHDMasterSeed({
@@ -59,7 +59,11 @@ describe('signingKey_type', () => {
 			),
 		)._unsafeUnwrap()
 
-		const message = 'hey'
+		const message = `I'm testing Radix awesome hardware wallet!`
+		const hashedMessage = sha256Twice(message)
+		expect(hashedMessage.toString('hex')).toBe(
+			'be7515569e05daffc71bffe2a30365b74450c017a56184ee26699340a324d402',
+		)
 		const expectedSignature = (
 			await matchingPrivateKey.signUnhashed({ msgToHash: message })
 		)._unsafeUnwrap()
@@ -68,13 +72,16 @@ describe('signingKey_type', () => {
 			'026d5e07cfde5df84b5ef884b629d28d15b0f6c66be229680699767cd57c618288',
 		)
 
-		signingKey.sign(sha256Twice(message)).subscribe((sig) => {
+		signingKey.sign(hashedMessage).subscribe((sig) => {
 			expect(sig.equals(expectedSignature)).toBe(true)
+			expect(sig.toDER()).toBe(
+				'3044022078b0d2d17d227a8dd14ecdf0d7d65580ac6c17ab980c50074e6c096c4081313202207a9819ceedab3bfd3d22452224394d6cb41e3441f4675a5e7bf58f059fdf34cd',
+			)
 			done()
 		})
 	})
 
-	it('radix_hd_path_hardened', async () => {
+	it('radix_hd_path_hardened', async (done) => {
 		const mnemonic = Mnemonic.fromEnglishPhrase(
 			'equip will roof matter pink blind book anxiety banner elbow sun young',
 		)._unsafeUnwrap()
@@ -103,6 +110,23 @@ describe('signingKey_type', () => {
 
 		expect(signingKey.publicKey.toString(true)).toBe(
 			'02a61e5f4dd2bdc5352243264aa431702c988e77ecf9e61bbcd0b0dd26ad2280fc',
+		)
+
+		const message = `I'm testing Radix awesome hardware wallet!`
+		const hashedMessage = sha256Twice(message)
+		expect(hashedMessage.toString('hex')).toBe(
+			'be7515569e05daffc71bffe2a30365b74450c017a56184ee26699340a324d402',
+		)
+
+		const subs = new Subscription()
+
+		subs.add(
+			signingKey.sign(hashedMessage).subscribe((sig) => {
+				expect(sig.toDER()).toBe(
+					'304402207ba64bd4116e9af1d8b52591da3ed5c831e75418f1eec37fb4a4cc7374a49b8a02202b08793fbecf04de5013826f0c15a7b9750d89606544d67a13a5f23f457b5aeb',
+				)
+				done()
+			}),
 		)
 	})
 

@@ -43,7 +43,11 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 	const getVersion = (): Observable<SemVerT> => {
 		return ledgerNano
 			.sendAPDUToDevice(RadixAPDU.getVersion())
-			.pipe(mergeMap((buf) => toObservableFromResult(SemVer.from(buf))))
+			.pipe(
+				mergeMap((buf) =>
+					toObservableFromResult(SemVer.fromBuffer(buf)),
+				),
+			)
 	}
 
 	const deviceConnectionStatus: Observable<HardwareWalletDeviceConnectionStatus> = throwError(

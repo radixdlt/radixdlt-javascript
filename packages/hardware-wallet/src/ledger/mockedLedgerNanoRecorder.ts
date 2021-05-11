@@ -9,14 +9,12 @@ import {
 import { BehaviorSubject, Subject, Subscription } from 'rxjs'
 import { LedgerButtonPress, PromptUserForInput } from './wrapped/emulatedLedger'
 
-const create = (
-	input?: Readonly<{ io: EmulatedLedgerIO }>,
-): MockedLedgerNanoRecorderT => {
+const create = (io?: EmulatedLedgerIO): MockedLedgerNanoRecorderT => {
 	const subs = new Subscription()
-	const io = input?.io ?? {
-		usersInputOnLedger: new Subject<LedgerButtonPress>(),
-		promptUserForInputOnLedger: new Subject<PromptUserForInput>(),
-	}
+	const usersInputOnLedger =
+		io?.usersInputOnLedger ?? new Subject<LedgerButtonPress>()
+	const promptUserForInputOnLedger =
+		io?.promptUserForInputOnLedger ?? new Subject<PromptUserForInput>()
 
 	const requests: LedgerRequest[] = []
 	const rNr: RequestAndResponse[] = []
@@ -61,7 +59,7 @@ const create = (
 	}
 
 	subs.add(
-		io.usersInputOnLedger.subscribe((fromUser) => {
+		usersInputOnLedger.subscribe((fromUser) => {
 			const lastPrompt = lastPromptToUser()
 			const newUserIO: UserOutputAndInput = {
 				toUser: lastPrompt,
@@ -73,13 +71,14 @@ const create = (
 	)
 
 	subs.add(
-		io.promptUserForInputOnLedger.subscribe((p) => {
+		promptUserForInputOnLedger.subscribe((p) => {
 			promptUserForInputSubject.next(p)
 		}),
 	)
 
 	return {
-		...io,
+		usersInputOnLedger,
+		promptUserForInputOnLedger,
 		recorded: rNr,
 		lastRnR,
 		lastRequest: () => lastRnR().apdu,

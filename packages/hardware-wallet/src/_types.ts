@@ -8,6 +8,8 @@ export type SemVerT = Readonly<{
 	minor: number
 	patch: number
 
+	equals: (other: SemVerT) => boolean
+
 	// '{major}.{minor}.{patch}'
 	toString: () => string
 }>

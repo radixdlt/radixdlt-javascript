@@ -15,6 +15,7 @@ import { map, tap } from 'rxjs/operators'
 import { v4 as uuidv4 } from 'uuid'
 import { WrappedLedgerTransport } from './wrapped/wrappedTransport'
 import { MockedLedgerNanoRecorder } from './mockedLedgerNanoRecorder'
+import { SemVerT } from '../_types'
 
 const createWithTransport = (
 	input: Readonly<{
@@ -68,6 +69,7 @@ const emulate = (
 		recorder?: MockedLedgerNanoRecorderT
 		mnemonic?: MnemomicT
 		passphrase?: string
+		version?: SemVerT
 	}>,
 ): MockedLedgerNanoT => {
 	const passphrase = input.passphrase
