@@ -31,7 +31,7 @@ const privateKeyFromNum = (privateKeyScalar: number) =>
 	PrivateKey.fromScalar(UInt256.valueOf(privateKeyScalar))._unsafeUnwrap()
 
 describe('signingKey_type', () => {
-	it('works', async (done) => {
+	it('works', () => {
 		const mnemonic = Mnemonic.fromEnglishPhrase(
 			'equip will roof matter pink blind book anxiety banner elbow sun young',
 		)._unsafeUnwrap()
@@ -51,34 +51,10 @@ describe('signingKey_type', () => {
 
 		expect(signingKey.hdPath!.equals(hdPath)).toBe(true)
 
-		// Expected keys are known from Leger app development.
-		const matchingPrivateKey = PrivateKey.fromScalar(
-			new UInt256(
-				'f423ae3097703022b86b87c15424367ce827d11676fae5c7fe768de52d9cce2e',
-				16,
-			),
-		)._unsafeUnwrap()
-
-		const message = `I'm testing Radix awesome hardware wallet!`
-		const hashedMessage = sha256Twice(message)
-		expect(hashedMessage.toString('hex')).toBe(
-			'be7515569e05daffc71bffe2a30365b74450c017a56184ee26699340a324d402',
-		)
-		const expectedSignature = (
-			await matchingPrivateKey.signUnhashed({ msgToHash: message })
-		)._unsafeUnwrap()
-
 		expect(signingKey.publicKey.toString(true)).toBe(
-			'026d5e07cfde5df84b5ef884b629d28d15b0f6c66be229680699767cd57c618288',
+			'02a61e5f4dd2bdc5352243264aa431702c988e77ecf9e61bbcd0b0dd26ad2280fc',
 		)
 
-		signingKey.sign(hashedMessage).subscribe((sig) => {
-			expect(sig.equals(expectedSignature)).toBe(true)
-			expect(sig.toDER()).toBe(
-				'3044022078b0d2d17d227a8dd14ecdf0d7d65580ac6c17ab980c50074e6c096c4081313202207a9819ceedab3bfd3d22452224394d6cb41e3441f4675a5e7bf58f059fdf34cd',
-			)
-			done()
-		})
 	})
 
 	it('radix_hd_path_hardened', async (done) => {
