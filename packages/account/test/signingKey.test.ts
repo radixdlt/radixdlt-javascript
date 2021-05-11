@@ -13,19 +13,14 @@ import {
 	SigningKeyT,
 	SigningKeyTypeHDT,
 	BIP32T,
-	BIP44T,
 	HardwareSigningKeyT,
 	HDSigningKeyTypeIdentifier,
 	HDMasterSeed,
-	HDNodeT,
 	HDPathRadix,
-	HDPathRadixT,
 	Mnemonic,
-	NetworkT,
 	toObservable,
-	SigningKeychain,
 } from '../src'
-import { Observable, of, Subject, Subscription, throwError } from 'rxjs'
+import { Observable, of, Subject, Subscription } from 'rxjs'
 
 const privateKeyFromNum = (privateKeyScalar: number) =>
 	PrivateKey.fromScalar(UInt256.valueOf(privateKeyScalar))._unsafeUnwrap()
@@ -54,7 +49,6 @@ describe('signingKey_type', () => {
 		expect(signingKey.publicKey.toString(true)).toBe(
 			'02a61e5f4dd2bdc5352243264aa431702c988e77ecf9e61bbcd0b0dd26ad2280fc',
 		)
-
 	})
 
 	it('radix_hd_path_hardened', async (done) => {

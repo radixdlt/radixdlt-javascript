@@ -1,8 +1,6 @@
-import { WrappedLedgerTransport } from '../src/ledger/wrapped/wrappedTransport'
 import { LedgerNano } from '../src/ledger/ledgerNano'
-import { RadixAPDU } from '../src/ledger/apdu'
 import { HDPathRadix, Mnemonic } from '@radixdlt/account'
-import { Observable, of, Subject, Subscription } from 'rxjs'
+import { Subject, Subscription } from 'rxjs'
 import { HardwareWallet } from '../src/hardwareWallet'
 import {
 	ECPointOnCurveT,
