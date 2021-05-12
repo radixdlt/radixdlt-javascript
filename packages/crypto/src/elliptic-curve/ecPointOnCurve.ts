@@ -2,9 +2,10 @@ import { UInt256 } from '@radixdlt/uint256'
 
 import { combine, err, ok, Result } from 'neverthrow'
 import { curve, ec } from 'elliptic'
-import { ECPointOnCurve, PrivateKey } from '../../_types'
 import { ValidationWitness } from '@radixdlt/util'
 import { bnFromUInt256, uint256FromBN } from '@radixdlt/primitives'
+import { log } from '@radixdlt/util'
+import { ECPointOnCurveT, PrivateKeyT } from './_types'
 
 const thirdPartyLibEllipticSecp256k1 = new ec('secp256k1')
 
@@ -20,7 +21,7 @@ const pointFromCoordinates = (
 	return shortWeirestrassCurve.point(otherX, otherY)
 }
 
-const pointFromOther = (other: ECPointOnCurve): curve.short.ShortPoint => {
+const pointFromOther = (other: ECPointOnCurveT): curve.short.ShortPoint => {
 	return pointFromCoordinates({ x: other.x, y: other.y })
 }
 
@@ -34,15 +35,17 @@ const ecPointOnCurveFromCoordinates = (
 		y: UInt256
 		shortPoint?: curve.short.ShortPoint
 	}>,
-): ECPointOnCurve => {
+): ECPointOnCurveT => {
 	const shortPoint = input.shortPoint ?? pointFromCoordinates(input)
 
-	const multiplyByScalar = (by: UInt256): ECPointOnCurve => {
+	const multiplyByScalar = (by: UInt256): ECPointOnCurveT => {
 		const factorShortPoint = shortPoint.mul(
 			bnFromUInt256(by),
 		) as curve.short.ShortPoint
 		// using recursion here!
-		const factorPoint = pointOnCurveFromEllipticShortPoint(factorShortPoint)
+		const factorPoint = __pointOnCurveFromEllipticShortPoint(
+			factorShortPoint,
+		)
 
 		// This should not happen, the internals of the EC lib `Elliptic` should always be
 		// able to perform multiplication between point and a scalar.
@@ -50,24 +53,29 @@ const ecPointOnCurveFromCoordinates = (
 		return factorPoint.value
 	}
 
+	const toBuffer = (): Buffer =>
+		Buffer.from(
+			[input.x, input.y]
+				.map((s) => s.toString(16))
+				.reduce((acc, cur) => acc + cur),
+			'hex',
+		)
+
+	const toString = (): string => toBuffer().toString('hex')
+
 	return {
 		x: input.x,
 		y: input.y,
-		toBuffer: () =>
-			Buffer.from(
-				[input.x, input.y]
-					.map((s) => s.toString(16))
-					.reduce((acc, cur) => acc + cur),
-				'hex',
-			),
-		equals: (other: ECPointOnCurve): boolean =>
+		toBuffer,
+		toString,
+		equals: (other: ECPointOnCurveT): boolean =>
 			other.x.eq(input.x) && other.y.eq(input.y),
-		add: (other: ECPointOnCurve): ECPointOnCurve => {
+		add: (other: ECPointOnCurveT): ECPointOnCurveT => {
 			const sumShortPoint = shortPoint.add(
 				pointFromOther(other),
 			) as curve.short.ShortPoint
 			// using recursion here!
-			const sumPoint = pointOnCurveFromEllipticShortPoint(sumShortPoint)
+			const sumPoint = __pointOnCurveFromEllipticShortPoint(sumShortPoint)
 
 			// This should not happen, the internals of the EC lib `Elliptic` should always be
 			// able to perform EC point addition.
@@ -75,14 +83,14 @@ const ecPointOnCurveFromCoordinates = (
 			return sumPoint.value
 		},
 		multiply: multiplyByScalar,
-		multiplyWithPrivateKey: (privateKey: PrivateKey): ECPointOnCurve =>
+		multiplyWithPrivateKey: (privateKey: PrivateKeyT): ECPointOnCurveT =>
 			multiplyByScalar(privateKey.scalar),
 	}
 }
 
-export const pointOnCurveFromEllipticShortPoint = (
+export const __pointOnCurveFromEllipticShortPoint = (
 	shortPoint: curve.short.ShortPoint,
-): Result<ECPointOnCurve, Error> => {
+): Result<ECPointOnCurveT, Error> => {
 	const validateOnCurve = (
 		somePoint: curve.short.ShortPoint,
 	): Result<ValidationWitness, Error> => {
@@ -101,10 +109,29 @@ export const pointOnCurveFromEllipticShortPoint = (
 	})
 }
 
-export const pointOnCurve = (
+const fromXY = (
 	input: Readonly<{
 		x: UInt256
 		y: UInt256
 	}>,
-): Result<ECPointOnCurve, Error> =>
-	pointOnCurveFromEllipticShortPoint(pointFromCoordinates(input))
+): Result<ECPointOnCurveT, Error> =>
+	__pointOnCurveFromEllipticShortPoint(pointFromCoordinates(input))
+
+const fromBuffer = (buffer: Buffer): Result<ECPointOnCurveT, Error> => {
+	const expectedByteCount = 64
+	if (buffer.length !== expectedByteCount) {
+		const errMsg = `Expected #${expectedByteCount} bytes, but got: ${buffer.length}`
+		log.error(errMsg)
+		return err(new Error(errMsg))
+	}
+	const xBuf = buffer.slice(0, expectedByteCount / 2)
+	const yBuf = buffer.slice(expectedByteCount / 2)
+	const x = new UInt256(xBuf.toString('hex'), 16)
+	const y = new UInt256(yBuf.toString('hex'), 16)
+	return fromXY({ x, y })
+}
+
+export const ECPointOnCurve = {
+	fromXY,
+	fromBuffer,
+}

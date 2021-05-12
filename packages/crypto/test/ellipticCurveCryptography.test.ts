@@ -1,18 +1,15 @@
 import {
-	privateKeyFromScalar,
-	Signature,
-	publicKeyFromBytes,
-	PrivateKey,
+	PrivateKeyT,
 	Secp256k1,
-	generatePrivateKey,
-	generateKeyPair,
 	sha256,
-	publicKeyCompressedByteCount,
-} from '../src/index'
+	ECPointOnCurve,
+	PublicKey,
+	Signature,
+	PrivateKey,
+	KeyPair,
+} from '../src'
 
 import { UInt256 } from '@radixdlt/uint256'
-import { publicKeyFromPrivateKeyScalar } from '../src/elliptic-curve/wrap/publicKeyWrapped'
-import { pointOnCurve } from '../src/elliptic-curve/wrap/ecPointOnCurve'
 import { signatureFromHexStrings } from './utils'
 import { msgFromError } from '@radixdlt/util'
 
@@ -25,9 +22,9 @@ describe('elliptic curve cryptography', () => {
 
 	it('0202...is a valid public key', () => {
 		const publicKeyCompressedHexString = '02'.repeat(
-			publicKeyCompressedByteCount,
+			PublicKey.compressedByteCount,
 		)
-		publicKeyFromBytes(
+		PublicKey.fromBuffer(
 			Buffer.from(publicKeyCompressedHexString, 'hex'),
 		).match(
 			(s) => {
@@ -38,7 +35,9 @@ describe('elliptic curve cryptography', () => {
 			},
 			(e) => {
 				throw new Error(
-					'0202... is not a valid public key, but we expected it to be.',
+					`0202... is not a valid public key, but we expected it to be. Underlying error: ${msgFromError(
+						e,
+					)}`,
 				)
 			},
 		)
@@ -55,12 +54,12 @@ describe('elliptic curve cryptography', () => {
 
 		it('0303...is not a valid public key', () => {
 			const publicKeyCompressedHexString = '03'.repeat(
-				publicKeyCompressedByteCount,
+				PublicKey.compressedByteCount,
 			)
-			publicKeyFromBytes(
+			PublicKey.fromBuffer(
 				Buffer.from(publicKeyCompressedHexString, 'hex'),
 			).match(
-				(s) => {
+				(_) => {
 					throw new Error(
 						`We expected ${publicKeyCompressedHexString} to be invalid, but it is not.`,
 					)
@@ -76,15 +75,15 @@ describe('elliptic curve cryptography', () => {
 
 	it('can securely generate private keys', () => {
 		const privateKeys = [...Array(1024)]
-			.map((_, i) => generatePrivateKey())
-			.map((privateKey: PrivateKey): string => privateKey.toString())
+			.map((_) => PrivateKey.generateNew())
+			.map((privateKey: PrivateKeyT): string => privateKey.toString())
 		const uniquePrivateKeys = new Set(privateKeys)
 		// Probability of collision is: 2^10/2^256 <=> 1/2^246<=> Very very very very low probability.
 		expect(uniquePrivateKeys.size).toBe(privateKeys.length)
 	})
 
 	it('should be able to sign messages', async () => {
-		const privateKey = privateKeyFromScalar(
+		const privateKey = PrivateKey.fromScalar(
 			UInt256.valueOf(1),
 		)._unsafeUnwrap()
 
@@ -98,21 +97,28 @@ describe('elliptic curve cryptography', () => {
 		const r = signature.r.toString(16)
 		const s = signature.s.toString(16)
 
-		expect(r).toBe(
-			'934b1ea10a4b3c1757e2b0c017d0b6143ce3c9a7e6a4a49860d7a6ab210ee3d8',
-		)
+		const expectedRHex =
+			'934b1ea10a4b3c1757e2b0c017d0b6143ce3c9a7e6a4a49860d7a6ab210ee3d8'
+		expect(r).toBe(expectedRHex)
 
-		expect(s).toBe(
-			'2442ce9d2b916064108014783e923ec36b49743e2ffa1c4496f01a512aafd9e5',
-		)
+		const expectedSHex =
+			'2442ce9d2b916064108014783e923ec36b49743e2ffa1c4496f01a512aafd9e5'
+		expect(s).toBe(expectedSHex)
 
-		expect(signature.toDER()).toBe(
-			'3045022100934b1ea10a4b3c1757e2b0c017d0b6143ce3c9a7e6a4a49860d7a6ab210ee3d802202442ce9d2b916064108014783e923ec36b49743e2ffa1c4496f01a512aafd9e5',
-		)
+		const derString =
+			'3045022100934b1ea10a4b3c1757e2b0c017d0b6143ce3c9a7e6a4a49860d7a6ab210ee3d802202442ce9d2b916064108014783e923ec36b49743e2ffa1c4496f01a512aafd9e5'
+		expect(signature.toDER()).toBe(derString)
+
+		const signatureFromDER = Signature.fromDER(derString)._unsafeUnwrap()
+		expect(signatureFromDER.toDER()).toBe(derString)
+		expect(signatureFromDER.r.toString(16)).toBe(expectedRHex)
+
+		expect(signatureFromDER.s.toString(16)).toBe(expectedSHex)
+		expect(signature.equals(signatureFromDER)).toBe(true)
 	})
 
 	it('should be able to derive publicKey from privateKey', () => {
-		const privateKey = privateKeyFromScalar(
+		const privateKey = PrivateKey.fromScalar(
 			UInt256.valueOf(1),
 		)._unsafeUnwrap()
 
@@ -150,7 +156,7 @@ describe('elliptic curve cryptography', () => {
 	})
 
 	it('can create a publicKey from bytes', () => {
-		const publicKeyResult = publicKeyFromBytes(
+		const publicKeyResult = PublicKey.fromBuffer(
 			Buffer.from(
 				'0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
 				'hex',
@@ -182,14 +188,14 @@ describe('elliptic curve cryptography', () => {
 		const g = Secp256k1.generator
 		const one = UInt256.valueOf(1)
 		expect(g.multiply(one).equals(g)).toBe(true)
-		const pubKey = publicKeyFromPrivateKeyScalar({
+		const pubKey = PublicKey.fromPrivateKeyScalar({
 			scalar: one,
 		})
 		expect(pubKey.decodeToPointOnCurve().equals(g)).toBe(true)
 	})
 
 	it('can do EC multiplication', () => {
-		const keyPair = generateKeyPair()
+		const keyPair = KeyPair.generateNew()
 		const publicKey = keyPair.publicKey
 		const privateKey = keyPair.privateKey
 		const pubKeyPoint = publicKey.decodeToPointOnCurve()
@@ -214,7 +220,7 @@ describe('elliptic curve cryptography', () => {
 	})
 
 	it('can construct ECPoint from X and Y', () => {
-		const manualG = pointOnCurve({
+		const manualG = ECPointOnCurve.fromXY({
 			x: new UInt256(
 				'79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
 				16,
@@ -225,10 +231,14 @@ describe('elliptic curve cryptography', () => {
 			),
 		})._unsafeUnwrap()
 		expect(manualG.equals(Secp256k1.generator)).toBe(true)
+
+		const gBuf = manualG.toBuffer()
+		const gFromBuf = ECPointOnCurve.fromBuffer(gBuf)._unsafeUnwrap()
+		expect(gFromBuf.equals(Secp256k1.generator)).toBe(true)
 	})
 
 	it('cannot construct points that is not on the curve', () => {
-		pointOnCurve({
+		ECPointOnCurve.fromXY({
 			x: UInt256.valueOf(1337),
 			y: UInt256.valueOf(1337),
 		}).match(

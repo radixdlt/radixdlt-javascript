@@ -19,7 +19,7 @@ import {
 	SigningKeychainT,
 } from './_types'
 import { mergeMap, shareReplay, take } from 'rxjs/operators'
-import { Keystore, KeystoreT, PublicKey, Signature } from '@radixdlt/crypto'
+import { Keystore, KeystoreT, PublicKeyT, SignatureT } from '@radixdlt/crypto'
 import { Option } from 'prelude-ts'
 import { HDPathRadix, HDPathRadixT, Int32 } from './bip32'
 import { arraysEqual, log, msgFromError } from '@radixdlt/util'
@@ -61,7 +61,7 @@ const createSigningKeys = (_all: SigningKeyT[]): MutableSigningKeysT => {
 	}
 
 	const getAnySigningKeyByPublicKey = (
-		publicKey: PublicKey,
+		publicKey: PublicKeyT,
 	): Option<SigningKeyT> => {
 		const signingKey = all.find((a) => a.publicKey.equals(publicKey))
 		return Option.of(signingKey)
@@ -322,7 +322,7 @@ const create = (
 		observeSigningKeys: (): Observable<SigningKeysT> => signingKeys$,
 		observeActiveSigningKey: (): Observable<SigningKeyT> =>
 			activeSigningKey$,
-		sign: (hashedMessage: Buffer): Observable<Signature> =>
+		sign: (hashedMessage: Buffer): Observable<SignatureT> =>
 			activeSigningKey$.pipe(mergeMap((a) => a.sign(hashedMessage))),
 	}
 }

@@ -12,6 +12,11 @@ import {
 	WrappedLedgerTransportT,
 } from './_types'
 import { firstValueFrom, Observable } from 'rxjs'
+import { HDMasterSeed, MnemomicT } from '@radixdlt/account'
+import { emulateSend } from './emulatedLedger'
+import { SemVerT } from '../../_types'
+import { SemVer } from '../semVer'
+import { MockedLedgerNanoRecorderT } from '../_types'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -112,8 +117,27 @@ const from = (transport: LedgerDeviceTransport): WrappedLedgerTransportT => {
 	return create({ ...transport })
 }
 
+const emulate = (
+	input: Readonly<{
+		recorder: MockedLedgerNanoRecorderT
+		mnemonic: MnemomicT
+		passphrase?: string
+		version?: SemVerT
+	}>,
+): WrappedLedgerTransportT => {
+	const masterSeed = HDMasterSeed.fromMnemonic(input)
+	const hdMasterNode = masterSeed.masterNode()
+	const hardcodedVersion =
+		input.version ?? SemVer.create({ major: 1, minor: 2, patch: 3 })
+
+	return create({
+		send: emulateSend({ ...input, hdMasterNode, hardcodedVersion }),
+	})
+}
+
 export const WrappedLedgerTransport = {
 	mock,
+	emulate,
 	from,
 }
 

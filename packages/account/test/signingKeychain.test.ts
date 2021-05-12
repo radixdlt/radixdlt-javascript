@@ -1,5 +1,4 @@
 import {
-	SigningKey,
 	SigningKeysT,
 	SigningKeyT,
 	Mnemonic,
@@ -7,7 +6,7 @@ import {
 	SigningKeychainT,
 } from '../src'
 import { map, skip, take, toArray } from 'rxjs/operators'
-import { KeystoreT, privateKeyFromScalar, PublicKey } from '@radixdlt/crypto'
+import { KeystoreT, PrivateKey, PublicKeyT } from '@radixdlt/crypto'
 import { combineLatest, Subscription } from 'rxjs'
 import { LogLevel, restoreDefaultLogLevel } from '@radixdlt/util'
 import { mockErrorMsg } from '../../util/test/util'
@@ -53,7 +52,7 @@ const expectSigningKeychainsEqual = (
 			signingKeychain1SigningKey1PublicKey$,
 			signingKeychain2SigningKey1PublicKey$,
 		).subscribe({
-			next: (keys: PublicKey[]) => {
+			next: (keys: PublicKeyT[]) => {
 				expect(keys.length).toBe(2)
 				const a = keys[0]
 				const b = keys[1]
@@ -377,7 +376,7 @@ describe('signingKeychain_type', () => {
 
 	it('signingKeychain can add private key signingKey', (done) => {
 		const privateKeyFromNum = (privateKeyScalar: number) =>
-			privateKeyFromScalar(
+			PrivateKey.fromScalar(
 				UInt256.valueOf(privateKeyScalar),
 			)._unsafeUnwrap()
 

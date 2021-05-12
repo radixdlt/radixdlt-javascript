@@ -1,12 +1,12 @@
 import {
 	DiffieHellman,
-	ECPointOnCurve,
+	ECPointOnCurveT,
 	EncryptedMessageT,
 	isPublicKey,
 	MessageEncryption,
-	PrivateKey,
-	PublicKey,
-	Signature,
+	PrivateKeyT,
+	PublicKeyT,
+	SignatureT,
 } from '@radixdlt/crypto'
 import { map, mergeMap } from 'rxjs/operators'
 import { Observable } from 'rxjs'
@@ -64,7 +64,7 @@ const makeSigningKeyTypeHD = (
 
 const makeSigningKeyTypeNonHD = (
 	input: Readonly<{
-		publicKey: PublicKey
+		publicKey: PublicKeyT
 		name?: string
 	}>,
 ): SigningKeyTypeNonHDT => {
@@ -91,7 +91,7 @@ const makeDecrypt = (diffieHellman: DiffieHellman): Decrypt => {
 		return toObservable(
 			MessageEncryption.decrypt({
 				...input,
-				diffieHellmanPoint: (): ResultAsync<ECPointOnCurve, Error> => {
+				diffieHellmanPoint: (): ResultAsync<ECPointOnCurveT, Error> => {
 					return diffieHellman(input.publicKeyOfOtherParty)
 				},
 			}).map((buf: Buffer) => buf.toString('utf-8')),
@@ -106,7 +106,7 @@ const makeEncrypt = (diffieHellman: DiffieHellman): Encrypt => {
 		return toObservable(
 			MessageEncryption.encrypt({
 				...input,
-				diffieHellmanPoint: (): ResultAsync<ECPointOnCurve, Error> => {
+				diffieHellmanPoint: (): ResultAsync<ECPointOnCurveT, Error> => {
 					return diffieHellman(input.publicKeyOfOtherParty)
 				},
 			}),
@@ -127,7 +127,7 @@ const makeEncryptHW = (
 				publicKeyOfOtherParty: input.publicKeyOfOtherParty,
 			})
 			.pipe(
-				mergeMap((dhPoint: ECPointOnCurve) =>
+				mergeMap((dhPoint: ECPointOnCurveT) =>
 					toObservable(
 						MessageEncryption.encrypt({
 							plaintext: input.plaintext,
@@ -150,12 +150,12 @@ const makeDecryptHW = (
 				publicKeyOfOtherParty: input.publicKeyOfOtherParty,
 			})
 			.pipe(
-				mergeMap((dhPoint: ECPointOnCurve) =>
+				mergeMap((dhPoint: ECPointOnCurveT) =>
 					toObservable(
 						MessageEncryption.decrypt({
 							encryptedMessage: input.encryptedMessage,
 							diffieHellmanPoint: (): ResultAsync<
-								ECPointOnCurve,
+								ECPointOnCurveT,
 								Error
 							> => {
 								return okAsync(dhPoint)
@@ -170,13 +170,13 @@ const makeDecryptHW = (
 
 const fromPrivateKeyNamedOrFromHDPath = (
 	input: Readonly<{
-		privateKey: PrivateKey
+		privateKey: PrivateKeyT
 		pathOrName?: HDPathRadixT | string
 	}>,
 ): SigningKeyT => {
 	const { privateKey } = input
-	const publicKey: PublicKey = privateKey.publicKey()
-	const sign = (hashedMessage: Buffer): Observable<Signature> =>
+	const publicKey: PublicKeyT = privateKey.publicKey()
+	const sign = (hashedMessage: Buffer): Observable<SignatureT> =>
 		toObservable(privateKey.sign(hashedMessage))
 
 	const diffieHellman = privateKey.diffieHellman
@@ -223,7 +223,7 @@ const fromPrivateKeyNamedOrFromHDPath = (
 
 const fromPrivateKeyAtHDPath = (
 	input: Readonly<{
-		privateKey: PrivateKey
+		privateKey: PrivateKeyT
 		hdPath: HDPathRadixT
 	}>,
 ): SigningKeyT =>
@@ -248,7 +248,7 @@ const fromHDPathWithHardwareWallet = (
 
 	type Tmp = {
 		hardwareSigningKey: HardwareSigningKeyT
-		publicKey: PublicKey
+		publicKey: PublicKeyT
 	}
 
 	const type: SigningKeyTypeT = makeSigningKeyTypeHD({
@@ -261,7 +261,7 @@ const fromHDPathWithHardwareWallet = (
 			(hw: HardwareSigningKeyT): Observable<Tmp> => {
 				return hw.derivePublicKey(hdPath).pipe(
 					map(
-						(publicKey: PublicKey): Tmp => {
+						(publicKey: PublicKeyT): Tmp => {
 							return {
 								publicKey,
 								hardwareSigningKey: hw,
@@ -278,7 +278,7 @@ const fromHDPathWithHardwareWallet = (
 					isLocalHDSigningKey: false, // hardware is not local
 					publicKey,
 					hdPath,
-					sign: (hashedMessage: Buffer): Observable<Signature> => {
+					sign: (hashedMessage: Buffer): Observable<SignatureT> => {
 						return hardwareSigningKey.sign({
 							hashedMessage,
 							hdPath,
@@ -295,8 +295,8 @@ const fromHDPathWithHardwareWallet = (
 						return publicKey.equals(other.publicKey)
 					},
 					__diffieHellman: (
-						_publicKeyOfOtherParty: PublicKey,
-					): ResultAsync<ECPointOnCurve, Error> => {
+						_publicKeyOfOtherParty: PublicKeyT,
+					): ResultAsync<ECPointOnCurveT, Error> => {
 						throw new Error('No Dh here, only used for testing.')
 					},
 				}

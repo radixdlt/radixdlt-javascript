@@ -1,7 +1,8 @@
-import { RadixAPDUT, radixCLA } from './_types'
+import { PartialAPDUT, RadixAPDUT, radixCLA } from './_types'
 import { HDPathRadixT, RADIX_COIN_TYPE } from '@radixdlt/account'
-import { LedgerInstruction } from '../_types'
-import { BIP32PathComponentT } from '@radixdlt/account/dist/bip32/_types'
+import { LedgerInstruction, LedgerResponseCodes } from '../_types'
+import { BIP32PathComponentT } from '@radixdlt/account'
+import { PublicKeyT } from '@radixdlt/crypto'
 
 // ##### Follows https://github.com/radixdlt/radixdlt-ledger-app/blob/main/APDUSPEC.md #####
 
@@ -33,24 +34,37 @@ const hdPathToBuffer = (hdPath: HDPathRadixT): Buffer => {
 	return data
 }
 
-const makeAPDU = (input: Omit<RadixAPDUT, 'cla'>): RadixAPDUT => {
+const makeAPDU = (input: Omit<PartialAPDUT, 'cla'>): RadixAPDUT => {
 	return {
-		...input,
 		cla: radixCLA,
+		ins: input.ins,
+		p1: input.p1 ?? 0,
+		p2: input.p2 ?? 0,
+		data: input.data,
+		requiredResponseStatusCodeFromDevice: input.requiredResponseStatusCodeFromDevice ?? [
+			LedgerResponseCodes.SW_OK,
+		],
 	}
 }
 
-const getPublicKey = (
-	input: Readonly<{
-		hdPath: HDPathRadixT
+const getVersion = (): RadixAPDUT =>
+	makeAPDU({
+		ins: LedgerInstruction.GET_VERSION,
+	})
 
-		// defaults to 'false' (convenient for testing)
-		requireConfirmationOnDevice?: boolean
-	}>,
-): RadixAPDUT => {
+type WithPath = Readonly<{
+	path: HDPathRadixT
+}>
+
+type APDUGetPublicKeyInput = WithPath &
+	Readonly<{
+		requireConfirmationOnDevice: boolean
+	}>
+
+const getPublicKey = (input: APDUGetPublicKeyInput): RadixAPDUT => {
 	const p1: number = input.requireConfirmationOnDevice ? 0x01 : 0x00
 
-	const data = hdPathToBuffer(input.hdPath)
+	const data = hdPathToBuffer(input.path)
 
 	return makeAPDU({
 		ins: LedgerInstruction.GET_PUBLIC_KEY,
@@ -59,6 +73,48 @@ const getPublicKey = (
 	})
 }
 
+type APDUDoKeyExchangeInput = APDUGetPublicKeyInput &
+	Readonly<{
+		publicKeyOfOtherParty: PublicKeyT
+	}>
+
+const doKeyExchange = (input: APDUDoKeyExchangeInput): RadixAPDUT => {
+	const p1: number = input.requireConfirmationOnDevice ? 0x01 : 0x00
+
+	const publicKeyData = input.publicKeyOfOtherParty.asData({
+		compressed: false,
+	})
+	const pathData = hdPathToBuffer(input.path)
+	const data = Buffer.concat([pathData, publicKeyData])
+
+	return makeAPDU({
+		ins: LedgerInstruction.DO_KEY_EXCHANGE,
+		p1,
+		data,
+	})
+}
+
+type APDUDoSignHashInput = APDUGetPublicKeyInput &
+	Readonly<{
+		hashToSign: Buffer
+	}>
+
+const doSignHash = (input: APDUDoSignHashInput): RadixAPDUT => {
+	const p1: number = input.requireConfirmationOnDevice ? 0x01 : 0x00
+
+	const pathData = hdPathToBuffer(input.path)
+	const data = Buffer.concat([pathData, input.hashToSign])
+
+	return makeAPDU({
+		ins: LedgerInstruction.DO_SIGN_HASH,
+		p1,
+		data,
+	})
+}
+
 export const RadixAPDU = {
+	getVersion,
 	getPublicKey,
+	doKeyExchange,
+	doSignHash,
 }

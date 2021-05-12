@@ -35,11 +35,11 @@ import {
 	Validator,
 	Validators,
 	ValidatorsRequestInput,
-} from './dto/_types'
-import { TransactionIdentifier } from './dto'
+	TransactionIdentifier,
+} from './dto'
 import { RadixCoreAPI } from './api'
 import { shareReplay } from 'rxjs/operators'
-import { privateKeyFromBuffer, PublicKey, sha256 } from '@radixdlt/crypto'
+import { PrivateKey, PublicKeyT, sha256 } from '@radixdlt/crypto'
 import { ActionType, ExecutedAction } from './actions'
 import { Amount } from '@radixdlt/primitives'
 
@@ -418,7 +418,7 @@ const randomThroughput = (): NetworkTransactionDemand => ({
 	tps: rndThroughput() % 200,
 })
 
-const detPRNGWithPubKey = (pubKey: PublicKey): (() => number) => {
+const detPRNGWithPubKey = (pubKey: PublicKeyT): (() => number) => {
 	// cannot use first, since it is always 02 or 03
 	const bytes = pubKey.asData({ compressed: true }).slice(1, 33)
 	return detPRNGWithBuffer(bytes)
@@ -664,7 +664,7 @@ const deterministicRandomLookupTXUsingHist = (
 ): SimpleExecutedTransaction => {
 	const seed = sha256(Buffer.from(txID.__hex, 'hex'))
 	const addressWithTXIdBytesAsSeed = AccountAddress.fromPublicKeyAndNetwork({
-		publicKey: privateKeyFromBuffer(seed)._unsafeUnwrap().publicKey(),
+		publicKey: PrivateKey.fromBuffer(seed)._unsafeUnwrap().publicKey(),
 		network: NetworkT.BETANET,
 	})
 	const txs = deterministicRandomTxHistoryWithInput({

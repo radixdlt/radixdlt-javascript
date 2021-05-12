@@ -20,7 +20,7 @@ import { Observable, of } from 'rxjs'
 import { Account, isAccount } from './account'
 import { map } from 'rxjs/operators'
 import { Option } from 'prelude-ts'
-import { PublicKey } from '@radixdlt/crypto'
+import { PublicKeyT } from '@radixdlt/crypto'
 
 const create = (
 	input: Readonly<{
@@ -46,7 +46,7 @@ const create = (
 		}
 
 		const getAnyAccountByPublicKey = (
-			publicKey: PublicKey,
+			publicKey: PublicKeyT,
 		): Option<AccountT> => {
 			return signingKeys
 				.getAnySigningKeyByPublicKey(publicKey)

@@ -2,10 +2,10 @@ import {
 	SealedMessage,
 	__validateTag,
 	__validateNonce,
-} from '../src/encryption/sealedMessage'
-import { publicKeyFromBytes } from '../src/elliptic-curve/publicKey'
+	AES_GCM_SealedBox,
+	PublicKey,
+} from '../src'
 import { buffersEquals } from '@radixdlt/util'
-import { AES_GCM_SealedBox } from '../src/symmetric-encryption/aes/aesGCMSealedBox'
 
 describe('SealedMessage type', () => {
 	const bufWByteCount = (byteCount: number, chars: string): Buffer =>
@@ -13,7 +13,7 @@ describe('SealedMessage type', () => {
 
 	const pubKeyHex =
 		'0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798'
-	const ephemeralPublicKey = publicKeyFromBytes(
+	const ephemeralPublicKey = PublicKey.fromBuffer(
 		Buffer.from(pubKeyHex, 'hex'),
 	)._unsafeUnwrap()
 

@@ -1,15 +1,20 @@
 import { SecureRandom, secureRandomGenerator } from '@radixdlt/util'
-import { generatePrivateKey } from './privateKey'
-import { KeyPair, PrivateKey } from '../_types'
+import { PrivateKey } from './privateKey'
+import { KeyPairT, PrivateKeyT } from './_types'
 
-export const generateKeyPair = (
-	secureRandom: SecureRandom = secureRandomGenerator,
-): KeyPair => {
-	const privateKey = generatePrivateKey(secureRandom)
-	return keyPair(privateKey)
-}
-
-export const keyPair = (privateKey: PrivateKey): KeyPair => ({
+const fromPrivateKey = (privateKey: PrivateKeyT): KeyPairT => ({
 	privateKey,
 	publicKey: privateKey.publicKey(),
 })
+
+const generateNew = (
+	secureRandom: SecureRandom = secureRandomGenerator,
+): KeyPairT => {
+	const privateKey = PrivateKey.generateNew(secureRandom)
+	return fromPrivateKey(privateKey)
+}
+
+export const KeyPair = {
+	generateNew,
+	fromPrivateKey,
+}

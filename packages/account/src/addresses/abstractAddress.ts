@@ -1,5 +1,5 @@
 import { combine, ok, Result } from 'neverthrow'
-import { isPublicKey, PublicKey, publicKeyFromBytes } from '@radixdlt/crypto'
+import { isPublicKey, PublicKey, PublicKeyT } from '@radixdlt/crypto'
 import { log, msgFromError } from '@radixdlt/util'
 import { Bech32, Encoding } from '../bech32'
 import { AbstractAddressT, AddressTypeT, NetworkT } from './_types'
@@ -34,7 +34,7 @@ const __create = <A extends AbstractAddressT>(
 		hrp: string
 		data: Buffer
 		addressType: AddressTypeT
-		publicKey: PublicKey
+		publicKey: PublicKeyT
 		network: NetworkT
 		typeguard: TypeGuard<A>
 		encoding?: Encoding
@@ -95,7 +95,7 @@ const byFormattingPublicKeyDataAndBech32ConvertingIt = <
 	A extends AbstractAddressT
 >(
 	input: Readonly<{
-		publicKey: PublicKey
+		publicKey: PublicKeyT
 		hrpFromNetwork: HRPFromNetwork
 		addressType: AddressTypeT
 		network: NetworkT
@@ -162,10 +162,10 @@ const fromString = <A extends AbstractAddressT>(
 		.andThen(({ bech32Data, publicKeyBytes, hrp }) => {
 			return combine([
 				networkFromHRP(hrp),
-				publicKeyFromBytes(publicKeyBytes),
+				PublicKey.fromBuffer(publicKeyBytes),
 			]).map((resultList) => {
 				const network = resultList[0] as NetworkT
-				const publicKey = resultList[1] as PublicKey
+				const publicKey = resultList[1] as PublicKeyT
 				return {
 					bech32Data,
 					hrp,

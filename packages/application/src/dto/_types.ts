@@ -13,7 +13,7 @@ import {
 	UnstakeTokensInput,
 } from '../actions'
 import { AmountT } from '@radixdlt/primitives'
-import { PublicKey, Signature } from '@radixdlt/crypto'
+import { PublicKeyT, SignatureT } from '@radixdlt/crypto'
 import { Observable } from 'rxjs'
 import { Result } from 'neverthrow'
 import { AccountT, MessageInTransaction } from '../_types'
@@ -207,8 +207,8 @@ export type BuiltTransaction = Readonly<{
 
 export type SignedTransaction = Readonly<{
 	transaction: BuiltTransactionReadyToSign
-	publicKeyOfSigner: PublicKey
-	signature: Signature
+	publicKeyOfSigner: PublicKeyT
+	signature: SignatureT
 }>
 
 export type FinalizedTransaction = Readonly<{

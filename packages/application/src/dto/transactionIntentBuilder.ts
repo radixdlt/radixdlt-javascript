@@ -39,7 +39,7 @@ import { combine, err, ok, Result } from 'neverthrow'
 import {
 	EncryptedMessageT,
 	MessageEncryption,
-	PublicKey,
+	PublicKeyT,
 } from '@radixdlt/crypto'
 import { Option } from 'prelude-ts'
 import { isAmount } from '@radixdlt/primitives'
@@ -52,9 +52,9 @@ type IntendedActionsFrom = Readonly<{
 }>
 
 export const singleRecipientFromActions = (
-	mine: PublicKey,
+	mine: PublicKeyT,
 	actions: UserAction[],
-): Result<PublicKey, Error> => {
+): Result<PublicKeyT, Error> => {
 	const others = flatMapAddressesOf({ actions })
 		.map((a) => a.publicKey)
 		.filter((a) => !a.equals(mine))
@@ -75,7 +75,7 @@ export const singleRecipientFromActions = (
 
 type ActorsInEncryption = {
 	encryptingAccount: AccountT
-	singleRecipientPublicKey: PublicKey
+	singleRecipientPublicKey: PublicKeyT
 }
 
 const ensureSingleRecipient = (

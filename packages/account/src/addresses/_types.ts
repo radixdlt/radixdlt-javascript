@@ -1,4 +1,4 @@
-import { PublicKey } from '@radixdlt/crypto'
+import { PublicKeyT } from '@radixdlt/crypto'
 
 export enum NetworkT {
 	MAINNET = 'MAINNET',
@@ -21,7 +21,7 @@ export enum AddressTypeT {
 export type AbstractAddressT = Readonly<{
 	addressType: AddressTypeT
 	network: NetworkT
-	publicKey: PublicKey
+	publicKey: PublicKeyT
 	toString: () => string
 	equals: (other: AbstractAddressT) => boolean
 }>

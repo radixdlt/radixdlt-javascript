@@ -1,6 +1,6 @@
-import { privateKeyFromScalar } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
 import { Mnemonic, SigningKeychain, SigningKeychainT } from '../src'
+import { PrivateKey } from '@radixdlt/crypto'
 
 export const makeSigningKeyChainWithFunds = (): SigningKeychainT => {
 	const signingKeychain = SigningKeychain.create({
@@ -9,7 +9,7 @@ export const makeSigningKeyChainWithFunds = (): SigningKeychainT => {
 	})
 
 	const addPK = (privateKeyScalar: number): void => {
-		const privateKey = privateKeyFromScalar(
+		const privateKey = PrivateKey.fromScalar(
 			UInt256.valueOf(privateKeyScalar),
 		)._unsafeUnwrap()
 		signingKeychain.addSigningKeyFromPrivateKey({
