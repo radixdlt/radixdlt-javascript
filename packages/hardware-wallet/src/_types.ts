@@ -58,11 +58,12 @@ export enum LedgerInstruction {
 
 // https://github.com/radixdlt/radixdlt-ledger-app/blob/2eecabd2d870ebc252218d91034a767320b71487/app/src/common/common_macros.h#L37-L43
 export enum LedgerResponseCodes {
+	CLA_NOT_SUPPORTED = 0x6e00,
+
 	SW_USER_REJECTED = 0x6985,
 	SW_INVALID_MAC_CODE = 0x6986,
 	SW_FATAL_ERROR_INCORRECT_IMPLEMENTATION = 0x6b00,
 	SW_INVALID_PARAM = 0x6b01,
 	SW_INVALID_INSTRUCTION = 0x6d00,
-	SW_INCORRECT_CLA = 0x6e00,
 	SW_OK = 0x9000,
 }

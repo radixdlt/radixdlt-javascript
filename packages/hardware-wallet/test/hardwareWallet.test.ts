@@ -23,6 +23,7 @@ import {
 } from '../src/ledger/emulatedLedger'
 import { MockedLedgerNanoRecorder } from '../src/ledger/mockedLedgerNanoRecorder'
 import { SemVer } from '../src/ledger/semVer'
+import { log } from '@radixdlt/util/dist/logging'
 
 describe('hardwareWallet', () => {
 	const emulateHardwareWallet = (
@@ -432,8 +433,17 @@ describe('hardwareWallet', () => {
 		})
 	})
 
-	describe.skip('integration', () => {
-		it('getVersion_integration', async (done) => {
+	describe('integration', () => {
+
+		beforeAll(() => {
+			log.setLevel('debug')
+		})
+
+		afterAll(() => {
+			log.setLevel('warn')
+		})
+
+		it.only('getVersion_integration', async (done) => {
 			const ledgerNano = await LedgerNano.waitForDeviceToConnect()
 			const hardwareWallet = HardwareWallet.ledger(ledgerNano)
 
@@ -447,7 +457,7 @@ describe('hardwareWallet', () => {
 					expect(version.toString()).toBe('0.0.0')
 				},
 			})
-		})
+		}, 120_000)
 
 		it('getPublicKey_integration', async (done) => {
 			const ledgerNano = await LedgerNano.waitForDeviceToConnect()

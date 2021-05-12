@@ -12,6 +12,7 @@ import { Observable, of, Subscription, throwError } from 'rxjs'
 import { PublicKey, SignatureT } from '@radixdlt/crypto'
 import { map, mergeMap, take, tap } from 'rxjs/operators'
 import { ECPointOnCurveT } from '@radixdlt/crypto/src/elliptic-curve/_types'
+import { log } from '@radixdlt/util/dist/logging'
 
 const pathDataByteCount = 12
 const publicKeyByteCount = 64
@@ -272,10 +273,11 @@ export const emulateSend = (
 ): ((apdu: RadixAPDUT) => Observable<Buffer>) => {
 	const { hardcodedVersion } = input
 	return (apdu: RadixAPDUT): Observable<Buffer> => {
+		log.debug(`📲 Emulating sending of APDU.`)
 		const { cla, ins } = apdu
 
 		if (cla !== radixCLA) {
-			return throwError(() => LedgerResponseCodes.SW_INCORRECT_CLA)
+			return throwError(() => LedgerResponseCodes.CLA_NOT_SUPPORTED)
 		}
 
 		switch (ins) {
