@@ -12,7 +12,7 @@ import {
 import {
 	EmulatedLedgerIO,
 	HardwareWalletT,
-	LedgerInstruction,
+	LedgerInstruction, LedgerResponseCodes,
 	MockedLedgerNanoStoreT,
 	SemVerT,
 } from '../src'
@@ -24,6 +24,7 @@ import {
 import { MockedLedgerNanoRecorder } from '../src/ledger/mockedLedgerNanoRecorder'
 import { SemVer } from '../src/ledger/semVer'
 import { log } from '@radixdlt/util/dist/logging'
+import { BasicLedgerTransport, openConnection } from '../src/ledger/ledgerNanoDeviceConnector'
 
 describe('hardwareWallet', () => {
 	const emulateHardwareWallet = (
@@ -443,7 +444,19 @@ describe('hardwareWallet', () => {
 			log.setLevel('warn')
 		})
 
-		it.only('getVersion_integration', async (done) => {
+		it(`semver_ledger`, async () => {
+			const ledgerTransport: BasicLedgerTransport = await openConnection()
+			const ledgerResponse = await ledgerTransport.send(0xaa, 0x00, 0, 0)
+			console.log(`🔮got response from ledger: ${ledgerResponse.toString('hex')}`)
+			const responseCode = ledgerResponse.slice(-2)
+			expect(parseInt(responseCode.toString('hex'), 16)).toBe(LedgerResponseCodes.SW_OK)
+			const result = ledgerResponse.slice(0, ledgerResponse.length - 2)
+			console.log(`🔮 parsed result from ledger: ${result.toString('hex')}`)
+			const semver = SemVer.fromBuffer(result)._unsafeUnwrap()
+			expect(semver.toString()).toBe('0.0.1')
+		})
+
+		it('getVersion_integration', async (done) => {
 			const ledgerNano = await LedgerNano.waitForDeviceToConnect()
 			const hardwareWallet = HardwareWallet.ledger(ledgerNano)
 
