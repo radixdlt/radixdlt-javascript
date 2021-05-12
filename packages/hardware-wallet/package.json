@@ -1,6 +1,6 @@
 {
   "name": "@radixdlt/hardware-wallet",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "Application for the Ledger Nano hardware wallet",
   "keywords": [
     "Ledger",
@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@ledgerhq/hw-transport-node-hid": "^5.50.0",
-    "@radixdlt/account": "^1.0.35",
+    "@radixdlt/account": "^1.0.36",
     "@radixdlt/crypto": "^1.0.30",
     "@radixdlt/primitives": "^1.0.24",
     "@radixdlt/util": "^1.0.20",
