@@ -1,6 +1,4 @@
-import { LedgerNanoTransport } from './wrapped/ledgerNanoTransport'
 import {
-	CreateLedgerNanoTransportInput,
 	LedgerNanoT,
 	LedgerRequest,
 	LedgerResponse,
@@ -8,29 +6,29 @@ import {
 	MockedLedgerNanoT,
 	RadixAPDUT,
 } from './_types'
-import { from, Observable } from 'rxjs'
-import { LedgerNanoTransportT, WrappedLedgerTransportT } from './wrapped'
-import { MnemomicT, Mnemonic } from '@radixdlt/account'
+import { Observable } from 'rxjs'
+import { HDMasterSeed, HDNodeT, MnemomicT, Mnemonic } from '@radixdlt/account'
 import { map, tap } from 'rxjs/operators'
 import { v4 as uuidv4 } from 'uuid'
-import { WrappedLedgerTransport } from './wrapped/wrappedTransport'
 import { MockedLedgerNanoRecorder } from './mockedLedgerNanoRecorder'
 import { SemVerT } from '../_types'
+import { emulateSend, LedgerButtonPress } from './emulatedLedger'
+import { SemVer } from './semVer'
 
-const createWithTransport = (
+const __create = (
 	input: Readonly<{
-		transport: LedgerNanoTransportT
+		sendAPDUToDevice: (apdu: RadixAPDUT) => Observable<Buffer>
 		recorder?: MockedLedgerNanoRecorderT
 	}>,
 ): LedgerNanoT => {
-	const { recorder, transport } = input
+	const { recorder, sendAPDUToDevice: exchange } = input
 
 	const sendRequestToDevice = (
 		request: LedgerRequest,
 	): Observable<LedgerResponse> => {
 		const { uuid, apdu } = request
 		recorder?.recordRequest(request)
-		return from(transport.sendAPDUCommandToDevice({ apdu })).pipe(
+		return exchange(apdu).pipe(
 			map((data) => ({ data, uuid })),
 			tap((response) => {
 				recorder?.recordResponse(response)
@@ -51,19 +49,6 @@ const createWithTransport = (
 	}
 }
 
-const create = (
-	input?: CreateLedgerNanoTransportInput | undefined,
-): LedgerNanoT => {
-	const transport = LedgerNanoTransport.create(input)
-	return createWithTransport({ transport })
-}
-
-const wrappedTransport = (transport: WrappedLedgerTransportT): LedgerNanoT => {
-	return createWithTransport({
-		transport: LedgerNanoTransport.withWrappedTransport(transport),
-	})
-}
-
 const emulate = (
 	input: Readonly<{
 		recorder?: MockedLedgerNanoRecorderT
@@ -77,18 +62,18 @@ const emulate = (
 
 	const recorder = input.recorder ?? MockedLedgerNanoRecorder.create()
 
-	const emulatedTransport = WrappedLedgerTransport.emulate({
-		...input,
+	const sendAPDUToDevice = emulateSend({
 		recorder,
-		mnemonic,
-		passphrase,
+		hdMasterNode: HDMasterSeed.fromMnemonic({
+			mnemonic,
+			passphrase,
+		}).masterNode(),
+		hardcodedVersion:
+			input.version ?? SemVer.fromString('0.0.1')._unsafeUnwrap(),
 	})
-	const transport: LedgerNanoTransportT = LedgerNanoTransport.withWrappedTransport(
-		emulatedTransport,
-	)
 
-	const ledgerNano = createWithTransport({
-		transport,
+	const ledgerNano = __create({
+		sendAPDUToDevice,
 		recorder: recorder,
 	})
 
@@ -98,8 +83,13 @@ const emulate = (
 	}
 }
 
+const waitForDeviceToConnect = async (
+	timeout?: number,
+): Promise<LedgerNanoT> => {
+	return Promise.reject(new Error('not impl yet'))
+}
+
 export const LedgerNano = {
-	create,
-	wrappedTransport,
+	waitForDeviceToConnect,
 	emulate,
 }

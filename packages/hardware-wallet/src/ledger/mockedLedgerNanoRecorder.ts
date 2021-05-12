@@ -7,7 +7,7 @@ import {
 	UserOutputAndInput,
 } from './_types'
 import { BehaviorSubject, Subject, Subscription } from 'rxjs'
-import { LedgerButtonPress, PromptUserForInput } from './wrapped/emulatedLedger'
+import { LedgerButtonPress, PromptUserForInput } from './emulatedLedger'
 
 const create = (io?: EmulatedLedgerIO): MockedLedgerNanoRecorderT => {
 	const subs = new Subscription()

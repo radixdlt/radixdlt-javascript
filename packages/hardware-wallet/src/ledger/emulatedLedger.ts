@@ -3,14 +3,15 @@ import {
 	HDNodeT,
 	HDPathRadix,
 	HDPathRadixT,
+	toObservable,
 } from '@radixdlt/account'
-import { LedgerInstruction, LedgerResponseCodes, SemVerT } from '../../_types'
-import { WLTSend, WLTSendAPDU } from './_types'
-import { MockedLedgerNanoRecorderT, radixCLA } from '../_types'
-import { ledgerInstruction } from '../ledgerInstruction'
+import { LedgerInstruction, LedgerResponseCodes, SemVerT } from '../_types'
+import { MockedLedgerNanoRecorderT, RadixAPDUT, radixCLA } from './_types'
 import { err, ok, Result } from 'neverthrow'
-import { Subscription } from 'rxjs'
-import { PublicKey } from '@radixdlt/crypto'
+import { Observable, of, Subscription, throwError } from 'rxjs'
+import { PublicKey, SignatureT } from '@radixdlt/crypto'
+import { map, mergeMap, take, tap } from 'rxjs/operators'
+import { ECPointOnCurveT } from '@radixdlt/crypto/src/elliptic-curve/_types'
 
 const pathDataByteCount = 12
 const publicKeyByteCount = 64
@@ -51,10 +52,9 @@ const emulateDoSignHash = (
 	input: Readonly<{
 		hdMasterNode: HDNodeT
 		recorder: MockedLedgerNanoRecorderT
-		apdu: WLTSendAPDU
+		apdu: RadixAPDUT
 	}>,
-): Promise<Buffer> => {
-	const subs = new Subscription()
+): Observable<Buffer> => {
 	const { apdu, hdMasterNode, recorder } = input
 	const { data, p1 } = apdu
 	const { usersInputOnLedger, promptUserForInputOnLedger } = recorder
@@ -62,131 +62,114 @@ const emulateDoSignHash = (
 	const sha256HashByteCount = 32
 	const expectLength = pathDataByteCount + sha256HashByteCount
 
-	if (!data || data.length < expectLength) {
-		return Promise.reject(LedgerResponseCodes.SW_INVALID_PARAM)
+	if (!data) {
+		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+	}
+
+	if (data.length < expectLength) {
+		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
 	}
 
 	const hdPathResult = hdPathFromBuffer(data)
 	if (!hdPathResult.isOk()) {
-		return Promise.reject(LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
 	}
 	const hashedData = data.slice(pathDataByteCount)
 	const derivedNode = hdMasterNode.derive(hdPathResult.value)
 
 	const privateKey = derivedNode.privateKey
 
-	return new Promise((resolve, reject) => {
-		void privateKey
-			// .diffieHellman(publicKeyOfOtherParty)
-			.sign(hashedData)
-			.map((a) => a.toDER())
-			.map((der) => Buffer.from(der, 'hex'))
-			.match(
-				(buf) => {
-					if (p1 === 1) {
-						subs.add(
-							usersInputOnLedger.subscribe({
-								next: (userInput) => {
-									if (
-										userInput ===
-										LedgerButtonPress.LEFT_REJECT
-									) {
-										reject(
-											LedgerResponseCodes.SW_USER_REJECTED,
-										)
-									} else {
-										resolve(buf)
-									}
-								},
-							}),
-						)
+	const requireConfirmation = p1 === 1
 
-						// Require confirmation on device
-						promptUserForInputOnLedger.next({
-							type: PromptUserForInputType.REQUIRE_CONFIRMATION,
-							instruction: LedgerInstruction.DO_SIGN_HASH,
-						})
-					} else {
-						// TODO need to append status code and length of data?
-						resolve(buf)
+	if (requireConfirmation) {
+		// Require confirmation on device
+		promptUserForInputOnLedger.next({
+			type: PromptUserForInputType.REQUIRE_CONFIRMATION,
+			instruction: LedgerInstruction.DO_SIGN_HASH,
+		})
+	}
+
+	const confirmRequest = !requireConfirmation
+		? of(LedgerButtonPress.BOTH_CONFIRM)
+		: usersInputOnLedger.pipe(
+				tap((buttonPress) => {
+					if (buttonPress === LedgerButtonPress.LEFT_REJECT) {
+						throw LedgerResponseCodes.SW_USER_REJECTED
 					}
-				},
-				(error) => reject(error),
-			)
-	})
+				}),
+		  )
+
+	return confirmRequest.pipe(
+		mergeMap((_) => {
+			return toObservable(privateKey.sign(hashedData))
+		}),
+		map((signature: SignatureT) => Buffer.from(signature.toDER(), 'hex')),
+	)
 }
 
 const emulateDoKeyExchange = (
 	input: Readonly<{
 		hdMasterNode: HDNodeT
 		recorder: MockedLedgerNanoRecorderT
-		apdu: WLTSendAPDU
+		apdu: RadixAPDUT
 	}>,
-): Promise<Buffer> => {
-	const subs = new Subscription()
+): Observable<Buffer> => {
 	const { apdu, hdMasterNode, recorder } = input
 	const { data, p1 } = apdu
 	const { usersInputOnLedger, promptUserForInputOnLedger } = recorder
 
 	const expectLength = pathDataByteCount + publicKeyByteCount
 
-	if (!data || data.length < expectLength) {
-		return Promise.reject(LedgerResponseCodes.SW_INVALID_PARAM)
+	if (!data) {
+		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+	}
+
+	if (data.length < expectLength) {
+		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
 	}
 
 	const hdPathResult = hdPathFromBuffer(data)
 	if (!hdPathResult.isOk()) {
-		return Promise.reject(LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
 	}
 	const publicKeyOfOtherPartyBytes = data.slice(pathDataByteCount)
 	const publicKeyOfOtherPartyBytesResult = PublicKey.fromBuffer(
 		publicKeyOfOtherPartyBytes,
 	)
 	if (!publicKeyOfOtherPartyBytesResult.isOk()) {
-		return Promise.reject(LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
 	}
 	const publicKeyOfOtherParty = publicKeyOfOtherPartyBytesResult.value
 	const derivedNode = hdMasterNode.derive(hdPathResult.value)
 
 	const privateKey = derivedNode.privateKey
 
-	return new Promise((resolve, reject) => {
-		void privateKey
-			.diffieHellman(publicKeyOfOtherParty)
-			.map((a) => a.toBuffer())
-			.match(
-				(buf) => {
-					if (p1 === 1) {
-						subs.add(
-							usersInputOnLedger.subscribe({
-								next: (userInput) => {
-									if (
-										userInput ===
-										LedgerButtonPress.LEFT_REJECT
-									) {
-										reject(
-											LedgerResponseCodes.SW_USER_REJECTED,
-										)
-									} else {
-										resolve(buf)
-									}
-								},
-							}),
-						)
+	const requireConfirmation = p1 === 1
 
-						// Require confirmation on device
-						promptUserForInputOnLedger.next({
-							type: PromptUserForInputType.REQUIRE_CONFIRMATION,
-							instruction: LedgerInstruction.DO_KEY_EXCHANGE,
-						})
-					} else {
-						// TODO need to append status code and length of data?
-						resolve(buf)
+	if (requireConfirmation) {
+		// Require confirmation on device
+		promptUserForInputOnLedger.next({
+			type: PromptUserForInputType.REQUIRE_CONFIRMATION,
+			instruction: LedgerInstruction.DO_KEY_EXCHANGE,
+		})
+	}
+
+	const confirmRequest = !requireConfirmation
+		? of(LedgerButtonPress.BOTH_CONFIRM)
+		: usersInputOnLedger.pipe(
+				tap((buttonPress) => {
+					if (buttonPress === LedgerButtonPress.LEFT_REJECT) {
+						throw LedgerResponseCodes.SW_USER_REJECTED
 					}
-				},
-				(error) => reject(error),
-			)
-	})
+				}),
+		  )
+
+	return confirmRequest.pipe(
+		mergeMap((_) => {
+			return toObservable(privateKey.diffieHellman(publicKeyOfOtherParty))
+		}),
+		map((ecPoint: ECPointOnCurveT) => ecPoint.toBuffer()),
+	)
 }
 
 export enum LedgerButtonPress {
@@ -208,69 +191,68 @@ const emulateGetPublicKey = (
 	input: Readonly<{
 		recorder: MockedLedgerNanoRecorderT
 		hdMasterNode: HDNodeT
-		apdu: WLTSendAPDU
+		apdu: RadixAPDUT
 	}>,
-): Promise<Buffer> => {
-	const subs = new Subscription()
+): Observable<Buffer> => {
 	const { apdu, hdMasterNode, recorder } = input
 	const { usersInputOnLedger, promptUserForInputOnLedger } = recorder
 
 	const { p1, data } = apdu
 	if (p1 > 1) {
-		return Promise.reject(LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
 	}
 
 	const hdPathResult = hdPathFromBuffer(data)
 	if (!hdPathResult.isOk()) {
-		return Promise.reject(LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
 	}
 	const derivedNode = hdMasterNode.derive(hdPathResult.value)
 
 	const publicKey = derivedNode.publicKey
 	const response = publicKey.asData({ compressed: true })
 
-	return new Promise((resolve, reject) => {
-		if (p1 === 1) {
-			subs.add(
-				usersInputOnLedger.subscribe({
-					next: (userInput) => {
-						if (userInput === LedgerButtonPress.LEFT_REJECT) {
-							reject(LedgerResponseCodes.SW_USER_REJECTED)
+	const requireConfirmation = p1 === 1
+
+	if (requireConfirmation) {
+		// Require confirmation on device
+		promptUserForInputOnLedger.next({
+			type: PromptUserForInputType.REQUIRE_CONFIRMATION,
+			instruction: LedgerInstruction.GET_PUBLIC_KEY,
+		})
+	}
+
+	return !requireConfirmation
+		? of(response)
+		: usersInputOnLedger.pipe(
+				map(
+					(buttonPress): Buffer => {
+						if (buttonPress === LedgerButtonPress.LEFT_REJECT) {
+							throw LedgerResponseCodes.SW_USER_REJECTED
 						} else {
-							resolve(response)
+							return response
 						}
 					},
-				}),
-			)
-
-			// Require confirmation on device
-			promptUserForInputOnLedger.next({
-				type: PromptUserForInputType.REQUIRE_CONFIRMATION,
-				instruction: LedgerInstruction.GET_PUBLIC_KEY,
-			})
-		} else {
-			// TODO need to append status code and length of data?
-			resolve(response)
-		}
-	})
+				),
+				take(1),
+		  )
 }
 
 const emulateGetVersion = (
 	input: Readonly<{
 		hardcodedVersion: SemVerT
-		apdu: WLTSendAPDU
+		apdu: RadixAPDUT
 	}>,
-): Promise<Buffer> => {
+): Observable<Buffer> => {
 	const { apdu, hardcodedVersion } = input
 	const { p1, p2, data } = apdu
 	if (p1 !== 0) {
-		return Promise.reject(LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
 	}
 	if (p2 !== 0) {
-		return Promise.reject(LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
 	}
 	if (data !== undefined) {
-		return Promise.reject(LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
 	}
 
 	const buf = Buffer.alloc(3)
@@ -278,7 +260,7 @@ const emulateGetVersion = (
 	buf.writeUInt8(hardcodedVersion.minor, 1)
 	buf.writeUInt8(hardcodedVersion.patch, 2)
 
-	return Promise.resolve(buf)
+	return of(buf)
 }
 
 export const emulateSend = (
@@ -287,34 +269,16 @@ export const emulateSend = (
 		hdMasterNode: HDNodeT
 		hardcodedVersion: SemVerT
 	}>,
-): WLTSend => {
+): ((apdu: RadixAPDUT) => Observable<Buffer>) => {
 	const { hardcodedVersion } = input
-	return (
-		cla: number,
-		ins: number,
-		p1: number,
-		p2: number,
-		data?: Buffer,
-		statusList?: ReadonlyArray<number>,
-	): Promise<Buffer> => {
+	return (apdu: RadixAPDUT): Observable<Buffer> => {
+		const { cla, ins } = apdu
+
 		if (cla !== radixCLA) {
-			return Promise.reject(LedgerResponseCodes.SW_INCORRECT_CLA)
-		}
-		const instructionResult = ledgerInstruction(ins)
-		if (!instructionResult.isOk()) {
-			return Promise.reject(LedgerResponseCodes.SW_INVALID_INSTRUCTION)
-		}
-		const instruction = instructionResult.value
-		const apdu: WLTSendAPDU = {
-			cla,
-			ins,
-			p1,
-			p2,
-			data,
-			statusList,
+			return throwError(() => LedgerResponseCodes.SW_INCORRECT_CLA)
 		}
 
-		switch (instruction) {
+		switch (ins) {
 			case LedgerInstruction.GET_PUBLIC_KEY: {
 				return emulateGetPublicKey({
 					...input,

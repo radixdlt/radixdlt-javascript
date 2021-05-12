@@ -1,6 +1,6 @@
 import { LedgerNano } from '../src/ledger/ledgerNano'
 import { HDPathRadix, Mnemonic } from '@radixdlt/account'
-import { Subject, Subscription } from 'rxjs'
+import { ReplaySubject, Subject, Subscription } from 'rxjs'
 import { HardwareWallet } from '../src/hardwareWallet'
 import {
 	ECPointOnCurveT,
@@ -20,7 +20,7 @@ import {
 	LedgerButtonPress,
 	PromptUserForInput,
 	PromptUserForInputType,
-} from '../src/ledger/wrapped/emulatedLedger'
+} from '../src/ledger/emulatedLedger'
 import { MockedLedgerNanoRecorder } from '../src/ledger/mockedLedgerNanoRecorder'
 import { SemVer } from '../src/ledger/semVer'
 
@@ -231,8 +231,8 @@ describe('hardwareWallet', () => {
 		it('getPublicKey', (done) => {
 			const subs = new Subscription()
 
-			const usersInputOnLedger = new Subject<LedgerButtonPress>()
-			const promptUserForInputOnLedger = new Subject<PromptUserForInput>()
+			const usersInputOnLedger = new ReplaySubject<LedgerButtonPress>()
+			const promptUserForInputOnLedger = new ReplaySubject<PromptUserForInput>()
 
 			const { hardwareWallet, store } = emulateHardwareWallet({
 				io: {
@@ -295,11 +295,11 @@ describe('hardwareWallet', () => {
 			})
 		})
 
-		it('signHash emulated', (done) => {
+		it('emulated_DoSignHash', (done) => {
 			const subs = new Subscription()
 
-			const usersInputOnLedger = new Subject<LedgerButtonPress>()
-			const promptUserForInputOnLedger = new Subject<PromptUserForInput>()
+			const usersInputOnLedger = new ReplaySubject<LedgerButtonPress>()
+			const promptUserForInputOnLedger = new ReplaySubject<PromptUserForInput>()
 
 			const { hardwareWallet, store } = emulateHardwareWallet({
 				io: {
@@ -362,11 +362,11 @@ describe('hardwareWallet', () => {
 			})
 		})
 
-		it('doKeyExchange', (done) => {
+		it('emulated_DoKeyExchange', (done) => {
 			const subs = new Subscription()
 
-			const usersInputOnLedger = new Subject<LedgerButtonPress>()
-			const promptUserForInputOnLedger = new Subject<PromptUserForInput>()
+			const usersInputOnLedger = new ReplaySubject<LedgerButtonPress>()
+			const promptUserForInputOnLedger = new ReplaySubject<PromptUserForInput>()
 
 			const { hardwareWallet, store } = emulateHardwareWallet({
 				io: {
@@ -433,9 +433,11 @@ describe('hardwareWallet', () => {
 	})
 
 	describe.skip('integration', () => {
-		it('getVersion_integration', (done) => {
+		it('getVersion_integration', async (done) => {
+			const ledgerNano = await LedgerNano.waitForDeviceToConnect()
+			const hardwareWallet = HardwareWallet.ledger(ledgerNano)
+
 			const subs = new Subscription()
-			const hardwareWallet = HardwareWallet.ledger(LedgerNano.create())
 
 			testGetVersion({
 				subs,
@@ -447,9 +449,11 @@ describe('hardwareWallet', () => {
 			})
 		})
 
-		it('getPublicKey_integration', (done) => {
+		it('getPublicKey_integration', async (done) => {
+			const ledgerNano = await LedgerNano.waitForDeviceToConnect()
+			const hardwareWallet = HardwareWallet.ledger(ledgerNano)
+
 			const subs = new Subscription()
-			const hardwareWallet = HardwareWallet.ledger(LedgerNano.create())
 			testGetPublicKey({
 				subs,
 				hardwareWallet,
@@ -457,9 +461,11 @@ describe('hardwareWallet', () => {
 			})
 		})
 
-		it('doSignHash_integration', (done) => {
+		it('doSignHash_integration', async (done) => {
+			const ledgerNano = await LedgerNano.waitForDeviceToConnect()
+			const hardwareWallet = HardwareWallet.ledger(ledgerNano)
+
 			const subs = new Subscription()
-			const hardwareWallet = HardwareWallet.ledger(LedgerNano.create())
 			testDoSignHash({
 				subs,
 				hardwareWallet,
@@ -467,9 +473,11 @@ describe('hardwareWallet', () => {
 			})
 		})
 
-		it('doKeyExchange_integration', (done) => {
+		it('doKeyExchange_integration', async (done) => {
+			const ledgerNano = await LedgerNano.waitForDeviceToConnect()
+			const hardwareWallet = HardwareWallet.ledger(ledgerNano)
+
 			const subs = new Subscription()
-			const hardwareWallet = HardwareWallet.ledger(LedgerNano.create())
 			testDoKeyExchange({
 				subs,
 				hardwareWallet,
