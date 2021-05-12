@@ -91,7 +91,7 @@ const emulate = (
 	}
 }
 
-const fromLedgerTransportNodeHID = (
+export const fromLedgerTransportNodeHID = (
 	basicLedgerTransport: BasicLedgerTransport,
 ): LedgerNanoT => {
 	log.debug(
@@ -118,56 +118,61 @@ const fromLedgerTransportNodeHID = (
 					)}`,
 				)
 
-				const statusList = undefined // [ apdu.requiredResponseStatusCodeFromDevice.map((s) => s.valueOf())]
 
-				basicLedgerTransport
-					.send(
-						apdu.cla,
-						apdu.ins,
-						apdu.p1,
-						apdu.p2,
-						apdu.data,
-						statusList,
-					)
-					.then((responseFromLedger) => {
-						log.debug(
-							`✅ got response from ledger device: ${responseFromLedger.toString(
-								'hex',
-							)}`,
-						)
-						responseSubject.next(responseFromLedger)
-					})
-					.catch((error) => {
-						if (
-							// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-							error.statusCode !== undefined &&
-							error.statusCode ===
-								LedgerResponseCodes.CLA_NOT_SUPPORTED
-						) {
-							log.info(
-								`🔥🙋🏾‍♀️ correct APP not open yet, wait for ${retryUntilAppIsOpenTimeout} and then try again.`,
-							)
-							// App not started yet... retry..?
-							retryUntilAppIsOpenTimeout *= 2
-							setTimeout(() => {
-								requestSubject.next(apdu) // retry
-							}, retryUntilAppIsOpenTimeout)
-						} else {
-							const errMsg = `SEND APDU failed with unknown error: '${msgFromError(
-								error,
-							)}'`
-							log.error(errMsg)
 
-							responseSubject.error(new Error(errMsg))
-						}
-					})
 			},
 		}),
 	)
 
 	const sendAPDUToDevice = (apdu: RadixAPDUT): Observable<Buffer> => {
-		requestSubject.next(apdu)
-		return responseSubject.pipe(take(1))
+		const statusList = undefined // [ apdu.requiredResponseStatusCodeFromDevice.map((s) => s.valueOf())]
+		return new Observable<Buffer>((subscriber) => {
+			basicLedgerTransport
+				.send(
+					apdu.cla,
+					apdu.ins,
+					apdu.p1,
+					apdu.p2,
+					apdu.data,
+					statusList,
+				)
+				.then((responseFromLedger) => {
+					log.debug(
+						`✅ got response from ledger device: ${responseFromLedger.toString(
+							'hex',
+						)}`,
+					)
+					subscriber.next(responseFromLedger)
+					subscriber.complete()
+				})
+				.catch((error) => {
+					if (
+						// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+						error.statusCode !== undefined &&
+						error.statusCode ===
+							LedgerResponseCodes.CLA_NOT_SUPPORTED
+					) {
+						const errMsg = `🤷‍♀️ Wrong app/Radix app not opened on Ledger yet. ${msgFromError(error)}`
+						log.error(errMsg)
+						// log.info(
+						// 	`🔥🙋🏾‍♀️ correct APP not open yet, wait for ${retryUntilAppIsOpenTimeout} and then try again.`,
+						// )
+						// // App not started yet... retry..?
+						// retryUntilAppIsOpenTimeout *= 2
+						// setTimeout(() => {
+						// 	requestSubject.next(apdu) // retry
+						// }, retryUntilAppIsOpenTimeout)
+						subscriber.error(new Error(errMsg))
+					} else {
+						const errMsg = `SEND APDU failed with unknown error: '${msgFromError(
+							error,
+						)}'`
+						log.error(errMsg)
+
+						subscriber.error(new Error(errMsg))
+					}
+				})
+		})
 	}
 
 	return {

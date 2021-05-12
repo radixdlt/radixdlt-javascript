@@ -1,26 +1,17 @@
-import { LedgerNano } from '../src/ledger/ledgerNano'
+import { fromLedgerTransportNodeHID, LedgerNano } from '../src/ledger/ledgerNano'
 import { HDPathRadix, Mnemonic } from '@radixdlt/account'
-import { ReplaySubject, Subject, Subscription } from 'rxjs'
+import { ReplaySubject, Subscription } from 'rxjs'
 import { HardwareWallet } from '../src/hardwareWallet'
-import {
-	ECPointOnCurveT,
-	PublicKey,
-	PublicKeyT,
-	sha256Twice,
-	SignatureT,
-} from '@radixdlt/crypto'
+import { ECPointOnCurveT, PublicKey, PublicKeyT, sha256Twice, SignatureT } from '@radixdlt/crypto'
 import {
 	EmulatedLedgerIO,
 	HardwareWalletT,
-	LedgerInstruction, LedgerResponseCodes,
+	LedgerInstruction,
+	LedgerResponseCodes,
 	MockedLedgerNanoStoreT,
 	SemVerT,
 } from '../src'
-import {
-	LedgerButtonPress,
-	PromptUserForInput,
-	PromptUserForInputType,
-} from '../src/ledger/emulatedLedger'
+import { LedgerButtonPress, PromptUserForInput, PromptUserForInputType } from '../src/ledger/emulatedLedger'
 import { MockedLedgerNanoRecorder } from '../src/ledger/mockedLedgerNanoRecorder'
 import { SemVer } from '../src/ledger/semVer'
 import { log } from '@radixdlt/util/dist/logging'
@@ -454,6 +445,33 @@ describe('hardwareWallet', () => {
 			console.log(`🔮 parsed result from ledger: ${result.toString('hex')}`)
 			const semver = SemVer.fromBuffer(result)._unsafeUnwrap()
 			expect(semver.toString()).toBe('0.0.1')
+		})
+
+		it(`semver_ledger2`, async (done) => {
+			const ledgerTransport: BasicLedgerTransport = await openConnection()
+			const ledger = fromLedgerTransportNodeHID(ledgerTransport)
+			const subs = new Subscription()
+
+			subs.add(
+				ledger.sendAPDUToDevice({
+					cla: 0xaa,
+					ins: LedgerInstruction.GET_VERSION,
+					p1: 0,
+					p2: 0,
+					data: undefined,
+					requiredResponseStatusCodeFromDevice: [LedgerResponseCodes.SW_OK]
+				}).subscribe((ledgerResponse) => {
+					console.log(`🔮got response from ledger: ${ledgerResponse.toString('hex')}`)
+					const responseCode = ledgerResponse.slice(-2)
+					expect(parseInt(responseCode.toString('hex'), 16)).toBe(LedgerResponseCodes.SW_OK)
+					const result = ledgerResponse.slice(0, ledgerResponse.length - 2)
+					console.log(`🔮 parsed result from ledger: ${result.toString('hex')}`)
+					const semver = SemVer.fromBuffer(result)._unsafeUnwrap()
+					expect(semver.toString()).toBe('0.0.1')
+					done()
+				})
+			)
+
 		})
 
 		it('getVersion_integration', async (done) => {
