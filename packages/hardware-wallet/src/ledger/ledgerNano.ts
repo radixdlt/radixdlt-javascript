@@ -20,6 +20,7 @@ import { msgFromError, log } from '@radixdlt/util'
 import {
 	BasicLedgerTransport,
 	openConnection,
+	OpenLedgerConnectionInput,
 	send,
 } from './ledgerNanoDeviceConnector'
 
@@ -184,19 +185,13 @@ const from = (basicLedgerTransport: BasicLedgerTransport): LedgerNanoT => {
 }
 
 const waitForDeviceToConnect = async (
-	input?: Readonly<{
-		deviceConnectionTimeout?: number
-		waitForRadixAppToBeOpened?: Readonly<{
-			pingIntervalMS: number
-			timeoutAfterNumberOfIntervals: number
-		}>
-	}>,
+	input?: OpenLedgerConnectionInput,
 ): Promise<LedgerNanoT> => {
 	const ledgerTransportForDevice = await openConnection({
 		deviceConnectionTimeout: input?.deviceConnectionTimeout,
-		waitForRadixAppToBeOpened: input?.waitForRadixAppToBeOpened ?? {
-			pingIntervalMS: 1_000,
-			timeoutAfterNumberOfIntervals: 60,
+		radixAppToOpenWaitPolicy: input?.radixAppToOpenWaitPolicy ?? {
+			delayBetweenRetries: 1_000,
+			retryCount: 60,
 		},
 	})
 	return from(ledgerTransportForDevice)

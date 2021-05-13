@@ -25,91 +25,25 @@ export const send = (
 	)
 }
 
-const waitForRadixAppToOpen = async (
-	input: Readonly<{
-		basicLedgerTransport: BasicLedgerTransport
-		waitForRadixAppToBeOpened: Readonly<{
-			pingIntervalMS: number
-			timeoutAfterNumberOfIntervals: number
-		}>
-	}>,
-): Promise<BasicLedgerTransport> => {
-	log.debug(`📲 ⏱ Waiting for Radix app to be started on Ledger.`)
-	const { waitForRadixAppToBeOpened } = input
-	const {
-		pingIntervalMS,
-		timeoutAfterNumberOfIntervals,
-	} = waitForRadixAppToBeOpened
-
-	let basicLedgerTransport = input.basicLedgerTransport
-
-	if (timeoutAfterNumberOfIntervals < 1) {
-		throw new Error('Number of intervals cannot be less than 1')
-	}
-	const timeout = pingIntervalMS * timeoutAfterNumberOfIntervals
-
-	const sendPingCommand = async (): Promise<boolean> => {
-		const getVersionAsPINGCommand = RadixAPDU.getVersion()
-
-		return send({
-			apdu: getVersionAsPINGCommand,
-			with: basicLedgerTransport,
-		})
-			.then((_) => {
-				return true
-			})
-			.catch((_) => {
-				return false
-			})
-	}
-
-	let intervalId: NodeJS.Timeout
-
-	return new Promise((resolve, reject) => {
-		const appDidNotOpenTimeoutId = setTimeout(() => {
-			reject(
-				new Error(
-					`After ${timeout} ms Radix app is still not opened. Timeout.`,
-				),
-			)
-		}, timeout)
-
-		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		intervalId = setInterval(async () => {
-			const isAppOpen = await sendPingCommand()
-			if (isAppOpen) {
-				log.debug(
-					`📲 ✅ Radix app is started on Ledger, ready to receive commands.`,
-				)
-				// clear self
-				clearInterval(intervalId)
-
-				clearTimeout(appDidNotOpenTimeoutId)
-				resolve(basicLedgerTransport)
-				return
-			}
-
-			// This line is crucial. We MUST close the transport and reopen it for
-			// pinging to work. Otherwise we get `Cannot write to hid device` forever.
-			// at least from macOS Big Sur on Ledger Nano with Secure Elements version 1.6.0
-			// and MCU 1.11
-			await basicLedgerTransport.close()
-			basicLedgerTransport = await __openConnection(false, {
-				deviceConnectionTimeout: 1_000,
-			})
-		}, pingIntervalMS)
+const delay = async (ms: number): Promise<void> => {
+	return new Promise((resolve, _) => {
+		setTimeout(() => {
+			resolve()
+		}, ms)
 	})
 }
 
+export type OpenLedgerConnectionInput = Readonly<{
+	deviceConnectionTimeout?: number
+	radixAppToOpenWaitPolicy?: Readonly<{
+		retryCount: number
+		delayBetweenRetries: number
+	}>
+}>
+
 const __openConnection = async (
 	isLoggingEnabled: boolean,
-	input?: Readonly<{
-		deviceConnectionTimeout?: number
-		waitForRadixAppToBeOpened?: Readonly<{
-			pingIntervalMS: number
-			timeoutAfterNumberOfIntervals: number
-		}>
-	}>,
+	input?: OpenLedgerConnectionInput,
 ): Promise<BasicLedgerTransport> => {
 	if (isLoggingEnabled) {
 		log.debug(`🔌⏱ Looking for (unlocked 🔓) Ledger device to connect to.`)
@@ -123,25 +57,53 @@ const __openConnection = async (
 	if (isLoggingEnabled) {
 		log.debug(`🔌✅ Found Ledger device and connected to it.`)
 	}
-	const waitForRadixAppToBeOpened = input?.waitForRadixAppToBeOpened
-	if (!waitForRadixAppToBeOpened) {
+	const radixAppToOpenWaitPolicy = input?.radixAppToOpenWaitPolicy
+
+	if (!radixAppToOpenWaitPolicy) {
 		return Promise.resolve(basicLedgerTransport)
 	} else {
-		return waitForRadixAppToOpen({
-			basicLedgerTransport,
-			waitForRadixAppToBeOpened,
+		if (isLoggingEnabled) {
+			log.debug(`📲 ⏱ Waiting for Radix app to be started on Ledger.`)
+		}
+		const delayBetweenRetries = radixAppToOpenWaitPolicy.delayBetweenRetries
+		const retryCount = radixAppToOpenWaitPolicy.retryCount
+		if (retryCount < 1) {
+			const errMsg = `Timedout waiting for Radix App to open`
+			log.error(errMsg)
+			return Promise.reject(new Error(errMsg))
+		}
+
+		await delay(delayBetweenRetries)
+
+		return send({
+			apdu: RadixAPDU.getVersion(),
+			with: basicLedgerTransport,
 		})
+			.then((_) => {
+				return Promise.resolve(basicLedgerTransport)
+			})
+			.catch((_) => {
+				// We MUST close the transport and reopen it for pinging to work.
+				// Otherwise we get `Cannot write to hid device` forever.
+				// at least from macOS Big Sur on Ledger Nano with Secure Elements version 1.6.0
+				// and MCU 1.11
+				return basicLedgerTransport.close().then(() => {
+					return __openConnection(false, {
+						deviceConnectionTimeout: 1_000,
+						radixAppToOpenWaitPolicy: {
+							// Exponential backing off...
+							delayBetweenRetries: delayBetweenRetries * 1.1,
+							// Decrease retry count
+							retryCount: retryCount - 1,
+						},
+					})
+				})
+			})
 	}
 }
 
 export const openConnection = async (
-	input?: Readonly<{
-		deviceConnectionTimeout?: number
-		waitForRadixAppToBeOpened?: Readonly<{
-			pingIntervalMS: number
-			timeoutAfterNumberOfIntervals: number
-		}>
-	}>,
+	input?: OpenLedgerConnectionInput,
 ): Promise<BasicLedgerTransport> => {
 	return __openConnection(true, input)
 }
