@@ -36,7 +36,7 @@ const hdPathToBuffer = (hdPath: HDPathRadixT): Buffer => {
 
 const makeAPDU = (input: Omit<PartialAPDUT, 'cla'>): RadixAPDUT => {
 	return {
-		cla: 0xaa,
+		cla: radixCLA,
 		ins: input.ins,
 		p1: input.p1 ?? 0,
 		p2: input.p2 ?? 0,

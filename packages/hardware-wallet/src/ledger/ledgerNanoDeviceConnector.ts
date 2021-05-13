@@ -3,6 +3,8 @@ import { Subscription as LedgerSubscriptionType } from '@ledgerhq/hw-transport'
 import { isNode, msgFromError } from '@radixdlt/util'
 import { RadixAPDU } from './apdu'
 import { RadixAPDUT } from './_types'
+import { err } from 'neverthrow'
+import { log } from '@radixdlt/util/dist/logging'
 
 // export type BasicLedgerNano = {
 // 	send: (
@@ -109,106 +111,148 @@ export const sendAPDUToBasicLedgerTransport = (
 // 	})
 // }
 
-export const openConnection = async (
-	waitForRadixAppToBeOpened?: Readonly<{
+const getDevicePath = async (
+	input: Readonly<{
 		pingIntervalMS: number
 		timeoutAfterNumberOfIntervals: number
 	}>,
-): Promise<BasicLedgerTransport> => {
-	await isImported
+): Promise<string> => {
+	const { timeoutAfterNumberOfIntervals, pingIntervalMS } = input
 
-	const devices = await transportNodeHid.list()
-
-	if (!devices[0]) {
-		throw new Error('No device found.')
+	if (timeoutAfterNumberOfIntervals < 1) {
+		throw new Error('Number of intervals cannot be less than 1')
 	}
-	let basicLedgerTransport = await transportNodeHid.open(devices[0])
+	const timeout = pingIntervalMS * timeoutAfterNumberOfIntervals
+
+	const doGetDevicePath = async (): Promise<string> => {
+		console.log(`🔌 checking for Ledger devices`)
+		const devices = await transportNodeHid.list()
+		return devices.length > 0
+			? Promise.resolve(devices[0])
+			: Promise.reject(new Error('No Ledger device found'))
+	}
+
+	return new Promise((resolve, reject) => {
+		const noDeviceConnectedTimeoutId = setTimeout(() => {
+			reject(
+				new Error(
+					`After ${timeout} ms we still did not find any device.`,
+				),
+			)
+		}, timeout)
+
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
+		setInterval(async () => {
+			void doGetDevicePath().then((devicePath) => {
+				console.log(`🔌 ✅ Found Ledger device!`)
+				clearTimeout(noDeviceConnectedTimeoutId)
+				resolve(devicePath)
+				return
+			})
+
+			// No device yet recursively call  `doGetDevicePath`.
+		}, pingIntervalMS)
+	})
+}
+
+const waitForRadixAppToOpen = async (
+	input: Readonly<{
+		basicLedgerTransport: BasicLedgerTransport
+		waitForRadixAppToBeOpened: Readonly<{
+			pingIntervalMS: number
+			timeoutAfterNumberOfIntervals: number
+		}>
+	}>,
+): Promise<BasicLedgerTransport> => {
+	const { waitForRadixAppToBeOpened } = input
+	const {
+		pingIntervalMS,
+		timeoutAfterNumberOfIntervals,
+	} = waitForRadixAppToBeOpened
+
+	let basicLedgerTransport = input.basicLedgerTransport
+
+	if (timeoutAfterNumberOfIntervals < 1) {
+		throw new Error('Number of intervals cannot be less than 1')
+	}
+	const timeout = pingIntervalMS * timeoutAfterNumberOfIntervals
+
+	const sendPingCommand = async (): Promise<boolean> => {
+		console.log(`📲 Pinging Ledger to see if Radix App is opened`)
+		const getVersionAsPINGCommand = RadixAPDU.getVersion()
+
+		return sendAPDUToBasicLedgerTransport({
+			apdu: getVersionAsPINGCommand,
+			basicLedgerTransport,
+		})
+			.then((_) => {
+				console.log(`📲 ✅ Radix app is opened!`)
+				return true
+			})
+			.catch((_) => {
+				return false
+			})
+	}
+
+	return new Promise((resolve, reject) => {
+		const appDidNotOpenTimeoutId = setTimeout(() => {
+			reject(
+				new Error(
+					`After ${timeout} ms Radix app is still not opened. Timeout.`,
+				),
+			)
+		}, timeout)
+
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
+		setInterval(async () => {
+			const isAppOpen = await sendPingCommand()
+			if (isAppOpen) {
+				clearTimeout(appDidNotOpenTimeoutId)
+				resolve(basicLedgerTransport)
+				return
+			}
+			// This line is crucial. We MUST close the transport and reopen it for
+			// pinging to work. Otherwise we get `Cannot write to hid device` forever.
+			// at least from macOS Big Sur on Ledger Nano with Secure Elements version 1.6.0
+			// and MCU 1.11
+			await basicLedgerTransport.close()
+			// Prudent to refresh list of devices as well
+			basicLedgerTransport = await openConnection()
+		}, pingIntervalMS)
+	})
+}
+
+export const openConnection = async (
+	input?: Readonly<{
+		waitForDeviceToConnect?: Readonly<{
+			pingIntervalMS: number
+			timeoutAfterNumberOfIntervals: number
+		}>
+		waitForRadixAppToBeOpened?: Readonly<{
+			pingIntervalMS: number
+			timeoutAfterNumberOfIntervals: number
+		}>
+	}>,
+): Promise<BasicLedgerTransport> => {
+	const waitForDeviceToConnect = input?.waitForDeviceToConnect
+	const waitForRadixAppToBeOpened = input?.waitForRadixAppToBeOpened
+
+	await isImported
+	const devicePath = await getDevicePath(
+		waitForDeviceToConnect ?? {
+			pingIntervalMS: 200,
+			timeoutAfterNumberOfIntervals: 2,
+		},
+	)
+
+	const basicLedgerTransport = await transportNodeHid.open(devicePath)
+
 	if (!waitForRadixAppToBeOpened) {
 		return Promise.resolve(basicLedgerTransport)
 	} else {
-		const {
-			pingIntervalMS,
-			timeoutAfterNumberOfIntervals,
-		} = waitForRadixAppToBeOpened
-		if (timeoutAfterNumberOfIntervals < 1) {
-			throw new Error('Number of intervals cannot be less than 1')
-		}
-		const timeout = pingIntervalMS * timeoutAfterNumberOfIntervals
-
-		const sendPingCommand = async (): Promise<boolean> => {
-			const getVersionAsPINGCommand = RadixAPDU.getVersion()
-
-			return sendAPDUToBasicLedgerTransport({
-				apdu: getVersionAsPINGCommand,
-				basicLedgerTransport,
-			})
-				.then((_) => {
-					console.log(`👻 success?!`)
-					return true
-				})
-				.catch((err) => {
-					console.log(
-						`👻❌ app not opened, error: ${msgFromError(err)}`,
-					)
-					return false
-				})
-		}
-
-		return new Promise((resolve, reject) => {
-			const appDidNotOpenTimeoutId = setTimeout(() => {
-				reject(
-					new Error(
-						`After ${timeout} ms Radix app is still not opened. Timeout.`,
-					),
-				)
-			}, timeout)
-
-			// eslint-disable-next-line @typescript-eslint/no-misused-promises
-			setInterval(async () => {
-				const isAppOpen = await sendPingCommand()
-				if (isAppOpen) {
-					console.log(
-						`🎉🎉🎉 App is opened! Cancelling timers and resolving promise`,
-					)
-					clearTimeout(appDidNotOpenTimeoutId)
-					resolve(basicLedgerTransport)
-					return
-				}
-				console.log(
-					`❌ App is not opened! Scheduling recursive call to ping`,
-				)
-				await basicLedgerTransport.close()
-				basicLedgerTransport = await transportNodeHid.open(devices[0])
-			}, pingIntervalMS)
-
-			// const ping = async (): Promise<void> => {
-			// 	console.log(
-			// 		`🤷‍♀️ about to ping device and check if app is opened.`,
-			// 	)
-			// 	return sendPingCommand().then((isAppOpened) => {
-			// 		if (isAppOpened) {
-			// 			console.log(
-			// 				`🎉🎉🎉 App is opened! Cancelling timers and resolving promise`,
-			// 			)
-			// 			clearTimeout(pingDeviceTimeoutId)
-			// 			clearTimeout(appDidNotOpenTimeoutId)
-			// 			resolve(basicLedgerTransport)
-			// 		} else {
-			// 			console.log(
-			// 				`❌ App is not opened! Scheduling recursive call to ping`,
-			// 			)
-			//
-			// 			// recursive call after 'interval' ms
-			// 			pingDeviceTimeoutId = setTimeout(() => {
-			// 				// eslint-disable-next-line @typescript-eslint/no-unused-vars
-			// 				void ping()
-			// 			}, pingIntervalMS)
-			// 		}
-			// 	})
-			// }
-			//
-			// // start pinging device.
-			// void ping()
+		return waitForRadixAppToOpen({
+			basicLedgerTransport,
+			waitForRadixAppToBeOpened,
 		})
 	}
 }
