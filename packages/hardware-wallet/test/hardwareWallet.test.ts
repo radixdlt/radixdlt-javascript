@@ -436,7 +436,6 @@ describe('hardwareWallet', () => {
 		})
 
 		it(`semver_ledger1`, async () => {
-			console.log(`🔮 opening connection to ledger.......`)
 			const ledgerTransport: BasicLedgerTransport = await openConnection(	{
 				waitForDeviceToConnect: {
 					pingIntervalMS: 1000,
@@ -447,7 +446,6 @@ describe('hardwareWallet', () => {
 					timeoutAfterNumberOfIntervals: 120,
 				},
 			})
-			console.log(`✅ opened connection to ledger!, now sending APDU command`)
 			const ledgerResponse = await ledgerTransport.send(0xaa, 0x00, 0, 0)
 			console.log(`🔮got response from ledger: ${ledgerResponse.toString('hex')}`)
 			const responseCode = ledgerResponse.slice(-2)
@@ -495,12 +493,6 @@ describe('hardwareWallet', () => {
 			subs.add(
 				hardwareWallet.getVersion()
 				.subscribe((semver) => {
-					// console.log(`🔮got response from ledger: ${ledgerResponse.toString('hex')}`)
-					// const responseCode = ledgerResponse.slice(-2)
-					// expect(parseInt(responseCode.toString('hex'), 16)).toBe(LedgerResponseCodes.SW_OK)
-					// const result = ledgerResponse.slice(0, ledgerResponse.length - 2)
-					// console.log(`🔮 parsed result from ledger: ${result.toString('hex')}`)
-					// const semver = SemVer.fromBuffer(result)._unsafeUnwrap()
 					expect(semver.toString()).toBe('0.0.1')
 					done()
 				})

@@ -32,23 +32,23 @@ export type BasicLedgerTransport = Pick<
 // 	device: any
 // }
 
-let transportNodeHid: typeof TransportNodeHid
-let outResolve: () => void
-
-const isImported: Promise<void> = new Promise((resolve, _) => {
-	outResolve = resolve
-})
-
-if (isNode) {
-	void import('@ledgerhq/hw-transport-node-hid').then((module) => {
-		transportNodeHid = module.default
-		outResolve()
-	})
-} else {
-	throw new Error(
-		'Not running in Node environment. This is not supported in the browser.',
-	)
-}
+// let transportNodeHid: typeof TransportNodeHid
+// let outResolve: () => void
+//
+// const isImported: Promise<void> = new Promise((resolve, _) => {
+// 	outResolve = resolve
+// })
+//
+// if (isNode) {
+// 	void import('@ledgerhq/hw-transport-node-hid').then((module) => {
+// 		transportNodeHid = module.default
+// 		outResolve()
+// 	})
+// } else {
+// 	throw new Error(
+// 		'Not running in Node environment. This is not supported in the browser.',
+// 	)
+// }
 
 export const sendAPDUToBasicLedgerTransport = (
 	input: Readonly<{
@@ -112,12 +112,14 @@ export const sendAPDUToBasicLedgerTransport = (
 // }
 
 const getDevicePath = async (
-	input: Readonly<{
+	input?: Readonly<{
 		pingIntervalMS: number
 		timeoutAfterNumberOfIntervals: number
 	}>,
 ): Promise<string> => {
-	const { timeoutAfterNumberOfIntervals, pingIntervalMS } = input
+	const timeoutAfterNumberOfIntervals =
+		input?.timeoutAfterNumberOfIntervals ?? 2
+	const pingIntervalMS = input?.pingIntervalMS ?? 500
 
 	if (timeoutAfterNumberOfIntervals < 1) {
 		throw new Error('Number of intervals cannot be less than 1')
@@ -125,8 +127,7 @@ const getDevicePath = async (
 	const timeout = pingIntervalMS * timeoutAfterNumberOfIntervals
 
 	const doGetDevicePath = async (): Promise<string> => {
-		console.log(`🔌 checking for Ledger devices`)
-		const devices = await transportNodeHid.list()
+		const devices = await TransportNodeHid.list()
 		return devices.length > 0
 			? Promise.resolve(devices[0])
 			: Promise.reject(new Error('No Ledger device found'))
@@ -146,8 +147,6 @@ const getDevicePath = async (
 		intervalId = setInterval(async () => {
 			void doGetDevicePath()
 				.then((devicePath) => {
-					console.log(`🔌 ✅ Found Ledger device!`)
-
 					// clear self
 					clearInterval(intervalId)
 
@@ -156,12 +155,8 @@ const getDevicePath = async (
 					return
 				})
 				.catch((_) => {
-					console.log(
-						`❌⚠️ No device yet ERROR SHOULD recursively call 'doGetDevicePath'`,
-					)
+					// supress error so that we can call `doGetDevicePath` again.
 				})
-
-			console.log(`❌ No device yet recursively call 'doGetDevicePath'`)
 		}, pingIntervalMS)
 	})
 }
@@ -175,6 +170,7 @@ const waitForRadixAppToOpen = async (
 		}>
 	}>,
 ): Promise<BasicLedgerTransport> => {
+	log.debug(`📲 ⏱ Waiting for Radix app to be started on Ledger.`)
 	const { waitForRadixAppToBeOpened } = input
 	const {
 		pingIntervalMS,
@@ -189,7 +185,6 @@ const waitForRadixAppToOpen = async (
 	const timeout = pingIntervalMS * timeoutAfterNumberOfIntervals
 
 	const sendPingCommand = async (): Promise<boolean> => {
-		console.log(`📲 Pinging Ledger to see if Radix App is opened`)
 		const getVersionAsPINGCommand = RadixAPDU.getVersion()
 
 		return sendAPDUToBasicLedgerTransport({
@@ -197,7 +192,6 @@ const waitForRadixAppToOpen = async (
 			basicLedgerTransport,
 		})
 			.then((_) => {
-				console.log(`📲 ✅ Radix app is opened!`)
 				return true
 			})
 			.catch((_) => {
@@ -220,6 +214,10 @@ const waitForRadixAppToOpen = async (
 		intervalId = setInterval(async () => {
 			const isAppOpen = await sendPingCommand()
 			if (isAppOpen) {
+				log.debug(
+					`📲 ✅ Radix app is started on Ledger, ready to receive commands.`,
+				)
+
 				// clear self
 				clearInterval(intervalId)
 
@@ -228,16 +226,15 @@ const waitForRadixAppToOpen = async (
 				return
 			}
 
-			console.log(
-				`❌ Radix app not opened yet recursively call 'sendPingCommand'`,
-			)
 			// This line is crucial. We MUST close the transport and reopen it for
 			// pinging to work. Otherwise we get `Cannot write to hid device` forever.
 			// at least from macOS Big Sur on Ledger Nano with Secure Elements version 1.6.0
 			// and MCU 1.11
 			await basicLedgerTransport.close()
+
 			// Prudent to refresh list of devices as well
-			basicLedgerTransport = await openConnection(undefined, true)
+			const devicePath = await getDevicePath()
+			basicLedgerTransport = await TransportNodeHid.open(devicePath)
 		}, pingIntervalMS)
 	})
 }
@@ -253,32 +250,16 @@ export const openConnection = async (
 			timeoutAfterNumberOfIntervals: number
 		}>
 	}>,
-	breakRecursion?: boolean,
 ): Promise<BasicLedgerTransport> => {
-	const recursionBreaking = breakRecursion ?? false
-	const waitForDeviceToConnect = input?.waitForDeviceToConnect
+	log.debug(`🔌⏱ Looking for (unlocked 🔓) Ledger device to connect to.`)
+
+	const devicePath = await getDevicePath(input?.waitForDeviceToConnect)
+	const basicLedgerTransport = await TransportNodeHid.open(devicePath)
+	log.debug(`🔌✅ Found Ledger device and connected to it.`)
 	const waitForRadixAppToBeOpened = input?.waitForRadixAppToBeOpened
-
-	await isImported
-	const devicePath = await getDevicePath(
-		waitForDeviceToConnect ?? {
-			pingIntervalMS: 200,
-			timeoutAfterNumberOfIntervals: 2,
-		},
-	)
-	console.log(`🚀 got ledger device path, opening connection now... `)
-	const basicLedgerTransport = await transportNodeHid.open(devicePath)
-
 	if (!waitForRadixAppToBeOpened) {
-		console.log(
-			`🤷‍♀️ SKIP waiting for ledger to be opened, returning transport...`,
-		)
 		return Promise.resolve(basicLedgerTransport)
 	} else {
-		if (recursionBreaking) {
-			throw new Error('Found recursion, breaking it!')
-		}
-		console.log(`🔮 start waiting for Radix app to be opened`)
 		return waitForRadixAppToOpen({
 			basicLedgerTransport,
 			waitForRadixAppToBeOpened,
