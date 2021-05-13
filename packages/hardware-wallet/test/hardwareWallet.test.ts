@@ -438,8 +438,14 @@ describe('hardwareWallet', () => {
 		it(`semver_ledger1`, async () => {
 			console.log(`🔮 opening connection to ledger.......`)
 			const ledgerTransport: BasicLedgerTransport = await openConnection(	{
-				pingIntervalMS: 2000,
-				timeoutAfterNumberOfIntervals: 15
+				waitForDeviceToConnect: {
+					pingIntervalMS: 500,
+					timeoutAfterNumberOfIntervals: 5,
+				},
+				waitForRadixAppToBeOpened: {
+					pingIntervalMS: 1500,
+					timeoutAfterNumberOfIntervals: 20,
+				},
 			})
 			console.log(`✅ opened connection to ledger!, now sending APDU command`)
 			const ledgerResponse = await ledgerTransport.send(0xaa, 0x00, 0, 0)
