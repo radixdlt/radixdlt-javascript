@@ -425,7 +425,7 @@ describe('hardwareWallet', () => {
 		})
 	})
 
-	describe('integration', () => {
+	describe.only('integration', () => {
 
 		beforeAll(() => {
 			log.setLevel('debug')
@@ -435,8 +435,13 @@ describe('hardwareWallet', () => {
 			log.setLevel('warn')
 		})
 
-		it(`semver_ledger`, async () => {
-			const ledgerTransport: BasicLedgerTransport = await openConnection()
+		it(`semver_ledger1`, async () => {
+			console.log(`🔮 opening connection to ledger.......`)
+			const ledgerTransport: BasicLedgerTransport = await openConnection(	{
+				pingIntervalMS: 2000,
+				timeoutAfterNumberOfIntervals: 15
+			})
+			console.log(`✅ opened connection to ledger!, now sending APDU command`)
 			const ledgerResponse = await ledgerTransport.send(0xaa, 0x00, 0, 0)
 			console.log(`🔮got response from ledger: ${ledgerResponse.toString('hex')}`)
 			const responseCode = ledgerResponse.slice(-2)
@@ -445,7 +450,7 @@ describe('hardwareWallet', () => {
 			console.log(`🔮 parsed result from ledger: ${result.toString('hex')}`)
 			const semver = SemVer.fromBuffer(result)._unsafeUnwrap()
 			expect(semver.toString()).toBe('0.0.1')
-		})
+		}, 120_000)
 
 		it(`semver_ledger2`, async (done) => {
 			const ledgerTransport: BasicLedgerTransport = await openConnection()
@@ -474,7 +479,30 @@ describe('hardwareWallet', () => {
 
 		})
 
-		it('getVersion_integration', async (done) => {
+
+		it(`semver_ledger3`, async (done) => {
+			const ledgerTransport: BasicLedgerTransport = await openConnection()
+			const ledgerNano = fromLedgerTransportNodeHID(ledgerTransport)
+			const hardwareWallet = HardwareWallet.ledger(ledgerNano)
+			const subs = new Subscription()
+
+			subs.add(
+				hardwareWallet.getVersion()
+				.subscribe((semver) => {
+					// console.log(`🔮got response from ledger: ${ledgerResponse.toString('hex')}`)
+					// const responseCode = ledgerResponse.slice(-2)
+					// expect(parseInt(responseCode.toString('hex'), 16)).toBe(LedgerResponseCodes.SW_OK)
+					// const result = ledgerResponse.slice(0, ledgerResponse.length - 2)
+					// console.log(`🔮 parsed result from ledger: ${result.toString('hex')}`)
+					// const semver = SemVer.fromBuffer(result)._unsafeUnwrap()
+					expect(semver.toString()).toBe('0.0.1')
+					done()
+				})
+			)
+
+		})
+
+		it.skip('getVersion_integration', async (done) => {
 			const ledgerNano = await LedgerNano.waitForDeviceToConnect()
 			const hardwareWallet = HardwareWallet.ledger(ledgerNano)
 
@@ -490,7 +518,7 @@ describe('hardwareWallet', () => {
 			})
 		}, 120_000)
 
-		it('getPublicKey_integration', async (done) => {
+		it.skip('getPublicKey_integration', async (done) => {
 			const ledgerNano = await LedgerNano.waitForDeviceToConnect()
 			const hardwareWallet = HardwareWallet.ledger(ledgerNano)
 
@@ -502,7 +530,7 @@ describe('hardwareWallet', () => {
 			})
 		})
 
-		it('doSignHash_integration', async (done) => {
+		it.skip('doSignHash_integration', async (done) => {
 			const ledgerNano = await LedgerNano.waitForDeviceToConnect()
 			const hardwareWallet = HardwareWallet.ledger(ledgerNano)
 
@@ -514,7 +542,7 @@ describe('hardwareWallet', () => {
 			})
 		})
 
-		it('doKeyExchange_integration', async (done) => {
+		it.skip('doKeyExchange_integration', async (done) => {
 			const ledgerNano = await LedgerNano.waitForDeviceToConnect()
 			const hardwareWallet = HardwareWallet.ledger(ledgerNano)
 

@@ -20,7 +20,7 @@ import { log } from '@radixdlt/util/'
 
 import {
 	BasicLedgerTransport,
-	openConnection,
+	openConnection, sendAPDUToBasicLedgerTransport,
 } from './ledgerNanoDeviceConnector'
 
 const __create = (
@@ -106,7 +106,7 @@ export const fromLedgerTransportNodeHID = (
 	const requestSubject = new Subject<RadixAPDUT>()
 
 	const responseSubject = new Subject<Buffer>()
-	let retryUntilAppIsOpenTimeout = 200
+	const retryUntilAppIsOpenTimeout = 200
 	subs.add(
 		requestSubject.subscribe({
 			next: (apdu) => {
@@ -117,25 +117,13 @@ export const fromLedgerTransportNodeHID = (
 						4,
 					)}`,
 				)
-
-
-
 			},
 		}),
 	)
 
 	const sendAPDUToDevice = (apdu: RadixAPDUT): Observable<Buffer> => {
-		const statusList = undefined // [ apdu.requiredResponseStatusCodeFromDevice.map((s) => s.valueOf())]
 		return new Observable<Buffer>((subscriber) => {
-			basicLedgerTransport
-				.send(
-					apdu.cla,
-					apdu.ins,
-					apdu.p1,
-					apdu.p2,
-					apdu.data,
-					statusList,
-				)
+			sendAPDUToBasicLedgerTransport({ apdu, basicLedgerTransport })
 				.then((responseFromLedger) => {
 					log.debug(
 						`✅ got response from ledger device: ${responseFromLedger.toString(
@@ -152,7 +140,9 @@ export const fromLedgerTransportNodeHID = (
 						error.statusCode ===
 							LedgerResponseCodes.CLA_NOT_SUPPORTED
 					) {
-						const errMsg = `🤷‍♀️ Wrong app/Radix app not opened on Ledger yet. ${msgFromError(error)}`
+						const errMsg = `🤷‍♀️ Wrong app/Radix app not opened on Ledger yet. ${msgFromError(
+							error,
+						)}`
 						log.error(errMsg)
 						// log.info(
 						// 	`🔥🙋🏾‍♀️ correct APP not open yet, wait for ${retryUntilAppIsOpenTimeout} and then try again.`,

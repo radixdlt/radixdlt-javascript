@@ -44,7 +44,7 @@ export type PartialAPDUT = Omit<
 export type RadixAPDUT = APDUT &
 	Readonly<{
 		// (type: 'number') Always to '0xAA'
-		cla: typeof radixCLA
+		cla: 0xaa
 		ins: LedgerInstruction
 	}>
 
