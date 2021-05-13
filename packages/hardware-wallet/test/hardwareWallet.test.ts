@@ -1,21 +1,27 @@
-import { fromLedgerTransportNodeHID, LedgerNano } from '../src/ledger/ledgerNano'
 import { HDPathRadix, Mnemonic } from '@radixdlt/account'
 import { ReplaySubject, Subscription } from 'rxjs'
-import { HardwareWallet } from '../src/hardwareWallet'
-import { ECPointOnCurveT, PublicKey, PublicKeyT, sha256Twice, SignatureT } from '@radixdlt/crypto'
+import {
+	ECPointOnCurveT,
+	PublicKey,
+	PublicKeyT,
+	sha256Twice,
+	SignatureT,
+} from '@radixdlt/crypto'
 import {
 	EmulatedLedgerIO,
 	HardwareWalletT,
 	LedgerInstruction,
-	LedgerResponseCodes,
 	MockedLedgerNanoStoreT,
+	HardwareWallet,
 	SemVerT,
+	SemVer,
+	LedgerNano,
+	MockedLedgerNanoRecorder,
+	LedgerButtonPress,
+	PromptUserForInput,
+	PromptUserForInputType,
 } from '../src'
-import { LedgerButtonPress, PromptUserForInput, PromptUserForInputType } from '../src/ledger/emulatedLedger'
-import { MockedLedgerNanoRecorder } from '../src/ledger/mockedLedgerNanoRecorder'
-import { SemVer } from '../src/ledger/semVer'
-import { log } from '@radixdlt/util/dist/logging'
-import { BasicLedgerTransport, openConnection } from '../src/ledger/ledgerNanoDeviceConnector'
+import { log } from '@radixdlt/util'
 
 describe('hardwareWallet', () => {
 	const emulateHardwareWallet = (
@@ -426,7 +432,6 @@ describe('hardwareWallet', () => {
 	})
 
 	describe.only('integration', () => {
-
 		beforeAll(() => {
 			log.setLevel('debug')
 		})
@@ -435,73 +440,10 @@ describe('hardwareWallet', () => {
 			log.setLevel('warn')
 		})
 
-		it(`semver_ledger1`, async () => {
-			const ledgerTransport: BasicLedgerTransport = await openConnection(	{
-				waitForDeviceToConnect: {
-					pingIntervalMS: 1000,
-					timeoutAfterNumberOfIntervals: 60,
-				},
-				waitForRadixAppToBeOpened: {
-					pingIntervalMS: 1000,
-					timeoutAfterNumberOfIntervals: 120,
-				},
+		it('getVersion_integration', async (done) => {
+			const ledgerNano = await LedgerNano.waitForDeviceToConnect({
+				deviceConnectionTimeout: 30_000,
 			})
-			const ledgerResponse = await ledgerTransport.send(0xaa, 0x00, 0, 0)
-			console.log(`🔮got response from ledger: ${ledgerResponse.toString('hex')}`)
-			const responseCode = ledgerResponse.slice(-2)
-			expect(parseInt(responseCode.toString('hex'), 16)).toBe(LedgerResponseCodes.SW_OK)
-			const result = ledgerResponse.slice(0, ledgerResponse.length - 2)
-			console.log(`🔮 parsed result from ledger: ${result.toString('hex')}`)
-			const semver = SemVer.fromBuffer(result)._unsafeUnwrap()
-			expect(semver.toString()).toBe('0.0.1')
-		}, 200_000)
-
-		it(`semver_ledger2`, async (done) => {
-			const ledgerTransport: BasicLedgerTransport = await openConnection()
-			const ledger = fromLedgerTransportNodeHID(ledgerTransport)
-			const subs = new Subscription()
-
-			subs.add(
-				ledger.sendAPDUToDevice({
-					cla: 0xaa,
-					ins: LedgerInstruction.GET_VERSION,
-					p1: 0,
-					p2: 0,
-					data: undefined,
-					requiredResponseStatusCodeFromDevice: [LedgerResponseCodes.SW_OK]
-				}).subscribe((ledgerResponse) => {
-					console.log(`🔮got response from ledger: ${ledgerResponse.toString('hex')}`)
-					const responseCode = ledgerResponse.slice(-2)
-					expect(parseInt(responseCode.toString('hex'), 16)).toBe(LedgerResponseCodes.SW_OK)
-					const result = ledgerResponse.slice(0, ledgerResponse.length - 2)
-					console.log(`🔮 parsed result from ledger: ${result.toString('hex')}`)
-					const semver = SemVer.fromBuffer(result)._unsafeUnwrap()
-					expect(semver.toString()).toBe('0.0.1')
-					done()
-				})
-			)
-
-		})
-
-
-		it(`semver_ledger3`, async (done) => {
-			const ledgerTransport: BasicLedgerTransport = await openConnection()
-			const ledgerNano = fromLedgerTransportNodeHID(ledgerTransport)
-			const hardwareWallet = HardwareWallet.ledger(ledgerNano)
-			const subs = new Subscription()
-
-			subs.add(
-				hardwareWallet.getVersion()
-				.subscribe((semver) => {
-					expect(semver.toString()).toBe('0.0.1')
-					done()
-				})
-			)
-
-		})
-
-		it.skip('getVersion_integration', async (done) => {
-			const ledgerNano = await LedgerNano.waitForDeviceToConnect()
 			const hardwareWallet = HardwareWallet.ledger(ledgerNano)
 
 			const subs = new Subscription()
@@ -511,10 +453,10 @@ describe('hardwareWallet', () => {
 				hardwareWallet,
 				done,
 				onResponse: (version: SemVerT) => {
-					expect(version.toString()).toBe('0.0.0')
+					expect(version.toString()).toBe('0.0.1')
 				},
 			})
-		}, 120_000)
+		}, 60_000)
 
 		it.skip('getPublicKey_integration', async (done) => {
 			const ledgerNano = await LedgerNano.waitForDeviceToConnect()

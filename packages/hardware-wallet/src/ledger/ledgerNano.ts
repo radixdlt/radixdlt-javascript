@@ -6,21 +6,21 @@ import {
 	MockedLedgerNanoT,
 	RadixAPDUT,
 } from './_types'
-import { Observable, Subject, Subscription, throwError } from 'rxjs'
+import { Observable, throwError } from 'rxjs'
 import { HDMasterSeed, MnemomicT, Mnemonic } from '@radixdlt/account'
-import { map, take, tap } from 'rxjs/operators'
+import { map, tap } from 'rxjs/operators'
 import { v4 as uuidv4 } from 'uuid'
 import { MockedLedgerNanoRecorder } from './mockedLedgerNanoRecorder'
 import { LedgerResponseCodes, SemVerT } from '../_types'
 import { emulateSend } from './emulatedLedger'
 import { SemVer } from './semVer'
 
-import { msgFromError } from '@radixdlt/util'
-import { log } from '@radixdlt/util/'
+import { msgFromError, log } from '@radixdlt/util'
 
 import {
-	BasicLedgerTransport,
-	openConnection, sendAPDUToBasicLedgerTransport,
+	LedgerTransportForDevice,
+	openConnection,
+	send,
 } from './ledgerNanoDeviceConnector'
 
 const __create = (
@@ -91,46 +91,62 @@ const emulate = (
 	}
 }
 
-export const fromLedgerTransportNodeHID = (
-	basicLedgerTransport: BasicLedgerTransport,
+const ledgerAPDUResponseCodeBufferLength = 2 // two bytes
+
+const from = (
+	ledgerTransportForDevice: LedgerTransportForDevice,
 ): LedgerNanoT => {
-	log.debug(
-		`🔌🎉 creating 'LedgerNanoT' with 'deviceConnection: TransportNodeHid', deviceConnection.device: ${JSON.stringify(
-			basicLedgerTransport.device,
-			null,
-			4,
-		)}`,
-	)
-
-	const subs = new Subscription()
-	const requestSubject = new Subject<RadixAPDUT>()
-
-	const responseSubject = new Subject<Buffer>()
-	const retryUntilAppIsOpenTimeout = 200
-	subs.add(
-		requestSubject.subscribe({
-			next: (apdu) => {
-				log.info(
-					`🚀 sending APDU to physical ledger: ${JSON.stringify(
-						apdu,
-						null,
-						4,
-					)}`,
-				)
-			},
-		}),
-	)
-
 	const sendAPDUToDevice = (apdu: RadixAPDUT): Observable<Buffer> => {
 		return new Observable<Buffer>((subscriber) => {
-			sendAPDUToBasicLedgerTransport({ apdu, basicLedgerTransport })
+			send({
+				apdu,
+				with: ledgerTransportForDevice.connectedLedgerTransport,
+			})
 				.then((responseFromLedger) => {
 					log.debug(
-						`✅ got response from ledger device: ${responseFromLedger.toString(
+						`✅ got raw response from ledger device: ${responseFromLedger.toString(
 							'hex',
 						)}`,
 					)
-					subscriber.next(responseFromLedger)
+
+					if (
+						responseFromLedger.length <
+						ledgerAPDUResponseCodeBufferLength
+					) {
+						const errMsg = `Got too short response from Ledger, expected all responses to be at least #${ledgerAPDUResponseCodeBufferLength} bytes, but got: #${responseFromLedger.length} bytes`
+						log.error(errMsg)
+						subscriber.error(new Error(errMsg))
+					}
+
+					const responseCodeBuf = responseFromLedger.slice(
+						-ledgerAPDUResponseCodeBufferLength,
+					)
+					const responseCode: LedgerResponseCodes = parseInt(
+						responseCodeBuf.toString('hex'),
+						16,
+					)
+
+					if (
+						!apdu.requiredResponseStatusCodeFromDevice.includes(
+							responseCode,
+						)
+					) {
+						const errMsg = `Invalid response code, got ${responseCode}, but requires any of: ${JSON.stringify(
+							apdu.requiredResponseStatusCodeFromDevice,
+							null,
+							4,
+						)}`
+						log.error(errMsg)
+						subscriber.error(new Error(errMsg))
+					}
+
+					const result = responseFromLedger.slice(
+						0,
+						responseFromLedger.length -
+							ledgerAPDUResponseCodeBufferLength,
+					)
+
+					subscriber.next(result)
 					subscriber.complete()
 				})
 				.catch((error) => {
@@ -144,14 +160,6 @@ export const fromLedgerTransportNodeHID = (
 							error,
 						)}`
 						log.error(errMsg)
-						// log.info(
-						// 	`🔥🙋🏾‍♀️ correct APP not open yet, wait for ${retryUntilAppIsOpenTimeout} and then try again.`,
-						// )
-						// // App not started yet... retry..?
-						// retryUntilAppIsOpenTimeout *= 2
-						// setTimeout(() => {
-						// 	requestSubject.next(apdu) // retry
-						// }, retryUntilAppIsOpenTimeout)
 						subscriber.error(new Error(errMsg))
 					} else {
 						const errMsg = `SEND APDU failed with unknown error: '${msgFromError(
@@ -177,12 +185,23 @@ export const fromLedgerTransportNodeHID = (
 	}
 }
 
-// When to dispose of this? and how?
 const waitForDeviceToConnect = async (
-	timeout?: number,
+	input?: Readonly<{
+		deviceConnectionTimeout?: number
+		waitForRadixAppToBeOpened?: Readonly<{
+			pingIntervalMS: number
+			timeoutAfterNumberOfIntervals: number
+		}>
+	}>,
 ): Promise<LedgerNanoT> => {
-	const ledgerTransport: BasicLedgerTransport = await openConnection()
-	return fromLedgerTransportNodeHID(ledgerTransport)
+	const ledgerTransportForDevice = await openConnection({
+		deviceConnectionTimeout: input?.deviceConnectionTimeout,
+		waitForRadixAppToBeOpened: input?.waitForRadixAppToBeOpened ?? {
+			pingIntervalMS: 1_000,
+			timeoutAfterNumberOfIntervals: 60,
+		},
+	})
+	return from(ledgerTransportForDevice)
 }
 
 export const LedgerNano = {
