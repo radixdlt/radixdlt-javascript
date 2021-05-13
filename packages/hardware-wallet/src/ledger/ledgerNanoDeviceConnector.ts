@@ -144,16 +144,22 @@ const getDevicePath = async (
 
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		intervalId = setInterval(async () => {
-			void doGetDevicePath().then((devicePath) => {
-				console.log(`🔌 ✅ Found Ledger device!`)
+			void doGetDevicePath()
+				.then((devicePath) => {
+					console.log(`🔌 ✅ Found Ledger device!`)
 
-				// clear self
-				clearInterval(intervalId)
+					// clear self
+					clearInterval(intervalId)
 
-				clearTimeout(noDeviceConnectedTimeoutId)
-				resolve(devicePath)
-				return
-			})
+					clearTimeout(noDeviceConnectedTimeoutId)
+					resolve(devicePath)
+					return
+				})
+				.catch((_) => {
+					console.log(
+						`❌⚠️ No device yet ERROR SHOULD recursively call 'doGetDevicePath'`,
+					)
+				})
 
 			console.log(`❌ No device yet recursively call 'doGetDevicePath'`)
 		}, pingIntervalMS)
