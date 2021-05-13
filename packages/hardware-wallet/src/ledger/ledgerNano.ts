@@ -18,7 +18,7 @@ import { SemVer } from './semVer'
 import { msgFromError, log } from '@radixdlt/util'
 
 import {
-	LedgerTransportForDevice,
+	BasicLedgerTransport,
 	openConnection,
 	send,
 } from './ledgerNanoDeviceConnector'
@@ -93,14 +93,12 @@ const emulate = (
 
 const ledgerAPDUResponseCodeBufferLength = 2 // two bytes
 
-const from = (
-	ledgerTransportForDevice: LedgerTransportForDevice,
-): LedgerNanoT => {
+const from = (basicLedgerTransport: BasicLedgerTransport): LedgerNanoT => {
 	const sendAPDUToDevice = (apdu: RadixAPDUT): Observable<Buffer> => {
 		return new Observable<Buffer>((subscriber) => {
 			send({
 				apdu,
-				with: ledgerTransportForDevice.connectedLedgerTransport,
+				with: basicLedgerTransport,
 			})
 				.then((responseFromLedger) => {
 					log.debug(
