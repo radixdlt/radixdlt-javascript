@@ -431,7 +431,7 @@ describe('hardwareWallet', () => {
 		})
 	})
 
-	describe.only('integration', () => {
+	describe('integration', () => {
 		beforeAll(() => {
 			log.setLevel('debug')
 		})
@@ -459,7 +459,9 @@ describe('hardwareWallet', () => {
 		}, 60_000)
 
 		it.skip('getPublicKey_integration', async (done) => {
-			const ledgerNano = await LedgerNano.waitForDeviceToConnect()
+			const ledgerNano = await LedgerNano.waitForDeviceToConnect({
+				deviceConnectionTimeout: 30_000,
+			})
 			const hardwareWallet = HardwareWallet.ledger(ledgerNano)
 
 			const subs = new Subscription()
@@ -468,10 +470,12 @@ describe('hardwareWallet', () => {
 				hardwareWallet,
 				done,
 			})
-		})
+		}, 60_000)
 
 		it.skip('doSignHash_integration', async (done) => {
-			const ledgerNano = await LedgerNano.waitForDeviceToConnect()
+			const ledgerNano = await LedgerNano.waitForDeviceToConnect({
+				deviceConnectionTimeout: 30_000,
+			})
 			const hardwareWallet = HardwareWallet.ledger(ledgerNano)
 
 			const subs = new Subscription()
@@ -480,10 +484,12 @@ describe('hardwareWallet', () => {
 				hardwareWallet,
 				done,
 			})
-		})
+		}, 60_000)
 
 		it.skip('doKeyExchange_integration', async (done) => {
-			const ledgerNano = await LedgerNano.waitForDeviceToConnect()
+			const ledgerNano = await LedgerNano.waitForDeviceToConnect({
+				deviceConnectionTimeout: 30_000,
+			})
 			const hardwareWallet = HardwareWallet.ledger(ledgerNano)
 
 			const subs = new Subscription()
@@ -492,6 +498,6 @@ describe('hardwareWallet', () => {
 				hardwareWallet,
 				done,
 			})
-		})
+		}, 60_000)
 	})
 })
