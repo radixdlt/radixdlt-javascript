@@ -437,6 +437,10 @@ describe('hardwareWallet', () => {
 		})
 
 		afterEach((done) => {
+			if (!ledgerNano) {
+				done()
+				return
+			}
 			const subs = new Subscription()
 			// must close connection in between else finding a free ledger device for subsequent test will fail.
 			subs.add(
@@ -452,7 +456,7 @@ describe('hardwareWallet', () => {
 
 		it('getVersion_integration', async (done) => {
 			ledgerNano = await LedgerNano.waitForDeviceToConnect({
-				deviceConnectionTimeout: 30_000,
+				deviceConnectionTimeout: 1_000,
 			})
 			const hardwareWallet = HardwareWallet.ledger(ledgerNano)
 
@@ -463,11 +467,11 @@ describe('hardwareWallet', () => {
 					done()
 				},
 			})
-		}, 60_000)
+		})
 
 		it('getPublicKey_integration', async (done) => {
 			ledgerNano = await LedgerNano.waitForDeviceToConnect({
-				deviceConnectionTimeout: 30_000,
+				deviceConnectionTimeout: 1_000,
 			})
 			const hardwareWallet = HardwareWallet.ledger(ledgerNano)
 
@@ -477,12 +481,12 @@ describe('hardwareWallet', () => {
 					done()
 				},
 			})
-		}, 60_000)
+		})
 
 		// Not implemented on Ledger yet
 		it.skip('doKeyExchange_integration', async (done) => {
 			ledgerNano = await LedgerNano.waitForDeviceToConnect({
-				deviceConnectionTimeout: 30_000,
+				deviceConnectionTimeout: 1_000,
 			})
 			const hardwareWallet = HardwareWallet.ledger(ledgerNano)
 
@@ -492,11 +496,11 @@ describe('hardwareWallet', () => {
 					done()
 				},
 			})
-		}, 60_000)
+		}, 20_000)
 
 		it('doSignHash_integration', async (done) => {
 			ledgerNano = await LedgerNano.waitForDeviceToConnect({
-				deviceConnectionTimeout: 30_000,
+				deviceConnectionTimeout: 1_000,
 			})
 			const hardwareWallet = HardwareWallet.ledger(ledgerNano)
 
@@ -506,6 +510,6 @@ describe('hardwareWallet', () => {
 					done()
 				},
 			})
-		}, 60_000)
+		}, 20_000)
 	})
 })
