@@ -104,7 +104,12 @@ const emulateDoSignHash = (
 		mergeMap((_) => {
 			return toObservable(privateKey.sign(hashedData))
 		}),
-		map((signature: SignatureT) => Buffer.from(signature.toDER(), 'hex')),
+		map((signature: SignatureT) => {
+			return Buffer.concat([
+				Buffer.from(signature.r.toString(16), 'hex'),
+				Buffer.from(signature.s.toString(16), 'hex'),
+			])
+		}),
 	)
 }
 

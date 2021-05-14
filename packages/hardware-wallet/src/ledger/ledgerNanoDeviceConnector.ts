@@ -1,7 +1,7 @@
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import { RadixAPDU } from './apdu'
 import { RadixAPDUT } from './_types'
-import { log } from '@radixdlt/util/dist/logging'
+import { log } from '@radixdlt/util'
 
 export type BasicLedgerTransport = Pick<TransportNodeHid, 'send' | 'close'>
 

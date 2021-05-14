@@ -37,7 +37,7 @@
     "neverthrow": "4.0.1",
     "node-hid": "^2.1.1",
     "prelude-ts": "^1.0.2",
-    "rxjs": "^7.0.0",
+    "rxjs": "7.0.0",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
