@@ -1,7 +1,6 @@
 import { Observable, Subject } from 'rxjs'
 import { LedgerInstruction, LedgerResponseCodes } from '../_types'
-import { APDUT } from './wrapped'
-import { LedgerButtonPress, PromptUserForInput } from './wrapped/emulatedLedger'
+import { LedgerButtonPress, PromptUserForInput } from './emulatedLedger'
 
 export type CreateLedgerNanoTransportInput = Readonly<{
 	openTimeout?: number
@@ -9,6 +8,24 @@ export type CreateLedgerNanoTransportInput = Readonly<{
 }>
 
 export const radixCLA: number = 0xaa
+
+export type APDUT = Readonly<{
+	// (type: 'number') Always to '0xAA'
+	cla: number
+	ins: number
+
+	//  Will default to `0` if undefined
+	p1: number
+
+	// Should not be present if `p1` is 'undefined'. Will default to `0` if undefined
+	p2: number
+
+	// defaults to zero length buffer
+	data?: Buffer
+
+	// defaults to: `[SW_OK]`
+	requiredResponseStatusCodeFromDevice: LedgerResponseCodes[]
+}>
 
 export type PartialAPDUT = Omit<
 	APDUT,
@@ -26,7 +43,6 @@ export type PartialAPDUT = Omit<
 
 export type RadixAPDUT = APDUT &
 	Readonly<{
-		// (type: 'number') Always to '0xAA'
 		cla: typeof radixCLA
 		ins: LedgerInstruction
 	}>
@@ -42,6 +58,7 @@ export type LedgerResponse = Readonly<{
 }>
 
 export type LedgerNanoT = Readonly<{
+	close: () => Observable<void>
 	sendAPDUToDevice: (apdu: RadixAPDUT) => Observable<Buffer>
 	__sendRequestToDevice: (
 		request: LedgerRequest,

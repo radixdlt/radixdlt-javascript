@@ -1,12 +1,11 @@
-import { LedgerNano } from '../src/ledger/ledgerNano'
 import { HDPathRadix, Mnemonic } from '@radixdlt/account'
-import { Subject, Subscription } from 'rxjs'
-import { HardwareWallet } from '../src/hardwareWallet'
+import { ReplaySubject, Subscription } from 'rxjs'
 import {
 	ECPointOnCurveT,
 	PublicKey,
 	PublicKeyT,
 	sha256Twice,
+	Signature,
 	SignatureT,
 } from '@radixdlt/crypto'
 import {
@@ -14,15 +13,23 @@ import {
 	HardwareWalletT,
 	LedgerInstruction,
 	MockedLedgerNanoStoreT,
+	HardwareWallet,
 	SemVerT,
-} from '../src'
-import {
+	SemVer,
+	LedgerNano,
+	MockedLedgerNanoRecorder,
 	LedgerButtonPress,
 	PromptUserForInput,
 	PromptUserForInputType,
-} from '../src/ledger/wrapped/emulatedLedger'
-import { MockedLedgerNanoRecorder } from '../src/ledger/mockedLedgerNanoRecorder'
-import { SemVer } from '../src/ledger/semVer'
+	LedgerNanoT,
+} from '../src'
+import { log } from '@radixdlt/util'
+import {
+	testDoKeyExchange,
+	testDoSignHash,
+	testGetPublicKey,
+	testGetVersion,
+} from './hardwareTestUtils'
 
 describe('hardwareWallet', () => {
 	const emulateHardwareWallet = (
@@ -50,149 +57,8 @@ describe('hardwareWallet', () => {
 		}
 	}
 
-	const testGetVersion = (
-		input: Readonly<{
-			subs: Subscription
-			hardwareWallet: HardwareWalletT
-			done: jest.DoneCallback
-			onResponse?: (version: SemVerT) => void
-		}>,
-	): void => {
-		const { hardwareWallet, done, subs } = input
-		const onResponse = input.onResponse ?? ((_) => {})
-
-		subs.add(
-			hardwareWallet.getVersion().subscribe({
-				next: (semVer: SemVerT) => {
-					onResponse(semVer)
-					done()
-				},
-				error: (e) => done(e),
-			}),
-		)
-	}
-
-	const testGetPublicKey = (
-		input: Readonly<{
-			subs: Subscription
-			hardwareWallet: HardwareWalletT
-			done: jest.DoneCallback
-			assertMockedLedgerState?: (publicKey: PublicKeyT) => void
-		}>,
-	): void => {
-		const { hardwareWallet, done, subs } = input
-		const assertMockedLedgerState =
-			input.assertMockedLedgerState ?? ((_) => {})
-
-		subs.add(
-			hardwareWallet
-				.getPublicKey({
-					// both Account and Address will be hardened.
-					path: HDPathRadix.fromString(
-						`m/44'/536'/2'/1/3`,
-					)._unsafeUnwrap(),
-					requireConfirmationOnDevice: true,
-				})
-				.subscribe(
-					(publicKey: PublicKeyT) => {
-						assertMockedLedgerState(publicKey)
-
-						// Assert response
-
-						expect(publicKey.toString(true)).toBe(
-							'02a61e5f4dd2bdc5352243264aa431702c988e77ecf9e61bbcd0b0dd26ad2280fc',
-						)
-
-						done()
-					},
-					(e) => done(e),
-				),
-		)
-	}
-
-	const testDoSignHash = (
-		input: Readonly<{
-			subs: Subscription
-			hardwareWallet: HardwareWalletT
-			done: jest.DoneCallback
-			onResponse?: (signature: SignatureT) => void
-		}>,
-	): void => {
-		const { hardwareWallet, done, subs } = input
-		const onResponse = input.onResponse ?? ((_) => {})
-
-		const hashToSign = sha256Twice(
-			`I'm testing Radix awesome hardware wallet!`,
-		)
-
-		subs.add(
-			hardwareWallet
-				.doSignHash({
-					path: HDPathRadix.fromString(
-						`m/44'/536'/2'/1/3`,
-					)._unsafeUnwrap(),
-					hashToSign,
-					requireConfirmationOnDevice: true,
-				})
-				.subscribe(
-					(signature: SignatureT) => {
-						onResponse(signature)
-						expect(signature.toDER()).toBe(
-							'304402207ba64bd4116e9af1d8b52591da3ed5c831e75418f1eec37fb4a4cc7374a49b8a02202b08793fbecf04de5013826f0c15a7b9750d89606544d67a13a5f23f457b5aeb',
-						)
-						done()
-					},
-					(e) => done(e),
-				),
-		)
-	}
-
-	const testDoKeyExchange = (
-		input: Readonly<{
-			subs: Subscription
-			hardwareWallet: HardwareWalletT
-			done: jest.DoneCallback
-			assertMockedLedgerState?: (ecPointOnCurve: ECPointOnCurveT) => void
-		}>,
-	): void => {
-		const { hardwareWallet, done, subs } = input
-		const assertMockedLedgerState =
-			input.assertMockedLedgerState ?? ((_) => {})
-
-		const publicKeyOfOtherParty = PublicKey.fromBuffer(
-			Buffer.from(
-				'0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
-				'hex',
-			),
-		)._unsafeUnwrap()
-
-		subs.add(
-			hardwareWallet
-				.doKeyExchange({
-					// both Account and Address will be hardened.
-					path: HDPathRadix.fromString(
-						`m/44'/536'/2'/1/3`,
-					)._unsafeUnwrap(),
-					publicKeyOfOtherParty,
-					requireConfirmationOnDevice: true,
-				})
-				.subscribe(
-					(ecPointOnCurve: ECPointOnCurveT) => {
-						assertMockedLedgerState(ecPointOnCurve)
-						expect(ecPointOnCurve.toString()).toBe(
-							'a61e5f4dd2bdc5352243264aa431702c988e77ecf9e61bbcd0b0dd26ad2280fcf2a8c7dc20f325655b8de617c5b5425a8fca413a033f50790b69588b0a5f7986',
-						)
-						done()
-					},
-					(e) => done(e),
-				),
-		)
-	}
-
 	describe('emulated', () => {
 		it('getVersion', (done) => {
-			const subs = new Subscription()
-
 			const hardcodedVersion = SemVer.fromString('2.5.9')._unsafeUnwrap()
 
 			const { store, hardwareWallet } = emulateHardwareWallet({
@@ -200,9 +66,7 @@ describe('hardwareWallet', () => {
 			})
 
 			testGetVersion({
-				subs,
 				hardwareWallet,
-				done,
 				onResponse: (semVer: SemVerT) => {
 					expect(store.recorded.length).toBe(1)
 					const request = store.lastRequest()
@@ -224,6 +88,8 @@ describe('hardwareWallet', () => {
 							SemVer.fromBuffer(response.data)._unsafeUnwrap(),
 						),
 					).toBe(true)
+
+					done()
 				},
 			})
 		})
@@ -231,8 +97,8 @@ describe('hardwareWallet', () => {
 		it('getPublicKey', (done) => {
 			const subs = new Subscription()
 
-			const usersInputOnLedger = new Subject<LedgerButtonPress>()
-			const promptUserForInputOnLedger = new Subject<PromptUserForInput>()
+			const usersInputOnLedger = new ReplaySubject<LedgerButtonPress>()
+			const promptUserForInputOnLedger = new ReplaySubject<PromptUserForInput>()
 
 			const { hardwareWallet, store } = emulateHardwareWallet({
 				io: {
@@ -262,10 +128,9 @@ describe('hardwareWallet', () => {
 			)
 
 			testGetPublicKey({
-				subs,
 				hardwareWallet,
-				done,
-				assertMockedLedgerState: (publicKey: PublicKeyT) => {
+				requireConfirmationOnDevice: true,
+				onResponse: (publicKey: PublicKeyT) => {
 					expect(userWasPromptedToConfirmGetPubKey).toBe(true)
 					expect(store.userIO.length).toBe(1)
 
@@ -291,15 +156,17 @@ describe('hardwareWallet', () => {
 					expect(publicKey.toString(true)).toBe(
 						response.data.toString('hex'),
 					)
+
+					done()
 				},
 			})
 		})
 
-		it('signHash emulated', (done) => {
+		it('emulated_DoSignHash', (done) => {
 			const subs = new Subscription()
 
-			const usersInputOnLedger = new Subject<LedgerButtonPress>()
-			const promptUserForInputOnLedger = new Subject<PromptUserForInput>()
+			const usersInputOnLedger = new ReplaySubject<LedgerButtonPress>()
+			const promptUserForInputOnLedger = new ReplaySubject<PromptUserForInput>()
 
 			const { hardwareWallet, store } = emulateHardwareWallet({
 				io: {
@@ -329,8 +196,6 @@ describe('hardwareWallet', () => {
 			)
 
 			testDoSignHash({
-				done,
-				subs,
 				hardwareWallet,
 				onResponse: (signature: SignatureT) => {
 					expect(userWasPromptedToConfirmSignHash).toBe(true)
@@ -343,7 +208,7 @@ describe('hardwareWallet', () => {
 
 					// Assert request
 					expect(request.cla).toBe(0xaa)
-					expect(request.ins).toBe(0x02)
+					expect(request.ins).toBe(0x04)
 					expect(request.p1).toBe(1)
 					expect(request.p2).toBe(0)
 					expect(request.data).toBeDefined()
@@ -355,18 +220,24 @@ describe('hardwareWallet', () => {
 					).toStrictEqual([0x9000])
 
 					// Assert response
-					expect(signature.toDER()).toBe(
-						response.data.toString('hex'),
-					)
+					expect(
+						signature.equals(
+							Signature.fromRSBuffer(
+								response.data,
+							)._unsafeUnwrap(),
+						),
+					).toBe(true)
+
+					done()
 				},
 			})
 		})
 
-		it('doKeyExchange', (done) => {
+		it('emulated_DoKeyExchange', (done) => {
 			const subs = new Subscription()
 
-			const usersInputOnLedger = new Subject<LedgerButtonPress>()
-			const promptUserForInputOnLedger = new Subject<PromptUserForInput>()
+			const usersInputOnLedger = new ReplaySubject<LedgerButtonPress>()
+			const promptUserForInputOnLedger = new ReplaySubject<PromptUserForInput>()
 
 			const { hardwareWallet, store } = emulateHardwareWallet({
 				io: {
@@ -396,10 +267,9 @@ describe('hardwareWallet', () => {
 			)
 
 			testDoKeyExchange({
-				subs,
 				hardwareWallet,
-				done,
-				assertMockedLedgerState: (ecPointOnCurve: ECPointOnCurveT) => {
+				requireConfirmationOnDevice: true,
+				onResponse: (ecPointOnCurve: ECPointOnCurveT) => {
 					expect(userWasPromptedToConfirmKeyExchange).toBe(true)
 					expect(store.userIO.length).toBe(1)
 
@@ -409,7 +279,7 @@ describe('hardwareWallet', () => {
 
 					// Assert request
 					expect(request.cla).toBe(0xaa)
-					expect(request.ins).toBe(0x04)
+					expect(request.ins).toBe(0x32)
 					expect(request.p1).toBe(1)
 					expect(request.p2).toBe(0)
 					expect(request.data).toBeDefined()
@@ -424,56 +294,9 @@ describe('hardwareWallet', () => {
 					expect(ecPointOnCurve.toString()).toBe(
 						response.data.toString('hex'),
 					)
-					expect(ecPointOnCurve.toString()).toBe(
-						'a61e5f4dd2bdc5352243264aa431702c988e77ecf9e61bbcd0b0dd26ad2280fcf2a8c7dc20f325655b8de617c5b5425a8fca413a033f50790b69588b0a5f7986',
-					)
+
+					done()
 				},
-			})
-		})
-	})
-
-	describe.skip('integration', () => {
-		it('getVersion_integration', (done) => {
-			const subs = new Subscription()
-			const hardwareWallet = HardwareWallet.ledger(LedgerNano.create())
-
-			testGetVersion({
-				subs,
-				hardwareWallet,
-				done,
-				onResponse: (version: SemVerT) => {
-					expect(version.toString()).toBe('0.0.0')
-				},
-			})
-		})
-
-		it('getPublicKey_integration', (done) => {
-			const subs = new Subscription()
-			const hardwareWallet = HardwareWallet.ledger(LedgerNano.create())
-			testGetPublicKey({
-				subs,
-				hardwareWallet,
-				done,
-			})
-		})
-
-		it('doSignHash_integration', (done) => {
-			const subs = new Subscription()
-			const hardwareWallet = HardwareWallet.ledger(LedgerNano.create())
-			testDoSignHash({
-				subs,
-				hardwareWallet,
-				done,
-			})
-		})
-
-		it('doKeyExchange_integration', (done) => {
-			const subs = new Subscription()
-			const hardwareWallet = HardwareWallet.ledger(LedgerNano.create())
-			testDoKeyExchange({
-				subs,
-				hardwareWallet,
-				done,
 			})
 		})
 	})

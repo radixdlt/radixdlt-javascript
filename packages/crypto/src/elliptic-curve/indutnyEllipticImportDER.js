@@ -2,6 +2,14 @@
 /* eslint-disable */
 var BN = require('bn.js')
 
+// from: https://github.com/indutny/minimalistic-crypto-utils
+// and
+// https://github.com/indutny/elliptic/blob/master/lib/elliptic/utils.js
+// copyright: Fedor Indutny
+// https://github.com/indutny
+// and
+// https://github.com/indutny/elliptic/blob/master/lib/elliptic/ec/signature.js
+
 function Position() {
 	this.place = 0
 }
@@ -69,6 +77,22 @@ function toArray(msg, enc) {
 		}
 	}
 	return res
+}
+
+function zero2(word) {
+	if (word.length === 1) return '0' + word
+	else return word
+}
+
+function toHex(msg) {
+	var res = ''
+	for (var i = 0; i < msg.length; i++) res += zero2(msg[i].toString(16))
+	return res
+}
+
+function encode(arr, enc) {
+	if (enc === 'hex') return toHex(arr)
+	else return arr
 }
 
 function __js_importDER(data, enc) {
@@ -140,5 +164,35 @@ function constructLength(arr, len) {
 	arr.push(len)
 }
 
-module.exports = __js_importDER
+function __js_toDER(r, s, enc) {
+	var r = r.toArray()
+	var s = s.toArray()
+
+	// Pad values
+	if (r[0] & 0x80) r = [0].concat(r)
+	// Pad values
+	if (s[0] & 0x80) s = [0].concat(s)
+
+	r = rmPadding(r)
+	s = rmPadding(s)
+
+	while (!s[0] && !(s[1] & 0x80)) {
+		s = s.slice(1)
+	}
+	var arr = [0x02]
+	constructLength(arr, r.length)
+	arr = arr.concat(r)
+	arr.push(0x02)
+	constructLength(arr, s.length)
+	var backHalf = arr.concat(s)
+	var res = [0x30]
+	constructLength(res, backHalf.length)
+	res = res.concat(backHalf)
+	return encode(res, enc)
+}
+
+module.exports = {
+	__js_importDER,
+	__js_toDER,
+}
 /* eslint-enable */

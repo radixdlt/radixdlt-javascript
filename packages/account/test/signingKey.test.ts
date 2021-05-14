@@ -6,6 +6,7 @@ import {
 	PrivateKey,
 	sha256Twice,
 	SignatureT,
+	Signature,
 } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
 import {
@@ -57,13 +58,17 @@ describe('signingKey_type', () => {
 		)._unsafeUnwrap()
 		const hdMasterSeed = HDMasterSeed.fromMnemonic({ mnemonic })
 		const hdPath = HDPathRadix.fromString(
-			`m/44'/536'/2'/1/3'`,
+			`m/44'/536'/2'/1/3`,
 		)._unsafeUnwrap()
 
 		const signingKey = SigningKey.fromHDPathWithHDMasterSeed({
 			hdPath,
 			hdMasterSeed,
 		})
+
+		expect(signingKey.publicKey.toString(true)).toBe(
+			'026d5e07cfde5df84b5ef884b629d28d15b0f6c66be229680699767cd57c618288',
+		)
 
 		const otherPubKey = PublicKey.fromBuffer(
 			Buffer.from(
@@ -75,11 +80,7 @@ describe('signingKey_type', () => {
 			await signingKey.__diffieHellman(otherPubKey)
 		)._unsafeUnwrap()
 		expect(keyExchange.toString()).toBe(
-			'a61e5f4dd2bdc5352243264aa431702c988e77ecf9e61bbcd0b0dd26ad2280fcf2a8c7dc20f325655b8de617c5b5425a8fca413a033f50790b69588b0a5f7986',
-		)
-
-		expect(signingKey.publicKey.toString(true)).toBe(
-			'02a61e5f4dd2bdc5352243264aa431702c988e77ecf9e61bbcd0b0dd26ad2280fc',
+			'6d5e07cfde5df84b5ef884b629d28d15b0f6c66be229680699767cd57c6182883fa2aff69be05f792a02d6ef657240b17c44614a53e45dff4c529bfb012b9646',
 		)
 
 		const message = `I'm testing Radix awesome hardware wallet!`
@@ -93,8 +94,29 @@ describe('signingKey_type', () => {
 		subs.add(
 			signingKey.sign(hashedMessage).subscribe((sig) => {
 				expect(sig.toDER()).toBe(
-					'304402207ba64bd4116e9af1d8b52591da3ed5c831e75418f1eec37fb4a4cc7374a49b8a02202b08793fbecf04de5013826f0c15a7b9750d89606544d67a13a5f23f457b5aeb',
+					'3044022078b0d2d17d227a8dd14ecdf0d7d65580ac6c17ab980c50074e6c096c4081313202207a9819ceedab3bfd3d22452224394d6cb41e3441f4675a5e7bf58f059fdf34cd',
 				)
+
+				expect(sig.r.toString(16)).toBe(
+					'78b0d2d17d227a8dd14ecdf0d7d65580ac6c17ab980c50074e6c096c40813132',
+				)
+				expect(sig.s.toString(16)).toBe(
+					'7a9819ceedab3bfd3d22452224394d6cb41e3441f4675a5e7bf58f059fdf34cd',
+				)
+
+				const rsBufHex =
+					'78b0d2d17d227a8dd14ecdf0d7d65580ac6c17ab980c50074e6c096c408131327a9819ceedab3bfd3d22452224394d6cb41e3441f4675a5e7bf58f059fdf34cd'
+
+				const sigFromRS = Signature.fromRSBuffer(
+					Buffer.from(rsBufHex, 'hex'),
+				)._unsafeUnwrap()
+
+				expect(sigFromRS.toDER()).toBe(
+					'3044022078b0d2d17d227a8dd14ecdf0d7d65580ac6c17ab980c50074e6c096c4081313202207a9819ceedab3bfd3d22452224394d6cb41e3441f4675a5e7bf58f059fdf34cd',
+				)
+				expect(sigFromRS.equals(sig)).toBe(true)
+				expect(sig.equals(sigFromRS)).toBe(true)
+
 				done()
 			}),
 		)
