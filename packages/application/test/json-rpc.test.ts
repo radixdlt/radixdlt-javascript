@@ -41,11 +41,7 @@ import {
 	ResourceIdentifier,
 	ValidatorAddress,
 } from '@radixdlt/account'
-import {
-	RawExecutedAction,
-	RawToken,
-	Token,
-} from '../src'
+import { RawExecutedAction, RawToken, Token } from '../src'
 
 const faker = require('json-schema-faker')
 
@@ -131,33 +127,39 @@ const methodParams = {
 	[rpcSpec.methods[1].name]: {},
 
 	[rpcSpec.methods[2].name]: {
-		rri: 'xrd_rb1qya85pwq'
+		rri: 'xrd_rb1qya85pwq',
 	},
 
 	[rpcSpec.methods[3].name]: {
-		address: 'brx1qspqljn9rg7x97s3rcvyzal2uxr5q22d9xn8nc4rpq8vq08kg4ch8yqhs9dq6'
+		address:
+			'brx1qspqljn9rg7x97s3rcvyzal2uxr5q22d9xn8nc4rpq8vq08kg4ch8yqhs9dq6',
 	},
 
 	[rpcSpec.methods[4].name]: {
-		address: 'brx1qspqljn9rg7x97s3rcvyzal2uxr5q22d9xn8nc4rpq8vq08kg4ch8yqhs9dq6',
+		address:
+			'brx1qspqljn9rg7x97s3rcvyzal2uxr5q22d9xn8nc4rpq8vq08kg4ch8yqhs9dq6',
 		size: 1,
-		cursor: 'xyz'
+		cursor: 'xyz',
 	},
 
 	[rpcSpec.methods[5].name]: {
-		txID: 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef'
+		txID:
+			'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
 	},
 
 	[rpcSpec.methods[6].name]: {
-		address: 'brx1qspqljn9rg7x97s3rcvyzal2uxr5q22d9xn8nc4rpq8vq08kg4ch8yqhs9dq6'
+		address:
+			'brx1qspqljn9rg7x97s3rcvyzal2uxr5q22d9xn8nc4rpq8vq08kg4ch8yqhs9dq6',
 	},
 
 	[rpcSpec.methods[7].name]: {
-		address: 'brx1qspqljn9rg7x97s3rcvyzal2uxr5q22d9xn8nc4rpq8vq08kg4ch8yqhs9dq6'
+		address:
+			'brx1qspqljn9rg7x97s3rcvyzal2uxr5q22d9xn8nc4rpq8vq08kg4ch8yqhs9dq6',
 	},
 
 	[rpcSpec.methods[8].name]: {
-		txID: 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef'
+		txID:
+			'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
 	},
 
 	[rpcSpec.methods[9].name]: {},
@@ -165,35 +167,36 @@ const methodParams = {
 
 	[rpcSpec.methods[11].name]: {
 		size: 1,
-		cursor: 1
+		cursor: 1,
 	},
 
 	[rpcSpec.methods[12].name]: {
-		validatorAddress: 'vb1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq9u3702'
+		validatorAddress:
+			'vb1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq9u3702',
 	},
 
 	[rpcSpec.methods[13].name]: {
 		actions: [],
-		message: 'xyz'
+		message: 'xyz',
 	},
 
 	[rpcSpec.methods[14].name]: {
 		transaction: {
-			blob: 'xyz'
+			blob: 'xyz',
 		},
 		signatureDER: 'xyz',
-		publicKeyOfSigner: 'xyz'
+		publicKeyOfSigner: 'xyz',
 	},
 
 	[rpcSpec.methods[15].name]: {
 		transaction: {
-			blob: 'xyz'
+			blob: 'xyz',
 		},
 		signatureDER: 'xyz',
 		publicKeyOfSigner: 'xyz',
-		txID: 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef'
+		txID:
+			'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
 	},
-
 }
 
 const expectedDecodedResponses = {
@@ -412,8 +415,12 @@ const testRpcMethod = (method: MethodObject, index: number) => {
 
 		const expected = expectedDecodedResponses[method.name](mockedResult)
 
-		const result = // @ts-ignore
-		(await client[method.name.split('.')[1]](methodParams[method.name]))._unsafeUnwrap({
+		// @ts-ignore
+		const result = await client[method.name.split('.')[1]](
+			methodParams[method.name],
+		)
+
+		const response = result._unsafeUnwrap({
 			withStackTrace: true,
 		})
 
@@ -441,7 +448,7 @@ const testRpcMethod = (method: MethodObject, index: number) => {
 			}
 		}
 
-		checkEquality(expected, result)
+		checkEquality(expected, response)
 	})
 }
 

@@ -17,9 +17,9 @@ export const RPCClient: Client = (url: URL): Transport => {
 
 	const call = async (
 		endpoint: string,
-		params: unknown[] | Record<string, unknown>
+		params: unknown[] | Record<string, unknown>,
 	): Promise<unknown> => {
-		const filteredParams = isArray(params) 
+		const filteredParams = isArray(params)
 			? params.filter((item) => !!item)
 			: params
 
@@ -32,8 +32,8 @@ export const RPCClient: Client = (url: URL): Transport => {
 		)
 
 		const result = await validateMethod(endpoint, filteredParams)
-		result.mapErr(err => {
-			throw err 
+		result.mapErr((err) => {
+			throw err
 		})
 
 		/*
