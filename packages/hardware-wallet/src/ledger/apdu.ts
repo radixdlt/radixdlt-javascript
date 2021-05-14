@@ -30,7 +30,6 @@ const hdPathToBuffer = (hdPath: HDPathRadixT): Buffer => {
 	write(hdPath.account, 0)
 	write(hdPath.change, 4)
 	write(hdPath.addressIndex, 8)
-
 	return data
 }
 

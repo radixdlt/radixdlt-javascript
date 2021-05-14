@@ -58,6 +58,7 @@ export type LedgerResponse = Readonly<{
 }>
 
 export type LedgerNanoT = Readonly<{
+	close: () => Observable<void>
 	sendAPDUToDevice: (apdu: RadixAPDUT) => Observable<Buffer>
 	__sendRequestToDevice: (
 		request: LedgerRequest,

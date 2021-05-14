@@ -20,6 +20,7 @@ import {
 	LedgerButtonPress,
 	PromptUserForInput,
 	PromptUserForInputType,
+	LedgerNanoT,
 } from '../src'
 import { log } from '@radixdlt/util'
 
@@ -51,37 +52,37 @@ describe('hardwareWallet', () => {
 
 	const testGetVersion = (
 		input: Readonly<{
-			subs: Subscription
 			hardwareWallet: HardwareWalletT
-			done: jest.DoneCallback
 			onResponse?: (version: SemVerT) => void
 		}>,
 	): void => {
-		const { hardwareWallet, done, subs } = input
+		const { hardwareWallet } = input
 		const onResponse = input.onResponse ?? ((_) => {})
+		const subs = new Subscription()
 
 		subs.add(
 			hardwareWallet.getVersion().subscribe({
 				next: (semVer: SemVerT) => {
 					onResponse(semVer)
-					done()
 				},
-				error: (e) => done(e),
+				error: (e) => {
+					throw e
+				},
 			}),
 		)
 	}
 
 	const testGetPublicKey = (
 		input: Readonly<{
-			subs: Subscription
 			hardwareWallet: HardwareWalletT
-			done: jest.DoneCallback
-			assertMockedLedgerState?: (publicKey: PublicKeyT) => void
+			requireConfirmationOnDevice?: boolean
+			onResponse?: (publicKey: PublicKeyT) => void
 		}>,
 	): void => {
-		const { hardwareWallet, done, subs } = input
-		const assertMockedLedgerState =
-			input.assertMockedLedgerState ?? ((_) => {})
+		const { hardwareWallet } = input
+		const subs = new Subscription()
+
+		const onResponse = input.onResponse ?? ((_) => {})
 
 		subs.add(
 			hardwareWallet
@@ -90,35 +91,33 @@ describe('hardwareWallet', () => {
 					path: HDPathRadix.fromString(
 						`m/44'/536'/2'/1/3`,
 					)._unsafeUnwrap(),
-					requireConfirmationOnDevice: true,
+					requireConfirmationOnDevice:
+						input.requireConfirmationOnDevice ?? false,
 				})
 				.subscribe(
 					(publicKey: PublicKeyT) => {
-						assertMockedLedgerState(publicKey)
-
-						// Assert response
-
 						expect(publicKey.toString(true)).toBe(
-							'02a61e5f4dd2bdc5352243264aa431702c988e77ecf9e61bbcd0b0dd26ad2280fc',
+							'026d5e07cfde5df84b5ef884b629d28d15b0f6c66be229680699767cd57c618288',
 						)
-
-						done()
+						onResponse(publicKey)
 					},
-					(e) => done(e),
+					(e) => {
+						throw e
+					},
 				),
 		)
 	}
 
 	const testDoSignHash = (
 		input: Readonly<{
-			subs: Subscription
 			hardwareWallet: HardwareWalletT
-			done: jest.DoneCallback
 			onResponse?: (signature: SignatureT) => void
 		}>,
 	): void => {
-		const { hardwareWallet, done, subs } = input
+		const { hardwareWallet } = input
 		const onResponse = input.onResponse ?? ((_) => {})
+
+		const subs = new Subscription()
 
 		const hashToSign = sha256Twice(
 			`I'm testing Radix awesome hardware wallet!`,
@@ -135,28 +134,29 @@ describe('hardwareWallet', () => {
 				})
 				.subscribe(
 					(signature: SignatureT) => {
-						onResponse(signature)
 						expect(signature.toDER()).toBe(
-							'304402207ba64bd4116e9af1d8b52591da3ed5c831e75418f1eec37fb4a4cc7374a49b8a02202b08793fbecf04de5013826f0c15a7b9750d89606544d67a13a5f23f457b5aeb',
+							'3044022078b0d2d17d227a8dd14ecdf0d7d65580ac6c17ab980c50074e6c096c4081313202207a9819ceedab3bfd3d22452224394d6cb41e3441f4675a5e7bf58f059fdf34cd',
 						)
-						done()
+						onResponse(signature)
 					},
-					(e) => done(e),
+					(e) => {
+						throw e
+					},
 				),
 		)
 	}
 
 	const testDoKeyExchange = (
 		input: Readonly<{
-			subs: Subscription
 			hardwareWallet: HardwareWalletT
-			done: jest.DoneCallback
-			assertMockedLedgerState?: (ecPointOnCurve: ECPointOnCurveT) => void
+			requireConfirmationOnDevice?: boolean
+			onResponse?: (ecPointOnCurve: ECPointOnCurveT) => void
 		}>,
 	): void => {
-		const { hardwareWallet, done, subs } = input
-		const assertMockedLedgerState =
-			input.assertMockedLedgerState ?? ((_) => {})
+		const { hardwareWallet } = input
+		const onResponse = input.onResponse ?? ((_) => {})
+
+		const subs = new Subscription()
 
 		const publicKeyOfOtherParty = PublicKey.fromBuffer(
 			Buffer.from(
@@ -173,25 +173,25 @@ describe('hardwareWallet', () => {
 						`m/44'/536'/2'/1/3`,
 					)._unsafeUnwrap(),
 					publicKeyOfOtherParty,
-					requireConfirmationOnDevice: true,
+					requireConfirmationOnDevice:
+						input?.requireConfirmationOnDevice ?? false,
 				})
 				.subscribe(
 					(ecPointOnCurve: ECPointOnCurveT) => {
-						assertMockedLedgerState(ecPointOnCurve)
 						expect(ecPointOnCurve.toString()).toBe(
-							'a61e5f4dd2bdc5352243264aa431702c988e77ecf9e61bbcd0b0dd26ad2280fcf2a8c7dc20f325655b8de617c5b5425a8fca413a033f50790b69588b0a5f7986',
+							'6d5e07cfde5df84b5ef884b629d28d15b0f6c66be229680699767cd57c6182883fa2aff69be05f792a02d6ef657240b17c44614a53e45dff4c529bfb012b9646',
 						)
-						done()
+						onResponse(ecPointOnCurve)
 					},
-					(e) => done(e),
+					(e) => {
+						throw e
+					},
 				),
 		)
 	}
 
 	describe('emulated', () => {
 		it('getVersion', (done) => {
-			const subs = new Subscription()
-
 			const hardcodedVersion = SemVer.fromString('2.5.9')._unsafeUnwrap()
 
 			const { store, hardwareWallet } = emulateHardwareWallet({
@@ -199,9 +199,7 @@ describe('hardwareWallet', () => {
 			})
 
 			testGetVersion({
-				subs,
 				hardwareWallet,
-				done,
 				onResponse: (semVer: SemVerT) => {
 					expect(store.recorded.length).toBe(1)
 					const request = store.lastRequest()
@@ -223,6 +221,8 @@ describe('hardwareWallet', () => {
 							SemVer.fromBuffer(response.data)._unsafeUnwrap(),
 						),
 					).toBe(true)
+
+					done()
 				},
 			})
 		})
@@ -261,10 +261,9 @@ describe('hardwareWallet', () => {
 			)
 
 			testGetPublicKey({
-				subs,
 				hardwareWallet,
-				done,
-				assertMockedLedgerState: (publicKey: PublicKeyT) => {
+				requireConfirmationOnDevice: true,
+				onResponse: (publicKey: PublicKeyT) => {
 					expect(userWasPromptedToConfirmGetPubKey).toBe(true)
 					expect(store.userIO.length).toBe(1)
 
@@ -290,6 +289,8 @@ describe('hardwareWallet', () => {
 					expect(publicKey.toString(true)).toBe(
 						response.data.toString('hex'),
 					)
+
+					done()
 				},
 			})
 		})
@@ -328,8 +329,6 @@ describe('hardwareWallet', () => {
 			)
 
 			testDoSignHash({
-				done,
-				subs,
 				hardwareWallet,
 				onResponse: (signature: SignatureT) => {
 					expect(userWasPromptedToConfirmSignHash).toBe(true)
@@ -342,7 +341,7 @@ describe('hardwareWallet', () => {
 
 					// Assert request
 					expect(request.cla).toBe(0xaa)
-					expect(request.ins).toBe(0x02)
+					expect(request.ins).toBe(0x04)
 					expect(request.p1).toBe(1)
 					expect(request.p2).toBe(0)
 					expect(request.data).toBeDefined()
@@ -357,6 +356,8 @@ describe('hardwareWallet', () => {
 					expect(signature.toDER()).toBe(
 						response.data.toString('hex'),
 					)
+
+					done()
 				},
 			})
 		})
@@ -395,10 +396,9 @@ describe('hardwareWallet', () => {
 			)
 
 			testDoKeyExchange({
-				subs,
 				hardwareWallet,
-				done,
-				assertMockedLedgerState: (ecPointOnCurve: ECPointOnCurveT) => {
+				requireConfirmationOnDevice: true,
+				onResponse: (ecPointOnCurve: ECPointOnCurveT) => {
 					expect(userWasPromptedToConfirmKeyExchange).toBe(true)
 					expect(store.userIO.length).toBe(1)
 
@@ -408,7 +408,7 @@ describe('hardwareWallet', () => {
 
 					// Assert request
 					expect(request.cla).toBe(0xaa)
-					expect(request.ins).toBe(0x04)
+					expect(request.ins).toBe(0x32)
 					expect(request.p1).toBe(1)
 					expect(request.p2).toBe(0)
 					expect(request.data).toBeDefined()
@@ -423,17 +423,27 @@ describe('hardwareWallet', () => {
 					expect(ecPointOnCurve.toString()).toBe(
 						response.data.toString('hex'),
 					)
-					expect(ecPointOnCurve.toString()).toBe(
-						'a61e5f4dd2bdc5352243264aa431702c988e77ecf9e61bbcd0b0dd26ad2280fcf2a8c7dc20f325655b8de617c5b5425a8fca413a033f50790b69588b0a5f7986',
-					)
+
+					done()
 				},
 			})
 		})
 	})
 
-	describe('integration', () => {
+	describe('hw_ledger_integration', () => {
+		let ledgerNano: LedgerNanoT
 		beforeAll(() => {
 			log.setLevel('debug')
+		})
+
+		afterEach((done) => {
+			const subs = new Subscription()
+			// must close connection in between else finding a free ledger device for subsequent test will fail.
+			subs.add(
+				ledgerNano.close().subscribe(() => {
+					done()
+				}),
+			)
 		})
 
 		afterAll(() => {
@@ -441,62 +451,60 @@ describe('hardwareWallet', () => {
 		})
 
 		it('getVersion_integration', async (done) => {
-			const ledgerNano = await LedgerNano.waitForDeviceToConnect({
+			ledgerNano = await LedgerNano.waitForDeviceToConnect({
 				deviceConnectionTimeout: 30_000,
 			})
 			const hardwareWallet = HardwareWallet.ledger(ledgerNano)
 
-			const subs = new Subscription()
-
 			testGetVersion({
-				subs,
 				hardwareWallet,
-				done,
 				onResponse: (version: SemVerT) => {
 					expect(version.toString()).toBe('0.0.1')
+					done()
 				},
 			})
 		}, 60_000)
 
-		it.skip('getPublicKey_integration', async (done) => {
-			const ledgerNano = await LedgerNano.waitForDeviceToConnect({
+		it('getPublicKey_integration', async (done) => {
+			ledgerNano = await LedgerNano.waitForDeviceToConnect({
 				deviceConnectionTimeout: 30_000,
 			})
 			const hardwareWallet = HardwareWallet.ledger(ledgerNano)
 
-			const subs = new Subscription()
 			testGetPublicKey({
-				subs,
 				hardwareWallet,
-				done,
+				onResponse: (_publicKey) => {
+					done()
+				},
 			})
 		}, 60_000)
 
-		it.skip('doSignHash_integration', async (done) => {
-			const ledgerNano = await LedgerNano.waitForDeviceToConnect({
-				deviceConnectionTimeout: 30_000,
-			})
-			const hardwareWallet = HardwareWallet.ledger(ledgerNano)
-
-			const subs = new Subscription()
-			testDoSignHash({
-				subs,
-				hardwareWallet,
-				done,
-			})
-		}, 60_000)
-
+		// Not implemented on Ledger yet
 		it.skip('doKeyExchange_integration', async (done) => {
-			const ledgerNano = await LedgerNano.waitForDeviceToConnect({
+			ledgerNano = await LedgerNano.waitForDeviceToConnect({
 				deviceConnectionTimeout: 30_000,
 			})
 			const hardwareWallet = HardwareWallet.ledger(ledgerNano)
 
-			const subs = new Subscription()
 			testDoKeyExchange({
-				subs,
 				hardwareWallet,
-				done,
+				onResponse: (_pointOncurve) => {
+					done()
+				},
+			})
+		}, 60_000)
+
+		it('doSignHash_integration', async (done) => {
+			ledgerNano = await LedgerNano.waitForDeviceToConnect({
+				deviceConnectionTimeout: 30_000,
+			})
+			const hardwareWallet = HardwareWallet.ledger(ledgerNano)
+
+			testDoSignHash({
+				hardwareWallet,
+				onResponse: (_signature) => {
+					done()
+				},
 			})
 		}, 60_000)
 	})

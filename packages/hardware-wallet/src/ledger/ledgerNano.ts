@@ -6,7 +6,7 @@ import {
 	MockedLedgerNanoT,
 	RadixAPDUT,
 } from './_types'
-import { Observable, throwError } from 'rxjs'
+import { from, Observable, of, throwError } from 'rxjs'
 import { HDMasterSeed, MnemomicT, Mnemonic } from '@radixdlt/account'
 import { map, tap } from 'rxjs/operators'
 import { v4 as uuidv4 } from 'uuid'
@@ -26,6 +26,7 @@ import {
 
 const __create = (
 	input: Readonly<{
+		close: () => Observable<void>
 		sendAPDUToDevice: (apdu: RadixAPDUT) => Observable<Buffer>
 		recorder?: MockedLedgerNanoRecorderT
 	}>,
@@ -53,6 +54,7 @@ const __create = (
 	}
 
 	return {
+		...input,
 		__sendRequestToDevice: sendRequestToDevice,
 		sendAPDUToDevice,
 	}
@@ -82,6 +84,7 @@ const emulate = (
 	})
 
 	const ledgerNano = __create({
+		close: () => of(undefined),
 		sendAPDUToDevice,
 		recorder: recorder,
 	})
@@ -94,7 +97,9 @@ const emulate = (
 
 const ledgerAPDUResponseCodeBufferLength = 2 // two bytes
 
-const from = (basicLedgerTransport: BasicLedgerTransport): LedgerNanoT => {
+const fromTransport = (
+	basicLedgerTransport: BasicLedgerTransport,
+): LedgerNanoT => {
 	const sendAPDUToDevice = (apdu: RadixAPDUT): Observable<Buffer> => {
 		return new Observable<Buffer>((subscriber) => {
 			send({
@@ -103,7 +108,7 @@ const from = (basicLedgerTransport: BasicLedgerTransport): LedgerNanoT => {
 			})
 				.then((responseFromLedger) => {
 					log.debug(
-						`✅ got raw response from ledger device: ${responseFromLedger.toString(
+						`📲 🥩 Raw response from Ledger device: ${responseFromLedger.toString(
 							'hex',
 						)}`,
 					)
@@ -125,6 +130,10 @@ const from = (basicLedgerTransport: BasicLedgerTransport): LedgerNanoT => {
 						16,
 					)
 
+					log.debug(
+						`📲 ✅ Response code Ledger device: ${responseCode}`,
+					)
+
 					if (
 						!apdu.requiredResponseStatusCodeFromDevice.includes(
 							responseCode,
@@ -143,6 +152,12 @@ const from = (basicLedgerTransport: BasicLedgerTransport): LedgerNanoT => {
 						0,
 						responseFromLedger.length -
 							ledgerAPDUResponseCodeBufferLength,
+					)
+
+					log.debug(
+						`📲 ✅ Response data Ledger device: ${result.toString(
+							'hex',
+						)}`,
 					)
 
 					subscriber.next(result)
@@ -173,6 +188,9 @@ const from = (basicLedgerTransport: BasicLedgerTransport): LedgerNanoT => {
 	}
 
 	return {
+		close: (): Observable<void> => {
+			return from(basicLedgerTransport.close())
+		},
 		sendAPDUToDevice,
 		__sendRequestToDevice: (_): Observable<LedgerResponse> =>
 			throwError(
@@ -194,7 +212,7 @@ const waitForDeviceToConnect = async (
 			retryCount: 60,
 		},
 	})
-	return from(ledgerTransportForDevice)
+	return fromTransport(ledgerTransportForDevice)
 }
 
 export const LedgerNano = {

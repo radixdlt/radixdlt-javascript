@@ -66,7 +66,7 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 			)
 			.pipe(
 				mergeMap((buf) =>
-					toObservableFromResult(Signature.fromDER(buf)),
+					toObservableFromResult(Signature.fromRSBuffer(buf)),
 				),
 			)
 	}

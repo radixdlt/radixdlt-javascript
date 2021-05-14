@@ -8,7 +8,7 @@ import {
 import { LedgerInstruction, LedgerResponseCodes, SemVerT } from '../_types'
 import { MockedLedgerNanoRecorderT, RadixAPDUT, radixCLA } from './_types'
 import { err, ok, Result } from 'neverthrow'
-import { Observable, of, Subscription, throwError } from 'rxjs'
+import { Observable, of, throwError } from 'rxjs'
 import { PublicKey, SignatureT } from '@radixdlt/crypto'
 import { map, mergeMap, take, tap } from 'rxjs/operators'
 import { ECPointOnCurveT } from '@radixdlt/crypto/src/elliptic-curve/_types'
@@ -43,7 +43,7 @@ const hdPathFromBuffer = (
 		change,
 		address: {
 			index,
-			isHardened: true,
+			isHardened: false,
 		},
 	})
 	return ok(hdPath)
