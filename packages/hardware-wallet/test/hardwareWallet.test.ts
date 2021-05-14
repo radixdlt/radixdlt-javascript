@@ -4,7 +4,8 @@ import {
 	ECPointOnCurveT,
 	PublicKey,
 	PublicKeyT,
-	sha256Twice, Signature,
+	sha256Twice,
+	Signature,
 	SignatureT,
 } from '@radixdlt/crypto'
 import {
@@ -353,9 +354,13 @@ describe('hardwareWallet', () => {
 					).toStrictEqual([0x9000])
 
 					// Assert response
-					expect(signature.equals(
-						Signature.fromRSBuffer(response.data)._unsafeUnwrap()
-					)).toBe(true)
+					expect(
+						signature.equals(
+							Signature.fromRSBuffer(
+								response.data,
+							)._unsafeUnwrap(),
+						),
+					).toBe(true)
 
 					done()
 				},

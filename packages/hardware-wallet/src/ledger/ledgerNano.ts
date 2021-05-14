@@ -11,7 +11,11 @@ import { HDMasterSeed, MnemomicT, Mnemonic } from '@radixdlt/account'
 import { map, tap } from 'rxjs/operators'
 import { v4 as uuidv4 } from 'uuid'
 import { MockedLedgerNanoRecorder } from './mockedLedgerNanoRecorder'
-import { LedgerResponseCodes, SemVerT } from '../_types'
+import {
+	LedgerResponseCodes,
+	prettifyLedgerResponseCode,
+	SemVerT,
+} from '../_types'
 import { emulateSend } from './emulatedLedger'
 import { SemVer } from './semVer'
 
@@ -131,7 +135,9 @@ const fromTransport = (
 					)
 
 					log.debug(
-						`📲 ✅ Response code Ledger device: ${responseCode}`,
+						`📲 Response code Ledger device: ${prettifyLedgerResponseCode(
+							responseCode,
+						)}`,
 					)
 
 					if (
