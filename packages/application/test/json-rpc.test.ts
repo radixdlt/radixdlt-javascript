@@ -21,7 +21,6 @@ import {
 	ValidatorsEndpoint,
 } from '../src/api/json-rpc/_types'
 import { Amount } from '@radixdlt/primitives'
-import { UInt256 } from '@radixdlt/uint256'
 import { TransactionIdentifier } from '../src/dto/transactionIdentifier'
 import {
 	ActionType,
@@ -46,8 +45,6 @@ import {
 	RawExecutedAction,
 	RawToken,
 	Token,
-	TransactionIdentifierT,
-	TransactionType,
 } from '../src'
 
 const faker = require('json-schema-faker')
@@ -127,6 +124,77 @@ const tokenInfoFromResponse = (response: RawToken): Token => ({
 	tokenInfoURL: new URL(response.tokenInfoURL),
 	iconURL: new URL(response.iconURL),
 })
+
+const methodParams = {
+	[rpcSpec.methods[0].name]: {},
+
+	[rpcSpec.methods[1].name]: {},
+
+	[rpcSpec.methods[2].name]: {
+		rri: 'xrd_rb1qya85pwq'
+	},
+
+	[rpcSpec.methods[3].name]: {
+		address: 'brx1qspqljn9rg7x97s3rcvyzal2uxr5q22d9xn8nc4rpq8vq08kg4ch8yqhs9dq6'
+	},
+
+	[rpcSpec.methods[4].name]: {
+		address: 'brx1qspqljn9rg7x97s3rcvyzal2uxr5q22d9xn8nc4rpq8vq08kg4ch8yqhs9dq6',
+		size: 1,
+		cursor: 'xyz'
+	},
+
+	[rpcSpec.methods[5].name]: {
+		txID: 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef'
+	},
+
+	[rpcSpec.methods[6].name]: {
+		address: 'brx1qspqljn9rg7x97s3rcvyzal2uxr5q22d9xn8nc4rpq8vq08kg4ch8yqhs9dq6'
+	},
+
+	[rpcSpec.methods[7].name]: {
+		address: 'brx1qspqljn9rg7x97s3rcvyzal2uxr5q22d9xn8nc4rpq8vq08kg4ch8yqhs9dq6'
+	},
+
+	[rpcSpec.methods[8].name]: {
+		txID: 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef'
+	},
+
+	[rpcSpec.methods[9].name]: {},
+	[rpcSpec.methods[10].name]: {},
+
+	[rpcSpec.methods[11].name]: {
+		size: 1,
+		cursor: 1
+	},
+
+	[rpcSpec.methods[12].name]: {
+		validatorAddress: 'vb1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq9u3702'
+	},
+
+	[rpcSpec.methods[13].name]: {
+		actions: [],
+		message: 'xyz'
+	},
+
+	[rpcSpec.methods[14].name]: {
+		transaction: {
+			blob: 'xyz'
+		},
+		signatureDER: 'xyz',
+		publicKeyOfSigner: 'xyz'
+	},
+
+	[rpcSpec.methods[15].name]: {
+		transaction: {
+			blob: 'xyz'
+		},
+		signatureDER: 'xyz',
+		publicKeyOfSigner: 'xyz',
+		txID: 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef'
+	},
+
+}
 
 const expectedDecodedResponses = {
 	[rpcSpec.methods[0].name]: (
@@ -345,7 +413,7 @@ const testRpcMethod = (method: MethodObject, index: number) => {
 		const expected = expectedDecodedResponses[method.name](mockedResult)
 
 		const result = // @ts-ignore
-		(await client[method.name.split('.')[1]](undefined))._unsafeUnwrap({
+		(await client[method.name.split('.')[1]](methodParams[method.name]))._unsafeUnwrap({
 			withStackTrace: true,
 		})
 
