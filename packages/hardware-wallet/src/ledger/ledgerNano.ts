@@ -208,7 +208,7 @@ const fromTransport = (
 	}
 }
 
-const waitForDeviceToConnect = async (
+const connect = async (
 	input?: OpenLedgerConnectionInput,
 ): Promise<LedgerNanoT> => {
 	const ledgerTransportForDevice = await openConnection({
@@ -222,6 +222,6 @@ const waitForDeviceToConnect = async (
 }
 
 export const LedgerNano = {
-	waitForDeviceToConnect,
+	connect,
 	emulate,
 }

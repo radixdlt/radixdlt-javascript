@@ -16,7 +16,7 @@ export const testGetVersion = (
 	}>,
 ): void => {
 	const { hardwareWallet } = input
-	const onResponse = input.onResponse ?? ((_) => {})
+	const onResponse = input.onResponse ?? ((_) => undefined)
 	const subs = new Subscription()
 
 	subs.add(
@@ -39,9 +39,8 @@ export const testGetPublicKey = (
 	}>,
 ): void => {
 	const { hardwareWallet } = input
+	const onResponse = input.onResponse ?? ((_) => undefined)
 	const subs = new Subscription()
-
-	const onResponse = input.onResponse ?? ((_) => {})
 
 	subs.add(
 		hardwareWallet
@@ -74,8 +73,7 @@ export const testDoSignHash = (
 	}>,
 ): void => {
 	const { hardwareWallet } = input
-	const onResponse = input.onResponse ?? ((_) => {})
-
+	const onResponse = input.onResponse ?? ((_) => undefined)
 	const subs = new Subscription()
 
 	const hashToSign = sha256Twice(`I'm testing Radix awesome hardware wallet!`)
@@ -111,8 +109,7 @@ export const testDoKeyExchange = (
 	}>,
 ): void => {
 	const { hardwareWallet } = input
-	const onResponse = input.onResponse ?? ((_) => {})
-
+	const onResponse = input.onResponse ?? ((_) => undefined)
 	const subs = new Subscription()
 
 	const publicKeyOfOtherParty = PublicKey.fromBuffer(
