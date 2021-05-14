@@ -26,7 +26,7 @@ import {
 	openConnection,
 	OpenLedgerConnectionInput,
 	send,
-} from './ledgerNanoDeviceConnector'
+} from './device-connection'
 
 const __create = (
 	input: Readonly<{
