@@ -11,13 +11,14 @@ import { Observable, throwError } from 'rxjs'
 import {
 	ECPointOnCurve,
 	ECPointOnCurveT,
+	HDPathRadix,
 	PublicKey,
 	PublicKeyT,
 	SignatureT,
 } from '@radixdlt/crypto'
-import { HDPathRadix, toObservableFromResult } from '@radixdlt/account'
 import { mergeMap } from 'rxjs/operators'
 import { Signature } from '@radixdlt/crypto'
+import { toObservableFromResult } from '@radixdlt/util'
 
 const path000H = HDPathRadix.create({ address: { index: 0, isHardened: true } })
 

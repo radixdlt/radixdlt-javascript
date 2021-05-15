@@ -1,7 +1,6 @@
 import {
 	AccountAddressT,
 	DeriveNextInput,
-	MnemomicT,
 	NetworkT,
 	SigningKeychain,
 	SigningKeychainT,
@@ -35,7 +34,7 @@ import {
 	Subscription,
 	throwError,
 } from 'rxjs'
-import { EncryptedMessage, KeystoreT } from '@radixdlt/crypto'
+import { EncryptedMessage, KeystoreT, MnemomicT } from '@radixdlt/crypto'
 import {
 	AddAccountByPrivateKeyInput,
 	AccountsT,

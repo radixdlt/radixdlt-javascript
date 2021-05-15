@@ -6,8 +6,8 @@ import {
 	PublicKeyT,
 	sha256Twice,
 	SignatureT,
+	HDPathRadix,
 } from '@radixdlt/crypto'
-import { HDPathRadix } from '@radixdlt/account'
 
 export const testGetVersion = (
 	input: Readonly<{

@@ -1,5 +1,5 @@
-import { BIP32T } from '../'
-import { PublicKeyT, PrivateKeyT } from '@radixdlt/crypto'
+import { BIP32T } from '../bip32'
+import { PrivateKeyT, PublicKeyT } from '../../_types'
 
 export type HDNodeT = Readonly<{
 	publicKey: PublicKeyT

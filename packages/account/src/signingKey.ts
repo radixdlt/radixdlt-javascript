@@ -7,10 +7,13 @@ import {
 	PrivateKeyT,
 	PublicKeyT,
 	SignatureT,
+	HDPathRadixT,
+	HDMasterSeedT,
+	HDNodeT,
 } from '@radixdlt/crypto'
 import { map, mergeMap } from 'rxjs/operators'
 import { Observable } from 'rxjs'
-import { toObservable } from './resultAsync_observable'
+import { toObservable } from '@radixdlt/util'
 import {
 	SigningKeyDecryptionInput,
 	SigningKeyEncryptionInput,
@@ -23,8 +26,6 @@ import {
 	HDSigningKeyTypeIdentifier,
 	PrivateKeyToSigningKeyInput,
 } from './_types'
-import { HDMasterSeedT, HDNodeT } from './bip39'
-import { HDPathRadixT } from './bip32'
 import { okAsync, ResultAsync } from 'neverthrow'
 import { Option } from 'prelude-ts'
 

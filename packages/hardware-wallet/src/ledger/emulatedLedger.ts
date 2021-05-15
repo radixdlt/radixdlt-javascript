@@ -1,18 +1,18 @@
+import { LedgerInstruction, LedgerResponseCodes, SemVerT } from '../_types'
+import { MockedLedgerNanoRecorderT, RadixAPDUT, radixCLA } from './_types'
+import { err, ok, Result } from 'neverthrow'
+import { Observable, of, throwError } from 'rxjs'
 import {
 	BIP44ChangeIndex,
 	HDNodeT,
 	HDPathRadix,
 	HDPathRadixT,
-	toObservable,
-} from '@radixdlt/account'
-import { LedgerInstruction, LedgerResponseCodes, SemVerT } from '../_types'
-import { MockedLedgerNanoRecorderT, RadixAPDUT, radixCLA } from './_types'
-import { err, ok, Result } from 'neverthrow'
-import { Observable, of, throwError } from 'rxjs'
-import { PublicKey, SignatureT } from '@radixdlt/crypto'
+	PublicKey,
+	SignatureT,
+	ECPointOnCurveT,
+} from '@radixdlt/crypto'
 import { map, mergeMap, take, tap } from 'rxjs/operators'
-import { ECPointOnCurveT } from '@radixdlt/crypto/src/elliptic-curve/_types'
-import { log } from '@radixdlt/util/dist/logging'
+import { log, toObservable } from '@radixdlt/util'
 
 const pathDataByteCount = 12
 const publicKeyByteCount = 64

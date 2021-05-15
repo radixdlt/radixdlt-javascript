@@ -1,11 +1,9 @@
-import { HDPathRadix, Mnemonic } from '@radixdlt/account'
 import { ReplaySubject, Subscription } from 'rxjs'
 import {
 	ECPointOnCurveT,
-	PublicKey,
 	PublicKeyT,
-	sha256Twice,
 	Signature,
+	Mnemonic,
 	SignatureT,
 } from '@radixdlt/crypto'
 import {
@@ -21,9 +19,7 @@ import {
 	LedgerButtonPress,
 	PromptUserForInput,
 	PromptUserForInputType,
-	LedgerNanoT,
 } from '../src'
-import { log } from '@radixdlt/util'
 import {
 	testDoKeyExchange,
 	testDoSignHash,
