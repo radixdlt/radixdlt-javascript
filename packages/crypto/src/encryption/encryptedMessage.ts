@@ -80,7 +80,7 @@ const fromBuffer = (buf: Buffer): Result<EncryptedMessageT, Error> => {
 					((type: number): Result<number, Error> =>
 						type in MessageType
 							? ok(type)
-							: err(Error('Unknown message type')))(
+							: err(Error(`Unknown message type: ${type}`)))(
 						buffer.readUIntBE(0, 1),
 					),
 				),
@@ -88,13 +88,17 @@ const fromBuffer = (buf: Buffer): Result<EncryptedMessageT, Error> => {
 					((scheme: number): Result<number, Error> =>
 						scheme in EncryptionScheme
 							? ok(scheme)
-							: err(Error(`Unknown encryption scheme: ${scheme}`)))(
-						buffer.readUIntBE(0, 1),
-					),
+							: err(
+									Error(
+										`Unknown encryption scheme: ${scheme}`,
+									),
+							  ))(buffer.readUIntBE(0, 1)),
 				),
-				readNextBuffer(buffer.length - ENCRYPTION_SCHEME_BYTES - MESSAGE_TYPE_BYTES).andThen(
-					SealedMessage.fromBuffer,
-				),
+				readNextBuffer(
+					buffer.length -
+						ENCRYPTION_SCHEME_BYTES -
+						MESSAGE_TYPE_BYTES,
+				).andThen(SealedMessage.fromBuffer),
 			]).andThen((resultList) =>
 				EncryptedMessage.create({
 					messageType: resultList[0] as MessageType,

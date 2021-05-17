@@ -1,4 +1,7 @@
-import { __validateEncryptedMessageLength, minLengthEncryptedMessage } from '../src/encryption/encryptedMessage'
+import {
+	__validateEncryptedMessageLength,
+	minLengthEncryptedMessage,
+} from '../src/encryption/encryptedMessage'
 import { buffersEquals } from '@radixdlt/util'
 
 describe('EncryptedMessage', () => {
