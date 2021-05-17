@@ -1,17 +1,26 @@
-import { EncryptedMessageT, EncryptionSchemeT, SealedMessageT } from './_types'
-import { combine, Result } from 'neverthrow'
-import { EncryptionScheme, encryptionSchemeLength } from './encryptionScheme'
+import {
+	EncryptedMessageT,
+	EncryptionScheme,
+	ENCRYPTION_SCHEME_BYTES,
+	MessageType,
+	MESSAGE_TYPE_BYTES,
+	SealedMessageT,
+} from './_types'
+import { combine, err, ok, Result } from 'neverthrow'
 import { readBuffer } from '@radixdlt/util'
 import { SealedMessage } from './sealedMessage'
 import { validateMaxLength, validateMinLength } from '../utils'
 import { PublicKey } from '../elliptic-curve'
 
 export const maxLengthEncryptedMessage = 255
-const minLengthEncryptedMessage =
+
+export const minLengthEncryptedMessage =
 	SealedMessage.authTagByteCount +
 	SealedMessage.nonceByteCount +
 	PublicKey.compressedByteCount +
-	encryptionSchemeLength
+	ENCRYPTION_SCHEME_BYTES +
+	MESSAGE_TYPE_BYTES
+
 const maxLengthOfCipherTextOfSealedMsg =
 	maxLengthEncryptedMessage - minLengthEncryptedMessage
 
@@ -41,12 +50,14 @@ export const __validateEncryptedMessageLength = (
 
 const create = (
 	input: Readonly<{
-		encryptionScheme: EncryptionSchemeT
+		messageType: MessageType
+		encryptionScheme: EncryptionScheme
 		sealedMessage: SealedMessageT
 	}>,
 ): Result<EncryptedMessageT, Error> => {
 	const concatenatedBuffers = Buffer.concat([
-		input.encryptionScheme.combined(),
+		Buffer.from([input.messageType]),
+		Buffer.from([input.encryptionScheme]),
 		input.sealedMessage.combined(),
 	])
 
@@ -65,35 +76,39 @@ const fromBuffer = (buf: Buffer): Result<EncryptedMessageT, Error> => {
 		(buffer): Result<EncryptedMessageT, Error> => {
 			const readNextBuffer = readBuffer.bind(null, buffer)()
 			return combine([
-				readNextBuffer(encryptionSchemeLength).andThen(
-					EncryptionScheme.fromBuffer,
+				readNextBuffer(MESSAGE_TYPE_BYTES).andThen((buffer) =>
+					((type: number): Result<number, Error> =>
+						type in MessageType
+							? ok(type)
+							: err(Error('Unknown message type')))(
+						buffer.readUIntBE(0, 1),
+					),
 				),
-				readNextBuffer(buffer.length - encryptionSchemeLength).andThen(
+				readNextBuffer(ENCRYPTION_SCHEME_BYTES).andThen((buffer) =>
+					((scheme: number): Result<number, Error> =>
+						scheme in EncryptionScheme
+							? ok(scheme)
+							: err(Error(`Unknown encryption scheme: ${scheme}`)))(
+						buffer.readUIntBE(0, 1),
+					),
+				),
+				readNextBuffer(buffer.length - ENCRYPTION_SCHEME_BYTES - MESSAGE_TYPE_BYTES).andThen(
 					SealedMessage.fromBuffer,
 				),
-			]).andThen((resultList) => {
-				const encryptionScheme = resultList[0] as EncryptionSchemeT
-				const sealedMessage = resultList[1] as SealedMessageT
-				return EncryptedMessage.create({
-					encryptionScheme,
-					sealedMessage,
-				})
-			})
+			]).andThen((resultList) =>
+				EncryptedMessage.create({
+					messageType: resultList[0] as MessageType,
+					encryptionScheme: resultList[1] as EncryptionScheme,
+					sealedMessage: resultList[2] as SealedMessageT,
+				}),
+			)
 		},
 	)
 }
-
-const supportsSchemeOf = (
-	encryptedMessage: EncryptedMessageT,
-): Result<SealedMessageT, Error> =>
-	EncryptionScheme.isSupported(encryptedMessage.encryptionScheme).map(
-		(_) => encryptedMessage.sealedMessage,
-	)
 
 export const EncryptedMessage = {
 	maxLength: maxLengthEncryptedMessage,
 	maxLengthOfCipherTextOfSealedMsg,
 	create,
 	fromBuffer,
-	supportsSchemeOf,
 }

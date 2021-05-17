@@ -1,9 +1,18 @@
 import { secureRandomGenerator } from '@radixdlt/util'
-import { combine, errAsync, okAsync, Result, ResultAsync } from 'neverthrow'
+import {
+	combine,
+	err,
+	errAsync,
+	okAsync,
+	Result,
+	ResultAsync,
+} from 'neverthrow'
 import {
 	EncryptedMessageT,
+	EncryptionScheme,
 	MessageDecryptionInput,
 	MessageEncryptionInput,
+	MessageType,
 	SealedMessageT,
 } from './_types'
 import { Scrypt, ScryptParams } from '../key-derivation-functions'
@@ -16,7 +25,6 @@ import {
 import { sha256 } from '../hash'
 import { EncryptedMessage } from './encryptedMessage'
 import { SealedMessage } from './sealedMessage'
-import { EncryptionScheme } from './encryptionScheme'
 import { ECPointOnCurveT, KeyPair, PublicKeyT } from '../elliptic-curve'
 
 type CalculateSharedSecretInput = Readonly<{
@@ -72,7 +80,7 @@ const aesSealedBoxFromSealedMessage = (
 		nonce: sealedMessage.nonce,
 	})
 
-const decryptSealedMessageWithKeysOfParties = (
+const decryptMessage = (
 	input: Readonly<{
 		sealedMessage: SealedMessageT
 		diffieHellmanPoint: () => ResultAsync<ECPointOnCurveT, Error>
@@ -105,21 +113,6 @@ const decryptSealedMessageWithKeysOfParties = (
 		.andThen(decryptAESSealedBox)
 }
 
-const decryptMessage = (
-	input: Readonly<{
-		encryptedMessage: EncryptedMessageT
-		diffieHellmanPoint: () => ResultAsync<ECPointOnCurveT, Error>
-	}>,
-): ResultAsync<Buffer, Error> => {
-	const { encryptedMessage } = input
-	return EncryptedMessage.supportsSchemeOf(encryptedMessage)
-		.map((sealedMessage) => ({
-			...input,
-			sealedMessage,
-		}))
-		.asyncAndThen(decryptSealedMessageWithKeysOfParties)
-}
-
 const decryptEncryptedMessageBuffer = (
 	input: Readonly<{
 		encryptedMessageBuffer: Buffer
@@ -128,8 +121,8 @@ const decryptEncryptedMessageBuffer = (
 ): ResultAsync<Buffer, Error> =>
 	EncryptedMessage.fromBuffer(input.encryptedMessageBuffer)
 		.map((encryptedMessage: EncryptedMessageT) => ({
-			...input,
-			encryptedMessage,
+			diffieHellmanPoint: input.diffieHellmanPoint,
+			sealedMessage: encryptedMessage.sealedMessage,
 		}))
 		.asyncAndThen(decryptMessage)
 
@@ -141,7 +134,7 @@ const decrypt = (input: MessageDecryptionInput): ResultAsync<Buffer, Error> =>
 		  })
 		: decryptMessage({
 				...input,
-				encryptedMessage: input.encryptedMessage,
+				sealedMessage: input.encryptedMessage.sealedMessage,
 		  })
 
 type DeterministicMessageEncryptionInput = MessageEncryptionInput &
@@ -189,8 +182,10 @@ const __encryptDeterministic = (
 			)
 			.andThen((sealedMessage: SealedMessageT) => {
 				return EncryptedMessage.create({
+					messageType: MessageType.ENCRYPTED,
 					sealedMessage,
-					encryptionScheme: EncryptionScheme.current,
+					encryptionScheme:
+						EncryptionScheme.DH_ADD_EPH_AESGCM256_SCRYPT_000,
 				})
 			})
 	})
