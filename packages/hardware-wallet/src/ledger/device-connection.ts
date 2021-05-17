@@ -1,9 +1,18 @@
-import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import { RadixAPDU } from './apdu'
 import { RadixAPDUT } from './_types'
 import { log } from '@radixdlt/util'
 
-export type BasicLedgerTransport = Pick<TransportNodeHid, 'send' | 'close'>
+export type BasicLedgerTransport = Readonly<{
+	close: () => Promise<void>
+	send: (
+		cla: number,
+		ins: number,
+		p1: number,
+		p2: number,
+		data?: Buffer,
+		statusList?: ReadonlyArray<number>,
+	) => Promise<Buffer>
+}>
 
 export const send = (
 	input: Readonly<{
@@ -49,9 +58,17 @@ const __openConnection = async (
 		log.debug(`🔌⏱ Looking for (unlocked 🔓) Ledger device to connect to.`)
 	}
 
-	const basicLedgerTransport: BasicLedgerTransport = await TransportNodeHid.create(
-		input?.deviceConnectionTimeout,
-		input?.deviceConnectionTimeout,
+	const basicLedgerTransport: BasicLedgerTransport = await import(
+		'@ledgerhq/hw-transport-node-hid'
+	).then(
+		async (module): Promise<BasicLedgerTransport> => {
+			const TransportNodeHid = module.default
+
+			return await TransportNodeHid.create(
+				input?.deviceConnectionTimeout,
+				input?.deviceConnectionTimeout,
+			)
+		},
 	)
 
 	if (isLoggingEnabled) {

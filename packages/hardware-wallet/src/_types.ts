@@ -38,19 +38,21 @@ export type KeyExchangeInput = GetPublicKeyInput &
 		publicKeyOfOtherParty: PublicKeyT
 	}>
 
-export enum HardwareWalletDeviceConnectionStatus {
-	DISCONNECTED_DEVICE_NOT_CONNECTED = 'DISCONNECTED_DEVICE_NOT_CONNECTED',
-	DISCONNECTED_BECAUSE_APP_NOT_OPENED = 'DISCONNECTED_BECAUSE_APP_NOT_OPENED',
-	// Device connected and app opened
-	CONNECTED = 'CONNECTED',
-}
+export type HardwareSigningKeyT = Readonly<{
+	keyExchange: (
+		publicKeyOfOtherParty: PublicKeyT,
+	) => Observable<ECPointOnCurveT>
+	publicKey: PublicKeyT
+	sign: (hashedMessage: Buffer) => Observable<SignatureT>
+}>
 
 export type HardwareWalletT = Readonly<{
-	deviceConnectionStatus: Observable<HardwareWalletDeviceConnectionStatus>
 	getVersion: () => Observable<SemVerT>
 	getPublicKey: (input: GetPublicKeyInput) => Observable<PublicKeyT>
 	doSignHash: (input: SignHashInput) => Observable<SignatureT>
 	doKeyExchange: (input: KeyExchangeInput) => Observable<ECPointOnCurveT>
+
+	makeSigningKey: (path: HDPathRadixT) => Observable<HardwareSigningKeyT>
 }>
 
 export enum LedgerInstruction {

@@ -121,7 +121,15 @@ const validateBIP44Component = (
 	if (component.level !== expected.level)
 		return err(new Error('Wrong level in BIP44 path'))
 	if (component.isHardened !== expected.isHardened)
-		return err(new Error('Wrong hardened value'))
+		return err(
+			new Error(
+				`Wrong hardened value, expected component at level ${
+					component.level
+				} to${
+					expected.isHardened ? '' : ' NOT'
+				} be hardened, but it is${component.isHardened ? '' : ' NOT'}.`,
+			),
+		)
 	if (expected.name) {
 		if (component.name !== expected.name)
 			return err(new Error('Wrong name'))

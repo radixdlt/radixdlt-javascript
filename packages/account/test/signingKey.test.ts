@@ -11,17 +11,18 @@ import {
 	HDMasterSeed,
 	BIP32T,
 	HDPathRadix,
+	HDPathRadixT,
 } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
 import {
 	SigningKey,
 	SigningKeyT,
 	SigningKeyTypeHDT,
-	HardwareSigningKeyT,
 	HDSigningKeyTypeIdentifier,
 } from '../src'
-import { Observable, of, Subject, Subscription } from 'rxjs'
+import { Observable, of, Subscription } from 'rxjs'
 import { toObservable } from '@radixdlt/util'
+import { HardwareSigningKeyT } from '@radixdlt/hardware-wallet'
 
 const privateKeyFromNum = (privateKeyScalar: number) =>
 	PrivateKey.fromScalar(UInt256.valueOf(privateKeyScalar))._unsafeUnwrap()
@@ -122,7 +123,26 @@ describe('signingKey_type', () => {
 		)
 	})
 
-	it('can create accounts from private key', () => {
+	it('radix_hd_path_0H00', () => {
+		const mnemonic = Mnemonic.fromEnglishPhrase(
+			'equip will roof matter pink blind book anxiety banner elbow sun young',
+		)._unsafeUnwrap()
+		const hdMasterSeed = HDMasterSeed.fromMnemonic({ mnemonic })
+		const hdPath0H00 = HDPathRadix.fromString(
+			`m/44'/536'/0'/0/0`,
+		)._unsafeUnwrap()
+
+		const signingKey0H00 = SigningKey.fromHDPathWithHDMasterSeed({
+			hdPath: hdPath0H00,
+			hdMasterSeed,
+		})
+
+		expect(signingKey0H00.publicKey.toString(true)).toBe(
+			'021d15f715b83b2067cb241a9ba6257cbcb145f4a635c9f73b56f72e658950241e',
+		)
+	})
+
+		it('can create accounts from private key', () => {
 		const signingKey = SigningKey.fromPrivateKey({
 			privateKey: privateKeyFromNum(1),
 		})
@@ -139,9 +159,8 @@ describe('signingKey_type', () => {
 	it('hw signingKey', (done) => {
 		const subs = new Subscription()
 
-		const hwSigningKeychainConnectSubject = new Subject<HardwareSigningKeyT>()
-
-		const mockHWSigningKeychain = (
+		const mockHardwareSigningKey = (
+			hdPath: HDPathRadixT,
 			hardwareMnemonic?: string,
 		): HardwareSigningKeyT => {
 			const mnemonic = Mnemonic.fromEnglishPhrase(
@@ -149,40 +168,24 @@ describe('signingKey_type', () => {
 					'equip will roof matter pink blind book anxiety banner elbow sun young',
 			)._unsafeUnwrap()
 			const masterSeed = HDMasterSeed.fromMnemonic({ mnemonic })
-			const accountFromHDPath = (bip32Path: BIP32T): SigningKeyT => {
-				const bip44RadixPath = HDPathRadix.fromString(
-					bip32Path.toString(),
-				)._unsafeUnwrap()
-				return SigningKey.byDerivingNodeAtPath({
-					hdPath: bip44RadixPath,
-					deriveNodeAtPath: () =>
-						masterSeed.masterNode().derive(bip44RadixPath),
-				})
-			}
+
+			const signingKeyLocalHD = SigningKey.byDerivingNodeAtPath({
+				hdPath,
+				deriveNodeAtPath: () => masterSeed.masterNode().derive(hdPath),
+			})
 			return {
-				diffieHellman: (
-					input: Readonly<{
-						hdPath: BIP32T
-						publicKeyOfOtherParty: PublicKeyT
-					}>,
+				keyExchange: (
+					publicKeyOfOtherParty: PublicKeyT,
 				): Observable<ECPointOnCurveT> => {
 					return toObservable(
-						accountFromHDPath(input.hdPath).__diffieHellman(
-							input.publicKeyOfOtherParty,
+						signingKeyLocalHD.__diffieHellman(
+							publicKeyOfOtherParty,
 						),
 					)
 				},
-				derivePublicKey: (hdPath: BIP32T): Observable<PublicKeyT> =>
-					of(accountFromHDPath(hdPath).publicKey),
-				sign: (
-					input: Readonly<{
-						hashedMessage: Buffer
-						hdPath: BIP32T
-					}>,
-				): Observable<SignatureT> => {
-					return accountFromHDPath(input.hdPath).sign(
-						input.hashedMessage,
-					)
+				publicKey: signingKeyLocalHD.publicKey,
+				sign: (hashedMessage: Buffer): Observable<SignatureT> => {
+					return signingKeyLocalHD.sign(hashedMessage)
 				},
 			}
 		}
@@ -199,69 +202,54 @@ describe('signingKey_type', () => {
 		const expectedPublicKey =
 			'026d5e07cfde5df84b5ef884b629d28d15b0f6c66be229680699767cd57c618288'
 
-		subs.add(
-			SigningKey.fromHDPathWithHardwareWallet({
-				hdPath,
-				hardwareWalletConnection: hwSigningKeychainConnectSubject.asObservable(),
-			}).subscribe(
-				(hwSigningKey) => {
-					expect(hwSigningKey.isHDSigningKey).toBe(true)
-					expect(hwSigningKey.isHardwareSigningKey).toBe(true)
-					expect(hwSigningKey.isLocalHDSigningKey).toBe(false)
-					expect(hwSigningKey.hdPath!.toString()).toBe(path)
-					expect(hwSigningKey.publicKey.toString(true)).toBe(
-						expectedPublicKey,
-					)
-					expect(
-						(hwSigningKey.type as SigningKeyTypeHDT)
-							.hdSigningKeyType,
-					).toBe(HDSigningKeyTypeIdentifier.HARDWARE_OR_REMOTE)
-					expect(hwSigningKey.uniqueIdentifier).toBe(
-						`Hardware_HD_signingKey_at_path_m/44'/536'/2'/1/3`,
-					)
-					expect(
-						hwSigningKey.equals(<SigningKeyT>{
-							publicKey: PublicKey.fromBuffer(
-								Buffer.from(expectedPublicKey, 'hex'),
-							)._unsafeUnwrap(),
-						}),
-					).toBe(true)
-
-					const plaintext = 'Hello Bob!'
-
-					subs.add(
-						hwSigningKey
-							.encrypt({
-								plaintext,
-								publicKeyOfOtherParty: bobPubKey,
-							})
-							.subscribe((encryptedMessage) => {
-								MessageEncryption.decrypt({
-									encryptedMessage,
-									diffieHellmanPoint: bobPrivateKey.diffieHellman.bind(
-										null,
-										hwSigningKey.publicKey,
-									),
-								}).match(
-									(decrypted) => {
-										expect(decrypted.toString('utf8')).toBe(
-											plaintext,
-										)
-										done()
-									},
-									(error) => {
-										done(error)
-									},
-								)
-							}),
-					)
-				},
-				(e) => {
-					done(e)
-				},
-			),
+		const hwSigningKey = SigningKey.fromHDPathWithHWSigningKey({
+			hdPath,
+			hardwareSigningKey: mockHardwareSigningKey(hdPath),
+		})
+		expect(hwSigningKey.isHDSigningKey).toBe(true)
+		expect(hwSigningKey.isHardwareSigningKey).toBe(true)
+		expect(hwSigningKey.isLocalHDSigningKey).toBe(false)
+		expect(hwSigningKey.hdPath!.toString()).toBe(path)
+		expect(hwSigningKey.publicKey.toString(true)).toBe(expectedPublicKey)
+		expect((hwSigningKey.type as SigningKeyTypeHDT).hdSigningKeyType).toBe(
+			HDSigningKeyTypeIdentifier.HARDWARE_OR_REMOTE,
 		)
+		expect(hwSigningKey.uniqueIdentifier).toBe(
+			`Hardware_HD_signingKey_at_path_m/44'/536'/2'/1/3`,
+		)
+		expect(
+			hwSigningKey.equals(<SigningKeyT>{
+				publicKey: PublicKey.fromBuffer(
+					Buffer.from(expectedPublicKey, 'hex'),
+				)._unsafeUnwrap(),
+			}),
+		).toBe(true)
 
-		hwSigningKeychainConnectSubject.next(mockHWSigningKeychain())
+		const plaintext = 'Hello Bob!'
+
+		subs.add(
+			hwSigningKey
+				.encrypt({
+					plaintext,
+					publicKeyOfOtherParty: bobPubKey,
+				})
+				.subscribe((encryptedMessage) => {
+					MessageEncryption.decrypt({
+						encryptedMessage,
+						diffieHellmanPoint: bobPrivateKey.diffieHellman.bind(
+							null,
+							hwSigningKey.publicKey,
+						),
+					}).match(
+						(decrypted) => {
+							expect(decrypted.toString('utf8')).toBe(plaintext)
+							done()
+						},
+						(error) => {
+							done(error)
+						},
+					)
+				}),
+		)
 	})
 })
