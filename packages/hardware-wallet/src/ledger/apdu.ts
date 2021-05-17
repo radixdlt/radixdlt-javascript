@@ -1,8 +1,11 @@
 import { PartialAPDUT, RadixAPDUT, radixCLA } from './_types'
-import { HDPathRadixT, RADIX_COIN_TYPE } from '@radixdlt/account'
 import { LedgerInstruction, LedgerResponseCodes } from '../_types'
-import { BIP32PathComponentT } from '@radixdlt/account'
-import { PublicKeyT } from '@radixdlt/crypto'
+import {
+	BIP32PathComponentT,
+	HDPathRadixT,
+	PublicKeyT,
+	RADIX_COIN_TYPE,
+} from '@radixdlt/crypto'
 
 // ##### Follows https://github.com/radixdlt/radixdlt-ledger-app/blob/main/APDUSPEC.md #####
 

@@ -6,7 +6,6 @@ import {
 	AccountAddressT,
 	DeriveNextInput,
 	AccountAddress,
-	HDPathRadixT,
 } from '@radixdlt/account'
 import {
 	WalletT,
@@ -20,7 +19,7 @@ import { Observable, of } from 'rxjs'
 import { Account, isAccount } from './account'
 import { map } from 'rxjs/operators'
 import { Option } from 'prelude-ts'
-import { PublicKeyT } from '@radixdlt/crypto'
+import { PublicKeyT, HDPathRadixT } from '@radixdlt/crypto'
 
 const create = (
 	input: Readonly<{

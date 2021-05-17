@@ -1,15 +1,16 @@
+import { Observable } from 'rxjs'
+import { Option } from 'prelude-ts'
 import {
+	BIP32T,
 	DiffieHellman,
 	ECPointOnCurveT,
 	EncryptedMessageT,
+	HDPathRadixT,
+	MnemomicT,
 	PrivateKeyT,
 	PublicKeyT,
 	SignatureT,
 } from '@radixdlt/crypto'
-import { Observable } from 'rxjs'
-import { Option } from 'prelude-ts'
-import { HDPathRadixT, BIP32T } from './bip32'
-import { MnemomicT } from './bip39'
 
 /* A reactive counterpart of `Signer` in '@radixdlt/crypto' package  */
 export type Signing = Readonly<{

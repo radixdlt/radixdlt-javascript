@@ -7,7 +7,6 @@ import {
 	RadixAPDUT,
 } from './_types'
 import { from, Observable, of, throwError } from 'rxjs'
-import { HDMasterSeed, MnemomicT, Mnemonic } from '@radixdlt/account'
 import { map, tap } from 'rxjs/operators'
 import { v4 as uuidv4 } from 'uuid'
 import { MockedLedgerNanoRecorder } from './mockedLedgerNanoRecorder'
@@ -20,6 +19,7 @@ import { emulateSend } from './emulatedLedger'
 import { SemVer } from './semVer'
 
 import { msgFromError, log } from '@radixdlt/util'
+import { MnemomicT, HDMasterSeed, Mnemonic } from '@radixdlt/crypto'
 
 import {
 	BasicLedgerTransport,

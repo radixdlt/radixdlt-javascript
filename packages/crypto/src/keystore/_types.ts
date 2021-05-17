@@ -1,4 +1,4 @@
-import { ScryptParamsT } from '../key-derivation-functions/_types'
+import { ScryptParamsT } from '../key-derivation-functions'
 
 export type KeystoreCryptoCipherParamsT = Readonly<{
 	nonce: string

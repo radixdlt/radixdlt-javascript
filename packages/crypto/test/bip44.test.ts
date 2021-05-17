@@ -1,4 +1,4 @@
-import { BIP44T, HDPathRadixT, BIP44, HDPathRadix } from '../src'
+import { BIP44, BIP44T, HDPathRadix, HDPathRadixT } from '../src'
 
 describe('BIP44', () => {
 	it('can create one for radix', () => {

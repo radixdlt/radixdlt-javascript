@@ -3,7 +3,6 @@ import {
 	ActionType,
 	carol,
 	erin,
-	WalletT,
 	AccountT,
 	IntendedStakeTokensAction,
 	IntendedTransferTokensAction,
@@ -17,17 +16,13 @@ import {
 	AccountAddressT,
 	isAccountAddress,
 	isValidatorAddress,
-	Mnemonic,
-	NetworkT,
 	ValidatorAddress,
 	ValidatorAddressT,
-	SigningKeychain,
 } from '@radixdlt/account'
 import { merge, of, Subscription } from 'rxjs'
 
-import { map, mergeMap, take, toArray } from 'rxjs/operators'
+import { mergeMap, take, toArray } from 'rxjs/operators'
 import { restoreDefaultLogLevel, log } from '@radixdlt/util'
-import { Wallet } from '../src/wallet'
 import { createWallet } from './util'
 
 describe('tx_intent_builder', () => {

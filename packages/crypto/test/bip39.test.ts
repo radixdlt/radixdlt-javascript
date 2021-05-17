@@ -4,9 +4,9 @@ import {
 	Mnemonic,
 	mnemonicStrengthSupportedByBIP39,
 	wordlistFromLanguage,
-} from '../src/bip39/mnemonic'
-import { LanguageT, StrengthT } from '../src/bip39/_types'
-import { HDMasterSeed } from '../src/bip39/hdMasterSeed'
+} from '../src/elliptic-curve/hd/bip39/mnemonic'
+import { LanguageT, StrengthT } from '../src/elliptic-curve/hd/bip39/_types'
+import { HDMasterSeed } from '../src/elliptic-curve/hd/bip39/hdMasterSeed'
 import { restoreDefaultLogLevel, log } from '@radixdlt/util'
 
 describe('bip39', () => {

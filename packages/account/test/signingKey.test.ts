@@ -7,21 +7,21 @@ import {
 	sha256Twice,
 	SignatureT,
 	Signature,
+	Mnemonic,
+	HDMasterSeed,
+	BIP32T,
+	HDPathRadix,
 } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
 import {
 	SigningKey,
 	SigningKeyT,
 	SigningKeyTypeHDT,
-	BIP32T,
 	HardwareSigningKeyT,
 	HDSigningKeyTypeIdentifier,
-	HDMasterSeed,
-	HDPathRadix,
-	Mnemonic,
-	toObservable,
 } from '../src'
 import { Observable, of, Subject, Subscription } from 'rxjs'
+import { toObservable } from '@radixdlt/util'
 
 const privateKeyFromNum = (privateKeyScalar: number) =>
 	PrivateKey.fromScalar(UInt256.valueOf(privateKeyScalar))._unsafeUnwrap()

@@ -1,5 +1,6 @@
 export * from './_types'
 
+export * from './hd'
 export * from './secp256k1'
 export * from './ecPointOnCurve'
 export * from './privateKey'

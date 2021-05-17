@@ -1,6 +1,10 @@
-import { HDPathRadixT } from '@radixdlt/account'
 import { Observable } from 'rxjs'
-import { ECPointOnCurveT, PublicKeyT, SignatureT } from '@radixdlt/crypto'
+import {
+	ECPointOnCurveT,
+	HDPathRadixT,
+	PublicKeyT,
+	SignatureT,
+} from '@radixdlt/crypto'
 
 // Semantic versioning, e.g. 1.0.5
 export type SemVerT = Readonly<{

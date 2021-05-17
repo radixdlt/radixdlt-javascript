@@ -1,6 +1,7 @@
 import {
 	BehaviorSubject,
 	combineLatest,
+	from,
 	Observable,
 	of,
 	ReplaySubject,
@@ -19,12 +20,22 @@ import {
 	SigningKeychainT,
 } from './_types'
 import { mergeMap, shareReplay, take } from 'rxjs/operators'
-import { Keystore, KeystoreT, PublicKeyT, SignatureT } from '@radixdlt/crypto'
+import {
+	Keystore,
+	KeystoreT,
+	PublicKeyT,
+	SignatureT,
+	HDPathRadix,
+	HDPathRadixT,
+	Int32,
+	HDMasterSeed,
+	MnemomicT,
+	Mnemonic,
+} from '@radixdlt/crypto'
 import { Option } from 'prelude-ts'
-import { HDPathRadix, HDPathRadixT, Int32 } from './bip32'
 import { arraysEqual, log, msgFromError } from '@radixdlt/util'
-import { HDMasterSeed, MnemomicT, Mnemonic } from './bip39'
 import { ResultAsync } from 'neverthrow'
+// import { LedgerNano } from '@radixdlt/hardware-wallet'
 
 const stringifySigningKeysArray = (signingKeys: SigningKeyT[]): string =>
 	signingKeys.map((a) => a.toString()).join(',\n')
