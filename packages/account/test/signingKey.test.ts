@@ -140,9 +140,22 @@ describe('signingKey_type', () => {
 		expect(signingKey0H00.publicKey.toString(true)).toBe(
 			'021d15f715b83b2067cb241a9ba6257cbcb145f4a635c9f73b56f72e658950241e',
 		)
+
+		const hdPath0H00H = HDPathRadix.fromString(
+			`m/44'/536'/0'/0/0'`,
+		)._unsafeUnwrap()
+
+		const signingKey0H00H = SigningKey.fromHDPathWithHDMasterSeed({
+			hdPath: hdPath0H00H,
+			hdMasterSeed,
+		})
+
+		expect(signingKey0H00H.publicKey.toString(true)).toBe(
+			'02486d8128388446ac8c239d0a615a5bcfd1ebbecce5c8704f68876187a18679d8',
+		)
 	})
 
-		it('can create accounts from private key', () => {
+	it('can create accounts from private key', () => {
 		const signingKey = SigningKey.fromPrivateKey({
 			privateKey: privateKeyFromNum(1),
 		})

@@ -223,11 +223,12 @@ describe('BIP32', () => {
 		expect(hdPath.account.isHardened).toBe(true)
 		expect(hdPath.account.value()).toBe(0x66aabbcc)
 		expect(hdPath.account.value()).toBe(1722465228)
-		expect(
-			hdPath.account.index.equals(
-				fromString('0x66aabbcc', false, 16).add(hardenedIncrement),
-			),
-		).toBe(true)
+		// expect(
+		// 	hdPath.account.index.equals(
+		// 		fromString('0x66aabbcc', false, 16).add(hardenedIncrement),
+		// 	),
+		// ).toBe(true)
+		expect(hdPath.account.index).toBe(0x66aabbcc + hardenedIncrement)
 		expect(hdPath.account.index.toString(10)).toBe('3869948876')
 		expect(hdPath.account.index.toString(16)).toBe('e6aabbcc')
 		expect(hdPath.account.toString()).toBe(`1722465228'`)

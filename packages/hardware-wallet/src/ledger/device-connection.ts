@@ -24,6 +24,12 @@ export const send = (
 	const statusList = [
 		...apdu.requiredResponseStatusCodeFromDevice.map((s) => s.valueOf()),
 	]
+	log.debug(`📦 📲 sending APDU to Ledger device:
+		instruction: ${apdu.ins},
+		p1: ${apdu.p1},
+		p2: ${apdu.p2},
+		data: ${apdu.data !== undefined ? apdu.data.toString('hex') : '<UNDEFINED>'},
+	`)
 	return connectedLedgerTransport.send(
 		apdu.cla,
 		apdu.ins,

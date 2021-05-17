@@ -206,7 +206,7 @@ const create = (
 		const nextPath = (): HDPathRadixT => {
 			const index = numberOfHWSigningKeys()
 			return HDPathRadix.create({
-				address: { index },
+				address: { index, isHardened: true },
 			})
 		}
 		const hdPath: HDPathRadixT = input === 'next' ? nextPath() : input
