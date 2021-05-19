@@ -876,7 +876,8 @@ const create = (
 
 		const encryptedMessage = encryptedMessageResult.value
 
-		if (encryptedMessage.kind !== 'Encrypted') return of(encryptedMessage.plaintext)
+		if (encryptedMessage.kind !== 'Encrypted')
+			return of(encryptedMessage.plaintext)
 
 		return activeAccount.pipe(
 			take(1),

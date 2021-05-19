@@ -1,5 +1,5 @@
 import {
-	EncryptedMessage,
+	EncryptedMessageT,
 	Message,
 	MessageEncryption,
 	KeyPair,
@@ -17,7 +17,7 @@ describe('message encryption', () => {
 		const aliceEncryptTo = async (
 			to: PublicKeyT,
 			plaintext: string,
-		): Promise<EncryptedMessage> => {
+		): Promise<EncryptedMessageT> => {
 			const res = await MessageEncryption.encrypt({
 				plaintext,
 				diffieHellmanPoint: alice.privateKey.diffieHellman.bind(
@@ -34,7 +34,7 @@ describe('message encryption', () => {
 		const decrypt = async (
 			diffieHellman: DiffieHellman,
 			publicKeyOfOtherParty: PublicKeyT,
-			encryptedMessage: EncryptedMessage,
+			encryptedMessage: EncryptedMessageT,
 		): Promise<string> => {
 			const res = await MessageEncryption.decrypt({
 				encryptedMessage,

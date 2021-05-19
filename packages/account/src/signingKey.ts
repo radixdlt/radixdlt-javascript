@@ -101,7 +101,9 @@ const makeDecrypt = (diffieHellman: DiffieHellman): Decrypt => {
 }
 
 const makeEncrypt = (diffieHellman: DiffieHellman): Encrypt => {
-	return (input: SigningKeyEncryptionInput): Observable<EncryptedMessageT> => {
+	return (
+		input: SigningKeyEncryptionInput,
+	): Observable<EncryptedMessageT> => {
 		return toObservable(
 			MessageEncryption.encrypt({
 				plaintext: input.plaintext,
@@ -117,7 +119,9 @@ const makeEncryptHW = (
 	hardwareSigningKey: HardwareSigningKeyT,
 	hdPath: HDPathRadixT,
 ): Encrypt => {
-	return (input: SigningKeyEncryptionInput): Observable<EncryptedMessageT> => {
+	return (
+		input: SigningKeyEncryptionInput,
+	): Observable<EncryptedMessageT> => {
 		return hardwareSigningKey
 			.diffieHellman({
 				hdPath,
