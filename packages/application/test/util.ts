@@ -1,6 +1,6 @@
-import { WalletT } from '../src'
-import { Wallet } from '../src/wallet'
-import { Mnemonic, NetworkT, SigningKeychain } from '@radixdlt/account'
+import { Wallet, WalletT } from '../src'
+import { NetworkT, SigningKeychain } from '@radixdlt/account'
+import { Mnemonic } from '@radixdlt/crypto'
 
 export const createWallet = (
 	input?: Readonly<{

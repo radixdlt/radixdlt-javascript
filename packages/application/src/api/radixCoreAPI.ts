@@ -4,7 +4,6 @@ import { defer, Observable } from 'rxjs'
 import {
 	AccountAddressT,
 	ResourceIdentifierT,
-	toObservable,
 	ValidatorAddressT,
 	NetworkT,
 } from '@radixdlt/account'
@@ -31,6 +30,7 @@ import {
 	Validator,
 } from '../dto/_types'
 import { ActionType } from '../actions'
+import { toObservable } from '@radixdlt/util'
 
 export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 	const toObs = <I extends unknown[], E, O>(

@@ -1,12 +1,11 @@
 import {
 	SigningKeysT,
 	SigningKeyT,
-	Mnemonic,
 	SigningKeychain,
 	SigningKeychainT,
 } from '../src'
 import { map, skip, take, toArray } from 'rxjs/operators'
-import { KeystoreT, PrivateKey, PublicKeyT } from '@radixdlt/crypto'
+import { KeystoreT, Mnemonic, PrivateKey, PublicKeyT } from '@radixdlt/crypto'
 import { combineLatest, Subscription } from 'rxjs'
 import { LogLevel, restoreDefaultLogLevel } from '@radixdlt/util'
 import { mockErrorMsg } from '../../util/test/util'

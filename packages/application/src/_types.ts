@@ -2,16 +2,19 @@ import {
 	SigningKeyT,
 	AccountAddressT,
 	DeriveNextInput,
-	MnemomicT,
 	NetworkT,
-	HDPathRadixT,
 	Signing,
 	Encrypting,
 	Decrypting,
 	SwitchToIndex,
 	AddSigningKeyByPrivateKeyInput,
 } from '@radixdlt/account'
-import { KeystoreT, PublicKeyT } from '@radixdlt/crypto'
+import {
+	KeystoreT,
+	PublicKeyT,
+	HDPathRadixT,
+	MnemomicT,
+} from '@radixdlt/crypto'
 import { LogLevel } from '@radixdlt/util'
 import { Observable, ReplaySubject } from 'rxjs'
 import { NodeT, RadixAPI, RadixCoreAPI } from './api'

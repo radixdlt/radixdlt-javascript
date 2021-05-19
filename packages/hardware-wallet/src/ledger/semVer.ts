@@ -37,7 +37,7 @@ const fromBuffer = (buf: Buffer): Result<SemVerT, Error> => {
 	if (buf.length !== expectedByteCount) {
 		return err(
 			new Error(
-				`Incorrect length of buffer, expected ${expectedByteCount} bytes`,
+				`Incorrect length of buffer, expected #${expectedByteCount} bytes, but got: #${buf.length}`,
 			),
 		)
 	}

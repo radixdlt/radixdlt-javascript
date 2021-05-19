@@ -6,20 +6,19 @@ import {
 	SemVerT,
 	SignHashInput,
 } from './_types'
-import { LedgerNanoT } from './ledger'
+import { LedgerNanoT, SemVer, RadixAPDU } from './ledger'
 import { Observable, throwError } from 'rxjs'
 import {
 	ECPointOnCurve,
 	ECPointOnCurveT,
+	HDPathRadix,
 	PublicKey,
 	PublicKeyT,
 	SignatureT,
 } from '@radixdlt/crypto'
-import { RadixAPDU } from './ledger/apdu'
-import { HDPathRadix, toObservableFromResult } from '@radixdlt/account'
 import { mergeMap } from 'rxjs/operators'
-import { SemVer } from './ledger/semVer'
-import { Signature } from '@radixdlt/crypto/dist/elliptic-curve/signature'
+import { Signature } from '@radixdlt/crypto'
+import { toObservableFromResult } from '@radixdlt/util'
 
 const path000H = HDPathRadix.create({ address: { index: 0, isHardened: true } })
 
@@ -66,7 +65,7 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 			)
 			.pipe(
 				mergeMap((buf) =>
-					toObservableFromResult(Signature.fromDER(buf)),
+					toObservableFromResult(Signature.fromRSBuffer(buf)),
 				),
 			)
 	}

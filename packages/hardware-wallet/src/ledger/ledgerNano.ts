@@ -1,6 +1,4 @@
-import { LedgerNanoTransport } from './wrapped/ledgerNanoTransport'
 import {
-	CreateLedgerNanoTransportInput,
 	LedgerNanoT,
 	LedgerRequest,
 	LedgerResponse,
@@ -8,29 +6,43 @@ import {
 	MockedLedgerNanoT,
 	RadixAPDUT,
 } from './_types'
-import { from, Observable } from 'rxjs'
-import { LedgerNanoTransportT, WrappedLedgerTransportT } from './wrapped'
-import { MnemomicT, Mnemonic } from '@radixdlt/account'
+import { from, Observable, of, throwError } from 'rxjs'
 import { map, tap } from 'rxjs/operators'
 import { v4 as uuidv4 } from 'uuid'
-import { WrappedLedgerTransport } from './wrapped/wrappedTransport'
 import { MockedLedgerNanoRecorder } from './mockedLedgerNanoRecorder'
-import { SemVerT } from '../_types'
+import {
+	LedgerResponseCodes,
+	prettifyLedgerResponseCode,
+	SemVerT,
+} from '../_types'
+import { emulateSend } from './emulatedLedger'
+import { SemVer } from './semVer'
 
-const createWithTransport = (
+import { msgFromError, log } from '@radixdlt/util'
+import { MnemomicT, HDMasterSeed, Mnemonic } from '@radixdlt/crypto'
+
+import {
+	BasicLedgerTransport,
+	openConnection,
+	OpenLedgerConnectionInput,
+	send,
+} from './device-connection'
+
+const __create = (
 	input: Readonly<{
-		transport: LedgerNanoTransportT
+		close: () => Observable<void>
+		sendAPDUToDevice: (apdu: RadixAPDUT) => Observable<Buffer>
 		recorder?: MockedLedgerNanoRecorderT
 	}>,
 ): LedgerNanoT => {
-	const { recorder, transport } = input
+	const { recorder, sendAPDUToDevice: exchange } = input
 
 	const sendRequestToDevice = (
 		request: LedgerRequest,
 	): Observable<LedgerResponse> => {
 		const { uuid, apdu } = request
 		recorder?.recordRequest(request)
-		return from(transport.sendAPDUCommandToDevice({ apdu })).pipe(
+		return exchange(apdu).pipe(
 			map((data) => ({ data, uuid })),
 			tap((response) => {
 				recorder?.recordResponse(response)
@@ -46,22 +58,10 @@ const createWithTransport = (
 	}
 
 	return {
+		...input,
 		__sendRequestToDevice: sendRequestToDevice,
 		sendAPDUToDevice,
 	}
-}
-
-const create = (
-	input?: CreateLedgerNanoTransportInput | undefined,
-): LedgerNanoT => {
-	const transport = LedgerNanoTransport.create(input)
-	return createWithTransport({ transport })
-}
-
-const wrappedTransport = (transport: WrappedLedgerTransportT): LedgerNanoT => {
-	return createWithTransport({
-		transport: LedgerNanoTransport.withWrappedTransport(transport),
-	})
 }
 
 const emulate = (
@@ -77,18 +77,19 @@ const emulate = (
 
 	const recorder = input.recorder ?? MockedLedgerNanoRecorder.create()
 
-	const emulatedTransport = WrappedLedgerTransport.emulate({
-		...input,
+	const sendAPDUToDevice = emulateSend({
 		recorder,
-		mnemonic,
-		passphrase,
+		hdMasterNode: HDMasterSeed.fromMnemonic({
+			mnemonic,
+			passphrase,
+		}).masterNode(),
+		hardcodedVersion:
+			input.version ?? SemVer.fromString('0.0.1')._unsafeUnwrap(),
 	})
-	const transport: LedgerNanoTransportT = LedgerNanoTransport.withWrappedTransport(
-		emulatedTransport,
-	)
 
-	const ledgerNano = createWithTransport({
-		transport,
+	const ledgerNano = __create({
+		close: () => of(undefined),
+		sendAPDUToDevice,
 		recorder: recorder,
 	})
 
@@ -98,8 +99,129 @@ const emulate = (
 	}
 }
 
+const ledgerAPDUResponseCodeBufferLength = 2 // two bytes
+
+const fromTransport = (
+	basicLedgerTransport: BasicLedgerTransport,
+): LedgerNanoT => {
+	const sendAPDUToDevice = (apdu: RadixAPDUT): Observable<Buffer> => {
+		return new Observable<Buffer>((subscriber) => {
+			send({
+				apdu,
+				with: basicLedgerTransport,
+			})
+				.then((responseFromLedger) => {
+					log.debug(
+						`📲 🥩 Raw response from Ledger device: ${responseFromLedger.toString(
+							'hex',
+						)}`,
+					)
+
+					if (
+						responseFromLedger.length <
+						ledgerAPDUResponseCodeBufferLength
+					) {
+						const errMsg = `Got too short response from Ledger, expected all responses to be at least #${ledgerAPDUResponseCodeBufferLength} bytes, but got: #${responseFromLedger.length} bytes`
+						log.error(errMsg)
+						subscriber.error(new Error(errMsg))
+					}
+
+					const responseCodeBuf = responseFromLedger.slice(
+						-ledgerAPDUResponseCodeBufferLength,
+					)
+					const responseCode: LedgerResponseCodes = parseInt(
+						responseCodeBuf.toString('hex'),
+						16,
+					)
+
+					log.debug(
+						`📲 Response code Ledger device: ${prettifyLedgerResponseCode(
+							responseCode,
+						)}`,
+					)
+
+					if (
+						!apdu.requiredResponseStatusCodeFromDevice.includes(
+							responseCode,
+						)
+					) {
+						const errMsg = `Invalid response code, got ${responseCode}, but requires any of: ${JSON.stringify(
+							apdu.requiredResponseStatusCodeFromDevice,
+							null,
+							4,
+						)}`
+						log.error(errMsg)
+						subscriber.error(new Error(errMsg))
+					}
+
+					const result = responseFromLedger.slice(
+						0,
+						responseFromLedger.length -
+							ledgerAPDUResponseCodeBufferLength,
+					)
+
+					log.debug(
+						`📲 ✅ Response data Ledger device: ${result.toString(
+							'hex',
+						)}`,
+					)
+
+					subscriber.next(result)
+					subscriber.complete()
+				})
+				.catch((error) => {
+					if (
+						// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+						error.statusCode !== undefined &&
+						error.statusCode ===
+							LedgerResponseCodes.CLA_NOT_SUPPORTED
+					) {
+						const errMsg = `🤷‍♀️ Wrong app/Radix app not opened on Ledger yet. ${msgFromError(
+							error,
+						)}`
+						log.error(errMsg)
+						subscriber.error(new Error(errMsg))
+					} else {
+						const errMsg = `SEND APDU failed with unknown error: '${msgFromError(
+							error,
+						)}'`
+						log.error(errMsg)
+
+						subscriber.error(new Error(errMsg))
+					}
+				})
+		})
+	}
+
+	return {
+		close: (): Observable<void> => {
+			return from(basicLedgerTransport.close())
+		},
+		sendAPDUToDevice,
+		__sendRequestToDevice: (_): Observable<LedgerResponse> =>
+			throwError(
+				() =>
+					new Error(
+						`__sendRequestToDevice is not implemented for physical devices.`,
+					),
+			),
+	}
+}
+
+const connect = async (
+	input?: OpenLedgerConnectionInput,
+): Promise<LedgerNanoT> => {
+	const ledgerTransportForDevice = await openConnection({
+		deviceConnectionTimeout: input?.deviceConnectionTimeout,
+		radixAppToOpenWaitPolicy: input?.radixAppToOpenWaitPolicy ?? {
+			delayBetweenRetries: 1_000,
+			retryCount: 60,
+		},
+	})
+	return fromTransport(ledgerTransportForDevice)
+}
+
 export const LedgerNano = {
-	create,
-	wrappedTransport,
+	connect,
 	emulate,
 }

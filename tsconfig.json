@@ -5,9 +5,9 @@
     { "path": "packages/primitives" },
     { "path": "packages/crypto" },
     { "path": "packages/data-formats" },
+    { "path": "packages/hardware-wallet" },
     { "path": "packages/account" },
     { "path": "packages/networking" },
-    { "path": "packages/hardware-wallet" },
     { "path": "packages/application" },
   ]
 }

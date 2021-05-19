@@ -1,9 +1,9 @@
 import { HDMasterSeedT, HDNodeT, MnemomicT } from './_types'
 import { mnemonicToSeedSync } from 'bip39'
 import HDNodeThirdParty from 'hdkey'
-import { BIP32T } from '../bip32/_types'
+import { BIP32T } from '../bip32'
 import { Result, err, ok } from 'neverthrow'
-import { PrivateKey } from '@radixdlt/crypto'
+import { PrivateKey } from '../../privateKey'
 
 const hdNodeFromHDNodeThirdParty = (
 	hdNodeThirdParty: HDNodeThirdParty,
