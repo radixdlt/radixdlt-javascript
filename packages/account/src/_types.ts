@@ -4,7 +4,7 @@ import {
 	BIP32T,
 	DiffieHellman,
 	ECPointOnCurveT,
-	EncryptedMessage,
+	EncryptedMessageT,
 	HDPathRadixT,
 	MnemomicT,
 	PrivateKeyT,
@@ -23,11 +23,11 @@ export type SigningKeyEncryptionInput = Readonly<{
 }>
 
 export type Encrypting = Readonly<{
-	encrypt: (input: SigningKeyEncryptionInput) => Observable<EncryptedMessage>
+	encrypt: (input: SigningKeyEncryptionInput) => Observable<EncryptedMessageT>
 }>
 
 export type SigningKeyDecryptionInput = Readonly<{
-	encryptedMessage: Buffer | EncryptedMessage
+	encryptedMessage: Buffer | EncryptedMessageT
 	publicKeyOfOtherParty: PublicKeyT
 }>
 

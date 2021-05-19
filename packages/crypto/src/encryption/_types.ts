@@ -57,7 +57,7 @@ export type EncryptedMessageT = Message<'Encrypted'> & {
 	combined: () => Buffer
 }
 
-export type PlaintextMessage = Message<'Plaintext'> & {
+export type PlaintextMessageT = Message<'Plaintext'> & {
 	plaintext: string
 	bytes: Buffer
 }

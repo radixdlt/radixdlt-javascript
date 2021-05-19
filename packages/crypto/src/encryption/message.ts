@@ -1,10 +1,10 @@
 import {
-	EncryptedMessage,
+	EncryptedMessageT,
 	EncryptionScheme,
 	ENCRYPTION_SCHEME_BYTES,
 	MessageType,
 	MESSAGE_TYPE_BYTES,
-	PlaintextMessage,
+	PlaintextMessageT,
 	SealedMessageT,
 } from './_types'
 import { combine, err, ok, Result } from 'neverthrow'
@@ -53,7 +53,7 @@ export const __validateEncryptedMessageLength = (
 const createEncrypted = (
 	encryptionScheme: EncryptionScheme,
 	sealedMessage: SealedMessageT,
-): Result<EncryptedMessage, Error> =>
+): Result<EncryptedMessageT, Error> =>
 	__validateEncryptedMessageLength(
 		Buffer.concat([
 			Buffer.from([MessageType.ENCRYPTED]),
@@ -70,7 +70,7 @@ const createEncrypted = (
 
 const createPlaintext = (
 	message: string | Buffer,
-): Result<PlaintextMessage, Error> =>
+): Result<PlaintextMessageT, Error> =>
 	ok({
 		kind: 'Plaintext',
 		plaintext: isString(message) ? message : message.toString('utf8'),
@@ -83,9 +83,9 @@ const createPlaintext = (
 
 const fromBuffer = (
 	buf: Buffer,
-): Result<EncryptedMessage | PlaintextMessage, Error> =>
+): Result<EncryptedMessageT | PlaintextMessageT, Error> =>
 	__validateEncryptedMessageLength(buf).andThen(
-		(buffer): Result<EncryptedMessage | PlaintextMessage, Error> => {
+		(buffer): Result<EncryptedMessageT | PlaintextMessageT, Error> => {
 			const readNextBuffer = readBuffer(buf)
 
 			const messageTypeResult = readNextBuffer(MESSAGE_TYPE_BYTES)

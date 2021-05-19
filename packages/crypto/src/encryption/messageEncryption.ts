@@ -9,12 +9,12 @@ import {
 	ResultAsync,
 } from 'neverthrow'
 import {
-	EncryptedMessage,
+	EncryptedMessageT,
 	EncryptionScheme,
 	MessageDecryptionInput,
 	MessageEncryptionInput,
 	MessageType,
-	PlaintextMessage,
+	PlaintextMessageT,
 	SealedMessageT,
 } from './_types'
 import { Scrypt, ScryptParams } from '../key-derivation-functions'
@@ -124,7 +124,7 @@ const decryptEncryptedMessageBuffer = (
 	Message.fromBuffer(input.messageBuffer)
 		.andThen(
 			(
-				message: EncryptedMessage | PlaintextMessage,
+				message: EncryptedMessageT | PlaintextMessageT,
 			): Result<Parameters<typeof decryptMessage>, Error> =>
 				message.kind === 'Encrypted'
 					? ok([
@@ -166,7 +166,7 @@ const encodePlaintext = (plaintext: Buffer | string): Buffer => {
 
 const __encryptDeterministic = (
 	input: DeterministicMessageEncryptionInput,
-): ResultAsync<EncryptedMessage, Error> => {
+): ResultAsync<EncryptedMessageT, Error> => {
 	const { nonce, ephemeralPublicKey } = input
 
 	const additionalAuthenticationData = ephemeralPublicKey.asData({
@@ -206,7 +206,7 @@ const __encryptDeterministic = (
 
 const encrypt = (
 	input: MessageEncryptionInput,
-): ResultAsync<EncryptedMessage, Error> => {
+): ResultAsync<EncryptedMessageT, Error> => {
 	const secureRandom = input.secureRandom ?? secureRandomGenerator
 
 	const nonce = Buffer.from(
