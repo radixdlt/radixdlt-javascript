@@ -8,6 +8,7 @@ import {
 	Decrypting,
 	SwitchToIndex,
 	AddSigningKeyByPrivateKeyInput,
+	DeriveHWSigningKeyInput,
 } from '@radixdlt/account'
 import {
 	KeystoreT,
@@ -38,6 +39,8 @@ import {
 	UnstakeTokensInput,
 } from './actions'
 import { Option } from 'prelude-ts'
+import { mergeMap } from 'rxjs/operators'
+import { SigningKeyTypeT } from '@radixdlt/account/src/_types'
 
 export type ManualUserConfirmTX = {
 	txToConfirm: BuiltTransaction
@@ -87,7 +90,10 @@ export type AccountT = Signing &
 		// sugar for address.network
 		network: NetworkT
 
-		// sugar for signingKey.hdPath, if signingKey type is HD signingKey
+		// sugar for `signingKey.type`
+		type: SigningKeyTypeT
+
+		// sugar for `signingKey.hdPath`, if signingKey type is HD signingKey
 		hdPath?: HDPathRadixT
 	}>
 
@@ -116,6 +122,8 @@ export type AccountsT = Readonly<{
 
 export type SwitchToAccount = Readonly<{ toAccount: AccountT }>
 
+export type DeriveHWAccountInput = DeriveHWSigningKeyInput
+
 export type SwitchAccountInput =
 	| 'first'
 	| 'last'
@@ -131,6 +139,8 @@ export type WalletT = Readonly<{
 	restoreLocalHDAccountsToIndex: (index: number) => Observable<AccountsT>
 
 	deriveNextLocalHDAccount: (input?: DeriveNextInput) => Observable<AccountT>
+
+	deriveHWAccount: (input: DeriveHWAccountInput) => Observable<AccountT>
 
 	addAccountFromPrivateKey: (
 		input: AddAccountByPrivateKeyInput,
@@ -165,6 +175,10 @@ export type RadixT = Readonly<{
 	 */
 	restoreLocalHDAccountsToIndex: (index: number) => Observable<AccountsT>
 	deriveNextAccount: (input?: DeriveNextInput) => RadixT
+
+	// Wait for Ledger Nano S/X to connect and app be opened and derive
+	// account according to `input`.
+	deriveHWAccount: (input: DeriveHWAccountInput) => Observable<AccountT>
 
 	addAccountFromPrivateKey: (input: AddAccountByPrivateKeyInput) => RadixT
 

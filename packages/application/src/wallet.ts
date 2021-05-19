@@ -14,6 +14,7 @@ import {
 	SwitchAccountInput,
 	SwitchToAccount,
 	AddAccountByPrivateKeyInput,
+	DeriveHWAccountInput,
 } from './_types'
 import { Observable, of } from 'rxjs'
 import { Account, isAccount } from './account'
@@ -82,6 +83,14 @@ const create = (
 		): Observable<AccountT> => {
 			return signingKeychain
 				.deriveNextLocalHDSigningKey(input)
+				.pipe(map(skToAccount))
+		},
+
+		deriveHWAccount: (
+			input: DeriveHWAccountInput,
+		): Observable<AccountT> => {
+			return signingKeychain
+				.deriveHWSigningKey(input)
 				.pipe(map(skToAccount))
 		},
 

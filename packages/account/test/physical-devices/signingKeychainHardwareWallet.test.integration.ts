@@ -9,7 +9,7 @@ import { Subscription } from 'rxjs'
 import { SigningKeychain, SigningKeychainT } from '../../src'
 import { Mnemonic } from '@radixdlt/crypto'
 
-describe.skip('signingKey_ledger', () => {
+describe('signingKey_ledger', () => {
 	beforeAll(() => {
 		log.setLevel('debug')
 	})
@@ -25,20 +25,6 @@ describe.skip('signingKey_ledger', () => {
 	beforeEach(() => {
 		keychain = makeKeychain()
 	})
-
-	// afterEach((done) => {
-	// 	if (!ledgerNano) {
-	// 		done()
-	// 		return
-	// 	}
-	// 	const subs = new Subscription()
-	// 	// must close connection in between else finding a free ledger device for subsequent test will fail.
-	// 	subs.add(
-	// 		ledgerNano.close().subscribe(() => {
-	// 			done()
-	// 		}),
-	// 	)
-	// })
 
 	afterAll(() => {
 		log.setLevel('warn')
