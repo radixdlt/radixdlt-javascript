@@ -9,7 +9,7 @@ export type MessageEncryptionInput = Readonly<{
 }>
 
 export type MessageDecryptionInput = Readonly<{
-	encryptedMessage: Buffer | EncryptedMessage
+	encryptedMessage: Buffer | EncryptedMessageT
 	diffieHellmanPoint: () => ResultAsync<ECPointOnCurveT, Error>
 }>
 
@@ -27,7 +27,7 @@ export enum EncryptionScheme {
 	DH_ADD_EPH_AESGCM256_SCRYPT_000 = 0xff,
 }
 
-export type SealedMessageT = {
+export type SealedMessageT = Readonly<{
 	/* The public key of the ephemeral key pair. 33 bytes */
 	ephemeralPublicKey: PublicKeyT
 
@@ -41,14 +41,14 @@ export type SealedMessageT = {
 	ciphertext: Buffer
 
 	combined: () => Buffer
-}
+}>
 
 type Message<Kind extends 'Encrypted' | 'Plaintext'> = {
 	kind: Kind
 }
 
 // Max 255 bytes
-export type EncryptedMessage = Message<'Encrypted'> & {
+export type EncryptedMessageT = Message<'Encrypted'> & {
 	encryptionScheme: EncryptionScheme
 
 	/* Encrypted message with metadata containing about how it can be decrypted. Max 223 bytes. */
