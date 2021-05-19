@@ -6,8 +6,6 @@ import {
 	PublicKeyT,
 	RADIX_COIN_TYPE,
 } from '@radixdlt/crypto'
-import { err } from 'neverthrow'
-import { log } from '@radixdlt/util/dist/logging'
 
 // ##### Follows https://github.com/radixdlt/radixdlt-ledger-app/blob/main/APDUSPEC.md #####
 
@@ -25,29 +23,6 @@ const hdPathToBuffer = (hdPath: HDPathRadixT): Buffer => {
 		pathComponent: BIP32PathComponentT,
 		offset: number,
 	): void => {
-		// const byteCountToWrite = 4
-		// let bufferToAppend = Buffer.from(pathComponent.index.toBytesBE())
-		// console.log(
-		// 	`👻 bufferToAppend.length: ${
-		// 		bufferToAppend.length
-		// 	}, bufferToAppend: ${bufferToAppend.toString('hex')}`,
-		// )
-		// if (bufferToAppend.length < byteCountToWrite) {
-		// 	const newBuftoAppend = Buffer.from(
-		// 		Array(byteCountToWrite).fill(0x00),
-		// 	)
-		// 	bufferToAppend.copy(newBuftoAppend, 0, 0, bufferToAppend.length)
-		// 	bufferToAppend = newBuftoAppend
-		// }
-		// if (bufferToAppend.length > byteCountToWrite) {
-		// 	const errMsg = `Incorret implementation, should write more than #${byteCountToWrite} bytes.`
-		// 	log.error(errMsg)
-		// 	throw new Error(errMsg)
-		// }
-		// if (bufferToAppend.length !== byteCountToWrite) {
-		// 	throw new Error(`incorrect impl, bad length. got #${bufferToAppend.length}, expected #${byteCountToWrite}`)
-		// }
-		// bufferToAppend.copy(data, offset, 0, byteCountToWrite)
 		data.writeUInt32BE(pathComponent.index, offset)
 	}
 
@@ -135,7 +110,10 @@ const doSignHash = (input: APDUDoSignHashInput): RadixAPDUT => {
 	})
 }
 
+const ping: RadixAPDUT = { ...getVersion(), ins: LedgerInstruction.PING }
+
 export const RadixAPDU = {
+	ping,
 	getVersion,
 	getPublicKey,
 	doKeyExchange,

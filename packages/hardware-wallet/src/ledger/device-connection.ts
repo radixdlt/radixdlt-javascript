@@ -1,6 +1,7 @@
 import { RadixAPDU } from './apdu'
 import { RadixAPDUT } from './_types'
 import { log } from '@radixdlt/util'
+import { LedgerInstruction } from '../_types'
 
 export type BasicLedgerTransport = Readonly<{
 	close: () => Promise<void>
@@ -24,15 +25,22 @@ export const send = (
 	const statusList = [
 		...apdu.requiredResponseStatusCodeFromDevice.map((s) => s.valueOf()),
 	]
-	log.debug(`📦 📲 sending APDU to Ledger device:
-		instruction: ${apdu.ins},
-		p1: ${apdu.p1},
-		p2: ${apdu.p2},
-		data: ${apdu.data !== undefined ? apdu.data.toString('hex') : '<UNDEFINED>'},
-	`)
+
+	if (apdu.ins === LedgerInstruction.PING) {
+		log.debug(`🏓 📲 sending PING APDU to Ledger device`)
+	} else {
+		log.debug(`📦 📲 sending APDU to Ledger device:
+			instruction: ${apdu.ins},
+			p1: ${apdu.p1},
+			p2: ${apdu.p2},
+			data: ${apdu.data !== undefined ? apdu.data.toString('hex') : '<UNDEFINED>'},
+		`)
+	}
 	return connectedLedgerTransport.send(
 		apdu.cla,
-		apdu.ins,
+		apdu.ins === LedgerInstruction.PING
+			? LedgerInstruction.GET_VERSION
+			: apdu.ins,
 		apdu.p1,
 		apdu.p2,
 		apdu.data,
@@ -71,9 +79,9 @@ const __openConnection = async (
 			const TransportNodeHid = module.default
 
 			return await TransportNodeHid.create(
-				input?.deviceConnectionTimeout,
-				input?.deviceConnectionTimeout,
-			)
+		input?.deviceConnectionTimeout,
+		input?.deviceConnectionTimeout,
+	)
 		},
 	)
 
@@ -99,10 +107,11 @@ const __openConnection = async (
 		await delay(delayBetweenRetries)
 
 		return send({
-			apdu: RadixAPDU.getVersion(),
+			apdu: RadixAPDU.ping,
 			with: basicLedgerTransport,
 		})
 			.then((_) => {
+				console.log(`📲 ✅ Got PONG 🏓, Radix app is open.`)
 				return Promise.resolve(basicLedgerTransport)
 			})
 			.catch((_) => {

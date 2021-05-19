@@ -4,7 +4,7 @@
 
 /* eslint-disable */
 
-import { log } from '@radixdlt/util/dist/logging'
+import { log } from '@radixdlt/util'
 import { Subscription } from 'rxjs'
 import {
 	Radix,
