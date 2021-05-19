@@ -1,12 +1,11 @@
 import {
-	EncryptedMessageT,
 	EncryptedMessage,
+	Message,
 	MessageEncryption,
 	KeyPair,
 	PublicKeyT,
 	DiffieHellman,
 	PrivateKey,
-	PrivateKeyT,
 } from '../src'
 import { UInt256 } from '@radixdlt/uint256'
 
@@ -18,7 +17,7 @@ describe('message encryption', () => {
 		const aliceEncryptTo = async (
 			to: PublicKeyT,
 			plaintext: string,
-		): Promise<EncryptedMessageT> => {
+		): Promise<EncryptedMessage> => {
 			const res = await MessageEncryption.encrypt({
 				plaintext,
 				diffieHellmanPoint: alice.privateKey.diffieHellman.bind(
@@ -35,7 +34,7 @@ describe('message encryption', () => {
 		const decrypt = async (
 			diffieHellman: DiffieHellman,
 			publicKeyOfOtherParty: PublicKeyT,
-			encryptedMessage: EncryptedMessageT,
+			encryptedMessage: EncryptedMessage,
 		): Promise<string> => {
 			const res = await MessageEncryption.decrypt({
 				encryptedMessage,
@@ -69,7 +68,7 @@ describe('message encryption', () => {
 			const plaintext = 'Hey Bob!'
 			const encryptedMessage = await aliceEncryptToBob(plaintext)
 			expect(encryptedMessage.combined().length).toBeLessThanOrEqual(
-				EncryptedMessage.maxLength,
+				Message.maxLength,
 			)
 			const decryptedByAlice = await aliceDecryptWithBobsPubKey(
 				encryptedMessage,
@@ -86,7 +85,7 @@ describe('message encryption', () => {
 			const plaintext = 'Hey Bob!'
 			const encryptedMessage = await aliceEncryptToSelf(plaintext)
 			expect(encryptedMessage.combined().length).toBeLessThanOrEqual(
-				EncryptedMessage.maxLength,
+				Message.maxLength,
 			)
 			const decryptedByAlice = await aliceDecryptWithHerOwnPubKey(
 				encryptedMessage,
@@ -99,7 +98,6 @@ describe('message encryption', () => {
 		const alicePrivateKey = PrivateKey.fromScalar(
 			UInt256.valueOf(1),
 		)._unsafeUnwrap()
-		const alice = alicePrivateKey.publicKey()
 		const bobPrivateKey = PrivateKey.fromScalar(
 			UInt256.valueOf(2),
 		)._unsafeUnwrap()
@@ -110,7 +108,7 @@ describe('message encryption', () => {
 				'too long message that is too long because it is over characters limit which is too long to encrypt because it cannot fit because it is too long indeed. Which is why it cannot be encrypted. So expect an error to be thrown.'
 
 			expect(tooLongMsg.length).toBeGreaterThan(
-				EncryptedMessage.maxLengthOfCipherTextOfSealedMsg,
+				Message.maxLengthOfCipherTextOfSealedMsg,
 			)
 
 			MessageEncryption.encrypt({
@@ -125,7 +123,7 @@ describe('message encryption', () => {
 				},
 				(error) => {
 					expect(error.message).toBe(
-						`Plaintext is too long, expected max #${EncryptedMessage.maxLengthOfCipherTextOfSealedMsg}, but got: #${tooLongMsg.length}`,
+						`Plaintext is too long, expected max #${Message.maxLengthOfCipherTextOfSealedMsg}, but got: #${tooLongMsg.length}`,
 					)
 					done()
 				},

@@ -1,8 +1,10 @@
 import {
 	__validateEncryptedMessageLength,
-	minLengthEncryptedMessage,
-} from '../src/encryption/encryptedMessage'
+	Message,
+} from '../src/encryption/message'
 import { buffersEquals } from '@radixdlt/util'
+import { MessageType, SealedMessage } from '../src'
+import { EncryptionScheme } from '../dist'
 
 describe('EncryptedMessage', () => {
 	const makeBuf = (byteCount: number): Buffer =>
@@ -35,7 +37,7 @@ describe('EncryptedMessage', () => {
 				},
 				(error) => {
 					expect(error.message).toBe(
-						`Incorrect length of encryptedMessage, expected min: #${minLengthEncryptedMessage} bytes, but got: #${shortLength}.`,
+						`Incorrect length of encryptedMessage, expected min: #${Message.minLengthEncryptedMessage} bytes, but got: #${shortLength}.`,
 					)
 					done()
 				},

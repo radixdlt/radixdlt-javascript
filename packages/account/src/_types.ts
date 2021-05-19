@@ -1,7 +1,7 @@
 import {
 	DiffieHellman,
 	ECPointOnCurveT,
-	EncryptedMessageT,
+	EncryptedMessage,
 	PrivateKeyT,
 	PublicKeyT,
 	SignatureT,
@@ -22,11 +22,11 @@ export type SigningKeyEncryptionInput = Readonly<{
 }>
 
 export type Encrypting = Readonly<{
-	encrypt: (input: SigningKeyEncryptionInput) => Observable<EncryptedMessageT>
+	encrypt: (input: SigningKeyEncryptionInput) => Observable<EncryptedMessage>
 }>
 
 export type SigningKeyDecryptionInput = Readonly<{
-	encryptedMessage: Buffer | EncryptedMessageT
+	encryptedMessage: Buffer | EncryptedMessage
 	publicKeyOfOtherParty: PublicKeyT
 }>
 

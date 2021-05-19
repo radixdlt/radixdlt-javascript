@@ -37,7 +37,7 @@ import {
 } from '../actions'
 import { combine, err, ok, Result } from 'neverthrow'
 import {
-	EncryptedMessageT,
+	EncryptedMessage,
 	MessageEncryption,
 	PublicKeyT,
 } from '@radixdlt/crypto'
@@ -438,7 +438,7 @@ const create = (): TransactionIntentBuilderT => {
 								mergeMap(
 									(
 										actors: ActorsInEncryption,
-									): Observable<EncryptedMessageT> => {
+									): Observable<EncryptedMessage> => {
 										return actors.encryptingAccount.encrypt(
 											{
 												plaintext: msgInTx.plaintext,
@@ -450,7 +450,7 @@ const create = (): TransactionIntentBuilderT => {
 								),
 								map(
 									(
-										encryptedMessage: EncryptedMessageT,
+										encryptedMessage: EncryptedMessage,
 									): TransactionIntent => {
 										log.info(
 											`Successfully built transaction with encrypted message. Actions: ${intendedActionsFrom.intendedActions

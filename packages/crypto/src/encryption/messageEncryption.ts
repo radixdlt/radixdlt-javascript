@@ -3,16 +3,18 @@ import {
 	combine,
 	err,
 	errAsync,
+	ok,
 	okAsync,
 	Result,
 	ResultAsync,
 } from 'neverthrow'
 import {
-	EncryptedMessageT,
+	EncryptedMessage,
 	EncryptionScheme,
 	MessageDecryptionInput,
 	MessageEncryptionInput,
 	MessageType,
+	PlaintextMessage,
 	SealedMessageT,
 } from './_types'
 import { Scrypt, ScryptParams } from '../key-derivation-functions'
@@ -23,9 +25,9 @@ import {
 	aesGCMSealDeterministic,
 } from '../symmetric-encryption'
 import { sha256 } from '../hash'
-import { EncryptedMessage } from './encryptedMessage'
-import { SealedMessage } from './sealedMessage'
+import { Message } from './message'
 import { ECPointOnCurveT, KeyPair, PublicKeyT } from '../elliptic-curve'
+import { SealedMessage } from './sealedMessage'
 
 type CalculateSharedSecretInput = Readonly<{
 	ephemeralPublicKey: PublicKeyT
@@ -115,22 +117,35 @@ const decryptMessage = (
 
 const decryptEncryptedMessageBuffer = (
 	input: Readonly<{
-		encryptedMessageBuffer: Buffer
+		messageBuffer: Buffer
 		diffieHellmanPoint: () => ResultAsync<ECPointOnCurveT, Error>
 	}>,
 ): ResultAsync<Buffer, Error> =>
-	EncryptedMessage.fromBuffer(input.encryptedMessageBuffer)
-		.map((encryptedMessage: EncryptedMessageT) => ({
-			diffieHellmanPoint: input.diffieHellmanPoint,
-			sealedMessage: encryptedMessage.sealedMessage,
-		}))
-		.asyncAndThen(decryptMessage)
+	Message.fromBuffer(input.messageBuffer)
+		.andThen(
+			(
+				message: EncryptedMessage | PlaintextMessage,
+			): Result<Parameters<typeof decryptMessage>, Error> =>
+				message.kind === 'Encrypted'
+					? ok([
+							{
+								diffieHellmanPoint: input.diffieHellmanPoint,
+								sealedMessage: message.sealedMessage,
+							},
+					  ])
+					: err(
+							Error(
+								`Expected an encrypted message, but got a plaintext message.`,
+							),
+					  ),
+		)
+		.asyncAndThen((a) => decryptMessage(...a))
 
 const decrypt = (input: MessageDecryptionInput): ResultAsync<Buffer, Error> =>
 	Buffer.isBuffer(input.encryptedMessage)
 		? decryptEncryptedMessageBuffer({
 				...input,
-				encryptedMessageBuffer: input.encryptedMessage,
+				messageBuffer: input.encryptedMessage,
 		  })
 		: decryptMessage({
 				...input,
@@ -151,7 +166,7 @@ const encodePlaintext = (plaintext: Buffer | string): Buffer => {
 
 const __encryptDeterministic = (
 	input: DeterministicMessageEncryptionInput,
-): ResultAsync<EncryptedMessageT, Error> => {
+): ResultAsync<EncryptedMessage, Error> => {
 	const { nonce, ephemeralPublicKey } = input
 
 	const additionalAuthenticationData = ephemeralPublicKey.asData({
@@ -160,8 +175,8 @@ const __encryptDeterministic = (
 
 	const plaintext = encodePlaintext(input.plaintext)
 
-	if (plaintext.length > EncryptedMessage.maxLengthOfCipherTextOfSealedMsg) {
-		const errMsg = `Plaintext is too long, expected max #${EncryptedMessage.maxLengthOfCipherTextOfSealedMsg}, but got: #${plaintext.length}`
+	if (plaintext.length > Message.maxLengthOfCipherTextOfSealedMsg) {
+		const errMsg = `Plaintext is too long, expected max #${Message.maxLengthOfCipherTextOfSealedMsg}, but got: #${plaintext.length}`
 		return errAsync(new Error(errMsg))
 	}
 
@@ -180,20 +195,18 @@ const __encryptDeterministic = (
 			.andThen((s) =>
 				SealedMessage.fromAESSealedBox(s, ephemeralPublicKey),
 			)
-			.andThen((sealedMessage: SealedMessageT) => {
-				return EncryptedMessage.create({
-					messageType: MessageType.ENCRYPTED,
+			.andThen((sealedMessage: SealedMessageT) =>
+				Message.createEncrypted(
+					EncryptionScheme.DH_ADD_EPH_AESGCM256_SCRYPT_000,
 					sealedMessage,
-					encryptionScheme:
-						EncryptionScheme.DH_ADD_EPH_AESGCM256_SCRYPT_000,
-				})
-			})
+				),
+			)
 	})
 }
 
 const encrypt = (
 	input: MessageEncryptionInput,
-): ResultAsync<EncryptedMessageT, Error> => {
+): ResultAsync<EncryptedMessage, Error> => {
 	const secureRandom = input.secureRandom ?? secureRandomGenerator
 
 	const nonce = Buffer.from(

@@ -1,7 +1,7 @@
 import {
 	DiffieHellman,
 	ECPointOnCurveT,
-	EncryptedMessageT,
+	EncryptedMessage,
 	isPublicKey,
 	MessageEncryption,
 	PrivateKeyT,
@@ -84,7 +84,7 @@ const makeSigningKeyTypeNonHD = (
 type Decrypt = (input: SigningKeyDecryptionInput) => Observable<string>
 type Encrypt = (
 	input: SigningKeyEncryptionInput,
-) => Observable<EncryptedMessageT>
+) => Observable<EncryptedMessage>
 
 const makeDecrypt = (diffieHellman: DiffieHellman): Decrypt => {
 	return (input: SigningKeyDecryptionInput): Observable<string> => {
@@ -100,9 +100,7 @@ const makeDecrypt = (diffieHellman: DiffieHellman): Decrypt => {
 }
 
 const makeEncrypt = (diffieHellman: DiffieHellman): Encrypt => {
-	return (
-		input: SigningKeyEncryptionInput,
-	): Observable<EncryptedMessageT> => {
+	return (input: SigningKeyEncryptionInput): Observable<EncryptedMessage> => {
 		return toObservable(
 			MessageEncryption.encrypt({
 				plaintext: input.plaintext,
@@ -118,9 +116,7 @@ const makeEncryptHW = (
 	hardwareSigningKey: HardwareSigningKeyT,
 	hdPath: HDPathRadixT,
 ): Encrypt => {
-	return (
-		input: SigningKeyEncryptionInput,
-	): Observable<EncryptedMessageT> => {
+	return (input: SigningKeyEncryptionInput): Observable<EncryptedMessage> => {
 		return hardwareSigningKey
 			.diffieHellman({
 				hdPath,
