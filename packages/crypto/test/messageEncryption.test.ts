@@ -1,14 +1,14 @@
 import {
 	EncryptedMessageT,
-	EncryptedMessage,
+	Message,
 	MessageEncryption,
 	KeyPair,
 	PublicKeyT,
 	DiffieHellman,
 	PrivateKey,
-	PrivateKeyT,
 } from '../src'
 import { UInt256 } from '@radixdlt/uint256'
+import { PrivateKeyT } from '../src'
 
 describe('message encryption', () => {
 	describe('can decrypt newly encrypted message', () => {
@@ -69,7 +69,7 @@ describe('message encryption', () => {
 			const plaintext = 'Hey Bob!'
 			const encryptedMessage = await aliceEncryptToBob(plaintext)
 			expect(encryptedMessage.combined().length).toBeLessThanOrEqual(
-				EncryptedMessage.maxLength,
+				Message.maxLength,
 			)
 			const decryptedByAlice = await aliceDecryptWithBobsPubKey(
 				encryptedMessage,
@@ -86,7 +86,7 @@ describe('message encryption', () => {
 			const plaintext = 'Hey Bob!'
 			const encryptedMessage = await aliceEncryptToSelf(plaintext)
 			expect(encryptedMessage.combined().length).toBeLessThanOrEqual(
-				EncryptedMessage.maxLength,
+				Message.maxLength,
 			)
 			const decryptedByAlice = await aliceDecryptWithHerOwnPubKey(
 				encryptedMessage,
@@ -96,14 +96,9 @@ describe('message encryption', () => {
 	})
 
 	describe('plaintext to encrypt cannot be too long', () => {
-		it('plaintext cannot be over 162 chars', () => {
-			expect(EncryptedMessage.maxLengthOfCipherTextOfSealedMsg).toBe(162)
-		})
-
 		const alicePrivateKey = PrivateKey.fromScalar(
 			UInt256.valueOf(1),
 		)._unsafeUnwrap()
-		const alice = alicePrivateKey.publicKey()
 		const bobPrivateKey = PrivateKey.fromScalar(
 			UInt256.valueOf(2),
 		)._unsafeUnwrap()
@@ -114,7 +109,7 @@ describe('message encryption', () => {
 				'too long message that is too long because it is over characters limit which is too long to encrypt because it cannot fit because it is too long indeed. Which is why it cannot be encrypted. So expect an error to be thrown.'
 
 			expect(tooLongMsg.length).toBeGreaterThan(
-				EncryptedMessage.maxLengthOfCipherTextOfSealedMsg,
+				Message.maxLengthOfCipherTextOfSealedMsg,
 			)
 
 			MessageEncryption.encrypt({
@@ -129,7 +124,7 @@ describe('message encryption', () => {
 				},
 				(error) => {
 					expect(error.message).toBe(
-						`Plaintext is too long, expected max #162, but got: #${tooLongMsg.length}`,
+						`Plaintext is too long, expected max #${Message.maxLengthOfCipherTextOfSealedMsg}, but got: #${tooLongMsg.length}`,
 					)
 					done()
 				},
@@ -149,7 +144,7 @@ describe('message encryption', () => {
 
 		// encrypted by outcommented test: 'alice can encrypt msg to bob' below
 		const encryptedMessageByAliceToBobBuf = Buffer.from(
-			'1f44485f4144445f4550485f41455347434d3235365f5343525950545f30303002f67f39dc3546aeb46626614212fba28fd6c38de8d428ee4830f8f7fbd99bb2f2670d8c962781aeb92a14b32746368a42d982f521627032f8e693d6c7e77857f86c91587b7cbea13c0397f3ab3d4149ea5cce9a719067768e6802cf9adeef85fea263ae6591ab492c1a6a5d4df4478b7c53d3f7b8d6af4216be39c96965cafe47bf4026cc3c',
+			'01ff02663a6aaf4d5ec607330b9b74a840bf5c13b0a7357202fa85be56b1326065561657d6ee46d4d84e94ec615b425a472dd8c813bad125335a097d29b64b72319357406b2b04491b4ca1a5a05fe8772b0c05f4633b399914348c5b03af58445d42c2f740f8407e572775a571805e582c6b96ffd4ccca764f2002510abddaab735ee4fb0b18c26d',
 			'hex',
 		)
 
@@ -198,22 +193,24 @@ describe('message encryption', () => {
 		})
 
 		// PLEASE SAVE, convenient to have.
-		// it('alice can encrypt msg to bob', async (done) => {
-		// 	await MessageEncryption.encrypt({
-		// 		plaintext,
-		// 		publicKeyOfOtherParty: bob,
-		// 		dh: alicePrivateKey.diffieHellman
-		// 	}).match(
-		// 		(msg) => {
-		// 			console.log(`🔮 msg combined: ${msg.combined().toString('hex')}`)
-		// 			expect(msg.combined().toString('hex')).toBe(encryptedMessageByAliceToBobBuf.toString('hex'))
-		// 			expect(msg.encryptionScheme.equals(EncryptionScheme.current)).toBe(true)
-		// 			done()
-		// 		},
-		// 		(error) => {
-		// 			done(new Error(`Expected to be able to encrypt message, but got error: ${error}`))
-		// 		}
-		// 	)
-		// })
+		//it('alice can encrypt msg to bob', async (done) => {
+		//	await MessageEncryption.encrypt({
+		//		plaintext,
+		//		diffieHellmanPoint: alicePrivateKey.diffieHellman.bind(
+		//			null,
+		//			bob,
+		//		)
+		//	}).match(
+		//		(msg) => {
+		//			console.log(`🔮 msg combined: ${msg.combined().toString('hex')}`)
+		//			expect(msg.combined().toString('hex')).toBe(encryptedMessageByAliceToBobBuf.toString('hex'))
+		//			//expect(msg.encryptionScheme.equals(EncryptionScheme.current)).toBe(true)
+		//			done()
+		//		},
+		//		(error) => {
+		//			done(new Error(`Expected to be able to encrypt message, but got error: ${error}`))
+		//		}
+		//	)
+		//})
 	})
 })

@@ -34,7 +34,7 @@ import {
 	Subscription,
 	throwError,
 } from 'rxjs'
-import { EncryptedMessage, KeystoreT, MnemomicT } from '@radixdlt/crypto'
+import { KeystoreT, Message, MnemomicT } from '@radixdlt/crypto'
 import {
 	AddAccountByPrivateKeyInput,
 	AccountsT,
@@ -864,9 +864,7 @@ const create = (
 
 		const messageBuffer = Buffer.from(input.message, 'hex')
 
-		const encryptedMessageResult = EncryptedMessage.fromBuffer(
-			messageBuffer,
-		)
+		const encryptedMessageResult = Message.fromBuffer(messageBuffer)
 
 		if (!encryptedMessageResult.isOk()) {
 			const errMessage = `Failed to parse message as 'EncryptedMessage' type, underlying error: '${msgFromError(
@@ -877,6 +875,9 @@ const create = (
 		}
 
 		const encryptedMessage = encryptedMessageResult.value
+
+		if (encryptedMessage.kind !== 'ENCRYPTED')
+			return of(encryptedMessage.plaintext)
 
 		return activeAccount.pipe(
 			take(1),
