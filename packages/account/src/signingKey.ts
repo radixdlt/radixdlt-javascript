@@ -106,7 +106,7 @@ const makeEncrypt = (diffieHellman: DiffieHellman): Encrypt => {
 	): Observable<EncryptedMessageT> => {
 		return toObservable(
 			MessageEncryption.encrypt({
-				...input,
+				plaintext: input.plaintext,
 				diffieHellmanPoint: (): ResultAsync<ECPointOnCurveT, Error> => {
 					return diffieHellman(input.publicKeyOfOtherParty)
 				},

@@ -1,9 +1,20 @@
 import { secureRandomGenerator } from '@radixdlt/util'
-import { combine, errAsync, okAsync, Result, ResultAsync } from 'neverthrow'
+import {
+	combine,
+	err,
+	errAsync,
+	ok,
+	okAsync,
+	Result,
+	ResultAsync,
+} from 'neverthrow'
 import {
 	EncryptedMessageT,
+	EncryptionScheme,
 	MessageDecryptionInput,
 	MessageEncryptionInput,
+	MessageType,
+	PlaintextMessageT,
 	SealedMessageT,
 } from './_types'
 import { Scrypt, ScryptParams } from '../key-derivation-functions'
@@ -14,10 +25,9 @@ import {
 	aesGCMSealDeterministic,
 } from '../symmetric-encryption'
 import { sha256 } from '../hash'
-import { EncryptedMessage } from './encryptedMessage'
-import { SealedMessage } from './sealedMessage'
-import { EncryptionScheme } from './encryptionScheme'
+import { Message } from './message'
 import { ECPointOnCurveT, KeyPair, PublicKeyT } from '../elliptic-curve'
+import { SealedMessage } from './sealedMessage'
 
 type CalculateSharedSecretInput = Readonly<{
 	ephemeralPublicKey: PublicKeyT
@@ -72,7 +82,7 @@ const aesSealedBoxFromSealedMessage = (
 		nonce: sealedMessage.nonce,
 	})
 
-const decryptSealedMessageWithKeysOfParties = (
+const decryptMessage = (
 	input: Readonly<{
 		sealedMessage: SealedMessageT
 		diffieHellmanPoint: () => ResultAsync<ECPointOnCurveT, Error>
@@ -105,43 +115,41 @@ const decryptSealedMessageWithKeysOfParties = (
 		.andThen(decryptAESSealedBox)
 }
 
-const decryptMessage = (
-	input: Readonly<{
-		encryptedMessage: EncryptedMessageT
-		diffieHellmanPoint: () => ResultAsync<ECPointOnCurveT, Error>
-	}>,
-): ResultAsync<Buffer, Error> => {
-	const { encryptedMessage } = input
-	return EncryptedMessage.supportsSchemeOf(encryptedMessage)
-		.map((sealedMessage) => ({
-			...input,
-			sealedMessage,
-		}))
-		.asyncAndThen(decryptSealedMessageWithKeysOfParties)
-}
-
 const decryptEncryptedMessageBuffer = (
 	input: Readonly<{
-		encryptedMessageBuffer: Buffer
+		messageBuffer: Buffer
 		diffieHellmanPoint: () => ResultAsync<ECPointOnCurveT, Error>
 	}>,
 ): ResultAsync<Buffer, Error> =>
-	EncryptedMessage.fromBuffer(input.encryptedMessageBuffer)
-		.map((encryptedMessage: EncryptedMessageT) => ({
-			...input,
-			encryptedMessage,
-		}))
-		.asyncAndThen(decryptMessage)
+	Message.fromBuffer(input.messageBuffer)
+		.andThen(
+			(
+				message: EncryptedMessageT | PlaintextMessageT,
+			): Result<Parameters<typeof decryptMessage>, Error> =>
+				message.kind === 'ENCRYPTED'
+					? ok([
+							{
+								diffieHellmanPoint: input.diffieHellmanPoint,
+								sealedMessage: message.sealedMessage,
+							},
+					  ])
+					: err(
+							Error(
+								`Expected an encrypted message, but got a plaintext message.`,
+							),
+					  ),
+		)
+		.asyncAndThen((a) => decryptMessage(...a))
 
 const decrypt = (input: MessageDecryptionInput): ResultAsync<Buffer, Error> =>
 	Buffer.isBuffer(input.encryptedMessage)
 		? decryptEncryptedMessageBuffer({
 				...input,
-				encryptedMessageBuffer: input.encryptedMessage,
+				messageBuffer: input.encryptedMessage,
 		  })
 		: decryptMessage({
 				...input,
-				encryptedMessage: input.encryptedMessage,
+				sealedMessage: input.encryptedMessage.sealedMessage,
 		  })
 
 type DeterministicMessageEncryptionInput = MessageEncryptionInput &
@@ -167,8 +175,8 @@ const __encryptDeterministic = (
 
 	const plaintext = encodePlaintext(input.plaintext)
 
-	if (plaintext.length > EncryptedMessage.maxLengthOfCipherTextOfSealedMsg) {
-		const errMsg = `Plaintext is too long, expected max #${EncryptedMessage.maxLengthOfCipherTextOfSealedMsg}, but got: #${plaintext.length}`
+	if (plaintext.length > Message.maxLengthOfCipherTextOfSealedMsg) {
+		const errMsg = `Plaintext is too long, expected max #${Message.maxLengthOfCipherTextOfSealedMsg}, but got: #${plaintext.length}`
 		return errAsync(new Error(errMsg))
 	}
 
@@ -187,12 +195,12 @@ const __encryptDeterministic = (
 			.andThen((s) =>
 				SealedMessage.fromAESSealedBox(s, ephemeralPublicKey),
 			)
-			.andThen((sealedMessage: SealedMessageT) => {
-				return EncryptedMessage.create({
+			.andThen((sealedMessage: SealedMessageT) =>
+				Message.createEncrypted(
+					EncryptionScheme.DH_ADD_EPH_AESGCM256_SCRYPT_000,
 					sealedMessage,
-					encryptionScheme: EncryptionScheme.current,
-				})
-			})
+				),
+			)
 	})
 }
 
