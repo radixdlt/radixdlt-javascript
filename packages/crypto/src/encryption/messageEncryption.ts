@@ -124,9 +124,9 @@ const decryptEncryptedMessageBuffer = (
 	Message.fromBuffer(input.messageBuffer)
 		.andThen(
 			(
-				message: EncryptedMessageT | PlaintextMessageT,
+				message: EncryptedMessageT | PlaintextMessageT
 			): Result<Parameters<typeof decryptMessage>, Error> =>
-				message.kind === 'Encrypted'
+				message.kind === 'ENCRYPTED'
 					? ok([
 							{
 								diffieHellmanPoint: input.diffieHellmanPoint,

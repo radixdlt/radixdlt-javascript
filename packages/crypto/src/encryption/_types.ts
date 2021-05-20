@@ -43,12 +43,12 @@ export type SealedMessageT = Readonly<{
 	combined: () => Buffer
 }>
 
-type Message<Kind extends 'Encrypted' | 'Plaintext'> = {
+type Message<Kind extends keyof typeof MessageType> = {
 	kind: Kind
 }
 
 // Max 255 bytes
-export type EncryptedMessageT = Message<'Encrypted'> & {
+export type EncryptedMessageT = Message<'ENCRYPTED'> & {
 	encryptionScheme: EncryptionScheme
 
 	/* Encrypted message with metadata containing about how it can be decrypted. Max 223 bytes. */
@@ -57,7 +57,7 @@ export type EncryptedMessageT = Message<'Encrypted'> & {
 	combined: () => Buffer
 }
 
-export type PlaintextMessageT = Message<'Plaintext'> & {
+export type PlaintextMessageT = Message<'PLAINTEXT'> & {
 	plaintext: string
 	bytes: Buffer
 }

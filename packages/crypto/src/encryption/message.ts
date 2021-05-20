@@ -61,7 +61,7 @@ const createEncrypted = (
 			sealedMessage.combined(),
 		]),
 	).map((combinedBuffer) => ({
-		kind: 'Encrypted',
+		kind: 'ENCRYPTED',
 		messageType: MessageType.ENCRYPTED,
 		encryptionScheme,
 		sealedMessage,
@@ -72,7 +72,7 @@ const createPlaintext = (
 	message: string | Buffer,
 ): Result<PlaintextMessageT, Error> =>
 	ok({
-		kind: 'Plaintext',
+		kind: 'PLAINTEXT',
 		plaintext: isString(message) ? message : message.toString('utf8'),
 		bytes: Buffer.concat([
 			Buffer.from([MessageType.PLAINTEXT]),
