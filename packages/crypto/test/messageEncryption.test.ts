@@ -8,7 +8,7 @@ import {
 	PrivateKey,
 } from '../src'
 import { UInt256 } from '@radixdlt/uint256'
-import { PrivateKeyT } from '../dist'
+import { PrivateKeyT } from '../src'
 
 describe('message encryption', () => {
 	describe('can decrypt newly encrypted message', () => {
