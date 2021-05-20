@@ -98,7 +98,7 @@ describe('EncryptedMessage', () => {
 			const message = Message.createPlaintext(plaintext)._unsafeUnwrap()
 
 			expect(message.plaintext).toEqual(plaintext)
-			expect(message.kind).toEqual('Plaintext')
+			expect(message.kind).toEqual('PLAINTEXT')
 			expect(message.plaintext).toMatch(plaintext)
 		})
 
@@ -108,7 +108,7 @@ describe('EncryptedMessage', () => {
 				sealedMessage,
 			)._unsafeUnwrap()
 
-			expect(message.kind).toEqual('Encrypted')
+			expect(message.kind).toEqual('ENCRYPTED')
 			expect(message.encryptionScheme).toEqual(
 				EncryptionScheme.DH_ADD_EPH_AESGCM256_SCRYPT_000,
 			)
@@ -130,7 +130,7 @@ describe('EncryptedMessage', () => {
 				messageBytes,
 			)._unsafeUnwrap()
 
-			expect(plaintextMsg.kind).toEqual('Plaintext')
+			expect(plaintextMsg.kind).toEqual('PLAINTEXT')
 			expect((plaintextMsg as PlaintextMessageT).plaintext).toMatch(
 				messageString,
 			)
@@ -151,7 +151,7 @@ describe('EncryptedMessage', () => {
 				messageBytes,
 			)._unsafeUnwrap()
 
-			expect(encryptedMsg.kind).toEqual('Encrypted')
+			expect(encryptedMsg.kind).toEqual('ENCRYPTED')
 			expect(
 				(encryptedMsg as EncryptedMessageT).encryptionScheme,
 			).toEqual(EncryptionScheme.DH_ADD_EPH_AESGCM256_SCRYPT_000)

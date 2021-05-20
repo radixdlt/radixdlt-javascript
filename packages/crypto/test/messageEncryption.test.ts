@@ -8,6 +8,7 @@ import {
 	PrivateKey,
 } from '../src'
 import { UInt256 } from '@radixdlt/uint256'
+import { PrivateKeyT } from '../dist'
 
 describe('message encryption', () => {
 	describe('can decrypt newly encrypted message', () => {
@@ -129,24 +130,87 @@ describe('message encryption', () => {
 				},
 			)
 		})
+	})
+
+	describe('can decrypt message from buffer that was encrypted earlier', () => {
+		const alicePrivateKey = PrivateKey.fromScalar(
+			UInt256.valueOf(1),
+		)._unsafeUnwrap()
+		const alice = alicePrivateKey.publicKey()
+		const bobPrivateKey = PrivateKey.fromScalar(
+			UInt256.valueOf(2),
+		)._unsafeUnwrap()
+		const bob = bobPrivateKey.publicKey()
+
+		// encrypted by outcommented test: 'alice can encrypt msg to bob' below
+		const encryptedMessageByAliceToBobBuf = Buffer.from(
+			'01ff02663a6aaf4d5ec607330b9b74a840bf5c13b0a7357202fa85be56b1326065561657d6ee46d4d84e94ec615b425a472dd8c813bad125335a097d29b64b72319357406b2b04491b4ca1a5a05fe8772b0c05f4633b399914348c5b03af58445d42c2f740f8407e572775a571805e582c6b96ffd4ccca764f2002510abddaab735ee4fb0b18c26d',
+			'hex',
+		)
+
+		const plaintext =
+			'Hey Bob, this is Alice, you and I can read this message, but no one else.'
+
+		type Decryptor = 'alice' | 'bob'
+
+		const doTestDecrypt = async (
+			decryptor: Decryptor,
+			done: jest.DoneCallback,
+		): Promise<void> => {
+			const publicKeyOfOtherParty: PublicKeyT =
+				decryptor === 'bob' ? alice : bob
+			const privKey: PrivateKeyT =
+				decryptor === 'bob' ? bobPrivateKey : alicePrivateKey
+			const diffieHellman = privKey.diffieHellman
+
+			await MessageEncryption.decrypt({
+				encryptedMessage: encryptedMessageByAliceToBobBuf,
+				diffieHellmanPoint: diffieHellman.bind(
+					null,
+					publicKeyOfOtherParty,
+				),
+			}).match(
+				(decrypted) => {
+					expect(decrypted.toString('utf8')).toBe(plaintext)
+					done()
+				},
+				(error) => {
+					done(
+						new Error(
+							`Failed to decrypted, but expected to be able to decrypt, got error: ${error}`,
+						),
+					)
+				},
+			)
+		}
+
+		it('alice can decrypt msg encrypted by herself', (done) => {
+			doTestDecrypt('alice', done)
+		})
+
+		it('bob can decrypt msg encrypted by alice', (done) => {
+			doTestDecrypt('bob', done)
+		})
 
 		// PLEASE SAVE, convenient to have.
-		// it('alice can encrypt msg to bob', async (done) => {
-		// 	await MessageEncryption.encrypt({
-		// 		plaintext,
-		// 		publicKeyOfOtherParty: bob,
-		// 		dh: alicePrivateKey.diffieHellman
-		// 	}).match(
-		// 		(msg) => {
-		// 			console.log(`🔮 msg combined: ${msg.combined().toString('hex')}`)
-		// 			expect(msg.combined().toString('hex')).toBe(encryptedMessageByAliceToBobBuf.toString('hex'))
-		// 			expect(msg.encryptionScheme.equals(EncryptionScheme.current)).toBe(true)
-		// 			done()
-		// 		},
-		// 		(error) => {
-		// 			done(new Error(`Expected to be able to encrypt message, but got error: ${error}`))
-		// 		}
-		// 	)
-		// })
+		//it('alice can encrypt msg to bob', async (done) => {
+		//	await MessageEncryption.encrypt({
+		//		plaintext,
+		//		diffieHellmanPoint: alicePrivateKey.diffieHellman.bind(
+		//			null,
+		//			bob,
+		//		)
+		//	}).match(
+		//		(msg) => {
+		//			console.log(`🔮 msg combined: ${msg.combined().toString('hex')}`)
+		//			expect(msg.combined().toString('hex')).toBe(encryptedMessageByAliceToBobBuf.toString('hex'))
+		//			//expect(msg.encryptionScheme.equals(EncryptionScheme.current)).toBe(true)
+		//			done()
+		//		},
+		//		(error) => {
+		//			done(new Error(`Expected to be able to encrypt message, but got error: ${error}`))
+		//		}
+		//	)
+		//})
 	})
 })
