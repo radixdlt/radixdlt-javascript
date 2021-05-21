@@ -10,13 +10,9 @@ import {
 // ##### Follows https://github.com/radixdlt/radixdlt-ledger-app/blob/main/APDUSPEC.md #####
 
 const hdPathToBuffer = (hdPath: HDPathRadixT): Buffer => {
-	if (hdPath.purpose.value() !== 44 || !hdPath.purpose.isHardened) {
-		throw new Error(`Expected purpose to be 44'`)
-	}
-
 	if (
 		hdPath.coinType.value() !== RADIX_COIN_TYPE ||
-		!hdPath.purpose.isHardened
+		!hdPath.coinType.isHardened
 	) {
 		throw new Error(`Expected coinType to be ${RADIX_COIN_TYPE}'`)
 	}
@@ -27,7 +23,7 @@ const hdPathToBuffer = (hdPath: HDPathRadixT): Buffer => {
 		pathComponent: BIP32PathComponentT,
 		offset: number,
 	): void => {
-		data.writeInt32BE(pathComponent.value(), offset)
+		data.writeUInt32BE(pathComponent.index, offset)
 	}
 
 	write(hdPath.account, 0)
@@ -114,7 +110,10 @@ const doSignHash = (input: APDUDoSignHashInput): RadixAPDUT => {
 	})
 }
 
+const ping: RadixAPDUT = { ...getVersion(), ins: LedgerInstruction.PING }
+
 export const RadixAPDU = {
+	ping,
 	getVersion,
 	getPublicKey,
 	doKeyExchange,

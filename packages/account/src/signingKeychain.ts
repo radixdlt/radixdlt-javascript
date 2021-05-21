@@ -18,8 +18,9 @@ import {
 	SwitchToIndex,
 	AddSigningKeyByPrivateKeyInput,
 	SigningKeychainT,
+	DeriveHWSigningKeyInput,
 } from './_types'
-import { mergeMap, shareReplay, take } from 'rxjs/operators'
+import { map, mergeMap, shareReplay, take } from 'rxjs/operators'
 import {
 	Keystore,
 	KeystoreT,
@@ -35,7 +36,13 @@ import {
 import { Option } from 'prelude-ts'
 import { arraysEqual, log, msgFromError } from '@radixdlt/util'
 import { ResultAsync } from 'neverthrow'
-// import { LedgerNano } from '@radixdlt/hardware-wallet'
+import {
+	HardwareSigningKeyT,
+	HardwareWallet,
+	HardwareWalletT,
+	LedgerNano,
+	LedgerNanoT,
+} from '@radixdlt/hardware-wallet'
 
 const stringifySigningKeysArray = (signingKeys: SigningKeyT[]): string =>
 	signingKeys.map((a) => a.toString()).join(',\n')
@@ -161,6 +168,9 @@ const create = (
 	const numberOfLocalHDSigningKeys = (): number =>
 		signingKeysSubject.getValue().localHDSigningKeys().length
 
+	const numberOfHWSigningKeys = (): number =>
+		signingKeysSubject.getValue().hardwareHDSigningKeys().length
+
 	const _addAndMaybeSwitchToNewSigningKey = (
 		newSigningKey: SigningKeyT,
 		alsoSwitchTo?: boolean,
@@ -173,6 +183,49 @@ const create = (
 			setActiveSigningKey(newSigningKey)
 		}
 		return newSigningKey
+	}
+
+	const connectToLedger = (): Observable<HardwareWalletT> => {
+		const ledgerNano$ = from(
+			LedgerNano.connect({
+				// 2 minutes timeout arbitrarily chosen
+				deviceConnectionTimeout: 2 * 60 * 1_000,
+			}),
+		)
+
+		return ledgerNano$.pipe(
+			map((ledger: LedgerNanoT) => {
+				return HardwareWallet.ledger(ledger)
+			}),
+		)
+	}
+
+	const deriveHWSigningKey = (
+		input: DeriveHWSigningKeyInput,
+	): Observable<SigningKeyT> => {
+		const nextPath = (): HDPathRadixT => {
+			const index = numberOfHWSigningKeys()
+			return HDPathRadix.create({
+				address: { index, isHardened: true },
+			})
+		}
+		const hdPath: HDPathRadixT = input === 'next' ? nextPath() : input
+
+		return connectToLedger().pipe(
+			mergeMap(
+				(
+					hardwareWallet: HardwareWalletT,
+				): Observable<HardwareSigningKeyT> => {
+					return hardwareWallet.makeSigningKey(hdPath)
+				},
+			),
+			map((hardwareSigningKey: HardwareSigningKeyT) => {
+				return SigningKey.fromHDPathWithHWSigningKey({
+					hdPath,
+					hardwareSigningKey,
+				})
+			}),
+		)
 	}
 
 	const _deriveLocalHDSigningKeyWithPath = (
@@ -327,6 +380,7 @@ const create = (
 		// should only be used for testing
 		__unsafeGetSigningKey: (): SigningKeyT => unsafeActiveSigningKey,
 		deriveNextLocalHDSigningKey,
+		deriveHWSigningKey,
 		switchSigningKey,
 		restoreLocalHDSigningKeysUpToIndex,
 		addSigningKeyFromPrivateKey,

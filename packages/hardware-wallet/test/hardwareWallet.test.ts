@@ -90,7 +90,7 @@ describe('hardwareWallet', () => {
 			})
 		})
 
-		it('getPublicKey', (done) => {
+		it('getPublicKey_emulated', (done) => {
 			const subs = new Subscription()
 
 			const usersInputOnLedger = new ReplaySubject<LedgerButtonPress>()
@@ -142,7 +142,7 @@ describe('hardwareWallet', () => {
 
 					expect(request.data).toBeDefined()
 					expect(request.data!.toString('hex')).toBe(
-						'000000020000000100000003',
+						'800000020000000100000003',
 					)
 					expect(
 						request.requiredResponseStatusCodeFromDevice!,
@@ -209,7 +209,7 @@ describe('hardwareWallet', () => {
 					expect(request.p2).toBe(0)
 					expect(request.data).toBeDefined()
 					expect(request.data!.toString('hex')).toBe(
-						'000000020000000100000003be7515569e05daffc71bffe2a30365b74450c017a56184ee26699340a324d402',
+						'800000020000000100000003be7515569e05daffc71bffe2a30365b74450c017a56184ee26699340a324d402',
 					)
 					expect(
 						request.requiredResponseStatusCodeFromDevice!,
@@ -280,7 +280,7 @@ describe('hardwareWallet', () => {
 					expect(request.p2).toBe(0)
 					expect(request.data).toBeDefined()
 					expect(request.data!.toString('hex')).toBe(
-						'0000000200000001000000030479be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8',
+						'8000000200000001000000030479be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8',
 					)
 					expect(
 						request.requiredResponseStatusCodeFromDevice!,

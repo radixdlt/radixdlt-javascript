@@ -1,5 +1,3 @@
-import { Int64 } from '@radixdlt/primitives'
-
 export type Int32 = number
 
 export type BIP32T = Readonly<{
@@ -10,7 +8,7 @@ export type BIP32T = Readonly<{
 }>
 
 export type BIP32PathSimpleT = Readonly<{
-	index: Int64
+	index: Int32
 	isHardened: boolean
 }>
 

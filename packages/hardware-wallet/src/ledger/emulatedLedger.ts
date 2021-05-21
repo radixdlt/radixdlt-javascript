@@ -10,6 +10,7 @@ import {
 	PublicKey,
 	SignatureT,
 	ECPointOnCurveT,
+	hardenedIncrement,
 } from '@radixdlt/crypto'
 import { map, mergeMap, take, tap } from 'rxjs/operators'
 import { log, toObservable } from '@radixdlt/util'
@@ -27,23 +28,35 @@ const hdPathFromBuffer = (
 			),
 		)
 	}
-	const account = data.readInt32BE(0)
-	const changeNum = data.readInt32BE(4)
+	const accountRead = data.readUInt32BE(0)
+	const isAccountHardened = accountRead >= hardenedIncrement
+	if (!isAccountHardened) {
+		return err(
+			new Error(`Expected BIP32 path component 'account' to be hardened`),
+		)
+	}
+	const account = accountRead - hardenedIncrement
+	const changeNum = data.readUInt32BE(4)
 	if (!(changeNum === 1 || changeNum === 0)) {
 		return err(
 			new Error(
-				`Expected second BIP32 path componet to be 0 or 1, but got value '${changeNum}'`,
+				`Expected BIP32 path component 'change' to be 0 or 1, but got value '${changeNum}'`,
 			),
 		)
 	}
 	const change: BIP44ChangeIndex = changeNum
-	const index = data.readInt32BE(8)
+	let index = data.readUInt32BE(8)
+	let isHardened = false
+	if (index >= hardenedIncrement) {
+		isHardened = true
+		index -= hardenedIncrement
+	}
 	const hdPath = HDPathRadix.create({
 		account,
 		change,
 		address: {
 			index,
-			isHardened: false,
+			isHardened,
 		},
 	})
 	return ok(hdPath)

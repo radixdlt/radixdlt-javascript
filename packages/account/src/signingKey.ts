@@ -22,12 +22,12 @@ import {
 	SigningKeyTypeIdentifier,
 	SigningKeyTypeNonHDT,
 	SigningKeyTypeT,
-	HardwareSigningKeyT,
 	HDSigningKeyTypeIdentifier,
 	PrivateKeyToSigningKeyInput,
 } from './_types'
 import { okAsync, ResultAsync } from 'neverthrow'
 import { Option } from 'prelude-ts'
+import { HardwareSigningKeyT } from '@radixdlt/hardware-wallet'
 
 const stringifySigningKey = (signingKey: SigningKeyT): string => {
 	return `
@@ -115,57 +115,41 @@ const makeEncrypt = (diffieHellman: DiffieHellman): Encrypt => {
 	}
 }
 
-const makeEncryptHW = (
-	hardwareSigningKey: HardwareSigningKeyT,
-	hdPath: HDPathRadixT,
-): Encrypt => {
+const makeEncryptHW = (hardwareSigningKey: HardwareSigningKeyT): Encrypt => {
 	return (
 		input: SigningKeyEncryptionInput,
 	): Observable<EncryptedMessageT> => {
-		return hardwareSigningKey
-			.diffieHellman({
-				hdPath,
-				publicKeyOfOtherParty: input.publicKeyOfOtherParty,
-			})
-			.pipe(
-				mergeMap((dhPoint: ECPointOnCurveT) =>
-					toObservable(
-						MessageEncryption.encrypt({
-							plaintext: input.plaintext,
-							diffieHellmanPoint: () => okAsync(dhPoint),
-						}),
-					),
+		return hardwareSigningKey.keyExchange(input.publicKeyOfOtherParty).pipe(
+			mergeMap((dhPoint: ECPointOnCurveT) =>
+				toObservable(
+					MessageEncryption.encrypt({
+						plaintext: input.plaintext,
+						diffieHellmanPoint: () => okAsync(dhPoint),
+					}),
 				),
-			)
+			),
+		)
 	}
 }
 
-const makeDecryptHW = (
-	hardwareSigningKey: HardwareSigningKeyT,
-	hdPath: HDPathRadixT,
-): Decrypt => {
+const makeDecryptHW = (hardwareSigningKey: HardwareSigningKeyT): Decrypt => {
 	return (input: SigningKeyDecryptionInput): Observable<string> => {
-		return hardwareSigningKey
-			.diffieHellman({
-				hdPath,
-				publicKeyOfOtherParty: input.publicKeyOfOtherParty,
-			})
-			.pipe(
-				mergeMap((dhPoint: ECPointOnCurveT) =>
-					toObservable(
-						MessageEncryption.decrypt({
-							encryptedMessage: input.encryptedMessage,
-							diffieHellmanPoint: (): ResultAsync<
-								ECPointOnCurveT,
-								Error
-							> => {
-								return okAsync(dhPoint)
-							},
-						}),
-					),
+		return hardwareSigningKey.keyExchange(input.publicKeyOfOtherParty).pipe(
+			mergeMap((dhPoint: ECPointOnCurveT) =>
+				toObservable(
+					MessageEncryption.decrypt({
+						encryptedMessage: input.encryptedMessage,
+						diffieHellmanPoint: (): ResultAsync<
+							ECPointOnCurveT,
+							Error
+						> => {
+							return okAsync(dhPoint)
+						},
+					}),
 				),
-				map((b) => b.toString('utf8')),
-			)
+			),
+			map((b: Buffer) => b.toString('utf8')),
+		)
 	}
 }
 
@@ -239,76 +223,48 @@ const fromPrivateKey = (input: PrivateKeyToSigningKeyInput): SigningKeyT =>
 		pathOrName: input.name,
 	})
 
-const fromHDPathWithHardwareWallet = (
+const fromHDPathWithHWSigningKey = (
 	input: Readonly<{
 		hdPath: HDPathRadixT
-		hardwareWalletConnection: Observable<HardwareSigningKeyT>
-	}>,
-): Observable<SigningKeyT> => {
-	const { hdPath, hardwareWalletConnection: hardwareWallet$ } = input
-
-	type Tmp = {
 		hardwareSigningKey: HardwareSigningKeyT
-		publicKey: PublicKeyT
-	}
+	}>,
+): SigningKeyT => {
+	const { hdPath, hardwareSigningKey } = input
 
 	const type: SigningKeyTypeT = makeSigningKeyTypeHD({
 		hdPath,
 		hdSigningKeyType: HDSigningKeyTypeIdentifier.HARDWARE_OR_REMOTE,
 	})
 
-	return hardwareWallet$.pipe(
-		mergeMap(
-			(hw: HardwareSigningKeyT): Observable<Tmp> => {
-				return hw.derivePublicKey(hdPath).pipe(
-					map(
-						(publicKey: PublicKeyT): Tmp => {
-							return {
-								publicKey,
-								hardwareSigningKey: hw,
-							}
-						},
-					),
-				)
-			},
-		),
-		map(
-			({ publicKey, hardwareSigningKey }): SigningKeyT => {
-				const newSigningKey: SigningKeyT = {
-					...type, // forward sugar for boolean signingKey type getters
-					isLocalHDSigningKey: false, // hardware is not local
-					publicKey,
-					hdPath,
-					sign: (hashedMessage: Buffer): Observable<SignatureT> => {
-						return hardwareSigningKey.sign({
-							hashedMessage,
-							hdPath,
-						})
-					},
-					decrypt: makeDecryptHW(hardwareSigningKey, hdPath),
-					encrypt: makeEncryptHW(hardwareSigningKey, hdPath),
-					type,
-					uniqueIdentifier: type.uniqueKey,
-					toString: (): string => {
-						throw new Error('Overridden below.')
-					},
-					equals: (other: SigningKeyT): boolean => {
-						return publicKey.equals(other.publicKey)
-					},
-					__diffieHellman: (
-						_publicKeyOfOtherParty: PublicKeyT,
-					): ResultAsync<ECPointOnCurveT, Error> => {
-						throw new Error('No Dh here, only used for testing.')
-					},
-				}
+	const newSigningKey: SigningKeyT = {
+		...type, // forward sugar for boolean signingKey type getters
+		isLocalHDSigningKey: false, // hardware is not local
+		publicKey: hardwareSigningKey.publicKey,
+		hdPath,
+		sign: (hashedMessage: Buffer): Observable<SignatureT> => {
+			return hardwareSigningKey.sign(hashedMessage)
+		},
+		decrypt: makeDecryptHW(hardwareSigningKey),
+		encrypt: makeEncryptHW(hardwareSigningKey),
+		type,
+		uniqueIdentifier: type.uniqueKey,
+		toString: (): string => {
+			throw new Error('Overridden below.')
+		},
+		equals: (other: SigningKeyT): boolean => {
+			return hardwareSigningKey.publicKey.equals(other.publicKey)
+		},
+		__diffieHellman: (
+			_publicKeyOfOtherParty: PublicKeyT,
+		): ResultAsync<ECPointOnCurveT, Error> => {
+			throw new Error('No Dh here, only used for testing.')
+		},
+	}
 
-				return {
-					...newSigningKey,
-					toString: (): string => stringifySigningKey(newSigningKey),
-				}
-			},
-		),
-	)
+	return {
+		...newSigningKey,
+		toString: (): string => stringifySigningKey(newSigningKey),
+	}
 }
 
 const byDerivingNodeAtPath = (
@@ -361,7 +317,7 @@ export const SigningKey = {
 	__unsafeFromPrivateKeyAtHDPath: fromPrivateKeyAtHDPath,
 	fromPrivateKey,
 	byDerivingNodeAtPath,
-	fromHDPathWithHardwareWallet,
+	fromHDPathWithHWSigningKey,
 	fromHDPathWithHDMasterNode,
 	fromHDPathWithHDMasterSeed,
 }

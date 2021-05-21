@@ -1,9 +1,19 @@
-import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import { RadixAPDU } from './apdu'
 import { RadixAPDUT } from './_types'
 import { log } from '@radixdlt/util'
+import { LedgerInstruction } from '../_types'
 
-export type BasicLedgerTransport = Pick<TransportNodeHid, 'send' | 'close'>
+export type BasicLedgerTransport = Readonly<{
+	close: () => Promise<void>
+	send: (
+		cla: number,
+		ins: number,
+		p1: number,
+		p2: number,
+		data?: Buffer,
+		statusList?: ReadonlyArray<number>,
+	) => Promise<Buffer>
+}>
 
 export const send = (
 	input: Readonly<{
@@ -15,9 +25,22 @@ export const send = (
 	const statusList = [
 		...apdu.requiredResponseStatusCodeFromDevice.map((s) => s.valueOf()),
 	]
+
+	if (apdu.ins === LedgerInstruction.PING) {
+		log.debug(`🏓 📲 sending PING APDU to Ledger device`)
+	} else {
+		log.debug(`📦 📲 sending APDU to Ledger device:
+			instruction: ${apdu.ins},
+			p1: ${apdu.p1},
+			p2: ${apdu.p2},
+			data: ${apdu.data !== undefined ? apdu.data.toString('hex') : '<UNDEFINED>'},
+		`)
+	}
 	return connectedLedgerTransport.send(
 		apdu.cla,
-		apdu.ins,
+		apdu.ins === LedgerInstruction.PING
+			? LedgerInstruction.GET_VERSION
+			: apdu.ins,
 		apdu.p1,
 		apdu.p2,
 		apdu.data,
@@ -49,9 +72,17 @@ const __openConnection = async (
 		log.debug(`🔌⏱ Looking for (unlocked 🔓) Ledger device to connect to.`)
 	}
 
-	const basicLedgerTransport: BasicLedgerTransport = await TransportNodeHid.create(
+	const basicLedgerTransport: BasicLedgerTransport = await import(
+		'@ledgerhq/hw-transport-node-hid'
+	).then(
+		async (module): Promise<BasicLedgerTransport> => {
+			const TransportNodeHid = module.default
+
+			return await TransportNodeHid.create(
 		input?.deviceConnectionTimeout,
 		input?.deviceConnectionTimeout,
+	)
+		},
 	)
 
 	if (isLoggingEnabled) {
@@ -76,10 +107,11 @@ const __openConnection = async (
 		await delay(delayBetweenRetries)
 
 		return send({
-			apdu: RadixAPDU.getVersion(),
+			apdu: RadixAPDU.ping,
 			with: basicLedgerTransport,
 		})
 			.then((_) => {
+				console.log(`📲 ✅ Got PONG 🏓, Radix app is open.`)
 				return Promise.resolve(basicLedgerTransport)
 			})
 			.catch((_) => {

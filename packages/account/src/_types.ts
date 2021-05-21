@@ -70,6 +70,8 @@ export type PrivateKeyToSigningKeyInput = Readonly<{
 	name?: string
 }>
 
+export type DeriveHWSigningKeyInput = 'next' | HDPathRadixT
+
 export type SigningKeyT = Signing &
 	Encrypting &
 	Decrypting &
@@ -100,23 +102,6 @@ export type SigningKeyT = Signing &
 		// Sugar for `isHDSigningKey && !isHardwareSigningKey`
 		isLocalHDSigningKey: boolean
 	}>
-
-// Used by `hardware-wallet` package
-export type HardwareSigningKeyT = Readonly<{
-	diffieHellman: (
-		input: Readonly<{
-			hdPath: BIP32T
-			publicKeyOfOtherParty: PublicKeyT
-		}>,
-	) => Observable<ECPointOnCurveT>
-	derivePublicKey: (hdPath: BIP32T) => Observable<PublicKeyT>
-	sign: (
-		input: Readonly<{
-			hashedMessage: Buffer
-			hdPath: BIP32T
-		}>,
-	) => Observable<SignatureT>
-}>
 
 export type SigningKeysT = Readonly<{
 	toString: () => string
@@ -171,6 +156,10 @@ export type SigningKeychainT = Signing &
 
 		deriveNextLocalHDSigningKey: (
 			input?: DeriveNextInput,
+		) => Observable<SigningKeyT>
+
+		deriveHWSigningKey: (
+			input: DeriveHWSigningKeyInput,
 		) => Observable<SigningKeyT>
 
 		addSigningKeyFromPrivateKey: (

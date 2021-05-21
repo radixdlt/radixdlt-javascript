@@ -35,6 +35,7 @@ const create = (
 		...signingKey, // encrypt, decrypt, sign
 		equals: (other: AccountT): boolean => other.publicKey.equals(publicKey),
 		signingKey: signingKey,
+		type: signingKey.type,
 		address,
 		network,
 		publicKey,

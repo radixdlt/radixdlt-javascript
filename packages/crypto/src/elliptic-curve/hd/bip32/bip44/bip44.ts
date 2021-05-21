@@ -1,10 +1,8 @@
-import { Int64 } from '@radixdlt/primitives'
-import Long = require('long')
 import { combine, err, ok, Result } from 'neverthrow'
 import { BIP32 } from '../bip32'
-import { BIP32PathComponent, valueFrom } from '../bip32PathComponent'
+import { BIP32PathComponent, hardenedIncrement } from '../bip32PathComponent'
 
-import { BIP32PathComponentT, BIP32T, Int32 } from '../_types'
+import { BIP32PathComponentT, BIP32PathSimpleT, BIP32T, Int32 } from '../_types'
 import { BIP44T, BIP44ChangeIndex, HDPathRadixT } from './_types'
 import { msgFromError } from '@radixdlt/util'
 
@@ -111,7 +109,7 @@ const createRadixPath = (
 
 const validateBIP44Component = (
 	expected: Readonly<{
-		index?: Int64
+		index?: Int32
 		isHardened: boolean
 		level: number
 		name?: string
@@ -121,14 +119,34 @@ const validateBIP44Component = (
 	if (component.level !== expected.level)
 		return err(new Error('Wrong level in BIP44 path'))
 	if (component.isHardened !== expected.isHardened)
-		return err(new Error('Wrong hardened value'))
+		return err(
+			new Error(
+				`Wrong hardened value, expected component at level ${
+					component.level
+				} to${
+					expected.isHardened ? '' : ' NOT'
+				} be hardened, but it is${component.isHardened ? '' : ' NOT'}.`,
+			),
+		)
 	if (expected.name) {
 		if (component.name !== expected.name)
 			return err(new Error('Wrong name'))
 	}
 	if (expected.index) {
-		if (Long.fromValue(component.index).neq(expected.index)) {
-			return err(new Error('Wrong index'))
+		if (component.index !== expected.index) {
+			return err(
+				new Error(
+					`Wrong index, component.index: ${
+						component.index
+					}, expected.index: ${
+						expected.index
+					}, whole expected: ${JSON.stringify(
+						expected,
+						null,
+						4,
+					)}, component: ${JSON.stringify(component, null, 4)}`,
+				),
+			)
 		}
 	}
 	return ok(component)
@@ -183,17 +201,38 @@ const fromString = (path: string): Result<BIP44T, Error> => {
 	)
 }
 
-const radixPathFromString = (path: string): Result<HDPathRadixT, Error> =>
-	fromString(path).andThen((bip44) => {
-		const coinType = valueFrom(bip44.coinType)
-		return coinType === RADIX_COIN_TYPE
-			? ok(bip44 as HDPathRadixT)
-			: err(
-					new Error(
-						`Incorrect coin type, expected Radix coin type: ${RADIX_COIN_TYPE}, but got: ${coinType}`,
-					),
-			  )
+const extractValueFromIndex = (
+	pathComponent: BIP32PathSimpleT,
+): Result<Int32, Error> => {
+	const { index, isHardened } = pathComponent
+	if (index >= hardenedIncrement && !isHardened)
+		return err(
+			new Error(
+				`Incorrect values passed, index is hardened, but you believed it to not be. Index: ${index}`,
+			),
+		)
+	if (index < hardenedIncrement && isHardened)
+		return err(
+			new Error(
+				'Incorrect values passed, index is not hardened, but you believed it to be. Index: ${index}',
+			),
+		)
+	return ok(isHardened ? index - hardenedIncrement : index)
+}
+
+const radixPathFromString = (path: string): Result<HDPathRadixT, Error> => {
+	return fromString(path).andThen((bip44) => {
+		return extractValueFromIndex(bip44.coinType).andThen((coinType) => {
+			return coinType === RADIX_COIN_TYPE
+				? ok(bip44 as HDPathRadixT)
+				: err(
+						new Error(
+							`Incorrect coin type, expected Radix coin type: ${RADIX_COIN_TYPE}, but got: ${coinType}`,
+						),
+				  )
+		})
 	})
+}
 
 export const BIP44 = {
 	create,

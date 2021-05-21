@@ -1,5 +1,6 @@
 import {
 	AccountAddressT,
+	DeriveHWSigningKeyInput,
 	DeriveNextInput,
 	NetworkT,
 	SigningKeychain,
@@ -48,6 +49,7 @@ import {
 	TransactionConfirmationBeforeFinalization,
 	TransferTokensOptions,
 	UnstakeOptions,
+	DeriveHWAccountInput,
 } from './_types'
 import {
 	APIError,
@@ -1012,6 +1014,16 @@ const create = (
 			const derivation: DeriveNextInput = input ?? {}
 			deriveNextLocalHDAccountSubject.next(derivation)
 			return this
+		},
+
+		deriveHWAccount: (
+			input: DeriveHWAccountInput,
+		): Observable<AccountT> => {
+			return wallet$.pipe(
+				mergeMap((wallet) => {
+					return wallet.deriveHWAccount(input)
+				}),
+			)
 		},
 
 		addAccountFromPrivateKey: function (

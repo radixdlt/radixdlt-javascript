@@ -1,47 +1,23 @@
 import { err, ok, Result } from 'neverthrow'
 import { BIP32PathComponentT, BIP32PathSimpleT, Int32 } from './_types'
-import { fromValue } from 'long'
-import { Int64 } from '@radixdlt/primitives'
 import { BIP32 } from './bip32'
 
-export const INT32_MAX_VALUE = 2_147_483_647
-export const INT32_MIN_VALUE = -2_147_483_648
+export const hardenedIncrement: number = 0x80000000
 
-export const validateIndexValue = (index: Int32): Result<Int32, Error> =>
-	!Number.isInteger(index)
-		? err(new Error('Fatal error, non integers not allowed.'))
-		: index > INT32_MAX_VALUE
-		? err(
-				new Error(
-					`Index larger than Int32 max value. Got: 0d${index.toString(
-						10,
-					)} / 0x${index.toString(
-						16,
-					)}, but max is: 0d${INT32_MAX_VALUE.toString(
-						10,
-					)} / 0x${INT32_MAX_VALUE.toString(16)}`,
-				),
-		  )
-		: index < INT32_MIN_VALUE
-		? err(new Error(`Index smaller than Int32 min value.`))
-		: ok(index)
-
-export const hardenedIncrement: Int64 = fromValue(0x80000000)
-
-export const valueFrom = (pathComponent: BIP32PathSimpleT): Int32 => {
-	const { index, isHardened } = pathComponent
-	if (index.greaterThanOrEqual(hardenedIncrement) && !isHardened)
-		throw new Error(
-			'Incorrect values passed, index is hardened, but you believed it to not be.',
+const assertNotHardened = (
+	simplePath: BIP32PathSimpleT,
+): Result<Int32, Error> => {
+	const { index, isHardened } = simplePath
+	if (index >= hardenedIncrement) {
+		return err(
+			new Error(
+				`Incorrect implementation, expected value of index to be less than 'hardenedIncrement' for path components which are hardended. This function will add 'hardenedIncrement' to the value of index passed in, if 'isHardened' flag is set to true. But got value of index: ${index}, 'isHardened': ${
+					isHardened ? 'true' : 'false'
+				}`,
+			),
 		)
-	if (index.lessThan(hardenedIncrement) && isHardened)
-		throw new Error(
-			'Incorrect values passed, index is not hardened, but you believed it to be.',
-		)
-	return (isHardened
-		? index.subtract(hardenedIncrement)
-		: index
-	).low.valueOf()
+	}
+	return ok(index)
 }
 
 const create = (
@@ -51,15 +27,13 @@ const create = (
 		level: number
 	}>,
 ): Result<BIP32PathComponentT, Error> => {
-	return validateIndexValue(input.index).map((indexNonHardened: Int32) => {
-		const index: Int64 = fromValue(indexNonHardened)
-
+	const { isHardened } = input
+	return assertNotHardened({ ...input }).map((index) => {
 		return {
 			...input,
-			index: input.isHardened ? index.add(hardenedIncrement) : index,
-			value: () => input.index,
-			toString: (): string =>
-				`${input.index}` + (input.isHardened ? `'` : ''),
+			index: isHardened ? index + hardenedIncrement : index,
+			value: () => index,
+			toString: (): string => `${index}` + (isHardened ? `'` : ''),
 		}
 	})
 }
@@ -85,7 +59,7 @@ const fromString = (
 		component = component.replace(BIP32.hardener, '')
 	}
 
-	let parsedInt = undefined
+	let parsedInt: number = 0
 	try {
 		parsedInt = parseInt(component, 10)
 	} catch (e) {
@@ -95,16 +69,10 @@ const fromString = (
 		return err(new Error('Found no integer'))
 	}
 
-	return validateIndexValue(parsedInt).map((parsedIndex) => {
-		const index: Int64 = fromValue(parsedIndex)
-
-		return {
-			level,
-			isHardened,
-			value: () => parsedIndex,
-			index: isHardened ? index.add(hardenedIncrement) : index,
-			toString: (): string => `${parsedIndex}` + (isHardened ? `'` : ''),
-		}
+	return BIP32PathComponent.create({
+		index: parsedInt,
+		isHardened,
+		level,
 	})
 }
 

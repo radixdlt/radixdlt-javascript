@@ -1,7 +1,7 @@
 import { BIP44, BIP44T, HDPathRadix, HDPathRadixT } from '../src'
 
 describe('BIP44', () => {
-	it('can create one for radix', () => {
+	it('bip44 can create one for radix', () => {
 		const hdPath = BIP44.create({ address: { index: 1337 } })
 		expect(hdPath.toString()).toBe(`m/44'/536'/0'/0/1337'`)
 	})
@@ -49,6 +49,19 @@ describe('BIP44', () => {
 		const path = `m/44'/536'/0'/1/0`
 		doTestBIP44Path(BIP44.fromString(path)._unsafeUnwrap())
 		doTestBIP44Path(HDPathRadix.fromString(path)._unsafeUnwrap())
+	})
+
+	it('bip44 path with non zeros', (done) => {
+		const pathString = `m/44'/536'/2'/1/3'`
+		HDPathRadix.fromString(pathString).match(
+			(path) => {
+				expect(path.toString()).toBe(pathString)
+				done()
+			},
+			(error) => {
+				done(error)
+			},
+		)
 	})
 
 	it('should not be able to specify wrong coin type for radix path', () => {

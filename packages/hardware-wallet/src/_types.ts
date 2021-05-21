@@ -38,19 +38,21 @@ export type KeyExchangeInput = GetPublicKeyInput &
 		publicKeyOfOtherParty: PublicKeyT
 	}>
 
-export enum HardwareWalletDeviceConnectionStatus {
-	DISCONNECTED_DEVICE_NOT_CONNECTED = 'DISCONNECTED_DEVICE_NOT_CONNECTED',
-	DISCONNECTED_BECAUSE_APP_NOT_OPENED = 'DISCONNECTED_BECAUSE_APP_NOT_OPENED',
-	// Device connected and app opened
-	CONNECTED = 'CONNECTED',
-}
+export type HardwareSigningKeyT = Readonly<{
+	keyExchange: (
+		publicKeyOfOtherParty: PublicKeyT,
+	) => Observable<ECPointOnCurveT>
+	publicKey: PublicKeyT
+	sign: (hashedMessage: Buffer) => Observable<SignatureT>
+}>
 
 export type HardwareWalletT = Readonly<{
-	deviceConnectionStatus: Observable<HardwareWalletDeviceConnectionStatus>
 	getVersion: () => Observable<SemVerT>
 	getPublicKey: (input: GetPublicKeyInput) => Observable<PublicKeyT>
 	doSignHash: (input: SignHashInput) => Observable<SignatureT>
 	doKeyExchange: (input: KeyExchangeInput) => Observable<ECPointOnCurveT>
+
+	makeSigningKey: (path: HDPathRadixT) => Observable<HardwareSigningKeyT>
 }>
 
 export enum LedgerInstruction {
@@ -58,6 +60,7 @@ export enum LedgerInstruction {
 	DO_SIGN_HASH = 0x04,
 	GET_PUBLIC_KEY = 0x08,
 	DO_KEY_EXCHANGE = 0x32,
+	PING = 0x64,
 }
 
 // https://github.com/radixdlt/radixdlt-ledger-app/blob/2eecabd2d870ebc252218d91034a767320b71487/app/src/common/common_macros.h#L37-L43

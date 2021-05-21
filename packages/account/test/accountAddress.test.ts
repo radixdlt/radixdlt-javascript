@@ -1,7 +1,6 @@
-import { AccountAddress } from '../src'
+import { AccountAddress, NetworkT } from '../src'
 
 import { PrivateKey, PublicKey, sha256Twice } from '@radixdlt/crypto'
-import { NetworkT } from '../src'
 import { msgFromError } from '@radixdlt/util'
 
 describe('account_address_on_bech32_format', () => {
@@ -148,5 +147,20 @@ describe('account_address_on_bech32_format', () => {
 			})
 		}
 		invalidVectors.forEach((v, i) => doTest(v, i))
+	})
+
+	it('address_fromPublicKeyAndNetwork', () => {
+		const address = AccountAddress.fromPublicKeyAndNetwork({
+			publicKey: PublicKey.fromBuffer(
+				Buffer.from(
+					'02486d8128388446ac8c239d0a615a5bcfd1ebbecce5c8704f68876187a18679d8',
+					'hex',
+				),
+			)._unsafeUnwrap(),
+			network: NetworkT.BETANET,
+		})
+		expect(address.toString()).toBe(
+			'brx1qspysmvp9qugg34v3s3e6znptfdul50thmxwtjrsfa5gwcv85xr8nkq06tlv7',
+		)
 	})
 })
