@@ -136,7 +136,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 								from: action.from.toString(),
 								to: action.to.toString(),
 								amount: action.amount.toString(),
-								tokenIdentifier: action.rri.toString(),
+								rri: action.rri.toString(),
 						  }
 						: {
 								type: action.type,

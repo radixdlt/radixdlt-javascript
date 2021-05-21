@@ -190,7 +190,7 @@ export namespace BuildTransactionEndpoint {
 					from: string
 					to: string
 					amount: string
-					tokenIdentifier: string
+					rri: string
 			  }
 			| {
 					type: ActionType.STAKE_TOKENS
