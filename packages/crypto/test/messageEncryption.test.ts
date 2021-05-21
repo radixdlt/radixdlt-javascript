@@ -43,7 +43,7 @@ describe('message encryption', () => {
 					null,
 					publicKeyOfOtherParty,
 				),
-			}).map((b) => b.toString('utf-8'))
+			}).map(b => b.toString('utf-8'))
 			return res._unsafeUnwrap()
 		}
 
@@ -104,7 +104,7 @@ describe('message encryption', () => {
 		)._unsafeUnwrap()
 		const bob = bobPrivateKey.publicKey()
 
-		it('throws error if plaintext is too long', (done) => {
+		it('throws error if plaintext is too long', done => {
 			const tooLongMsg =
 				'too long message that is too long because it is over characters limit which is too long to encrypt because it cannot fit because it is too long indeed. Which is why it cannot be encrypted. So expect an error to be thrown.'
 
@@ -119,10 +119,10 @@ describe('message encryption', () => {
 					bob,
 				),
 			}).match(
-				(_) => {
+				_ => {
 					done(new Error('Expected failure.'))
 				},
-				(error) => {
+				error => {
 					expect(error.message).toBe(
 						`Plaintext is too long, expected max #${Message.maxLengthOfCipherTextOfSealedMsg}, but got: #${tooLongMsg.length}`,
 					)
@@ -170,11 +170,11 @@ describe('message encryption', () => {
 					publicKeyOfOtherParty,
 				),
 			}).match(
-				(decrypted) => {
+				decrypted => {
 					expect(decrypted.toString('utf8')).toBe(plaintext)
 					done()
 				},
-				(error) => {
+				error => {
 					done(
 						new Error(
 							`Failed to decrypted, but expected to be able to decrypt, got error: ${error}`,
@@ -184,11 +184,11 @@ describe('message encryption', () => {
 			)
 		}
 
-		it('alice can decrypt msg encrypted by herself', (done) => {
+		it('alice can decrypt msg encrypted by herself', done => {
 			doTestDecrypt('alice', done)
 		})
 
-		it('bob can decrypt msg encrypted by alice', (done) => {
+		it('bob can decrypt msg encrypted by alice', done => {
 			doTestDecrypt('bob', done)
 		})
 

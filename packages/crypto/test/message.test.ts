@@ -40,31 +40,31 @@ describe('EncryptedMessage', () => {
 		Buffer.from('6a'.repeat(byteCount), 'hex')
 
 	describe('validateEncryptedMessageLength', () => {
-		it('correct msg length is valid', (done) => {
+		it('correct msg length is valid', done => {
 			const buffer = makeBuf(100)
 			__validateEncryptedMessageLength(buffer).match(
-				(buf) => {
+				buf => {
 					expect(buffersEquals(buf, buffer)).toBe(true)
 					done()
 				},
-				(error) => {
+				error => {
 					done(new Error(`Got error, but expected success: ${error}`))
 				},
 			)
 		})
 
-		it('too short msg length is invalid', (done) => {
+		it('too short msg length is invalid', done => {
 			const shortLength = 10
 			const buffer = makeBuf(shortLength)
 			__validateEncryptedMessageLength(buffer).match(
-				(_) => {
+				_ => {
 					done(
 						new Error(
 							'Buffer passed validation, but we expected a failure.',
 						),
 					)
 				},
-				(error) => {
+				error => {
 					expect(error.message).toBe(
 						`Incorrect length of encryptedMessage, expected min: #${Message.minLengthEncryptedMessage} bytes, but got: #${shortLength}.`,
 					)
@@ -73,18 +73,18 @@ describe('EncryptedMessage', () => {
 			)
 		})
 
-		it('too long msg is invalid', (done) => {
+		it('too long msg is invalid', done => {
 			const longLength = 256
 			const buffer = makeBuf(longLength)
 			__validateEncryptedMessageLength(buffer).match(
-				(_) => {
+				_ => {
 					done(
 						new Error(
 							'Buffer passed validation, but we expected a failure.',
 						),
 					)
 				},
-				(error) => {
+				error => {
 					expect(error.message).toBe(
 						`Incorrect length of encryptedMessage, expected max: #255 bytes, but got: #${longLength}.`,
 					)

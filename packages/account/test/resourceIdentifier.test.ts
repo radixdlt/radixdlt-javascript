@@ -9,12 +9,12 @@ describe('rri_on_bech32_format', () => {
 		const rriString = 'xrd_rb1qya85pwq'
 
 		ResourceIdentifier.fromUnsafe(rriString).match(
-			(rri) => {
+			rri => {
 				expect(rri.name).toBe('xrd')
 				expect(rri.toString()).toBe(rriString)
 				expect(rri.network).toBe(NetworkT.BETANET)
 			},
-			(e) => {
+			e => {
 				throw e
 			},
 		)
@@ -224,10 +224,10 @@ describe('rri_on_bech32_format', () => {
 		it('rri checksum invalid bech32 string', () => {
 			const rri = 'xrd_rb1qya85pw1' // "w1" should have been "wq";
 			ResourceIdentifier.fromUnsafe(rri).match(
-				(_) => {
+				_ => {
 					throw new Error('Expected error but got none')
 				},
-				(e) => {
+				e => {
 					expect(msgFromError(e).length).toBeGreaterThan(0)
 				},
 			)
@@ -269,12 +269,12 @@ describe('rri_on_bech32_format', () => {
 		const doTest = (invalidVector: InvalidVector, index: number): void => {
 			it(`invalid_vector_index${index}`, () => {
 				ResourceIdentifier.fromUnsafe(invalidVector.invalidRRI).match(
-					(_) => {
+					_ => {
 						throw new Error(
 							`Got success, but expected failure, rri: ${invalidVector.invalidRRI}`,
 						)
 					},
-					(e) => {
+					e => {
 						expect(msgFromError(e).length).toBeGreaterThan(1)
 					},
 				)

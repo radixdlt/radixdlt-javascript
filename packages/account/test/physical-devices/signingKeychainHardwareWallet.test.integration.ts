@@ -30,12 +30,12 @@ describe('signingKey_ledger', () => {
 		log.setLevel('warn')
 	})
 
-	it('deriveHWSigningKey', async (done) => {
+	it('deriveHWSigningKey', async done => {
 		const subs = new Subscription()
 
 		subs.add(
 			keychain.deriveHWSigningKey('next').subscribe({
-				next: (sk) => {
+				next: sk => {
 					expect(sk.hdPath!.toString()).toBe(`m/44'/536'/0'/0/0'`)
 
 					const publicKeyCompressedHex = sk.publicKey.toString(true)
@@ -56,7 +56,7 @@ describe('signingKey_ledger', () => {
 					)
 					done()
 				},
-				error: (e) => done(e),
+				error: e => done(e),
 			}),
 		)
 	}, 20_000)

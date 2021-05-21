@@ -78,23 +78,23 @@ describe('integration API tests', () => {
 		expect(radix.ledger.tokenBalancesForAddress).toBeDefined() // etc
 	})
 
-	it('emits node connection without wallet', async (done) => {
+	it('emits node connection without wallet', async done => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		}).connect(`${NODE_URL}/rpc`)
 
 		subs.add(
 			radix.__node.subscribe(
-				(node) => {
+				node => {
 					expect(node.url.host).toBe(new URL(NODE_URL).host)
 					done()
 				},
-				(error) => done(error),
+				error => done(error),
 			),
 		)
 	})
 
-	it('provides network for wallets', async (done) => {
+	it('provides network for wallets', async done => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
@@ -103,16 +103,16 @@ describe('integration API tests', () => {
 
 		subs.add(
 			radix.activeAddress.subscribe(
-				(address) => {
+				address => {
 					expect(address.network).toBeDefined()
 					done()
 				},
-				(error) => done(error),
+				error => done(error),
 			),
 		)
 	})
 
-	it('returns native token without wallet', async (done) => {
+	it('returns native token without wallet', async done => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
@@ -120,16 +120,16 @@ describe('integration API tests', () => {
 
 		subs.add(
 			radix.ledger.nativeToken().subscribe(
-				(token) => {
+				token => {
 					expect(token.symbol).toBe('xrd')
 					done()
 				},
-				(error) => done(error),
+				error => done(error),
 			),
 		)
 	})
 
-	it('deriveNextSigningKey method on radix updates accounts', (done) => {
+	it('deriveNextSigningKey method on radix updates accounts', done => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
@@ -141,11 +141,11 @@ describe('integration API tests', () => {
 		subs.add(
 			radix.accounts
 				.pipe(
-					map((i) => i.size()),
+					map(i => i.size()),
 					take(expected.length),
 					toArray(),
 				)
-				.subscribe((values) => {
+				.subscribe(values => {
 					expect(values).toStrictEqual(expected)
 					done()
 				}),
@@ -155,7 +155,7 @@ describe('integration API tests', () => {
 		radix.deriveNextAccount({ alsoSwitchTo: false })
 	})
 
-	it('deriveNextSigningKey alsoSwitchTo method on radix updates activeSigningKey', (done) => {
+	it('deriveNextSigningKey alsoSwitchTo method on radix updates activeSigningKey', done => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
@@ -167,11 +167,11 @@ describe('integration API tests', () => {
 		subs.add(
 			radix.activeAccount
 				.pipe(
-					map((account) => account.hdPath!.addressIndex.value()),
+					map(account => account.hdPath!.addressIndex.value()),
 					take(expected.length),
 					toArray(),
 				)
-				.subscribe((values) => {
+				.subscribe(values => {
 					expect(values).toStrictEqual(expected)
 					done()
 				}),
@@ -182,7 +182,7 @@ describe('integration API tests', () => {
 		radix.deriveNextAccount({ alsoSwitchTo: true })
 	})
 
-	it('deriveNextSigningKey alsoSwitchTo method on radix updates activeAddress', (done) => {
+	it('deriveNextSigningKey alsoSwitchTo method on radix updates activeAddress', done => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
@@ -194,7 +194,7 @@ describe('integration API tests', () => {
 		subs.add(
 			radix.activeAddress
 				.pipe(take(expectedCount), toArray())
-				.subscribe((values) => {
+				.subscribe(values => {
 					expect(values.length).toBe(expectedCount)
 					done()
 				}),
@@ -205,7 +205,7 @@ describe('integration API tests', () => {
 		radix.deriveNextAccount({ alsoSwitchTo: true })
 	})
 
-	it('should compare token balance before and after transfer', (done) => {
+	it('should compare token balance before and after transfer', done => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
@@ -227,14 +227,14 @@ describe('integration API tests', () => {
 		let balanceAfterTransfer: AmountT
 		let fee: AmountT
 
-		radix.activeAddress.subscribe(async (address) => {
+		radix.activeAddress.subscribe(async address => {
 			await requestFaucet(address.toString())
 
 			subs.add(
-				radix.tokenBalances.subscribe((balance) => {
+				radix.tokenBalances.subscribe(balance => {
 					const getXRDBalanceOrZero = (): AmountT => {
 						const maybeTokenBalance = balance.tokenBalances.find(
-							(a) => a.token.symbol.toLowerCase() === 'xrd',
+							a => a.token.symbol.toLowerCase() === 'xrd',
 						)
 						return maybeTokenBalance !== undefined
 							? maybeTokenBalance.amount
@@ -267,12 +267,12 @@ describe('integration API tests', () => {
 						userConfirmation: 'skip',
 						pollTXStatusTrigger: interval(500),
 					})
-					.completion.subscribe((txID) => {
+					.completion.subscribe(txID => {
 						transferDone = true
 						subs.add(
 							radix.ledger
 								.lookupTransaction(txID)
-								.subscribe((tx) => {
+								.subscribe(tx => {
 									fee = tx.fee
 									getTokenBalanceSubject.next(1)
 								}),
@@ -282,7 +282,7 @@ describe('integration API tests', () => {
 		})
 	})
 
-	it.skip('should increment transaction history with a new transaction after transfer', async (done) => {
+	it.skip('should increment transaction history with a new transaction after transfer', async done => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
@@ -298,7 +298,7 @@ describe('integration API tests', () => {
 						size: pageSize,
 						cursor,
 					})
-					.subscribe((txHistory) => {
+					.subscribe(txHistory => {
 						sub.unsubscribe()
 						resolve([
 							txHistory.cursor,
@@ -314,7 +314,7 @@ describe('integration API tests', () => {
 					.transactionHistory({
 						size: pageSize,
 					})
-					.subscribe(async (txHistory) => {
+					.subscribe(async txHistory => {
 						let cursor = txHistory.cursor
 						let prevTxCount = 0
 						let txCount = 0
@@ -337,7 +337,7 @@ describe('integration API tests', () => {
 					size: pageSize,
 					cursor,
 				})
-				.subscribe((txHistory) => {
+				.subscribe(txHistory => {
 					const countBeforeTransfer = txHistory.transactions.length
 					subs.add(
 						radix
@@ -350,14 +350,14 @@ describe('integration API tests', () => {
 								userConfirmation: 'skip',
 								pollTXStatusTrigger: interval(500),
 							})
-							.completion.subscribe((tx) => {
+							.completion.subscribe(tx => {
 								subs.add(
 									radix
 										.transactionHistory({
 											size: pageSize,
 											cursor,
 										})
-										.subscribe((newTxHistory) => {
+										.subscribe(newTxHistory => {
 											expect(
 												newTxHistory.transactions
 													.length - 1,
@@ -371,7 +371,7 @@ describe('integration API tests', () => {
 		)
 	})
 
-	it('should be able to get transaction history', (done) => {
+	it('should be able to get transaction history', done => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
@@ -387,7 +387,7 @@ describe('integration API tests', () => {
 				},
 				userConfirmation: 'skip',
 			})
-			.completion.subscribe((txID1) => {
+			.completion.subscribe(txID1 => {
 				radix
 					.transferTokens({
 						transferInput: {
@@ -397,12 +397,12 @@ describe('integration API tests', () => {
 						},
 						userConfirmation: 'skip',
 					})
-					.completion.subscribe((txID2) => {
+					.completion.subscribe(txID2 => {
 						radix
 							.transactionHistory({
 								size: 2,
 							})
-							.subscribe((txHistory) => {
+							.subscribe(txHistory => {
 								expect(
 									txHistory.transactions[0].txID.equals(
 										txID1,
@@ -419,7 +419,7 @@ describe('integration API tests', () => {
 			})
 	})
 
-	it.skip('should handle transaction status updates', (done) => {
+	it.skip('should handle transaction status updates', done => {
 		// can't test because it becomes confirmed immediately
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
@@ -442,7 +442,7 @@ describe('integration API tests', () => {
 			pollTXStatusTrigger: interval(200),
 		})
 
-		txTracking.events.subscribe((event) => {
+		txTracking.events.subscribe(event => {
 			if (
 				event.eventUpdateType === TransactionTrackingEventType.SUBMITTED
 			) {
@@ -457,7 +457,7 @@ describe('integration API tests', () => {
 							take(expectedValues.length),
 							toArray(),
 						)
-						.subscribe((values) => {
+						.subscribe(values => {
 							expect(values).toStrictEqual(expectedValues)
 							done()
 						}),
@@ -466,7 +466,7 @@ describe('integration API tests', () => {
 		})
 	})
 
-	it('can lookup tx', async (done) => {
+	it('can lookup tx', async done => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
@@ -484,9 +484,9 @@ describe('integration API tests', () => {
 		})
 
 		subs.add(
-			completion.subscribe(async (txID) => {
+			completion.subscribe(async txID => {
 				subs.add(
-					radix.ledger.lookupTransaction(txID).subscribe((tx) => {
+					radix.ledger.lookupTransaction(txID).subscribe(tx => {
 						expect(txID.equals(tx.txID)).toBe(true)
 						expect(tx.actions.length).toEqual(1)
 						done()
@@ -496,7 +496,7 @@ describe('integration API tests', () => {
 		)
 	})
 
-	it('can lookup validator', (done) => {
+	it('can lookup validator', done => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
@@ -508,12 +508,12 @@ describe('integration API tests', () => {
 				.validators({
 					size: 1,
 				})
-				.subscribe((validators) => {
+				.subscribe(validators => {
 					const validator = validators.validators[0]
 
 					radix.ledger
 						.lookupValidator(validator.address)
-						.subscribe((validatorFromLookup) => {
+						.subscribe(validatorFromLookup => {
 							expect(
 								validatorFromLookup.address.equals(
 									validator.address,
@@ -525,7 +525,7 @@ describe('integration API tests', () => {
 		)
 	})
 
-	it('should get validators', (done) => {
+	it('should get validators', done => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
@@ -538,14 +538,14 @@ describe('integration API tests', () => {
 					size: 1,
 					cursor: '',
 				})
-				.subscribe((validators) => {
+				.subscribe(validators => {
 					expect(validators.validators.length).toEqual(1)
 					done()
 				}),
 		)
 	})
 
-	it('should be able to paginate validators', (done) => {
+	it('should be able to paginate validators', done => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
@@ -557,13 +557,13 @@ describe('integration API tests', () => {
 				.validators({
 					size: 2,
 				})
-				.subscribe((validators) => {
+				.subscribe(validators => {
 					subs.add(
 						radix.ledger
 							.validators({
 								size: 1,
 							})
-							.subscribe((firstValidator) => {
+							.subscribe(firstValidator => {
 								const cursor = firstValidator.cursor
 
 								expect(
@@ -578,7 +578,7 @@ describe('integration API tests', () => {
 											size: 1,
 											cursor,
 										})
-										.subscribe((secondValidator) => {
+										.subscribe(secondValidator => {
 											expect(
 												validators.validators[1].address.toString(),
 											).toEqual(
@@ -593,7 +593,7 @@ describe('integration API tests', () => {
 		)
 	})
 
-	it('should get network transaction demand response', (done) => {
+	it('should get network transaction demand response', done => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
@@ -601,14 +601,14 @@ describe('integration API tests', () => {
 			.connect(`${NODE_URL}/rpc`)
 
 		subs.add(
-			radix.ledger.networkTransactionDemand().subscribe((result) => {
+			radix.ledger.networkTransactionDemand().subscribe(result => {
 				expect(result.tps).toEqual(0)
 				done()
 			}),
 		)
 	})
 
-	it('should get network transaction throughput response', (done) => {
+	it('should get network transaction throughput response', done => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
@@ -616,14 +616,14 @@ describe('integration API tests', () => {
 			.connect(`${NODE_URL}/rpc`)
 
 		subs.add(
-			radix.ledger.networkTransactionThroughput().subscribe((result) => {
+			radix.ledger.networkTransactionThroughput().subscribe(result => {
 				expect(result.tps).toEqual(0)
 				done()
 			}),
 		)
 	})
 
-	it('can fetch stake positions', async (done) => {
+	it('can fetch stake positions', async done => {
 		const triggerSubject = new Subject<number>()
 
 		const radix = Radix.create({
@@ -660,13 +660,13 @@ describe('integration API tests', () => {
 		)
 
 		subs.add(
-			radix.stakingPositions.subscribe(async (values) => {
+			radix.stakingPositions.subscribe(async values => {
 				const validator = await validatorPromise
 
 				if (hasStaked) {
 					const initialAmountStaked = await initialAmountPromise
 
-					const amountAfterStaking = values.find((value) =>
+					const amountAfterStaking = values.find(value =>
 						value.validator.equals(validator),
 					)!.amount
 
@@ -677,7 +677,7 @@ describe('integration API tests', () => {
 					).toEqual(true)
 					done()
 				} else {
-					const stake = values.find((value) =>
+					const stake = values.find(value =>
 						value.validator.equals(validator),
 					)
 					initialAmountResolve(
@@ -703,14 +703,14 @@ describe('integration API tests', () => {
 		})
 
 		subs.add(
-			completion.subscribe((_) => {
+			completion.subscribe(_ => {
 				hasStaked = true
 				triggerSubject.next(0)
 			}),
 		)
 	})
 
-	it('can fetch unstake positions', (done) => {
+	it('can fetch unstake positions', done => {
 		const triggerSubject = new Subject<number>()
 
 		const radix = Radix.create({
@@ -740,7 +740,7 @@ describe('integration API tests', () => {
 								userConfirmation: 'skip',
 								pollTXStatusTrigger: interval(1000),
 							})
-							.completion.subscribe((_) => {
+							.completion.subscribe(_ => {
 								subs.add(
 									radix
 										.unstakeTokens({
@@ -751,10 +751,10 @@ describe('integration API tests', () => {
 											userConfirmation: 'skip',
 											pollTXStatusTrigger: interval(1000),
 										})
-										.completion.subscribe((_) => {
+										.completion.subscribe(_ => {
 											subs.add(
 												radix.unstakingPositions.subscribe(
-													(values) => {
+													values => {
 														// cannot assert right now because core immediately processes unstake
 														done()
 													},
@@ -769,7 +769,7 @@ describe('integration API tests', () => {
 		)
 	})
 
-	it('should be able to paginate validator result', (done) => {
+	it('should be able to paginate validator result', done => {
 		const radix = Radix.create({
 			network: NetworkT.BETANET,
 		})
@@ -781,19 +781,19 @@ describe('integration API tests', () => {
 				.validators({
 					size: 2,
 				})
-				.subscribe((twoValidators) => {
+				.subscribe(twoValidators => {
 					subs.add(
 						radix.ledger
 							.validators({
 								size: 1,
 							})
-							.subscribe((firstValidator) => {
+							.subscribe(firstValidator => {
 								radix.ledger
 									.validators({
 										size: 1,
 										cursor: firstValidator.cursor,
 									})
-									.subscribe((secondValidator) => {
+									.subscribe(secondValidator => {
 										expect(
 											firstValidator.validators[0].address.toString(),
 										).toEqual(
@@ -838,7 +838,7 @@ describe('integration API tests', () => {
 			subs.unsubscribe()
 		})
 
-		it.skip('events emits expected values', (done) => {
+		it.skip('events emits expected values', done => {
 			// can't see pending state because quick confirmation
 			const radix = Radix.create({
 				network: NetworkT.BETANET,
@@ -863,17 +863,17 @@ describe('integration API tests', () => {
 				radix
 					.transferTokens(transferTokens())
 					.events.pipe(
-						map((e) => e.eventUpdateType),
-						tap((x) => console.log(x)),
+						map(e => e.eventUpdateType),
+						tap(x => console.log(x)),
 						take(expectedValues.length),
 						toArray(),
 					)
 					.subscribe({
-						next: (values) => {
+						next: values => {
 							expect(values).toStrictEqual(expectedValues)
 							done()
 						},
-						error: (e) => {
+						error: e => {
 							done(
 								new Error(
 									`Tx failed, even though we expected it to succeed, error: ${e.toString()}`,
@@ -884,7 +884,7 @@ describe('integration API tests', () => {
 			)
 		})
 
-		it('automatic confirmation', (done) => {
+		it('automatic confirmation', done => {
 			const radix = Radix.create({
 				network: NetworkT.BETANET,
 			})
@@ -893,11 +893,11 @@ describe('integration API tests', () => {
 
 			subs.add(
 				radix.transferTokens(transferTokens()).completion.subscribe({
-					next: (_txID) => {},
+					next: _txID => {},
 					complete: () => {
 						done()
 					},
-					error: (e) => {
+					error: e => {
 						done(
 							new Error(
 								`Tx failed, but expected to succeed. Error ${JSON.stringify(
@@ -912,7 +912,7 @@ describe('integration API tests', () => {
 			)
 		})
 
-		it('manual confirmation', (done) => {
+		it('manual confirmation', done => {
 			const radix = Radix.create({
 				network: NetworkT.BETANET,
 			})
@@ -942,7 +942,7 @@ describe('integration API tests', () => {
 			})
 
 			subs.add(
-				userConfirmation.subscribe((txn) => {
+				userConfirmation.subscribe(txn => {
 					//@ts-ignore
 					transaction = txn
 					shouldShowConfirmation()
@@ -951,12 +951,12 @@ describe('integration API tests', () => {
 
 			subs.add(
 				transactionTracking.completion.subscribe({
-					next: (_txID) => {
+					next: _txID => {
 						//@ts-ignore
 						expect(userHasBeenAskedToConfirmTX).toBe(true)
 						done()
 					},
-					error: (e) => {
+					error: e => {
 						done(e)
 					},
 				}),

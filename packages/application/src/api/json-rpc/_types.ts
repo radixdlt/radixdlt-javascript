@@ -45,7 +45,7 @@ export enum ApiMethod {
 export type Endpoint = `${API_PREFIX}.${typeof ApiMethod[keyof typeof ApiMethod]}`
 
 export namespace NetworkIdEndpoint {
-	export type Input = []
+	export type Input = Record<string, never>
 
 	export type Response = {
 		networkId: number
@@ -57,7 +57,9 @@ export namespace NetworkIdEndpoint {
 }
 
 export namespace TokenBalancesEndpoint {
-	export type Input = [address: string]
+	export type Input = {
+		address: string
+	}
 
 	export type Response = {
 		owner: string
@@ -71,11 +73,11 @@ export namespace TokenBalancesEndpoint {
 }
 
 export namespace TransactionHistoryEndpoint {
-	export type Input = [
-		address: string,
-		size: number, // must be > 0
-		cursor?: string,
-	]
+	export type Input = {
+		address: string
+		size: number // must be > 0
+		cursor?: string
+	}
 
 	export type Response = Readonly<{
 		cursor: string
@@ -86,25 +88,25 @@ export namespace TransactionHistoryEndpoint {
 }
 
 export namespace LookupTransactionEndpoint {
-	export type Input = [txID: string]
+	export type Input = { txID: string }
 	export type Response = RawExecutedTransaction
 	export type DecodedResponse = SimpleExecutedTransaction
 }
 
 export namespace TokenInfoEndpoint {
-	export type Input = [rri: string]
+	export type Input = { rri: string }
 	export type Response = RawToken
 	export type DecodedResponse = Token
 }
 
 export namespace NativeTokenEndpoint {
-	export type Input = []
+	export type Input = Record<string, never>
 	export type Response = RawToken
 	export type DecodedResponse = Token
 }
 
 export namespace StakePositionsEndpoint {
-	export type Input = [address: string]
+	export type Input = { address: string }
 
 	export type Response = {
 		validator: string
@@ -115,7 +117,7 @@ export namespace StakePositionsEndpoint {
 }
 
 export namespace UnstakePositionsEndpoint {
-	export type Input = [address: string]
+	export type Input = { address: string }
 
 	export type Response = {
 		amount: string
@@ -128,7 +130,7 @@ export namespace UnstakePositionsEndpoint {
 }
 
 export namespace TransactionStatusEndpoint {
-	export type Input = [txID: string]
+	export type Input = { txID: string }
 
 	export type Response = {
 		txID: string
@@ -140,7 +142,7 @@ export namespace TransactionStatusEndpoint {
 }
 
 export namespace NetworkTransactionThroughputEndpoint {
-	export type Input = []
+	export type Input = Record<string, never>
 
 	export type Response = {
 		tps: number
@@ -150,7 +152,7 @@ export namespace NetworkTransactionThroughputEndpoint {
 }
 
 export namespace NetworkTransactionDemandEndpoint {
-	export type Input = []
+	export type Input = Record<string, never>
 
 	export type Response = {
 		tps: number
@@ -160,7 +162,7 @@ export namespace NetworkTransactionDemandEndpoint {
 }
 
 export namespace ValidatorsEndpoint {
-	export type Input = [size: number, cursor?: string]
+	export type Input = { size: number; cursor?: string }
 
 	export type Response = Readonly<{
 		cursor: string
@@ -170,7 +172,7 @@ export namespace ValidatorsEndpoint {
 }
 
 export namespace LookupValidatorEndpoint {
-	export type Input = [validatorAddress: string]
+	export type Input = { validatorAddress: string }
 	export type Response = RawValidatorResponse
 	export type DecodedResponse = Validator
 }
@@ -181,7 +183,7 @@ export namespace BuildTransactionEndpoint {
 		| 'INSUFFICIENT_FUNDS'
 		| 'NOT_PERMITTED'
 
-	export type Input = [
+	export type Input = {
 		actions: (
 			| {
 					type: ActionType.TOKEN_TRANSFER
@@ -202,9 +204,9 @@ export namespace BuildTransactionEndpoint {
 					validator: string
 					amount: string
 			  }
-		)[],
-		message?: string,
-	]
+		)[]
+		message?: string
+	}
 
 	export type Response = {
 		transaction: Readonly<{
@@ -218,13 +220,13 @@ export namespace BuildTransactionEndpoint {
 }
 
 export namespace FinalizeTransactionEndpoint {
-	export type Input = [
+	export type Input = {
 		transaction: Readonly<{
 			blob: string
-		}>,
-		publicKeyOfSigner: string,
-		signatureDER: string,
-	]
+		}>
+		publicKeyOfSigner: string
+		signatureDER: string
+	}
 
 	export type Response = {
 		txID: string
@@ -234,14 +236,14 @@ export namespace FinalizeTransactionEndpoint {
 }
 
 export namespace SubmitTransactionEndpoint {
-	export type Input = [
+	export type Input = {
 		transaction: Readonly<{
 			blob: string
-		}>,
-		publicKeyOfSigner: string,
-		signatureDER: string,
-		txID: string,
-	]
+		}>
+		publicKeyOfSigner: string
+		signatureDER: string
+		txID: string
+	}
 
 	export type Response = {
 		txID: string

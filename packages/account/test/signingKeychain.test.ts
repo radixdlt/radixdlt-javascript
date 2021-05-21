@@ -41,10 +41,10 @@ const expectSigningKeychainsEqual = (
 	const { signingKeychain1, signingKeychain2 } = signingKeychains
 	const signingKeychain1SigningKey1PublicKey$ = signingKeychain1
 		.deriveNextLocalHDSigningKey()
-		.pipe(map((a) => a.publicKey))
+		.pipe(map(a => a.publicKey))
 	const signingKeychain2SigningKey1PublicKey$ = signingKeychain2
 		.deriveNextLocalHDSigningKey()
-		.pipe(map((a) => a.publicKey))
+		.pipe(map(a => a.publicKey))
 
 	subs.add(
 		combineLatest(
@@ -58,13 +58,13 @@ const expectSigningKeychainsEqual = (
 				expect(a.equals(b)).toBe(true)
 				done()
 			},
-			error: (e) => done(e),
+			error: e => done(e),
 		}),
 	)
 }
 
 describe('signingKeychain_type', () => {
-	it('can be created via keystore', async (done) => {
+	it('can be created via keystore', async done => {
 		const mnemonic = Mnemonic.generateNew()
 
 		const password = 'super secret password'
@@ -78,20 +78,20 @@ describe('signingKeychain_type', () => {
 				return Promise.resolve(undefined)
 			},
 		})
-			.andThen((signingKeychain1) =>
+			.andThen(signingKeychain1 =>
 				SigningKeychain.byLoadingAndDecryptingKeystore({
 					password,
 					load,
-				}).map((signingKeychain2) => ({
+				}).map(signingKeychain2 => ({
 					signingKeychain1,
 					signingKeychain2,
 				})),
 			)
 			.match(
-				(signingKeychains) => {
+				signingKeychains => {
 					expectSigningKeychainsEqual(signingKeychains, done)
 				},
-				(e) => done(e),
+				e => done(e),
 			)
 	})
 
@@ -107,7 +107,7 @@ describe('signingKeychain_type', () => {
 		expect(mnemonicRevealed.phrase).toBe(mnemonicPhrase)
 	})
 
-	it('the accounts derived after restoreSigningKeysUpToIndex has correct index', (done) => {
+	it('the accounts derived after restoreSigningKeysUpToIndex has correct index', done => {
 		const subs = new Subscription()
 		const signingKeychain = createSigningKeychain({
 			startWithInitialSigningKey: false,
@@ -126,7 +126,7 @@ describe('signingKeychain_type', () => {
 			signingKeychain
 				.restoreLocalHDSigningKeysUpToIndex(indexToRestoreTo)
 				.subscribe(
-					(accounts) => {
+					accounts => {
 						expect(accounts.size()).toBe(indexToRestoreTo)
 
 						let next = 0
@@ -142,25 +142,25 @@ describe('signingKeychain_type', () => {
 						}
 
 						signingKeychain.deriveNextLocalHDSigningKey().subscribe(
-							(another0) => {
+							another0 => {
 								assertSigningKeyHasCorrectIndex(another0)
 
 								signingKeychain
 									.deriveNextLocalHDSigningKey()
 									.subscribe(
-										(another1) => {
+										another1 => {
 											assertSigningKeyHasCorrectIndex(
 												another1,
 											)
 											done()
 										},
-										(e) => done(e),
+										e => done(e),
 									)
 							},
-							(e) => done(e),
+							e => done(e),
 						)
 					},
-					(e) => {
+					e => {
 						done(e)
 					},
 				),
@@ -176,7 +176,7 @@ describe('signingKeychain_type', () => {
 			restoreDefaultLogLevel()
 		})
 
-		it('save errors are propagated', async (done) => {
+		it('save errors are propagated', async done => {
 			const mnemonic = Mnemonic.generateNew()
 			const password = 'super secret password'
 
@@ -185,10 +185,10 @@ describe('signingKeychain_type', () => {
 			await SigningKeychain.byEncryptingMnemonicAndSavingKeystore({
 				mnemonic,
 				password,
-				save: (_) => Promise.reject(new Error(errMsg)),
+				save: _ => Promise.reject(new Error(errMsg)),
 			}).match(
-				(_) => done(new Error('Expected error but got none')),
-				(error) => {
+				_ => done(new Error('Expected error but got none')),
+				error => {
 					expect(error.message).toBe(
 						`Failed to save keystore, underlying error: '${errMsg}'`,
 					)
@@ -197,7 +197,7 @@ describe('signingKeychain_type', () => {
 			)
 		})
 
-		it('load errors are propagated', async (done) => {
+		it('load errors are propagated', async done => {
 			const password = 'super secret password'
 
 			const errMsg = mockErrorMsg('LoadError')
@@ -206,8 +206,8 @@ describe('signingKeychain_type', () => {
 				password,
 				load: () => Promise.reject(new Error(errMsg)),
 			}).match(
-				(_) => done(new Error('Expected error but got none')),
-				(error) => {
+				_ => done(new Error('Expected error but got none')),
+				error => {
 					expect(error.message).toBe(
 						`Failed to load keystore, underlying error: '${errMsg}'`,
 					)
@@ -217,7 +217,7 @@ describe('signingKeychain_type', () => {
 		})
 	})
 
-	it('signingKeychain can observe accounts', (done) => {
+	it('signingKeychain can observe accounts', done => {
 		const subs = new Subscription()
 		const signingKeychain = createSigningKeychain({
 			startWithInitialSigningKey: true,
@@ -228,11 +228,11 @@ describe('signingKeychain_type', () => {
 			signingKeychain
 				.observeSigningKeys()
 				.pipe(
-					map((a) => a.all.length),
+					map(a => a.all.length),
 					take(expected.length),
 					toArray(),
 				)
-				.subscribe((values) => {
+				.subscribe(values => {
 					expect(values).toStrictEqual(expected)
 					done()
 				}),
@@ -241,12 +241,12 @@ describe('signingKeychain_type', () => {
 		subs.add(signingKeychain.deriveNextLocalHDSigningKey().subscribe())
 	})
 
-	it('can observe active signingKey', (done) => {
+	it('can observe active signingKey', done => {
 		const subs = new Subscription()
 		const signingKeychain = createSigningKeychain()
 
 		subs.add(
-			signingKeychain.observeActiveSigningKey().subscribe((active) => {
+			signingKeychain.observeActiveSigningKey().subscribe(active => {
 				expect(active.hdPath!.addressIndex.value()).toBe(0)
 				expect(active.hdPath!.toString()).toBe(`m/44'/536'/0'/0/0'`)
 				expect(
@@ -259,21 +259,21 @@ describe('signingKeychain_type', () => {
 		)
 	})
 
-	it('should derive next but not switch to it by default', (done) => {
+	it('should derive next but not switch to it by default', done => {
 		const signingKeychain = createSigningKeychain()
 		const subs = new Subscription()
 
 		subs.add(signingKeychain.deriveNextLocalHDSigningKey().subscribe())
 
 		subs.add(
-			signingKeychain.observeActiveSigningKey().subscribe((active) => {
+			signingKeychain.observeActiveSigningKey().subscribe(active => {
 				expect(active.hdPath!.addressIndex.value()).toBe(0)
 				done()
 			}),
 		)
 	})
 
-	it('should derive next and switch to it if specified', async (done) => {
+	it('should derive next and switch to it if specified', async done => {
 		const subs = new Subscription()
 		const signingKeychain = createSigningKeychain()
 
@@ -283,16 +283,16 @@ describe('signingKeychain_type', () => {
 			signingKeychain
 				.observeActiveSigningKey()
 				.pipe(
-					map((a) => a.hdPath!.addressIndex.value()),
+					map(a => a.hdPath!.addressIndex.value()),
 					take(2),
 					toArray(),
 				)
 				.subscribe({
-					next: (values) => {
+					next: values => {
 						expect(values).toStrictEqual(expectedValues)
 						done()
 					},
-					error: (e) => done(e),
+					error: e => done(e),
 				}),
 		)
 
@@ -303,7 +303,7 @@ describe('signingKeychain_type', () => {
 		)
 	})
 
-	it('can list all accounts that has been added', (done) => {
+	it('can list all accounts that has been added', done => {
 		const testSigningKeysList = (
 			mapSigningKeysToNum: (accounts: SigningKeysT) => number,
 		): void => {
@@ -315,11 +315,11 @@ describe('signingKeychain_type', () => {
 				signingKeychain
 					.observeSigningKeys()
 					.pipe(
-						map((acs) => mapSigningKeysToNum(acs)),
+						map(acs => mapSigningKeysToNum(acs)),
 						take(expectedValues.length),
 						toArray(),
 					)
-					.subscribe((values) => {
+					.subscribe(values => {
 						expect(values).toStrictEqual(expectedValues)
 						done()
 					}),
@@ -336,12 +336,12 @@ describe('signingKeychain_type', () => {
 			)
 		}
 
-		testSigningKeysList((acs) => acs.localHDSigningKeys().length)
-		testSigningKeysList((acs) => acs.all.length)
-		testSigningKeysList((acs) => acs.size())
+		testSigningKeysList(acs => acs.localHDSigningKeys().length)
+		testSigningKeysList(acs => acs.all.length)
+		testSigningKeysList(acs => acs.size())
 	})
 
-	it('can switch signingKey by number', (done) => {
+	it('can switch signingKey by number', done => {
 		const subs = new Subscription()
 		const signingKeychain = createSigningKeychain()
 
@@ -352,15 +352,15 @@ describe('signingKeychain_type', () => {
 				.observeActiveSigningKey()
 				.pipe(take(expectedAccountAddressIndices.length), toArray())
 				.subscribe({
-					next: (accountList) => {
+					next: accountList => {
 						expect(
-							accountList.map((a) =>
+							accountList.map(a =>
 								a.hdPath!.addressIndex.value(),
 							),
 						).toStrictEqual(expectedAccountAddressIndices)
 						done()
 					},
-					error: (e) => done(e),
+					error: e => done(e),
 				}),
 		)
 
@@ -373,7 +373,7 @@ describe('signingKeychain_type', () => {
 		signingKeychain.switchSigningKey({ toIndex: 0 })
 	})
 
-	it('signingKeychain can add private key signingKey', (done) => {
+	it('signingKeychain can add private key signingKey', done => {
 		const privateKeyFromNum = (privateKeyScalar: number) =>
 			PrivateKey.fromScalar(
 				UInt256.valueOf(privateKeyScalar),
@@ -390,18 +390,18 @@ describe('signingKeychain_type', () => {
 			signingKeychain
 				.observeSigningKeys()
 				.pipe(
-					map((acs) => acs.size()),
+					map(acs => acs.size()),
 					take(expectedValues.length),
 					toArray(),
 				)
 				.subscribe(
-					(values) => {
+					values => {
 						expect(values).toStrictEqual(expectedValues)
 						subs.add(
 							signingKeychain
 								.observeActiveSigningKey()
 								.pipe(skip(1))
-								.subscribe((signingKey) => {
+								.subscribe(signingKey => {
 									const expPubKey =
 										'0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798'
 									expect(
@@ -423,7 +423,7 @@ describe('signingKeychain_type', () => {
 								}),
 						)
 					},
-					(e) => {
+					e => {
 						done(e)
 					},
 				),

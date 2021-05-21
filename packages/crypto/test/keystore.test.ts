@@ -83,10 +83,10 @@ describe('keystore', () => {
 			})
 
 			decryptedResult.match(
-				(_) => {
+				_ => {
 					throw new Error('Decrypted keystore, but expected error.')
 				},
-				(e) => {
+				e => {
 					const errMsg = msgFromError(e)
 					expect(errMsg).toBe(
 						`Failed to decrypt keystore, wrong password? Underlying error: 'AES decryption failed.'.`,

@@ -30,8 +30,8 @@ describe('bip39', () => {
 	})
 
 	it('should be able to generate a mnemonic with every BIP39 supported language for every strength', () => {
-		languagesSupportedByBIP39.forEach((language) => {
-			mnemonicStrengthSupportedByBIP39.forEach((strength) => {
+		languagesSupportedByBIP39.forEach(language => {
+			mnemonicStrengthSupportedByBIP39.forEach(strength => {
 				const mnemonic = Mnemonic.generateNew({ strength, language })
 				expect(mnemonic.language).toBe(language)
 				expect(mnemonic.strength).toBe(strength)
@@ -42,7 +42,7 @@ describe('bip39', () => {
 
 	it('should work with every BIP39 supported language', () => {
 		let wordFromLastWordlist = ''
-		languagesSupportedByBIP39.forEach((language) => {
+		languagesSupportedByBIP39.forEach(language => {
 			const wordList = wordlistFromLanguage(language)
 			expect(wordList).toBeDefined()
 			expect(wordList.length).toBe(2048)
@@ -60,13 +60,13 @@ describe('bip39', () => {
 			restoreDefaultLogLevel()
 		})
 
-		it('words must be checksummed', (done) => {
+		it('words must be checksummed', done => {
 			const abandonOnly = Array(12).fill('abandon') // last word should be e.g. 'about' to be checksummed.
 			Mnemonic.fromEnglishWords(abandonOnly).match(
-				(_) => {
+				_ => {
 					done(new Error('Expected error'))
 				},
-				(error) => {
+				error => {
 					expect(error.message).toBe(
 						'Invalid mnemonic, it is not checksummed.',
 					)
@@ -86,7 +86,7 @@ describe('bip39', () => {
 
 	it('should work with Trezor test vectors', () => {
 		languages.forEach((vectors, language) => {
-			vectors.forEach((vector) => {
+			vectors.forEach(vector => {
 				const phrase = vector.mnemonic
 				const mnemonic = Mnemonic.fromPhraseInLanguage({
 					phrase,

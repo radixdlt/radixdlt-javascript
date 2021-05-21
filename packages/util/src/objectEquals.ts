@@ -7,14 +7,14 @@ export const objectEquals = <K extends symbol, V>(
 	if (Object.keys(lhs).length !== Object.keys(rhs).length) return false
 	return (
 		Object.keys(lhs).filter(
-			(key) =>
+			key =>
 				rhs[key] !== lhs[key] ||
 				(rhs[key] === undefined && !(key in rhs)),
 		).length === 0
 	)
 }
 
-export const autoConvertMapToObject = (map) => {
+export const autoConvertMapToObject = map => {
 	const obj = {}
 	for (const item of [...map]) {
 		const [key, value] = item

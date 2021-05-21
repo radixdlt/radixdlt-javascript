@@ -53,7 +53,7 @@ describe('signingKey_type', () => {
 		)
 	})
 
-	it('radix_hd_path_hardened', async (done) => {
+	it('radix_hd_path_hardened', async done => {
 		const mnemonic = Mnemonic.fromEnglishPhrase(
 			'equip will roof matter pink blind book anxiety banner elbow sun young',
 		)._unsafeUnwrap()
@@ -93,7 +93,7 @@ describe('signingKey_type', () => {
 		const subs = new Subscription()
 
 		subs.add(
-			signingKey.sign(hashedMessage).subscribe((sig) => {
+			signingKey.sign(hashedMessage).subscribe(sig => {
 				expect(sig.toDER()).toBe(
 					'3044022078b0d2d17d227a8dd14ecdf0d7d65580ac6c17ab980c50074e6c096c4081313202207a9819ceedab3bfd3d22452224394d6cb41e3441f4675a5e7bf58f059fdf34cd',
 				)
@@ -169,7 +169,7 @@ describe('signingKey_type', () => {
 		expect(signingKey.isHardwareSigningKey).toBe(false)
 	})
 
-	it('hw signingKey', (done) => {
+	it('hw signingKey', done => {
 		const subs = new Subscription()
 
 		const mockHardwareSigningKey = (
@@ -246,7 +246,7 @@ describe('signingKey_type', () => {
 					plaintext,
 					publicKeyOfOtherParty: bobPubKey,
 				})
-				.subscribe((encryptedMessage) => {
+				.subscribe(encryptedMessage => {
 					MessageEncryption.decrypt({
 						encryptedMessage,
 						diffieHellmanPoint: bobPrivateKey.diffieHellman.bind(
@@ -254,11 +254,11 @@ describe('signingKey_type', () => {
 							hwSigningKey.publicKey,
 						),
 					}).match(
-						(decrypted) => {
+						decrypted => {
 							expect(decrypted.toString('utf8')).toBe(plaintext)
 							done()
 						},
-						(error) => {
+						error => {
 							done(error)
 						},
 					)

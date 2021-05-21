@@ -38,28 +38,23 @@ import {
 	LookupValidatorEndpoint,
 } from './_types'
 
-const callAPI = <Params extends unknown[], DecodedResponse>(
+const callAPI = <Params extends Record<string, unknown>, DecodedResponse>(
 	endpoint: Endpoint,
 ) => (
 	call: (endpoint: Endpoint, params: Params) => Promise<unknown>,
 	handleResponse: (response: unknown) => Result<DecodedResponse, Error[]>,
-) => (...params: Params) =>
-	pipe(
-		call,
-		andThen(handleResponse),
-		value =>
-			// ignore typecheck here because typings in Ramda pipe can't handle the spread operator.
-			// @ts-ignore
-			ResultAsync.fromPromise(value, (e: Error[]) => e).andThen(r => r),
+) => (params: Params) =>
+	pipe(call, andThen(handleResponse), value =>
 		// @ts-ignore
-	)(endpoint, ...params)
+		ResultAsync.fromPromise(value, (e: Error[]) => e).andThen(r => r),
+	)(endpoint, params)
 
 const setupAPICall = (
 	call: (
 		endpoint: Endpoint,
-		params: unknown[] | Record<string, unknown>,
+		params: Record<string, unknown>,
 	) => Promise<unknown>,
-) => <I extends unknown[], R>(
+) => <I extends Record<string, unknown>, R>(
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	handleResponse: (response: any) => Result<R, Error[]>,
 ) => (endpoint: Endpoint) => callAPI<I, R>(endpoint)(call, handleResponse)
@@ -67,7 +62,7 @@ const setupAPICall = (
 export const getAPI = (
 	call: (
 		endpoint: Endpoint,
-		params: unknown[] | Record<string, unknown>,
+		params: Record<string, unknown>,
 	) => Promise<unknown>,
 ) => {
 	const setupAPIResponse = setupAPICall(call)

@@ -9,7 +9,7 @@ describe('result', () => {
 
 		const combined = combine([foo, bar, buz, biz])
 
-		const result = combined.map((resultList) => ({
+		const result = combined.map(resultList => ({
 			foo: resultList[0],
 			bar: resultList[1],
 			buz: resultList[2],

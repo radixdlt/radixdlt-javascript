@@ -196,7 +196,7 @@ describe('BIP32', () => {
 	})
 
 	it('bip32 test vectors', () => {
-		bip32Vectors.forEach((vector) => {
+		bip32Vectors.forEach(vector => {
 			const masterSeed = HDMasterSeed.fromSeed(
 				Buffer.from(vector.seed, 'hex'),
 			)

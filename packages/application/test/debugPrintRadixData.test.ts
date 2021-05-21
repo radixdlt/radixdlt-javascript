@@ -16,14 +16,14 @@ describe.skip('debugPrintRadixData', () => {
 		'brx1qsp0we5yamtxqv5f2g94fml2z47j6n5kepd552dx980hs8y042ry5yq64vy06',
 	)._unsafeUnwrap()
 
-	it('txHistorydate', (done) => {
+	it('txHistorydate', done => {
 		const subs = new Subscription()
 
 		subs.add(
 			radix.ledger
 				.transactionHistory({ address: address, size: 5 })
 				.subscribe(
-					(history) => {
+					history => {
 						console.log(
 							`🔮 history.tx: ${stringifySimpleTXHistory(
 								history,
@@ -31,7 +31,7 @@ describe.skip('debugPrintRadixData', () => {
 						)
 						done()
 					},
-					(error) => {
+					error => {
 						done(
 							new Error(
 								`Failed to get tx: ${msgFromError(error)}`,
@@ -42,11 +42,11 @@ describe.skip('debugPrintRadixData', () => {
 		)
 	})
 
-	it('tokenBalances', (done) => {
+	it('tokenBalances', done => {
 		const subs = new Subscription()
 
 		subs.add(
-			radix.ledger.tokenBalancesForAddress(address).subscribe((tbs) => {
+			radix.ledger.tokenBalancesForAddress(address).subscribe(tbs => {
 				console.log(
 					`🔮 tokenBalances:\n${stringifySimpleTokenBalances(tbs)}`,
 				)
