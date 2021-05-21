@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.30](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/networking@1.0.29...@radixdlt/networking@1.0.30) (2021-05-21)
+
+**Note:** Version bump only for package @radixdlt/networking
+
+
+
+
+
 ## [1.0.29](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/networking@1.0.28...@radixdlt/networking@1.0.29) (2021-05-20)
 
 **Note:** Version bump only for package @radixdlt/networking
