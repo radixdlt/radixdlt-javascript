@@ -7220,10 +7220,10 @@ ono@^4.0.11:
   dependencies:
     format-util "^1.0.3"
 
-open-rpc-utils@^1.0.5:
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/open-rpc-utils/-/open-rpc-utils-1.0.5.tgz#2d6a04feea189b5f0edbb6d8d4616bfc8d730438"
-  integrity sha512-4+rTwx67/boYqapXJHj4ENj22SHpABtrXv4+hiddlYZmxNt+0uM7rDq/CFg5kVYSCPdx0oD4P+mTiDKfdIfDjw==
+open-rpc-utils@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/open-rpc-utils/-/open-rpc-utils-1.1.1.tgz#3ee32d3d45ac984db5ce3c3693556170e0c0b0ad"
+  integrity sha512-HyzUwv4gYwxtv6XVHctOKhQjCylRVk+9LLyQG1CgmRcjyUF/yoF/exawbNOEiHnvTG+pY8YxnR4C7LnKoISJmw==
   dependencies:
     "@json-schema-tools/dereferencer" "^1.4.0"
     "@json-schema-tools/meta-schema" "^1.5.10"

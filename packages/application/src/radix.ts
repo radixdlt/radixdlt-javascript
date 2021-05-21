@@ -446,6 +446,7 @@ const create = (
 		options: MakeTransactionOptions,
 	): TransactionTracking => {
 		const txLog = radixLog // TODO configure child loggers
+		const txSubs = new Subscription()
 
 		txLog.debug(
 			`Start of transaction flow, inside constructor of 'TransactionTracking'.`,
@@ -490,7 +491,7 @@ const create = (
 			txLog.debug(
 				'Transaction has been setup to be automatically confirmed, requiring no final confirmation input from user.',
 			)
-			subs.add(
+			txSubs.add(
 				askUserToConfirmSubject.subscribe(() => {
 					txLog.debug(
 						`askUserToConfirmSubject got 'next', calling 'next' on 'userDidConfirmTransactionSubject'`,
@@ -505,7 +506,7 @@ const create = (
 			const twoWayConfirmationSubject: Subject<ManualUserConfirmTX> =
 				options.userConfirmation
 
-			subs.add(
+			txSubs.add(
 				askUserToConfirmSubject.subscribe(ux => {
 					txLog.info(
 						`Forwarding signedUnconfirmedTX and 'userDidConfirmTransactionSubject' to subject 'twoWayConfirmationSubject' now (inside subscribe to 'askUserToConfirmSubject')`,
@@ -645,7 +646,7 @@ const create = (
 			}),
 		)
 
-		subs.add(
+		txSubs.add(
 			combineLatest([finalizedTx$, signedTransaction$])
 				.pipe(
 					mergeMap(
@@ -724,7 +725,7 @@ const create = (
 			take(1),
 		)
 
-		subs.add(
+		txSubs.add(
 			transactionStatus$.subscribe({
 				next: statusOfTransaction => {
 					const { status, txID } = statusOfTransaction
@@ -746,7 +747,7 @@ const create = (
 			}),
 		)
 
-		subs.add(
+		txSubs.add(
 			transactionCompletedWithStatusConfirmed$.subscribe({
 				next: statusOfTransaction => {
 					const { txID } = statusOfTransaction
@@ -760,11 +761,12 @@ const create = (
 
 					completionSubject.next(txID)
 					completionSubject.complete()
+					txSubs.unsubscribe()
 				},
 			}),
 		)
 
-		subs.add(
+		txSubs.add(
 			transactionCompletedWithStatusFailed$.subscribe(status => {
 				const errMsg = `API status of tx with id=${status.txID.toString()} returned 'FAILED'`
 				txLog.error(errMsg)
@@ -773,6 +775,7 @@ const create = (
 					inStep:
 						TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
 				})
+				txSubs.unsubscribe()
 			}),
 		)
 
