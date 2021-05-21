@@ -11,6 +11,5 @@
     {"path": "../crypto"},
     {"path": "../primitives"},
     {"path": "../util"},
-    {"path": "../account"},
   ]
 }
