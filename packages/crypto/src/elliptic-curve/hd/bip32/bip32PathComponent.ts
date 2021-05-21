@@ -28,14 +28,12 @@ const create = (
 	}>,
 ): Result<BIP32PathComponentT, Error> => {
 	const { isHardened } = input
-	return assertNotHardened({ ...input }).map((index) => {
-		return {
-			...input,
-			index: isHardened ? index + hardenedIncrement : index,
-			value: () => index,
-			toString: (): string => `${index}` + (isHardened ? `'` : ''),
-		}
-	})
+	return assertNotHardened({ ...input }).map(index => ({
+		...input,
+		index: isHardened ? index + hardenedIncrement : index,
+		value: () => index,
+		toString: (): string => `${index}` + (isHardened ? `'` : ''),
+	}))
 }
 
 export const isBIP32PathSimpleT = (

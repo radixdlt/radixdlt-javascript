@@ -19,15 +19,13 @@ const create = (io?: EmulatedLedgerIO): MockedLedgerNanoRecorderT => {
 	const requests: LedgerRequest[] = []
 	const rNr: RequestAndResponse[] = []
 
-	const lastRnR = (): RequestAndResponse => {
-		return rNr[rNr.length - 1]
-	}
+	const lastRnR = (): RequestAndResponse => rNr[rNr.length - 1]
 
 	const recordRequest = (request: LedgerRequest): void => {
 		requests.push(request)
 	}
 	const recordResponse = (response: LedgerResponse): RequestAndResponse => {
-		const requestIndex = requests.findIndex((r) => r.uuid === response.uuid)
+		const requestIndex = requests.findIndex(r => r.uuid === response.uuid)
 		if (requestIndex === -1) {
 			throw new Error(
 				`Found no request matching UUID of response: ${response.uuid}`,
@@ -51,15 +49,13 @@ const create = (io?: EmulatedLedgerIO): MockedLedgerNanoRecorderT => {
 	const promptUserForInputSubject = new BehaviorSubject<PromptUserForInput>(
 		<PromptUserForInput>{},
 	)
-	const lastUserInput = (): LedgerButtonPress => {
-		return lastUserInputSubject.getValue()
-	}
-	const lastPromptToUser = (): PromptUserForInput => {
-		return promptUserForInputSubject.getValue()
-	}
+	const lastUserInput = (): LedgerButtonPress =>
+		lastUserInputSubject.getValue()
+	const lastPromptToUser = (): PromptUserForInput =>
+		promptUserForInputSubject.getValue()
 
 	subs.add(
-		usersInputOnLedger.subscribe((fromUser) => {
+		usersInputOnLedger.subscribe(fromUser => {
 			const lastPrompt = lastPromptToUser()
 			const newUserIO: UserOutputAndInput = {
 				toUser: lastPrompt,
@@ -71,7 +67,7 @@ const create = (io?: EmulatedLedgerIO): MockedLedgerNanoRecorderT => {
 	)
 
 	subs.add(
-		promptUserForInputOnLedger.subscribe((p) => {
+		promptUserForInputOnLedger.subscribe(p => {
 			promptUserForInputSubject.next(p)
 		}),
 	)

@@ -26,7 +26,7 @@ const deriveKey = (
 	const salt = Buffer.from(params.salt, 'hex')
 
 	return ResultAsync.fromPromise(
-		scrypt(key, salt, n, r, p, dklen).then((uint8array) =>
+		scrypt(key, salt, n, r, p, dklen).then(uint8array =>
 			Buffer.from(uint8array),
 		),
 		(e: unknown) => {

@@ -48,7 +48,7 @@ export const __validateEncryptedMessageLength = (
 	combine([
 		__validateEncryptedMessageMaxLength(buffer),
 		__validateEncryptedMessageMinLength(buffer),
-	]).map((_) => buffer)
+	]).map(_ => buffer)
 
 const createEncrypted = (
 	encryptionScheme: EncryptionScheme,
@@ -60,7 +60,7 @@ const createEncrypted = (
 			Buffer.from([encryptionScheme]),
 			sealedMessage.combined(),
 		]),
-	).map((combinedBuffer) => ({
+	).map(combinedBuffer => ({
 		kind: 'ENCRYPTED',
 		messageType: MessageType.ENCRYPTED,
 		encryptionScheme,

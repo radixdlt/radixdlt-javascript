@@ -21,7 +21,7 @@ const hrpBetanet = 'vb'
 const maxLength = 300 // arbitrarily chosen
 const encoding = Encoding.BECH32
 
-const hrpFromNetwork: HRPFromNetwork = (network) => {
+const hrpFromNetwork: HRPFromNetwork = network => {
 	switch (network) {
 		case NetworkT.BETANET:
 			return hrpBetanet
@@ -30,7 +30,7 @@ const hrpFromNetwork: HRPFromNetwork = (network) => {
 	}
 }
 
-const networkFromHRP: NetworkFromHRP = (hrp) => {
+const networkFromHRP: NetworkFromHRP = hrp => {
 	if (hrp === hrpMainnet) return ok(NetworkT.MAINNET)
 	if (hrp === hrpBetanet) return ok(NetworkT.BETANET)
 	const errMsg = `Failed to parse network from HRP ${hrp} for ValidatorAddress.`
@@ -52,7 +52,7 @@ const fromPublicKeyAndNetwork = (
 		encoding,
 		maxLength,
 	})
-		.orElse((e) => {
+		.orElse(e => {
 			throw new Error(
 				`Expected to always be able to create validator address from publicKey and network, but got error: ${e.message}`,
 			)
@@ -73,9 +73,7 @@ export type ValidatorAddressUnsafeInput = string
 
 const isValidatorAddressUnsafeInput = (
 	something: unknown,
-): something is ValidatorAddressUnsafeInput => {
-	return typeof something === 'string'
-}
+): something is ValidatorAddressUnsafeInput => typeof something === 'string'
 
 export type ValidatorAddressOrUnsafeInput =
 	| ValidatorAddressUnsafeInput

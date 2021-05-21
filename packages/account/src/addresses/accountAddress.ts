@@ -25,7 +25,7 @@ const maxLength = 300 // arbitrarily chosen
 const versionByte = Buffer.from([0x04])
 const encoding = Encoding.BECH32
 
-const hrpFromNetwork: HRPFromNetwork = (network) => {
+const hrpFromNetwork: HRPFromNetwork = network => {
 	switch (network) {
 		case NetworkT.BETANET:
 			return hrpBetanet
@@ -34,14 +34,14 @@ const hrpFromNetwork: HRPFromNetwork = (network) => {
 	}
 }
 
-const networkFromHRP: NetworkFromHRP = (hrp) => {
+const networkFromHRP: NetworkFromHRP = hrp => {
 	if (hrp === hrpMainnet) return ok(NetworkT.MAINNET)
 	if (hrp === hrpBetanet) return ok(NetworkT.BETANET)
 	const errMsg = `Failed to parse network from HRP ${hrp} for ValidatorAddress.`
 	return err(new Error(errMsg))
 }
 
-const formatDataToBech32Convert: FormatDataToBech32Convert = (data) =>
+const formatDataToBech32Convert: FormatDataToBech32Convert = data =>
 	Buffer.concat([versionByte, data])
 
 const validateDataAndExtractPubKeyBytes: ValidateDataAndExtractPubKeyBytes = (
@@ -74,7 +74,7 @@ const fromPublicKeyAndNetwork = (
 		encoding,
 		maxLength,
 	})
-		.orElse((e) => {
+		.orElse(e => {
 			throw new Error(
 				`Expected to always be able to create AccountAddress from publicKey and network, but got error: ${e.message}`,
 			)
@@ -96,9 +96,7 @@ export type AccountAddressUnsafeInput = string
 
 const isAccountAddressUnsafeInput = (
 	something: unknown,
-): something is AccountAddressUnsafeInput => {
-	return typeof something === 'string'
-}
+): something is AccountAddressUnsafeInput => typeof something === 'string'
 
 export type AddressOrUnsafeInput = AccountAddressUnsafeInput | AccountAddressT
 

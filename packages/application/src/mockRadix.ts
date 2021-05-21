@@ -147,17 +147,15 @@ export const balanceOfFor = (
 export const balancesFor = (
 	address: AccountAddressT,
 	amount: number,
-): SimpleTokenBalances => {
-	return {
-		owner: address,
-		tokenBalances: [
-			balanceOfFor({
-				token: xrd,
-				amount,
-			}),
-		],
-	}
-}
+): SimpleTokenBalances => ({
+	owner: address,
+	tokenBalances: [
+		balanceOfFor({
+			token: xrd,
+			amount,
+		}),
+	],
+})
 
 const differentTokens: Token[] = [
 	xrd,
@@ -173,9 +171,10 @@ const differentTokens: Token[] = [
 export const tokenByRRIMap: Map<
 	ResourceIdentifierT,
 	Token
-> = differentTokens.reduce((a: Map<ResourceIdentifierT, Token>, b: Token) => {
-	return a.set(b.rri, b)
-}, new Map<ResourceIdentifierT, Token>())
+> = differentTokens.reduce(
+	(a: Map<ResourceIdentifierT, Token>, b: Token) => a.set(b.rri, b),
+	new Map<ResourceIdentifierT, Token>(),
+)
 
 const detPRNGWithBuffer = (buffer: Buffer): (() => number) => {
 	const bufCopy = Buffer.from(buffer)
@@ -258,7 +257,7 @@ const characterNames: string[] = [
 	>[Property]
 * */
 export const castOfCharacters: AccountAddressT[] = addressesString
-	.map((s) =>
+	.map(s =>
 		AccountAddress.fromUnsafe(s)._unsafeUnwrap({ withStackTrace: true }),
 	)
 	.slice(0, characterNames.length)
@@ -315,7 +314,7 @@ const makeListOfValidatorAddresses = (): ValidatorAddressT[] => {
 		'vb1qg9l7vdfx430n2p0qktuxh8nv4anhvhjlqzd8yecn6krnx7jqqq7jyv2vjz',
 	]
 
-	return stringAddresses.map((s) =>
+	return stringAddresses.map(s =>
 		ValidatorAddress.fromUnsafe(s)._unsafeUnwrap({ withStackTrace: true }),
 	)
 }
@@ -370,7 +369,7 @@ const randomUnsignedTransaction = (
 ): BuiltTransaction => {
 	const transactionIntentDet = {
 		...transactionIntent,
-		actions: transactionIntent.actions.map((a) => ({
+		actions: transactionIntent.actions.map(a => ({
 			...a,
 		})),
 	}
@@ -471,7 +470,7 @@ export const deterministicRandomBalancesForAddress = (
 ): SimpleTokenBalances => {
 	const anInt = detPRNGWithPubKey(address.publicKey)
 
-	const tokenBalances = detRandBalanceOfTokenWithInfo(anInt).map((bti) =>
+	const tokenBalances = detRandBalanceOfTokenWithInfo(anInt).map(bti =>
 		balanceOfFor(bti),
 	)
 
@@ -523,13 +522,12 @@ export const deterministicRandomUnstakesForAddress = (
 
 export const deterministicRandomStakesForAddress = (
 	address: AccountAddressT,
-): StakePositions => {
-	return deterministicRandomUnstakesForAddress(address).map(
+): StakePositions =>
+	deterministicRandomUnstakesForAddress(address).map(
 		(un): StakePosition => ({
 			...un,
 		}),
 	)
-}
 
 export const deterministicRandomTxHistoryWithInput = (
 	input: TransactionHistoryRequestInput,
@@ -544,8 +542,8 @@ export const deterministicRandomTxHistoryWithInput = (
 	const detRandomValidatorAddress = detRandomValidatorAddressWithPRNG(anInt)
 	const tokenAndAmounts = detRandBalanceOfTokenWithInfo(anInt)
 
-	const deterministicRandomExecutedTransactions = (): ExecutedTransaction[] => {
-		return Array(input.size)
+	const deterministicRandomExecutedTransactions = (): ExecutedTransaction[] =>
+		Array(input.size)
 			.fill(undefined)
 			.map(
 				(_, index): ExecutedTransaction => {
@@ -647,7 +645,6 @@ export const deterministicRandomTxHistoryWithInput = (
 					}
 				},
 			)
-	}
 
 	const updatedCursor = sha256(
 		input.cursor !== undefined ? Buffer.from(input.cursor) : pubKeyBytes,
@@ -806,9 +803,8 @@ export const mockRadixCoreAPI = (
 	return {
 		node: { url: new URL(input?.nodeUrl ?? 'https://www.radixdlt.com/') },
 
-		networkId: (): Observable<NetworkT> => {
-			return of(input?.network ?? NetworkT.BETANET).pipe(shareReplay(1))
-		},
+		networkId: (): Observable<NetworkT> =>
+			of(input?.network ?? NetworkT.BETANET).pipe(shareReplay(1)),
 		nativeToken: (): Observable<Token> => of(xrd),
 		tokenInfo: (rri: ResourceIdentifierT): Observable<Token> =>
 			of(tokenByRRIMap.get(rri) ?? __fallBackAlexToken),
@@ -853,7 +849,7 @@ export const mockRadixCoreAPI = (
 			signedTransaction: SignedTransaction,
 		): Observable<FinalizedTransaction> =>
 			of(detRandomSignedUnconfirmedTransaction(signedTransaction)),
-		submitSignedTransaction: (signedUnconfirmedTX) =>
+		submitSignedTransaction: signedUnconfirmedTX =>
 			of(randomPendingTransaction(signedUnconfirmedTX)),
 		networkTransactionDemand: (): Observable<NetworkTransactionDemand> =>
 			of(randomDemand()),

@@ -41,16 +41,13 @@ const create = (
 		__validateNonce(input.nonce),
 		__validateTag(input.authTag),
 		__validateAESSealedBoxCiphertext(input.ciphertext),
-	]).map((_) => ({
+	]).map(_ => ({
 		...input,
 		combined: (): Buffer => combineSealedBoxProps(input),
-		equals: (other: AES_GCM_SealedBoxT): boolean => {
-			return (
-				buffersEquals(other.nonce, input.nonce) &&
-				buffersEquals(other.authTag, input.authTag) &&
-				buffersEquals(other.ciphertext, input.ciphertext)
-			)
-		},
+		equals: (other: AES_GCM_SealedBoxT): boolean =>
+			buffersEquals(other.nonce, input.nonce) &&
+			buffersEquals(other.authTag, input.authTag) &&
+			buffersEquals(other.ciphertext, input.ciphertext),
 	}))
 
 /* Buffer is: `nonce || tag || cipher` */

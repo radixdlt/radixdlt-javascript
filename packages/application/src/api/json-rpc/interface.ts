@@ -47,10 +47,10 @@ const callAPI = <Params extends unknown[], DecodedResponse>(
 	pipe(
 		call,
 		andThen(handleResponse),
-		(value) =>
+		value =>
 			// ignore typecheck here because typings in Ramda pipe can't handle the spread operator.
 			// @ts-ignore
-			ResultAsync.fromPromise(value, (e: Error[]) => e).andThen((r) => r),
+			ResultAsync.fromPromise(value, (e: Error[]) => e).andThen(r => r),
 		// @ts-ignore
 	)(endpoint, ...params)
 

@@ -12,12 +12,9 @@ const create = (
 		authTag: Buffer
 		ciphertext: Buffer
 	}>,
-): Result<SealedMessageT, Error> => {
-	return combine([
-		__validateNonce(input.nonce),
-		__validateTag(input.authTag),
-	]).map((_) => {
-		return {
+): Result<SealedMessageT, Error> =>
+	combine([__validateNonce(input.nonce), __validateTag(input.authTag)]).map(
+		_ => ({
 			...input,
 			combined: (): Buffer =>
 				Buffer.concat([
@@ -26,9 +23,8 @@ const create = (
 					input.authTag,
 					input.ciphertext,
 				]),
-		}
-	})
-}
+		}),
+	)
 
 const sealedMessageNonceLength = AES_GCM.nonceLength
 const sealedMessageAuthTagLength = AES_GCM.tagLength
@@ -71,7 +67,7 @@ const sealedMessageFromBuffer = (
 		readNextBuffer(sealedMessageNonceLength),
 		readNextBuffer(sealedMessageAuthTagLength),
 		readNextBuffer(lengthOfCiphertext),
-	]).andThen((resultList) => {
+	]).andThen(resultList => {
 		const ephemeralPublicKey = resultList[0] as PublicKeyT
 		const nonce = resultList[1] as Buffer
 		const authTag = resultList[2] as Buffer

@@ -32,18 +32,16 @@ const hdPathToBuffer = (hdPath: HDPathRadixT): Buffer => {
 	return data
 }
 
-const makeAPDU = (input: Omit<PartialAPDUT, 'cla'>): RadixAPDUT => {
-	return {
-		cla: radixCLA,
-		ins: input.ins,
-		p1: input.p1 ?? 0,
-		p2: input.p2 ?? 0,
-		data: input.data,
-		requiredResponseStatusCodeFromDevice: input.requiredResponseStatusCodeFromDevice ?? [
-			LedgerResponseCodes.SW_OK,
-		],
-	}
-}
+const makeAPDU = (input: Omit<PartialAPDUT, 'cla'>): RadixAPDUT => ({
+	cla: radixCLA,
+	ins: input.ins,
+	p1: input.p1 ?? 0,
+	p2: input.p2 ?? 0,
+	data: input.data,
+	requiredResponseStatusCodeFromDevice: input.requiredResponseStatusCodeFromDevice ?? [
+		LedgerResponseCodes.SW_OK,
+	],
+})
 
 const getVersion = (): RadixAPDUT =>
 	makeAPDU({

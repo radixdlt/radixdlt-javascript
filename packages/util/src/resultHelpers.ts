@@ -23,7 +23,7 @@ export const flattenResultsObject = (
 	const errors: (Error | Error[])[] = []
 
 	const flattened = json
-		.map((value) => {
+		.map(value => {
 			if (!isObject(value)) return value
 			for (const item in value) {
 				const objValue = value[item]
@@ -35,7 +35,7 @@ export const flattenResultsObject = (
 			}
 			return value
 		})
-		.mapErr((err) => {
+		.mapErr(err => {
 			errors.push(err)
 			return errors.flat()
 		})

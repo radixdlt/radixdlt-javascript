@@ -106,7 +106,7 @@ const emulateDoSignHash = (
 	const confirmRequest = !requireConfirmation
 		? of(LedgerButtonPress.BOTH_CONFIRM)
 		: usersInputOnLedger.pipe(
-				tap((buttonPress) => {
+				tap(buttonPress => {
 					if (buttonPress === LedgerButtonPress.LEFT_REJECT) {
 						throw LedgerResponseCodes.SW_USER_REJECTED
 					}
@@ -114,15 +114,13 @@ const emulateDoSignHash = (
 		  )
 
 	return confirmRequest.pipe(
-		mergeMap((_) => {
-			return toObservable(privateKey.sign(hashedData))
-		}),
-		map((signature: SignatureT) => {
-			return Buffer.concat([
+		mergeMap(_ => toObservable(privateKey.sign(hashedData))),
+		map((signature: SignatureT) =>
+			Buffer.concat([
 				Buffer.from(signature.r.toString(16), 'hex'),
 				Buffer.from(signature.s.toString(16), 'hex'),
-			])
-		}),
+			]),
+		),
 	)
 }
 
@@ -176,7 +174,7 @@ const emulateDoKeyExchange = (
 	const confirmRequest = !requireConfirmation
 		? of(LedgerButtonPress.BOTH_CONFIRM)
 		: usersInputOnLedger.pipe(
-				tap((buttonPress) => {
+				tap(buttonPress => {
 					if (buttonPress === LedgerButtonPress.LEFT_REJECT) {
 						throw LedgerResponseCodes.SW_USER_REJECTED
 					}
@@ -184,9 +182,9 @@ const emulateDoKeyExchange = (
 		  )
 
 	return confirmRequest.pipe(
-		mergeMap((_) => {
-			return toObservable(privateKey.diffieHellman(publicKeyOfOtherParty))
-		}),
+		mergeMap(_ =>
+			toObservable(privateKey.diffieHellman(publicKeyOfOtherParty)),
+		),
 		map((ecPoint: ECPointOnCurveT) => ecPoint.toBuffer()),
 	)
 }

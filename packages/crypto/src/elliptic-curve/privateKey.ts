@@ -62,13 +62,12 @@ const __privateKeyFromValidatedScalar = (scalar: UInt256): PrivateKeyT => {
 
 	const diffieHellman: DiffieHellman = (
 		publicKeyOfOtherParty: PublicKeyT,
-	): ResultAsync<ECPointOnCurveT, Error> => {
-		return okAsync(
+	): ResultAsync<ECPointOnCurveT, Error> =>
+		okAsync(
 			publicKeyOfOtherParty
 				.decodeToPointOnCurve()
 				.multiplyWithPrivateKey(privateKey),
 		)
-	}
 
 	const privateKey = {
 		sign,
@@ -89,9 +88,7 @@ const __privateKeyFromValidatedScalar = (scalar: UInt256): PrivateKeyT => {
 		publicKey: () => {
 			throw new Error('Overridden below.')
 		},
-		toString: (): string => {
-			return scalar.toString(16)
-		},
+		toString: (): string => scalar.toString(16),
 		scalar: scalar,
 	}
 

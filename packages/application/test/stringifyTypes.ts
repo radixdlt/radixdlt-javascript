@@ -41,40 +41,33 @@ export const stringifyAction = (action: ExecutedAction): string => {
 	}
 }
 
-export const stringifySimpleTX = (tx: SimpleExecutedTransaction): string => {
-	return `
+export const stringifySimpleTX = (tx: SimpleExecutedTransaction): string => `
 	txID: ${tx.txID.toString()}
 	fee: ${stringifyAmount(tx.fee)}
 	sentAt: ${tx.sentAt.toLocaleString()}
 	message: ${tx.message !== undefined ? tx.message : '<NONE>'}
 	actions: [
-	${tx.actions.map((a) => stringifyAction(a)).join('\n')}
+	${tx.actions.map(a => stringifyAction(a)).join('\n')}
 	]
 	`
-}
 
 export const stringifySimpleTXHistory = (
 	simpleTxHist: SimpleTransactionHistory,
-): string => {
-	return `transactions: ${simpleTxHist.transactions
-		.map((t) => stringifySimpleTX(t))
+): string =>
+	`transactions: ${simpleTxHist.transactions
+		.map(t => stringifySimpleTX(t))
 		.join('\n')}`
-}
 
-export const stringifySimpleTokenBalance = (tb: SimpleTokenBalance): string => {
-	return `
+export const stringifySimpleTokenBalance = (tb: SimpleTokenBalance): string => `
 		amount: ${stringifyAmount(tb.amount)}
 		rri: ${tb.tokenIdentifier.toString()}
 	`
-}
 
 export const stringifySimpleTokenBalances = (
 	tokenBalances: SimpleTokenBalances,
-): string => {
-	return `
+): string => `
 		owner: ${tokenBalances.owner.toString()},
 		balances: ${tokenBalances.tokenBalances
-			.map((tb) => stringifySimpleTokenBalance(tb))
+			.map(tb => stringifySimpleTokenBalance(tb))
 			.join('\n')}
 	`
-}

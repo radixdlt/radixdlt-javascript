@@ -5,7 +5,7 @@
   "useTabs": true,
   "singleQuote": true,
   "trailingComma": "all",
-  "arrowParens": "always",
+  "arrowParens": "avoid",
   "semi": false,
   "overrides": [
     {

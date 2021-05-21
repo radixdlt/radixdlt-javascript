@@ -55,8 +55,8 @@ export const singleRecipientFromActions = (
 	actions: UserAction[],
 ): Result<PublicKeyT, Error> => {
 	const others = flatMapAddressesOf({ actions })
-		.map((a) => a.publicKey)
-		.filter((a) => !a.equals(mine))
+		.map(a => a.publicKey)
+		.filter(a => !a.equals(mine))
 
 	if (others.length > 1) {
 		const errMsg = `Cannot encrypt/decrypt message for a transaction containing more than one recipient addresses.`
@@ -82,21 +82,18 @@ const ensureSingleRecipient = (
 		intendedActionsFrom: IntendedActionsFrom
 		encryptingAccount: AccountT
 	}>,
-): Observable<ActorsInEncryption> => {
-	return toObservableFromResult(
+): Observable<ActorsInEncryption> =>
+	toObservableFromResult(
 		singleRecipientFromActions(
 			input.encryptingAccount.publicKey,
 			input.intendedActionsFrom.intendedActions,
 		),
 	).pipe(
-		map((singleRecipientPublicKey) => {
-			return {
-				encryptingAccount: input.encryptingAccount,
-				singleRecipientPublicKey: singleRecipientPublicKey,
-			}
-		}),
+		map(singleRecipientPublicKey => ({
+			encryptingAccount: input.encryptingAccount,
+			singleRecipientPublicKey: singleRecipientPublicKey,
+		})),
 	)
-}
 
 type IntermediateAction = ActionInput & {
 	type: 'transfer' | 'stake' | 'unstake'
@@ -201,7 +198,7 @@ export const flatMapAddressesOf = (
 	)
 
 	const set = new Set<string>()
-	return flatMapped.filter((a) => {
+	return flatMapped.filter(a => {
 		const str = a.toString()
 		const hasNt = !set.has(str)
 		set.add(str)
@@ -333,32 +330,29 @@ const create = (): TransactionIntentBuilderT => {
 					}
 				},
 			),
-		).map((intendedActions) => ({ intendedActions, from }))
+		).map(intendedActions => ({ intendedActions, from }))
 	}
 
 	const syncBuildDoNotEncryptMessageIfAny = (
 		from: AccountAddressT,
-	): Result<TransactionIntent, Error> => {
-		return intendedActionsFromIntermediateActions(from).map(
+	): Result<TransactionIntent, Error> =>
+		intendedActionsFromIntermediateActions(from).map(
 			({ intendedActions }) => ({
 				actions: intendedActions,
 				message: maybePlaintextMsgToEncrypt
-					.map((msg) =>
+					.map(msg =>
 						MessageEncryption.encodePlaintext(msg.plaintext),
 					)
 					.getOrUndefined(),
 			}),
 		)
-	}
 
 	const build = (
 		options: TransactionIntentBuilderOptions,
 	): Observable<TransactionIntent> => {
 		if (isTransactionIntentBuilderDoNotEncryptOption(options)) {
 			if (
-				maybePlaintextMsgToEncrypt
-					.map((m) => m.encrypt)
-					.getOrElse(false)
+				maybePlaintextMsgToEncrypt.map(m => m.encrypt).getOrElse(false)
 			) {
 				const errMsg = `Message in transaction specifies it should be encrypted, but input to TransactionIntentBuilder build method specifies that it (the builder) should not encrypt the message, and does not provide any account with which we can perform encryption.`
 				console.error(errMsg)
@@ -383,7 +377,7 @@ const create = (): TransactionIntentBuilderT => {
 		const spendingSender: Observable<AccountAddressT> =
 			options.spendingSender ??
 			options.encryptMessageIfAnyWithAccount.pipe(
-				map((account) => account.address),
+				map(account => account.address),
 			)
 		return spendingSender.pipe(
 			mergeMap((from: AccountAddressT) =>
@@ -400,7 +394,7 @@ const create = (): TransactionIntentBuilderT => {
 					): Observable<TransactionIntent> => {
 						log.info(
 							`Successfully built transaction. Actions: ${intendedActionsFrom.intendedActions
-								.map((action) => action.type)
+								.map(action => action.type)
 								.toString()}`,
 						)
 						return of({
@@ -415,7 +409,7 @@ const create = (): TransactionIntentBuilderT => {
 					}
 
 					return maybePlaintextMsgToEncrypt.match({
-						Some: (msgInTx) => {
+						Some: msgInTx => {
 							if (!msgInTx.encrypt) {
 								const errMsg =
 									'You are trying to encrypt a message which was specified not to be encrypted.'
@@ -437,15 +431,12 @@ const create = (): TransactionIntentBuilderT => {
 								mergeMap(
 									(
 										actors: ActorsInEncryption,
-									): Observable<EncryptedMessageT> => {
-										return actors.encryptingAccount.encrypt(
-											{
-												plaintext: msgInTx.plaintext,
-												publicKeyOfOtherParty:
-													actors.singleRecipientPublicKey,
-											},
-										)
-									},
+									): Observable<EncryptedMessageT> =>
+										actors.encryptingAccount.encrypt({
+											plaintext: msgInTx.plaintext,
+											publicKeyOfOtherParty:
+												actors.singleRecipientPublicKey,
+										}),
 								),
 								map(
 									(
@@ -453,7 +444,7 @@ const create = (): TransactionIntentBuilderT => {
 									): TransactionIntent => {
 										log.info(
 											`Successfully built transaction with encrypted message. Actions: ${intendedActionsFrom.intendedActions
-												.map((action) => action.type)
+												.map(action => action.type)
 												.toString()}`,
 										)
 										return {

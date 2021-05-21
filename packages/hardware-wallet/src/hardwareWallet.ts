@@ -28,37 +28,34 @@ type HardwareWalletWithoutSK = Omit<HardwareWalletT, 'makeSigningKey'>
 const signingKeyWithHardWareWallet = (
 	hardwareWallet: HardwareWalletWithoutSK,
 	path: HDPathRadixT,
-): Observable<HardwareSigningKeyT> => {
-	return hardwareWallet
+): Observable<HardwareSigningKeyT> =>
+	hardwareWallet
 		.getPublicKey({
 			path,
 			requireConfirmationOnDevice: true,
 		})
 		.pipe(
-			map((publicKey: PublicKeyT) => {
-				return {
-					publicKey,
-					sign: (hashedMessage: Buffer): Observable<SignatureT> =>
-						hardwareWallet.doSignHash({
-							hashToSign: hashedMessage,
-							path,
-						}),
-					keyExchange: (
-						publicKeyOfOtherParty: PublicKeyT,
-					): Observable<ECPointOnCurveT> =>
-						hardwareWallet.doKeyExchange({
-							requireConfirmationOnDevice: true,
-							path,
-							publicKeyOfOtherParty,
-						}),
-				}
-			}),
+			map((publicKey: PublicKeyT) => ({
+				publicKey,
+				sign: (hashedMessage: Buffer): Observable<SignatureT> =>
+					hardwareWallet.doSignHash({
+						hashToSign: hashedMessage,
+						path,
+					}),
+				keyExchange: (
+					publicKeyOfOtherParty: PublicKeyT,
+				): Observable<ECPointOnCurveT> =>
+					hardwareWallet.doKeyExchange({
+						requireConfirmationOnDevice: true,
+						path,
+						publicKeyOfOtherParty,
+					}),
+			})),
 		)
-}
 
 const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
-	const getPublicKey = (input: GetPublicKeyInput): Observable<PublicKeyT> => {
-		return ledgerNano
+	const getPublicKey = (input: GetPublicKeyInput): Observable<PublicKeyT> =>
+		ledgerNano
 			.sendAPDUToDevice(
 				RadixAPDU.getPublicKey({
 					path: input.path ?? path000H,
@@ -67,24 +64,20 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 				}),
 			)
 			.pipe(
-				mergeMap((buf) =>
+				mergeMap(buf =>
 					toObservableFromResult(PublicKey.fromBuffer(buf)),
 				),
 			)
-	}
 
-	const getVersion = (): Observable<SemVerT> => {
-		return ledgerNano
+	const getVersion = (): Observable<SemVerT> =>
+		ledgerNano
 			.sendAPDUToDevice(RadixAPDU.getVersion())
 			.pipe(
-				mergeMap((buf) =>
-					toObservableFromResult(SemVer.fromBuffer(buf)),
-				),
+				mergeMap(buf => toObservableFromResult(SemVer.fromBuffer(buf))),
 			)
-	}
 
-	const doSignHash = (input: SignHashInput): Observable<SignatureT> => {
-		return ledgerNano
+	const doSignHash = (input: SignHashInput): Observable<SignatureT> =>
+		ledgerNano
 			.sendAPDUToDevice(
 				RadixAPDU.doSignHash({
 					path: input.path ?? path000H,
@@ -94,16 +87,15 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 				}),
 			)
 			.pipe(
-				mergeMap((buf) =>
+				mergeMap(buf =>
 					toObservableFromResult(Signature.fromRSBuffer(buf)),
 				),
 			)
-	}
 
 	const doKeyExchange = (
 		input: KeyExchangeInput,
-	): Observable<ECPointOnCurveT> => {
-		return ledgerNano
+	): Observable<ECPointOnCurveT> =>
+		ledgerNano
 			.sendAPDUToDevice(
 				RadixAPDU.doKeyExchange({
 					...input,
@@ -113,11 +105,10 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 				}),
 			)
 			.pipe(
-				mergeMap((buf) =>
+				mergeMap(buf =>
 					toObservableFromResult(ECPointOnCurve.fromBuffer(buf)),
 				),
 			)
-	}
 
 	const hwWithoutSK: HardwareWalletWithoutSK = {
 		getPublicKey,

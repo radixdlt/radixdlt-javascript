@@ -21,9 +21,8 @@ const pointFromCoordinates = (
 	return shortWeirestrassCurve.point(otherX, otherY)
 }
 
-const pointFromOther = (other: ECPointOnCurveT): curve.short.ShortPoint => {
-	return pointFromCoordinates({ x: other.x, y: other.y })
-}
+const pointFromOther = (other: ECPointOnCurveT): curve.short.ShortPoint =>
+	pointFromCoordinates({ x: other.x, y: other.y })
 
 const incorrectImplementationECPointInvalid = new Error(
 	'Incorrect implementation, EC point is invalid',
@@ -56,7 +55,7 @@ const ecPointOnCurveFromCoordinates = (
 	const toBuffer = (): Buffer =>
 		Buffer.from(
 			[input.x, input.y]
-				.map((s) => s.toString(16))
+				.map(s => s.toString(16))
 				.reduce((acc, cur) => acc + cur),
 			'hex',
 		)
@@ -97,16 +96,16 @@ export const __pointOnCurveFromEllipticShortPoint = (
 		if (!somePoint.validate()) return err(new Error('Not point on curve!'))
 		return ok({ witness: 'Point is on curve.' })
 	}
-	return validateOnCurve(shortPoint).andThen((_) => {
-		return combine([
+	return validateOnCurve(shortPoint).andThen(_ =>
+		combine([
 			uint256FromBN(shortPoint.getX()),
 			uint256FromBN(shortPoint.getY()),
-		]).map((xNy) => {
+		]).map(xNy => {
 			const x = xNy[0]
 			const y = xNy[1]
 			return ecPointOnCurveFromCoordinates({ x, y, shortPoint })
-		})
-	})
+		}),
+	)
 }
 
 const fromXY = (

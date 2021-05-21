@@ -74,10 +74,7 @@ export enum LedgerResponseCodes {
 	SW_INVALID_INSTRUCTION = 0x6d00,
 	SW_OK = 0x9000,
 }
-export const prettifyLedgerResponseCode = (
-	code: LedgerResponseCodes,
-): string => {
-	return `${code === LedgerResponseCodes.SW_OK ? '✅' : '❌'} code: '${
+export const prettifyLedgerResponseCode = (code: LedgerResponseCodes): string =>
+	`${code === LedgerResponseCodes.SW_OK ? '✅' : '❌'} code: '${
 		LedgerResponseCodes[code]
 	}' 0x${code.toString(16)} (0d${code.toString(10)})`
-}

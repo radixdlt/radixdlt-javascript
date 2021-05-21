@@ -79,6 +79,5 @@ export const secureRandomUInt256 = (
 	return new UInt256(randomBytes, 16)
 }
 
-export const isUInt256 = (something: unknown): something is UInt256 => {
-	return something instanceof UInt256
-}
+export const isUInt256 = (something: unknown): something is UInt256 =>
+	something instanceof UInt256

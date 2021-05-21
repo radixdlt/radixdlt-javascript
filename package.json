@@ -62,6 +62,7 @@
     "link-all": "yarn lerna exec --parallel yarn link",
     "unlink-all": "lerna exec --parallel --bail=false yarn unlink",
     "lint": "yarn eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "yarn eslint --fix . --ext .js,.jsx,.ts,.tsx",
     "build": "yarn build:ts",
     "build:ts": "tsc -b -f tsconfig.json",
     "bundle": "ts-node -P scripts/tsconfig.json scripts/bundle.ts umd,esm",

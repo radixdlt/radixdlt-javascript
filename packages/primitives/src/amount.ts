@@ -15,17 +15,16 @@ export const isAmountUnsafeInput = (
 
 export type AmountOrUnsafeInput = AmountT | AmountUnsafeInput
 
-export const isAmount = (something: unknown): something is AmountT => {
-	return isUInt256(something)
-}
+export const isAmount = (something: unknown): something is AmountT =>
+	isUInt256(something)
 
 export const isAmountOrUnsafeInput = (
 	something: unknown,
 ): something is AmountOrUnsafeInput =>
 	isAmount(something) || isAmountUnsafeInput(something)
 
-const fromUnsafe = (input: AmountOrUnsafeInput): Result<AmountT, Error> => {
-	return isAmount(input)
+const fromUnsafe = (input: AmountOrUnsafeInput): Result<AmountT, Error> =>
+	isAmount(input)
 		? ok(input)
 		: isAmountUnsafeInput(input)
 		? uint256FromUnsafe(input)
@@ -38,7 +37,6 @@ const fromUnsafe = (input: AmountOrUnsafeInput): Result<AmountT, Error> => {
 					)}'`,
 				),
 		  )
-}
 
 const isAmountMultipleOf = (
 	input: Readonly<{

@@ -19,11 +19,10 @@ const hdNodeFromHDNodeThirdParty = (
 		privateKey,
 		publicKey: privateKey.publicKey(),
 		chainCode: hdNodeThirdParty.chainCode,
-		derive: (path: BIP32T): HDNodeT => {
-			return hdNodeFromHDNodeThirdParty(
+		derive: (path: BIP32T): HDNodeT =>
+			hdNodeFromHDNodeThirdParty(
 				hdNodeThirdParty.derive(path.toString()),
-			)
-		},
+			),
 		toJSON: () => hdNodeThirdParty.toJSON(),
 	}
 }

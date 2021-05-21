@@ -144,7 +144,7 @@ export const handleNetworkIdResponse = (json: NetworkIdEndpoint.Response) =>
 			NetworkIdEndpoint.Response,
 			NetworkIdEndpoint.DecodedResponse
 		>()(json)
-		.andThen((decoded) =>
+		.andThen(decoded =>
 			hasRequiredProps('networkId', decoded, ['networkId']),
 		)
 
@@ -154,7 +154,7 @@ export const handleTokenBalancesResponse = (
 	pipe(
 		(json: TokenBalancesEndpoint.Response) => ({
 			owner: json.owner,
-			tokenBalances: json.tokenBalances.map((balance) => ({
+			tokenBalances: json.tokenBalances.map(balance => ({
 				tokenIdentifier: balance.rri,
 				amount: balance.amount,
 			})),
@@ -173,7 +173,7 @@ export const handleTokenBalancesResponse = (
 			},
 			TokenBalancesEndpoint.DecodedResponse
 		>(),
-	)(json).andThen((decoded) =>
+	)(json).andThen(decoded =>
 		hasRequiredProps('tokenBalances', decoded, ['owner', 'tokenBalances']),
 	)
 
@@ -190,7 +190,7 @@ export const handleValidatorsResponse = (json: ValidatorsEndpoint.Response) =>
 			ValidatorsEndpoint.Response,
 			ValidatorsEndpoint.DecodedResponse
 		>()(json)
-		.andThen((decoded) =>
+		.andThen(decoded =>
 			hasRequiredProps('validators', decoded, ['cursor', 'validators']),
 		)
 
@@ -209,7 +209,7 @@ export const handleTokenInfoResponse = (json: TokenInfoEndpoint.Response) =>
 			TokenInfoEndpoint.Response,
 			TokenInfoEndpoint.DecodedResponse
 		>()(json)
-		.andThen((decoded) =>
+		.andThen(decoded =>
 			hasRequiredProps('tokenInfo', decoded, [
 				'name',
 				'rri',
@@ -249,7 +249,7 @@ export const handleTransactionStatusResponse = (
 					TransactionStatusEndpoint.Response,
 					TransactionStatusEndpoint.DecodedResponse
 				>()(json)
-				.andThen((decoded) =>
+				.andThen(decoded =>
 					hasRequiredProps('transactionStatus', decoded, [
 						'txID',
 						'status',
@@ -262,7 +262,7 @@ export const handleNetworkTxThroughputResponse = (
 	JSONDecoding.create<
 		NetworkTransactionThroughputEndpoint.Response,
 		NetworkTransactionThroughputEndpoint.DecodedResponse
-	>()(json).andThen((decoded) =>
+	>()(json).andThen(decoded =>
 		hasRequiredProps('networkTransactionThroughput', decoded, ['tps']),
 	)
 
@@ -272,7 +272,7 @@ export const handleNetworkTxDemandResponse = (
 	JSONDecoding.create<
 		NetworkTransactionDemandEndpoint.Response,
 		NetworkTransactionDemandEndpoint.DecodedResponse
-	>()(json).andThen((decoded) =>
+	>()(json).andThen(decoded =>
 		hasRequiredProps('networkTransactionDemand', decoded, ['tps']),
 	)
 
@@ -284,7 +284,7 @@ export const handleBuildTransactionResponse = (
 			BuildTransactionEndpoint.Response,
 			BuildTransactionEndpoint.DecodedResponse
 		>()(json)
-		.andThen((decoded) =>
+		.andThen(decoded =>
 			hasRequiredProps('buildTransaction', decoded, [
 				'transaction',
 				'fee',
@@ -301,7 +301,7 @@ export const handleFinalizeTransactionResponse = (
 					FinalizeTransactionEndpoint.Response,
 					FinalizeTransactionEndpoint.DecodedResponse
 				>()(json)
-				.andThen((decoded) =>
+				.andThen(decoded =>
 					hasRequiredProps('finalizeTransaction', decoded, ['txID']),
 				)
 
@@ -315,6 +315,6 @@ export const handleSubmitTransactionResponse = (
 					SubmitTransactionEndpoint.Response,
 					SubmitTransactionEndpoint.DecodedResponse
 				>()(json)
-				.andThen((decoded) =>
+				.andThen(decoded =>
 					hasRequiredProps('submitTransaction', decoded, ['txID']),
 				)

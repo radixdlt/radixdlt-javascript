@@ -39,7 +39,7 @@ const internalSanityCheckOfHRP = (): void => {
 const versionByteNativeToken = 0x01
 const versionByteNonNativeToken = 0x03
 
-const hrpSuffixFromNetwork: HRPFromNetwork = (network) => {
+const hrpSuffixFromNetwork: HRPFromNetwork = network => {
 	internalSanityCheckOfHRP()
 	let specificLastPart: string = ''
 	switch (network) {
@@ -57,7 +57,7 @@ const hrpSuffixFromNetwork: HRPFromNetwork = (network) => {
 	return fullSuffix
 }
 
-const networkFromHRPSuffix: NetworkFromHRP = (hrp) => {
+const networkFromHRPSuffix: NetworkFromHRP = hrp => {
 	internalSanityCheckOfHRP()
 
 	if (hrp.length < hrpSuffixLengthOfSpecificPart) {
@@ -80,27 +80,25 @@ const __create = (input: {
 	name: string
 	network: NetworkT
 	toString: () => string
-}): ResourceIdentifierT => {
-	return {
-		...input,
-		__witness: 'isRRI',
-		equals: (other): boolean => {
-			if (!isResourceIdentifier(other)) return false
-			const same =
-				other.name === input.name &&
-				buffersEquals(other.hash, input.hash) &&
-				input.network === other.network
-			if (same) {
-				if (other.toString() !== input.toString()) {
-					const errMsg = `ResourceIdentifiers believed to be equal, but return different values when calling toString, (this)'${input.toString()}' vs other: '${other.toString()}'`
-					console.error(errMsg)
-					throw new Error(errMsg)
-				}
+}): ResourceIdentifierT => ({
+	...input,
+	__witness: 'isRRI',
+	equals: (other): boolean => {
+		if (!isResourceIdentifier(other)) return false
+		const same =
+			other.name === input.name &&
+			buffersEquals(other.hash, input.hash) &&
+			input.network === other.network
+		if (same) {
+			if (other.toString() !== input.toString()) {
+				const errMsg = `ResourceIdentifiers believed to be equal, but return different values when calling toString, (this)'${input.toString()}' vs other: '${other.toString()}'`
+				console.error(errMsg)
+				throw new Error(errMsg)
 			}
-			return same
-		},
-	}
-}
+		}
+		return same
+	},
+})
 
 const fromBech32String = (
 	bechString: string,
@@ -220,28 +218,28 @@ const withNameRawDataAndVersionByte = (
 	const { versionByte, hash, network } = input
 	const hrpSuffix = hrpSuffixFromNetwork(network)
 
-	return validateCharsInName(input.name).andThen((name) => {
+	return validateCharsInName(input.name).andThen(name => {
 		const hrp = `${name}${hrpSuffix}`
 
 		const combinedData = Buffer.concat([Buffer.from([versionByte]), hash])
 
 		return Bech32.convertDataToBech32(combinedData)
-			.andThen((processed) => {
-				return Bech32.encode({
+			.andThen(processed =>
+				Bech32.encode({
 					data: processed,
 					hrp,
 					encoding,
 					maxLength,
-				})
-			})
-			.map((bech32) => {
-				return __create({
+				}),
+			)
+			.map(bech32 =>
+				__create({
 					hash,
 					network,
 					name,
 					toString: () => bech32.toString(),
-				})
-			})
+				}),
+			)
 	})
 }
 
@@ -317,9 +315,8 @@ export const isResourceIdentifierOrUnsafeInput = (
 
 const fromUnsafe = (
 	input: ResourceIdentifierOrUnsafeInput,
-): Result<ResourceIdentifierT, Error> => {
-	return isResourceIdentifier(input) ? ok(input) : fromBech32String(input)
-}
+): Result<ResourceIdentifierT, Error> =>
+	isResourceIdentifier(input) ? ok(input) : fromBech32String(input)
 
 export const ResourceIdentifier = {
 	systemRRIForNetwork,

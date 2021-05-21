@@ -16,7 +16,7 @@ export const testGetVersion = (
 	}>,
 ): void => {
 	const { hardwareWallet } = input
-	const onResponse = input.onResponse ?? ((_) => undefined)
+	const onResponse = input.onResponse ?? (_ => undefined)
 	const subs = new Subscription()
 
 	subs.add(
@@ -24,7 +24,7 @@ export const testGetVersion = (
 			next: (semVer: SemVerT) => {
 				onResponse(semVer)
 			},
-			error: (e) => {
+			error: e => {
 				throw e
 			},
 		}),
@@ -39,7 +39,7 @@ export const testGetPublicKey = (
 	}>,
 ): void => {
 	const { hardwareWallet } = input
-	const onResponse = input.onResponse ?? ((_) => undefined)
+	const onResponse = input.onResponse ?? (_ => undefined)
 	const subs = new Subscription()
 
 	subs.add(
@@ -59,7 +59,7 @@ export const testGetPublicKey = (
 					)
 					onResponse(publicKey)
 				},
-				(e) => {
+				e => {
 					throw e
 				},
 			),
@@ -73,7 +73,7 @@ export const testDoSignHash = (
 	}>,
 ): void => {
 	const { hardwareWallet } = input
-	const onResponse = input.onResponse ?? ((_) => undefined)
+	const onResponse = input.onResponse ?? (_ => undefined)
 	const subs = new Subscription()
 
 	const hashToSign = sha256Twice(`I'm testing Radix awesome hardware wallet!`)
@@ -94,7 +94,7 @@ export const testDoSignHash = (
 					)
 					onResponse(signature)
 				},
-				(e) => {
+				e => {
 					throw e
 				},
 			),
@@ -109,7 +109,7 @@ export const testDoKeyExchange = (
 	}>,
 ): void => {
 	const { hardwareWallet } = input
-	const onResponse = input.onResponse ?? ((_) => undefined)
+	const onResponse = input.onResponse ?? (_ => undefined)
 	const subs = new Subscription()
 
 	const publicKeyOfOtherParty = PublicKey.fromBuffer(
@@ -137,7 +137,7 @@ export const testDoKeyExchange = (
 					)
 					onResponse(ecPointOnCurve)
 				},
-				(e) => {
+				e => {
 					throw e
 				},
 			),

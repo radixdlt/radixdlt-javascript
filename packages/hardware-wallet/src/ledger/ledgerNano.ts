@@ -43,8 +43,8 @@ const __create = (
 		const { uuid, apdu } = request
 		recorder?.recordRequest(request)
 		return exchange(apdu).pipe(
-			map((data) => ({ data, uuid })),
-			tap((response) => {
+			map(data => ({ data, uuid })),
+			tap(response => {
 				recorder?.recordResponse(response)
 			}),
 		)
@@ -53,7 +53,7 @@ const __create = (
 	const sendAPDUToDevice = (apdu: RadixAPDUT): Observable<Buffer> => {
 		const uuid = uuidv4()
 		return sendRequestToDevice({ apdu, uuid }).pipe(
-			map((response) => response.data),
+			map(response => response.data),
 		)
 	}
 
@@ -104,13 +104,13 @@ const ledgerAPDUResponseCodeBufferLength = 2 // two bytes
 const fromTransport = (
 	basicLedgerTransport: BasicLedgerTransport,
 ): LedgerNanoT => {
-	const sendAPDUToDevice = (apdu: RadixAPDUT): Observable<Buffer> => {
-		return new Observable<Buffer>((subscriber) => {
+	const sendAPDUToDevice = (apdu: RadixAPDUT): Observable<Buffer> =>
+		new Observable<Buffer>(subscriber => {
 			send({
 				apdu,
 				with: basicLedgerTransport,
 			})
-				.then((responseFromLedger) => {
+				.then(responseFromLedger => {
 					log.debug(
 						`📲 🥩 Raw response from Ledger device: ${responseFromLedger.toString(
 							'hex',
@@ -169,7 +169,7 @@ const fromTransport = (
 					subscriber.next(result)
 					subscriber.complete()
 				})
-				.catch((error) => {
+				.catch(error => {
 					if (
 						// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 						error.statusCode !== undefined &&
@@ -191,12 +191,9 @@ const fromTransport = (
 					}
 				})
 		})
-	}
 
 	return {
-		close: (): Observable<void> => {
-			return from(basicLedgerTransport.close())
-		},
+		close: (): Observable<void> => from(basicLedgerTransport.close()),
 		sendAPDUToDevice,
 		__sendRequestToDevice: (_): Observable<LedgerResponse> =>
 			throwError(

@@ -65,7 +65,7 @@ const decryptAESSealedBox = (
 	const { additionalAuthenticationData } = input
 
 	return kdf(input.sharedSecret, nonce)
-		.map((symmetricKey) => ({
+		.map(symmetricKey => ({
 			...input.aesSealedBox,
 			symmetricKey,
 			additionalAuthenticationData,
@@ -103,7 +103,7 @@ const decryptMessage = (
 			ephemeralPublicKey,
 		}),
 	])
-		.map((resultList) => {
+		.map(resultList => {
 			const aesSealedBox = resultList[0] as AES_GCM_SealedBoxT
 			const sharedSecret = resultList[1] as Buffer
 			return {
@@ -139,7 +139,7 @@ const decryptEncryptedMessageBuffer = (
 							),
 					  ),
 		)
-		.asyncAndThen((a) => decryptMessage(...a))
+		.asyncAndThen(a => decryptMessage(...a))
 
 const decrypt = (input: MessageDecryptionInput): ResultAsync<Buffer, Error> =>
 	Buffer.isBuffer(input.encryptedMessage)
@@ -158,11 +158,8 @@ type DeterministicMessageEncryptionInput = MessageEncryptionInput &
 		ephemeralPublicKey: PublicKeyT
 	}>
 
-const encodePlaintext = (plaintext: Buffer | string): Buffer => {
-	return typeof plaintext === 'string'
-		? Buffer.from(plaintext, 'utf-8')
-		: plaintext
-}
+const encodePlaintext = (plaintext: Buffer | string): Buffer =>
+	typeof plaintext === 'string' ? Buffer.from(plaintext, 'utf-8') : plaintext
 
 const __encryptDeterministic = (
 	input: DeterministicMessageEncryptionInput,
@@ -182,9 +179,9 @@ const __encryptDeterministic = (
 
 	return calculateSharedSecret({
 		...input,
-	}).andThen((sharedSecret) => {
-		return kdf(sharedSecret, nonce)
-			.andThen((symmetricKey) =>
+	}).andThen(sharedSecret =>
+		kdf(sharedSecret, nonce)
+			.andThen(symmetricKey =>
 				aesGCMSealDeterministic({
 					nonce,
 					plaintext,
@@ -192,16 +189,14 @@ const __encryptDeterministic = (
 					symmetricKey,
 				}),
 			)
-			.andThen((s) =>
-				SealedMessage.fromAESSealedBox(s, ephemeralPublicKey),
-			)
+			.andThen(s => SealedMessage.fromAESSealedBox(s, ephemeralPublicKey))
 			.andThen((sealedMessage: SealedMessageT) =>
 				Message.createEncrypted(
 					EncryptionScheme.DH_ADD_EPH_AESGCM256_SCRYPT_000,
 					sealedMessage,
 				),
-			)
-	})
+			),
+	)
 }
 
 const encrypt = (

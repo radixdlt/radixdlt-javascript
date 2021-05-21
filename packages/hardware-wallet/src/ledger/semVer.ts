@@ -7,21 +7,13 @@ const create = (
 	input: Readonly<{ major: number; minor: number; patch: number }>,
 ): SemVerT => {
 	const { major, minor, patch } = input
-	const toString = (): string => {
-		return [major, minor, patch]
-			.map((n: number): string => {
-				return n.toString()
-			})
+	const toString = (): string =>
+		[major, minor, patch]
+			.map((n: number): string => n.toString())
 			.join(separator)
-	}
 
-	const equals = (other: SemVerT): boolean => {
-		return (
-			other.major === major &&
-			other.minor === minor &&
-			other.patch === patch
-		)
-	}
+	const equals = (other: SemVerT): boolean =>
+		other.major === major && other.minor === minor && other.patch === patch
 
 	return {
 		major,
@@ -73,7 +65,7 @@ const fromString = (versionString: string): Result<SemVerT, Error> => {
 	}
 
 	return combine([numAtIndex(0), numAtIndex(1), numAtIndex(2)]).map(
-		(resultList) => {
+		resultList => {
 			const major = resultList[0]
 			const minor = resultList[1]
 			const patch = resultList[2]

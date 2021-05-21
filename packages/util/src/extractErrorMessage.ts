@@ -96,14 +96,14 @@ export const msgFromError = (e: unknown, dumpJSON: boolean = true): string => {
 	if (isErrorMessageOwner(e)) return e.error
 	if (isErrorCodeOwner(e)) return e.code
 	if (isErrorsOwner(e)) {
-		return e.errors.map((inner) => msgFromError(inner)).join(`, `)
+		return e.errors.map(inner => msgFromError(inner)).join(`, `)
 	}
 	if (isNestedErrorOwner(e)) {
 		const inner = e.error
 		return msgFromError(inner)
 	}
 	if (isArray(e)) {
-		return e.map((inner) => msgFromError(inner)).join(`, `)
+		return e.map(inner => msgFromError(inner)).join(`, `)
 	} else {
 		if (dumpJSON) {
 			const dump = JSON.stringify(e, null, 4)

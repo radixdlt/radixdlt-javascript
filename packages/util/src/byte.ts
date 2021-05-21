@@ -7,9 +7,8 @@ export const fitsInUInt8 = (number: number): boolean => {
 	return isNotTooBig && isNonNegative
 }
 
-export const firstByteOfNumber = (n: number): Byte => {
-	return firstByteFromBuffer(Buffer.from([n]))
-}
+export const firstByteOfNumber = (n: number): Byte =>
+	firstByteFromBuffer(Buffer.from([n]))
 
 export const firstByteFromBuffer = (buffer: Buffer): Byte => {
 	const firstByte = Uint8Array.from(buffer)[0]
@@ -24,10 +23,7 @@ const byteFromNumber = (n: number): Result<Byte, Error> => {
 	return ok(byte)
 }
 
-export const byteToBuffer = (byte: Byte): Buffer => {
-	return Buffer.from([byteToNumber(byte)])
-}
+export const byteToBuffer = (byte: Byte): Buffer =>
+	Buffer.from([byteToNumber(byte)])
 
-const byteToNumber = (byte: Byte): number => {
-	return byte as number
-}
+const byteToNumber = (byte: Byte): number => byte as number

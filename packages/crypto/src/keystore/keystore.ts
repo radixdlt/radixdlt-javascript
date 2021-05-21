@@ -39,14 +39,14 @@ const encryptSecret = (
 	const memo = input.memo ?? Date.now().toLocaleString()
 
 	return validatePassword(input.password)
-		.map((p) => ({ kdf, params, password: Buffer.from(p) }))
-		.asyncAndThen((inp) => Scrypt.deriveKey(inp))
-		.map((derivedKey) => ({
+		.map(p => ({ kdf, params, password: Buffer.from(p) }))
+		.asyncAndThen(inp => Scrypt.deriveKey(inp))
+		.map(derivedKey => ({
 			plaintext: input.secret,
 			symmetricKey: derivedKey,
 		}))
-		.andThen((inp) => AES_GCM.seal(inp))
-		.map((sealedBox) => {
+		.andThen(inp => AES_GCM.seal(inp))
+		.map(sealedBox => {
 			const cipherText = sealedBox.ciphertext
 			const mac = sealedBox.authTag
 
@@ -95,7 +95,7 @@ const decrypt = (
 
 		return validatePassword(password)
 			.map((p: string) => ({ kdf, params, password: Buffer.from(p) }))
-			.asyncAndThen((inp) => Scrypt.deriveKey(inp))
+			.asyncAndThen(inp => Scrypt.deriveKey(inp))
 			.map(
 				(derivedKey: Buffer): AES_GCM_OPEN_Input => {
 					log.info(
@@ -108,16 +108,15 @@ const decrypt = (
 				},
 			)
 			.andThen(
-				(inp): Result<Buffer, Error> => {
-					return AES_GCM.open(inp).mapErr((e) => {
+				(inp): Result<Buffer, Error> =>
+					AES_GCM.open(inp).mapErr(e => {
 						const underlyingError = msgFromError(e)
 						const errMsg = `Failed to decrypt keystore, wrong password? Underlying error: '${underlyingError}'.`
 						console.error(errMsg)
 						return new Error(errMsg)
-					})
-				},
+					}),
 			)
-			.map((decrypted) => {
+			.map(decrypted => {
 				log.debug(
 					`Successfully decrypted Keystore with id='${keystore.id}'`,
 				)

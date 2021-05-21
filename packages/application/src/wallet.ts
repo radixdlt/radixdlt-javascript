@@ -41,17 +41,13 @@ const create = (
 	const sksToAccounts = (signingKeys: SigningKeysT): AccountsT => {
 		const getAccountWithHDSigningKeyByHDPath = (
 			hdPath: HDPathRadixT,
-		): Option<AccountT> => {
-			return signingKeys.getHDSigningKeyByHDPath(hdPath).map(skToAccount)
-		}
+		): Option<AccountT> =>
+			signingKeys.getHDSigningKeyByHDPath(hdPath).map(skToAccount)
 
 		const getAnyAccountByPublicKey = (
 			publicKey: PublicKeyT,
-		): Option<AccountT> => {
-			return signingKeys
-				.getAnySigningKeyByPublicKey(publicKey)
-				.map(skToAccount)
-		}
+		): Option<AccountT> =>
+			signingKeys.getAnySigningKeyByPublicKey(publicKey).map(skToAccount)
 
 		const all = signingKeys.all.map(skToAccount)
 
@@ -72,53 +68,36 @@ const create = (
 	}
 
 	return {
-		__unsafeGetAccount: (): AccountT => {
-			return skToAccount(signingKeychain.__unsafeGetSigningKey())
-		},
+		__unsafeGetAccount: (): AccountT =>
+			skToAccount(signingKeychain.__unsafeGetSigningKey()),
 
 		revealMnemonic: signingKeychain.revealMnemonic,
 
 		deriveNextLocalHDAccount: (
 			input?: DeriveNextInput,
-		): Observable<AccountT> => {
-			return signingKeychain
+		): Observable<AccountT> =>
+			signingKeychain
 				.deriveNextLocalHDSigningKey(input)
-				.pipe(map(skToAccount))
-		},
+				.pipe(map(skToAccount)),
 
-		deriveHWAccount: (
-			input: DeriveHWAccountInput,
-		): Observable<AccountT> => {
-			return signingKeychain
-				.deriveHWSigningKey(input)
-				.pipe(map(skToAccount))
-		},
+		deriveHWAccount: (input: DeriveHWAccountInput): Observable<AccountT> =>
+			signingKeychain.deriveHWSigningKey(input).pipe(map(skToAccount)),
 
-		observeActiveAccount: (): Observable<AccountT> => {
-			return signingKeychain
-				.observeActiveSigningKey()
-				.pipe(map(skToAccount))
-		},
+		observeActiveAccount: (): Observable<AccountT> =>
+			signingKeychain.observeActiveSigningKey().pipe(map(skToAccount)),
 
-		observeAccounts: (): Observable<AccountsT> => {
-			return signingKeychain.observeSigningKeys().pipe(map(sksToAccounts))
-		},
+		observeAccounts: (): Observable<AccountsT> =>
+			signingKeychain.observeSigningKeys().pipe(map(sksToAccounts)),
 
 		addAccountFromPrivateKey: (
 			input: AddAccountByPrivateKeyInput,
-		): Observable<AccountT> => {
-			return of(
-				skToAccount(signingKeychain.addSigningKeyFromPrivateKey(input)),
-			)
-		},
+		): Observable<AccountT> =>
+			of(skToAccount(signingKeychain.addSigningKeyFromPrivateKey(input))),
 
-		restoreLocalHDAccountsToIndex: (
-			index: number,
-		): Observable<AccountsT> => {
-			return signingKeychain
+		restoreLocalHDAccountsToIndex: (index: number): Observable<AccountsT> =>
+			signingKeychain
 				.restoreLocalHDSigningKeysUpToIndex(index)
-				.pipe(map(sksToAccounts))
-		},
+				.pipe(map(sksToAccounts)),
 
 		switchAccount: (input: SwitchAccountInput): AccountT => {
 			const isSwitchToAccount = (

@@ -25,8 +25,8 @@ export const isStakeTokensInput = (
 export const __createIntendedStakeAction = (
 	input: StakeTokensInput,
 	from: AccountAddressT,
-): Result<IntendedStakeTokensAction, Error> => {
-	return combine([
+): Result<IntendedStakeTokensAction, Error> =>
+	combine([
 		ValidatorAddress.fromUnsafe(input.validator),
 		Amount.fromUnsafe(input.amount),
 	]).map(
@@ -42,7 +42,6 @@ export const __createIntendedStakeAction = (
 			}
 		},
 	)
-}
 
 export const IntendedStakeTokens = {
 	create: __createIntendedStakeAction,

@@ -44,8 +44,8 @@ const separator = ' '
 
 export const strengthFromWordCount = (
 	wordCount: number,
-): Result<StrengthT, Error> => {
-	return wordCount === 24
+): Result<StrengthT, Error> =>
+	wordCount === 24
 		? ok(StrengthT.WORD_COUNT_24)
 		: wordCount === 21
 		? ok(StrengthT.WORD_COUNT_21)
@@ -56,7 +56,6 @@ export const strengthFromWordCount = (
 		: wordCount === 12
 		? ok(StrengthT.WORD_COUNT_12)
 		: err(Error(`Unsupported wordcount ${wordCount}`))
-}
 
 export const entropyInBitsFromWordCount = (wordCount: number): number => {
 	const checksumBitsPerWord = 3
@@ -124,7 +123,7 @@ const create = (input: MnemonicProps): Result<MnemomicT, Error> => {
 					buffersEquals(input.entropy, other.entropy),
 			}),
 		)
-		.map((mnemonic) => {
+		.map(mnemonic => {
 			log.debug(`Successfully created mnemonic.`)
 			return mnemonic
 		})
@@ -153,7 +152,7 @@ const fromEntropyAndMaybeStrength = (
 			? ok(input.strength)
 			: strengthFromWordCount(words.length)
 
-	return strengthOf.andThen((strength) =>
+	return strengthOf.andThen(strength =>
 		create({
 			...input,
 			language,
@@ -218,7 +217,7 @@ const fromPhraseInLanguage = (
 	const words = normalizedPhrase.split(separator)
 
 	return strengthFromWordCount(words.length)
-		.map((strength) => ({
+		.map(strength => ({
 			...input,
 			phrase: normalizedPhrase,
 			words,

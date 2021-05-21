@@ -1,4 +1,3 @@
 // eslint-disable-next-line max-params
-export const buffersEquals = (lhs: Buffer, rhs: Buffer): boolean => {
-	return Buffer.compare(lhs, rhs) === 0
-}
+export const buffersEquals = (lhs: Buffer, rhs: Buffer): boolean =>
+	Buffer.compare(lhs, rhs) === 0

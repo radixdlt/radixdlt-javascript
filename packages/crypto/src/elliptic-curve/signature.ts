@@ -40,7 +40,7 @@ const fromIndutnyElliptic = (
 	return combine([
 		uint256FromBN(ellipticSignature.r),
 		uint256FromBN(ellipticSignature.s),
-	]).map((resultList) => {
+	]).map(resultList => {
 		const r = resultList[0]
 		const s = resultList[1]
 		return __fromRSAndDER({ r, s, der })

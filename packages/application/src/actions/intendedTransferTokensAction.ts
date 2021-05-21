@@ -28,8 +28,8 @@ export const isTransferTokensInput = (
 export const create = (
 	input: TransferTokensInput,
 	from: AccountAddressT,
-): Result<IntendedTransferTokensAction, Error> => {
-	return combine([
+): Result<IntendedTransferTokensAction, Error> =>
+	combine([
 		AccountAddress.fromUnsafe(input.to),
 		Amount.fromUnsafe(input.amount),
 		ResourceIdentifier.fromUnsafe(input.tokenIdentifier),
@@ -48,7 +48,6 @@ export const create = (
 			}
 		},
 	)
-}
 
 export const IntendedTransferTokens = {
 	create,

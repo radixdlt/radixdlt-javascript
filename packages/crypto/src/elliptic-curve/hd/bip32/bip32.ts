@@ -18,7 +18,7 @@ export const unsafeCreate = (pathComponents: BIP32PathComponentT[]): BIP32T => {
 	const toString = (): string =>
 		'm' +
 		pathSeparator +
-		pathComponents.map((pc) => pc.toString()).join(pathSeparator)
+		pathComponents.map(pc => pc.toString()).join(pathSeparator)
 
 	return {
 		pathComponents,
@@ -45,7 +45,7 @@ const validateLevels = (
 					  )
 					: ok({ witness: 'component valid' }),
 		),
-	).andThen((_a) => ok({ witness: 'all components valid' }))
+	).andThen(_a => ok({ witness: 'all components valid' }))
 
 const create = (pathComponents: BIP32PathComponentT[]): Result<BIP32T, Error> =>
 	validateLevels(pathComponents).map(() => unsafeCreate(pathComponents))

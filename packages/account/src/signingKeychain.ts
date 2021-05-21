@@ -45,7 +45,7 @@ import {
 } from '@radixdlt/hardware-wallet'
 
 const stringifySigningKeysArray = (signingKeys: SigningKeyT[]): string =>
-	signingKeys.map((a) => a.toString()).join(',\n')
+	signingKeys.map(a => a.toString()).join(',\n')
 
 const stringifySigningKeys = (signingKeys: SigningKeysT): string => {
 	const allSigningKeysString = stringifySigningKeysArray(signingKeys.all)
@@ -73,27 +73,26 @@ const createSigningKeys = (_all: SigningKeyT[]): MutableSigningKeysT => {
 		hdPath: HDPathRadixT,
 	): Option<SigningKeyT> => {
 		const signingKey = all
-			.filter((a) => a.isHDSigningKey)
-			.find((a) => a.hdPath!.equals(hdPath))
+			.filter(a => a.isHDSigningKey)
+			.find(a => a.hdPath!.equals(hdPath))
 		return Option.of(signingKey)
 	}
 
 	const getAnySigningKeyByPublicKey = (
 		publicKey: PublicKeyT,
 	): Option<SigningKeyT> => {
-		const signingKey = all.find((a) => a.publicKey.equals(publicKey))
+		const signingKey = all.find(a => a.publicKey.equals(publicKey))
 		return Option.of(signingKey)
 	}
 
-	const localHDSigningKeys = () => all.filter((a) => a.isLocalHDSigningKey)
-	const hardwareHDSigningKeys = () =>
-		all.filter((a) => a.isHardwareSigningKey)
-	const nonHDSigningKeys = () => all.filter((a) => !a.isHDSigningKey)
-	const hdSigningKeys = () => all.filter((a) => a.isHDSigningKey)
+	const localHDSigningKeys = () => all.filter(a => a.isLocalHDSigningKey)
+	const hardwareHDSigningKeys = () => all.filter(a => a.isHardwareSigningKey)
+	const nonHDSigningKeys = () => all.filter(a => !a.isHDSigningKey)
+	const hdSigningKeys = () => all.filter(a => a.isHDSigningKey)
 
 	const add = (signingKey: SigningKeyT): void => {
 		if (
-			all.find((a) => a.type.uniqueKey === signingKey.type.uniqueKey) !==
+			all.find(a => a.type.uniqueKey === signingKey.type.uniqueKey) !==
 			undefined
 		) {
 			// already there
@@ -107,9 +106,7 @@ const createSigningKeys = (_all: SigningKeyT[]): MutableSigningKeysT => {
 		toString: (): string => {
 			throw new Error('Overriden below')
 		},
-		equals: (other: SigningKeysT): boolean => {
-			return arraysEqual(other.all, all)
-		},
+		equals: (other: SigningKeysT): boolean => arraysEqual(other.all, all),
 		add,
 		localHDSigningKeys,
 		hardwareHDSigningKeys,
@@ -194,9 +191,7 @@ const create = (
 		)
 
 		return ledgerNano$.pipe(
-			map((ledger: LedgerNanoT) => {
-				return HardwareWallet.ledger(ledger)
-			}),
+			map((ledger: LedgerNanoT) => HardwareWallet.ledger(ledger)),
 		)
 	}
 
@@ -215,16 +210,15 @@ const create = (
 			mergeMap(
 				(
 					hardwareWallet: HardwareWalletT,
-				): Observable<HardwareSigningKeyT> => {
-					return hardwareWallet.makeSigningKey(hdPath)
-				},
+				): Observable<HardwareSigningKeyT> =>
+					hardwareWallet.makeSigningKey(hdPath),
 			),
-			map((hardwareSigningKey: HardwareSigningKeyT) => {
-				return SigningKey.fromHDPathWithHWSigningKey({
+			map((hardwareSigningKey: HardwareSigningKeyT) =>
+				SigningKey.fromHDPathWithHWSigningKey({
 					hdPath,
 					hardwareSigningKey,
-				})
-			}),
+				}),
+			),
 		)
 	}
 
@@ -360,9 +354,7 @@ const create = (
 			)
 
 		return combineLatest(signingKeysObservableList).pipe(
-			mergeMap((_) => {
-				return signingKeys$
-			}),
+			mergeMap(_ => signingKeys$),
 			take(1),
 		)
 	}
@@ -388,7 +380,7 @@ const create = (
 		observeActiveSigningKey: (): Observable<SigningKeyT> =>
 			activeSigningKey$,
 		sign: (hashedMessage: Buffer): Observable<SignatureT> =>
-			activeSigningKey$.pipe(mergeMap((a) => a.sign(hashedMessage))),
+			activeSigningKey$.pipe(mergeMap(a => a.sign(hashedMessage))),
 	}
 }
 
@@ -422,9 +414,9 @@ const fromKeystore = (
 	}>,
 ): ResultAsync<SigningKeychainT, Error> =>
 	Keystore.decrypt(input)
-		.map((entropy) => ({ entropy }))
+		.map(entropy => ({ entropy }))
 		.andThen(Mnemonic.fromEntropy)
-		.map((mnemonic) => ({
+		.map(mnemonic => ({
 			mnemonic,
 			startWithInitialSigningKey: input.startWithInitialSigningKey,
 		}))

@@ -166,8 +166,8 @@ const validateBIP44Change = validateBIP44Component.bind(null, {
 	index: undefined,
 })
 
-const fromString = (path: string): Result<BIP44T, Error> => {
-	return BIP32.fromString(path).andThen(
+const fromString = (path: string): Result<BIP44T, Error> =>
+	BIP32.fromString(path).andThen(
 		(bip32: BIP32T): Result<BIP44T, Error> => {
 			const components = bip32.pathComponents
 			if (components.length !== 5)
@@ -199,7 +199,6 @@ const fromString = (path: string): Result<BIP44T, Error> => {
 			)
 		},
 	)
-}
 
 const extractValueFromIndex = (
 	pathComponent: BIP32PathSimpleT,
@@ -220,19 +219,18 @@ const extractValueFromIndex = (
 	return ok(isHardened ? index - hardenedIncrement : index)
 }
 
-const radixPathFromString = (path: string): Result<HDPathRadixT, Error> => {
-	return fromString(path).andThen((bip44) => {
-		return extractValueFromIndex(bip44.coinType).andThen((coinType) => {
-			return coinType === RADIX_COIN_TYPE
+const radixPathFromString = (path: string): Result<HDPathRadixT, Error> =>
+	fromString(path).andThen(bip44 =>
+		extractValueFromIndex(bip44.coinType).andThen(coinType =>
+			coinType === RADIX_COIN_TYPE
 				? ok(bip44 as HDPathRadixT)
 				: err(
 						new Error(
 							`Incorrect coin type, expected Radix coin type: ${RADIX_COIN_TYPE}, but got: ${coinType}`,
 						),
-				  )
-		})
-	})
-}
+				  ),
+		),
+	)
 
 export const BIP44 = {
 	create,

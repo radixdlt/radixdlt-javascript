@@ -37,8 +37,8 @@ const applyDecoders = (
 	}
 
 	const results = decoders
-		.map((decoder) => decoder(unwrappedValue, key))
-		.filter((result) => result !== undefined)
+		.map(decoder => decoder(unwrappedValue, key))
+		.filter(result => result !== undefined)
 
 	return results.length > 1
 		? err(
@@ -85,11 +85,11 @@ const JSONDecodeUnflattened = (...decoders: Decoder[]) => (
 				),
 		  )
 		: isString(json) || isBoolean(json) || isNumber(json)
-		? applyDecoders(decoders, json).mapErr((err) => [err])
+		? applyDecoders(decoders, json).mapErr(err => [err])
 		: isArray(json)
 		? combine(
-				json.map((item) => JSONDecodeUnflattened(...decoders)(item)),
-		  ).mapErr((err) => err)
+				json.map(item => JSONDecodeUnflattened(...decoders)(item)),
+		  ).mapErr(err => err)
 		: err([Error('JSON decoding failed. Unknown data type.')])
 
 const withDecoders = (...decoders: Decoder[]) => ({

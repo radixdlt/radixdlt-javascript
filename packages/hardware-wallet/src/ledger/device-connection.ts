@@ -23,7 +23,7 @@ export const send = (
 ): Promise<Buffer> => {
 	const { apdu, with: connectedLedgerTransport } = input
 	const statusList = [
-		...apdu.requiredResponseStatusCodeFromDevice.map((s) => s.valueOf()),
+		...apdu.requiredResponseStatusCodeFromDevice.map(s => s.valueOf()),
 	]
 
 	if (apdu.ins === LedgerInstruction.PING) {
@@ -48,13 +48,12 @@ export const send = (
 	)
 }
 
-const delay = async (ms: number): Promise<void> => {
-	return new Promise((resolve, _) => {
+const delay = async (ms: number): Promise<void> =>
+	new Promise((resolve, _) => {
 		setTimeout(() => {
 			resolve()
 		}, ms)
 	})
-}
 
 export type OpenLedgerConnectionInput = Readonly<{
 	deviceConnectionTimeout?: number
@@ -79,9 +78,9 @@ const __openConnection = async (
 			const TransportNodeHid = module.default
 
 			return await TransportNodeHid.create(
-		input?.deviceConnectionTimeout,
-		input?.deviceConnectionTimeout,
-	)
+				input?.deviceConnectionTimeout,
+				input?.deviceConnectionTimeout,
+			)
 		},
 	)
 
@@ -110,17 +109,17 @@ const __openConnection = async (
 			apdu: RadixAPDU.ping,
 			with: basicLedgerTransport,
 		})
-			.then((_) => {
+			.then(_ => {
 				console.log(`📲 ✅ Got PONG 🏓, Radix app is open.`)
 				return Promise.resolve(basicLedgerTransport)
 			})
-			.catch((_) => {
+			.catch(_ =>
 				// We MUST close the transport and reopen it for pinging to work.
 				// Otherwise we get `Cannot write to hid device` forever.
 				// at least from macOS Big Sur on Ledger Nano with Secure Elements version 1.6.0
 				// and MCU 1.11
-				return basicLedgerTransport.close().then(() => {
-					return __openConnection(false, {
+				basicLedgerTransport.close().then(() =>
+					__openConnection(false, {
 						deviceConnectionTimeout: 1_000,
 						radixAppToOpenWaitPolicy: {
 							// Exponential backing off...
@@ -128,14 +127,12 @@ const __openConnection = async (
 							// Decrease retry count
 							retryCount: retryCount - 1,
 						},
-					})
-				})
-			})
+					}),
+				),
+			)
 	}
 }
 
 export const openConnection = async (
 	input?: OpenLedgerConnectionInput,
-): Promise<BasicLedgerTransport> => {
-	return __openConnection(true, input)
-}
+): Promise<BasicLedgerTransport> => __openConnection(true, input)
