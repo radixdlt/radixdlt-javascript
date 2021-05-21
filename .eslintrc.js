@@ -88,7 +88,7 @@ module.exports = {
 		'@typescript-eslint/no-namespace': 'off',
 		'functional/no-this-expression': 'off',
 		'@typescript-eslint/no-var-requires': 'off',
-		"arrow-body-style": ["warn", "as-needed"],
-		"no-useless-return": 1,
+		'arrow-body-style': ['warn', 'as-needed'],
+		'no-useless-return': 1,
 	},
 }

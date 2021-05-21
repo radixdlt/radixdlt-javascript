@@ -81,14 +81,14 @@ describe('SealedMessage type', () => {
 			Buffer.from('6a'.repeat(byteCount), 'hex')
 
 		describe('validateNonce', () => {
-			it('correct nonce length is valid', (done) => {
+			it('correct nonce length is valid', done => {
 				const buffer = makeBuf(12)
 				__validateNonce(buffer).match(
-					(buf) => {
+					buf => {
 						expect(buffersEquals(buf, buffer)).toBe(true)
 						done()
 					},
-					(error) => {
+					error => {
 						done(
 							new Error(
 								`Got error, but expected success: ${error}`,
@@ -101,36 +101,36 @@ describe('SealedMessage type', () => {
 			const nonceErr = (actual: number): string =>
 				`Incorrect length of nonce, expected: #12 bytes, but got: #${actual}.`
 
-			it('too short nonce is invalid', (done) => {
+			it('too short nonce is invalid', done => {
 				const shortLength = 11
 				const buffer = makeBuf(shortLength)
 				__validateNonce(buffer).match(
-					(_) => {
+					_ => {
 						done(
 							new Error(
 								'Buffer passed validation, but we expected a failure.',
 							),
 						)
 					},
-					(error) => {
+					error => {
 						expect(error.message).toBe(nonceErr(shortLength))
 						done()
 					},
 				)
 			})
 
-			it('too long nonce length is invalid', (done) => {
+			it('too long nonce length is invalid', done => {
 				const longLength = 13
 				const buffer = makeBuf(longLength)
 				__validateNonce(buffer).match(
-					(_) => {
+					_ => {
 						done(
 							new Error(
 								'Buffer passed validation, but we expected a failure.',
 							),
 						)
 					},
-					(error) => {
+					error => {
 						expect(error.message).toBe(nonceErr(longLength))
 						done()
 					},
@@ -139,14 +139,14 @@ describe('SealedMessage type', () => {
 		})
 
 		describe('validateAuthTag', () => {
-			it('correct authTag length is valid', (done) => {
+			it('correct authTag length is valid', done => {
 				const buffer = makeBuf(16)
 				__validateTag(buffer).match(
-					(buf) => {
+					buf => {
 						expect(buffersEquals(buf, buffer)).toBe(true)
 						done()
 					},
-					(error) => {
+					error => {
 						done(
 							new Error(
 								`Got error, but expected success: ${error}`,
@@ -159,36 +159,36 @@ describe('SealedMessage type', () => {
 			const tagErrMsg = (actual: number): string =>
 				`Incorrect length of auth tag, expected: #16 bytes, but got: #${actual}.`
 
-			it('too short tag length is invalid', (done) => {
+			it('too short tag length is invalid', done => {
 				const shortLength = 15
 				const buffer = makeBuf(shortLength)
 				__validateTag(buffer).match(
-					(_) => {
+					_ => {
 						done(
 							new Error(
 								'Buffer passed validation, but we expected a failure.',
 							),
 						)
 					},
-					(error) => {
+					error => {
 						expect(error.message).toBe(tagErrMsg(shortLength))
 						done()
 					},
 				)
 			})
 
-			it('too long tag length is invalid', (done) => {
+			it('too long tag length is invalid', done => {
 				const longLength = 17
 				const buffer = makeBuf(longLength)
 				__validateTag(buffer).match(
-					(_) => {
+					_ => {
 						done(
 							new Error(
 								'Buffer passed validation, but we expected a failure.',
 							),
 						)
 					},
-					(error) => {
+					error => {
 						expect(error.message).toBe(tagErrMsg(longLength))
 						done()
 					},

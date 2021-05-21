@@ -51,14 +51,14 @@ describe('BIP44', () => {
 		doTestBIP44Path(HDPathRadix.fromString(path)._unsafeUnwrap())
 	})
 
-	it('bip44 path with non zeros', (done) => {
+	it('bip44 path with non zeros', done => {
 		const pathString = `m/44'/536'/2'/1/3'`
 		HDPathRadix.fromString(pathString).match(
-			(path) => {
+			path => {
 				expect(path.toString()).toBe(pathString)
 				done()
 			},
-			(error) => {
+			error => {
 				done(error)
 			},
 		)
@@ -69,7 +69,7 @@ describe('BIP44', () => {
 			() => {
 				throw Error('expected error, but got none')
 			},
-			(f) =>
+			f =>
 				expect(f.message).toBe(
 					'Incorrect coin type, expected Radix coin type: 536, but got: 123',
 				),

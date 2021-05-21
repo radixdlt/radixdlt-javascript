@@ -20,7 +20,7 @@ describe('hw_ledger_integration', () => {
 		log.setLevel('debug')
 	})
 
-	afterEach((done) => {
+	afterEach(done => {
 		if (!ledgerNano) {
 			done()
 			return
@@ -38,7 +38,7 @@ describe('hw_ledger_integration', () => {
 		log.setLevel('warn')
 	})
 
-	it('getVersion_integration', async (done) => {
+	it('getVersion_integration', async done => {
 		ledgerNano = await LedgerNano.connect({
 			deviceConnectionTimeout: 1_000,
 		})
@@ -53,7 +53,7 @@ describe('hw_ledger_integration', () => {
 		})
 	})
 
-	it('getPublicKey_integration', async (done) => {
+	it('getPublicKey_integration', async done => {
 		ledgerNano = await LedgerNano.connect({
 			deviceConnectionTimeout: 1_000,
 		})
@@ -61,14 +61,14 @@ describe('hw_ledger_integration', () => {
 
 		testGetPublicKey({
 			hardwareWallet,
-			onResponse: (_publicKey) => {
+			onResponse: _publicKey => {
 				done()
 			},
 		})
 	})
 
 	// Not implemented on Ledger yet
-	it.skip('doKeyExchange_integration', async (done) => {
+	it.skip('doKeyExchange_integration', async done => {
 		ledgerNano = await LedgerNano.connect({
 			deviceConnectionTimeout: 1_000,
 		})
@@ -76,13 +76,13 @@ describe('hw_ledger_integration', () => {
 
 		testDoKeyExchange({
 			hardwareWallet,
-			onResponse: (_pointOncurve) => {
+			onResponse: _pointOncurve => {
 				done()
 			},
 		})
 	}, 20_000)
 
-	it('doSignHash_integration', async (done) => {
+	it('doSignHash_integration', async done => {
 		ledgerNano = await LedgerNano.connect({
 			deviceConnectionTimeout: 1_000,
 		})
@@ -90,7 +90,7 @@ describe('hw_ledger_integration', () => {
 
 		testDoSignHash({
 			hardwareWallet,
-			onResponse: (_signature) => {
+			onResponse: _signature => {
 				done()
 			},
 		})

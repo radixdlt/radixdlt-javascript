@@ -135,12 +135,12 @@ describe('account_address_on_bech32_format', () => {
 		const doTest = (invalidVector: InvalidVector, index: number): void => {
 			it(`invalid_vector_index${index}`, () => {
 				AccountAddress.fromUnsafe(invalidVector.invalidAddr).match(
-					(_) => {
+					_ => {
 						throw new Error(
 							`Got success, but expected failure, rri: ${invalidVector.invalidAddr}`,
 						)
 					},
-					(e) => {
+					e => {
 						expect(msgFromError(e).length).toBeGreaterThan(1)
 					},
 				)

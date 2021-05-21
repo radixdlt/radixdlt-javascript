@@ -35,7 +35,7 @@ import { toObservable } from '@radixdlt/util'
 export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 	const toObs = <I, E, O>(
 		pickFn: (api: NodeAPI) => (input: I) => ResultAsync<O, E | E[]>,
-		input: I
+		input: I,
 	): Observable<O> =>
 		defer(() => {
 			const fn = pickFn(api)
@@ -45,7 +45,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 	const toObsMap = <I extends Record<string, unknown>, E, O, P>(
 		pickFn: (api: NodeAPI) => (input: I) => ResultAsync<O, E | E[]>,
 		mapOutput: (output: O) => P,
-		input: I
+		input: I,
 	): Observable<P> => toObs(pickFn, input).pipe(map(o => mapOutput(o)))
 
 	return {
@@ -54,84 +54,70 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 		validators: (input: ValidatorsRequestInput): Observable<Validators> =>
 			toObs(a => a.validators, {
 				size: input.size,
-				cursor: input.cursor?.toString()
-			}
-			),
+				cursor: input.cursor?.toString(),
+			}),
 
 		lookupValidator: (input: ValidatorAddressT): Observable<Validator> =>
 			toObs(a => a.lookupValidator, {
-				validatorAddress: input.toString()
+				validatorAddress: input.toString(),
 			}),
 
 		lookupTransaction: (
 			txID: TransactionIdentifierT,
 		): Observable<SimpleExecutedTransaction> =>
-			toObs(a => a.lookupTransaction,
-				{
-					txID: txID.toString()
-				}
-			),
+			toObs(a => a.lookupTransaction, {
+				txID: txID.toString(),
+			}),
 
 		networkId: (): Observable<NetworkT> =>
 			toObsMap(
 				a => a.networkId,
 				m => m.networkId,
-				{}
+				{},
 			),
 
 		tokenBalancesForAddress: (
 			address: AccountAddressT,
 		): Observable<SimpleTokenBalances> =>
-			toObs(a => a.tokenBalances,
-				{
-					address: address.toString()
-				}
-			),
+			toObs(a => a.tokenBalances, {
+				address: address.toString(),
+			}),
 
 		transactionHistory: (
 			input: TransactionHistoryRequestInput,
 		): Observable<SimpleTransactionHistory> =>
-			toObs(
-				a => a.transactionHistory,
-				{
-					address: input.address.toString(),
-					size: input.size,
-					cursor: input.cursor?.toString(),
-				}
-			),
+			toObs(a => a.transactionHistory, {
+				address: input.address.toString(),
+				size: input.size,
+				cursor: input.cursor?.toString(),
+			}),
 
 		nativeToken: (): Observable<Token> => toObs(a => a.nativeToken, {}),
 		tokenInfo: (rri: ResourceIdentifierT): Observable<Token> =>
-			toObs(a => a.tokenInfo,
-				{
-					rri: rri.toString()
-				}
-			),
+			toObs(a => a.tokenInfo, {
+				rri: rri.toString(),
+			}),
 
 		stakesForAddress: (
 			address: AccountAddressT,
 		): Observable<StakePositions> =>
-			toObs(a => a.stakePositions,
-				{
-					address: address.toString()
-				}
-			),
+			toObs(a => a.stakePositions, {
+				address: address.toString(),
+			}),
 
 		unstakesForAddress: (
 			address: AccountAddressT,
 		): Observable<UnstakePositions> =>
 			toObs(a => a.unstakePositions, {
-				address: address.toString()
+				address: address.toString(),
 			}),
 
 		transactionStatus: (
 			txID: TransactionIdentifierT,
 		): Observable<StatusOfTransaction> =>
-			toObs(a => a.statusOfTransaction,
-				{
-					txID: txID.toString()
-				}
-			),
+			toObs(a => a.statusOfTransaction, {
+				txID: txID.toString(),
+			}),
 
 		networkTransactionThroughput: (): Observable<NetworkTransactionThroughput> =>
 			toObs(a => a.networkTransactionThroughput, {}),
@@ -142,58 +128,51 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 		buildTransaction: (
 			transactionIntent: TransactionIntent,
 		): Observable<BuiltTransaction> =>
-			toObs(
-				a => a.buildTransaction,
-				{
-					actions: transactionIntent.actions.map(action =>
-						action.type === ActionType.TOKEN_TRANSFER
-							? {
+			toObs(a => a.buildTransaction, {
+				actions: transactionIntent.actions.map(action =>
+					action.type === ActionType.TOKEN_TRANSFER
+						? {
 								type: action.type,
 								from: action.from.toString(),
 								to: action.to.toString(),
 								amount: action.amount.toString(),
 								tokenIdentifier: action.rri.toString(),
-							}
-							: {
+						  }
+						: {
 								type: action.type,
 								from: action.from.toString(),
 								validator: action.validator.toString(),
 								amount: action.amount.toString(),
-							},
-					),
-					message: transactionIntent.message
-						? transactionIntent.message.toString('hex')
-						: undefined,
-				}
-			),
+						  },
+				),
+				message: transactionIntent.message
+					? transactionIntent.message.toString('hex')
+					: undefined,
+			}),
 
 		finalizeTransaction: (
 			signedTransaction: SignedTransaction,
 		): Observable<FinalizedTransaction> =>
-			toObs(
-				a => a.finalizeTransaction,
-				{
-					transaction: { 
-						blob: signedTransaction.transaction.blob
-					},
-					signatureDER: signedTransaction.signature.toDER(),
-					publicKeyOfSigner: signedTransaction.publicKeyOfSigner.toString(true),
-				}
-			),
+			toObs(a => a.finalizeTransaction, {
+				transaction: {
+					blob: signedTransaction.transaction.blob,
+				},
+				signatureDER: signedTransaction.signature.toDER(),
+				publicKeyOfSigner: signedTransaction.publicKeyOfSigner.toString(
+					true,
+				),
+			}),
 
 		submitSignedTransaction: (
 			finalizedTx: FinalizedTransaction & SignedTransaction,
 		): Observable<PendingTransaction> =>
-			toObs(
-				a => a.submitTransaction,
-				{
-					transaction: {
-						blob: finalizedTx.transaction.blob 
-					},
-					signatureDER: finalizedTx.signature.toDER(),
-					publicKeyOfSigner: finalizedTx.publicKeyOfSigner.toString(true),
-					txID: finalizedTx.txID.toString(),
-				}
-			),
+			toObs(a => a.submitTransaction, {
+				transaction: {
+					blob: finalizedTx.transaction.blob,
+				},
+				signatureDER: finalizedTx.signature.toDER(),
+				publicKeyOfSigner: finalizedTx.publicKeyOfSigner.toString(true),
+				txID: finalizedTx.txID.toString(),
+			}),
 	}
 }

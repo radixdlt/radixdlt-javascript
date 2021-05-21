@@ -48,7 +48,7 @@ describe('tx_intent_builder', () => {
 
 	const plaintext = 'Hey Bob, how are you?'
 
-	beforeAll((done) => {
+	beforeAll(done => {
 		subs.add(
 			wallet.deriveNextLocalHDAccount().subscribe(
 				(aliceId: AccountT) => {
@@ -61,10 +61,10 @@ describe('tx_intent_builder', () => {
 							bob = bobId.address
 							done()
 						},
-						(e) => done(e),
+						e => done(e),
 					)
 				},
-				(e) => done(e),
+				e => done(e),
 			),
 		)
 	})
@@ -166,12 +166,12 @@ describe('tx_intent_builder', () => {
 			.__syncBuildDoNotEncryptMessageIfAny(alice)
 			._unsafeUnwrap()
 
-		txIntent.actions.forEach((t) => {
+		txIntent.actions.forEach(t => {
 			expect(t.from.equals(alice)).toBe(true)
 		})
 
 		const transfers = txIntent.actions
-			.map((a) => a as IntendedTransferTokensAction)
+			.map(a => a as IntendedTransferTokensAction)
 			.map(
 				(t: IntendedTransferTokensAction): SimpleTransf => ({
 					amount: parseInt(t.amount.toString()),
@@ -196,7 +196,7 @@ describe('tx_intent_builder', () => {
 				encryptMessageIfAnyWithAccount: of(aliceAccount),
 			})
 			.pipe(
-				mergeMap((txIntent) => {
+				mergeMap(txIntent => {
 					const encryptedMessage = txIntent.message!
 
 					const aliceDecrypted$ = aliceAccount.decrypt({
@@ -216,17 +216,17 @@ describe('tx_intent_builder', () => {
 			)
 			.subscribe(
 				(plaintexts: string[]) => {
-					plaintexts.forEach((pt) => {
+					plaintexts.forEach(pt => {
 						expect(pt).toBe(expectedPlaintext)
 					})
 					done()
 				},
-				(error) => {
+				error => {
 					done(error)
 				},
 			)
 	}
-	it('can transfer then attach message', (done) => {
+	it('can transfer then attach message', done => {
 		const subs = new Subscription()
 
 		subs.add(
@@ -240,7 +240,7 @@ describe('tx_intent_builder', () => {
 		)
 	})
 
-	it('can attach message then transfer', (done) => {
+	it('can attach message then transfer', done => {
 		const subs = new Subscription()
 
 		subs.add(
@@ -261,7 +261,7 @@ describe('tx_intent_builder', () => {
 				() => {
 					throw new Error('expected error but got none')
 				},
-				(e) => {
+				e => {
 					expect(e.message).toBe(
 						'A transaction intent must contain at least one of the following actions: TransferToken, StakeTokens or UnstakeTokens',
 					)
@@ -269,7 +269,7 @@ describe('tx_intent_builder', () => {
 			)
 	})
 
-	it('can have transfer and attach message and skip encryption', (done) => {
+	it('can have transfer and attach message and skip encryption', done => {
 		const subs = new Subscription()
 
 		subs.add(
@@ -279,7 +279,7 @@ describe('tx_intent_builder', () => {
 				.build({
 					skipEncryptionOfMessageIfAny: { spendingSender: of(alice) },
 				})
-				.subscribe((txIntent) => {
+				.subscribe(txIntent => {
 					expect(txIntent.actions.length).toBe(1)
 
 					const attatchedMessage = txIntent.message
@@ -309,7 +309,7 @@ describe('tx_intent_builder', () => {
 
 		expect(txIntent.actions.length).toBe(4)
 		expect(
-			txIntent.actions.map((a) => parseInt(a.amount.toString())),
+			txIntent.actions.map(a => parseInt(a.amount.toString())),
 		).toStrictEqual([3, 4, 5, 6])
 
 		type AnyAddress = ValidatorAddressT | AccountAddressT
@@ -370,7 +370,7 @@ describe('tx_intent_builder', () => {
 			restoreDefaultLogLevel()
 		})
 
-		it('an error is thrown when specifying encryption for message but building intent without encrypting account', (done) => {
+		it('an error is thrown when specifying encryption for message but building intent without encrypting account', done => {
 			const subs = new Subscription()
 
 			const builder = TransactionIntentBuilder.create()
@@ -389,7 +389,7 @@ describe('tx_intent_builder', () => {
 						},
 					})
 					.subscribe({
-						next: (_) => {
+						next: _ => {
 							done(new Error('Expected error'))
 						},
 						error: (error: Error) => {
@@ -402,7 +402,7 @@ describe('tx_intent_builder', () => {
 			)
 		})
 
-		it('an error is thrown when specifying plaintext for message but building intent with encrypting account', (done) => {
+		it('an error is thrown when specifying plaintext for message but building intent with encrypting account', done => {
 			const subs = new Subscription()
 
 			const builder = TransactionIntentBuilder.create()
@@ -419,7 +419,7 @@ describe('tx_intent_builder', () => {
 						encryptMessageIfAnyWithAccount: of(aliceAccount),
 					})
 					.subscribe({
-						next: (_) => {
+						next: _ => {
 							done(new Error('Expected error'))
 						},
 						error: (error: Error) => {
@@ -432,7 +432,7 @@ describe('tx_intent_builder', () => {
 			)
 		})
 
-		it('an error is thrown when trying to encrypt message of a transaction with multiple recipients', (done) => {
+		it('an error is thrown when trying to encrypt message of a transaction with multiple recipients', done => {
 			const subs = new Subscription()
 
 			const builder = TransactionIntentBuilder.create()
@@ -450,7 +450,7 @@ describe('tx_intent_builder', () => {
 						encryptMessageIfAnyWithAccount: of(aliceAccount),
 					})
 					.subscribe({
-						next: (_) => {
+						next: _ => {
 							done(new Error('Expected error'))
 						},
 						error: (error: Error) => {
@@ -464,7 +464,7 @@ describe('tx_intent_builder', () => {
 		})
 	})
 
-	it('can encrypt message of a transaction with oneself as recipient', (done) => {
+	it('can encrypt message of a transaction with oneself as recipient', done => {
 		const subs = new Subscription()
 
 		const plaintext = 'Hey Alice, it is me, Alice!'
@@ -485,7 +485,7 @@ describe('tx_intent_builder', () => {
 					}),
 				)
 				.subscribe({
-					next: (decryptedMessage) => {
+					next: decryptedMessage => {
 						expect(decryptedMessage).toBe(plaintext)
 						done()
 					},

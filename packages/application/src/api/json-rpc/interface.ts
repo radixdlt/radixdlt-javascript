@@ -44,12 +44,9 @@ const callAPI = <Params extends Record<string, unknown>, DecodedResponse>(
 	call: (endpoint: Endpoint, params: Params) => Promise<unknown>,
 	handleResponse: (response: unknown) => Result<DecodedResponse, Error[]>,
 ) => (params: Params) =>
-	pipe(
-		call,
-		andThen(handleResponse),
-		value =>
-			// @ts-ignore
-			ResultAsync.fromPromise(value, (e: Error[]) => e).andThen(r => r),
+	pipe(call, andThen(handleResponse), value =>
+		// @ts-ignore
+		ResultAsync.fromPromise(value, (e: Error[]) => e).andThen(r => r),
 	)(endpoint, params)
 
 const setupAPICall = (

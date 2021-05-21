@@ -3,7 +3,7 @@ import { map, take, toArray } from 'rxjs/operators'
 import { Subscription } from 'rxjs'
 
 describe('wallet', () => {
-	it('can observeActiveAccount', (done) => {
+	it('can observeActiveAccount', done => {
 		const subs = new Subscription()
 		const wallet = createWallet()
 
@@ -13,23 +13,23 @@ describe('wallet', () => {
 			wallet
 				.observeActiveAccount()
 				.pipe(
-					map((account) => account.hdPath!.addressIndex.value()),
+					map(account => account.hdPath!.addressIndex.value()),
 					take(expectedValues.length),
 					toArray(),
 				)
 				.subscribe(
-					(values) => {
+					values => {
 						expect(values).toStrictEqual(expectedValues)
 						done()
 					},
-					(error) => done(error),
+					error => done(error),
 				),
 		)
 
 		subs.add(
 			wallet
 				.deriveNextLocalHDAccount({ alsoSwitchTo: true })
-				.subscribe((_) => {
+				.subscribe(_ => {
 					subs.add(
 						wallet
 							.deriveNextLocalHDAccount({ alsoSwitchTo: true })

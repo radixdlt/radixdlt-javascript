@@ -46,14 +46,14 @@ describe('radix_hardware_wallet', () => {
 		log.setLevel('warn')
 	})
 
-	it('wallet_derive_hw_account', async (done) => {
+	it('wallet_derive_hw_account', async done => {
 		const subs = new Subscription()
 
 		const radix = Radix.create().withWallet(wallet)
 
 		subs.add(
 			radix.deriveHWAccount('next').subscribe({
-				next: (account) => {
+				next: account => {
 					expect(account.hdPath!.toString()).toBe(
 						`m/44'/536'/0'/0/0'`,
 					)
@@ -94,7 +94,7 @@ describe('radix_hardware_wallet', () => {
 					)
 					done()
 				},
-				error: (e) => done(e),
+				error: e => done(e),
 			}),
 		)
 	}, 20_000)

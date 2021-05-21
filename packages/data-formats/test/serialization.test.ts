@@ -8,19 +8,19 @@ describe('JSON decoding', () => {
 	const decodeNbr = (nbr: number) => nbr + 1
 
 	const stringDecoder = (val: string) =>
-		decoder((value) =>
+		decoder(value =>
 			isString(value) && value === val
 				? ok(decodeString(value))
 				: undefined,
 		)
 	const boolDecoder = (val: boolean) =>
-		decoder((value) =>
+		decoder(value =>
 			isBoolean(value) && value === val
 				? ok(decodeBool(value))
 				: undefined,
 		)
 	const nbrDecoder = (val: number) =>
-		decoder((value) =>
+		decoder(value =>
 			isNumber(value) && value === val ? ok(decodeNbr(value)) : undefined,
 		)
 
@@ -71,13 +71,13 @@ describe('JSON decoding', () => {
 	it('should decode a nested object', () => {
 		const decodedValue = 'decoded'
 
-		const stringDecoder = decoder((value) =>
+		const stringDecoder = decoder(value =>
 			isString(value) && value === 'decodeMe'
 				? ok(value + decodedValue)
 				: undefined,
 		)
 
-		const stringDecoder2 = decoder((value) =>
+		const stringDecoder2 = decoder(value =>
 			isString(value) && value === 'decodeMe2'
 				? ok(value + decodedValue)
 				: undefined,
@@ -114,19 +114,19 @@ describe('JSON decoding', () => {
 		const errorMsg1 = 'boom'
 		const errorMsg2 = 'boom2'
 
-		const stringDecoder = decoder((value) =>
+		const stringDecoder = decoder(value =>
 			isString(value) && value === 'decodeMe'
 				? err(Error(errorMsg1))
 				: undefined,
 		)
 
-		const stringDecoder2 = decoder((value) =>
+		const stringDecoder2 = decoder(value =>
 			isString(value) && value === 'decodeMe2'
 				? err(Error(errorMsg2))
 				: undefined,
 		)
 
-		const stringDecoder3 = decoder((value) =>
+		const stringDecoder3 = decoder(value =>
 			isString(value) && value === 'decodeMe3'
 				? ok(value + decodedValue)
 				: undefined,

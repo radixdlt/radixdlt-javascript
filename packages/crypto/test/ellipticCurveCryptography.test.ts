@@ -27,13 +27,13 @@ describe('elliptic curve cryptography', () => {
 		PublicKey.fromBuffer(
 			Buffer.from(publicKeyCompressedHexString, 'hex'),
 		).match(
-			(s) => {
+			s => {
 				expect(s.toString(false)).toBe(
 					'040202020202020202020202020202020202020202020202020202020202020202415456f0fc01d66476251cab4525d9db70bfec652b2d8130608675674cde64b2',
 				)
 				expect(s.toString(true)).toBe(publicKeyCompressedHexString)
 			},
-			(e) => {
+			e => {
 				throw new Error(
 					`0202... is not a valid public key, but we expected it to be. Underlying error: ${msgFromError(
 						e,
@@ -59,12 +59,12 @@ describe('elliptic curve cryptography', () => {
 			PublicKey.fromBuffer(
 				Buffer.from(publicKeyCompressedHexString, 'hex'),
 			).match(
-				(_) => {
+				_ => {
 					throw new Error(
 						`We expected ${publicKeyCompressedHexString} to be invalid, but it is not.`,
 					)
 				},
-				(e) => {
+				e => {
 					expect(msgFromError(e)).toBe(
 						`Failed to decode bytes into public key, underlying error: invalid point. bytes: '${publicKeyCompressedHexString}'`,
 					)
@@ -75,7 +75,7 @@ describe('elliptic curve cryptography', () => {
 
 	it('can securely generate private keys', () => {
 		const privateKeys = [...Array(1024)]
-			.map((_) => PrivateKey.generateNew())
+			.map(_ => PrivateKey.generateNew())
 			.map((privateKey: PrivateKeyT): string => privateKey.toString())
 		const uniquePrivateKeys = new Set(privateKeys)
 		// Probability of collision is: 2^10/2^256 <=> 1/2^246<=> Very very very very low probability.
@@ -245,7 +245,7 @@ describe('elliptic curve cryptography', () => {
 			() => {
 				throw Error('expected error, but got none')
 			},
-			(e) => expect(e.message).toBe(`Not point on curve!`),
+			e => expect(e.message).toBe(`Not point on curve!`),
 		)
 	})
 })

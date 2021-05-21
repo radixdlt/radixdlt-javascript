@@ -54,7 +54,7 @@ describe('hardwareWallet', () => {
 	}
 
 	describe('emulated', () => {
-		it('getVersion', (done) => {
+		it('getVersion', done => {
 			const hardcodedVersion = SemVer.fromString('2.5.9')._unsafeUnwrap()
 
 			const { store, hardwareWallet } = emulateHardwareWallet({
@@ -90,7 +90,7 @@ describe('hardwareWallet', () => {
 			})
 		})
 
-		it('getPublicKey_emulated', (done) => {
+		it('getPublicKey_emulated', done => {
 			const subs = new Subscription()
 
 			const usersInputOnLedger = new ReplaySubject<LedgerButtonPress>()
@@ -107,7 +107,7 @@ describe('hardwareWallet', () => {
 
 			subs.add(
 				promptUserForInputOnLedger.subscribe({
-					next: (prompt) => {
+					next: prompt => {
 						if (
 							prompt.type ===
 							PromptUserForInputType.REQUIRE_CONFIRMATION
@@ -158,7 +158,7 @@ describe('hardwareWallet', () => {
 			})
 		})
 
-		it('emulated_DoSignHash', (done) => {
+		it('emulated_DoSignHash', done => {
 			const subs = new Subscription()
 
 			const usersInputOnLedger = new ReplaySubject<LedgerButtonPress>()
@@ -175,7 +175,7 @@ describe('hardwareWallet', () => {
 
 			subs.add(
 				promptUserForInputOnLedger.subscribe({
-					next: (prompt) => {
+					next: prompt => {
 						if (
 							prompt.type ===
 							PromptUserForInputType.REQUIRE_CONFIRMATION
@@ -229,7 +229,7 @@ describe('hardwareWallet', () => {
 			})
 		})
 
-		it('emulated_DoKeyExchange', (done) => {
+		it('emulated_DoKeyExchange', done => {
 			const subs = new Subscription()
 
 			const usersInputOnLedger = new ReplaySubject<LedgerButtonPress>()
@@ -246,7 +246,7 @@ describe('hardwareWallet', () => {
 
 			subs.add(
 				promptUserForInputOnLedger.subscribe({
-					next: (prompt) => {
+					next: prompt => {
 						if (
 							prompt.type ===
 							PromptUserForInputType.REQUIRE_CONFIRMATION

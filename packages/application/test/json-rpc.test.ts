@@ -247,7 +247,7 @@ const expectedDecodedResponses = {
 						response.transactions[0].fee,
 					)._unsafeUnwrap({ withStackTrace: true }),
 					message: response.transactions[0].message,
-					actions: response.transactions[0].actions.map((raw) =>
+					actions: response.transactions[0].actions.map(raw =>
 						executedActionFromRaw(raw),
 					),
 				},
@@ -269,7 +269,7 @@ const expectedDecodedResponses = {
 				withStackTrace: true,
 			}),
 			message: response.message,
-			actions: response.actions.map((action) =>
+			actions: response.actions.map(action =>
 				executedActionFromRaw(action),
 			),
 		}
