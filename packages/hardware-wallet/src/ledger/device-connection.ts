@@ -1,7 +1,7 @@
 import { RadixAPDU } from './apdu'
 import { RadixAPDUT } from './_types'
 import { log } from '@radixdlt/util'
-import { LedgerInstruction } from '../_types'
+import { LedgerInstruction, LedgerResponseCodes } from '../_types'
 
 export type BasicLedgerTransport = Readonly<{
 	close: () => Promise<void>
@@ -22,25 +22,21 @@ export const send = (
 	}>,
 ): Promise<Buffer> => {
 	const { apdu, with: connectedLedgerTransport } = input
-	const statusList = [
-		...apdu.requiredResponseStatusCodeFromDevice.map(s => s.valueOf()),
+	const acceptableStatusCodes = apdu.requiredResponseStatusCodeFromDevice ?? [
+		LedgerResponseCodes.SW_OK,
 	]
+	const statusList = [...acceptableStatusCodes.map((s) => s.valueOf())]
 
-	if (apdu.ins === LedgerInstruction.PING) {
-		log.debug(`🏓 📲 sending PING APDU to Ledger device`)
-	} else {
-		log.debug(`📦 📲 sending APDU to Ledger device:
+	const debugPrintPrefix = apdu.ins === LedgerInstruction.PING ? `🏓` : `📦`
+	log.debug(`${debugPrintPrefix} 📲 sending APDU to Ledger device:
 			instruction: ${apdu.ins},
 			p1: ${apdu.p1},
 			p2: ${apdu.p2},
 			data: ${apdu.data !== undefined ? apdu.data.toString('hex') : '<UNDEFINED>'},
 		`)
-	}
 	return connectedLedgerTransport.send(
 		apdu.cla,
-		apdu.ins === LedgerInstruction.PING
-			? LedgerInstruction.GET_VERSION
-			: apdu.ins,
+		apdu.ins,
 		apdu.p1,
 		apdu.p2,
 		apdu.data,
@@ -106,11 +102,27 @@ const __openConnection = async (
 		await delay(delayBetweenRetries)
 
 		return send({
-			apdu: RadixAPDU.ping,
+			apdu: RadixAPDU.ping(),
 			with: basicLedgerTransport,
 		})
-			.then(_ => {
-				console.log(`📲 ✅ Got PONG 🏓, Radix app is open.`)
+			.then((response) => {
+				log.debug(
+					`🥩 raw response: '0x${response.toString(
+						'hex',
+					)}' (utf8: '${response.toString('utf8')}')`,
+				)
+				const responseWithoutCode = response.slice(0, response.length - 2)
+				const responseString = responseWithoutCode.toString('utf8')
+				log.debug(`🔮 response without code: ${responseString}`)
+				const debugResponseEmoji =
+					responseString === 'pong'
+						? `🏓`
+						: responseString === 'hello'
+						? '👋🏻'
+						: '❌'
+				log.debug(
+					`📲 ✅ Got ${debugResponseEmoji}, Radix app is open.`,
+				)
 				return Promise.resolve(basicLedgerTransport)
 			})
 			.catch(_ =>

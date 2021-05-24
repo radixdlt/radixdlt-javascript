@@ -108,8 +108,15 @@ const doSignHash = (input: APDUDoSignHashInput): RadixAPDUT => {
 	})
 }
 
-const ping: RadixAPDUT = { ...getVersion(), ins: LedgerInstruction.PING }
+const ping = (msg?: string): RadixAPDUT => {
+	const message = msg ?? 'ping'
+	const data = Buffer.from(message, 'utf8')
 
+	return makeAPDU({
+		ins: LedgerInstruction.PING,
+		data,
+	})
+}
 export const RadixAPDU = {
 	ping,
 	getVersion,

@@ -106,7 +106,7 @@ const emulateDoSignHash = (
 	const confirmRequest = !requireConfirmation
 		? of(LedgerButtonPress.BOTH_CONFIRM)
 		: usersInputOnLedger.pipe(
-				tap(buttonPress => {
+				tap((buttonPress) => {
 					if (buttonPress === LedgerButtonPress.LEFT_REJECT) {
 						throw LedgerResponseCodes.SW_USER_REJECTED
 					}
@@ -114,7 +114,7 @@ const emulateDoSignHash = (
 		  )
 
 	return confirmRequest.pipe(
-		mergeMap(_ => toObservable(privateKey.sign(hashedData))),
+		mergeMap((_) => toObservable(privateKey.sign(hashedData))),
 		map((signature: SignatureT) =>
 			Buffer.concat([
 				Buffer.from(signature.r.toString(16), 'hex'),
@@ -174,7 +174,7 @@ const emulateDoKeyExchange = (
 	const confirmRequest = !requireConfirmation
 		? of(LedgerButtonPress.BOTH_CONFIRM)
 		: usersInputOnLedger.pipe(
-				tap(buttonPress => {
+				tap((buttonPress) => {
 					if (buttonPress === LedgerButtonPress.LEFT_REJECT) {
 						throw LedgerResponseCodes.SW_USER_REJECTED
 					}
@@ -182,7 +182,7 @@ const emulateDoKeyExchange = (
 		  )
 
 	return confirmRequest.pipe(
-		mergeMap(_ =>
+		mergeMap((_) =>
 			toObservable(privateKey.diffieHellman(publicKeyOfOtherParty)),
 		),
 		map((ecPoint: ECPointOnCurveT) => ecPoint.toBuffer()),
@@ -254,6 +254,27 @@ const emulateGetPublicKey = (
 		  )
 }
 
+const emulatePing = (
+	input: Readonly<{
+		apdu: RadixAPDUT
+	}>,
+): Observable<Buffer> => {
+	const { apdu } = input
+	const { p1, p2, data } = apdu
+	if (p1 !== 0) {
+		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+	}
+	if (p2 !== 0) {
+		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+	}
+	if (!data) {
+		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+	}
+	const responseString = data.toString('utf8') === 'ping' ? 'pong' : 'hello'
+	const buf = Buffer.from(responseString, 'utf8')
+	return of(buf)
+}
+
 const emulateGetVersion = (
 	input: Readonly<{
 		hardcodedVersion: SemVerT
@@ -297,6 +318,17 @@ export const emulateSend = (
 		}
 
 		switch (ins) {
+			case LedgerInstruction.PING: {
+				return emulatePing({
+					apdu,
+				})
+			}
+			case LedgerInstruction.GET_VERSION: {
+				return emulateGetVersion({
+					hardcodedVersion,
+					apdu,
+				})
+			}
 			case LedgerInstruction.GET_PUBLIC_KEY: {
 				return emulateGetPublicKey({
 					...input,
@@ -312,12 +344,6 @@ export const emulateSend = (
 			case LedgerInstruction.DO_SIGN_HASH: {
 				return emulateDoSignHash({
 					...input,
-					apdu,
-				})
-			}
-			case LedgerInstruction.GET_VERSION: {
-				return emulateGetVersion({
-					hardcodedVersion,
 					apdu,
 				})
 			}

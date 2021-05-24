@@ -27,7 +27,7 @@ import {
 	testGetVersion,
 } from './hardwareTestUtils'
 
-describe('hardwareWallet', () => {
+describe('hardwareWallet_emulated', () => {
 	const emulateHardwareWallet = (
 		input: Readonly<{
 			io?: EmulatedLedgerIO | undefined
@@ -70,7 +70,7 @@ describe('hardwareWallet', () => {
 
 					// Assert request
 					expect(request.cla).toBe(0xaa)
-					expect(request.ins).toBe(0x00)
+					expect(request.ins).toBe(0x01)
 					expect(request.p1).toBe(0)
 					expect(request.p2).toBe(0)
 					expect(request.data).toBeUndefined()
@@ -78,7 +78,7 @@ describe('hardwareWallet', () => {
 						request.requiredResponseStatusCodeFromDevice!,
 					).toStrictEqual([0x9000])
 
-					expect(semVer.equals(hardcodedVersion)).toBe(true)
+					expect(semVer.toString()).toBe(hardcodedVersion.toString())
 					expect(
 						semVer.equals(
 							SemVer.fromBuffer(response.data)._unsafeUnwrap(),
@@ -136,7 +136,7 @@ describe('hardwareWallet', () => {
 
 					// Assert request
 					expect(request.cla).toBe(0xaa)
-					expect(request.ins).toBe(0x08)
+					expect(request.ins).toBe(0x02)
 					expect(request.p1).toBe(1)
 					expect(request.p2).toBe(0)
 
@@ -204,7 +204,7 @@ describe('hardwareWallet', () => {
 
 					// Assert request
 					expect(request.cla).toBe(0xaa)
-					expect(request.ins).toBe(0x04)
+					expect(request.ins).toBe(0x08)
 					expect(request.p1).toBe(1)
 					expect(request.p2).toBe(0)
 					expect(request.data).toBeDefined()
@@ -275,7 +275,7 @@ describe('hardwareWallet', () => {
 
 					// Assert request
 					expect(request.cla).toBe(0xaa)
-					expect(request.ins).toBe(0x32)
+					expect(request.ins).toBe(0x04)
 					expect(request.p1).toBe(1)
 					expect(request.p2).toBe(0)
 					expect(request.data).toBeDefined()
