@@ -47,7 +47,7 @@ describe('hw_ledger_integration', () => {
 		testGetVersion({
 			hardwareWallet,
 			onResponse: (version: SemVerT) => {
-				expect(version.toString()).toBe('0.1.5')
+				expect(version.toString()).toBe('0.1.7')
 				done()
 			},
 		})
