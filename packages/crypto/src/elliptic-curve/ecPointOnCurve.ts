@@ -117,14 +117,26 @@ const fromXY = (
 	__pointOnCurveFromEllipticShortPoint(pointFromCoordinates(input))
 
 const fromBuffer = (buffer: Buffer): Result<ECPointOnCurveT, Error> => {
+	let bytes = buffer
+	if (bytes.length === 65) {
+		const firstByte = parseInt(bytes.slice(0, 1).toString('hex'), 16)
+		if (firstByte !== 0x04) {
+			const errMsg = `For buffers with length 65 bytes we expect the first byte to be 0x04, but got: ${firstByte.toString(
+				16,
+			)}`
+			log.error(errMsg)
+			return err(new Error(errMsg))
+		}
+		bytes = bytes.slice(1)
+	}
 	const expectedByteCount = 64
-	if (buffer.length !== expectedByteCount) {
-		const errMsg = `Expected #${expectedByteCount} bytes, but got: ${buffer.length}`
+	if (bytes.length !== expectedByteCount) {
+		const errMsg = `Expected #${expectedByteCount} bytes, but got: ${bytes.length}`
 		log.error(errMsg)
 		return err(new Error(errMsg))
 	}
-	const xBuf = buffer.slice(0, expectedByteCount / 2)
-	const yBuf = buffer.slice(expectedByteCount / 2)
+	const xBuf = bytes.slice(0, expectedByteCount / 2)
+	const yBuf = bytes.slice(expectedByteCount / 2)
 	const x = new UInt256(xBuf.toString('hex'), 16)
 	const y = new UInt256(yBuf.toString('hex'), 16)
 	return fromXY({ x, y })
