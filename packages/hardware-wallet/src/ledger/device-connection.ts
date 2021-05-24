@@ -106,21 +106,21 @@ const __openConnection = async (
 			with: basicLedgerTransport,
 		})
 			.then((response) => {
-				console.log(
+				log.debug(
 					`🥩 raw response: '0x${response.toString(
 						'hex',
 					)}' (utf8: '${response.toString('utf8')}')`,
 				)
 				const responseWithoutCode = response.slice(0, response.length - 2)
 				const responseString = responseWithoutCode.toString('utf8')
-				console.log(`🔮 response without code: ${responseString}`)
+				log.debug(`🔮 response without code: ${responseString}`)
 				const debugResponseEmoji =
 					responseString === 'pong'
 						? `🏓`
 						: responseString === 'hello'
 						? '👋🏻'
 						: '❌'
-				console.log(
+				log.debug(
 					`📲 ✅ Got ${debugResponseEmoji}, Radix app is open.`,
 				)
 				return Promise.resolve(basicLedgerTransport)

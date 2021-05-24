@@ -47,7 +47,7 @@ describe('hw_ledger_integration', () => {
 		testGetVersion({
 			hardwareWallet,
 			onResponse: (version: SemVerT) => {
-				expect(version.toString()).toBe('0.1.3§')
+				expect(version.toString()).toBe('0.1.5')
 				done()
 			},
 		})
@@ -67,8 +67,7 @@ describe('hw_ledger_integration', () => {
 		})
 	})
 
-	// Not implemented on Ledger yet
-	it.only('doKeyExchange_integration', async (done) => {
+	it('doKeyExchange_integration', async (done) => {
 		ledgerNano = await LedgerNano.connect({
 			deviceConnectionTimeout: 1_000,
 		})
