@@ -1,8 +1,9 @@
 import { err, ok, Result } from 'neverthrow'
 import { buffersEquals, msgFromError } from '@radixdlt/util'
 import { PublicKeyT, sha256Twice } from '@radixdlt/crypto'
+import { NetworkT } from '@radixdlt/primitives'
 import { Bech32, Encoding } from '../bech32'
-import { NetworkT, ResourceIdentifierT } from './_types'
+import { ResourceIdentifierT } from './_types'
 import { HRPFromNetwork, NetworkFromHRP } from './abstractAddress'
 
 const encoding = Encoding.BECH32

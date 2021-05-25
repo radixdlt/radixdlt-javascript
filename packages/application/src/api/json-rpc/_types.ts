@@ -1,4 +1,4 @@
-import { NetworkT } from '@radixdlt/account'
+import { NetworkT } from '@radixdlt/primitives'
 import { ActionType } from '../../actions'
 import {
 	SimpleExecutedTransaction,

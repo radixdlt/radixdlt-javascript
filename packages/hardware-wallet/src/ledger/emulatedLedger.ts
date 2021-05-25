@@ -4,16 +4,17 @@ import { err, ok, Result } from 'neverthrow'
 import { Observable, of, throwError } from 'rxjs'
 import {
 	BIP44ChangeIndex,
+	ECPointOnCurveT,
+	hardenedIncrement,
 	HDNodeT,
 	HDPathRadix,
 	HDPathRadixT,
 	PublicKey,
 	SignatureT,
-	ECPointOnCurveT,
-	hardenedIncrement,
 } from '@radixdlt/crypto'
 import { map, mergeMap, take, tap } from 'rxjs/operators'
 import { log, toObservable } from '@radixdlt/util'
+import { NetworkT } from '@radixdlt/primitives'
 
 const pathDataByteCount = 12
 const publicKeyByteCount = 64
@@ -106,7 +107,7 @@ const emulateDoSignHash = (
 	const confirmRequest = !requireConfirmation
 		? of(LedgerButtonPress.BOTH_CONFIRM)
 		: usersInputOnLedger.pipe(
-				tap((buttonPress) => {
+				tap(buttonPress => {
 					if (buttonPress === LedgerButtonPress.LEFT_REJECT) {
 						throw LedgerResponseCodes.SW_USER_REJECTED
 					}
@@ -114,7 +115,7 @@ const emulateDoSignHash = (
 		  )
 
 	return confirmRequest.pipe(
-		mergeMap((_) => toObservable(privateKey.sign(hashedData))),
+		mergeMap(_ => toObservable(privateKey.sign(hashedData))),
 		map((signature: SignatureT) =>
 			Buffer.concat([
 				Buffer.from(signature.r.toString(16), 'hex'),
@@ -174,7 +175,7 @@ const emulateDoKeyExchange = (
 	const confirmRequest = !requireConfirmation
 		? of(LedgerButtonPress.BOTH_CONFIRM)
 		: usersInputOnLedger.pipe(
-				tap((buttonPress) => {
+				tap(buttonPress => {
 					if (buttonPress === LedgerButtonPress.LEFT_REJECT) {
 						throw LedgerResponseCodes.SW_USER_REJECTED
 					}
@@ -182,7 +183,7 @@ const emulateDoKeyExchange = (
 		  )
 
 	return confirmRequest.pipe(
-		mergeMap((_) =>
+		mergeMap(_ =>
 			toObservable(privateKey.diffieHellman(publicKeyOfOtherParty)),
 		),
 		map((ecPoint: ECPointOnCurveT) => ecPoint.toBuffer()),
@@ -214,8 +215,11 @@ const emulateGetPublicKey = (
 	const { apdu, hdMasterNode, recorder } = input
 	const { usersInputOnLedger, promptUserForInputOnLedger } = recorder
 
-	const { p1, data } = apdu
-	if (p1 > 1) {
+	const { p1, p2, data } = apdu
+	if (p1 !== 0 && p1 !== 1) {
+		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+	}
+	if (p2 !== 0 && p2 !== 1 && p2 !== 2) {
 		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
 	}
 
@@ -229,8 +233,10 @@ const emulateGetPublicKey = (
 	const response = publicKey.asData({ compressed: true })
 
 	const requireConfirmation = p1 === 1
+	const verifyAddressForNetwork: NetworkT | undefined =
+		p2 !== 0 ? (p2 === 1 ? NetworkT.MAINNET : NetworkT.BETANET) : undefined
 
-	if (requireConfirmation) {
+	const promptForInput = (): void => {
 		// Require confirmation on device
 		promptUserForInputOnLedger.next({
 			type: PromptUserForInputType.REQUIRE_CONFIRMATION,
@@ -238,7 +244,18 @@ const emulateGetPublicKey = (
 		})
 	}
 
-	return !requireConfirmation
+	let expectedInputsFromUser = 0
+	if (requireConfirmation) {
+		expectedInputsFromUser += 1
+		promptForInput()
+
+		if (verifyAddressForNetwork) {
+			expectedInputsFromUser += 1
+			promptForInput()
+		}
+	}
+
+	return !requireConfirmation && !verifyAddressForNetwork
 		? of(response)
 		: usersInputOnLedger.pipe(
 				map(
@@ -250,7 +267,7 @@ const emulateGetPublicKey = (
 						}
 					},
 				),
-				take(1),
+				take(expectedInputsFromUser),
 		  )
 }
 

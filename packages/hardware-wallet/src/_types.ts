@@ -5,6 +5,7 @@ import {
 	PublicKeyT,
 	SignatureT,
 } from '@radixdlt/crypto'
+import { NetworkT } from '@radixdlt/primitives'
 
 // Semantic versioning, e.g. 1.0.5
 export type SemVerT = Readonly<{
@@ -26,6 +27,7 @@ export type AtPath = Readonly<{
 export type GetPublicKeyInput = AtPath &
 	Readonly<{
 		requireConfirmationOnDevice?: boolean
+		verifyAddressOnDeviceForNetwork?: NetworkT
 	}>
 
 export type SignHashInput = GetPublicKeyInput &

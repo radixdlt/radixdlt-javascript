@@ -6,6 +6,7 @@ import {
 	PublicKeyT,
 	RADIX_COIN_TYPE,
 } from '@radixdlt/crypto'
+import { NetworkT } from '@radixdlt/primitives'
 
 // ##### Follows https://github.com/radixdlt/radixdlt-ledger-app/blob/main/APDUSPEC.md #####
 
@@ -55,16 +56,24 @@ type WithPath = Readonly<{
 type APDUGetPublicKeyInput = WithPath &
 	Readonly<{
 		requireConfirmationOnDevice: boolean
+		verifyAddressOnDeviceForNetwork?: NetworkT
 	}>
 
 const getPublicKey = (input: APDUGetPublicKeyInput): RadixAPDUT => {
 	const p1: number = input.requireConfirmationOnDevice ? 0x01 : 0x00
+	const p2: number =
+		input.verifyAddressOnDeviceForNetwork !== undefined
+			? input.verifyAddressOnDeviceForNetwork === NetworkT.MAINNET
+				? 0x01
+				: 0x02
+			: 0x00
 
 	const data = hdPathToBuffer(input.path)
 
 	return makeAPDU({
 		ins: LedgerInstruction.GET_PUBLIC_KEY,
 		p1,
+		p2,
 		data,
 	})
 }

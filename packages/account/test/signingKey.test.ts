@@ -1,28 +1,23 @@
 import {
 	ECPointOnCurveT,
-	MessageEncryption,
-	PublicKeyT,
-	PublicKey,
-	PrivateKey,
-	sha256Twice,
-	SignatureT,
-	Signature,
-	Mnemonic,
 	HDMasterSeed,
-	BIP32T,
 	HDPathRadix,
 	HDPathRadixT,
+	MessageEncryption,
+	Mnemonic,
+	PrivateKey,
+	PublicKey,
+	PublicKeyT,
+	sha256Twice,
+	Signature,
+	SignatureT,
 } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
-import {
-	SigningKey,
-	SigningKeyT,
-	SigningKeyTypeHDT,
-	HDSigningKeyTypeIdentifier,
-} from '../src'
-import { Observable, of, Subscription } from 'rxjs'
+import { AccountAddress, HDSigningKeyTypeIdentifier, SigningKey, SigningKeyT, SigningKeyTypeHDT } from '../src'
+import { Observable, Subscription } from 'rxjs'
 import { toObservable } from '@radixdlt/util'
 import { HardwareSigningKeyT } from '@radixdlt/hardware-wallet'
+import { NetworkT } from '@radixdlt/primitives'
 
 const privateKeyFromNum = (privateKeyScalar: number) =>
 	PrivateKey.fromScalar(UInt256.valueOf(privateKeyScalar))._unsafeUnwrap()
@@ -70,6 +65,12 @@ describe('signingKey_type', () => {
 		expect(signingKey.publicKey.toString(true)).toBe(
 			'026d5e07cfde5df84b5ef884b629d28d15b0f6c66be229680699767cd57c618288',
 		)
+
+		const accountAddress = AccountAddress.fromPublicKeyAndNetwork({
+			publicKey: signingKey.publicKey,
+			network: NetworkT.BETANET
+		})
+		expect(accountAddress.toString()).toBe('brx1qspx6hs8el09m7zttmugfd3f62x3tv8kce47y2tgq6vhvlx403sc9zqmgsw9s')
 
 		const otherPubKey = PublicKey.fromBuffer(
 			Buffer.from(

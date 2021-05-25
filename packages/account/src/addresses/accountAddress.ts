@@ -10,7 +10,8 @@ import {
 	ValidateDataAndExtractPubKeyBytes,
 } from './abstractAddress'
 import { buffersEquals } from '@radixdlt/util'
-import { AccountAddressT, AddressTypeT, NetworkT } from './_types'
+import { AccountAddressT, AddressTypeT } from './_types'
+import { NetworkT } from '@radixdlt/primitives'
 
 export const isAccountAddress = (
 	something: unknown,

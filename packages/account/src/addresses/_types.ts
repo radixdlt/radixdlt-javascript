@@ -1,9 +1,6 @@
 import { PublicKeyT } from '@radixdlt/crypto'
+import { NetworkT } from '@radixdlt/primitives'
 
-export enum NetworkT {
-	MAINNET = 'MAINNET',
-	BETANET = 'BETANET',
-}
 export type ResourceIdentifierT = Readonly<{
 	hash: Buffer
 	__witness: 'isRRI'

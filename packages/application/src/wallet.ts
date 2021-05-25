@@ -1,6 +1,5 @@
 import {
 	SigningKeychainT,
-	NetworkT,
 	SigningKeyT,
 	SigningKeysT,
 	AccountAddressT,
@@ -21,6 +20,7 @@ import { Account, isAccount } from './account'
 import { map } from 'rxjs/operators'
 import { Option } from 'prelude-ts'
 import { PublicKeyT, HDPathRadixT } from '@radixdlt/crypto'
+import { NetworkT } from '@radixdlt/primitives'
 
 const create = (
 	input: Readonly<{

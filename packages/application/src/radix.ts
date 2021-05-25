@@ -1,11 +1,10 @@
 import {
 	AccountAddressT,
-	DeriveHWSigningKeyInput,
 	DeriveNextInput,
-	NetworkT,
 	SigningKeychain,
 	SigningKeychainT,
 } from '@radixdlt/account'
+import { NetworkT } from '@radixdlt/primitives'
 import { nodeAPI, NodeT, RadixAPI, radixCoreAPI, RadixCoreAPI } from './api'
 
 import {

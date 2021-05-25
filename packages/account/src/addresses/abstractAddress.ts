@@ -2,7 +2,8 @@ import { combine, ok, Result } from 'neverthrow'
 import { isPublicKey, PublicKey, PublicKeyT } from '@radixdlt/crypto'
 import { log, msgFromError } from '@radixdlt/util'
 import { Bech32, Encoding } from '../bech32'
-import { AbstractAddressT, AddressTypeT, NetworkT } from './_types'
+import { AbstractAddressT, AddressTypeT } from './_types'
+import { NetworkT } from '@radixdlt/primitives'
 
 export const isAbstractAddress = (
 	something: unknown,

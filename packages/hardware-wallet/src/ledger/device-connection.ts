@@ -25,7 +25,7 @@ export const send = (
 	const acceptableStatusCodes = apdu.requiredResponseStatusCodeFromDevice ?? [
 		LedgerResponseCodes.SW_OK,
 	]
-	const statusList = [...acceptableStatusCodes.map((s) => s.valueOf())]
+	const statusList = [...acceptableStatusCodes.map(s => s.valueOf())]
 
 	const debugPrintPrefix = apdu.ins === LedgerInstruction.PING ? `🏓` : `📦`
 	log.debug(`${debugPrintPrefix} 📲 sending APDU to Ledger device:
@@ -105,13 +105,16 @@ const __openConnection = async (
 			apdu: RadixAPDU.ping(),
 			with: basicLedgerTransport,
 		})
-			.then((response) => {
+			.then(response => {
 				log.debug(
 					`🥩 raw response: '0x${response.toString(
 						'hex',
 					)}' (utf8: '${response.toString('utf8')}')`,
 				)
-				const responseWithoutCode = response.slice(0, response.length - 2)
+				const responseWithoutCode = response.slice(
+					0,
+					response.length - 2,
+				)
 				const responseString = responseWithoutCode.toString('utf8')
 				log.debug(`🔮 response without code: ${responseString}`)
 				const debugResponseEmoji =
@@ -120,9 +123,7 @@ const __openConnection = async (
 						: responseString === 'hello'
 						? '👋🏻'
 						: '❌'
-				log.debug(
-					`📲 ✅ Got ${debugResponseEmoji}, Radix app is open.`,
-				)
+				log.debug(`📲 ✅ Got ${debugResponseEmoji}, Radix app is open.`)
 				return Promise.resolve(basicLedgerTransport)
 			})
 			.catch(_ =>

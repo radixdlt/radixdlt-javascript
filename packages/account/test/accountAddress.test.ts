@@ -1,7 +1,8 @@
-import { AccountAddress, NetworkT } from '../src'
+import { AccountAddress } from '../src'
 
 import { PrivateKey, PublicKey, sha256Twice } from '@radixdlt/crypto'
 import { msgFromError } from '@radixdlt/util'
+import { NetworkT } from '@radixdlt/primitives'
 
 describe('account_address_on_bech32_format', () => {
 	describe('addr from seeded private key', () => {

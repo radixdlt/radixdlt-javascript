@@ -1,8 +1,12 @@
-import { AmountOrUnsafeInput, AmountT, uint256Max } from '@radixdlt/primitives'
+import {
+	AmountOrUnsafeInput,
+	AmountT,
+	uint256Max,
+	NetworkT,
+} from '@radixdlt/primitives'
 import {
 	AccountAddress,
 	AccountAddressT,
-	NetworkT,
 	ResourceIdentifier,
 	ResourceIdentifierT,
 	ValidatorAddress,
