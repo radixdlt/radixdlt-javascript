@@ -61,6 +61,7 @@ describe('hw_ledger_integration', () => {
 
 		testGetPublicKey({
 			hardwareWallet,
+			requireConfirmationOnDevice: true,
 			onResponse: _publicKey => {
 				done()
 			},
@@ -80,7 +81,7 @@ describe('hw_ledger_integration', () => {
 				done()
 			},
 		})
-	}, 20_000)
+	}, 40_000)
 
 	it('doSignHash_integration', async done => {
 		ledgerNano = await LedgerNano.connect({

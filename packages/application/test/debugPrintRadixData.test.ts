@@ -1,7 +1,9 @@
 import { Subscription } from 'rxjs'
-import { AccountAddress, NetworkT } from '@radixdlt/account'
+import { AccountAddress } from '@radixdlt/account'
 import { Radix } from '../src'
 import { msgFromError } from '@radixdlt/util'
+import { NetworkT } from '@radixdlt/primitives'
+
 import {
 	stringifySimpleTokenBalances,
 	stringifySimpleTXHistory,
