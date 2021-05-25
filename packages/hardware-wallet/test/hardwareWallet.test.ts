@@ -103,7 +103,7 @@ describe('hardwareWallet_emulated', () => {
 				},
 			})
 
-			let userWasPromptedToConfirmGetPubKey = false
+			let numberOfPromptsToUser = 0
 
 			subs.add(
 				promptUserForInputOnLedger.subscribe({
@@ -112,9 +112,12 @@ describe('hardwareWallet_emulated', () => {
 							prompt.type ===
 							PromptUserForInputType.REQUIRE_CONFIRMATION
 						) {
-							userWasPromptedToConfirmGetPubKey =
+							if (
 								prompt.instruction ===
 								LedgerInstruction.GET_PUBLIC_KEY
+							) {
+								numberOfPromptsToUser += 1
+							}
 							usersInputOnLedger.next(
 								LedgerButtonPress.RIGHT_ACCEPT,
 							)
@@ -127,8 +130,8 @@ describe('hardwareWallet_emulated', () => {
 				hardwareWallet,
 				requireConfirmationOnDevice: true,
 				onResponse: (publicKey: PublicKeyT) => {
-					expect(userWasPromptedToConfirmGetPubKey).toBe(true)
-					expect(store.userIO.length).toBe(1)
+					expect(numberOfPromptsToUser).toBe(2)
+					expect(store.userIO.length).toBe(2)
 
 					expect(store.recorded.length).toBe(1)
 					const request = store.lastRequest()
@@ -138,7 +141,7 @@ describe('hardwareWallet_emulated', () => {
 					expect(request.cla).toBe(0xaa)
 					expect(request.ins).toBe(0x02)
 					expect(request.p1).toBe(1)
-					expect(request.p2).toBe(0)
+					expect(request.p2).toBe(2)
 
 					expect(request.data).toBeDefined()
 					expect(request.data!.toString('hex')).toBe(

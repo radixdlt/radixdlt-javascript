@@ -5,7 +5,6 @@ import {
 	AccountAddressT,
 	ResourceIdentifierT,
 	ValidatorAddressT,
-	NetworkT,
 } from '@radixdlt/account'
 
 import {
@@ -29,6 +28,8 @@ import {
 	FinalizedTransaction,
 	Validator,
 } from '../dto'
+
+import { NetworkT } from '@radixdlt/primitives'
 
 type JsonRpcAPI = {
 	[Property in keyof ReturnType<typeof getAPI>]: ReturnType<

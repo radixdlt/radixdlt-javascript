@@ -2,7 +2,6 @@ import {
 	SigningKeyT,
 	AccountAddressT,
 	DeriveNextInput,
-	NetworkT,
 	Signing,
 	Encrypting,
 	Decrypting,
@@ -17,6 +16,7 @@ import {
 	MnemomicT,
 } from '@radixdlt/crypto'
 import { LogLevel } from '@radixdlt/util'
+import { NetworkT } from '@radixdlt/primitives'
 import { Observable, ReplaySubject } from 'rxjs'
 import { NodeT, RadixAPI, RadixCoreAPI } from './api'
 import { ErrorNotification } from './errors'

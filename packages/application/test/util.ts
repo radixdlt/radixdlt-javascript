@@ -1,5 +1,6 @@
 import { Wallet, WalletT } from '../src'
-import { NetworkT, SigningKeychain } from '@radixdlt/account'
+import { NetworkT } from '@radixdlt/primitives'
+import { SigningKeychain } from '@radixdlt/account'
 import { Mnemonic } from '@radixdlt/crypto'
 
 export const createWallet = (

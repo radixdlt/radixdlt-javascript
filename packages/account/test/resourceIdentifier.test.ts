@@ -1,8 +1,9 @@
-import { isResourceIdentifier, NetworkT, ResourceIdentifier } from '../src'
+import { isResourceIdentifier, ResourceIdentifier } from '../src'
 import { msgFromError, restoreDefaultLogLevel } from '@radixdlt/util'
 import { PrivateKey } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
 import { log } from '@radixdlt/util'
+import { NetworkT } from '@radixdlt/primitives'
 
 describe('rri_on_bech32_format', () => {
 	it('xrd rri can be parsed from string', () => {

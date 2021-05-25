@@ -1,7 +1,6 @@
 import {
 	AccountAddress,
 	AccountAddressT,
-	NetworkT,
 	ResourceIdentifier,
 	SigningKeychain,
 	ValidatorAddress,
@@ -70,7 +69,7 @@ import {
 	Wallet,
 	WalletT,
 } from '../src'
-import { Amount, AmountT } from '@radixdlt/primitives'
+import { Amount, AmountT, NetworkT } from '@radixdlt/primitives'
 
 import {
 	log,

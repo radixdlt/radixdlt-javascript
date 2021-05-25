@@ -7,7 +7,8 @@ import {
 	isAbstractAddress,
 	NetworkFromHRP,
 } from './abstractAddress'
-import { AddressTypeT, NetworkT, ValidatorAddressT } from './_types'
+import { AddressTypeT, ValidatorAddressT } from './_types'
+import { NetworkT } from '@radixdlt/primitives'
 
 export const isValidatorAddress = (
 	something: unknown,

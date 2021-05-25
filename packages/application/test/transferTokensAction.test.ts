@@ -1,8 +1,6 @@
-import { NetworkT, ResourceIdentifier } from '@radixdlt/account'
-import { Amount } from '@radixdlt/primitives/src/amount'
-import { TransferTokensInput } from '../src/actions/_types'
-import { IntendedTransferTokens } from '../src/actions/intendedTransferTokensAction'
-import { alice, bob } from '../src'
+import { ResourceIdentifier } from '@radixdlt/account'
+import { Amount, NetworkT } from '@radixdlt/primitives'
+import { IntendedTransferTokens, TransferTokensInput, alice, bob } from '../src'
 
 describe('TransferTokensActions', () => {
 	const resourceIdentifier = ResourceIdentifier.fromPublicKeyAndNameAndNetwork(

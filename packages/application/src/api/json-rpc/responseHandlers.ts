@@ -5,8 +5,9 @@ import {
 	AccountAddress,
 	ValidatorAddress,
 	ResourceIdentifier,
-	NetworkT,
 } from '@radixdlt/account'
+
+import { NetworkT, Amount } from '@radixdlt/primitives'
 
 import { isString } from '@radixdlt/util'
 import {
@@ -28,7 +29,6 @@ import {
 } from './_types'
 import { TransactionIdentifier } from '../../dto'
 import { pipe } from 'ramda'
-import { Amount } from '@radixdlt/primitives'
 
 const amountDecoder = (...keys: string[]) =>
 	decoder((value, key) =>

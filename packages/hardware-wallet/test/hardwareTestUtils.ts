@@ -2,12 +2,13 @@ import { HardwareWalletT, SemVerT } from '../src'
 import { Subscription } from 'rxjs'
 import {
 	ECPointOnCurveT,
+	HDPathRadix,
 	PublicKey,
 	PublicKeyT,
 	sha256Twice,
 	SignatureT,
-	HDPathRadix,
 } from '@radixdlt/crypto'
+import { NetworkT } from '@radixdlt/primitives'
 
 export const testGetVersion = (
 	input: Readonly<{
@@ -51,6 +52,7 @@ export const testGetPublicKey = (
 				)._unsafeUnwrap(),
 				requireConfirmationOnDevice:
 					input.requireConfirmationOnDevice ?? false,
+				verifyAddressOnDeviceForNetwork: NetworkT.BETANET,
 			})
 			.subscribe(
 				(publicKey: PublicKeyT) => {

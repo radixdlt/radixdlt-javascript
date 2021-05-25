@@ -1,9 +1,7 @@
 import { Observable } from 'rxjs'
 import { Option } from 'prelude-ts'
 import {
-	BIP32T,
 	DiffieHellman,
-	ECPointOnCurveT,
 	EncryptedMessageT,
 	HDPathRadixT,
 	MnemomicT,

@@ -60,7 +60,9 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 				RadixAPDU.getPublicKey({
 					path: input.path ?? path000H,
 					requireConfirmationOnDevice:
-						input.requireConfirmationOnDevice ?? false, // passing 'false' is convenient for testing
+						input.requireConfirmationOnDevice ?? false, // passing 'false' is convenient for testing,
+					verifyAddressOnDeviceForNetwork:
+						input.verifyAddressOnDeviceForNetwork,
 				}),
 			)
 			.pipe(
