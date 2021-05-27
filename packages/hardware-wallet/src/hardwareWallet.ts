@@ -47,6 +47,9 @@ const signingKeyWithHardWareWallet = (
 				): Observable<ECPointOnCurveT> =>
 					hardwareWallet.doKeyExchange({
 						requireConfirmationOnDevice: true,
+						// Too many steps for user and also not very helpful for any user.
+						// But good to be able to.
+						displaySharedKeyOnDevice: false,
 						path,
 						publicKeyOfOtherParty,
 					}),
@@ -104,6 +107,7 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 					path: input.path ?? path000H,
 					requireConfirmationOnDevice:
 						input.requireConfirmationOnDevice ?? false,
+					displaySharedKeyOnDevice: input.displaySharedKeyOnDevice,
 				}),
 			)
 			.pipe(
