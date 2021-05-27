@@ -38,6 +38,7 @@ export type SignHashInput = GetPublicKeyInput &
 export type KeyExchangeInput = GetPublicKeyInput &
 	Readonly<{
 		publicKeyOfOtherParty: PublicKeyT
+		displaySharedKeyOnDevice: boolean
 	}>
 
 export type HardwareSigningKeyT = Readonly<{

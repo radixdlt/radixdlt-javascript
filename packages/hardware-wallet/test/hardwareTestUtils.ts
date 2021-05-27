@@ -107,6 +107,7 @@ export const testDoKeyExchange = (
 	input: Readonly<{
 		hardwareWallet: HardwareWalletT
 		requireConfirmationOnDevice?: boolean
+		displaySharedKeyOnDevice?: boolean
 		onResponse?: (ecPointOnCurve: ECPointOnCurveT) => void
 	}>,
 ): void => {
@@ -131,6 +132,8 @@ export const testDoKeyExchange = (
 				publicKeyOfOtherParty,
 				requireConfirmationOnDevice:
 					input?.requireConfirmationOnDevice ?? false,
+				displaySharedKeyOnDevice:
+					input?.displaySharedKeyOnDevice ?? false,
 			})
 			.subscribe(
 				(ecPointOnCurve: ECPointOnCurveT) => {
