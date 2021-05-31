@@ -1,5 +1,5 @@
 {
-  "name": "@radixdlt/hw-ledger-transport",
+  "name": "@radixdlt/hardware-ledger",
   "version": "1.0.0",
   "description": "Ledger Nano hardware wallet connection",
   "keywords": [
@@ -9,7 +9,7 @@
     "Nano"
   ],
   "author": "Alexander Cyon <alex.cyon@gmail.com>",
-  "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/hw-ledger-transport#readme",
+  "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/hardware-ledger#readme",
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "publishConfig": {

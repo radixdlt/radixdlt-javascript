@@ -4,9 +4,7 @@
 
 /* eslint-disable */
 
-import {
-	SemVerT,
-} from '@radixdlt/hardware-wallet'
+import { SemVerT } from '@radixdlt/hardware-wallet'
 import { log } from '@radixdlt/util'
 import { Subscription } from 'rxjs'
 import {

@@ -9,6 +9,6 @@
     { "path": "packages/account" },
     { "path": "packages/networking" },
     { "path": "packages/application" },
-    { "path": "packages/hw-ledger-transport" },
+    { "path": "packages/hardware-ledger" },
   ]
 }

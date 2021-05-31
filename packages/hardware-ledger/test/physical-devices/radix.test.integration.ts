@@ -9,7 +9,10 @@ import { Observable, Subscription } from 'rxjs'
 import { Radix, SigningKeychain, Wallet, WalletT } from '@radixdlt/application'
 import { Mnemonic } from '@radixdlt/crypto'
 import { SigningKeyTypeHDT, SigningKeyTypeIdentifier } from '@radixdlt/account'
-import { HDSigningKeyTypeIdentifier, HWSigningKeyDerivation } from '@radixdlt/account/src/_types'
+import {
+	HDSigningKeyTypeIdentifier,
+	HWSigningKeyDerivation,
+} from '@radixdlt/account/src/_types'
 import { NetworkT } from '@radixdlt/primitives'
 import { HardwareWalletT } from '@radixdlt/hardware-wallet'
 import { HardwareWalletLedger } from '../../dist'
