@@ -2,6 +2,37 @@
 # yarn lockfile v1
 
 
+"@aleworm/bindings@^1.5.4":
+  version "1.5.4"
+  resolved "https://registry.yarnpkg.com/@aleworm/bindings/-/bindings-1.5.4.tgz#1081ed9571f8911f5e50600526a2a3da5f6e94cd"
+  integrity sha512-jVR/KCHne3kcXVudN8v/tKpM11UlIjlzMSKnc0OgDdVValtIXvCIRVzTgaCZpq6uqr+GlyPXAnlhoTvtxVFS2Q==
+  dependencies:
+    file-uri-to-path "1.0.0"
+
+"@aleworm/hw-transport-node-hid@^5.51.5":
+  version "5.51.5"
+  resolved "https://registry.yarnpkg.com/@aleworm/hw-transport-node-hid/-/hw-transport-node-hid-5.51.5.tgz#fd279f731976f0ea8cd7db614336a2f679c93273"
+  integrity sha512-HDzHXSTo8mRTDuutHfyfAn7Ks4QGRbkBgKDfpKG4Xl+CZ1g1+JzzVVWE0Vumb/BEFXrFQgeIfK+54Kuav9tx4Q==
+  dependencies:
+    "@aleworm/usb2" "^1.7.5"
+    "@ledgerhq/devices" "^5.51.1"
+    "@ledgerhq/errors" "^5.50.0"
+    "@ledgerhq/hw-transport" "^5.51.1"
+    "@ledgerhq/hw-transport-node-hid-noevents" "^5.51.1"
+    "@ledgerhq/logs" "^5.50.0"
+    lodash "^4.17.21"
+    node-hid "2.1.1"
+    usb "^1.7.1"
+
+"@aleworm/usb2@^1.7.5":
+  version "1.7.5"
+  resolved "https://registry.yarnpkg.com/@aleworm/usb2/-/usb2-1.7.5.tgz#41a6d4d9037eb1fdbac601a7b2b06d7bc26d380f"
+  integrity sha512-indTySyh4P9a/HDhheUK9MDwbwYaS3qypDGpXYjsGIhn6AD/0I5Z8fLlG+axk9fSf2MykvuiY2LphyAUnlVmfA==
+  dependencies:
+    "@aleworm/bindings" "^1.5.4"
+    node-addon-api "3.0.2"
+    prebuild-install "^5.3.3"
+
 "@babel/code-frame@^7.0.0":
   version "7.10.4"
   resolved "https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.10.4.tgz#168da1a36e90da68ae8d49c0f1b48c7c6249213a"
@@ -646,14 +677,14 @@
   resolved "https://registry.yarnpkg.com/@json-schema-tools/traverse/-/traverse-1.7.7.tgz#1b5ec2854fec23a5ac3ff04d459c2ac11bcf2df2"
   integrity sha512-ch/pPoOEIeKe1PKbfuLEIM8MAdTiR+fr9BYk6VTlIHrya5f5d8shJg6h/oQgD3K/ftjU/RYBGGalw9Pz4pCXew==
 
-"@ledgerhq/devices@^5.50.0":
-  version "5.50.0"
-  resolved "https://registry.yarnpkg.com/@ledgerhq/devices/-/devices-5.50.0.tgz#4bfc375d9781fff6bd772b7914211df547574649"
-  integrity sha512-VU3i48egHwUSHqNPKa8dNXLxD6gvmPKbKkp2pGL8tNNGXT44iHWplEAQy7et7+Fa48Sh7G2WPBvCbQg9K/SeCw==
+"@ledgerhq/devices@^5.51.1":
+  version "5.51.1"
+  resolved "https://registry.yarnpkg.com/@ledgerhq/devices/-/devices-5.51.1.tgz#d741a4a5d8f17c2f9d282fd27147e6fe1999edb7"
+  integrity sha512-4w+P0VkbjzEXC7kv8T1GJ/9AVaP9I6uasMZ/JcdwZBS3qwvKo5A5z9uGhP5c7TvItzcmPb44b5Mw2kT+WjUuAA==
   dependencies:
     "@ledgerhq/errors" "^5.50.0"
     "@ledgerhq/logs" "^5.50.0"
-    rxjs "^6.6.7"
+    rxjs "6"
     semver "^7.3.5"
 
 "@ledgerhq/errors@^5.50.0":
@@ -661,37 +692,23 @@
   resolved "https://registry.yarnpkg.com/@ledgerhq/errors/-/errors-5.50.0.tgz#e3a6834cb8c19346efca214c1af84ed28e69dad9"
   integrity sha512-gu6aJ/BHuRlpU7kgVpy2vcYk6atjB4iauP2ymF7Gk0ez0Y/6VSMVSJvubeEQN+IV60+OBK0JgeIZG7OiHaw8ow==
 
-"@ledgerhq/hw-transport-node-hid-noevents@^5.50.0":
-  version "5.50.0"
-  resolved "https://registry.yarnpkg.com/@ledgerhq/hw-transport-node-hid-noevents/-/hw-transport-node-hid-noevents-5.50.0.tgz#b846bff843a0a8cfa92e8c4fbb4c00bcba79aaec"
-  integrity sha512-23vjrwzXDpnP0C1JA6540vYpOMFMtVeHc8+iNDltHFhx0kIuAq70lzk7OV6z8TNGpTSrf5DCnKagOha2FIS0yQ==
+"@ledgerhq/hw-transport-node-hid-noevents@^5.51.1":
+  version "5.51.1"
+  resolved "https://registry.yarnpkg.com/@ledgerhq/hw-transport-node-hid-noevents/-/hw-transport-node-hid-noevents-5.51.1.tgz#71f37f812e448178ad0bcc2258982150d211c1ab"
+  integrity sha512-9wFf1L8ZQplF7XOY2sQGEeOhpmBRzrn+4X43kghZ7FBDoltrcK+s/D7S+7ffg3j2OySyP6vIIIgloXylao5Scg==
   dependencies:
-    "@ledgerhq/devices" "^5.50.0"
+    "@ledgerhq/devices" "^5.51.1"
     "@ledgerhq/errors" "^5.50.0"
-    "@ledgerhq/hw-transport" "^5.50.0"
+    "@ledgerhq/hw-transport" "^5.51.1"
     "@ledgerhq/logs" "^5.50.0"
     node-hid "2.1.1"
 
-"@ledgerhq/hw-transport-node-hid@^5.50.0":
-  version "5.50.0"
-  resolved "https://registry.yarnpkg.com/@ledgerhq/hw-transport-node-hid/-/hw-transport-node-hid-5.50.0.tgz#d356c9cade414ef215ca5fc127040f5c9be680c0"
-  integrity sha512-dN9fFfCVHPIdyDF3cOC9JeFEBH/r7F25STDpY/hvmSmKCZIIUNgZ5Myvib+1W8CPhRFg1zEeamKO9bh8h865Sg==
+"@ledgerhq/hw-transport@^5.51.1":
+  version "5.51.1"
+  resolved "https://registry.yarnpkg.com/@ledgerhq/hw-transport/-/hw-transport-5.51.1.tgz#8dd14a8e58cbee4df0c29eaeef983a79f5f22578"
+  integrity sha512-6wDYdbWrw9VwHIcoDnqWBaDFyviyjZWv6H9vz9Vyhe4Qd7TIFmbTl/eWs6hZvtZBza9K8y7zD8ChHwRI4s9tSw==
   dependencies:
-    "@ledgerhq/devices" "^5.50.0"
-    "@ledgerhq/errors" "^5.50.0"
-    "@ledgerhq/hw-transport" "^5.50.0"
-    "@ledgerhq/hw-transport-node-hid-noevents" "^5.50.0"
-    "@ledgerhq/logs" "^5.50.0"
-    lodash "^4.17.21"
-    node-hid "2.1.1"
-    usb "^1.7.0"
-
-"@ledgerhq/hw-transport@^5.50.0":
-  version "5.50.0"
-  resolved "https://registry.yarnpkg.com/@ledgerhq/hw-transport/-/hw-transport-5.50.0.tgz#8a132dbdfd1baed7cedf2e0984e7d234b499f46a"
-  integrity sha512-VlcVGgp+Ae4hrUFzSroPJS4i7iBWEYVat91pCl8LyrN+xD8sjamHje69JCdDYY+Cb5++0pbSZt3FGiV0ml3xGA==
-  dependencies:
-    "@ledgerhq/devices" "^5.50.0"
+    "@ledgerhq/devices" "^5.51.1"
     "@ledgerhq/errors" "^5.50.0"
     events "^3.3.0"
 
@@ -1615,10 +1632,50 @@
     node-ipc "^9.1.1"
     ws "^7.3.1"
 
+"@radixdlt/account@file:packages/account":
+  version "1.0.41"
+  dependencies:
+    "@radixdlt/crypto" "^1.0.35"
+    "@radixdlt/data-formats" "^1.0.25"
+    "@radixdlt/hardware-wallet" "file:packages/hardware-wallet"
+    "@radixdlt/primitives" "^1.0.28"
+    "@radixdlt/uint256" "^1.1.0"
+    "@radixdlt/util" "^1.0.25"
+    bech32 "^2.0.0"
+    bip39 "^3.0.3"
+    hdkey "^2.0.1"
+    long "^4.0.0"
+    neverthrow "^4.0.1"
+    prelude-ts "^1.0.2"
+    rxjs "7.0.0"
+
+"@radixdlt/hardware-wallet@file:packages/hardware-wallet":
+  version "1.0.18"
+  dependencies:
+    "@aleworm/hw-transport-node-hid" "^5.51.5"
+    "@radixdlt/crypto" "^1.0.35"
+    "@radixdlt/primitives" "^1.0.28"
+    "@radixdlt/util" "^1.0.25"
+    neverthrow "4.0.1"
+    prelude-ts "^1.0.2"
+    rxjs "7.0.0"
+    usb "^1.7.1"
+    uuid "^8.3.2"
+
 "@radixdlt/open-rpc-spec@^1.0.1":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@radixdlt/open-rpc-spec/-/open-rpc-spec-1.0.1.tgz#607e569476a8ff07b0fbc9deb7ba25d1222f835e"
   integrity sha512-rc9sMR4gbVqUL4ol+Uv/EjAWirgWJATIDhULy0CHdHiSzKijcPJJmzpPkofox1nQFobSpuJQTVgLPlRqA+Symw==
+
+"@radixdlt/primitives@file:packages/primitives":
+  version "1.0.28"
+  dependencies:
+    "@radixdlt/data-formats" "^1.0.25"
+    "@radixdlt/uint256" "^1.1.0"
+    "@radixdlt/util" "^1.0.25"
+    bn.js "^5.1.3"
+    long "^4.0.0"
+    neverthrow "^4.0.1"
 
 "@radixdlt/uint256@^1.1.0":
   version "1.1.0"
@@ -8276,6 +8333,13 @@ run-queue@^1.0.0, run-queue@^1.0.3:
   dependencies:
     aproba "^1.1.1"
 
+rxjs@6:
+  version "6.6.7"
+  resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-6.6.7.tgz#90ac018acabf491bf65044235d5863c4dab804c9"
+  integrity sha512-hTdwr+7yYNIT5n4AMYp85KA6yw2Va0FLa3Rguvbpa4W3I5xynaBZo41cM3XM+4Q6fRMj3sBYIR1VAmZMXYJvRQ==
+  dependencies:
+    tslib "^1.9.0"
+
 rxjs@7.0.0:
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-7.0.0.tgz#c55d67c52aee8804d32ab60965e335bd41e2dc2d"
@@ -8287,13 +8351,6 @@ rxjs@^6.4.0, rxjs@^6.6.3:
   version "6.6.3"
   resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-6.6.3.tgz#8ca84635c4daa900c0d3967a6ee7ac60271ee552"
   integrity sha512-trsQc+xYYXZ3urjOiJOuCOa5N3jAZ3eiSpQB5hIT8zGlL2QfnHLJ2r7GMkBGuIausdJN1OneaI6gQlsqNHHmZQ==
-  dependencies:
-    tslib "^1.9.0"
-
-rxjs@^6.6.7:
-  version "6.6.7"
-  resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-6.6.7.tgz#90ac018acabf491bf65044235d5863c4dab804c9"
-  integrity sha512-hTdwr+7yYNIT5n4AMYp85KA6yw2Va0FLa3Rguvbpa4W3I5xynaBZo41cM3XM+4Q6fRMj3sBYIR1VAmZMXYJvRQ==
   dependencies:
     tslib "^1.9.0"
 
@@ -9421,10 +9478,10 @@ urix@^0.1.0:
   resolved "https://registry.yarnpkg.com/urix/-/urix-0.1.0.tgz#da937f7a62e21fec1fd18d49b35c2935067a6c72"
   integrity sha1-2pN/emLiH+wf0Y1Js1wpNQZ6bHI=
 
-usb@^1.7.0:
-  version "1.7.0"
-  resolved "https://registry.yarnpkg.com/usb/-/usb-1.7.0.tgz#9cb2052372a6a11f701ef765f8f3c94f4e0fcd80"
-  integrity sha512-LHm9d389NCzZSMd0DnilxT5Lord4P2E3ETwP1LeuJcEBmI5uLJv8Sd18z/9bairUMbDnnNqX+Hi5Xkl93Kvdmw==
+usb@^1.7.1:
+  version "1.7.1"
+  resolved "https://registry.yarnpkg.com/usb/-/usb-1.7.1.tgz#d723223ec517b802c4d2082e31a4649c65c491c5"
+  integrity sha512-HTCfx6NnNRhv5y98t04Y8j2+A8dmQnEGxCMY2/zN/0gkiioLYfTZ5w/PEKlWRVUY+3qLe9xwRv9pHLkjQYNw/g==
   dependencies:
     bindings "^1.4.0"
     node-addon-api "3.0.2"

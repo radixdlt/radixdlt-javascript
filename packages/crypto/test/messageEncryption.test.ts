@@ -26,6 +26,7 @@ describe('message encryption', () => {
 					to,
 				),
 			})
+
 			return res._unsafeUnwrap()
 		}
 

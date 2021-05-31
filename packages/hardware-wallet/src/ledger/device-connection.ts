@@ -68,7 +68,8 @@ const __openConnection = async (
 	}
 
 	const basicLedgerTransport: BasicLedgerTransport = await import(
-		'@ledgerhq/hw-transport-node-hid'
+		// @ts-ignore
+		'@aleworm/hw-transport-node-hid'
 	).then(
 		async (module): Promise<BasicLedgerTransport> => {
 			const TransportNodeHid = module.default
