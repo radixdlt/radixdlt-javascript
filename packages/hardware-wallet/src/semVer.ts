@@ -1,5 +1,5 @@
 import { combine, err, ok, Result } from 'neverthrow'
-import { SemVerT } from '../_types'
+import { SemVerT } from './_types'
 
 const separator = '.'
 

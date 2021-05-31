@@ -2,21 +2,17 @@ import {
 	LedgerNanoT,
 	LedgerRequest,
 	LedgerResponse,
+	LedgerResponseCodes,
 	MockedLedgerNanoRecorderT,
 	MockedLedgerNanoT,
+	prettifyLedgerResponseCode,
 	RadixAPDUT,
 } from './_types'
 import { from, Observable, of, throwError } from 'rxjs'
 import { map, tap } from 'rxjs/operators'
 import { v4 as uuidv4 } from 'uuid'
 import { MockedLedgerNanoRecorder } from './mockedLedgerNanoRecorder'
-import {
-	LedgerResponseCodes,
-	prettifyLedgerResponseCode,
-	SemVerT,
-} from '../_types'
 import { emulateSend } from './emulatedLedger'
-import { SemVer } from './semVer'
 
 import { msgFromError, log } from '@radixdlt/util'
 import { MnemomicT, HDMasterSeed, Mnemonic } from '@radixdlt/crypto'
@@ -27,6 +23,7 @@ import {
 	OpenLedgerConnectionInput,
 	send,
 } from './device-connection'
+import { SemVerT, SemVer } from '@radixdlt/hardware-wallet'
 
 const __create = (
 	input: Readonly<{

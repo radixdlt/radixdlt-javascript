@@ -1,7 +1,6 @@
 import {
 	BehaviorSubject,
 	combineLatest,
-	from,
 	Observable,
 	of,
 	ReplaySubject,
@@ -36,13 +35,7 @@ import {
 import { Option } from 'prelude-ts'
 import { arraysEqual, log, msgFromError } from '@radixdlt/util'
 import { ResultAsync } from 'neverthrow'
-import {
-	HardwareSigningKeyT,
-	HardwareWallet,
-	HardwareWalletT,
-	LedgerNano,
-	LedgerNanoT,
-} from '@radixdlt/hardware-wallet'
+import { HardwareSigningKeyT, HardwareWalletT } from '@radixdlt/hardware-wallet'
 
 const stringifySigningKeysArray = (signingKeys: SigningKeyT[]): string =>
 	signingKeys.map(a => a.toString()).join(',\n')
@@ -182,19 +175,6 @@ const create = (
 		return newSigningKey
 	}
 
-	const connectToLedger = (): Observable<HardwareWalletT> => {
-		const ledgerNano$ = from(
-			LedgerNano.connect({
-				// 2 minutes timeout arbitrarily chosen
-				deviceConnectionTimeout: 2 * 60 * 1_000,
-			}),
-		)
-
-		return ledgerNano$.pipe(
-			map((ledger: LedgerNanoT) => HardwareWallet.ledger(ledger)),
-		)
-	}
-
 	const deriveHWSigningKey = (
 		input: DeriveHWSigningKeyInput,
 	): Observable<SigningKeyT> => {
@@ -204,9 +184,10 @@ const create = (
 				address: { index, isHardened: true },
 			})
 		}
-		const hdPath: HDPathRadixT = input === 'next' ? nextPath() : input
+		const hdPath: HDPathRadixT =
+			input.keyDerivation === 'next' ? nextPath() : input.keyDerivation
 
-		return connectToLedger().pipe(
+		return input.hardwareWalletConnection.pipe(
 			mergeMap(
 				(
 					hardwareWallet: HardwareWalletT,

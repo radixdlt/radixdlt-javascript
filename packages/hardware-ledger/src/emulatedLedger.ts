@@ -1,5 +1,3 @@
-import { LedgerInstruction, LedgerResponseCodes, SemVerT } from '../_types'
-import { MockedLedgerNanoRecorderT, RadixAPDUT, radixCLA } from './_types'
 import { err, ok, Result } from 'neverthrow'
 import { Observable, of, throwError } from 'rxjs'
 import {
@@ -15,6 +13,14 @@ import {
 import { map, mergeMap, take, tap } from 'rxjs/operators'
 import { log, toObservable } from '@radixdlt/util'
 import { NetworkT } from '@radixdlt/primitives'
+import {
+	LedgerInstruction,
+	LedgerResponseCodes,
+	MockedLedgerNanoRecorderT,
+	RadixAPDUT,
+	radixCLA,
+} from './_types'
+import { SemVerT } from '@radixdlt/hardware-wallet'
 
 const pathDataByteCount = 12
 const publicKeyByteCount = 64

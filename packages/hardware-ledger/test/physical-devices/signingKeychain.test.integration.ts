@@ -5,11 +5,15 @@
 /* eslint-disable */
 
 import { log } from '@radixdlt/util'
-import { Subscription } from 'rxjs'
-import { SigningKeychain, SigningKeychainT } from '../../src'
+import { Observable, Subscription } from 'rxjs'
+import { SigningKeychain, SigningKeychainT } from '@radixdlt/account'
 import { Mnemonic } from '@radixdlt/crypto'
+import { DeriveHWSigningKeyInput } from '@radixdlt/account/dist/_types'
+import { HardwareWalletT } from '@radixdlt/hardware-wallet'
+import { HWSigningKeyDerivation } from '@radixdlt/account/src/_types'
+import { HardwareWalletLedger } from '../../dist'
 
-describe('signingKey_ledger', () => {
+describe('signingKeychain_hw_ledger', () => {
 	beforeAll(() => {
 		log.setLevel('debug')
 	})
@@ -33,8 +37,16 @@ describe('signingKey_ledger', () => {
 	it('deriveHWSigningKey', async done => {
 		const subs = new Subscription()
 
+		const keyDerivation: HWSigningKeyDerivation = 'next'
+		const hardwareWalletConnection: Observable<HardwareWalletT> = HardwareWalletLedger.create()
+
+		const input: DeriveHWSigningKeyInput = {
+			keyDerivation,
+			hardwareWalletConnection,
+		}
+
 		subs.add(
-			keychain.deriveHWSigningKey('next').subscribe({
+			keychain.deriveHWSigningKey(input).subscribe({
 				next: sk => {
 					expect(sk.hdPath!.toString()).toBe(`m/44'/536'/0'/0/0'`)
 

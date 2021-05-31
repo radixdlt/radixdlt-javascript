@@ -1,4 +1,4 @@
-import { HardwareWalletT, SemVerT } from '../src'
+import { HardwareWalletT, SemVerT } from '@radixdlt/hardware-wallet'
 import { Subscription } from 'rxjs'
 import {
 	ECPointOnCurveT,

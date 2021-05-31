@@ -1,7 +1,6 @@
 import { RadixAPDU } from './apdu'
-import { RadixAPDUT } from './_types'
 import { log } from '@radixdlt/util'
-import { LedgerInstruction, LedgerResponseCodes } from '../_types'
+import { LedgerInstruction, LedgerResponseCodes, RadixAPDUT } from './_types'
 
 export type BasicLedgerTransport = Readonly<{
 	close: () => Promise<void>
