@@ -1637,8 +1637,8 @@
   dependencies:
     "@radixdlt/crypto" "^1.0.35"
     "@radixdlt/data-formats" "^1.0.25"
-    "@radixdlt/hardware-wallet" "file:packages/hardware-wallet"
-    "@radixdlt/primitives" "^1.0.28"
+    "@radixdlt/hardware-wallet" "./packages/hardware-wallet"
+    "@radixdlt/primitives" "file:packages/primitives"
     "@radixdlt/uint256" "^1.1.0"
     "@radixdlt/util" "^1.0.25"
     bech32 "^2.0.0"
@@ -1649,7 +1649,7 @@
     prelude-ts "^1.0.2"
     rxjs "7.0.0"
 
-"@radixdlt/hardware-wallet@file:packages/hardware-wallet":
+"@radixdlt/hardware-wallet@./packages/hardware-wallet":
   version "1.0.18"
   dependencies:
     "@aleworm/hw-transport-node-hid" "^5.51.5"
@@ -1659,7 +1659,6 @@
     neverthrow "4.0.1"
     prelude-ts "^1.0.2"
     rxjs "7.0.0"
-    usb "^1.7.1"
     uuid "^8.3.2"
 
 "@radixdlt/open-rpc-spec@^1.0.1":
