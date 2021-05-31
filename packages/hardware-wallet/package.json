@@ -27,7 +27,6 @@
     "node": ">=15.5.0 <16"
   },
   "dependencies": {
-    "@ledgerhq/hw-transport-node-hid": "^5.50.0",
     "@radixdlt/crypto": "^1.0.35",
     "@radixdlt/primitives": "^1.0.28",
     "@radixdlt/util": "^1.0.25",
@@ -37,7 +36,6 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@types/ledgerhq__hw-transport-node-hid": "^4.22.2",
     "@types/uuid": "^8.3.0"
   }
 }
