@@ -5,9 +5,6 @@
 /* eslint-disable */
 
 import {
-	HardwareWallet,
-	LedgerNano,
-	LedgerNanoT,
 	SemVerT,
 } from '@radixdlt/hardware-wallet'
 import { log } from '@radixdlt/util'
@@ -18,6 +15,7 @@ import {
 	testGetPublicKey,
 	testGetVersion,
 } from '../hardwareTestUtils'
+import { LedgerNanoT, LedgerNano, HardwareWalletLedger } from '../../src'
 
 describe('hw_ledger_integration', () => {
 	let ledgerNano: LedgerNanoT
@@ -47,7 +45,7 @@ describe('hw_ledger_integration', () => {
 		ledgerNano = await LedgerNano.connect({
 			deviceConnectionTimeout: 1_000,
 		})
-		const hardwareWallet = HardwareWallet.ledger(ledgerNano)
+		const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
 
 		testGetVersion({
 			hardwareWallet,
@@ -62,7 +60,7 @@ describe('hw_ledger_integration', () => {
 		ledgerNano = await LedgerNano.connect({
 			deviceConnectionTimeout: 1_000,
 		})
-		const hardwareWallet = HardwareWallet.ledger(ledgerNano)
+		const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
 
 		testGetPublicKey({
 			hardwareWallet,
@@ -77,7 +75,7 @@ describe('hw_ledger_integration', () => {
 		ledgerNano = await LedgerNano.connect({
 			deviceConnectionTimeout: 1_000,
 		})
-		const hardwareWallet = HardwareWallet.ledger(ledgerNano)
+		const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
 
 		testDoKeyExchange({
 			hardwareWallet,
@@ -93,7 +91,7 @@ describe('hw_ledger_integration', () => {
 		ledgerNano = await LedgerNano.connect({
 			deviceConnectionTimeout: 1_000,
 		})
-		const hardwareWallet = HardwareWallet.ledger(ledgerNano)
+		const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
 
 		testDoSignHash({
 			hardwareWallet,

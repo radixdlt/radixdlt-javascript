@@ -5,14 +5,17 @@
 /* eslint-disable */
 
 import { log } from '@radixdlt/util'
-import { Subscription } from 'rxjs'
+import { Observable, Subscription } from 'rxjs'
 import { Radix, SigningKeychain, Wallet, WalletT } from '@radixdlt/application'
 import { Mnemonic } from '@radixdlt/crypto'
 import { SigningKeyTypeHDT, SigningKeyTypeIdentifier } from '@radixdlt/account'
-import { HDSigningKeyTypeIdentifier } from '@radixdlt/account/src/_types'
+import { HDSigningKeyTypeIdentifier, HWSigningKeyDerivation } from '@radixdlt/account/src/_types'
 import { NetworkT } from '@radixdlt/primitives'
+import { HardwareWalletT } from '@radixdlt/hardware-wallet'
+import { HardwareWalletLedger } from '../../dist'
+import { DeriveHWSigningKeyInput } from '@radixdlt/account/dist/_types'
 
-describe('radix_hardware_wallet', () => {
+describe('radix_hw_ledger', () => {
 	beforeAll(() => {
 		log.setLevel('debug')
 	})
@@ -42,8 +45,16 @@ describe('radix_hardware_wallet', () => {
 
 		const radix = Radix.create().withWallet(wallet)
 
+		const keyDerivation: HWSigningKeyDerivation = 'next'
+		const hardwareWalletConnection: Observable<HardwareWalletT> = HardwareWalletLedger.create()
+
+		const input: DeriveHWSigningKeyInput = {
+			keyDerivation,
+			hardwareWalletConnection,
+		}
+
 		subs.add(
-			radix.deriveHWAccount('next').subscribe({
+			radix.deriveHWAccount(input).subscribe({
 				next: account => {
 					expect(account.hdPath!.toString()).toBe(
 						`m/44'/536'/0'/0/0'`,
