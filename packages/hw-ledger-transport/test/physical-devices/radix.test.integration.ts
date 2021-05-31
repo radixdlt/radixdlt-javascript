@@ -6,17 +6,9 @@
 
 import { log } from '@radixdlt/util'
 import { Subscription } from 'rxjs'
-import {
-	Radix,
-	SigningKeychain,
-	Wallet,
-	WalletT,
-} from '@radixdlt/application'
+import { Radix, SigningKeychain, Wallet, WalletT } from '@radixdlt/application'
 import { Mnemonic } from '@radixdlt/crypto'
-import {
-	SigningKeyTypeHDT,
-	SigningKeyTypeIdentifier,
-} from '@radixdlt/account'
+import { SigningKeyTypeHDT, SigningKeyTypeIdentifier } from '@radixdlt/account'
 import { HDSigningKeyTypeIdentifier } from '@radixdlt/account/src/_types'
 import { NetworkT } from '@radixdlt/primitives'
 

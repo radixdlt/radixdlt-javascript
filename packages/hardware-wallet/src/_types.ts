@@ -57,4 +57,3 @@ export type HardwareWalletT = Readonly<{
 
 	makeSigningKey: (path: HDPathRadixT) => Observable<HardwareSigningKeyT>
 }>
-

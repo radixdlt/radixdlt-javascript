@@ -6,20 +6,18 @@ import {
 	Mnemonic,
 	SignatureT,
 } from '@radixdlt/crypto'
+import { SemVerT, SemVer, HardwareWalletT } from '@radixdlt/hardware-wallet'
 import {
 	EmulatedLedgerIO,
-	HardwareWalletT,
 	LedgerInstruction,
 	MockedLedgerNanoStoreT,
-	HardwareWallet,
-	SemVerT,
-	SemVer,
 	LedgerNano,
 	MockedLedgerNanoRecorder,
 	LedgerButtonPress,
 	PromptUserForInput,
 	PromptUserForInputType,
-} from '@radixdlt/hardware-wallet'
+	HardwareWalletLedger,
+} from '../src'
 import {
 	testDoKeyExchange,
 	testDoSignHash,
@@ -45,7 +43,7 @@ describe('hardwareWallet_emulated', () => {
 			version: hardcodedVersion,
 		})
 
-		const hardwareWallet = HardwareWallet.ledger(ledgerNano)
+		const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
 
 		return {
 			hardwareWallet,

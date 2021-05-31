@@ -4,7 +4,12 @@
 
 /* eslint-disable */
 
-import { HardwareWallet, LedgerNano, LedgerNanoT, SemVerT } from '@radixdlt/hardware-wallet'
+import {
+	HardwareWallet,
+	LedgerNano,
+	LedgerNanoT,
+	SemVerT,
+} from '@radixdlt/hardware-wallet'
 import { log } from '@radixdlt/util'
 import { Subscription } from 'rxjs'
 import {

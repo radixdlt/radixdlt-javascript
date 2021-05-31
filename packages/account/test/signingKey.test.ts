@@ -13,7 +13,13 @@ import {
 	SignatureT,
 } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
-import { AccountAddress, HDSigningKeyTypeIdentifier, SigningKey, SigningKeyT, SigningKeyTypeHDT } from '../src'
+import {
+	AccountAddress,
+	HDSigningKeyTypeIdentifier,
+	SigningKey,
+	SigningKeyT,
+	SigningKeyTypeHDT,
+} from '../src'
 import { Observable, Subscription } from 'rxjs'
 import { toObservable } from '@radixdlt/util'
 import { HardwareSigningKeyT } from '@radixdlt/hardware-wallet'
@@ -68,9 +74,11 @@ describe('signingKey_type', () => {
 
 		const accountAddress = AccountAddress.fromPublicKeyAndNetwork({
 			publicKey: signingKey.publicKey,
-			network: NetworkT.BETANET
+			network: NetworkT.BETANET,
 		})
-		expect(accountAddress.toString()).toBe('brx1qspx6hs8el09m7zttmugfd3f62x3tv8kce47y2tgq6vhvlx403sc9zqmgsw9s')
+		expect(accountAddress.toString()).toBe(
+			'brx1qspx6hs8el09m7zttmugfd3f62x3tv8kce47y2tgq6vhvlx403sc9zqmgsw9s',
+		)
 
 		const otherPubKey = PublicKey.fromBuffer(
 			Buffer.from(

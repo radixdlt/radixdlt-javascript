@@ -11,11 +11,16 @@ import {
 import { map, mergeMap } from 'rxjs/operators'
 import { toObservableFromResult } from '@radixdlt/util'
 import {
-	GetPublicKeyInput, HardwareSigningKeyT,
+	GetPublicKeyInput,
+	HardwareSigningKeyT,
 	HardwareWalletT,
 	HardwareWalletWithoutSK,
-	KeyExchangeInput, path000H, SemVerT,
-	SignHashInput, SemVer, signingKeyWithHardWareWallet,
+	KeyExchangeInput,
+	path000H,
+	SemVerT,
+	SignHashInput,
+	SemVer,
+	signingKeyWithHardWareWallet,
 } from '@radixdlt/hardware-wallet'
 import { RadixAPDU } from './apdu'
 import { LedgerNanoT } from './_types'
@@ -110,4 +115,5 @@ const create = (): Observable<HardwareWalletT> => {
 
 export const HardwareWalletLedger = {
 	create,
+	from: withLedgerNano,
 }
