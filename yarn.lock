@@ -2,19 +2,19 @@
 # yarn lockfile v1
 
 
-"@aleworm/bindings@^1.5.4":
-  version "1.5.4"
-  resolved "https://registry.yarnpkg.com/@aleworm/bindings/-/bindings-1.5.4.tgz#1081ed9571f8911f5e50600526a2a3da5f6e94cd"
-  integrity sha512-jVR/KCHne3kcXVudN8v/tKpM11UlIjlzMSKnc0OgDdVValtIXvCIRVzTgaCZpq6uqr+GlyPXAnlhoTvtxVFS2Q==
+"@aleworm/bindings@^1.5.5":
+  version "1.5.5"
+  resolved "https://registry.yarnpkg.com/@aleworm/bindings/-/bindings-1.5.5.tgz#e98b5f4b31920ef654ffd22cac3bc1142896aba9"
+  integrity sha512-88gec4Dl9BTI3eGhlxT31bpKYCZi0rC5l1ZrvIwSwsXmrJ83Q5jcXQS9XePoIWtPWxWd5hj0h5HAVIstiHGufA==
   dependencies:
     file-uri-to-path "1.0.0"
 
-"@aleworm/hw-transport-node-hid@^5.51.5":
-  version "5.51.5"
-  resolved "https://registry.yarnpkg.com/@aleworm/hw-transport-node-hid/-/hw-transport-node-hid-5.51.5.tgz#fd279f731976f0ea8cd7db614336a2f679c93273"
-  integrity sha512-HDzHXSTo8mRTDuutHfyfAn7Ks4QGRbkBgKDfpKG4Xl+CZ1g1+JzzVVWE0Vumb/BEFXrFQgeIfK+54Kuav9tx4Q==
+"@aleworm/hw-transport-node-hid@^5.51.6":
+  version "5.51.6"
+  resolved "https://registry.yarnpkg.com/@aleworm/hw-transport-node-hid/-/hw-transport-node-hid-5.51.6.tgz#671637678efa408254edca119603de2c2c45d58e"
+  integrity sha512-mQxBLCDZziWXyKG4UVuxif90l/Jvvk/PcB44PjLDlzFw6VW3xhThvfug9g2hSpIdAF5SU7hJ89W8RkxZ+GDMFw==
   dependencies:
-    "@aleworm/usb2" "^1.7.5"
+    "@aleworm/usb2" "^1.7.6"
     "@ledgerhq/devices" "^5.51.1"
     "@ledgerhq/errors" "^5.50.0"
     "@ledgerhq/hw-transport" "^5.51.1"
@@ -24,12 +24,12 @@
     node-hid "2.1.1"
     usb "^1.7.1"
 
-"@aleworm/usb2@^1.7.5":
-  version "1.7.5"
-  resolved "https://registry.yarnpkg.com/@aleworm/usb2/-/usb2-1.7.5.tgz#41a6d4d9037eb1fdbac601a7b2b06d7bc26d380f"
-  integrity sha512-indTySyh4P9a/HDhheUK9MDwbwYaS3qypDGpXYjsGIhn6AD/0I5Z8fLlG+axk9fSf2MykvuiY2LphyAUnlVmfA==
+"@aleworm/usb2@^1.7.6":
+  version "1.7.6"
+  resolved "https://registry.yarnpkg.com/@aleworm/usb2/-/usb2-1.7.6.tgz#7a901d977a9f4c0588c173720cfd6c9229ecea8f"
+  integrity sha512-lGQjNB4AdSYFMJ2/NAg7bHoDRhUzbdtHd0uBOCBq0TtgjPsKkudqJ2Ci3NjE8oD9PBFVkoIMc/Wz2li4hNAYpQ==
   dependencies:
-    "@aleworm/bindings" "^1.5.4"
+    "@aleworm/bindings" "^1.5.5"
     node-addon-api "3.0.2"
     prebuild-install "^5.3.3"
 
@@ -1637,7 +1637,7 @@
   dependencies:
     "@radixdlt/crypto" "^1.0.35"
     "@radixdlt/data-formats" "^1.0.25"
-    "@radixdlt/hardware-wallet" "./packages/hardware-wallet"
+    "@radixdlt/hardware-wallet" "file:packages/hardware-wallet"
     "@radixdlt/primitives" "file:packages/primitives"
     "@radixdlt/uint256" "^1.1.0"
     "@radixdlt/util" "^1.0.25"
@@ -1649,10 +1649,10 @@
     prelude-ts "^1.0.2"
     rxjs "7.0.0"
 
-"@radixdlt/hardware-wallet@./packages/hardware-wallet":
+"@radixdlt/hardware-wallet@file:packages/hardware-wallet":
   version "1.0.18"
   dependencies:
-    "@aleworm/hw-transport-node-hid" "^5.51.5"
+    "@aleworm/hw-transport-node-hid" "^5.51.6"
     "@radixdlt/crypto" "^1.0.35"
     "@radixdlt/primitives" "^1.0.28"
     "@radixdlt/util" "^1.0.25"

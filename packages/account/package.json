@@ -30,8 +30,8 @@
   "dependencies": {
     "@radixdlt/crypto": "^1.0.35",
     "@radixdlt/data-formats": "^1.0.25",
-    "@radixdlt/hardware-wallet": "./packages/hardware-wallet",
-    "@radixdlt/primitives": "./packages/primitives",
+    "@radixdlt/hardware-wallet": "/home/aleworm/radixdlt-javascript/packages/hardware-wallet",
+    "@radixdlt/primitives": "/home/aleworm/radixdlt-javascript/packages/primitives",
     "@radixdlt/uint256": "^1.1.0",
     "@radixdlt/util": "^1.0.25",
     "bech32": "^2.0.0",
