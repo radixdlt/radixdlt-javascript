@@ -19,7 +19,7 @@ import {
 	LedgerButtonPress,
 	PromptUserForInput,
 	PromptUserForInputType,
-} from '../src'
+} from '@radixdlt/hardware-wallet'
 import {
 	testDoKeyExchange,
 	testDoSignHash,

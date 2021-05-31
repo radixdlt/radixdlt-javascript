@@ -1,13 +1,15 @@
 {
-  "name": "@radixdlt/hardware-wallet",
-  "version": "1.0.18",
-  "description": "Types for hardware wallets",
+  "name": "@radixdlt/hw-ledger-transport",
+  "version": "1.0.0",
+  "description": "Ledger Nano hardware wallet connection",
   "keywords": [
+    "Ledger",
     "Hardware",
-    "Wallet"
+    "Wallet",
+    "Nano"
   ],
   "author": "Alexander Cyon <alex.cyon@gmail.com>",
-  "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/hardware-wallet#readme",
+  "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/hw-ledger-transport#readme",
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "publishConfig": {
@@ -28,6 +30,7 @@
   },
   "dependencies": {
     "@ledgerhq/hw-transport-node-hid": "^5.50.0",
+    "@radixdlt/hardware-wallet": "^1.0.18",
     "@radixdlt/crypto": "^1.0.35",
     "@radixdlt/primitives": "^1.0.28",
     "@radixdlt/util": "^1.0.25",
@@ -37,6 +40,8 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "@radixdlt/application": "^1.0.56",
+    "@radixdlt/account": "^1.0.41",
     "@types/ledgerhq__hw-transport-node-hid": "^4.22.2",
     "@types/uuid": "^8.3.0"
   }

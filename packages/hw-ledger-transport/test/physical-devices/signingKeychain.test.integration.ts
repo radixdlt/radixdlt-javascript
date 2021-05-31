@@ -6,7 +6,7 @@
 
 import { log } from '@radixdlt/util'
 import { Subscription } from 'rxjs'
-import { SigningKeychain, SigningKeychainT } from '../../src'
+import { SigningKeychain, SigningKeychainT } from '@radixdlt/account'
 import { Mnemonic } from '@radixdlt/crypto'
 
 describe('signingKey_ledger', () => {

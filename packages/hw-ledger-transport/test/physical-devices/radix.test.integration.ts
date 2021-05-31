@@ -9,17 +9,16 @@ import { Subscription } from 'rxjs'
 import {
 	Radix,
 	SigningKeychain,
-	SigningKeychainT,
 	Wallet,
 	WalletT,
-} from '../../src'
+} from '@radixdlt/application'
 import { Mnemonic } from '@radixdlt/crypto'
 import {
-	NetworkT,
 	SigningKeyTypeHDT,
 	SigningKeyTypeIdentifier,
 } from '@radixdlt/account'
 import { HDSigningKeyTypeIdentifier } from '@radixdlt/account/src/_types'
+import { NetworkT } from '@radixdlt/primitives'
 
 describe('radix_hardware_wallet', () => {
 	beforeAll(() => {

@@ -39,7 +39,6 @@ import {
 	UnstakeTokensInput,
 } from './actions'
 import { Option } from 'prelude-ts'
-import { mergeMap } from 'rxjs/operators'
 import { SigningKeyTypeT } from '@radixdlt/account/src/_types'
 
 export type ManualUserConfirmTX = {

@@ -9,6 +9,7 @@ import {
 	PublicKeyT,
 	SignatureT,
 } from '@radixdlt/crypto'
+import { HardwareWalletT } from '@radixdlt/hardware-wallet'
 
 /* A reactive counterpart of `Signer` in '@radixdlt/crypto' package  */
 export type Signing = Readonly<{
@@ -68,7 +69,11 @@ export type PrivateKeyToSigningKeyInput = Readonly<{
 	name?: string
 }>
 
-export type DeriveHWSigningKeyInput = 'next' | HDPathRadixT
+export type HWSigningKeyDerivation = 'next' | HDPathRadixT
+export type DeriveHWSigningKeyInput = Readonly<{
+	keyDerivation: HWSigningKeyDerivation
+	hardwareWalletConnection: Observable<HardwareWalletT>
+}>
 
 export type SigningKeyT = Signing &
 	Encrypting &
