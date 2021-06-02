@@ -39,7 +39,7 @@ describe('hw_ledger_integration', () => {
 		log.setLevel('warn')
 	})
 
-	it('getVersion_integration', async done => {
+	it.only('getVersion_integration', async done => {
 		ledgerNano = await LedgerNano.connect({
 			deviceConnectionTimeout: 1_000,
 		})
@@ -48,7 +48,7 @@ describe('hw_ledger_integration', () => {
 		testGetVersion({
 			hardwareWallet,
 			onResponse: (version: SemVerT) => {
-				expect(version.toString()).toBe('0.2.1')
+				expect(version.toString()).toBe('0.2.3')
 				done()
 			},
 		})

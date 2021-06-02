@@ -277,24 +277,20 @@ const emulateGetPublicKey = (
 		  )
 }
 
-const emulatePing = (
+const emulateGetAppName = (
 	input: Readonly<{
 		apdu: RadixAPDUT
 	}>,
 ): Observable<Buffer> => {
 	const { apdu } = input
-	const { p1, p2, data } = apdu
+	const { p1, p2 } = apdu
 	if (p1 !== 0) {
 		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
 	}
 	if (p2 !== 0) {
 		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
 	}
-	if (!data) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
-	}
-	const responseString = data.toString('utf8') === 'ping' ? 'pong' : 'hello'
-	const buf = Buffer.from(responseString, 'utf8')
+	const buf = Buffer.from('Radix', 'utf8')
 	return of(buf)
 }
 
@@ -341,8 +337,8 @@ export const emulateSend = (
 		}
 
 		switch (ins) {
-			case LedgerInstruction.PING: {
-				return emulatePing({
+			case LedgerInstruction.GET_APP_NAME: {
+				return emulateGetAppName({
 					apdu,
 				})
 			}

@@ -26,8 +26,7 @@ export const send = (
 	]
 	const statusList = [...acceptableStatusCodes.map(s => s.valueOf())]
 
-	const debugPrintPrefix = apdu.ins === LedgerInstruction.PING ? `🏓` : `📦`
-	log.debug(`${debugPrintPrefix} 📲 sending APDU to Ledger device:
+	log.debug(`📦📲 sending APDU to Ledger device:
 			instruction: ${apdu.ins},
 			p1: ${apdu.p1},
 			p2: ${apdu.p2},
@@ -101,7 +100,7 @@ const __openConnection = async (
 		await delay(delayBetweenRetries)
 
 		return send({
-			apdu: RadixAPDU.ping(),
+			apdu: RadixAPDU.getAppName(),
 			with: basicLedgerTransport,
 		})
 			.then(response => {
@@ -117,12 +116,8 @@ const __openConnection = async (
 				const responseString = responseWithoutCode.toString('utf8')
 				log.debug(`🔮 response without code: ${responseString}`)
 				const debugResponseEmoji =
-					responseString === 'pong'
-						? `🏓`
-						: responseString === 'hello'
-						? '👋🏻'
-						: '❌'
-				log.debug(`📲 ✅ Got ${debugResponseEmoji}, Radix app is open.`)
+					responseString === 'Radix' ? `✅` : '❌'
+				log.debug(`📲 ${debugResponseEmoji} App '${responseString}' is open.`)
 				return Promise.resolve(basicLedgerTransport)
 			})
 			.catch(_ =>

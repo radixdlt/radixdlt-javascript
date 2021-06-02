@@ -1,12 +1,12 @@
 import { LedgerButtonPress, PromptUserForInput } from './emulatedLedger'
 
 export enum LedgerInstruction {
-	PING = 0x00,
-	GET_VERSION = 0x01,
-	GET_PUBLIC_KEY = 0x02,
-	DO_KEY_EXCHANGE = 0x04,
-	DO_SIGN_HASH = 0x08,
-	DO_SIGN_TX = 0x16,
+	GET_VERSION = 0x03,
+	GET_APP_NAME = 0x04,
+	GET_PUBLIC_KEY = 0x05,
+	DO_SIGN_TX = 0x06,
+	DO_SIGN_HASH = 0x07,
+	DO_KEY_EXCHANGE = 0x08,
 }
 
 // https://github.com/radixdlt/radixdlt-ledger-app/blob/2eecabd2d870ebc252218d91034a767320b71487/app/src/common/common_macros.h#L37-L43
