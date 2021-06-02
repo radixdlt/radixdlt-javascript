@@ -15,7 +15,7 @@ import {
 
 // ##### Follows https://github.com/radixdlt/radixdlt-ledger-app/blob/main/APDUSPEC.md #####
 
-const hdPathToBuffer = (hdPath: HDPathRadixT): Buffer => {
+const hdPathComponentsToBuffer = (hdPath: HDPathRadixT): Buffer => {
 	if (
 		hdPath.coinType.value() !== RADIX_COIN_TYPE ||
 		!hdPath.coinType.isHardened
@@ -23,7 +23,8 @@ const hdPathToBuffer = (hdPath: HDPathRadixT): Buffer => {
 		throw new Error(`Expected coinType to be ${RADIX_COIN_TYPE}'`)
 	}
 
-	const data = Buffer.alloc(12)
+	const bytesPerComponent = 4
+	const data = Buffer.alloc(bytesPerComponent * hdPath.pathComponents.length)
 
 	const write = (
 		pathComponent: BIP32PathComponentT,
@@ -32,10 +33,20 @@ const hdPathToBuffer = (hdPath: HDPathRadixT): Buffer => {
 		data.writeUInt32BE(pathComponent.index, offset)
 	}
 
-	write(hdPath.account, 0)
-	write(hdPath.change, 4)
-	write(hdPath.addressIndex, 8)
+	hdPath.pathComponents.forEach((component, index) => {
+		write(component, index * bytesPerComponent)
+	})
+
 	return data
+}
+
+const hdPathToBuffer = (hdPath: HDPathRadixT): Buffer => {
+	const bipPathsData = hdPathComponentsToBuffer(hdPath)
+	const bipPathsLength = hdPath.pathComponents.length
+	console.log(`👻 bipPathsLength: ${bipPathsLength} of path: ${hdPath.toString()}`)
+	const bipPathsLengthAsSingleByte = Buffer.alloc(1)
+	bipPathsLengthAsSingleByte.writeUInt8(bipPathsLength)
+	return Buffer.concat([bipPathsLengthAsSingleByte, bipPathsData])
 }
 
 const makeAPDU = (input: Omit<PartialAPDUT, 'cla'>): RadixAPDUT => ({
@@ -60,25 +71,30 @@ type WithPath = Readonly<{
 
 type APDUGetPublicKeyInput = WithPath &
 	Readonly<{
-		requireConfirmationOnDevice: boolean
-		verifyAddressOnDeviceForNetwork?: NetworkT
+		displayAddress: boolean
+		// verifyAddressOnDeviceForNetwork?: NetworkT
 	}>
 
+const parameterValueForDisplayAddressOnLedger = (
+	input: APDUGetPublicKeyInput,
+): number => (input.displayAddress ? 0x01 : 0x00)
+
 const getPublicKey = (input: APDUGetPublicKeyInput): RadixAPDUT => {
-	const p1: number = input.requireConfirmationOnDevice ? 0x01 : 0x00
-	const p2: number =
-		input.verifyAddressOnDeviceForNetwork !== undefined
-			? input.verifyAddressOnDeviceForNetwork === NetworkT.MAINNET
-				? 0x01
-				: 0x02
-			: 0x00
+	// const p1: number = input.requireConfirmationOnDevice ? 0x01 : 0x00
+	// const p1: number =
+	// 	input.verifyAddressOnDeviceForNetwork !== undefined
+	// 		? input.verifyAddressOnDeviceForNetwork === NetworkT.MAINNET
+	// 			? 0x01
+	// 			: 0x02
+	// 		: 0x00
+
+	const p1 = parameterValueForDisplayAddressOnLedger(input)
 
 	const data = hdPathToBuffer(input.path)
 
 	return makeAPDU({
 		ins: LedgerInstruction.GET_PUBLIC_KEY,
 		p1,
-		p2,
 		data,
 	})
 }
@@ -90,7 +106,7 @@ type APDUDoKeyExchangeInput = APDUGetPublicKeyInput &
 	}>
 
 const doKeyExchange = (input: APDUDoKeyExchangeInput): RadixAPDUT => {
-	const p1: number = input.requireConfirmationOnDevice ? 0x01 : 0x00
+	const p1 = parameterValueForDisplayAddressOnLedger(input)
 	const p2: number = input.displaySharedKeyOnDevice ? 0x01 : 0x00
 
 	const publicKeyData = input.publicKeyOfOtherParty.asData({
@@ -113,7 +129,7 @@ type APDUDoSignHashInput = APDUGetPublicKeyInput &
 	}>
 
 const doSignHash = (input: APDUDoSignHashInput): RadixAPDUT => {
-	const p1: number = input.requireConfirmationOnDevice ? 0x01 : 0x00
+	const p1 = parameterValueForDisplayAddressOnLedger(input)
 
 	const pathData = hdPathToBuffer(input.path)
 	const data = Buffer.concat([pathData, input.hashToSign])

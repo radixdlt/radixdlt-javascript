@@ -1,15 +1,20 @@
-import { from, Observable } from 'rxjs'
+import { from, Observable, throwError } from 'rxjs'
 import {
 	ECPointOnCurve,
 	ECPointOnCurveT,
 	HDPathRadixT,
+	MESSAGE_TYPE_BYTES,
 	PublicKey,
 	PublicKeyT,
 	Signature,
 	SignatureT,
 } from '@radixdlt/crypto'
 import { map, mergeMap } from 'rxjs/operators'
-import { toObservableFromResult } from '@radixdlt/util'
+import {
+	msgFromError,
+	readBuffer,
+	toObservableFromResult,
+} from '@radixdlt/util'
 import {
 	GetPublicKeyInput,
 	HardwareSigningKeyT,
@@ -25,6 +30,8 @@ import {
 import { RadixAPDU } from './apdu'
 import { LedgerNanoT } from './_types'
 import { LedgerNano } from './ledgerNano'
+import { err } from 'neverthrow'
+import { log } from '@radixdlt/util/dist/logging'
 
 const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 	const getPublicKey = (input: GetPublicKeyInput): Observable<PublicKeyT> =>
@@ -32,15 +39,48 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 			.sendAPDUToDevice(
 				RadixAPDU.getPublicKey({
 					path: input.path ?? path000H,
-					requireConfirmationOnDevice:
-						input.requireConfirmationOnDevice ?? false, // passing 'false' is convenient for testing,
-					verifyAddressOnDeviceForNetwork:
-						input.verifyAddressOnDeviceForNetwork,
+					displayAddress: input.displayAddress ?? false, // passing 'false' is convenient for testing,
+					// verifyAddressOnDeviceForNetwork:
+					// 	input.verifyAddressOnDeviceForNetwork,
 				}),
 			)
 			.pipe(
-				mergeMap(buf =>
-					toObservableFromResult(PublicKey.fromBuffer(buf)),
+				mergeMap(
+					(buf): Observable<PublicKeyT> => {
+						// Response `buf`: pub_key_len (1) || pub_key (var) || chain_code_len (1) || chain_code (var)
+						const readNextBuffer = readBuffer(buf)
+
+						const publicKeyLengthResult = readNextBuffer(1)
+						if (publicKeyLengthResult.isErr()) {
+							const errMsg = `Failed to parse length of public key from response buffer: ${msgFromError(
+								publicKeyLengthResult.error,
+							)}`
+							log.error(errMsg)
+							return throwError(new Error(errMsg))
+						}
+						const publicKeyLength = publicKeyLengthResult.value.readUIntBE(
+							0,
+							1,
+						)
+						const publicKeyBytesResult = readNextBuffer(
+							publicKeyLength,
+						)
+
+						if (publicKeyBytesResult.isErr()) {
+							const errMsg = `Failed to parse public key bytes from response buffer: ${msgFromError(
+								publicKeyBytesResult.error,
+							)}`
+							log.error(errMsg)
+							return throwError(new Error(errMsg))
+						}
+						const publicKeyBytes = publicKeyBytesResult.value
+
+						// We ignore remaining bytes, being: `chain_code_len (1) || chain_code (var)`
+
+						return toObservableFromResult(
+							PublicKey.fromBuffer(publicKeyBytes),
+						)
+					},
 				),
 			)
 
@@ -56,8 +96,7 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 			.sendAPDUToDevice(
 				RadixAPDU.doSignHash({
 					path: input.path ?? path000H,
-					requireConfirmationOnDevice:
-						input.requireConfirmationOnDevice ?? false,
+					displayAddress: input.displayAddress ?? false,
 					hashToSign: input.hashToSign,
 				}),
 			)
@@ -75,8 +114,7 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 				RadixAPDU.doKeyExchange({
 					...input,
 					path: input.path ?? path000H,
-					requireConfirmationOnDevice:
-						input.requireConfirmationOnDevice ?? false,
+					displayAddress: input.displayAddress ?? false,
 					displaySharedKeyOnDevice: input.displaySharedKeyOnDevice,
 				}),
 			)

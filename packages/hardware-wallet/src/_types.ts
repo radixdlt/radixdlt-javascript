@@ -26,8 +26,8 @@ export type AtPath = Readonly<{
 
 export type GetPublicKeyInput = AtPath &
 	Readonly<{
-		requireConfirmationOnDevice?: boolean
-		verifyAddressOnDeviceForNetwork?: NetworkT
+		displayAddress?: boolean
+		// verifyAddressOnDeviceForNetwork?: NetworkT
 	}>
 
 export type SignHashInput = GetPublicKeyInput &

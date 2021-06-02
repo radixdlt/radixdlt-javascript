@@ -22,7 +22,7 @@ export const signingKeyWithHardWareWallet = (
 	hardwareWallet
 		.getPublicKey({
 			path,
-			requireConfirmationOnDevice: true,
+			displayAddress: true,
 		})
 		.pipe(
 			map((publicKey: PublicKeyT) => ({
@@ -36,7 +36,7 @@ export const signingKeyWithHardWareWallet = (
 					publicKeyOfOtherParty: PublicKeyT,
 				): Observable<ECPointOnCurveT> =>
 					hardwareWallet.doKeyExchange({
-						requireConfirmationOnDevice: true,
+						displayAddress: true,
 						// Too many steps for user and also not very helpful for any user.
 						// But good to be able to.
 						displaySharedKeyOnDevice: false,

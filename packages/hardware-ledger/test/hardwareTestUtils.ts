@@ -50,9 +50,8 @@ export const testGetPublicKey = (
 				path: HDPathRadix.fromString(
 					`m/44'/536'/2'/1/3`,
 				)._unsafeUnwrap(),
-				requireConfirmationOnDevice:
-					input.requireConfirmationOnDevice ?? false,
-				verifyAddressOnDeviceForNetwork: NetworkT.BETANET,
+				displayAddress: input.requireConfirmationOnDevice ?? false,
+				// verifyAddressOnDeviceForNetwork: NetworkT.BETANET,
 			})
 			.subscribe(
 				(publicKey: PublicKeyT) => {
@@ -87,7 +86,7 @@ export const testDoSignHash = (
 					`m/44'/536'/2'/1/3`,
 				)._unsafeUnwrap(),
 				hashToSign,
-				requireConfirmationOnDevice: true,
+				displayAddress: true,
 			})
 			.subscribe(
 				(signature: SignatureT) => {
@@ -130,8 +129,7 @@ export const testDoKeyExchange = (
 					`m/44'/536'/2'/1/3`,
 				)._unsafeUnwrap(),
 				publicKeyOfOtherParty,
-				requireConfirmationOnDevice:
-					input?.requireConfirmationOnDevice ?? false,
+				displayAddress: input?.requireConfirmationOnDevice ?? false,
 				displaySharedKeyOnDevice:
 					input?.displaySharedKeyOnDevice ?? false,
 			})
