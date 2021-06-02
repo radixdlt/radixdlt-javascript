@@ -171,7 +171,7 @@ const fromTransport = (
 						// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 						error.statusCode !== undefined &&
 						error.statusCode ===
-							LedgerResponseCodes.CLA_NOT_SUPPORTED
+							LedgerResponseCodes.SW_CLA_NOT_SUPPORTED
 					) {
 						const errMsg = `🤷‍♀️ Wrong app/Radix app not opened on Ledger yet. ${msgFromError(
 							error,
@@ -179,9 +179,14 @@ const fromTransport = (
 						log.error(errMsg)
 						subscriber.error(new Error(errMsg))
 					} else {
-						const errMsg = `SEND APDU failed with unknown error: '${msgFromError(
-							error,
-						)}'`
+						const ledgerResponseCodesFromError: string | undefined =
+							LedgerResponseCodes[error.statusCode]
+
+
+						const underlyingError =
+							ledgerResponseCodesFromError ?? msgFromError(error)
+
+						const errMsg = `SEND APDU failed with underlying error: '${underlyingError}'`
 						log.error(errMsg)
 
 						subscriber.error(new Error(errMsg))

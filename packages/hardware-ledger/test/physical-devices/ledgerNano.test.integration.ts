@@ -39,7 +39,7 @@ describe('hw_ledger_integration', () => {
 		log.setLevel('warn')
 	})
 
-	it.only('getVersion_integration', async done => {
+	it('getVersion_integration', async done => {
 		ledgerNano = await LedgerNano.connect({
 			deviceConnectionTimeout: 1_000,
 		})
@@ -54,7 +54,7 @@ describe('hw_ledger_integration', () => {
 		})
 	})
 
-	it('getPublicKey_integration', async done => {
+	it.only('getPublicKey_integration', async done => {
 		ledgerNano = await LedgerNano.connect({
 			deviceConnectionTimeout: 1_000,
 		})

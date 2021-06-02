@@ -84,16 +84,16 @@ const emulateDoSignHash = (
 	const expectLength = pathDataByteCount + sha256HashByteCount
 
 	if (!data) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_WRONG_DATA_LENGTH)
 	}
 
 	if (data.length < expectLength) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_WRONG_DATA_LENGTH)
 	}
 
 	const hdPathResult = hdPathFromBuffer(data)
 	if (!hdPathResult.isOk()) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_DISPLAY_BIP32_PATH_FAIL)
 	}
 	const hashedData = data.slice(pathDataByteCount)
 	const derivedNode = hdMasterNode.derive(hdPathResult.value)
@@ -115,7 +115,7 @@ const emulateDoSignHash = (
 		: usersInputOnLedger.pipe(
 				tap(buttonPress => {
 					if (buttonPress === LedgerButtonPress.LEFT_REJECT) {
-						throw LedgerResponseCodes.SW_USER_REJECTED
+						throw LedgerResponseCodes.SW_DENY
 					}
 				}),
 		  )
@@ -145,23 +145,23 @@ const emulateDoKeyExchange = (
 	const expectLength = pathDataByteCount + publicKeyByteCount
 
 	if (!data) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_WRONG_DATA_LENGTH)
 	}
 
 	if (data.length < expectLength) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_WRONG_DATA_LENGTH)
 	}
 
 	const hdPathResult = hdPathFromBuffer(data)
 	if (!hdPathResult.isOk()) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_DISPLAY_BIP32_PATH_FAIL)
 	}
 	const publicKeyOfOtherPartyBytes = data.slice(pathDataByteCount)
 	const publicKeyOfOtherPartyBytesResult = PublicKey.fromBuffer(
 		publicKeyOfOtherPartyBytes,
 	)
 	if (!publicKeyOfOtherPartyBytesResult.isOk()) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_BAD_STATE)
 	}
 	const publicKeyOfOtherParty = publicKeyOfOtherPartyBytesResult.value
 	const derivedNode = hdMasterNode.derive(hdPathResult.value)
@@ -183,7 +183,7 @@ const emulateDoKeyExchange = (
 		: usersInputOnLedger.pipe(
 				tap(buttonPress => {
 					if (buttonPress === LedgerButtonPress.LEFT_REJECT) {
-						throw LedgerResponseCodes.SW_USER_REJECTED
+						throw LedgerResponseCodes.SW_DENY
 					}
 				}),
 		  )
@@ -223,15 +223,15 @@ const emulateGetPublicKey = (
 
 	const { p1, p2, data } = apdu
 	if (p1 !== 0 && p1 !== 1) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_WRONG_P1P2)
 	}
 	if (p2 !== 0 && p2 !== 1 && p2 !== 2) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_WRONG_P1P2)
 	}
 
 	const hdPathResult = hdPathFromBuffer(data)
 	if (!hdPathResult.isOk()) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_DISPLAY_BIP32_PATH_FAIL)
 	}
 	const derivedNode = hdMasterNode.derive(hdPathResult.value)
 
@@ -267,7 +267,7 @@ const emulateGetPublicKey = (
 				map(
 					(buttonPress): Buffer => {
 						if (buttonPress === LedgerButtonPress.LEFT_REJECT) {
-							throw LedgerResponseCodes.SW_USER_REJECTED
+							throw LedgerResponseCodes.SW_DENY
 						} else {
 							return response
 						}
@@ -285,10 +285,10 @@ const emulateGetAppName = (
 	const { apdu } = input
 	const { p1, p2 } = apdu
 	if (p1 !== 0) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_WRONG_P1P2)
 	}
 	if (p2 !== 0) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_WRONG_P1P2)
 	}
 	const buf = Buffer.from('Radix', 'utf8')
 	return of(buf)
@@ -303,13 +303,13 @@ const emulateGetVersion = (
 	const { apdu, hardcodedVersion } = input
 	const { p1, p2, data } = apdu
 	if (p1 !== 0) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_WRONG_P1P2)
 	}
 	if (p2 !== 0) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_WRONG_P1P2)
 	}
 	if (data !== undefined) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_WRONG_DATA_LENGTH)
 	}
 
 	const buf = Buffer.alloc(3)
@@ -333,7 +333,7 @@ export const emulateSend = (
 		const { cla, ins } = apdu
 
 		if (cla !== radixCLA) {
-			return throwError(() => LedgerResponseCodes.CLA_NOT_SUPPORTED)
+			return throwError(() => LedgerResponseCodes.SW_CLA_NOT_SUPPORTED)
 		}
 
 		switch (ins) {
