@@ -123,57 +123,57 @@ const tokenInfoFromResponse = (response: RawToken): Token => ({
 
 const methodParams = {
 	[rpcSpec.methods[0].name]: {},
-
-	[rpcSpec.methods[1].name]: {},
-
-	[rpcSpec.methods[2].name]: {
+	
+	[rpcSpec.methods[1].name]: {
 		rri: 'xrd_rb1qya85pwq',
 	},
 
-	[rpcSpec.methods[3].name]: {
+	[rpcSpec.methods[2].name]: {
 		address:
 			'brx1qspqljn9rg7x97s3rcvyzal2uxr5q22d9xn8nc4rpq8vq08kg4ch8yqhs9dq6',
 	},
 
-	[rpcSpec.methods[4].name]: {
+	[rpcSpec.methods[3].name]: {
 		address:
 			'brx1qspqljn9rg7x97s3rcvyzal2uxr5q22d9xn8nc4rpq8vq08kg4ch8yqhs9dq6',
 		size: 1,
 		cursor: 'xyz',
 	},
 
+	[rpcSpec.methods[4].name]: {
+		address:
+			'brx1qspqljn9rg7x97s3rcvyzal2uxr5q22d9xn8nc4rpq8vq08kg4ch8yqhs9dq6',
+	},
+
 	[rpcSpec.methods[5].name]: {
-		txID:
-			'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+		address:
+			'brx1qspqljn9rg7x97s3rcvyzal2uxr5q22d9xn8nc4rpq8vq08kg4ch8yqhs9dq6',
 	},
 
 	[rpcSpec.methods[6].name]: {
-		address:
-			'brx1qspqljn9rg7x97s3rcvyzal2uxr5q22d9xn8nc4rpq8vq08kg4ch8yqhs9dq6',
-	},
-
-	[rpcSpec.methods[7].name]: {
-		address:
-			'brx1qspqljn9rg7x97s3rcvyzal2uxr5q22d9xn8nc4rpq8vq08kg4ch8yqhs9dq6',
-	},
-
-	[rpcSpec.methods[8].name]: {
 		txID:
 			'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
 	},
 
-	[rpcSpec.methods[9].name]: {},
-	[rpcSpec.methods[10].name]: {},
+	[rpcSpec.methods[7].name]: {
+		txID:
+			'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+	},
 
-	[rpcSpec.methods[11].name]: {
+	[rpcSpec.methods[8].name]: {
 		size: 1,
 		cursor: 1,
 	},
 
-	[rpcSpec.methods[12].name]: {
+
+	[rpcSpec.methods[9].name]: {
 		validatorAddress:
 			'vb1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq9u3702',
 	},
+
+	[rpcSpec.methods[10].name]: {},
+	[rpcSpec.methods[11].name]: {},
+	[rpcSpec.methods[12].name]: {},
 
 	[rpcSpec.methods[13].name]: {
 		actions: [
@@ -434,6 +434,8 @@ const testRpcMethod = (method: MethodObject, index: number) => {
 			methodParams[method.name],
 		)
 
+		if(result.isErr()) { throw result.error }
+
 		const response = result._unsafeUnwrap({
 			withStackTrace: true,
 		})
@@ -469,7 +471,7 @@ const testRpcMethod = (method: MethodObject, index: number) => {
 describe('json-rpc spec', () => {
 	rpcSpec.methods
 		.filter(
-			method => method.name in Endpoint
+			method => Object.values(Endpoint).includes(method.name as Endpoint)
 		).forEach(
 			(method, i) => testRpcMethod(method, i)
 		)

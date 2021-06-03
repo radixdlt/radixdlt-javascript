@@ -1615,9 +1615,6 @@
     node-ipc "^9.1.1"
     ws "^7.3.1"
 
-"@radixdlt/open-rpc-spec@/home/aleworm/open-rpc-spec":
-  version "1.0.2"
-
 "@radixdlt/open-rpc-spec@file:../open-rpc-spec":
   version "1.0.2"
 
