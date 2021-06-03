@@ -36,10 +36,7 @@ export const signingKeyWithHardWareWallet = (
 					publicKeyOfOtherParty: PublicKeyT,
 				): Observable<ECPointOnCurveT> =>
 					hardwareWallet.doKeyExchange({
-						displayAddress: true,
-						// Too many steps for user and also not very helpful for any user.
-						// But good to be able to.
-						displaySharedKeyOnDevice: false,
+						displayBIPAndPubKeyOtherParty: true,
 						path,
 						publicKeyOfOtherParty,
 					}),

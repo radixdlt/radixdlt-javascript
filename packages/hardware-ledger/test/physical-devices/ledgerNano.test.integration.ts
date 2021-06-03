@@ -69,7 +69,7 @@ describe('hw_ledger_integration', () => {
 		})
 	})
 
-	it('doKeyExchange_integration', async done => {
+	it.only('doKeyExchange_integration', async done => {
 		ledgerNano = await LedgerNano.connect({
 			deviceConnectionTimeout: 1_000,
 		})
@@ -77,15 +77,14 @@ describe('hw_ledger_integration', () => {
 
 		testDoKeyExchange({
 			hardwareWallet,
-			requireConfirmationOnDevice: true,
-			displaySharedKeyOnDevice: false,
+			displayBIPAndPubKeyOtherParty: true,
 			onResponse: _pointOncurve => {
 				done()
 			},
 		})
 	}, 40_000)
 
-	it.only('doSignHash_integration', async done => {
+	it('doSignHash_integration', async done => {
 		ledgerNano = await LedgerNano.connect({
 			deviceConnectionTimeout: 1_000,
 		})

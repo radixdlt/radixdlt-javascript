@@ -148,13 +148,53 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 				RadixAPDU.doKeyExchange({
 					...input,
 					path: input.path ?? path000H,
-					displayAddress: input.displayAddress ?? false,
-					displaySharedKeyOnDevice: input.displaySharedKeyOnDevice,
+					displayBIPAndPubKeyOtherParty:
+						input.displayBIPAndPubKeyOtherParty,
+					// displaySharedKeyOnDevice: input.displaySharedKeyOnDevice,
 				}),
 			)
 			.pipe(
-				mergeMap(buf =>
-					toObservableFromResult(ECPointOnCurve.fromBuffer(buf)),
+				mergeMap(
+					(buf: Buffer): Observable<ECPointOnCurveT> => {
+						// Response `buf`: sharedkeyPointLen (1) || sharedKeyPoint (var)
+						const readNextBuffer = readBuffer(buf)
+
+						const sharedKeyPointLengthResult = readNextBuffer(1)
+						if (sharedKeyPointLengthResult.isErr()) {
+							const errMsg = `Failed to parse length of shared key point from response buffer: ${msgFromError(
+								sharedKeyPointLengthResult.error,
+							)}`
+							log.error(errMsg)
+							return throwError(new Error(errMsg))
+						}
+						const sharedKeyPointLength = sharedKeyPointLengthResult.value.readUIntBE(
+							0,
+							1,
+						)
+
+						console.log(`👻 Length of shared key point: ${sharedKeyPointLength}`)
+
+						const sharedKeyPointBytesResult = readNextBuffer(
+							sharedKeyPointLength,
+						)
+
+						if (sharedKeyPointBytesResult.isErr()) {
+							const errMsg = `Failed to parse shared key point bytes from response buffer: ${msgFromError(
+								sharedKeyPointBytesResult.error,
+							)}`
+							log.error(errMsg)
+							return throwError(new Error(errMsg))
+						}
+						const sharedKeyPointBytes =
+							sharedKeyPointBytesResult.value
+
+						console.log(`👻 Length of shared key bytes: ${sharedKeyPointBytes.toString('hex')}`)
+
+
+						return toObservableFromResult(
+							ECPointOnCurve.fromBuffer(sharedKeyPointBytes),
+						)
+					},
 				),
 			)
 

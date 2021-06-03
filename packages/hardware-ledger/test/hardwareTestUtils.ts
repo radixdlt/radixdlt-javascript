@@ -131,8 +131,7 @@ export const testDoSignHash = (
 export const testDoKeyExchange = (
 	input: Readonly<{
 		hardwareWallet: HardwareWalletT
-		requireConfirmationOnDevice?: boolean
-		displaySharedKeyOnDevice?: boolean
+		displayBIPAndPubKeyOtherParty?: boolean
 		onResponse?: (ecPointOnCurve: ECPointOnCurveT) => void
 	}>,
 ): void => {
@@ -155,9 +154,7 @@ export const testDoKeyExchange = (
 					`m/44'/536'/2'/1/3`,
 				)._unsafeUnwrap(),
 				publicKeyOfOtherParty,
-				displayAddress: input?.requireConfirmationOnDevice ?? false,
-				displaySharedKeyOnDevice:
-					input?.displaySharedKeyOnDevice ?? false,
+				displayBIPAndPubKeyOtherParty: input?.displayBIPAndPubKeyOtherParty ?? false,
 			})
 			.subscribe(
 				(ecPointOnCurve: ECPointOnCurveT) => {

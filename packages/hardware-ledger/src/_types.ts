@@ -55,6 +55,9 @@ export enum LedgerResponseCodes {
 
 	/// Status word for signature fail.
 	SW_SIGNATURE_FAIL = 0xb008,
+
+	/// Status word for ECDH key exchange fail.
+	SW_ECDH_FAIL = 0xb009,
 }
 
 export const prettifyLedgerResponseCode = (code: LedgerResponseCodes): string =>

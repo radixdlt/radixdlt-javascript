@@ -81,6 +81,10 @@ const parameterValueForDisplayAddressOnLedger = (
 	input: APDUGetPublicKeyInput,
 ): number => (input.displayAddress ? 0x01 : 0x00)
 
+const parameterValueForDisplayECDHInputOnLedger = (
+	input: APDUDoKeyExchangeInput,
+): number => (input.displayBIPAndPubKeyOtherParty ? 0x01 : 0x00)
+
 const getPublicKey = (input: APDUGetPublicKeyInput): RadixAPDUT => {
 	// const p1: number = input.requireConfirmationOnDevice ? 0x01 : 0x00
 	// const p1: number =
@@ -101,26 +105,33 @@ const getPublicKey = (input: APDUGetPublicKeyInput): RadixAPDUT => {
 	})
 }
 
-type APDUDoKeyExchangeInput = APDUGetPublicKeyInput &
+type APDUDoKeyExchangeInput = WithPath &
 	Readonly<{
 		publicKeyOfOtherParty: PublicKeyT
-		displaySharedKeyOnDevice: boolean
+		displayBIPAndPubKeyOtherParty: boolean
 	}>
 
 const doKeyExchange = (input: APDUDoKeyExchangeInput): RadixAPDUT => {
-	const p1 = parameterValueForDisplayAddressOnLedger(input)
-	const p2: number = input.displaySharedKeyOnDevice ? 0x01 : 0x00
+	const p1 = parameterValueForDisplayECDHInputOnLedger(input)
 
-	const publicKeyData = input.publicKeyOfOtherParty.asData({
+	const publicKeyUncompressedData = input.publicKeyOfOtherParty.asData({
 		compressed: false,
 	})
+	const publicKeyLengthBuf = Buffer.alloc(1)
+	publicKeyLengthBuf.writeUInt8(publicKeyUncompressedData.length)
+
+	const publicKeyData = Buffer.concat([
+		publicKeyLengthBuf,
+		publicKeyUncompressedData,
+	])
+
 	const pathData = hdPathToBuffer(input.path)
+
 	const data = Buffer.concat([pathData, publicKeyData])
 
 	return makeAPDU({
 		ins: LedgerInstruction.DO_KEY_EXCHANGE,
 		p1,
-		p2,
 		data,
 	})
 }

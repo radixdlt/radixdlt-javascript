@@ -35,10 +35,10 @@ export type SignHashInput = GetPublicKeyInput &
 		hashToSign: Buffer
 	}>
 
-export type KeyExchangeInput = GetPublicKeyInput &
+export type KeyExchangeInput = AtPath &
 	Readonly<{
 		publicKeyOfOtherParty: PublicKeyT
-		displaySharedKeyOnDevice: boolean
+		displayBIPAndPubKeyOtherParty: boolean
 	}>
 
 export type HardwareSigningKeyT = Readonly<{
