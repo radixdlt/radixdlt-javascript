@@ -27,6 +27,7 @@ import {
 	TransactionStatusEndpoint,
 	UnstakePositionsEndpoint,
 	ValidatorsEndpoint,
+	Endpoint,
 } from '../src'
 import { Amount, NetworkT } from '@radixdlt/primitives'
 
@@ -46,8 +47,8 @@ const faker = require('json-schema-faker')
 
 let mockClientReturnValue: any
 
-function mockHTTPTransport() {}
-function mockRequestManager() {}
+function mockHTTPTransport() { }
+function mockRequestManager() { }
 function mockClient() {
 	return {
 		request: async () => mockClientReturnValue,
@@ -210,20 +211,14 @@ const methodParams = {
 
 const expectedDecodedResponses = {
 	[rpcSpec.methods[0].name]: (
-		response: NetworkIdEndpoint.Response,
-	): NetworkIdEndpoint.DecodedResponse => ({
-		networkId: NetworkT.BETANET,
-	}),
-
-	[rpcSpec.methods[1].name]: (
 		response: NativeTokenEndpoint.Response,
 	): NativeTokenEndpoint.DecodedResponse => tokenInfoFromResponse(response),
 
-	[rpcSpec.methods[2].name]: (
+	[rpcSpec.methods[1].name]: (
 		response: TokenInfoEndpoint.Response,
 	): TokenInfoEndpoint.DecodedResponse => tokenInfoFromResponse(response),
 
-	[rpcSpec.methods[3].name]: (
+	[rpcSpec.methods[2].name]: (
 		response: TokenBalancesEndpoint.Response,
 	): TokenBalancesEndpoint.DecodedResponse => ({
 		owner: AccountAddress.fromUnsafe(response.owner)._unsafeUnwrap(),
@@ -239,7 +234,7 @@ const expectedDecodedResponses = {
 		],
 	}),
 
-	[rpcSpec.methods[4].name]: (
+	[rpcSpec.methods[3].name]: (
 		response: TransactionHistoryEndpoint.Response,
 	): TransactionHistoryEndpoint.DecodedResponse => {
 		const txID = TransactionIdentifier.create(
@@ -264,7 +259,38 @@ const expectedDecodedResponses = {
 		}
 	},
 
+	[rpcSpec.methods[4].name]: (
+		response: StakePositionsEndpoint.Response,
+	): StakePositionsEndpoint.DecodedResponse => [
+			{
+				validator: ValidatorAddress.fromUnsafe(
+					response[0].validator,
+				)._unsafeUnwrap({ withStackTrace: true }),
+				amount: Amount.fromUnsafe(response[0].amount)._unsafeUnwrap({
+					withStackTrace: true,
+				}),
+			},
+		],
+
+
 	[rpcSpec.methods[5].name]: (
+		response: UnstakePositionsEndpoint.Response,
+	): UnstakePositionsEndpoint.DecodedResponse => [
+			{
+				amount: Amount.fromUnsafe(response[0].amount)._unsafeUnwrap({
+					withStackTrace: true,
+				}),
+				validator: ValidatorAddress.fromUnsafe(
+					response[0].validator,
+				)._unsafeUnwrap({ withStackTrace: true }),
+				epochsUntil: response[0].epochsUntil,
+				withdrawTxID: TransactionIdentifier.create(
+					response[0].withdrawTxID,
+				)._unsafeUnwrap({ withStackTrace: true }),
+			},
+		],
+
+	[rpcSpec.methods[6].name]: (
 		response: LookupTransactionEndpoint.Response,
 	): LookupTransactionEndpoint.DecodedResponse => {
 		const txID = TransactionIdentifier.create(response.txID)._unsafeUnwrap({
@@ -284,37 +310,9 @@ const expectedDecodedResponses = {
 		}
 	},
 
-	[rpcSpec.methods[6].name]: (
-		response: StakePositionsEndpoint.Response,
-	): StakePositionsEndpoint.DecodedResponse => [
-		{
-			validator: ValidatorAddress.fromUnsafe(
-				response[0].validator,
-			)._unsafeUnwrap({ withStackTrace: true }),
-			amount: Amount.fromUnsafe(response[0].amount)._unsafeUnwrap({
-				withStackTrace: true,
-			}),
-		},
-	],
+
 
 	[rpcSpec.methods[7].name]: (
-		response: UnstakePositionsEndpoint.Response,
-	): UnstakePositionsEndpoint.DecodedResponse => [
-		{
-			amount: Amount.fromUnsafe(response[0].amount)._unsafeUnwrap({
-				withStackTrace: true,
-			}),
-			validator: ValidatorAddress.fromUnsafe(
-				response[0].validator,
-			)._unsafeUnwrap({ withStackTrace: true }),
-			epochsUntil: response[0].epochsUntil,
-			withdrawTxID: TransactionIdentifier.create(
-				response[0].withdrawTxID,
-			)._unsafeUnwrap({ withStackTrace: true }),
-		},
-	],
-
-	[rpcSpec.methods[8].name]: (
 		response: TransactionStatusEndpoint.Response,
 	): TransactionStatusEndpoint.DecodedResponse => ({
 		txID: TransactionIdentifier.create(response.txID)._unsafeUnwrap({
@@ -323,19 +321,7 @@ const expectedDecodedResponses = {
 		status: response.status,
 	}),
 
-	[rpcSpec.methods[9].name]: (
-		response: NetworkTransactionThroughputEndpoint.Response,
-	): NetworkTransactionThroughputEndpoint.DecodedResponse => ({
-		tps: response.tps,
-	}),
-
-	[rpcSpec.methods[10].name]: (
-		response: NetworkTransactionDemandEndpoint.Response,
-	): NetworkTransactionDemandEndpoint.DecodedResponse => ({
-		tps: response.tps,
-	}),
-
-	[rpcSpec.methods[11].name]: (
+	[rpcSpec.methods[8].name]: (
 		response: ValidatorsEndpoint.Response,
 	): ValidatorsEndpoint.DecodedResponse => ({
 		cursor: response.cursor,
@@ -361,7 +347,7 @@ const expectedDecodedResponses = {
 		],
 	}),
 
-	[rpcSpec.methods[12].name]: (
+	[rpcSpec.methods[9].name]: (
 		response: LookupValidatorEndpoint.Response,
 	): LookupValidatorEndpoint.DecodedResponse => ({
 		address: ValidatorAddress.fromUnsafe(response.address)._unsafeUnwrap({
@@ -381,6 +367,24 @@ const expectedDecodedResponses = {
 			response.ownerDelegation,
 		)._unsafeUnwrap({ withStackTrace: true }),
 		isExternalStakeAccepted: response.isExternalStakeAccepted,
+	}),
+
+	[rpcSpec.methods[10].name]: (
+		response: NetworkIdEndpoint.Response,
+	): NetworkIdEndpoint.DecodedResponse => ({
+		networkId: NetworkT.BETANET,
+	}),
+
+	[rpcSpec.methods[11].name]: (
+		response: NetworkTransactionThroughputEndpoint.Response,
+	): NetworkTransactionThroughputEndpoint.DecodedResponse => ({
+		tps: response.tps,
+	}),
+
+	[rpcSpec.methods[12].name]: (
+		response: NetworkTransactionDemandEndpoint.Response,
+	): NetworkTransactionDemandEndpoint.DecodedResponse => ({
+		tps: response.tps,
 	}),
 
 	[rpcSpec.methods[13].name]: (
@@ -425,7 +429,8 @@ const testRpcMethod = (method: MethodObject, index: number) => {
 		const expected = expectedDecodedResponses[method.name](mockedResult)
 
 		// @ts-ignore
-		const result = await client[method.name.split('.')[1]](
+		const result = await client[method.name](
+			// @ts-ignore
 			methodParams[method.name],
 		)
 
@@ -449,10 +454,10 @@ const testRpcMethod = (method: MethodObject, index: number) => {
 					isObject(value1)
 						? checkEquality(value1, value2)
 						: isArray(value1)
-						? value1.forEach((item, i) =>
+							? value1.forEach((item, i) =>
 								checkEquality(item as any, value2[i]),
-						  )
-						: expect(value1).toEqual(value2)
+							)
+							: expect(value1).toEqual(value2)
 				}
 			}
 		}
@@ -462,5 +467,10 @@ const testRpcMethod = (method: MethodObject, index: number) => {
 }
 
 describe('json-rpc spec', () => {
-	rpcSpec.methods.forEach((method, i) => testRpcMethod(method, i))
+	rpcSpec.methods
+		.filter(
+			method => method.name in Endpoint
+		).forEach(
+			(method, i) => testRpcMethod(method, i)
+		)
 })

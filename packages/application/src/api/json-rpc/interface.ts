@@ -18,9 +18,8 @@ import {
 } from './responseHandlers'
 import { andThen, pipe } from 'ramda'
 import {
-	ApiMethod,
-	BuildTransactionEndpoint,
 	Endpoint,
+	BuildTransactionEndpoint,
 	SubmitTransactionEndpoint,
 	LookupTransactionEndpoint,
 	NativeTokenEndpoint,
@@ -68,86 +67,84 @@ export const getAPI = (
 	const setupAPIResponse = setupAPICall(call)
 
 	return {
-		[ApiMethod.NETWORK_ID]: setupAPIResponse<
+		[Endpoint.NETWORK_ID]: setupAPIResponse<
 			NetworkIdEndpoint.Input,
 			NetworkIdEndpoint.DecodedResponse
-		>(handleNetworkIdResponse)('radix.networkId'),
+		>(handleNetworkIdResponse)(Endpoint.NETWORK_ID),
 
-		[ApiMethod.TOKEN_BALANCES]: setupAPIResponse<
+		[Endpoint.TOKEN_BALANCES]: setupAPIResponse<
 			TokenBalancesEndpoint.Input,
 			TokenBalancesEndpoint.DecodedResponse
-		>(handleTokenBalancesResponse)('radix.tokenBalances'),
+		>(handleTokenBalancesResponse)(Endpoint.TOKEN_BALANCES),
 
-		[ApiMethod.VALIDATORS]: setupAPIResponse<
+		[Endpoint.VALIDATORS]: setupAPIResponse<
 			ValidatorsEndpoint.Input,
 			ValidatorsEndpoint.DecodedResponse
-		>(handleValidatorsResponse)('radix.validators'),
+		>(handleValidatorsResponse)(Endpoint.VALIDATORS),
 
-		[ApiMethod.LOOKUP_TX]: setupAPIResponse<
+		[Endpoint.LOOKUP_TX]: setupAPIResponse<
 			LookupTransactionEndpoint.Input,
 			LookupTransactionEndpoint.DecodedResponse
-		>(handleLookupTXResponse)('radix.lookupTransaction'),
+		>(handleLookupTXResponse)(Endpoint.LOOKUP_TX),
 
-		[ApiMethod.LOOKUP_VALIDATOR]: setupAPIResponse<
+		[Endpoint.LOOKUP_VALIDATOR]: setupAPIResponse<
 			LookupValidatorEndpoint.Input,
 			LookupValidatorEndpoint.DecodedResponse
-		>(handleLookupValidatorResponse)('radix.lookupValidator'),
+		>(handleLookupValidatorResponse)(Endpoint.LOOKUP_VALIDATOR),
 
-		[ApiMethod.TRANSACTION_HISTORY]: setupAPIResponse<
+		[Endpoint.TRANSACTION_HISTORY]: setupAPIResponse<
 			TransactionHistoryEndpoint.Input,
 			TransactionHistoryEndpoint.DecodedResponse
-		>(handleTransactionHistoryResponse)('radix.transactionHistory'),
+		>(handleTransactionHistoryResponse)(Endpoint.TRANSACTION_HISTORY),
 
-		[ApiMethod.NATIVE_TOKEN]: setupAPIResponse<
+		[Endpoint.NATIVE_TOKEN]: setupAPIResponse<
 			NativeTokenEndpoint.Input,
 			NativeTokenEndpoint.DecodedResponse
-		>(handleTokenInfoResponse)('radix.nativeToken'),
+		>(handleTokenInfoResponse)(Endpoint.NATIVE_TOKEN),
 
-		[ApiMethod.TOKEN_INFO]: setupAPIResponse<
+		[Endpoint.TOKEN_INFO]: setupAPIResponse<
 			TokenInfoEndpoint.Input,
 			TokenInfoEndpoint.DecodedResponse
-		>(handleTokenInfoResponse)('radix.tokenInfo'),
+		>(handleTokenInfoResponse)(Endpoint.TOKEN_INFO),
 
-		[ApiMethod.STAKES]: setupAPIResponse<
+		[Endpoint.STAKES]: setupAPIResponse<
 			StakePositionsEndpoint.Input,
 			StakePositionsEndpoint.DecodedResponse
-		>(handleStakesResponse)('radix.stakePositions'),
+		>(handleStakesResponse)(Endpoint.STAKES),
 
-		[ApiMethod.UNSTAKES]: setupAPIResponse<
+		[Endpoint.UNSTAKES]: setupAPIResponse<
 			UnstakePositionsEndpoint.Input,
 			UnstakePositionsEndpoint.DecodedResponse
-		>(handleUnstakesResponse)('radix.unstakePositions'),
+		>(handleUnstakesResponse)(Endpoint.UNSTAKES),
 
-		[ApiMethod.TX_STATUS]: setupAPIResponse<
+		[Endpoint.TX_STATUS]: setupAPIResponse<
 			TransactionStatusEndpoint.Input,
 			TransactionStatusEndpoint.DecodedResponse
-		>(handleTransactionStatusResponse)('radix.statusOfTransaction'),
+		>(handleTransactionStatusResponse)(Endpoint.TX_STATUS),
 
-		[ApiMethod.NETWORK_TX_THROUGHPUT]: setupAPIResponse<
+		[Endpoint.NETWORK_TX_THROUGHPUT]: setupAPIResponse<
 			NetworkTransactionThroughputEndpoint.Input,
 			NetworkTransactionThroughputEndpoint.DecodedResponse
-		>(handleNetworkTxThroughputResponse)(
-			'radix.networkTransactionThroughput',
-		),
+		>(handleNetworkTxThroughputResponse)(Endpoint.NETWORK_TX_THROUGHPUT),
 
-		[ApiMethod.NETWORK_TX_DEMAND]: setupAPIResponse<
+		[Endpoint.NETWORK_TX_DEMAND]: setupAPIResponse<
 			NetworkTransactionDemandEndpoint.Input,
 			NetworkTransactionDemandEndpoint.DecodedResponse
-		>(handleNetworkTxDemandResponse)('radix.networkTransactionDemand'),
+		>(handleNetworkTxDemandResponse)(Endpoint.NETWORK_TX_DEMAND),
 
-		[ApiMethod.BUILD_TX_FROM_INTENT]: setupAPIResponse<
+		[Endpoint.BUILD_TX_FROM_INTENT]: setupAPIResponse<
 			BuildTransactionEndpoint.Input,
 			BuildTransactionEndpoint.DecodedResponse
-		>(handleBuildTransactionResponse)('radix.buildTransaction'),
+		>(handleBuildTransactionResponse)(Endpoint.BUILD_TX_FROM_INTENT),
 
-		[ApiMethod.FINALIZE_TX]: setupAPIResponse<
+		[Endpoint.FINALIZE_TX]: setupAPIResponse<
 			FinalizeTransactionEndpoint.Input,
 			FinalizeTransactionEndpoint.DecodedResponse
-		>(handleFinalizeTransactionResponse)('radix.finalizeTransaction'),
+		>(handleFinalizeTransactionResponse)(Endpoint.FINALIZE_TX),
 
-		[ApiMethod.SUBMIT_TX]: setupAPIResponse<
+		[Endpoint.SUBMIT_TX]: setupAPIResponse<
 			SubmitTransactionEndpoint.Input,
 			SubmitTransactionEndpoint.DecodedResponse
-		>(handleSubmitTransactionResponse)('radix.submitTransaction'),
+		>(handleSubmitTransactionResponse)(Endpoint.SUBMIT_TX),
 	}
 }

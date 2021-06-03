@@ -37,7 +37,7 @@
     "@radixdlt/crypto": "^1.0.36",
     "@radixdlt/data-formats": "^1.0.25",
     "@radixdlt/networking": "^1.0.30",
-    "@radixdlt/open-rpc-spec": "^1.0.1",
+    "@radixdlt/open-rpc-spec": "/home/aleworm/open-rpc-spec",
     "@radixdlt/primitives": "^1.0.29",
     "@radixdlt/util": "^1.0.25",
     "jest": "^26.6.3",
