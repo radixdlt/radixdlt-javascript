@@ -101,8 +101,42 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 				}),
 			)
 			.pipe(
-				mergeMap(buf =>
-					toObservableFromResult(Signature.fromRSBuffer(buf)),
+				mergeMap(
+					(buf: Buffer): Observable<SignatureT> => {
+						// Response `buf`: pub_key_len (1) || pub_key (var) || chain_code_len (1) || chain_code (var)
+						const readNextBuffer = readBuffer(buf)
+
+						const signatureDERlengthResult = readNextBuffer(1)
+						if (signatureDERlengthResult.isErr()) {
+							const errMsg = `Failed to parse length of signature from response buffer: ${msgFromError(
+								signatureDERlengthResult.error,
+							)}`
+							log.error(errMsg)
+							return throwError(new Error(errMsg))
+						}
+						const signatureDERlength = signatureDERlengthResult.value.readUIntBE(
+							0,
+							1,
+						)
+						const signatureDERBytesResult = readNextBuffer(
+							signatureDERlength,
+						)
+
+						if (signatureDERBytesResult.isErr()) {
+							const errMsg = `Failed to parse Signature DER bytes from response buffer: ${msgFromError(
+								signatureDERBytesResult.error,
+							)}`
+							log.error(errMsg)
+							return throwError(new Error(errMsg))
+						}
+						const signatureDERBytes = signatureDERBytesResult.value
+
+						// We ignore remaining bytes, being: `Signature.V (1)`
+
+						return toObservableFromResult(
+							Signature.fromDER(signatureDERBytes),
+						)
+					},
 				),
 			)
 

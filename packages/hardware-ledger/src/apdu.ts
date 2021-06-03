@@ -43,7 +43,9 @@ const hdPathComponentsToBuffer = (hdPath: HDPathRadixT): Buffer => {
 const hdPathToBuffer = (hdPath: HDPathRadixT): Buffer => {
 	const bipPathsData = hdPathComponentsToBuffer(hdPath)
 	const bipPathsLength = hdPath.pathComponents.length
-	console.log(`👻 bipPathsLength: ${bipPathsLength} of path: ${hdPath.toString()}`)
+	console.log(
+		`👻 bipPathsLength: ${bipPathsLength} of path: ${hdPath.toString()}`,
+	)
 	const bipPathsLengthAsSingleByte = Buffer.alloc(1)
 	bipPathsLengthAsSingleByte.writeUInt8(bipPathsLength)
 	return Buffer.concat([bipPathsLengthAsSingleByte, bipPathsData])
@@ -132,7 +134,12 @@ const doSignHash = (input: APDUDoSignHashInput): RadixAPDUT => {
 	const p1 = parameterValueForDisplayAddressOnLedger(input)
 
 	const pathData = hdPathToBuffer(input.path)
-	const data = Buffer.concat([pathData, input.hashToSign])
+	const hashLenBuf = Buffer.alloc(1)
+	const hashedMessageByteCount = input.hashToSign.length
+	hashLenBuf.writeUInt8(hashedMessageByteCount)
+	const hashData = Buffer.concat([hashLenBuf, input.hashToSign])
+
+	const data = Buffer.concat([pathData, hashData])
 
 	return makeAPDU({
 		ins: LedgerInstruction.DO_SIGN_HASH,
