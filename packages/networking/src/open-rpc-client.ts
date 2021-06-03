@@ -6,19 +6,28 @@ import {
 import { Transport, Client } from './_types'
 import { isArray, log } from '@radixdlt/util'
 import { validate } from 'open-rpc-utils'
+import { v4 as uuid } from 'uuid'
 const spec = require('@radixdlt/open-rpc-spec')
 
 const validateMethod = validate.bind(null, spec)
 
-export const RPCClient: Client = (url: URL): Transport => {
-	const transport = new HTTPTransport(url.toString())
-	const requestManager = new RequestManager([transport])
-	const client = new OpenRPCClient(requestManager)
+const headers = ['X-Radixdlt-Method', 'X-Radixdlt-Correlation-Id']
 
+export const RPCClient: Client = (url: URL): Transport => {
 	const call = async (
 		endpoint: string,
 		params: unknown[] | Record<string, unknown>,
 	): Promise<unknown> => {
+		const transport = new HTTPTransport(url.toString(), {
+			headers: {
+				[headers[0]]: endpoint,
+				[headers[1]]: uuid()
+			}
+		})
+		
+		const requestManager = new RequestManager([transport])
+		const client = new OpenRPCClient(requestManager)
+
 		const filteredParams = isArray(params)
 			? params.filter(item => !!item)
 			: params
@@ -28,7 +37,7 @@ export const RPCClient: Client = (url: URL): Transport => {
 				filteredParams,
 				null,
 				2,
-			)}`,
+			)}`
 		)
 
 		const result = await validateMethod(endpoint, filteredParams)
