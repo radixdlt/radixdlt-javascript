@@ -483,8 +483,8 @@ const create = (
 
 		const pendingTXSubject = new Subject<PendingTransaction>()
 
-		const askUserToConfirmSubject = new ReplaySubject<BuiltTransaction>()
-		const userDidConfirmTransactionSubject = new ReplaySubject<0>()
+		const askUserToConfirmSubject = new Subject<BuiltTransaction>()
+		const userDidConfirmTransactionSubject = new Subject<0>()
 
 		if (shouldConfirmTransactionAutomatically(options.userConfirmation)) {
 			txLog.debug(
