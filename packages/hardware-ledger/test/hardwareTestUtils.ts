@@ -146,6 +146,28 @@ export const testDoKeyExchange = (
 		),
 	)._unsafeUnwrap()
 
+	const displayBIPAndPubKeyOtherParty =
+		input?.displayBIPAndPubKeyOtherParty ?? false
+
+	if (displayBIPAndPubKeyOtherParty) {
+		console.log(
+			`🔮 publicKeyOfOtherParty: ${publicKeyOfOtherParty.toString(
+				false,
+			)}`,
+		)
+
+		const accountAddressOfOtherParty = AccountAddress.fromPublicKeyAndNetwork(
+			{
+				publicKey: publicKeyOfOtherParty,
+				network: NetworkT.BETANET,
+			},
+		)
+
+		console.log(
+			`🔮 other party address: ${accountAddressOfOtherParty.toString()}`,
+		)
+	}
+
 	subs.add(
 		hardwareWallet
 			.doKeyExchange({
@@ -154,7 +176,7 @@ export const testDoKeyExchange = (
 					`m/44'/536'/2'/1/3`,
 				)._unsafeUnwrap(),
 				publicKeyOfOtherParty,
-				displayBIPAndPubKeyOtherParty: input?.displayBIPAndPubKeyOtherParty ?? false,
+				displayBIPAndPubKeyOtherParty,
 			})
 			.subscribe(
 				(ecPointOnCurve: ECPointOnCurveT) => {
