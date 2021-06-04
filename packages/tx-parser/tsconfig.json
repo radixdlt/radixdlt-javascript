@@ -9,6 +9,7 @@
   ],
   "references": [
     {"path": "../util"},
-    {"path": "../primitives"}
+    {"path": "../primitives"},
+    {"path": "../account"},
   ]
 }
