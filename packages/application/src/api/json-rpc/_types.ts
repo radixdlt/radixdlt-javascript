@@ -21,28 +21,24 @@ import {
 	RawValidatorResponse,
 } from '../../dto'
 
-type API_PREFIX = 'radix'
-
 export enum ApiMethod {
-	NETWORK_ID = 'networkId',
-	TOKEN_BALANCES = 'tokenBalances',
-	TRANSACTION_HISTORY = 'transactionHistory',
-	STAKES = 'stakePositions',
-	UNSTAKES = 'unstakePositions',
-	TX_STATUS = 'statusOfTransaction',
-	NETWORK_TX_THROUGHPUT = 'networkTransactionThroughput',
-	NETWORK_TX_DEMAND = 'networkTransactionDemand',
-	VALIDATORS = 'validators',
-	LOOKUP_TX = 'lookupTransaction',
-	LOOKUP_VALIDATOR = 'lookupValidator',
-	NATIVE_TOKEN = 'nativeToken',
-	TOKEN_INFO = 'tokenInfo',
-	BUILD_TX_FROM_INTENT = 'buildTransaction',
-	SUBMIT_TX = 'submitTransaction',
-	FINALIZE_TX = 'finalizeTransaction',
+	NETWORK_ID = 'network.get_id',
+	TOKEN_BALANCES = 'account.get_balances',
+	TRANSACTION_HISTORY = 'account.get_transaction_history',
+	STAKES = 'account.get_stake_positions',
+	UNSTAKES = 'account.get_unstake_positions',
+	TX_STATUS = 'transactions.get_transaction_status',
+	NETWORK_TX_THROUGHPUT = 'network.get_throughput',
+	NETWORK_TX_DEMAND = 'network.get_demand',
+	VALIDATORS = 'validators.get_next_epoch_set',
+	LOOKUP_TX = 'transactions.lookup_transaction',
+	LOOKUP_VALIDATOR = 'validators.lookup_validator',
+	NATIVE_TOKEN = 'tokens.get_native_token',
+	TOKEN_INFO = 'tokens.get_info',
+	BUILD_TX_FROM_INTENT = 'construction.build_transaction',
+	SUBMIT_TX = 'construction.submit_transaction',
+	FINALIZE_TX = 'construction.finalize_transaction',
 }
-
-export type Endpoint = `${API_PREFIX}.${typeof ApiMethod[keyof typeof ApiMethod]}`
 
 export namespace NetworkIdEndpoint {
 	export type Input = Record<string, never>

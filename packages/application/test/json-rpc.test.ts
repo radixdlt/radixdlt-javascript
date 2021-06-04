@@ -27,6 +27,7 @@ import {
 	TransactionStatusEndpoint,
 	UnstakePositionsEndpoint,
 	ValidatorsEndpoint,
+	ApiMethod,
 } from '../src'
 import { Amount, NetworkT } from '@radixdlt/primitives'
 
@@ -123,56 +124,55 @@ const tokenInfoFromResponse = (response: RawToken): Token => ({
 const methodParams = {
 	[rpcSpec.methods[0].name]: {},
 
-	[rpcSpec.methods[1].name]: {},
-
-	[rpcSpec.methods[2].name]: {
+	[rpcSpec.methods[1].name]: {
 		rri: 'xrd_rb1qya85pwq',
 	},
 
-	[rpcSpec.methods[3].name]: {
+	[rpcSpec.methods[2].name]: {
 		address:
 			'brx1qspqljn9rg7x97s3rcvyzal2uxr5q22d9xn8nc4rpq8vq08kg4ch8yqhs9dq6',
 	},
 
-	[rpcSpec.methods[4].name]: {
+	[rpcSpec.methods[3].name]: {
 		address:
 			'brx1qspqljn9rg7x97s3rcvyzal2uxr5q22d9xn8nc4rpq8vq08kg4ch8yqhs9dq6',
 		size: 1,
 		cursor: 'xyz',
 	},
 
+	[rpcSpec.methods[4].name]: {
+		address:
+			'brx1qspqljn9rg7x97s3rcvyzal2uxr5q22d9xn8nc4rpq8vq08kg4ch8yqhs9dq6',
+	},
+
 	[rpcSpec.methods[5].name]: {
-		txID:
-			'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+		address:
+			'brx1qspqljn9rg7x97s3rcvyzal2uxr5q22d9xn8nc4rpq8vq08kg4ch8yqhs9dq6',
 	},
 
 	[rpcSpec.methods[6].name]: {
-		address:
-			'brx1qspqljn9rg7x97s3rcvyzal2uxr5q22d9xn8nc4rpq8vq08kg4ch8yqhs9dq6',
-	},
-
-	[rpcSpec.methods[7].name]: {
-		address:
-			'brx1qspqljn9rg7x97s3rcvyzal2uxr5q22d9xn8nc4rpq8vq08kg4ch8yqhs9dq6',
-	},
-
-	[rpcSpec.methods[8].name]: {
 		txID:
 			'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
 	},
 
-	[rpcSpec.methods[9].name]: {},
-	[rpcSpec.methods[10].name]: {},
-
-	[rpcSpec.methods[11].name]: {
-		size: 1,
-		cursor: 1,
+	[rpcSpec.methods[7].name]: {
+		txID:
+			'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
 	},
 
-	[rpcSpec.methods[12].name]: {
+	[rpcSpec.methods[8].name]: {
+		size: 1,
+		cursor: 'xyz',
+	},
+
+	[rpcSpec.methods[9].name]: {
 		validatorAddress:
 			'vb1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq9u3702',
 	},
+
+	[rpcSpec.methods[10].name]: {},
+	[rpcSpec.methods[11].name]: {},
+	[rpcSpec.methods[12].name]: {},
 
 	[rpcSpec.methods[13].name]: {
 		actions: [
@@ -210,20 +210,14 @@ const methodParams = {
 
 const expectedDecodedResponses = {
 	[rpcSpec.methods[0].name]: (
-		response: NetworkIdEndpoint.Response,
-	): NetworkIdEndpoint.DecodedResponse => ({
-		networkId: NetworkT.BETANET,
-	}),
-
-	[rpcSpec.methods[1].name]: (
 		response: NativeTokenEndpoint.Response,
 	): NativeTokenEndpoint.DecodedResponse => tokenInfoFromResponse(response),
 
-	[rpcSpec.methods[2].name]: (
+	[rpcSpec.methods[1].name]: (
 		response: TokenInfoEndpoint.Response,
 	): TokenInfoEndpoint.DecodedResponse => tokenInfoFromResponse(response),
 
-	[rpcSpec.methods[3].name]: (
+	[rpcSpec.methods[2].name]: (
 		response: TokenBalancesEndpoint.Response,
 	): TokenBalancesEndpoint.DecodedResponse => ({
 		owner: AccountAddress.fromUnsafe(response.owner)._unsafeUnwrap(),
@@ -239,7 +233,7 @@ const expectedDecodedResponses = {
 		],
 	}),
 
-	[rpcSpec.methods[4].name]: (
+	[rpcSpec.methods[3].name]: (
 		response: TransactionHistoryEndpoint.Response,
 	): TransactionHistoryEndpoint.DecodedResponse => {
 		const txID = TransactionIdentifier.create(
@@ -264,7 +258,37 @@ const expectedDecodedResponses = {
 		}
 	},
 
+	[rpcSpec.methods[4].name]: (
+		response: StakePositionsEndpoint.Response,
+	): StakePositionsEndpoint.DecodedResponse => [
+		{
+			validator: ValidatorAddress.fromUnsafe(
+				response[0].validator,
+			)._unsafeUnwrap({ withStackTrace: true }),
+			amount: Amount.fromUnsafe(response[0].amount)._unsafeUnwrap({
+				withStackTrace: true,
+			}),
+		},
+	],
+
 	[rpcSpec.methods[5].name]: (
+		response: UnstakePositionsEndpoint.Response,
+	): UnstakePositionsEndpoint.DecodedResponse => [
+		{
+			amount: Amount.fromUnsafe(response[0].amount)._unsafeUnwrap({
+				withStackTrace: true,
+			}),
+			validator: ValidatorAddress.fromUnsafe(
+				response[0].validator,
+			)._unsafeUnwrap({ withStackTrace: true }),
+			epochsUntil: response[0].epochsUntil,
+			withdrawTxID: TransactionIdentifier.create(
+				response[0].withdrawTxID,
+			)._unsafeUnwrap({ withStackTrace: true }),
+		},
+	],
+
+	[rpcSpec.methods[6].name]: (
 		response: LookupTransactionEndpoint.Response,
 	): LookupTransactionEndpoint.DecodedResponse => {
 		const txID = TransactionIdentifier.create(response.txID)._unsafeUnwrap({
@@ -284,37 +308,7 @@ const expectedDecodedResponses = {
 		}
 	},
 
-	[rpcSpec.methods[6].name]: (
-		response: StakePositionsEndpoint.Response,
-	): StakePositionsEndpoint.DecodedResponse => [
-		{
-			validator: ValidatorAddress.fromUnsafe(
-				response[0].validator,
-			)._unsafeUnwrap({ withStackTrace: true }),
-			amount: Amount.fromUnsafe(response[0].amount)._unsafeUnwrap({
-				withStackTrace: true,
-			}),
-		},
-	],
-
 	[rpcSpec.methods[7].name]: (
-		response: UnstakePositionsEndpoint.Response,
-	): UnstakePositionsEndpoint.DecodedResponse => [
-		{
-			amount: Amount.fromUnsafe(response[0].amount)._unsafeUnwrap({
-				withStackTrace: true,
-			}),
-			validator: ValidatorAddress.fromUnsafe(
-				response[0].validator,
-			)._unsafeUnwrap({ withStackTrace: true }),
-			epochsUntil: response[0].epochsUntil,
-			withdrawTxID: TransactionIdentifier.create(
-				response[0].withdrawTxID,
-			)._unsafeUnwrap({ withStackTrace: true }),
-		},
-	],
-
-	[rpcSpec.methods[8].name]: (
 		response: TransactionStatusEndpoint.Response,
 	): TransactionStatusEndpoint.DecodedResponse => ({
 		txID: TransactionIdentifier.create(response.txID)._unsafeUnwrap({
@@ -323,19 +317,7 @@ const expectedDecodedResponses = {
 		status: response.status,
 	}),
 
-	[rpcSpec.methods[9].name]: (
-		response: NetworkTransactionThroughputEndpoint.Response,
-	): NetworkTransactionThroughputEndpoint.DecodedResponse => ({
-		tps: response.tps,
-	}),
-
-	[rpcSpec.methods[10].name]: (
-		response: NetworkTransactionDemandEndpoint.Response,
-	): NetworkTransactionDemandEndpoint.DecodedResponse => ({
-		tps: response.tps,
-	}),
-
-	[rpcSpec.methods[11].name]: (
+	[rpcSpec.methods[8].name]: (
 		response: ValidatorsEndpoint.Response,
 	): ValidatorsEndpoint.DecodedResponse => ({
 		cursor: response.cursor,
@@ -361,7 +343,7 @@ const expectedDecodedResponses = {
 		],
 	}),
 
-	[rpcSpec.methods[12].name]: (
+	[rpcSpec.methods[9].name]: (
 		response: LookupValidatorEndpoint.Response,
 	): LookupValidatorEndpoint.DecodedResponse => ({
 		address: ValidatorAddress.fromUnsafe(response.address)._unsafeUnwrap({
@@ -381,6 +363,24 @@ const expectedDecodedResponses = {
 			response.ownerDelegation,
 		)._unsafeUnwrap({ withStackTrace: true }),
 		isExternalStakeAccepted: response.isExternalStakeAccepted,
+	}),
+
+	[rpcSpec.methods[10].name]: (
+		response: NetworkIdEndpoint.Response,
+	): NetworkIdEndpoint.DecodedResponse => ({
+		networkId: NetworkT.BETANET,
+	}),
+
+	[rpcSpec.methods[11].name]: (
+		response: NetworkTransactionThroughputEndpoint.Response,
+	): NetworkTransactionThroughputEndpoint.DecodedResponse => ({
+		tps: response.tps,
+	}),
+
+	[rpcSpec.methods[12].name]: (
+		response: NetworkTransactionDemandEndpoint.Response,
+	): NetworkTransactionDemandEndpoint.DecodedResponse => ({
+		tps: response.tps,
 	}),
 
 	[rpcSpec.methods[13].name]: (
@@ -425,9 +425,14 @@ const testRpcMethod = (method: MethodObject, index: number) => {
 		const expected = expectedDecodedResponses[method.name](mockedResult)
 
 		// @ts-ignore
-		const result = await client[method.name.split('.')[1]](
+		const result = await client[method.name](
+			// @ts-ignore
 			methodParams[method.name],
 		)
+
+		if (result.isErr()) {
+			throw result.error
+		}
 
 		const response = result._unsafeUnwrap({
 			withStackTrace: true,
@@ -462,5 +467,9 @@ const testRpcMethod = (method: MethodObject, index: number) => {
 }
 
 describe('json-rpc spec', () => {
-	rpcSpec.methods.forEach((method, i) => testRpcMethod(method, i))
+	rpcSpec.methods
+		.filter(method =>
+			Object.values(ApiMethod).includes(method.name as ApiMethod),
+		)
+		.forEach((method, i) => testRpcMethod(method, i))
 })
