@@ -1615,6 +1615,11 @@
     node-ipc "^9.1.1"
     ws "^7.3.1"
 
+"@radixdlt/open-rpc-spec@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@radixdlt/open-rpc-spec/-/open-rpc-spec-1.0.1.tgz#607e569476a8ff07b0fbc9deb7ba25d1222f835e"
+  integrity sha512-rc9sMR4gbVqUL4ol+Uv/EjAWirgWJATIDhULy0CHdHiSzKijcPJJmzpPkofox1nQFobSpuJQTVgLPlRqA+Symw==
+
 "@radixdlt/open-rpc-spec@file:../open-rpc-spec":
   version "1.0.2"
 
