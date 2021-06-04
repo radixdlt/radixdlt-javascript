@@ -7,12 +7,15 @@
   "include": [
   ],
   "references": [
-    { "path": "packages/application" },
-    { "path": "packages/hardware-wallet" },
-    { "path": "packages/networking" },
-    { "path": "packages/crypto" },
-    { "path": "packages/primitives" },
     { "path": "packages/util" },
+    { "path": "packages/primitives" },
+    { "path": "packages/crypto" },
     { "path": "packages/data-formats" },
+    { "path": "packages/hardware-wallet" },
+    { "path": "packages/account" },
+    { "path": "packages/networking" },
+    { "path": "packages/application" },
+    { "path": "packages/hardware-ledger" },
+    { "path": "packages/tx-parser" }
   ]
 }
