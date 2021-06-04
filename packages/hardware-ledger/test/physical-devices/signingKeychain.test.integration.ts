@@ -8,10 +8,10 @@ import { log } from '@radixdlt/util'
 import { Observable, Subscription } from 'rxjs'
 import { SigningKeychain, SigningKeychainT } from '@radixdlt/account'
 import { Mnemonic } from '@radixdlt/crypto'
-import { DeriveHWSigningKeyInput } from '@radixdlt/account/dist/_types'
+import { DeriveHWSigningKeyInput } from '@radixdlt/account'
 import { HardwareWalletT } from '@radixdlt/hardware-wallet'
-import { HWSigningKeyDerivation } from '@radixdlt/account/src/_types'
-import { HardwareWalletLedger } from '../../dist'
+import { HWSigningKeyDerivation } from '@radixdlt/account'
+import { HardwareWalletLedger } from '../../src'
 
 describe('signingKeychain_hw_ledger', () => {
 	beforeAll(() => {

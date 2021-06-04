@@ -43,9 +43,6 @@ const hdPathComponentsToBuffer = (hdPath: HDPathRadixT): Buffer => {
 const hdPathToBuffer = (hdPath: HDPathRadixT): Buffer => {
 	const bipPathsData = hdPathComponentsToBuffer(hdPath)
 	const bipPathsLength = hdPath.pathComponents.length
-	console.log(
-		`👻 bipPathsLength: ${bipPathsLength} of path: ${hdPath.toString()}`,
-	)
 	const bipPathsLengthAsSingleByte = Buffer.alloc(1)
 	bipPathsLengthAsSingleByte.writeUInt8(bipPathsLength)
 	return Buffer.concat([bipPathsLengthAsSingleByte, bipPathsData])

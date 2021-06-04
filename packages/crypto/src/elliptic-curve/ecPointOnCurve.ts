@@ -35,6 +35,7 @@ const ecPointOnCurveFromCoordinates = (
 		shortPoint?: curve.short.ShortPoint
 	}>,
 ): ECPointOnCurveT => {
+	const { x, y } = input
 	const shortPoint = input.shortPoint ?? pointFromCoordinates(input)
 
 	const multiplyByScalar = (by: UInt256): ECPointOnCurveT => {
@@ -52,23 +53,25 @@ const ecPointOnCurveFromCoordinates = (
 		return factorPoint.value
 	}
 
-	const toBuffer = (): Buffer =>
-		Buffer.from(
-			[input.x, input.y]
-				.map(s => s.toString(16))
-				.reduce((acc, cur) => acc + cur),
-			'hex',
-		)
+	const u256ToBuf = (n: UInt256): Buffer => Buffer.from(n.toString(16), 'hex')
 
-	const toString = (): string => toBuffer().toString('hex')
+	const toBuffer = (includePrefixByte?: boolean): Buffer =>
+		Buffer.concat([
+			includePrefixByte ? Buffer.from([0x04]) : Buffer.alloc(0),
+			u256ToBuf(x),
+			u256ToBuf(y),
+		])
+
+	const toString = (includePrefixByte?: boolean): string =>
+		toBuffer(includePrefixByte).toString('hex')
 
 	return {
-		x: input.x,
-		y: input.y,
+		x,
+		y,
 		toBuffer,
 		toString,
 		equals: (other: ECPointOnCurveT): boolean =>
-			other.x.eq(input.x) && other.y.eq(input.y),
+			other.x.eq(x) && other.y.eq(y),
 		add: (other: ECPointOnCurveT): ECPointOnCurveT => {
 			const sumShortPoint = shortPoint.add(
 				pointFromOther(other),

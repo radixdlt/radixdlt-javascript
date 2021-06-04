@@ -81,7 +81,7 @@ const emulate = (
 			passphrase,
 		}).masterNode(),
 		hardcodedVersion:
-			input.version ?? SemVer.fromString('0.0.1')._unsafeUnwrap(),
+			input.version ?? SemVer.fromString('0.2.3')._unsafeUnwrap(),
 	})
 
 	const ledgerNano = __create({
@@ -181,7 +181,6 @@ const fromTransport = (
 					} else {
 						const ledgerResponseCodesFromError: string | undefined =
 							LedgerResponseCodes[error.statusCode]
-
 
 						const underlyingError =
 							ledgerResponseCodesFromError ?? msgFromError(error)

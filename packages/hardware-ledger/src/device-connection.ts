@@ -117,7 +117,9 @@ const __openConnection = async (
 				log.debug(`🔮 response without code: ${responseString}`)
 				const debugResponseEmoji =
 					responseString === 'Radix' ? `✅` : '❌'
-				log.debug(`📲 ${debugResponseEmoji} App '${responseString}' is open.`)
+				log.debug(
+					`📲 ${debugResponseEmoji} App '${responseString}' is open.`,
+				)
 				return Promise.resolve(basicLedgerTransport)
 			})
 			.catch(_ =>

@@ -3,7 +3,6 @@ import {
 	ECPointOnCurve,
 	ECPointOnCurveT,
 	HDPathRadixT,
-	MESSAGE_TYPE_BYTES,
 	PublicKey,
 	PublicKeyT,
 	Signature,
@@ -30,8 +29,7 @@ import {
 import { RadixAPDU } from './apdu'
 import { LedgerNanoT } from './_types'
 import { LedgerNano } from './ledgerNano'
-import { err } from 'neverthrow'
-import { log } from '@radixdlt/util/dist/logging'
+import { log } from '@radixdlt/util'
 
 const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 	const getPublicKey = (input: GetPublicKeyInput): Observable<PublicKeyT> =>
@@ -172,8 +170,6 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 							1,
 						)
 
-						console.log(`👻 Length of shared key point: ${sharedKeyPointLength}`)
-
 						const sharedKeyPointBytesResult = readNextBuffer(
 							sharedKeyPointLength,
 						)
@@ -187,9 +183,6 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 						}
 						const sharedKeyPointBytes =
 							sharedKeyPointBytesResult.value
-
-						console.log(`👻 Length of shared key bytes: ${sharedKeyPointBytes.toString('hex')}`)
-
 
 						return toObservableFromResult(
 							ECPointOnCurve.fromBuffer(sharedKeyPointBytes),
