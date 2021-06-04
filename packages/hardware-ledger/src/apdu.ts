@@ -156,6 +156,54 @@ const doSignHash = (input: APDUDoSignHashInput): RadixAPDUT => {
 	})
 }
 
+type APDUDoSignTransactionInput = WithPath &
+	Readonly<{
+		numberOfActions: number
+		txByteCount: number
+	}>
+
+type APDUDoSignTransactionStreamInput = Readonly<{
+	bytesToStreamToLedgerDevice: Buffer
+	actionIndex: number
+}>
+
+enum SignTxAPDUType {
+	INITIAL_SETUP_PACKAGE = 1,
+	STREAM_TX = 2,
+}
+
+const signTxInitialSetupPackage = (
+	input: APDUDoSignTransactionInput,
+): RadixAPDUT => {
+	const p1 = SignTxAPDUType.INITIAL_SETUP_PACKAGE.valueOf()
+	const p2 = input.numberOfActions
+
+	const pathData = hdPathToBuffer(input.path)
+	const sizeOfTXAsData = Buffer.alloc(2)
+	sizeOfTXAsData.writeUInt16BE(input.txByteCount)
+	const data = Buffer.concat([pathData, sizeOfTXAsData])
+
+	return makeAPDU({
+		ins: LedgerInstruction.DO_SIGN_TX,
+		p1,
+		p2,
+		data,
+	})
+}
+
+const signTxStream = (input: APDUDoSignTransactionStreamInput): RadixAPDUT => {
+	const p1 = SignTxAPDUType.STREAM_TX.valueOf()
+	const p2 = input.actionIndex
+	return makeAPDU({
+		ins: LedgerInstruction.DO_SIGN_TX,
+		p1,
+		p2,
+		data: input.bytesToStreamToLedgerDevice,
+	})
+}
+
+
+
 const getAppName = (): RadixAPDUT =>
 	makeAPDU({
 		ins: LedgerInstruction.GET_APP_NAME,
@@ -166,4 +214,9 @@ export const RadixAPDU = {
 	getPublicKey,
 	doKeyExchange,
 	doSignHash,
+	signTX: {
+		initialSetup: signTxInitialSetupPackage,
+		stream: signTxStream,
+	},
+
 }

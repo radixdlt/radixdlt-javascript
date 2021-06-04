@@ -5,7 +5,7 @@ import {
 	PublicKeyT,
 	SignatureT,
 } from '@radixdlt/crypto'
-import { NetworkT } from '@radixdlt/primitives'
+import { BuiltTransactionReadyToSign, NetworkT } from '@radixdlt/primitives'
 
 // Semantic versioning, e.g. 1.0.5
 export type SemVerT = Readonly<{
@@ -28,6 +28,11 @@ export type GetPublicKeyInput = AtPath &
 	Readonly<{
 		displayAddress?: boolean
 		// verifyAddressOnDeviceForNetwork?: NetworkT
+	}>
+
+export type SignTransactionInput = AtPath &
+	Readonly<{
+		tx: BuiltTransactionReadyToSign
 	}>
 
 export type SignHashInput = GetPublicKeyInput &
@@ -53,6 +58,7 @@ export type HardwareWalletT = Readonly<{
 	getVersion: () => Observable<SemVerT>
 	getPublicKey: (input: GetPublicKeyInput) => Observable<PublicKeyT>
 	doSignHash: (input: SignHashInput) => Observable<SignatureT>
+	doSignTransaction: (input: SignTransactionInput) => Observable<SignatureT>
 	doKeyExchange: (input: KeyExchangeInput) => Observable<ECPointOnCurveT>
 
 	makeSigningKey: (path: HDPathRadixT) => Observable<HardwareSigningKeyT>

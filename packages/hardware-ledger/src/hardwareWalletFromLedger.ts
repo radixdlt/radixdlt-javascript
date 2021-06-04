@@ -1,4 +1,4 @@
-import { from, Observable, throwError } from 'rxjs'
+import { from, Observable, Subject, Subscription, throwError } from 'rxjs'
 import {
 	ECPointOnCurve,
 	ECPointOnCurveT,
@@ -8,7 +8,7 @@ import {
 	Signature,
 	SignatureT,
 } from '@radixdlt/crypto'
-import { map, mergeMap } from 'rxjs/operators'
+import { map, mergeMap, take, tap } from 'rxjs/operators'
 import {
 	msgFromError,
 	readBuffer,
@@ -25,11 +25,25 @@ import {
 	SignHashInput,
 	SemVer,
 	signingKeyWithHardWareWallet,
+	SignTransactionInput,
 } from '@radixdlt/hardware-wallet'
 import { RadixAPDU } from './apdu'
 import { LedgerNanoT } from './_types'
 import { LedgerNano } from './ledgerNano'
 import { log } from '@radixdlt/util'
+import { BuiltTransactionReadyToSign } from '@radixdlt/primitives'
+
+type ParsedTXAction = Readonly<{
+	indexInTx: number
+	bytes: Buffer
+}>
+const parseActions = (tx: BuiltTransactionReadyToSign): ParsedTXAction[] =>
+	// TODO replaced mocked data
+	[]
+
+const TXParser = {
+	parseActions,
+}
 
 const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 	const getPublicKey = (input: GetPublicKeyInput): Observable<PublicKeyT> =>
@@ -191,11 +205,150 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 				),
 			)
 
+	const doSignTransaction = (
+		input: SignTransactionInput,
+	): Observable<SignatureT> => {
+		const { tx } = input
+		const txBytes = Buffer.from(tx.blob, 'hex')
+		const subs = new Subscription()
+
+		const actions = TXParser.parseActions(tx)
+		const numberOfActions = actions.length
+
+		const streamSubject = new Subject<void>()
+		const signatureBytesSubject = new Subject<Buffer>()
+		const signatureSubject = new Subject<SignatureT>()
+
+		const txByteCount = tx.blob.length
+		let actionsSent = 0
+		let txBytesThatHasBeenExchanged = 0
+		const maxBytesPerExchange = 255
+		const txBytesLeftToStream = (): number =>
+			Math.min(
+				maxBytesPerExchange,
+				txByteCount - txBytesThatHasBeenExchanged,
+			)
+
+		const continueStream = (): void => {
+			streamSubject.next(undefined)
+		}
+		const startStreamingTXBytes = (): void => {
+			continueStream()
+		}
+
+		const bufferFromNextActionInTxToStream = (): ParsedTXAction => {
+			const txActionToStream = actions[actionsSent]
+			log.debug(
+				`🌊 streaming action 📦${actionsSent} #${txActionToStream.bytes.length} tx bytes, #${txBytesThatHasBeenExchanged}/#${txByteCount}.`,
+			)
+			return txActionToStream
+		}
+
+		const finishedStreamingWholeTx = (): boolean => {
+			if (txBytesThatHasBeenExchanged < txByteCount) {
+				return false
+			}
+			if (txBytesThatHasBeenExchanged > txByteCount) {
+				const errMsg = `Incorrect implementation, streamed more bytes than the size of transaction, which should never be the case. I have an idea of what might be wrong, we are probably adding 2 too many bytes per slice, not having excluded the 2 bytes response CODE that was also returned from Ledger Device. We should subtract 2 bytes when we are increasing the value of 'txBytesThatHasBeenExchanged'.`
+				log.error(errMsg)
+				throw new Error(errMsg)
+			}
+			return true
+		}
+
+		subs.add(
+			ledgerNano
+				.sendAPDUToDevice(
+					RadixAPDU.signTX.initialSetup({
+						path: input.path ?? path000H,
+						txByteCount,
+						numberOfActions,
+					}),
+				)
+				.subscribe({
+					next: _irrelevantBuf => {
+						startStreamingTXBytes()
+					},
+					error: error => {
+						streamSubject.error(error)
+					},
+				}),
+		)
+
+		subs.add(
+			streamSubject
+				.pipe(
+					mergeMap(
+						(_ign): Observable<Buffer> => {
+							const nextActionToStream = bufferFromNextActionInTxToStream()
+							return ledgerNano
+								.sendAPDUToDevice(
+									RadixAPDU.signTX.stream({
+										bytesToStreamToLedgerDevice:
+											nextActionToStream.bytes,
+										actionIndex:
+											nextActionToStream.indexInTx,
+									}),
+								)
+								.pipe(
+									tap({
+										next: _ => {
+											txBytesThatHasBeenExchanged +=
+												nextActionToStream.bytes.length
+											actionsSent += 1
+										},
+									}),
+								)
+						},
+					),
+					tap({
+						next: (responseFromLedger: Buffer) => {
+							if (finishedStreamingWholeTx()) {
+								signatureBytesSubject.next(responseFromLedger)
+							} else {
+								continueStream()
+							}
+						},
+					}),
+				)
+				.subscribe({
+					error: (error: unknown) => {
+						const errMsg = `Failed to sign tx with Ledger, underlying error while streaming tx bytes: '${msgFromError(
+							error,
+						)}'`
+						log.error(errMsg)
+						signatureSubject.error(new Error(errMsg))
+					},
+				}),
+		)
+
+		subs.add(
+			signatureBytesSubject.subscribe({
+				next: (bytes: Buffer) => {
+					const signatureResult = Signature.fromRSBuffer(bytes)
+					if (!signatureResult.isOk()) {
+						const errMsg = `Failed to parse signature from response from Ledger, underlying error: '${msgFromError(
+							signatureResult.error,
+						)}'`
+						log.error(errMsg)
+						signatureSubject.error(new Error(errMsg))
+						return
+					}
+					const signature: SignatureT = signatureResult.value
+					signatureSubject.next(signature)
+				},
+			}),
+		)
+
+		return signatureSubject.asObservable().pipe(take(1))
+	}
+
 	const hwWithoutSK: HardwareWalletWithoutSK = {
 		getPublicKey,
 		getVersion,
 		doSignHash,
 		doKeyExchange,
+		doSignTransaction,
 	}
 
 	return {
