@@ -1620,9 +1620,6 @@
   resolved "https://registry.yarnpkg.com/@radixdlt/open-rpc-spec/-/open-rpc-spec-1.0.2.tgz#09d8f3d4861951822fd96367c271b4dccf3bd7e0"
   integrity sha512-37VV1qpQ9RLCKT00vMCMnYGfXPkkeWfsgrAGnz1fhH7Hupv5k6pFoyIcw3iRBvnD6XiUBABDgK/i4Eygzwpu2Q==
 
-"@radixdlt/open-rpc-spec@file:../open-rpc-spec":
-  version "1.0.2"
-
 "@radixdlt/uint256@^1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@radixdlt/uint256/-/uint256-1.1.0.tgz#e0d46b14b63c55b366a53692fb4cc38b37f0a475"
