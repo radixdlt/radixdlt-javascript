@@ -18,7 +18,7 @@ import {
 } from './responseHandlers'
 import { andThen, pipe } from 'ramda'
 import {
-	Endpoint,
+	ApiMethod,
 	BuildTransactionEndpoint,
 	SubmitTransactionEndpoint,
 	LookupTransactionEndpoint,
@@ -38,9 +38,9 @@ import {
 } from './_types'
 
 const callAPI = <Params extends Record<string, unknown>, DecodedResponse>(
-	endpoint: Endpoint,
+	endpoint: ApiMethod,
 ) => (
-	call: (endpoint: Endpoint, params: Params) => Promise<unknown>,
+	call: (endpoint: ApiMethod, params: Params) => Promise<unknown>,
 	handleResponse: (response: unknown) => Result<DecodedResponse, Error[]>,
 ) => (params: Params) =>
 	pipe(call, andThen(handleResponse), value =>
@@ -50,101 +50,101 @@ const callAPI = <Params extends Record<string, unknown>, DecodedResponse>(
 
 const setupAPICall = (
 	call: (
-		endpoint: Endpoint,
+		endpoint: ApiMethod,
 		params: Record<string, unknown>,
 	) => Promise<unknown>,
 ) => <I extends Record<string, unknown>, R>(
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	handleResponse: (response: any) => Result<R, Error[]>,
-) => (endpoint: Endpoint) => callAPI<I, R>(endpoint)(call, handleResponse)
+) => (endpoint: ApiMethod) => callAPI<I, R>(endpoint)(call, handleResponse)
 
 export const getAPI = (
 	call: (
-		endpoint: Endpoint,
+		endpoint: ApiMethod,
 		params: Record<string, unknown>,
 	) => Promise<unknown>,
 ) => {
 	const setupAPIResponse = setupAPICall(call)
 
 	return {
-		[Endpoint.NETWORK_ID]: setupAPIResponse<
+		[ApiMethod.NETWORK_ID]: setupAPIResponse<
 			NetworkIdEndpoint.Input,
 			NetworkIdEndpoint.DecodedResponse
-		>(handleNetworkIdResponse)(Endpoint.NETWORK_ID),
+		>(handleNetworkIdResponse)(ApiMethod.NETWORK_ID),
 
-		[Endpoint.TOKEN_BALANCES]: setupAPIResponse<
+		[ApiMethod.TOKEN_BALANCES]: setupAPIResponse<
 			TokenBalancesEndpoint.Input,
 			TokenBalancesEndpoint.DecodedResponse
-		>(handleTokenBalancesResponse)(Endpoint.TOKEN_BALANCES),
+		>(handleTokenBalancesResponse)(ApiMethod.TOKEN_BALANCES),
 
-		[Endpoint.VALIDATORS]: setupAPIResponse<
+		[ApiMethod.VALIDATORS]: setupAPIResponse<
 			ValidatorsEndpoint.Input,
 			ValidatorsEndpoint.DecodedResponse
-		>(handleValidatorsResponse)(Endpoint.VALIDATORS),
+		>(handleValidatorsResponse)(ApiMethod.VALIDATORS),
 
-		[Endpoint.LOOKUP_TX]: setupAPIResponse<
+		[ApiMethod.LOOKUP_TX]: setupAPIResponse<
 			LookupTransactionEndpoint.Input,
 			LookupTransactionEndpoint.DecodedResponse
-		>(handleLookupTXResponse)(Endpoint.LOOKUP_TX),
+		>(handleLookupTXResponse)(ApiMethod.LOOKUP_TX),
 
-		[Endpoint.LOOKUP_VALIDATOR]: setupAPIResponse<
+		[ApiMethod.LOOKUP_VALIDATOR]: setupAPIResponse<
 			LookupValidatorEndpoint.Input,
 			LookupValidatorEndpoint.DecodedResponse
-		>(handleLookupValidatorResponse)(Endpoint.LOOKUP_VALIDATOR),
+		>(handleLookupValidatorResponse)(ApiMethod.LOOKUP_VALIDATOR),
 
-		[Endpoint.TRANSACTION_HISTORY]: setupAPIResponse<
+		[ApiMethod.TRANSACTION_HISTORY]: setupAPIResponse<
 			TransactionHistoryEndpoint.Input,
 			TransactionHistoryEndpoint.DecodedResponse
-		>(handleTransactionHistoryResponse)(Endpoint.TRANSACTION_HISTORY),
+		>(handleTransactionHistoryResponse)(ApiMethod.TRANSACTION_HISTORY),
 
-		[Endpoint.NATIVE_TOKEN]: setupAPIResponse<
+		[ApiMethod.NATIVE_TOKEN]: setupAPIResponse<
 			NativeTokenEndpoint.Input,
 			NativeTokenEndpoint.DecodedResponse
-		>(handleTokenInfoResponse)(Endpoint.NATIVE_TOKEN),
+		>(handleTokenInfoResponse)(ApiMethod.NATIVE_TOKEN),
 
-		[Endpoint.TOKEN_INFO]: setupAPIResponse<
+		[ApiMethod.TOKEN_INFO]: setupAPIResponse<
 			TokenInfoEndpoint.Input,
 			TokenInfoEndpoint.DecodedResponse
-		>(handleTokenInfoResponse)(Endpoint.TOKEN_INFO),
+		>(handleTokenInfoResponse)(ApiMethod.TOKEN_INFO),
 
-		[Endpoint.STAKES]: setupAPIResponse<
+		[ApiMethod.STAKES]: setupAPIResponse<
 			StakePositionsEndpoint.Input,
 			StakePositionsEndpoint.DecodedResponse
-		>(handleStakesResponse)(Endpoint.STAKES),
+		>(handleStakesResponse)(ApiMethod.STAKES),
 
-		[Endpoint.UNSTAKES]: setupAPIResponse<
+		[ApiMethod.UNSTAKES]: setupAPIResponse<
 			UnstakePositionsEndpoint.Input,
 			UnstakePositionsEndpoint.DecodedResponse
-		>(handleUnstakesResponse)(Endpoint.UNSTAKES),
+		>(handleUnstakesResponse)(ApiMethod.UNSTAKES),
 
-		[Endpoint.TX_STATUS]: setupAPIResponse<
+		[ApiMethod.TX_STATUS]: setupAPIResponse<
 			TransactionStatusEndpoint.Input,
 			TransactionStatusEndpoint.DecodedResponse
-		>(handleTransactionStatusResponse)(Endpoint.TX_STATUS),
+		>(handleTransactionStatusResponse)(ApiMethod.TX_STATUS),
 
-		[Endpoint.NETWORK_TX_THROUGHPUT]: setupAPIResponse<
+		[ApiMethod.NETWORK_TX_THROUGHPUT]: setupAPIResponse<
 			NetworkTransactionThroughputEndpoint.Input,
 			NetworkTransactionThroughputEndpoint.DecodedResponse
-		>(handleNetworkTxThroughputResponse)(Endpoint.NETWORK_TX_THROUGHPUT),
+		>(handleNetworkTxThroughputResponse)(ApiMethod.NETWORK_TX_THROUGHPUT),
 
-		[Endpoint.NETWORK_TX_DEMAND]: setupAPIResponse<
+		[ApiMethod.NETWORK_TX_DEMAND]: setupAPIResponse<
 			NetworkTransactionDemandEndpoint.Input,
 			NetworkTransactionDemandEndpoint.DecodedResponse
-		>(handleNetworkTxDemandResponse)(Endpoint.NETWORK_TX_DEMAND),
+		>(handleNetworkTxDemandResponse)(ApiMethod.NETWORK_TX_DEMAND),
 
-		[Endpoint.BUILD_TX_FROM_INTENT]: setupAPIResponse<
+		[ApiMethod.BUILD_TX_FROM_INTENT]: setupAPIResponse<
 			BuildTransactionEndpoint.Input,
 			BuildTransactionEndpoint.DecodedResponse
-		>(handleBuildTransactionResponse)(Endpoint.BUILD_TX_FROM_INTENT),
+		>(handleBuildTransactionResponse)(ApiMethod.BUILD_TX_FROM_INTENT),
 
-		[Endpoint.FINALIZE_TX]: setupAPIResponse<
+		[ApiMethod.FINALIZE_TX]: setupAPIResponse<
 			FinalizeTransactionEndpoint.Input,
 			FinalizeTransactionEndpoint.DecodedResponse
-		>(handleFinalizeTransactionResponse)(Endpoint.FINALIZE_TX),
+		>(handleFinalizeTransactionResponse)(ApiMethod.FINALIZE_TX),
 
-		[Endpoint.SUBMIT_TX]: setupAPIResponse<
+		[ApiMethod.SUBMIT_TX]: setupAPIResponse<
 			SubmitTransactionEndpoint.Input,
 			SubmitTransactionEndpoint.DecodedResponse
-		>(handleSubmitTransactionResponse)(Endpoint.SUBMIT_TX),
+		>(handleSubmitTransactionResponse)(ApiMethod.SUBMIT_TX),
 	}
 }

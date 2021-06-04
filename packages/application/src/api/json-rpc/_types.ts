@@ -21,7 +21,7 @@ import {
 	RawValidatorResponse,
 } from '../../dto'
 
-export enum Endpoint {
+export enum ApiMethod {
 	NETWORK_ID = 'network.get_id',
 	TOKEN_BALANCES = 'account.get_balances',
 	TRANSACTION_HISTORY = 'account.get_transaction_history',
