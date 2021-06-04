@@ -69,7 +69,7 @@ describe('hw_ledger_integration', () => {
 		})
 	})
 
-	it.only('doKeyExchange_integration', async done => {
+	it('doKeyExchange_integration', async done => {
 		ledgerNano = await LedgerNano.connect({
 			deviceConnectionTimeout: 1_000,
 		})
