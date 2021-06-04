@@ -28,8 +28,8 @@ export type SignatureT = Readonly<{
 export type ECPointOnCurveT = Readonly<{
 	x: UInt256
 	y: UInt256
-	toBuffer: () => Buffer
-	toString: () => string
+	toBuffer: (includePrefixByte?: boolean) => Buffer
+	toString: (includePrefixByte?: boolean) => string
 	equals: (other: ECPointOnCurveT) => boolean
 	add: (other: ECPointOnCurveT) => ECPointOnCurveT
 	multiply: (by: UInt256) => ECPointOnCurveT

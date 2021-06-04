@@ -9,6 +9,7 @@ import {
 	SignatureT,
 } from '@radixdlt/crypto'
 import { NetworkT } from '@radixdlt/primitives'
+import { AccountAddress } from '@radixdlt/account'
 
 export const testGetVersion = (
 	input: Readonly<{
@@ -43,22 +44,39 @@ export const testGetPublicKey = (
 	const onResponse = input.onResponse ?? (_ => undefined)
 	const subs = new Subscription()
 
+	const path = HDPathRadix.fromString(`m/44'/536'/2'/1/3`)._unsafeUnwrap()
+	const displayAddress = input.requireConfirmationOnDevice ?? false
+	const expectedPubKeyHex =
+		'026d5e07cfde5df84b5ef884b629d28d15b0f6c66be229680699767cd57c618288'
+	const expectedPubKey = PublicKey.fromBuffer(
+		Buffer.from(expectedPubKeyHex, 'hex'),
+	)._unsafeUnwrap()
+	if (displayAddress) {
+		console.log(`🔮 expected path: ${path.toString()}`)
+		const accountAddress = AccountAddress.fromPublicKeyAndNetwork({
+			publicKey: expectedPubKey,
+			network: NetworkT.BETANET,
+		})
+		const wrongAccountAddress = AccountAddress.fromPublicKeyAndNetwork({
+			publicKey: expectedPubKey,
+			network: NetworkT.MAINNET,
+		})
+		console.log(
+			`🔮 expected address: '${accountAddress.toString()}' ([wrong]mainnet: '${wrongAccountAddress.toString()}')`,
+		)
+	}
+
 	subs.add(
 		hardwareWallet
 			.getPublicKey({
 				// both Account and Address will be hardened.
-				path: HDPathRadix.fromString(
-					`m/44'/536'/2'/1/3`,
-				)._unsafeUnwrap(),
-				requireConfirmationOnDevice:
-					input.requireConfirmationOnDevice ?? false,
-				verifyAddressOnDeviceForNetwork: NetworkT.BETANET,
+				path,
+				displayAddress,
+				// verifyAddressOnDeviceForNetwork: NetworkT.BETANET,
 			})
 			.subscribe(
 				(publicKey: PublicKeyT) => {
-					expect(publicKey.toString(true)).toBe(
-						'026d5e07cfde5df84b5ef884b629d28d15b0f6c66be229680699767cd57c618288',
-					)
+					expect(publicKey.toString(true)).toBe(expectedPubKeyHex)
 					onResponse(publicKey)
 				},
 				e => {
@@ -80,14 +98,21 @@ export const testDoSignHash = (
 
 	const hashToSign = sha256Twice(`I'm testing Radix awesome hardware wallet!`)
 
+	const path = HDPathRadix.fromString(`m/44'/536'/2'/1/3`)._unsafeUnwrap()
+
+	const displayAddress = true
+
+	if (displayAddress) {
+		console.log(`🔮 Path: ${path.toString()}`)
+		console.log(`🔮 Hash: ${hashToSign.toString('hex')}`)
+	}
+
 	subs.add(
 		hardwareWallet
 			.doSignHash({
-				path: HDPathRadix.fromString(
-					`m/44'/536'/2'/1/3`,
-				)._unsafeUnwrap(),
+				path,
 				hashToSign,
-				requireConfirmationOnDevice: true,
+				displayAddress,
 			})
 			.subscribe(
 				(signature: SignatureT) => {
@@ -106,8 +131,7 @@ export const testDoSignHash = (
 export const testDoKeyExchange = (
 	input: Readonly<{
 		hardwareWallet: HardwareWalletT
-		requireConfirmationOnDevice?: boolean
-		displaySharedKeyOnDevice?: boolean
+		displayBIPAndPubKeyOtherParty?: boolean
 		onResponse?: (ecPointOnCurve: ECPointOnCurveT) => void
 	}>,
 ): void => {
@@ -122,6 +146,28 @@ export const testDoKeyExchange = (
 		),
 	)._unsafeUnwrap()
 
+	const displayBIPAndPubKeyOtherParty =
+		input?.displayBIPAndPubKeyOtherParty ?? false
+
+	if (displayBIPAndPubKeyOtherParty) {
+		console.log(
+			`🔮 publicKeyOfOtherParty: ${publicKeyOfOtherParty.toString(
+				false,
+			)}`,
+		)
+
+		const accountAddressOfOtherParty = AccountAddress.fromPublicKeyAndNetwork(
+			{
+				publicKey: publicKeyOfOtherParty,
+				network: NetworkT.BETANET,
+			},
+		)
+
+		console.log(
+			`🔮 other party address: ${accountAddressOfOtherParty.toString()}`,
+		)
+	}
+
 	subs.add(
 		hardwareWallet
 			.doKeyExchange({
@@ -130,10 +176,7 @@ export const testDoKeyExchange = (
 					`m/44'/536'/2'/1/3`,
 				)._unsafeUnwrap(),
 				publicKeyOfOtherParty,
-				requireConfirmationOnDevice:
-					input?.requireConfirmationOnDevice ?? false,
-				displaySharedKeyOnDevice:
-					input?.displaySharedKeyOnDevice ?? false,
+				displayBIPAndPubKeyOtherParty,
 			})
 			.subscribe(
 				(ecPointOnCurve: ECPointOnCurveT) => {

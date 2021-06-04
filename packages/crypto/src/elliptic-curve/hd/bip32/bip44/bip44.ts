@@ -96,6 +96,13 @@ const create = (
 	}
 }
 
+const fromComponents = (
+	bip32Components: BIP32PathComponentT[],
+): Result<HDPathRadixT, Error> =>
+	BIP32.create(bip32Components).andThen(bip32 =>
+		radixPathFromString(bip32.toString()),
+	)
+
 const createRadixPath = (
 	input: Readonly<{
 		account?: Int32 // defaults to `0'`
@@ -240,4 +247,5 @@ export const BIP44 = {
 export const HDPathRadix = {
 	create: createRadixPath,
 	fromString: radixPathFromString,
+	fromComponents,
 }

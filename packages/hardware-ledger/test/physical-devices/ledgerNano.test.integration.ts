@@ -48,7 +48,7 @@ describe('hw_ledger_integration', () => {
 		testGetVersion({
 			hardwareWallet,
 			onResponse: (version: SemVerT) => {
-				expect(version.toString()).toBe('0.2.1')
+				expect(version.toString()).toBe('0.2.3')
 				done()
 			},
 		})
@@ -77,8 +77,7 @@ describe('hw_ledger_integration', () => {
 
 		testDoKeyExchange({
 			hardwareWallet,
-			requireConfirmationOnDevice: true,
-			displaySharedKeyOnDevice: false,
+			displayBIPAndPubKeyOtherParty: true,
 			onResponse: _pointOncurve => {
 				done()
 			},

@@ -26,8 +26,8 @@ export type AtPath = Readonly<{
 
 export type GetPublicKeyInput = AtPath &
 	Readonly<{
-		requireConfirmationOnDevice?: boolean
-		verifyAddressOnDeviceForNetwork?: NetworkT
+		displayAddress?: boolean
+		// verifyAddressOnDeviceForNetwork?: NetworkT
 	}>
 
 export type SignHashInput = GetPublicKeyInput &
@@ -35,10 +35,10 @@ export type SignHashInput = GetPublicKeyInput &
 		hashToSign: Buffer
 	}>
 
-export type KeyExchangeInput = GetPublicKeyInput &
+export type KeyExchangeInput = AtPath &
 	Readonly<{
 		publicKeyOfOtherParty: PublicKeyT
-		displaySharedKeyOnDevice: boolean
+		displayBIPAndPubKeyOtherParty: boolean
 	}>
 
 export type HardwareSigningKeyT = Readonly<{

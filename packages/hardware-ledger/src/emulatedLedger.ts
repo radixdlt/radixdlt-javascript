@@ -1,7 +1,8 @@
-import { err, ok, Result } from 'neverthrow'
+import { err, Result } from 'neverthrow'
 import { Observable, of, throwError } from 'rxjs'
 import {
-	BIP44ChangeIndex,
+	BIP32PathComponent,
+	BIP32PathComponentT,
 	ECPointOnCurveT,
 	hardenedIncrement,
 	HDNodeT,
@@ -11,7 +12,7 @@ import {
 	SignatureT,
 } from '@radixdlt/crypto'
 import { map, mergeMap, take, tap } from 'rxjs/operators'
-import { log, toObservable } from '@radixdlt/util'
+import { log, readBuffer, toObservable } from '@radixdlt/util'
 import { NetworkT } from '@radixdlt/primitives'
 import {
 	LedgerInstruction,
@@ -22,51 +23,46 @@ import {
 } from './_types'
 import { SemVerT } from '@radixdlt/hardware-wallet'
 
-const pathDataByteCount = 12
-const publicKeyByteCount = 64
-
 const hdPathFromBuffer = (
 	data: Buffer | undefined,
 ): Result<HDPathRadixT, Error> => {
-	if (!data || data.length < pathDataByteCount) {
-		return err(
-			new Error(
-				`No data, or too short, expected #${pathDataByteCount} bytes.`,
-			),
-		)
+	if (!data) {
+		return err(new Error(`No data, or too short.`))
 	}
-	const accountRead = data.readUInt32BE(0)
-	const isAccountHardened = accountRead >= hardenedIncrement
-	if (!isAccountHardened) {
-		return err(
-			new Error(`Expected BIP32 path component 'account' to be hardened`),
-		)
+	const readNextBuffer = readBuffer(data)
+
+	const numberOfBIP32Components = readNextBuffer(1)
+		._unsafeUnwrap()
+		.readUInt8(0)
+
+	if (numberOfBIP32Components !== 5) {
+		return err(new Error('Expected BIP32 path to have 5 compinents'))
 	}
-	const account = accountRead - hardenedIncrement
-	const changeNum = data.readUInt32BE(4)
-	if (!(changeNum === 1 || changeNum === 0)) {
-		return err(
-			new Error(
-				`Expected BIP32 path component 'change' to be 0 or 1, but got value '${changeNum}'`,
-			),
-		)
-	}
-	const change: BIP44ChangeIndex = changeNum
-	let index = data.readUInt32BE(8)
-	let isHardened = false
-	if (index >= hardenedIncrement) {
-		isHardened = true
-		index -= hardenedIncrement
-	}
-	const hdPath = HDPathRadix.create({
-		account,
-		change,
-		address: {
+
+	let level = 1
+	const bip32PathAt = (): BIP32PathComponentT => {
+		let index = readNextBuffer(4)._unsafeUnwrap().readUInt32BE()
+		let isHardened = false
+		if (index >= hardenedIncrement) {
+			isHardened = true
+			index -= hardenedIncrement
+		}
+		const bip32 = BIP32PathComponent.create({
 			index,
 			isHardened,
-		},
-	})
-	return ok(hdPath)
+			level,
+		})._unsafeUnwrap()
+
+		level += 1
+
+		return bip32
+	}
+
+	const bipPaths: BIP32PathComponentT[] = Array(numberOfBIP32Components)
+		.fill(undefined)
+		.map(_ => bip32PathAt())
+
+	return HDPathRadix.fromComponents(bipPaths)
 }
 
 const emulateDoSignHash = (
@@ -81,21 +77,31 @@ const emulateDoSignHash = (
 	const { usersInputOnLedger, promptUserForInputOnLedger } = recorder
 
 	const sha256HashByteCount = 32
-	const expectLength = pathDataByteCount + sha256HashByteCount
+	const expectLength = 1 + 20 + 1 + sha256HashByteCount
 
 	if (!data) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_WRONG_DATA_LENGTH)
 	}
 
 	if (data.length < expectLength) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_WRONG_DATA_LENGTH)
 	}
 
 	const hdPathResult = hdPathFromBuffer(data)
 	if (!hdPathResult.isOk()) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_DISPLAY_BIP32_PATH_FAIL)
 	}
-	const hashedData = data.slice(pathDataByteCount)
+	const readNextBuffer = readBuffer(
+		data.slice(1 + hdPathResult.value.pathComponents.length * 4),
+	)
+
+	const hashedDataLenght = readNextBuffer(1)._unsafeUnwrap().readUInt8()
+
+	if (hashedDataLenght !== sha256HashByteCount) {
+		throw new Error(`Expected ${sha256HashByteCount}.`)
+	}
+
+	const hashedData = readNextBuffer(hashedDataLenght)._unsafeUnwrap()
 	const derivedNode = hdMasterNode.derive(hdPathResult.value)
 
 	const privateKey = derivedNode.privateKey
@@ -115,17 +121,19 @@ const emulateDoSignHash = (
 		: usersInputOnLedger.pipe(
 				tap(buttonPress => {
 					if (buttonPress === LedgerButtonPress.LEFT_REJECT) {
-						throw LedgerResponseCodes.SW_USER_REJECTED
+						throw LedgerResponseCodes.SW_DENY
 					}
 				}),
 		  )
 
 	return confirmRequest.pipe(
 		mergeMap(_ => toObservable(privateKey.sign(hashedData))),
-		map((signature: SignatureT) =>
+		map((signature: SignatureT) => Buffer.from(signature.toDER(), 'hex')),
+		map(signatureOnDERBuf =>
 			Buffer.concat([
-				Buffer.from(signature.r.toString(16), 'hex'),
-				Buffer.from(signature.s.toString(16), 'hex'),
+				Buffer.from([signatureOnDERBuf.length]),
+				signatureOnDERBuf,
+				Buffer.from([0x01]), // mocked signature.V
 			]),
 		),
 	)
@@ -142,26 +150,37 @@ const emulateDoKeyExchange = (
 	const { data, p1 } = apdu
 	const { usersInputOnLedger, promptUserForInputOnLedger } = recorder
 
-	const expectLength = pathDataByteCount + publicKeyByteCount
+	const expectLength = 1 + 20 + 1 + 65
 
 	if (!data) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_WRONG_DATA_LENGTH)
 	}
 
 	if (data.length < expectLength) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_WRONG_DATA_LENGTH)
 	}
 
 	const hdPathResult = hdPathFromBuffer(data)
 	if (!hdPathResult.isOk()) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_DISPLAY_BIP32_PATH_FAIL)
 	}
-	const publicKeyOfOtherPartyBytes = data.slice(pathDataByteCount)
+	const readNextBuffer = readBuffer(
+		data.slice(1 + hdPathResult.value.pathComponents.length * 4),
+	)
+
+	const pubKeyLenght = readNextBuffer(1)._unsafeUnwrap().readUInt8()
+	if (pubKeyLenght !== 65) {
+		throw new Error(`Expected ${65}.`)
+	}
+	const publicKeyOfOtherPartyBytes = readNextBuffer(
+		pubKeyLenght,
+	)._unsafeUnwrap()
+
 	const publicKeyOfOtherPartyBytesResult = PublicKey.fromBuffer(
 		publicKeyOfOtherPartyBytes,
 	)
 	if (!publicKeyOfOtherPartyBytesResult.isOk()) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_BAD_STATE)
 	}
 	const publicKeyOfOtherParty = publicKeyOfOtherPartyBytesResult.value
 	const derivedNode = hdMasterNode.derive(hdPathResult.value)
@@ -183,7 +202,7 @@ const emulateDoKeyExchange = (
 		: usersInputOnLedger.pipe(
 				tap(buttonPress => {
 					if (buttonPress === LedgerButtonPress.LEFT_REJECT) {
-						throw LedgerResponseCodes.SW_USER_REJECTED
+						throw LedgerResponseCodes.SW_DENY
 					}
 				}),
 		  )
@@ -192,7 +211,10 @@ const emulateDoKeyExchange = (
 		mergeMap(_ =>
 			toObservable(privateKey.diffieHellman(publicKeyOfOtherParty)),
 		),
-		map((ecPoint: ECPointOnCurveT) => ecPoint.toBuffer()),
+		map((ecPoint: ECPointOnCurveT) => ecPoint.toBuffer(true)),
+		map(sharedKeyBuf =>
+			Buffer.concat([Buffer.from([sharedKeyBuf.length]), sharedKeyBuf]),
+		),
 	)
 }
 
@@ -223,24 +245,36 @@ const emulateGetPublicKey = (
 
 	const { p1, p2, data } = apdu
 	if (p1 !== 0 && p1 !== 1) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_WRONG_P1P2)
 	}
 	if (p2 !== 0 && p2 !== 1 && p2 !== 2) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_WRONG_P1P2)
 	}
 
 	const hdPathResult = hdPathFromBuffer(data)
 	if (!hdPathResult.isOk()) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_DISPLAY_BIP32_PATH_FAIL)
 	}
 	const derivedNode = hdMasterNode.derive(hdPathResult.value)
 
 	const publicKey = derivedNode.publicKey
-	const response = publicKey.asData({ compressed: true })
+	const pubKeyCompressed = publicKey.asData({ compressed: true })
+
+	const mockedChainCode = Buffer.from(
+		'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+		'hex',
+	)
+
+	const response = Buffer.concat([
+		Buffer.from([pubKeyCompressed.length]),
+		pubKeyCompressed,
+		Buffer.from([mockedChainCode.length]),
+		mockedChainCode,
+	])
 
 	const requireConfirmation = p1 === 1
-	const verifyAddressForNetwork: NetworkT | undefined =
-		p2 !== 0 ? (p2 === 1 ? NetworkT.MAINNET : NetworkT.BETANET) : undefined
+	// const verifyAddressForNetwork: NetworkT | undefined =
+	// 	p2 !== 0 ? (p2 === 1 ? NetworkT.MAINNET : NetworkT.BETANET) : undefined
 
 	const promptForInput = (): void => {
 		// Require confirmation on device
@@ -255,19 +289,19 @@ const emulateGetPublicKey = (
 		expectedInputsFromUser += 1
 		promptForInput()
 
-		if (verifyAddressForNetwork) {
-			expectedInputsFromUser += 1
-			promptForInput()
-		}
+		// if (verifyAddressForNetwork) {
+		// 	expectedInputsFromUser += 1
+		// 	promptForInput()
+		// }
 	}
 
-	return !requireConfirmation && !verifyAddressForNetwork
+	return !requireConfirmation
 		? of(response)
 		: usersInputOnLedger.pipe(
 				map(
 					(buttonPress): Buffer => {
 						if (buttonPress === LedgerButtonPress.LEFT_REJECT) {
-							throw LedgerResponseCodes.SW_USER_REJECTED
+							throw LedgerResponseCodes.SW_DENY
 						} else {
 							return response
 						}
@@ -277,24 +311,20 @@ const emulateGetPublicKey = (
 		  )
 }
 
-const emulatePing = (
+const emulateGetAppName = (
 	input: Readonly<{
 		apdu: RadixAPDUT
 	}>,
 ): Observable<Buffer> => {
 	const { apdu } = input
-	const { p1, p2, data } = apdu
+	const { p1, p2 } = apdu
 	if (p1 !== 0) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_WRONG_P1P2)
 	}
 	if (p2 !== 0) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_WRONG_P1P2)
 	}
-	if (!data) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
-	}
-	const responseString = data.toString('utf8') === 'ping' ? 'pong' : 'hello'
-	const buf = Buffer.from(responseString, 'utf8')
+	const buf = Buffer.from('Radix', 'utf8')
 	return of(buf)
 }
 
@@ -307,13 +337,13 @@ const emulateGetVersion = (
 	const { apdu, hardcodedVersion } = input
 	const { p1, p2, data } = apdu
 	if (p1 !== 0) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_WRONG_P1P2)
 	}
 	if (p2 !== 0) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_WRONG_P1P2)
 	}
 	if (data !== undefined) {
-		return throwError(() => LedgerResponseCodes.SW_INVALID_PARAM)
+		return throwError(() => LedgerResponseCodes.SW_WRONG_DATA_LENGTH)
 	}
 
 	const buf = Buffer.alloc(3)
@@ -337,12 +367,12 @@ export const emulateSend = (
 		const { cla, ins } = apdu
 
 		if (cla !== radixCLA) {
-			return throwError(() => LedgerResponseCodes.CLA_NOT_SUPPORTED)
+			return throwError(() => LedgerResponseCodes.SW_CLA_NOT_SUPPORTED)
 		}
 
 		switch (ins) {
-			case LedgerInstruction.PING: {
-				return emulatePing({
+			case LedgerInstruction.GET_APP_NAME: {
+				return emulateGetAppName({
 					apdu,
 				})
 			}

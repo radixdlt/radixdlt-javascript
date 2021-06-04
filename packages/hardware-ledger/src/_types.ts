@@ -1,25 +1,68 @@
 import { LedgerButtonPress, PromptUserForInput } from './emulatedLedger'
 
 export enum LedgerInstruction {
-	PING = 0x00,
-	GET_VERSION = 0x01,
-	GET_PUBLIC_KEY = 0x02,
-	DO_KEY_EXCHANGE = 0x04,
-	DO_SIGN_HASH = 0x08,
-	DO_SIGN_TX = 0x16,
+	GET_VERSION = 0x03,
+	GET_APP_NAME = 0x04,
+	GET_PUBLIC_KEY = 0x05,
+	DO_SIGN_TX = 0x06,
+	DO_SIGN_HASH = 0x07,
+	DO_KEY_EXCHANGE = 0x08,
 }
 
-// https://github.com/radixdlt/radixdlt-ledger-app/blob/2eecabd2d870ebc252218d91034a767320b71487/app/src/common/common_macros.h#L37-L43
+/// Keep in sync with: https://github.com/radixdlt/app-radix/blob/main/src/sw.h
 export enum LedgerResponseCodes {
-	CLA_NOT_SUPPORTED = 0x6e00,
-
-	SW_USER_REJECTED = 0x6985,
-	SW_INVALID_MAC_CODE = 0x6986,
-	SW_FATAL_ERROR_INCORRECT_IMPLEMENTATION = 0x6b00,
-	SW_INVALID_PARAM = 0x6b01,
-	SW_INVALID_INSTRUCTION = 0x6d00,
+	/// Status word for success.
 	SW_OK = 0x9000,
+
+	// Status word for denied by user.
+	SW_DENY = 0x6985,
+
+	/// Status word for incorrect P1 or P2.
+	SW_WRONG_P1P2 = 0x6a86,
+
+	/// Status word for either wrong Lc or lenght of APDU command less than 5.
+	SW_WRONG_DATA_LENGTH = 0x6a87,
+
+	/// Status word for unknown command with this INS.
+	SW_INS_NOT_SUPPORTED = 0x6d00,
+
+	/// Status word for instruction class is different than CLA.
+	SW_CLA_NOT_SUPPORTED = 0x6e00,
+
+	/// Status word for wrong reponse length (buffer too small or too big).
+	SW_WRONG_RESPONSE_LENGTH = 0xb000,
+
+	/// Status word for fail to display BIP32 path.
+	SW_DISPLAY_BIP32_PATH_FAIL = 0xb001,
+
+	/// Status word for fail to display address.
+	SW_DISPLAY_ADDRESS_FAIL = 0xb002,
+
+	/// Status word for fail to display amount.
+	SW_DISPLAY_AMOUNT_FAIL = 0xb003,
+
+	/// Status word for wrong transaction length.
+	SW_WRONG_TX_LENGTH = 0xb004,
+
+	/// Status word for fail of transaction parsing.
+	SW_TX_PARSING_FAIL = 0xb005,
+
+	/// Status word for fail of transaction hash.
+	SW_TX_HASH_FAIL = 0xb006,
+
+	/// Status word for bad state.
+	SW_BAD_STATE = 0xb007,
+
+	/// Status word for signature fail.
+	SW_SIGNATURE_FAIL = 0xb008,
+
+	/// Status word for ECDH key exchange, failed to parse public key of other party.
+	SW_ECDH_FAILED_TO_PARSE_PUBKEY = 0xb009,
+
+	///  Status word for ECDH failed to perform ECDH.
+	SW_ECDH_FAILED_TO_PERFORM_ECDH = 0xb00a,
 }
+
 export const prettifyLedgerResponseCode = (code: LedgerResponseCodes): string =>
 	`${code === LedgerResponseCodes.SW_OK ? '✅' : '❌'} code: '${
 		LedgerResponseCodes[code]

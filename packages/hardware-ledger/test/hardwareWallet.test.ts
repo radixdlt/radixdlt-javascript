@@ -52,7 +52,7 @@ describe('hardwareWallet_emulated', () => {
 	}
 
 	describe('emulated', () => {
-		it('getVersion', done => {
+		it('emulated_getVersion', done => {
 			const hardcodedVersion = SemVer.fromString('2.5.9')._unsafeUnwrap()
 
 			const { store, hardwareWallet } = emulateHardwareWallet({
@@ -68,7 +68,7 @@ describe('hardwareWallet_emulated', () => {
 
 					// Assert request
 					expect(request.cla).toBe(0xaa)
-					expect(request.ins).toBe(0x01)
+					expect(request.ins).toBe(0x03)
 					expect(request.p1).toBe(0)
 					expect(request.p2).toBe(0)
 					expect(request.data).toBeUndefined()
@@ -128,8 +128,8 @@ describe('hardwareWallet_emulated', () => {
 				hardwareWallet,
 				requireConfirmationOnDevice: true,
 				onResponse: (publicKey: PublicKeyT) => {
-					expect(numberOfPromptsToUser).toBe(2)
-					expect(store.userIO.length).toBe(2)
+					expect(numberOfPromptsToUser).toBe(1)
+					expect(store.userIO.length).toBe(1)
 
 					expect(store.recorded.length).toBe(1)
 					const request = store.lastRequest()
@@ -137,23 +137,26 @@ describe('hardwareWallet_emulated', () => {
 
 					// Assert request
 					expect(request.cla).toBe(0xaa)
-					expect(request.ins).toBe(0x02)
+					expect(request.ins).toBe(0x05)
 					expect(request.p1).toBe(1)
-					expect(request.p2).toBe(2)
+					expect(request.p2).toBe(0)
 
 					expect(request.data).toBeDefined()
 					expect(request.data!.toString('hex')).toBe(
-						'800000020000000100000003',
+						'058000002c80000218800000020000000100000003',
 					)
 					expect(
 						request.requiredResponseStatusCodeFromDevice!,
 					).toStrictEqual([0x9000])
 
-					// Assert response
-					expect(publicKey.toString(true)).toBe(
-						response.data.toString('hex'),
-					)
+					const responseRaw = response.data //.toString('hex')
+					const lengthOfPubKey = responseRaw.slice(0, 1).readUInt8()
+					const pubKeyRaw = responseRaw.slice(1, lengthOfPubKey + 1)
 
+					// Assert response
+					expect(pubKeyRaw.toString('hex')).toBe(
+						publicKey.toString(true),
+					)
 					done()
 				},
 			})
@@ -205,23 +208,24 @@ describe('hardwareWallet_emulated', () => {
 
 					// Assert request
 					expect(request.cla).toBe(0xaa)
-					expect(request.ins).toBe(0x08)
+					expect(request.ins).toBe(0x07)
 					expect(request.p1).toBe(1)
 					expect(request.p2).toBe(0)
 					expect(request.data).toBeDefined()
 					expect(request.data!.toString('hex')).toBe(
-						'800000020000000100000003be7515569e05daffc71bffe2a30365b74450c017a56184ee26699340a324d402',
+						'058000002c8000021880000002000000010000000320be7515569e05daffc71bffe2a30365b74450c017a56184ee26699340a324d402',
 					)
 					expect(
 						request.requiredResponseStatusCodeFromDevice!,
 					).toStrictEqual([0x9000])
 
+					const lengthOfSig = response.data.slice(0, 1).readUInt8()
+					const sigRaw = response.data.slice(1, lengthOfSig + 1)
+					expect(sigRaw.length).toBe(lengthOfSig) // soundsness
 					// Assert response
 					expect(
 						signature.equals(
-							Signature.fromRSBuffer(
-								response.data,
-							)._unsafeUnwrap(),
+							Signature.fromDER(sigRaw)._unsafeUnwrap(),
 						),
 					).toBe(true)
 
@@ -265,7 +269,7 @@ describe('hardwareWallet_emulated', () => {
 
 			testDoKeyExchange({
 				hardwareWallet,
-				requireConfirmationOnDevice: true,
+				displayBIPAndPubKeyOtherParty: true,
 				onResponse: (ecPointOnCurve: ECPointOnCurveT) => {
 					expect(userWasPromptedToConfirmKeyExchange).toBe(true)
 					expect(store.userIO.length).toBe(1)
@@ -276,21 +280,25 @@ describe('hardwareWallet_emulated', () => {
 
 					// Assert request
 					expect(request.cla).toBe(0xaa)
-					expect(request.ins).toBe(0x04)
+					expect(request.ins).toBe(0x08)
 					expect(request.p1).toBe(1)
 					expect(request.p2).toBe(0)
 					expect(request.data).toBeDefined()
 					expect(request.data!.toString('hex')).toBe(
-						'8000000200000001000000030479be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8',
+						'058000002c80000218800000020000000100000003410479be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8',
 					)
 					expect(
 						request.requiredResponseStatusCodeFromDevice!,
 					).toStrictEqual([0x9000])
 
+					const res = ecPointOnCurve.toString()
+
 					// Assert response
-					expect(ecPointOnCurve.toString()).toBe(
-						response.data.toString('hex'),
-					)
+					expect(
+						response.data
+							.toString('hex')
+							.includes(ecPointOnCurve.toString()),
+					).toBe(true)
 
 					done()
 				},
