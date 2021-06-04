@@ -4,9 +4,7 @@
 
 /* eslint-disable */
 import { Radix } from '../../src/radix'
-import {
-	ValidatorAddressT,
-} from '@radixdlt/account'
+import { ValidatorAddressT } from '@radixdlt/account'
 import {
 	interval,
 	Observable,
@@ -533,7 +531,7 @@ describe('integration API tests', () => {
 		subs.add(
 			radix.ledger
 				.validators({
-					size: 1
+					size: 1,
 				})
 				.subscribe(validators => {
 					expect(validators.validators.length).toEqual(1)

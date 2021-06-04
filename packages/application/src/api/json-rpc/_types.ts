@@ -37,7 +37,7 @@ export enum ApiMethod {
 	TOKEN_INFO = 'tokens.get_info',
 	BUILD_TX_FROM_INTENT = 'construction.build_transaction',
 	SUBMIT_TX = 'construction.submit_transaction',
-	FINALIZE_TX = 'construction.finalize_transaction'
+	FINALIZE_TX = 'construction.finalize_transaction',
 }
 
 export namespace NetworkIdEndpoint {

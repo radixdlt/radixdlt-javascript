@@ -90,5 +90,6 @@ module.exports = {
 		'@typescript-eslint/no-var-requires': 'off',
 		'arrow-body-style': ['warn', 'as-needed'],
 		'no-useless-return': 1,
+		'@typescript-eslint/restrict-template-expressions': 'off',
 	},
 }

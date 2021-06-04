@@ -29,12 +29,12 @@ enum Endpoint {
 	TOKEN_INFO = 'tokens.get_info',
 	BUILD_TX_FROM_INTENT = 'construction.build_transaction',
 	SUBMIT_TX = 'construction.submit_transaction',
-	FINALIZE_TX = 'construction.finalize_transaction'
+	FINALIZE_TX = 'construction.finalize_transaction',
 }
 
 enum MethodLocation {
 	ARCHIVE = 'archive',
-	CONSTRUCTION = 'construction'
+	CONSTRUCTION = 'construction',
 }
 
 const MethodEndpoints = {
@@ -53,7 +53,7 @@ const MethodEndpoints = {
 	[Endpoint.TOKEN_INFO]: MethodLocation.ARCHIVE,
 	[Endpoint.BUILD_TX_FROM_INTENT]: MethodLocation.CONSTRUCTION,
 	[Endpoint.SUBMIT_TX]: MethodLocation.CONSTRUCTION,
-	[Endpoint.FINALIZE_TX]: MethodLocation.CONSTRUCTION
+	[Endpoint.FINALIZE_TX]: MethodLocation.CONSTRUCTION,
 }
 
 export const RPCClient: Client = (url: URL): Transport => {
@@ -67,8 +67,8 @@ export const RPCClient: Client = (url: URL): Transport => {
 		const transport = new HTTPTransport(endpoint, {
 			headers: {
 				[headers[0]]: method,
-				[headers[1]]: uuid()
-			}
+				[headers[1]]: uuid(),
+			},
 		})
 
 		const requestManager = new RequestManager([transport])
@@ -83,7 +83,7 @@ export const RPCClient: Client = (url: URL): Transport => {
 				filteredParams,
 				null,
 				2,
-			)}`
+			)}`,
 		)
 
 		const result = await validateMethod(method, filteredParams)
