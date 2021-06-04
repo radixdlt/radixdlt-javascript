@@ -52,26 +52,26 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 		node,
 
 		validators: (input: ValidatorsRequestInput): Observable<Validators> =>
-			toObs(a => a.validators, {
+			toObs(a => a['validators.get_next_epoch_set'], {
 				size: input.size,
 				cursor: input.cursor?.toString(),
 			}),
 
 		lookupValidator: (input: ValidatorAddressT): Observable<Validator> =>
-			toObs(a => a.lookupValidator, {
+			toObs(a => a['validators.lookup_validator'], {
 				validatorAddress: input.toString(),
 			}),
 
 		lookupTransaction: (
 			txID: TransactionIdentifierT,
 		): Observable<SimpleExecutedTransaction> =>
-			toObs(a => a.lookupTransaction, {
+			toObs(a => a['transactions.lookup_transaction'], {
 				txID: txID.toString(),
 			}),
 
 		networkId: (): Observable<NetworkT> =>
 			toObsMap(
-				a => a.networkId,
+				a => a['network.get_id'],
 				m => m.networkId,
 				{},
 			),
@@ -79,56 +79,57 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 		tokenBalancesForAddress: (
 			address: AccountAddressT,
 		): Observable<SimpleTokenBalances> =>
-			toObs(a => a.tokenBalances, {
+			toObs(a => a['account.get_balances'], {
 				address: address.toString(),
 			}),
 
 		transactionHistory: (
 			input: TransactionHistoryRequestInput,
 		): Observable<SimpleTransactionHistory> =>
-			toObs(a => a.transactionHistory, {
+			toObs(a => a['account.get_transaction_history'], {
 				address: input.address.toString(),
 				size: input.size,
 				cursor: input.cursor?.toString(),
 			}),
 
-		nativeToken: (): Observable<Token> => toObs(a => a.nativeToken, {}),
+		nativeToken: (): Observable<Token> =>
+			toObs(a => a['tokens.get_native_token'], {}),
 		tokenInfo: (rri: ResourceIdentifierT): Observable<Token> =>
-			toObs(a => a.tokenInfo, {
+			toObs(a => a['tokens.get_info'], {
 				rri: rri.toString(),
 			}),
 
 		stakesForAddress: (
 			address: AccountAddressT,
 		): Observable<StakePositions> =>
-			toObs(a => a.stakePositions, {
+			toObs(a => a['account.get_stake_positions'], {
 				address: address.toString(),
 			}),
 
 		unstakesForAddress: (
 			address: AccountAddressT,
 		): Observable<UnstakePositions> =>
-			toObs(a => a.unstakePositions, {
+			toObs(a => a['account.get_unstake_positions'], {
 				address: address.toString(),
 			}),
 
 		transactionStatus: (
 			txID: TransactionIdentifierT,
 		): Observable<StatusOfTransaction> =>
-			toObs(a => a.statusOfTransaction, {
+			toObs(a => a['transactions.get_transaction_status'], {
 				txID: txID.toString(),
 			}),
 
 		networkTransactionThroughput: (): Observable<NetworkTransactionThroughput> =>
-			toObs(a => a.networkTransactionThroughput, {}),
+			toObs(a => a['network.get_throughput'], {}),
 
 		networkTransactionDemand: (): Observable<NetworkTransactionDemand> =>
-			toObs(a => a.networkTransactionDemand, {}),
+			toObs(a => a['network.get_demand'], {}),
 
 		buildTransaction: (
 			transactionIntent: TransactionIntent,
 		): Observable<BuiltTransaction> =>
-			toObs(a => a.buildTransaction, {
+			toObs(a => a['construction.build_transaction'], {
 				actions: transactionIntent.actions.map(action =>
 					action.type === ActionType.TOKEN_TRANSFER
 						? {
@@ -153,7 +154,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 		finalizeTransaction: (
 			signedTransaction: SignedTransaction,
 		): Observable<FinalizedTransaction> =>
-			toObs(a => a.finalizeTransaction, {
+			toObs(a => a['construction.finalize_transaction'], {
 				transaction: {
 					blob: signedTransaction.transaction.blob,
 				},
@@ -166,7 +167,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 		submitSignedTransaction: (
 			finalizedTx: FinalizedTransaction & SignedTransaction,
 		): Observable<PendingTransaction> =>
-			toObs(a => a.submitTransaction, {
+			toObs(a => a['construction.submit_transaction'], {
 				transaction: {
 					blob: finalizedTx.transaction.blob,
 				},

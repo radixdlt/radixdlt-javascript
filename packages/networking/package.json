@@ -28,9 +28,11 @@
   "dependencies": {
     "@open-rpc/client-js": "^1.6.2",
     "@open-rpc/schema-utils-js": "^1.14.3",
-    "@radixdlt/open-rpc-spec": "^1.0.1",
+    "@radixdlt/open-rpc-spec": "^1.0.2",
     "@radixdlt/util": "^1.0.25",
+    "@types/uuid": "^8.3.0",
     "neverthrow": "^4.0.1",
-    "open-rpc-utils": "^1.1.1"
+    "open-rpc-utils": "^1.1.1",
+    "uuid": "^8.3.2"
   }
 }

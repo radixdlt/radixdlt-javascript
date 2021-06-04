@@ -1542,7 +1542,7 @@ describe('radix_high_level_api', () => {
 				.withWallet(createWallet())
 				.__withAPI(mockedAPI)
 
-			const userConfirmation = new ReplaySubject<ManualUserConfirmTX>()
+			const userConfirmation = new ReplaySubject<ManualUserConfirmTX>(1)
 
 			const transactionTracking = radix.transferTokens({
 				...transferTokens(),
