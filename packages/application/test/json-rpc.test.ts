@@ -162,7 +162,7 @@ const methodParams = {
 
 	[rpcSpec.methods[8].name]: {
 		size: 1,
-		cursor: 1,
+		cursor: 'xyz',
 	},
 
 	[rpcSpec.methods[9].name]: {
