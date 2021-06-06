@@ -33,6 +33,7 @@
     "@radixdlt/crypto": "^1.0.37",
     "@radixdlt/hardware-wallet": "^1.0.20",
     "@radixdlt/primitives": "^1.0.29",
+    "@radixdlt/tx-parser": "/Users/sajjon/Developer/JS/radixdlt-javascript/packages/tx-parser/",
     "@radixdlt/util": "^1.0.25",
     "neverthrow": "4.0.1",
     "prelude-ts": "^1.0.2",

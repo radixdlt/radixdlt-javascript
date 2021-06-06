@@ -1,12 +1,11 @@
 {
   "name": "@radixdlt/tx-parser",
-  "version": "1.0.29",
-  "description": "Shared common data types",
+  "version": "1.0.0",
+  "description": "Parsing of Radix Engine transactions and instructions",
   "keywords": [
-    "Integers",
-    "Nonce",
-    "Base58",
-    "Encoding"
+    "Radix Engine",
+    "Transaction",
+    "OP"
   ],
   "author": "Alexander Cyon <alex.cyon@gmail.com>",
   "homepage": "https://github.com/radixdlt/radixdlt-javascript/tree/master/packages/tx-parser#readme",

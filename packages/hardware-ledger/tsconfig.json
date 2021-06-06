@@ -12,5 +12,6 @@
     {"path": "../primitives"},
     {"path": "../hardware-wallet"},
     {"path": "../util"},
+    {"path": "../tx-parser"},
   ]
 }
