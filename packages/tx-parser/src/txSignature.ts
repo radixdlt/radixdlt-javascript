@@ -36,7 +36,12 @@ const fromBufferReader = (bufferReader: BufferReaderT): Result<TXSig, Error> =>
 			return {
 				...partial,
 				toBuffer: () => buffer,
-				toString: () => buffer.toString('hex'),
+				toString: () =>
+					`Signature: { 
+						v: ${partial.v}, 
+						r: ${partial.r.toString(16)}, 
+						s: ${partial.s.toString(16)}
+					}`,
 			}
 		})
 

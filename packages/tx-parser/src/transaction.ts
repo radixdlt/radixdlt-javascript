@@ -243,7 +243,7 @@ const fromBuffer = (blob: Buffer): Result<TransactionT, Error> => {
 			return err(instructionRes.error)
 		}
 		const instruction = instructionRes.value
-		console.log(`✅ Parsed instruction: ${instruction.toString()}`)
+		// console.log(`✅ Parsed instruction: ${instruction.toString()}`)
 		instructions.push(instruction)
 	}
 

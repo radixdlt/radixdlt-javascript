@@ -9,7 +9,7 @@ export const uint256FromReadBuffer = (
 	bufferReader.readNextBuffer(32).map(b => new UInt256(b.toString('hex'), 16))
 
 export const amountToBuffer = (amount: UInt256): Buffer => {
-	const amtBuf = Buffer.from(amount.toString(), 'hex')
+	const amtBuf = Buffer.from(amount.toString(16), 'hex')
 	const buffer = Buffer.alloc(32)
 	amtBuf.copy(buffer)
 	if (buffer.length !== 32) {
