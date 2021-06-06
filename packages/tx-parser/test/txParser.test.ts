@@ -55,6 +55,9 @@ describe('txParser', () => {
 
 				const i2_END = ins[2] as Ins_END
 				const i3_SIG = ins[3] as Ins_SIG
+				expect(i3_SIG.signature.toBuffer().toString('hex')).toBe(
+					'000ed97e5664df372ea8a0f24d0cf4e63449c0131b5f0eb707491e9afc6078e72658760cce82a2a42e80628f366bf0e4f21ad3affc9e027a6365efead24d22f3ed',
+				)
 			})
 		})
 
