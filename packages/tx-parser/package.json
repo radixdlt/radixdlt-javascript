@@ -31,7 +31,7 @@
   "dependencies": {
     "@radixdlt/uint256": "^1.1.0",
     "@radixdlt/util": "^1.0.25",
-    "@radixdlt/account": "^1.0.43",
+    "@radixdlt/crypto": "^1.0.37",
     "@radixdlt/primitives": "^1.0.29",
     "long": "^4.0.0",
     "neverthrow": "^4.0.1"
