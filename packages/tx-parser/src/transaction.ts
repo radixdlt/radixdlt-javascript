@@ -1,5 +1,7 @@
 import { combine, err, ok, Result } from 'neverthrow'
 import {
+	BufferReader,
+	BufferReaderT,
 	BytesT,
 	Ins_DOWN,
 	Ins_DOWNALL,
@@ -18,19 +20,20 @@ import {
 	TransactionT,
 	TXSig,
 } from './_types'
-import { Byte, readBuffer } from '@radixdlt/util'
+import { Byte } from '@radixdlt/util'
 import { Bytes } from './bytes'
 import { TxSignature } from './txSignature'
 import { Tokens } from './tokens'
 import { PreparedStake } from './preparedStake'
 import { PreparedUnstake } from './preparedUnstake'
 
-export type ReadBuffer = (byteCount: number) => Result<Buffer, Error>
-
-const substateIdFromBuffer = (
-	readBuffer: ReadBuffer,
+const substateIdFromBufferReader = (
+	bufferReader: BufferReaderT,
 ): Result<SubstateId, Error> =>
-	combine([readBuffer(32), readBuffer(4)]).map(resList => {
+	combine([
+		bufferReader.readNextBuffer(32),
+		bufferReader.readNextBuffer(4),
+	]).map(resList => {
 		const hash = resList[0]
 		const index = resList[1].readUInt32BE()
 
@@ -48,26 +51,27 @@ const substateIdFromBuffer = (
 	})
 
 const fromBuffer = (blob: Buffer): Result<TransactionT, Error> => {
-	const originalBlob = Buffer.alloc(blob.length)
-	blob.copy(originalBlob)
+	// const originalBlob = Buffer.alloc(blob.length)
+	// blob.copy(originalBlob)
 	const instructions: InstructionT[] = []
 
-	const readNextBuffer = readBuffer(blob)
+	const bufferReader = BufferReader.create(blob)
 
 	const readSubstate = (): Result<Substate, Error> =>
-		readNextBuffer(1)
+		bufferReader
+			.readNextBuffer(1)
 			.map(b => b.readUInt8())
 			.map(n => n as SubStateType)
 			.andThen(
 				(substateType: SubStateType): Result<Substate, Error> => {
 					switch (substateType) {
 						case SubStateType.TOKENS:
-							return Tokens.fromReadBuffer(readNextBuffer)
+							return Tokens.fromBufferReader(bufferReader)
 						case SubStateType.PREPARED_STAKE:
-							return PreparedStake.fromReadBuffer(readNextBuffer)
+							return PreparedStake.fromBufferReader(bufferReader)
 						case SubStateType.PREPARED_UNSTAKE:
-							return PreparedUnstake.fromReadBuffer(
-								readNextBuffer,
+							return PreparedUnstake.fromBufferReader(
+								bufferReader,
 							)
 						default:
 							throw new Error(
@@ -77,12 +81,11 @@ const fromBuffer = (blob: Buffer): Result<TransactionT, Error> => {
 				},
 			)
 	let iterations = 0
-	while (blob.length > 0) {
-		// console.log(`🔮 blob.length: ${blob.length}`)
-		if (iterations === 1) {
-			console.error(`❌ killed after #${iterations} iterations`)
-		}
-		readNextBuffer(1)
+	console.log(`💡 starting while loop...`)
+
+	const parseInstruction = (): Result<InstructionT, Error> =>
+		bufferReader
+			.readNextBuffer(1)
 			.map(b => ({
 				insBuf: b,
 				instructionType: b.readUInt8() as InstructionType,
@@ -92,6 +95,7 @@ const fromBuffer = (blob: Buffer): Result<TransactionT, Error> => {
 					const { insBuf, instructionType } = ii
 					switch (instructionType) {
 						case InstructionType.END:
+							console.log(`🤡 found InstructionType.END`)
 							return ok({
 								instructionType,
 								toBuffer: () => insBuf,
@@ -99,6 +103,7 @@ const fromBuffer = (blob: Buffer): Result<TransactionT, Error> => {
 									`${InstructionType[instructionType]}: (Always empty)`,
 							} as Ins_END)
 						case InstructionType.UP:
+							console.log(`🤡 found InstructionType.UP`)
 							return readSubstate().map(
 								(substate): Ins_UP => ({
 									instructionType,
@@ -113,6 +118,7 @@ const fromBuffer = (blob: Buffer): Result<TransactionT, Error> => {
 								}),
 							)
 						case InstructionType.VDOWN:
+							console.log(`🤡 found InstructionType.VDOWN`)
 							return readSubstate().map(
 								(substate): Ins_VDOWN => ({
 									instructionType,
@@ -127,9 +133,10 @@ const fromBuffer = (blob: Buffer): Result<TransactionT, Error> => {
 								}),
 							)
 						case InstructionType.VDOWNARG:
+							console.log(`🤡 found InstructionType.VDOWNARG`)
 							return combine([
 								readSubstate(),
-								Bytes.fromReadBuffer(readNextBuffer),
+								Bytes.fromBufferReader(bufferReader),
 							])
 								.map(resList => {
 									const substate = resList[0] as Substate
@@ -151,7 +158,8 @@ const fromBuffer = (blob: Buffer): Result<TransactionT, Error> => {
 									}),
 								)
 						case InstructionType.DOWN:
-							return substateIdFromBuffer(readNextBuffer).map(
+							console.log(`🤡 found InstructionType.DOWN`)
+							return substateIdFromBufferReader(bufferReader).map(
 								(substateId): Ins_DOWN => ({
 									instructionType,
 									substateId,
@@ -165,7 +173,8 @@ const fromBuffer = (blob: Buffer): Result<TransactionT, Error> => {
 								}),
 							)
 						case InstructionType.LDOWN:
-							return readNextBuffer(4).map(
+							console.log(`🤡 found InstructionType.LDOWN`)
+							return bufferReader.readNextBuffer(4).map(
 								(substateIndexBytes): Ins_LDOWN => {
 									const substateIndex = substateIndexBytes.readUInt32BE()
 									return {
@@ -182,7 +191,8 @@ const fromBuffer = (blob: Buffer): Result<TransactionT, Error> => {
 								},
 							)
 						case InstructionType.MSG:
-							return Bytes.fromReadBuffer(readNextBuffer).map(
+							console.log(`🤡 found InstructionType.MSG`)
+							return Bytes.fromBufferReader(bufferReader).map(
 								(bytes: BytesT): Ins_MSG => ({
 									instructionType,
 									bytes,
@@ -196,8 +206,9 @@ const fromBuffer = (blob: Buffer): Result<TransactionT, Error> => {
 								}),
 							)
 						case InstructionType.SIG:
-							return TxSignature.fromReadBuffer(
-								readNextBuffer,
+							console.log(`🤡 found InstructionType.SIG`)
+							return TxSignature.fromBufferReader(
+								bufferReader,
 							).map(
 								(signature: TXSig): Ins_SIG => ({
 									instructionType,
@@ -212,7 +223,9 @@ const fromBuffer = (blob: Buffer): Result<TransactionT, Error> => {
 								}),
 							)
 						case InstructionType.DOWNALL:
-							return readNextBuffer(1)
+							console.log(`🤡 found InstructionType.DOWNALL`)
+							return bufferReader
+								.readNextBuffer(1)
 								.map(b => b.readUInt8() as Byte)
 								.map(
 									(classId: Byte): Ins_DOWNALL => ({
@@ -227,14 +240,34 @@ const fromBuffer = (blob: Buffer): Result<TransactionT, Error> => {
 											`DOWNALL: { classId: ${classId.toString()} }`,
 									}),
 								)
+						default:
+							return err(
+								new Error(
+									`Unrecognized instruction type: ${insBuf.toString()}`,
+								),
+							)
 					}
 				},
 			)
+
+	while (!bufferReader.finishedParsing()) {
+		console.log(`🔮 blob.length: ${blob.length}, #${iterations} iterations`)
+		if (iterations === 3) {
+			console.error(`❌ killed after #${iterations} iterations`)
+		}
+		const instructionRes = parseInstruction()
+		if (instructionRes.isErr()) {
+			return err(instructionRes.error)
+		}
+		const instruction = instructionRes.value
+		console.log(`✅ parsed instruction: ${instruction.toString()}`)
+		instructions.push(instruction)
+		iterations += 1
 	}
 
 	return ok({
 		instructions,
-		toBuffer: () => originalBlob,
+		toBuffer: () => blob,
 		toString: () =>
 			`TX: { instructions: ${instructions
 				.map(i => i.toString())

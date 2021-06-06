@@ -4,15 +4,18 @@ import {
 	REAddressPublicKey,
 	REAddressSystem,
 	REAddressT,
+	BufferReaderT,
 	REAddressType,
 } from './_types'
-import { ReadBuffer } from './transaction'
 import { ok, Result } from 'neverthrow'
 import { PublicKey, PublicKeyT } from '@radixdlt/crypto'
 
 /* eslint-disable no-case-declarations */
-const fromReadBuffer = (readBuffer: ReadBuffer): Result<REAddressT, Error> =>
-	readBuffer(1)
+const fromBufferReader = (
+	bufferReader: BufferReaderT,
+): Result<REAddressT, Error> =>
+	bufferReader
+		.readNextBuffer(1)
 		.map(b => b.readUInt8())
 		.map(n => n as REAddressType)
 		.andThen(
@@ -35,7 +38,7 @@ const fromReadBuffer = (readBuffer: ReadBuffer): Result<REAddressT, Error> =>
 						}
 						return ok(nativeToken)
 					case REAddressType.HASHED_KEY_NONCE:
-						return readBuffer(26).map(
+						return bufferReader.readNextBuffer(26).map(
 							(lower26Bytes): REAddressHashedKeyNonce => ({
 								reAddressType: REAddressType.HASHED_KEY_NONCE,
 								lower26Bytes,
@@ -47,7 +50,8 @@ const fromReadBuffer = (readBuffer: ReadBuffer): Result<REAddressT, Error> =>
 							}),
 						)
 					case REAddressType.PUBLIC_KEY:
-						return readBuffer(33)
+						return bufferReader
+							.readNextBuffer(33)
 							.andThen(pubKeyBytes =>
 								PublicKey.fromBuffer(pubKeyBytes),
 							)
@@ -71,5 +75,5 @@ const fromReadBuffer = (readBuffer: ReadBuffer): Result<REAddressT, Error> =>
 /* eslint-enable no-case-declarations */
 
 export const REAddress = {
-	fromReadBuffer,
+	fromBufferReader,
 }

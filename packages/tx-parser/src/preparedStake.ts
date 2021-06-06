@@ -1,23 +1,27 @@
-import { ReadBuffer } from './transaction'
 import { combine, Result } from 'neverthrow'
-import { PreparedStakeT, REAddressT, SubStateType } from './_types'
+import {
+	PreparedStakeT,
+	REAddressT,
+	SubStateType,
+	BufferReaderT,
+} from './_types'
 import { REAddress } from './reAddress'
 import { UInt256 } from '@radixdlt/uint256'
 import { PublicKey, PublicKeyT } from '@radixdlt/crypto'
 import { amountToBuffer, uint256FromReadBuffer } from './tokens'
 
 export const pubKeyFromReadBuffer = (
-	readBuffer: ReadBuffer,
+	bufferReader: BufferReaderT,
 ): Result<PublicKeyT, Error> =>
-	readBuffer(33).andThen(b => PublicKey.fromBuffer(b))
+	bufferReader.readNextBuffer(33).andThen(b => PublicKey.fromBuffer(b))
 
-const fromReadBuffer = (
-	readBuffer: ReadBuffer,
+const fromBufferReader = (
+	bufferReader: BufferReaderT,
 ): Result<PreparedStakeT, Error> =>
 	combine([
-		REAddress.fromReadBuffer(readBuffer),
-		pubKeyFromReadBuffer(readBuffer),
-		uint256FromReadBuffer(readBuffer),
+		REAddress.fromBufferReader(bufferReader),
+		pubKeyFromReadBuffer(bufferReader),
+		uint256FromReadBuffer(bufferReader),
 	])
 		.map(resList => ({
 			owner: resList[0] as REAddressT,
@@ -46,5 +50,5 @@ const fromReadBuffer = (
 		)
 
 export const PreparedStake = {
-	fromReadBuffer,
+	fromBufferReader,
 }

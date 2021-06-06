@@ -1,12 +1,11 @@
 import { Result } from 'neverthrow'
-import { BytesT } from './_types'
-import { ReadBuffer } from './transaction'
+import { BytesT, BufferReaderT } from './_types'
 
-const fromReadBuffer = (readBuffer: ReadBuffer): Result<BytesT, Error> =>
-	readBuffer(1)
+const fromBufferReader = (bufferReader: BufferReaderT): Result<BytesT, Error> =>
+	bufferReader.readNextBuffer(1)
 		.map(b => b.readUInt8())
 		.andThen((length: number) =>
-			readBuffer(length).map(data => ({
+			bufferReader.readNextBuffer(length).map(data => ({
 				length,
 				data,
 			})),
@@ -24,5 +23,5 @@ const fromReadBuffer = (readBuffer: ReadBuffer): Result<BytesT, Error> =>
 		})
 
 export const Bytes = {
-	fromReadBuffer,
+	fromBufferReader,
 }

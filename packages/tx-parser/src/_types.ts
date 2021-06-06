@@ -2,6 +2,65 @@ import { AmountT } from '@radixdlt/primitives'
 import { PublicKeyT } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
 import { Byte } from '@radixdlt/util'
+import { err, ok, Result } from 'neverthrow'
+
+export type BufferReaderT = Readonly<{
+	finishedParsing: () => boolean
+	readNextBuffer: (byteCount: number) => Result<Buffer, Error>
+}>
+
+const createBufferReader = (buf: Buffer): BufferReaderT => {
+	if (!Buffer.isBuffer(buf)) throw new Error('A Buffer must be provided')
+	let offset = 0
+	let bytesLeftToRead = buf.length
+
+	const readNextBuffer = (byteCount: number): Result<Buffer, Error> => {
+		if (byteCount < 0)
+			return err(new Error(`'byteCount' must be no negative`))
+		if (byteCount === 0) {
+			return ok(Buffer.alloc(0))
+		}
+		if (offset + byteCount > buf.length)
+			return err(new Error(`Out of buffer's boundary`))
+		const bufToReturn = Buffer.alloc(byteCount)
+		buf.copy(bufToReturn, 0, offset, offset + byteCount)
+
+		if (bufToReturn.length !== byteCount) {
+			throw new Error(`Incorrect length of newly read buffer...`)
+		}
+
+		offset += byteCount
+		bytesLeftToRead -= byteCount
+
+		// console.log(`
+		// 	🧵🧵🧵
+		// 		read: #${byteCount} bytes,
+		// 		read buffer: '0x${bufToReturn.toString('hex')}',
+		// 		offset: ${offset},
+		// 		source buffer: '0x${buf.toString('hex')}',
+		// 		length of source buffer: #${buf.length} bytes.
+		// 		bytesLeftToRead: #${bytesLeftToRead}
+		// 	🧵🧵🧵
+		// `)
+
+		return ok(bufToReturn)
+	}
+
+	return {
+		readNextBuffer,
+		finishedParsing: (): boolean => {
+			if (bytesLeftToRead < 0) {
+				throw new Error(
+					`Incorrect implementation, read too many bytes.`,
+				)
+			}
+			return bytesLeftToRead === 0
+		},
+	}
+}
+export const BufferReader = {
+	create: createBufferReader,
+}
 
 type REPrimitive = Readonly<{
 	toBuffer: () => Buffer
@@ -9,15 +68,15 @@ type REPrimitive = Readonly<{
 }>
 
 export enum InstructionType {
-	END = 0x00,
-	UP = 0x01,
-	VDOWN = 0x02,
-	VDOWNARG = 0x03,
-	DOWN = 0x04,
-	LDOWN = 0x05,
-	MSG = 0x06,
-	SIG = 0x07,
-	DOWNALL = 0x08,
+	END = 0,
+	UP = 1,
+	VDOWN = 2,
+	VDOWNARG = 3,
+	DOWN = 4,
+	LDOWN = 5,
+	MSG = 6,
+	SIG = 7,
+	DOWNALL = 8,
 }
 
 export const shouldInstructionBeParsedByLedger = (

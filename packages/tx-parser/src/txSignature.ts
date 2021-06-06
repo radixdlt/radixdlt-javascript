@@ -1,12 +1,15 @@
 import { combine, Result } from 'neverthrow'
-import { TXSig } from './_types'
+import { TXSig, BufferReaderT } from './_types'
 import { Byte } from '@radixdlt/util'
 import { UInt256 } from '@radixdlt/uint256'
-import { ReadBuffer } from './transaction'
 import { amountToBuffer } from './tokens'
 
-const fromReadBuffer = (readBuffer: ReadBuffer): Result<TXSig, Error> =>
-	combine([readBuffer(1), readBuffer(32), readBuffer(32)])
+const fromBufferReader = (bufferReader: BufferReaderT): Result<TXSig, Error> =>
+	combine([
+		bufferReader.readNextBuffer(1),
+		bufferReader.readNextBuffer(32),
+		bufferReader.readNextBuffer(32),
+	])
 		.map(resList => {
 			const v = resList[0].readUInt8() as Byte
 
@@ -38,5 +41,5 @@ const fromReadBuffer = (readBuffer: ReadBuffer): Result<TXSig, Error> =>
 		})
 
 export const TxSignature = {
-	fromReadBuffer,
+	fromBufferReader,
 }

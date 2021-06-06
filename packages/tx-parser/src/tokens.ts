@@ -1,16 +1,17 @@
-import { ReadBuffer } from './transaction'
 import { combine, Result } from 'neverthrow'
-import { REAddressT, SubStateType, TokensT } from './_types'
+import { REAddressT, SubStateType, TokensT, BufferReaderT } from './_types'
 import { REAddress } from './reAddress'
 import { UInt256 } from '@radixdlt/uint256'
 
 export const uint256FromReadBuffer = (
-	readBuffer: ReadBuffer,
+	bufferReader: BufferReaderT,
 ): Result<UInt256, Error> =>
-	readBuffer(33).map(b => new UInt256(b.toString('hex'), 16))
+	bufferReader.readNextBuffer(32).map(b => new UInt256(b.toString('hex'), 16))
 
 export const amountToBuffer = (amount: UInt256): Buffer => {
-	const buffer = Buffer.from(amount.toString(), 'hex')
+	const amtBuf = Buffer.from(amount.toString(), 'hex')
+	const buffer = Buffer.alloc(32)
+	amtBuf.copy(buffer)
 	if (buffer.length !== 32) {
 		throw new Error(
 			`Incorrect implementation, amount should always serialize into 32 bytes`,
@@ -19,11 +20,13 @@ export const amountToBuffer = (amount: UInt256): Buffer => {
 	return buffer
 }
 
-const fromReadBuffer = (readBuffer: ReadBuffer): Result<TokensT, Error> =>
+const fromBufferReader = (
+	bufferReader: BufferReaderT,
+): Result<TokensT, Error> =>
 	combine([
-		REAddress.fromReadBuffer(readBuffer),
-		REAddress.fromReadBuffer(readBuffer),
-		uint256FromReadBuffer(readBuffer),
+		REAddress.fromBufferReader(bufferReader),
+		REAddress.fromBufferReader(bufferReader),
+		uint256FromReadBuffer(bufferReader),
 	])
 		.map(resList => ({
 			rri: resList[0] as REAddressT,
@@ -52,5 +55,5 @@ const fromReadBuffer = (readBuffer: ReadBuffer): Result<TokensT, Error> =>
 		)
 
 export const Tokens = {
-	fromReadBuffer,
+	fromBufferReader,
 }
