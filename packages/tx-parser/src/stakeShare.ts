@@ -4,6 +4,7 @@ import {
 	REAddressT,
 	SubStateType,
 	BufferReaderT,
+	StakeShareT,
 } from './_types'
 import { REAddress } from './reAddress'
 import { amountToBuffer, uint256FromReadBuffer } from './tokens'
@@ -13,7 +14,7 @@ import { PublicKeyT } from '@radixdlt/crypto'
 
 const fromBufferReader = (
 	bufferReader: BufferReaderT,
-): Result<PreparedUnstakeT, Error> =>
+): Result<StakeShareT, Error> =>
 	combine([
 		pubKeyFromReadBuffer(bufferReader),
 		REAddress.fromBufferReader(bufferReader),
@@ -25,19 +26,19 @@ const fromBufferReader = (
 			amount: resList[2] as UInt256,
 		}))
 		.map(
-			(partial): PreparedUnstakeT => {
+			(partial): StakeShareT => {
 				const { delegate, owner, amount } = partial
 				const buffer = Buffer.concat([
-					Buffer.from([SubStateType.PREPARED_UNSTAKE]),
+					Buffer.from([SubStateType.STAKE_SHARE]),
 					delegate.asData({ compressed: true }),
 					owner.toBuffer(),
 					amountToBuffer(amount),
 				])
 				return {
 					...partial,
-					substateType: SubStateType.PREPARED_UNSTAKE,
+					substateType: SubStateType.STAKE_SHARE,
 					toBuffer: () => buffer,
-					toString: () => `PreparedUnstakeT: { 
+					toString: () => `StakeShare: { 
 						delegate: ${delegate.toString()},
 						owner: ${owner.toString()},
 						amount: ${amount.toString()},
@@ -46,6 +47,6 @@ const fromBufferReader = (
 			},
 		)
 
-export const PreparedUnstake = {
+export const StakeShare = {
 	fromBufferReader,
 }

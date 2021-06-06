@@ -3,6 +3,7 @@ import { Result } from 'neverthrow'
 import { Tokens } from './tokens'
 import { PreparedStake } from './preparedStake'
 import { PreparedUnstake } from './preparedUnstake'
+import { StakeShare } from './stakeShare'
 
 const parseFromBufferReader = (
 	bufferReader: BufferReaderT,
@@ -20,6 +21,8 @@ const parseFromBufferReader = (
 						return PreparedStake.fromBufferReader(bufferReader)
 					case SubStateType.PREPARED_UNSTAKE:
 						return PreparedUnstake.fromBufferReader(bufferReader)
+					case SubStateType.STAKE_SHARE:
+						return StakeShare.fromBufferReader(bufferReader)
 					default:
 						throw new Error(
 							`Substate of type: ${SubStateType[substateType]} not implemented.`,

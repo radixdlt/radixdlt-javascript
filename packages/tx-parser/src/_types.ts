@@ -169,12 +169,22 @@ export type PreparedStakeT = BaseSubstate<SubStateType.PREPARED_STAKE> & {
 }
 
 export type PreparedUnstakeT = BaseSubstate<SubStateType.PREPARED_UNSTAKE> & {
-	owner: REAddressT
 	delegate: PublicKeyT
+	owner: REAddressT
 	amount: AmountT
 }
 
-export type SubstateT = TokensT | PreparedStakeT | PreparedUnstakeT
+export type StakeShareT = BaseSubstate<SubStateType.STAKE_SHARE> & {
+	delegate: PublicKeyT
+	owner: REAddressT
+	amount: AmountT
+}
+
+export type SubstateT =
+	| TokensT
+	| PreparedStakeT
+	| PreparedUnstakeT
+	| StakeShareT
 
 export type BaseInstructionWithSubState<
 	IT extends InstructionType
