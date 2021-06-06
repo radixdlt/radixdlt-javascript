@@ -51,8 +51,6 @@ const substateIdFromBufferReader = (
 	})
 
 const fromBuffer = (blob: Buffer): Result<TransactionT, Error> => {
-	// const originalBlob = Buffer.alloc(blob.length)
-	// blob.copy(originalBlob)
 	const instructions: InstructionT[] = []
 
 	const bufferReader = BufferReader.create(blob)
@@ -80,8 +78,6 @@ const fromBuffer = (blob: Buffer): Result<TransactionT, Error> => {
 					}
 				},
 			)
-	let iterations = 0
-	console.log(`💡 starting while loop...`)
 
 	const parseInstruction = (): Result<InstructionT, Error> =>
 		bufferReader
@@ -95,7 +91,6 @@ const fromBuffer = (blob: Buffer): Result<TransactionT, Error> => {
 					const { insBuf, instructionType } = ii
 					switch (instructionType) {
 						case InstructionType.END:
-							console.log(`🤡 found InstructionType.END`)
 							return ok({
 								instructionType,
 								toBuffer: () => insBuf,
@@ -103,7 +98,6 @@ const fromBuffer = (blob: Buffer): Result<TransactionT, Error> => {
 									`${InstructionType[instructionType]}: (Always empty)`,
 							} as Ins_END)
 						case InstructionType.UP:
-							console.log(`🤡 found InstructionType.UP`)
 							return readSubstate().map(
 								(substate): Ins_UP => ({
 									instructionType,
@@ -118,7 +112,6 @@ const fromBuffer = (blob: Buffer): Result<TransactionT, Error> => {
 								}),
 							)
 						case InstructionType.VDOWN:
-							console.log(`🤡 found InstructionType.VDOWN`)
 							return readSubstate().map(
 								(substate): Ins_VDOWN => ({
 									instructionType,
@@ -133,7 +126,6 @@ const fromBuffer = (blob: Buffer): Result<TransactionT, Error> => {
 								}),
 							)
 						case InstructionType.VDOWNARG:
-							console.log(`🤡 found InstructionType.VDOWNARG`)
 							return combine([
 								readSubstate(),
 								Bytes.fromBufferReader(bufferReader),
@@ -158,7 +150,6 @@ const fromBuffer = (blob: Buffer): Result<TransactionT, Error> => {
 									}),
 								)
 						case InstructionType.DOWN:
-							console.log(`🤡 found InstructionType.DOWN`)
 							return substateIdFromBufferReader(bufferReader).map(
 								(substateId): Ins_DOWN => ({
 									instructionType,
@@ -173,7 +164,6 @@ const fromBuffer = (blob: Buffer): Result<TransactionT, Error> => {
 								}),
 							)
 						case InstructionType.LDOWN:
-							console.log(`🤡 found InstructionType.LDOWN`)
 							return bufferReader.readNextBuffer(4).map(
 								(substateIndexBytes): Ins_LDOWN => {
 									const substateIndex = substateIndexBytes.readUInt32BE()
@@ -191,7 +181,6 @@ const fromBuffer = (blob: Buffer): Result<TransactionT, Error> => {
 								},
 							)
 						case InstructionType.MSG:
-							console.log(`🤡 found InstructionType.MSG`)
 							return Bytes.fromBufferReader(bufferReader).map(
 								(bytes: BytesT): Ins_MSG => ({
 									instructionType,
@@ -206,7 +195,6 @@ const fromBuffer = (blob: Buffer): Result<TransactionT, Error> => {
 								}),
 							)
 						case InstructionType.SIG:
-							console.log(`🤡 found InstructionType.SIG`)
 							return TxSignature.fromBufferReader(
 								bufferReader,
 							).map(
@@ -223,7 +211,6 @@ const fromBuffer = (blob: Buffer): Result<TransactionT, Error> => {
 								}),
 							)
 						case InstructionType.DOWNALL:
-							console.log(`🤡 found InstructionType.DOWNALL`)
 							return bufferReader
 								.readNextBuffer(1)
 								.map(b => b.readUInt8() as Byte)
@@ -251,18 +238,13 @@ const fromBuffer = (blob: Buffer): Result<TransactionT, Error> => {
 			)
 
 	while (!bufferReader.finishedParsing()) {
-		console.log(`🔮 blob.length: ${blob.length}, #${iterations} iterations`)
-		if (iterations === 3) {
-			console.error(`❌ killed after #${iterations} iterations`)
-		}
 		const instructionRes = parseInstruction()
 		if (instructionRes.isErr()) {
 			return err(instructionRes.error)
 		}
 		const instruction = instructionRes.value
-		console.log(`✅ parsed instruction: ${instruction.toString()}`)
+		console.log(`✅ Parsed instruction: ${instruction.toString()}`)
 		instructions.push(instruction)
-		iterations += 1
 	}
 
 	return ok({

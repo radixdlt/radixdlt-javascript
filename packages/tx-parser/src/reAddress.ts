@@ -16,15 +16,20 @@ const fromBufferReader = (
 ): Result<REAddressT, Error> =>
 	bufferReader
 		.readNextBuffer(1)
-		.map(b => b.readUInt8())
-		.map(n => n as REAddressType)
+		// .map(b => b.readUInt8())
+		// .map(n => n as REAddressType)
+		.map(b => ({
+			reAddressTypeBuf: b,
+			reAddressType: b.readUInt8() as REAddressType,
+		}))
 		.andThen(
-			(reAddressType: REAddressType): Result<REAddressT, Error> => {
+			(aa): Result<REAddressT, Error> => {
+				const { reAddressTypeBuf, reAddressType } = aa
 				switch (reAddressType) {
 					case REAddressType.SYSTEM:
 						const systemAddress: REAddressSystem = {
 							reAddressType: REAddressType.SYSTEM,
-							toBuffer: () => Buffer.alloc(0),
+							toBuffer: () => reAddressTypeBuf,
 							toString: () =>
 								`REAddressType.SYSTEM (Always empty)`,
 						}
@@ -32,7 +37,7 @@ const fromBufferReader = (
 					case REAddressType.RADIX_NATIVE_TOKEN:
 						const nativeToken: REAddressNativeToken = {
 							reAddressType: REAddressType.RADIX_NATIVE_TOKEN,
-							toBuffer: () => Buffer.alloc(0),
+							toBuffer: () => reAddressTypeBuf,
 							toString: () =>
 								`REAddressType.RADIX_NATIVE_TOKEN (Always empty)`,
 						}
@@ -42,7 +47,11 @@ const fromBufferReader = (
 							(lower26Bytes): REAddressHashedKeyNonce => ({
 								reAddressType: REAddressType.HASHED_KEY_NONCE,
 								lower26Bytes,
-								toBuffer: () => lower26Bytes,
+								toBuffer: () =>
+									Buffer.concat([
+										reAddressTypeBuf,
+										lower26Bytes,
+									]),
 								toString: () =>
 									`REAddressType.HASHED_KEY_NONCE: { lower26Bytes: ${lower26Bytes.toString(
 										'hex',
@@ -62,7 +71,12 @@ const fromBufferReader = (
 									reAddressType: REAddressType.PUBLIC_KEY,
 									publicKey,
 									toBuffer: () =>
-										publicKey.asData({ compressed: true }),
+										Buffer.concat([
+											reAddressTypeBuf,
+											publicKey.asData({
+												compressed: true,
+											}),
+										]),
 									toString: () =>
 										`REAddressType.PUBLIC_KEY: { publicKey: ${publicKey.toString(
 											true,
