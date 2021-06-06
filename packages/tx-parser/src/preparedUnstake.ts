@@ -1,5 +1,10 @@
 import { combine, Result } from 'neverthrow'
-import { PreparedUnstakeT, REAddressT, SubStateType, BufferReaderT } from './_types'
+import {
+	PreparedUnstakeT,
+	REAddressT,
+	SubStateType,
+	BufferReaderT,
+} from './_types'
 import { REAddress } from './reAddress'
 import { amountToBuffer, uint256FromReadBuffer } from './tokens'
 import { UInt256 } from '@radixdlt/uint256'
@@ -23,6 +28,7 @@ const fromBufferReader = (
 			(partial): PreparedUnstakeT => {
 				const { owner, delegate, amount } = partial
 				const buffer = Buffer.concat([
+					Buffer.from([SubStateType.PREPARED_UNSTAKE]),
 					owner.toBuffer(),
 					delegate.asData({ compressed: true }),
 					amountToBuffer(amount),

@@ -3,22 +3,17 @@ import { REAddressT, SubStateType, TokensT, BufferReaderT } from './_types'
 import { REAddress } from './reAddress'
 import { UInt256 } from '@radixdlt/uint256'
 
+const uint256ByteCount = 32
+
 export const uint256FromReadBuffer = (
 	bufferReader: BufferReaderT,
 ): Result<UInt256, Error> =>
-	bufferReader.readNextBuffer(32).map(b => new UInt256(b.toString('hex'), 16))
+	bufferReader
+		.readNextBuffer(uint256ByteCount)
+		.map(b => new UInt256(b.toString('hex'), 16))
 
-export const amountToBuffer = (amount: UInt256): Buffer => {
-	const amtBuf = Buffer.from(amount.toString(16), 'hex')
-	const buffer = Buffer.alloc(32)
-	amtBuf.copy(buffer)
-	if (buffer.length !== 32) {
-		throw new Error(
-			`Incorrect implementation, amount should always serialize into 32 bytes`,
-		)
-	}
-	return buffer
-}
+export const amountToBuffer = (amount: UInt256): Buffer =>
+	Buffer.from(amount.toByteArray()).reverse() // fix endianess.
 
 const fromBufferReader = (
 	bufferReader: BufferReaderT,
@@ -37,6 +32,7 @@ const fromBufferReader = (
 			(partial): TokensT => {
 				const { rri, owner, amount } = partial
 				const buffer = Buffer.concat([
+					Buffer.from([SubStateType.TOKENS]),
 					rri.toBuffer(),
 					owner.toBuffer(),
 					amountToBuffer(amount),

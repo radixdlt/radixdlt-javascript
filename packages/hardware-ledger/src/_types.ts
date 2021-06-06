@@ -172,4 +172,3 @@ export type MockedLedgerNanoT = LedgerNanoT &
 	Readonly<{
 		store: MockedLedgerNanoStoreT
 	}>
-

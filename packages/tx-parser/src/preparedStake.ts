@@ -32,6 +32,7 @@ const fromBufferReader = (
 			(partial): PreparedStakeT => {
 				const { owner, delegate, amount } = partial
 				const buffer = Buffer.concat([
+					Buffer.from([SubStateType.PREPARED_STAKE]),
 					owner.toBuffer(),
 					delegate.asData({ compressed: true }),
 					amountToBuffer(amount),

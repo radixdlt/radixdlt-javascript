@@ -202,8 +202,6 @@ const signTxStream = (input: APDUDoSignTransactionStreamInput): RadixAPDUT => {
 	})
 }
 
-
-
 const getAppName = (): RadixAPDUT =>
 	makeAPDU({
 		ins: LedgerInstruction.GET_APP_NAME,
@@ -218,5 +216,4 @@ export const RadixAPDU = {
 		initialSetup: signTxInitialSetupPackage,
 		stream: signTxStream,
 	},
-
 }

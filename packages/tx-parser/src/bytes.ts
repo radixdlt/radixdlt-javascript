@@ -2,7 +2,8 @@ import { Result } from 'neverthrow'
 import { BytesT, BufferReaderT } from './_types'
 
 const fromBufferReader = (bufferReader: BufferReaderT): Result<BytesT, Error> =>
-	bufferReader.readNextBuffer(1)
+	bufferReader
+		.readNextBuffer(1)
 		.map(b => b.readUInt8())
 		.andThen((length: number) =>
 			bufferReader.readNextBuffer(length).map(data => ({

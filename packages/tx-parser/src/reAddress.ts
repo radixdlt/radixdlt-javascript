@@ -1,10 +1,10 @@
 import {
+	BufferReaderT,
 	REAddressHashedKeyNonce,
 	REAddressNativeToken,
 	REAddressPublicKey,
 	REAddressSystem,
 	REAddressT,
-	BufferReaderT,
 	REAddressType,
 } from './_types'
 import { ok, Result } from 'neverthrow'
@@ -16,8 +16,6 @@ const fromBufferReader = (
 ): Result<REAddressT, Error> =>
 	bufferReader
 		.readNextBuffer(1)
-		// .map(b => b.readUInt8())
-		// .map(n => n as REAddressType)
 		.map(b => ({
 			reAddressTypeBuf: b,
 			reAddressType: b.readUInt8() as REAddressType,
@@ -28,7 +26,7 @@ const fromBufferReader = (
 				switch (reAddressType) {
 					case REAddressType.SYSTEM:
 						const systemAddress: REAddressSystem = {
-							reAddressType: REAddressType.SYSTEM,
+							reAddressType,
 							toBuffer: () => reAddressTypeBuf,
 							toString: () =>
 								`REAddressType.SYSTEM (Always empty)`,
@@ -36,7 +34,7 @@ const fromBufferReader = (
 						return ok(systemAddress)
 					case REAddressType.RADIX_NATIVE_TOKEN:
 						const nativeToken: REAddressNativeToken = {
-							reAddressType: REAddressType.RADIX_NATIVE_TOKEN,
+							reAddressType,
 							toBuffer: () => reAddressTypeBuf,
 							toString: () =>
 								`REAddressType.RADIX_NATIVE_TOKEN (Always empty)`,
@@ -45,7 +43,7 @@ const fromBufferReader = (
 					case REAddressType.HASHED_KEY_NONCE:
 						return bufferReader.readNextBuffer(26).map(
 							(lower26Bytes): REAddressHashedKeyNonce => ({
-								reAddressType: REAddressType.HASHED_KEY_NONCE,
+								reAddressType,
 								lower26Bytes,
 								toBuffer: () =>
 									Buffer.concat([
@@ -68,7 +66,7 @@ const fromBufferReader = (
 								(
 									publicKey: PublicKeyT,
 								): REAddressPublicKey => ({
-									reAddressType: REAddressType.PUBLIC_KEY,
+									reAddressType,
 									publicKey,
 									toBuffer: () =>
 										Buffer.concat([

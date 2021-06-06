@@ -174,13 +174,13 @@ export type PreparedUnstakeT = BaseSubstate<SubStateType.PREPARED_UNSTAKE> & {
 	amount: AmountT
 }
 
-export type Substate = TokensT | PreparedStakeT | PreparedUnstakeT
+export type SubstateT = TokensT | PreparedStakeT | PreparedUnstakeT
 
 export type BaseInstructionWithSubState<
 	IT extends InstructionType
 > = BaseInstruction<IT> &
 	Readonly<{
-		substate: Substate
+		substate: SubstateT
 	}>
 
 export type BytesT = REPrimitive &
@@ -204,7 +204,7 @@ export type Ins_VDOWNARG = BaseInstructionWithSubState<InstructionType.VDOWNARG>
 
 export type UInt32 = number
 
-export type SubstateId = REPrimitive &
+export type SubstateIdT = REPrimitive &
 	Readonly<{
 		hash: Buffer
 		index: UInt32
@@ -212,7 +212,7 @@ export type SubstateId = REPrimitive &
 
 export type Ins_DOWN = BaseInstruction<InstructionType.DOWN> &
 	Readonly<{
-		substateId: SubstateId
+		substateId: SubstateIdT
 	}>
 
 export type Ins_LDOWN = BaseInstruction<InstructionType.LDOWN> &
