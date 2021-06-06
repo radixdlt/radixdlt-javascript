@@ -59,6 +59,46 @@ describe('txParser', () => {
 					'000ed97e5664df372ea8a0f24d0cf4e63449c0131b5f0eb707491e9afc6078e72658760cce82a2a42e80628f366bf0e4f21ad3affc9e027a6365efead24d22f3ed',
 				)
 			})
+
+			it('partial stake', () => {
+				const blobHex =
+					'046f316f441da9d45ac76ebb603a249612ec0308f047bf7dc1aab10065c0acb6d100000003010301040335ed93414e2a68e6fe717f72f1ff4e6cf3ca44c93493fc5cae25885c0be6d9c30000000000000000000000000000000000000000000000022b1c8c1227a000000104040335ed93414e2a68e6fe717f72f1ff4e6cf3ca44c93493fc5cae25885c0be6d9c30335ed93414e2a68e6fe717f72f1ff4e6cf3ca44c93493fc5cae25885c0be6d9c300000000000000000000000000000000000000000000000340aad21b3b7000000007016d9e2ad24baff9598cc88034d1412086d1fe8dc426ad5768b45fd66ba878453533b0b14f660240d5d9932268f0822e71fbf58fb3405733d622b4e43c68cfc528'
+				const blob = Buffer.from(blobHex, 'hex')
+				const txRes = Transaction.fromBuffer(blob)
+				if (txRes.isErr()) {
+					throw txRes.error
+				}
+				const parsedTx: TransactionT = txRes.value
+				console.log(`✅ parsed tx: ${parsedTx.toString()}`)
+				expect(parsedTx.toBuffer().toString('hex')).toBe(blobHex)
+
+				const ins = parsedTx.instructions
+
+				expect(ins.length).toBe(5)
+				expect(
+					ins
+						.map(i => i.instructionType)
+						.map(it => InstructionType[it]),
+				).toStrictEqual(['DOWN', 'UP', 'UP', 'END', 'SIG'])
+
+				const pubKeyHex = '0335ed93414e2a68e6fe717f72f1ff4e6cf3ca44c93493fc5cae25885c0be6d9c3'
+
+				const i0_DOWN = ins[0] as Ins_DOWN
+				expect(i0_DOWN.substateId.index).toBe(3)
+				const i1_UP = ins[1] as Ins_UP
+				expect(i1_UP.substate.substateType).toBe(SubStateType.TOKENS)
+				const tokens = i1_UP.substate as TokensT
+				expect(tokens.amount.toString()).toBe('40000000000000000000')
+				expect(tokens.owner.toString().includes(pubKeyHex)).toBe(true)
+				const i2_UP = ins[2] as Ins_UP
+				expect(i2_UP.substate.substateType).toBe(SubStateType.PREPARED_STAKE)
+				const prepareStake = i2_UP.substate as PreparedStakeT
+				expect(prepareStake.amount.toString()).toBe('60000000000000000000')
+
+				const i3_END = ins[3] as Ins_END
+				const i4_SIG = ins[4] as Ins_SIG
+				expect(i4_SIG.signature.toBuffer().toString('hex')).toBe('016d9e2ad24baff9598cc88034d1412086d1fe8dc426ad5768b45fd66ba878453533b0b14f660240d5d9932268f0822e71fbf58fb3405733d622b4e43c68cfc528')
+			})
 		})
 
 		describe('containing tokentransfer', () => {
