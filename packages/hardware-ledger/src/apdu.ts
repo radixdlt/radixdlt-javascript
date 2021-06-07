@@ -156,15 +156,14 @@ const doSignHash = (input: APDUDoSignHashInput): RadixAPDUT => {
 	})
 }
 
-type APDUDoSignTransactionInput = WithPath &
+type APDUDoSignTxInitialPackage = WithPath &
 	Readonly<{
-		numberOfActions: number
 		txByteCount: number
+		numberOfInstructions: number
 	}>
 
-type APDUDoSignTransactionStreamInput = Readonly<{
-	bytesToStreamToLedgerDevice: Buffer
-	actionIndex: number
+type APDUDoSignTxSingleInstructionPackage = Readonly<{
+	instructionBytes: Buffer
 }>
 
 enum SignTxAPDUType {
@@ -173,10 +172,10 @@ enum SignTxAPDUType {
 }
 
 const signTxInitialSetupPackage = (
-	input: APDUDoSignTransactionInput,
+	input: APDUDoSignTxInitialPackage,
 ): RadixAPDUT => {
 	const p1 = SignTxAPDUType.INITIAL_SETUP_PACKAGE.valueOf()
-	const p2 = input.numberOfActions
+	const p2 = input.numberOfInstructions
 
 	const pathData = hdPathToBuffer(input.path)
 	const sizeOfTXAsData = Buffer.alloc(2)
@@ -191,14 +190,14 @@ const signTxInitialSetupPackage = (
 	})
 }
 
-const signTxStream = (input: APDUDoSignTransactionStreamInput): RadixAPDUT => {
+const signTxStream = (
+	input: APDUDoSignTxSingleInstructionPackage,
+): RadixAPDUT => {
 	const p1 = SignTxAPDUType.STREAM_TX.valueOf()
-	const p2 = input.actionIndex
 	return makeAPDU({
 		ins: LedgerInstruction.DO_SIGN_TX,
 		p1,
-		p2,
-		data: input.bytesToStreamToLedgerDevice,
+		data: input.instructionBytes,
 	})
 }
 

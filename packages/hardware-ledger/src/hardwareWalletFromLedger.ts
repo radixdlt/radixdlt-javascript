@@ -1,4 +1,4 @@
-import { from, Observable, Subject, Subscription, throwError } from 'rxjs'
+import { from, Observable, of, Subject, Subscription, throwError } from 'rxjs'
 import {
 	ECPointOnCurve,
 	ECPointOnCurveT,
@@ -32,18 +32,8 @@ import { LedgerNanoT } from './_types'
 import { LedgerNano } from './ledgerNano'
 import { log } from '@radixdlt/util'
 import { BuiltTransactionReadyToSign } from '@radixdlt/primitives'
-
-type ParsedTXAction = Readonly<{
-	indexInTx: number
-	bytes: Buffer
-}>
-const parseActions = (tx: BuiltTransactionReadyToSign): ParsedTXAction[] =>
-	// TODO replaced mocked data
-	[]
-
-const TXParser = {
-	parseActions,
-}
+import { Transaction } from '@radixdlt/tx-parser/dist/transaction'
+import { InstructionT } from '@radixdlt/tx-parser'
 
 const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 	const getPublicKey = (input: GetPublicKeyInput): Observable<PublicKeyT> =>
@@ -208,105 +198,90 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 	const doSignTransaction = (
 		input: SignTransactionInput,
 	): Observable<SignatureT> => {
-		const { tx } = input
-		const txBytes = Buffer.from(tx.blob, 'hex')
 		const subs = new Subscription()
 
-		const actions = TXParser.parseActions(tx)
-		const numberOfActions = actions.length
+		const transactionRes = Transaction.fromBuffer(
+			Buffer.from(input.tx.blob, 'hex'),
+		)
+		if (transactionRes.isErr()) {
+			const errMsg = `Failed to parse tx, underlying error: ${msgFromError(
+				transactionRes.error,
+			)}`
+			log.error(errMsg)
+			return throwError(new Error(errMsg))
+		}
+		const transaction = transactionRes.value
+		const instructions = transaction.instructions
+		const numberOfInstructions = instructions.length
 
-		const streamSubject = new Subject<void>()
+		const sendInstructionSubject = new Subject<InstructionT>()
 		const signatureBytesSubject = new Subject<Buffer>()
 		const signatureSubject = new Subject<SignatureT>()
 
-		const txByteCount = tx.blob.length
-		let actionsSent = 0
-		let txBytesThatHasBeenExchanged = 0
 		const maxBytesPerExchange = 255
-		const txBytesLeftToStream = (): number =>
-			Math.min(
-				maxBytesPerExchange,
-				txByteCount - txBytesThatHasBeenExchanged,
-			)
 
-		const continueStream = (): void => {
-			streamSubject.next(undefined)
-		}
-		const startStreamingTXBytes = (): void => {
-			continueStream()
-		}
-
-		const bufferFromNextActionInTxToStream = (): ParsedTXAction => {
-			const txActionToStream = actions[actionsSent]
+		const nextInstructionToSend = (): InstructionT => {
+			const instructionToSend: InstructionT = instructions.shift()! // "pop first"
 			log.debug(
-				`🌊 streaming action 📦${actionsSent} #${txActionToStream.bytes.length} tx bytes, #${txBytesThatHasBeenExchanged}/#${txByteCount}.`,
+				`Sending instruction 📦 #${
+					numberOfInstructions - instructions.length
+				}/#${numberOfInstructions}. (length: #${
+					instructionToSend.toBuffer().length
+				} bytes).`,
 			)
-			return txActionToStream
+			return instructionToSend
 		}
 
-		const finishedStreamingWholeTx = (): boolean => {
-			if (txBytesThatHasBeenExchanged < txByteCount) {
-				return false
-			}
-			if (txBytesThatHasBeenExchanged > txByteCount) {
-				const errMsg = `Incorrect implementation, streamed more bytes than the size of transaction, which should never be the case. I have an idea of what might be wrong, we are probably adding 2 too many bytes per slice, not having excluded the 2 bytes response CODE that was also returned from Ledger Device. We should subtract 2 bytes when we are increasing the value of 'txBytesThatHasBeenExchanged'.`
-				log.error(errMsg)
-				throw new Error(errMsg)
-			}
-			return true
+		const sendInstruction = (): void => {
+			sendInstructionSubject.next(nextInstructionToSend())
 		}
+
+		const finishedSendingWholeTx = (): boolean => instructions.length === 0
 
 		subs.add(
 			ledgerNano
 				.sendAPDUToDevice(
 					RadixAPDU.signTX.initialSetup({
 						path: input.path ?? path000H,
-						txByteCount,
-						numberOfActions,
+						txByteCount: input.tx.blob.length,
+						numberOfInstructions,
 					}),
 				)
 				.subscribe({
 					next: _irrelevantBuf => {
-						startStreamingTXBytes()
+						sendInstruction()
 					},
 					error: error => {
-						streamSubject.error(error)
+						sendInstructionSubject.error(error)
 					},
 				}),
 		)
 
 		subs.add(
-			streamSubject
+			sendInstructionSubject
 				.pipe(
+					mergeMap(nextInstruction => {
+						const instructionBytes = nextInstruction.toBuffer()
+						if (instructionBytes.length > maxBytesPerExchange) {
+							const errMsg = `Failed to send instruction, it is longer than max allowed payload size of ${maxBytesPerExchange}, specifically #${instructionBytes.length} bytes.`
+							return throwError(new Error(errMsg))
+						}
+						return of(instructionBytes)
+					}),
 					mergeMap(
-						(_ign): Observable<Buffer> => {
-							const nextActionToStream = bufferFromNextActionInTxToStream()
-							return ledgerNano
-								.sendAPDUToDevice(
-									RadixAPDU.signTX.stream({
-										bytesToStreamToLedgerDevice:
-											nextActionToStream.bytes,
-										actionIndex:
-											nextActionToStream.indexInTx,
-									}),
-								)
-								.pipe(
-									tap({
-										next: _ => {
-											txBytesThatHasBeenExchanged +=
-												nextActionToStream.bytes.length
-											actionsSent += 1
-										},
-									}),
-								)
-						},
+						(instructionBytes): Observable<Buffer> =>
+							ledgerNano.sendAPDUToDevice(
+								RadixAPDU.signTX.stream({
+									instructionBytes,
+								}),
+							),
 					),
 					tap({
 						next: (responseFromLedger: Buffer) => {
-							if (finishedStreamingWholeTx()) {
+							if (finishedSendingWholeTx()) {
 								signatureBytesSubject.next(responseFromLedger)
 							} else {
-								continueStream()
+								sendInstruction()
 							}
 						},
 					}),
