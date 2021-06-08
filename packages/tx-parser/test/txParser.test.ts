@@ -1,5 +1,11 @@
 import { Transaction } from '../src/transaction'
-import { InstructionType, StakeShareT, TransactionT } from '../src'
+import {
+	Ins_HEADER,
+	Ins_SYSCALL,
+	InstructionType,
+	StakeShareT,
+	TransactionT,
+} from '../src'
 import {
 	Ins_DOWN,
 	Ins_END,
@@ -13,328 +19,340 @@ import {
 } from '../dist'
 
 describe('txParser', () => {
-	describe('parse blobs', () => {
-		describe('containing stake', () => {
-			it('full stake', () => {
-				const blobHex =
-					'049269ef21d819398237d428001a34d4ac9baabbd63c90e19e09e76864d7885bbb000000030104040387ca83ea04f7f570b978ff29a1673b4ba7e590316255e6036e725808d7bed4a40387ca83ea04f7f570b978ff29a1673b4ba7e590316255e6036e725808d7bed4a40000000000000000000000000000000000000000000000056bc75e2d631000000007000ed97e5664df372ea8a0f24d0cf4e63449c0131b5f0eb707491e9afc6078e72658760cce82a2a42e80628f366bf0e4f21ad3affc9e027a6365efead24d22f3ed'
-				const blob = Buffer.from(blobHex, 'hex')
-				const txRes = Transaction.fromBuffer(blob)
-				if (txRes.isErr()) {
-					throw txRes.error
-				}
-				const parsedTx: TransactionT = txRes.value
-				console.log(`✅ parsed tx: ${parsedTx.toString()}`)
-				expect(parsedTx.toBuffer().toString('hex')).toBe(blobHex)
+	describe('complex tx with multiple substate groups', () => {
+		it('tokens transfer and stake', () => {
+			const blobHex =
+				'0a000104374c00efbe61f645a8b35d7746e106afa7422877e5d607975b6018e0a1aa6bf0000000040921000000000000000000000000000000000000000000000000000000000000000002010301040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba000000000000000000000000000000000000000000000001158e460913cffffe000500000003010301040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba0000000000000000000000000000000000000000000000008ac7230489e7fffe0104040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba02f19b2d095a553f3a41da4a8dc1f8453dfbdc733c5aece8b128b7d7999ae247a50000000000000000000000000000000000000000000000008ac7230489e80000000700dcb252005545207d4d0e0a72952acccf9466087fbecee7d5851467869aa8d6566dd9476f5e719fe1025dee78f975d9b5a5d136ced8e51cfcd7b7c85563edb23b'
+			const blob = Buffer.from(blobHex, 'hex')
+			const txRes = Transaction.fromBuffer(blob)
+			if (txRes.isErr()) {
+				throw txRes.error
+			}
+			const parsedTx: TransactionT = txRes.value
+			console.log(`✅ parsed tx: ${parsedTx.toString()}`)
+			expect(parsedTx.toBuffer().toString('hex')).toBe(blobHex)
 
-				const ins = parsedTx.instructions
+			const ins = parsedTx.instructions
 
-				expect(ins.length).toBe(4)
-				expect(
-					ins
-						.map(i => i.instructionType)
-						.map(it => InstructionType[it]),
-				).toStrictEqual(['DOWN', 'UP', 'END', 'SIG'])
+			expect(ins.length).toBe(10)
+			expect(
+				ins.map(i => i.instructionType).map(it => InstructionType[it]),
+			).toStrictEqual([
+				'HEADER',
+				'DOWN',
+				'SYSCALL',
+				'UP',
+				'END',
+				'LDOWN',
+				'UP',
+				'UP',
+				'END',
+				'SIG',
+			])
 
-				const i0_DOWN = ins[0] as Ins_DOWN
-				expect(i0_DOWN.substateId.index).toBe(3)
+			const i0_HEADER = ins[0] as Ins_HEADER
+			expect(i0_HEADER.version).toBe(0x00)
+			expect(i0_HEADER.flag).toBe(0x01)
 
-				const i1_UP = ins[1] as Ins_UP
-				expect(i1_UP.substate.substateType).toBe(
-					SubStateType.PREPARED_STAKE,
-				)
-				const stakeSubstate = i1_UP.substate as PreparedStakeT
-				expect(stakeSubstate.owner.toBuffer().toString('hex')).toBe(
-					'040387ca83ea04f7f570b978ff29a1673b4ba7e590316255e6036e725808d7bed4a4',
-				)
-				expect(stakeSubstate.delegate.toString(true)).toBe(
-					'0387ca83ea04f7f570b978ff29a1673b4ba7e590316255e6036e725808d7bed4a4',
-				)
-				expect(stakeSubstate.amount.toString()).toBe(
-					'100000000000000000000',
-				)
+			const i1_DOWN = ins[1] as Ins_DOWN
+			expect(i1_DOWN.substateId.index).toBe(4)
+			expect(i1_DOWN.substateId.hash.toString('hex')).toBe(
+				'374c00efbe61f645a8b35d7746e106afa7422877e5d607975b6018e0a1aa6bf0',
+			)
 
-				const i2_END = ins[2] as Ins_END
-				const i3_SIG = ins[3] as Ins_SIG
-				expect(i3_SIG.signature.toBuffer().toString('hex')).toBe(
-					'000ed97e5664df372ea8a0f24d0cf4e63449c0131b5f0eb707491e9afc6078e72658760cce82a2a42e80628f366bf0e4f21ad3affc9e027a6365efead24d22f3ed',
-				)
-			})
+			const i2_SYSCALL = ins[2] as Ins_SYSCALL
+			expect(i2_SYSCALL.callData.data.toString('hex')).toBe(
+				'000000000000000000000000000000000000000000000000000000000000000002',
+			)
 
-			it('partial stake', () => {
-				const blobHex =
-					'046f316f441da9d45ac76ebb603a249612ec0308f047bf7dc1aab10065c0acb6d100000003010301040335ed93414e2a68e6fe717f72f1ff4e6cf3ca44c93493fc5cae25885c0be6d9c30000000000000000000000000000000000000000000000022b1c8c1227a000000104040335ed93414e2a68e6fe717f72f1ff4e6cf3ca44c93493fc5cae25885c0be6d9c30335ed93414e2a68e6fe717f72f1ff4e6cf3ca44c93493fc5cae25885c0be6d9c300000000000000000000000000000000000000000000000340aad21b3b7000000007016d9e2ad24baff9598cc88034d1412086d1fe8dc426ad5768b45fd66ba878453533b0b14f660240d5d9932268f0822e71fbf58fb3405733d622b4e43c68cfc528'
-				const blob = Buffer.from(blobHex, 'hex')
-				const txRes = Transaction.fromBuffer(blob)
-				if (txRes.isErr()) {
-					throw txRes.error
-				}
-				const parsedTx: TransactionT = txRes.value
-				console.log(`✅ parsed tx: ${parsedTx.toString()}`)
-				expect(parsedTx.toBuffer().toString('hex')).toBe(blobHex)
+			const i3_UP = ins[3] as Ins_UP
+			expect(i3_UP.substate.substateType).toBe(SubStateType.TOKENS)
+			const tokens0 = i3_UP.substate as TokensT
+			expect(tokens0.amount.toString()).toBe('19999999999999999998')
+			expect(tokens0.rri.toBuffer().readUInt8()).toBe(1)
+			expect(tokens0.owner.toBuffer().toString('hex')).toBe(
+				'040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba',
+			)
 
-				const ins = parsedTx.instructions
+			const i4_END = ins[4] as Ins_END
 
-				expect(ins.length).toBe(5)
-				expect(
-					ins
-						.map(i => i.instructionType)
-						.map(it => InstructionType[it]),
-				).toStrictEqual(['DOWN', 'UP', 'UP', 'END', 'SIG'])
+			const i5_LDOWN = ins[5] as Ins_LDOWN
+			expect(i5_LDOWN.substateIndex.valueOf()).toBe(3)
 
-				const pubKeyHex =
-					'0335ed93414e2a68e6fe717f72f1ff4e6cf3ca44c93493fc5cae25885c0be6d9c3'
+			const i6_UP = ins[6] as Ins_UP
+			expect(i6_UP.substate.substateType).toBe(SubStateType.TOKENS)
+			const tokens1 = i6_UP.substate as TokensT
+			expect(tokens1.amount.toString()).toBe('9999999999999999998')
+			expect(tokens1.rri.toBuffer().readUInt8()).toBe(1)
+			expect(tokens1.owner.toBuffer().toString('hex')).toBe(
+				'040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba',
+			)
 
-				const i0_DOWN = ins[0] as Ins_DOWN
-				expect(i0_DOWN.substateId.index).toBe(3)
-				const i1_UP = ins[1] as Ins_UP
-				expect(i1_UP.substate.substateType).toBe(SubStateType.TOKENS)
-				const tokens = i1_UP.substate as TokensT
-				expect(tokens.amount.toString()).toBe('40000000000000000000')
-				expect(tokens.owner.toString().includes(pubKeyHex)).toBe(true)
-				const i2_UP = ins[2] as Ins_UP
-				expect(i2_UP.substate.substateType).toBe(
-					SubStateType.PREPARED_STAKE,
-				)
-				const prepareStake = i2_UP.substate as PreparedStakeT
-				expect(prepareStake.amount.toString()).toBe(
-					'60000000000000000000',
-				)
+			const i7_UP = ins[7] as Ins_UP
+			expect(i7_UP.substate.substateType).toBe(
+				SubStateType.PREPARED_STAKE,
+			)
+			const stake = i7_UP.substate as PreparedStakeT
+			expect(stake.amount.toString()).toBe('10000000000000000000')
+			expect(stake.delegate.toString(true)).toBe(
+				'02f19b2d095a553f3a41da4a8dc1f8453dfbdc733c5aece8b128b7d7999ae247a5',
+			)
+			expect(stake.owner.toBuffer().toString('hex')).toBe(
+				'040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba',
+			)
 
-				const i3_END = ins[3] as Ins_END
-				const i4_SIG = ins[4] as Ins_SIG
-				expect(i4_SIG.signature.toBuffer().toString('hex')).toBe(
-					'016d9e2ad24baff9598cc88034d1412086d1fe8dc426ad5768b45fd66ba878453533b0b14f660240d5d9932268f0822e71fbf58fb3405733d622b4e43c68cfc528',
-				)
-			})
+			const i8_END = ins[8] as Ins_END
+
+			const i9_SIG = ins[9] as Ins_SIG
+			expect(i9_SIG.signature.toBuffer().toString('hex')).toBe(
+				'00dcb252005545207d4d0e0a72952acccf9466087fbecee7d5851467869aa8d6566dd9476f5e719fe1025dee78f975d9b5a5d136ced8e51cfcd7b7c85563edb23b',
+			)
+		})
+	})
+
+	describe('containing stake', () => {
+		it('full stake', () => {
+			const blobHex =
+				'049269ef21d819398237d428001a34d4ac9baabbd63c90e19e09e76864d7885bbb000000030104040387ca83ea04f7f570b978ff29a1673b4ba7e590316255e6036e725808d7bed4a40387ca83ea04f7f570b978ff29a1673b4ba7e590316255e6036e725808d7bed4a40000000000000000000000000000000000000000000000056bc75e2d631000000007000ed97e5664df372ea8a0f24d0cf4e63449c0131b5f0eb707491e9afc6078e72658760cce82a2a42e80628f366bf0e4f21ad3affc9e027a6365efead24d22f3ed'
+			const blob = Buffer.from(blobHex, 'hex')
+			const txRes = Transaction.fromBuffer(blob)
+			if (txRes.isErr()) {
+				throw txRes.error
+			}
+			const parsedTx: TransactionT = txRes.value
+			console.log(`✅ parsed tx: ${parsedTx.toString()}`)
+			expect(parsedTx.toBuffer().toString('hex')).toBe(blobHex)
+
+			const ins = parsedTx.instructions
+
+			expect(ins.length).toBe(4)
+			expect(
+				ins.map(i => i.instructionType).map(it => InstructionType[it]),
+			).toStrictEqual(['DOWN', 'UP', 'END', 'SIG'])
+
+			const i0_DOWN = ins[0] as Ins_DOWN
+			expect(i0_DOWN.substateId.index).toBe(3)
+
+			const i1_UP = ins[1] as Ins_UP
+			expect(i1_UP.substate.substateType).toBe(
+				SubStateType.PREPARED_STAKE,
+			)
+			const stakeSubstate = i1_UP.substate as PreparedStakeT
+			expect(stakeSubstate.owner.toBuffer().toString('hex')).toBe(
+				'040387ca83ea04f7f570b978ff29a1673b4ba7e590316255e6036e725808d7bed4a4',
+			)
+			expect(stakeSubstate.delegate.toString(true)).toBe(
+				'0387ca83ea04f7f570b978ff29a1673b4ba7e590316255e6036e725808d7bed4a4',
+			)
+			expect(stakeSubstate.amount.toString()).toBe(
+				'100000000000000000000',
+			)
+
+			const i2_END = ins[2] as Ins_END
+			const i3_SIG = ins[3] as Ins_SIG
+			expect(i3_SIG.signature.toBuffer().toString('hex')).toBe(
+				'000ed97e5664df372ea8a0f24d0cf4e63449c0131b5f0eb707491e9afc6078e72658760cce82a2a42e80628f366bf0e4f21ad3affc9e027a6365efead24d22f3ed',
+			)
 		})
 
-		describe('unstake', () => {
-			it('full unstake', () => {
-				const blobHex =
-					'0471ef8cd6502f8eca028307510ed4460d62de681e8c20952901b756695e867e4a00000007010d0233551e3b75bebc0ea230fd565b09b44585f06d226188364f9fc6d6f9f5515b16040233551e3b75bebc0ea230fd565b09b44585f06d226188364f9fc6d6f9f5515b160000000000000000000000000000000000000000000000056bc75e2d631000000007002b8c22d82649c4d8744674409273c01ad3a2a26f9c43dab6daf3decafd541cc321fc55f5e8bdaeb3bd24806f308ea36aa61bd4fbb8f5a5d2b67462d8d70ecf40'
+		it('partial stake', () => {
+			const blobHex =
+				'046f316f441da9d45ac76ebb603a249612ec0308f047bf7dc1aab10065c0acb6d100000003010301040335ed93414e2a68e6fe717f72f1ff4e6cf3ca44c93493fc5cae25885c0be6d9c30000000000000000000000000000000000000000000000022b1c8c1227a000000104040335ed93414e2a68e6fe717f72f1ff4e6cf3ca44c93493fc5cae25885c0be6d9c30335ed93414e2a68e6fe717f72f1ff4e6cf3ca44c93493fc5cae25885c0be6d9c300000000000000000000000000000000000000000000000340aad21b3b7000000007016d9e2ad24baff9598cc88034d1412086d1fe8dc426ad5768b45fd66ba878453533b0b14f660240d5d9932268f0822e71fbf58fb3405733d622b4e43c68cfc528'
+			const blob = Buffer.from(blobHex, 'hex')
+			const txRes = Transaction.fromBuffer(blob)
+			if (txRes.isErr()) {
+				throw txRes.error
+			}
+			const parsedTx: TransactionT = txRes.value
+			console.log(`✅ parsed tx: ${parsedTx.toString()}`)
+			expect(parsedTx.toBuffer().toString('hex')).toBe(blobHex)
 
-				const blob = Buffer.from(blobHex, 'hex')
-				const txRes = Transaction.fromBuffer(blob)
-				if (txRes.isErr()) {
-					throw txRes.error
-				}
-				const parsedTx: TransactionT = txRes.value
-				console.log(`✅ parsed tx: ${parsedTx.toString()}`)
-				expect(parsedTx.toBuffer().toString('hex')).toBe(blobHex)
+			const ins = parsedTx.instructions
 
-				const ins = parsedTx.instructions
-				expect(ins.length).toBe(4)
-				expect(
-					ins
-						.map(i => i.instructionType)
-						.map(it => InstructionType[it]),
-				).toStrictEqual(['DOWN', 'UP', 'END', 'SIG'])
+			expect(ins.length).toBe(5)
+			expect(
+				ins.map(i => i.instructionType).map(it => InstructionType[it]),
+			).toStrictEqual(['DOWN', 'UP', 'UP', 'END', 'SIG'])
 
-				const i0_DOWN = ins[0] as Ins_DOWN
-				expect(i0_DOWN.substateId.index).toBe(7)
+			const pubKeyHex =
+				'0335ed93414e2a68e6fe717f72f1ff4e6cf3ca44c93493fc5cae25885c0be6d9c3'
 
-				const pubKeyHex =
-					'0233551e3b75bebc0ea230fd565b09b44585f06d226188364f9fc6d6f9f5515b16'
+			const i0_DOWN = ins[0] as Ins_DOWN
+			expect(i0_DOWN.substateId.index).toBe(3)
+			const i1_UP = ins[1] as Ins_UP
+			expect(i1_UP.substate.substateType).toBe(SubStateType.TOKENS)
+			const tokens = i1_UP.substate as TokensT
+			expect(tokens.amount.toString()).toBe('40000000000000000000')
+			expect(tokens.owner.toString().includes(pubKeyHex)).toBe(true)
+			const i2_UP = ins[2] as Ins_UP
+			expect(i2_UP.substate.substateType).toBe(
+				SubStateType.PREPARED_STAKE,
+			)
+			const prepareStake = i2_UP.substate as PreparedStakeT
+			expect(prepareStake.amount.toString()).toBe('60000000000000000000')
 
-				const i1_UP = ins[1] as Ins_UP
-				expect(i1_UP.substate.substateType).toBe(
-					SubStateType.PREPARED_UNSTAKE,
-				)
-				const unstake = i1_UP.substate as PreparedUnstakeT
-				expect(unstake.amount.toString()).toBe('100000000000000000000')
-				expect(unstake.delegate.toString(true)).toBe(pubKeyHex)
-				expect(unstake.owner.toString().includes(pubKeyHex)).toBe(true)
+			const i3_END = ins[3] as Ins_END
+			const i4_SIG = ins[4] as Ins_SIG
+			expect(i4_SIG.signature.toBuffer().toString('hex')).toBe(
+				'016d9e2ad24baff9598cc88034d1412086d1fe8dc426ad5768b45fd66ba878453533b0b14f660240d5d9932268f0822e71fbf58fb3405733d622b4e43c68cfc528',
+			)
+		})
+	})
 
-				const i3_SIG = ins[3] as Ins_SIG
-				expect(i3_SIG.signature.toBuffer().toString('hex')).toBe(
-					'002b8c22d82649c4d8744674409273c01ad3a2a26f9c43dab6daf3decafd541cc321fc55f5e8bdaeb3bd24806f308ea36aa61bd4fbb8f5a5d2b67462d8d70ecf40',
-				)
-			})
+	describe('unstake', () => {
+		it('full unstake', () => {
+			const blobHex =
+				'0471ef8cd6502f8eca028307510ed4460d62de681e8c20952901b756695e867e4a00000007010d0233551e3b75bebc0ea230fd565b09b44585f06d226188364f9fc6d6f9f5515b16040233551e3b75bebc0ea230fd565b09b44585f06d226188364f9fc6d6f9f5515b160000000000000000000000000000000000000000000000056bc75e2d631000000007002b8c22d82649c4d8744674409273c01ad3a2a26f9c43dab6daf3decafd541cc321fc55f5e8bdaeb3bd24806f308ea36aa61bd4fbb8f5a5d2b67462d8d70ecf40'
 
-			it('partial unstake', () => {
-				const blobHex =
-					'047f9f7a47b7e47735d357a2340ecee0cf64ca8172890031952f27148030e30c7800000007010b03b5ef1e8b4c16e1b0a9d27a2391f2c664ea5a09108f9e220b25027a574f9bcd340403b5ef1e8b4c16e1b0a9d27a2391f2c664ea5a09108f9e220b25027a574f9bcd340000000000000000000000000000000000000000000000022b1c8c1227a00000010d03b5ef1e8b4c16e1b0a9d27a2391f2c664ea5a09108f9e220b25027a574f9bcd340403b5ef1e8b4c16e1b0a9d27a2391f2c664ea5a09108f9e220b25027a574f9bcd3400000000000000000000000000000000000000000000000340aad21b3b700000000700e90ed1f8f2b118502da221e7b050d6800776905f68b33066efbc33e9167c2e3749f392b07d9991f8941b684a716d2c698b6c7603ab6eadc720b0958426a0c7a4'
+			const blob = Buffer.from(blobHex, 'hex')
+			const txRes = Transaction.fromBuffer(blob)
+			if (txRes.isErr()) {
+				throw txRes.error
+			}
+			const parsedTx: TransactionT = txRes.value
+			console.log(`✅ parsed tx: ${parsedTx.toString()}`)
+			expect(parsedTx.toBuffer().toString('hex')).toBe(blobHex)
 
-				const blob = Buffer.from(blobHex, 'hex')
-				const txRes = Transaction.fromBuffer(blob)
-				if (txRes.isErr()) {
-					throw txRes.error
-				}
-				const parsedTx: TransactionT = txRes.value
-				console.log(`✅ parsed tx: ${parsedTx.toString()}`)
-				expect(parsedTx.toBuffer().toString('hex')).toBe(blobHex)
+			const ins = parsedTx.instructions
+			expect(ins.length).toBe(4)
+			expect(
+				ins.map(i => i.instructionType).map(it => InstructionType[it]),
+			).toStrictEqual(['DOWN', 'UP', 'END', 'SIG'])
 
-				const ins = parsedTx.instructions
+			const i0_DOWN = ins[0] as Ins_DOWN
+			expect(i0_DOWN.substateId.index).toBe(7)
 
-				expect(ins.length).toBe(5)
-				expect(
-					ins
-						.map(i => i.instructionType)
-						.map(it => InstructionType[it]),
-				).toStrictEqual(['DOWN', 'UP', 'UP', 'END', 'SIG'])
+			const pubKeyHex =
+				'0233551e3b75bebc0ea230fd565b09b44585f06d226188364f9fc6d6f9f5515b16'
 
-				const i0_DOWN = ins[0] as Ins_DOWN
-				expect(i0_DOWN.substateId.index).toBe(7)
-				const i1_UP = ins[1] as Ins_UP
+			const i1_UP = ins[1] as Ins_UP
+			expect(i1_UP.substate.substateType).toBe(
+				SubStateType.PREPARED_UNSTAKE,
+			)
+			const unstake = i1_UP.substate as PreparedUnstakeT
+			expect(unstake.amount.toString()).toBe('100000000000000000000')
+			expect(unstake.delegate.toString(true)).toBe(pubKeyHex)
+			expect(unstake.owner.toString().includes(pubKeyHex)).toBe(true)
 
-				const pubKeyHex =
-					'03b5ef1e8b4c16e1b0a9d27a2391f2c664ea5a09108f9e220b25027a574f9bcd34'
-
-				expect(i1_UP.substate.substateType).toBe(
-					SubStateType.STAKE_SHARE,
-				)
-				const stakeShare = i1_UP.substate as StakeShareT
-				expect(stakeShare.amount.toString()).toBe(
-					'40000000000000000000',
-				)
-				expect(stakeShare.delegate.toString(true)).toBe(pubKeyHex)
-				expect(stakeShare.owner.toBuffer().toString('hex')).toBe(
-					`04${pubKeyHex}`,
-				)
-				const i2_UP = ins[2] as Ins_UP
-
-				expect(i2_UP.substate.substateType).toBe(
-					SubStateType.PREPARED_UNSTAKE,
-				)
-				const unstake = i2_UP.substate as PreparedUnstakeT
-				expect(unstake.amount.toString()).toBe('60000000000000000000')
-				expect(unstake.delegate.toString(true)).toBe(pubKeyHex)
-				expect(unstake.owner.toBuffer().toString('hex')).toBe(
-					`04${pubKeyHex}`,
-				)
-
-				const i3_END = ins[3] as Ins_END
-				const i4_SIG = ins[4] as Ins_SIG
-				expect(i4_SIG.signature.toBuffer().toString('hex')).toBe(
-					'00e90ed1f8f2b118502da221e7b050d6800776905f68b33066efbc33e9167c2e3749f392b07d9991f8941b684a716d2c698b6c7603ab6eadc720b0958426a0c7a4',
-				)
-			})
+			const i3_SIG = ins[3] as Ins_SIG
+			expect(i3_SIG.signature.toBuffer().toString('hex')).toBe(
+				'002b8c22d82649c4d8744674409273c01ad3a2a26f9c43dab6daf3decafd541cc321fc55f5e8bdaeb3bd24806f308ea36aa61bd4fbb8f5a5d2b67462d8d70ecf40',
+			)
 		})
 
-		describe('containing tokentransfer', () => {
-			it('with remainder without fee', () => {
-				const blobHex =
-					'04ace518e61b07f95c1fe16e120cc0691f9514f1fee21b0dac44e637453f538bbf00000003010303c81161158edfd37cfee329ff957c1e31c9f45841549a3e3f88290403cc5a7e43d9e1174171a55b6c0ba8c1ad1693abd0c734d8782e8525e09b6c757a0000000000000000000000000000000000000000000000000000000000000004010303c81161158edfd37cfee329ff957c1e31c9f45841549a3e3f882904021889ddebe74830d9a4714ef07f57d146ef925b9b436f223486bfcc6e9ea00a090000000000000000000000000000000000000000000000000000000000000006000701773f2aed8a8fe5a4614936dbc0c37dfc95fd97c899122ba3afd17cb2a9dd1f3b1cb7c9649741081470757011cecbe48c546398c61cab7c4b74640744865b7bda'
-				const blob = Buffer.from(blobHex, 'hex')
-				const txRes = Transaction.fromBuffer(blob)
-				if (txRes.isErr()) {
-					throw txRes.error
-				}
-				const parsedTx: TransactionT = txRes.value
-				console.log(`✅ parsed tx: ${parsedTx.toString()}`)
-				expect(parsedTx.toBuffer().toString('hex')).toBe(blobHex)
+		it('partial unstake', () => {
+			const blobHex =
+				'047f9f7a47b7e47735d357a2340ecee0cf64ca8172890031952f27148030e30c7800000007010b03b5ef1e8b4c16e1b0a9d27a2391f2c664ea5a09108f9e220b25027a574f9bcd340403b5ef1e8b4c16e1b0a9d27a2391f2c664ea5a09108f9e220b25027a574f9bcd340000000000000000000000000000000000000000000000022b1c8c1227a00000010d03b5ef1e8b4c16e1b0a9d27a2391f2c664ea5a09108f9e220b25027a574f9bcd340403b5ef1e8b4c16e1b0a9d27a2391f2c664ea5a09108f9e220b25027a574f9bcd3400000000000000000000000000000000000000000000000340aad21b3b700000000700e90ed1f8f2b118502da221e7b050d6800776905f68b33066efbc33e9167c2e3749f392b07d9991f8941b684a716d2c698b6c7603ab6eadc720b0958426a0c7a4'
 
-				const ins = parsedTx.instructions
-				expect(ins.length).toBe(5)
-				expect(
-					ins
-						.map(i => i.instructionType)
-						.map(it => InstructionType[it]),
-				).toStrictEqual(['DOWN', 'UP', 'UP', 'END', 'SIG'])
+			const blob = Buffer.from(blobHex, 'hex')
+			const txRes = Transaction.fromBuffer(blob)
+			if (txRes.isErr()) {
+				throw txRes.error
+			}
+			const parsedTx: TransactionT = txRes.value
+			console.log(`✅ parsed tx: ${parsedTx.toString()}`)
+			expect(parsedTx.toBuffer().toString('hex')).toBe(blobHex)
 
-				const i0DOWN = ins[0] as Ins_DOWN
-				const substateId = i0DOWN.substateId
-				expect(substateId.hash.toString('hex')).toBe(
-					'ace518e61b07f95c1fe16e120cc0691f9514f1fee21b0dac44e637453f538bbf',
-				)
-				expect(substateId.index).toBe(3)
+			const ins = parsedTx.instructions
 
-				const i1UP = ins[1] as Ins_UP
-				expect(i1UP.instructionType).toBe(InstructionType.UP)
-				expect(i1UP.substate.substateType).toBe(SubStateType.TOKENS)
-				const transfer0 = i1UP.substate as TokensT
+			expect(ins.length).toBe(5)
+			expect(
+				ins.map(i => i.instructionType).map(it => InstructionType[it]),
+			).toStrictEqual(['DOWN', 'UP', 'UP', 'END', 'SIG'])
 
-				const expectedRRI =
-					'03c81161158edfd37cfee329ff957c1e31c9f45841549a3e3f8829'
+			const i0_DOWN = ins[0] as Ins_DOWN
+			expect(i0_DOWN.substateId.index).toBe(7)
+			const i1_UP = ins[1] as Ins_UP
 
-				expect(transfer0.amount.valueOf()).toBe(4)
-				expect(transfer0.rri.toBuffer().toString('hex')).toBe(
-					expectedRRI,
-				)
-				expect(transfer0.owner.toBuffer().toString('hex')).toBe(
-					'0403cc5a7e43d9e1174171a55b6c0ba8c1ad1693abd0c734d8782e8525e09b6c757a',
-				)
+			const pubKeyHex =
+				'03b5ef1e8b4c16e1b0a9d27a2391f2c664ea5a09108f9e220b25027a574f9bcd34'
 
-				const i2UP = ins[2] as Ins_UP
-				expect(i2UP.instructionType).toBe(InstructionType.UP)
-				expect(i2UP.substate.substateType).toBe(SubStateType.TOKENS)
-				const transfer1 = i2UP.substate as TokensT
-				expect(transfer1.amount.valueOf()).toBe(6)
-				expect(transfer1.rri.toBuffer().toString('hex')).toBe(
-					expectedRRI,
-				)
-				expect(transfer1.owner.toBuffer().toString('hex')).toBe(
-					'04021889ddebe74830d9a4714ef07f57d146ef925b9b436f223486bfcc6e9ea00a09',
-				)
+			expect(i1_UP.substate.substateType).toBe(SubStateType.STAKE_SHARE)
+			const stakeShare = i1_UP.substate as StakeShareT
+			expect(stakeShare.amount.toString()).toBe('40000000000000000000')
+			expect(stakeShare.delegate.toString(true)).toBe(pubKeyHex)
+			expect(stakeShare.owner.toBuffer().toString('hex')).toBe(
+				`04${pubKeyHex}`,
+			)
+			const i2_UP = ins[2] as Ins_UP
 
-				const i3END = ins[3] as Ins_END
-				expect(i3END.instructionType).toBe(InstructionType.END)
-				expect(i3END.toBuffer().toString('hex')).toBe('00')
+			expect(i2_UP.substate.substateType).toBe(
+				SubStateType.PREPARED_UNSTAKE,
+			)
+			const unstake = i2_UP.substate as PreparedUnstakeT
+			expect(unstake.amount.toString()).toBe('60000000000000000000')
+			expect(unstake.delegate.toString(true)).toBe(pubKeyHex)
+			expect(unstake.owner.toBuffer().toString('hex')).toBe(
+				`04${pubKeyHex}`,
+			)
 
-				const i4SIG = ins[4] as Ins_SIG
-				expect(i4SIG.instructionType).toBe(InstructionType.SIG)
-				expect(i4SIG.signature.toBuffer().toString('hex')).toBe(
-					'01773f2aed8a8fe5a4614936dbc0c37dfc95fd97c899122ba3afd17cb2a9dd1f3b1cb7c9649741081470757011cecbe48c546398c61cab7c4b74640744865b7bda',
-				)
-			})
+			const i3_END = ins[3] as Ins_END
+			const i4_SIG = ins[4] as Ins_SIG
+			expect(i4_SIG.signature.toBuffer().toString('hex')).toBe(
+				'00e90ed1f8f2b118502da221e7b050d6800776905f68b33066efbc33e9167c2e3749f392b07d9991f8941b684a716d2c698b6c7603ab6eadc720b0958426a0c7a4',
+			)
+		})
+	})
 
-			it('with fee', () => {
-				const blobHex =
-					'049fe3dcbcf98105da0c4b1769f8c46ad6174346d87c4d33a338c3f925b1965741000000070103010403453a3c16c42f41def4621b6613091537eb8e246ca1e9c2e1d5834c13806fda330000000000000000000000000000000000000000204fce5e3e2502610ffffff701030104036f18d1c8079b14f2e1c291d697dc878f7f3c9c779c4506718d19e83510882c4900000000000000000000000000000000000000000000000000000000000000090005000000010103010403453a3c16c42f41def4621b6613091537eb8e246ca1e9c2e1d5834c13806fda330000000000000000000000000000000000000000204fce5e3cc1bce8b275fff70007000178b896c81f8313f98a42f558c2eadc1396d8b9c9445332878b2aa4f8db58134154c229beea67722f7cdecf05857b006935dcd3ee1a7945a50db486cc134915'
-				const blob = Buffer.from(blobHex, 'hex')
-				const txRes = Transaction.fromBuffer(blob)
-				if (txRes.isErr()) {
-					throw txRes.error
-				}
-				const parsedTx: TransactionT = txRes.value
-				console.log(`✅ parsed tx: ${parsedTx.toString()}`)
-				expect(parsedTx.toBuffer().toString('hex')).toBe(blobHex)
+	describe('containing tokentransfer', () => {
+		it('with remainder without fee', () => {
+			const blobHex =
+				'04ace518e61b07f95c1fe16e120cc0691f9514f1fee21b0dac44e637453f538bbf00000003010303c81161158edfd37cfee329ff957c1e31c9f45841549a3e3f88290403cc5a7e43d9e1174171a55b6c0ba8c1ad1693abd0c734d8782e8525e09b6c757a0000000000000000000000000000000000000000000000000000000000000004010303c81161158edfd37cfee329ff957c1e31c9f45841549a3e3f882904021889ddebe74830d9a4714ef07f57d146ef925b9b436f223486bfcc6e9ea00a090000000000000000000000000000000000000000000000000000000000000006000701773f2aed8a8fe5a4614936dbc0c37dfc95fd97c899122ba3afd17cb2a9dd1f3b1cb7c9649741081470757011cecbe48c546398c61cab7c4b74640744865b7bda'
+			const blob = Buffer.from(blobHex, 'hex')
+			const txRes = Transaction.fromBuffer(blob)
+			if (txRes.isErr()) {
+				throw txRes.error
+			}
+			const parsedTx: TransactionT = txRes.value
+			console.log(`✅ parsed tx: ${parsedTx.toString()}`)
+			expect(parsedTx.toBuffer().toString('hex')).toBe(blobHex)
 
-				const ins = parsedTx.instructions
+			const ins = parsedTx.instructions
+			expect(ins.length).toBe(5)
+			expect(
+				ins.map(i => i.instructionType).map(it => InstructionType[it]),
+			).toStrictEqual(['DOWN', 'UP', 'UP', 'END', 'SIG'])
 
-				expect(ins.length).toBe(8)
-				expect(
-					ins
-						.map(i => i.instructionType)
-						.map(it => InstructionType[it]),
-				).toStrictEqual([
-					'DOWN',
-					'UP',
-					'UP',
-					'END',
-					'LDOWN',
-					'UP',
-					'END',
-					'SIG',
-				])
+			const i0DOWN = ins[0] as Ins_DOWN
+			const substateId = i0DOWN.substateId
+			expect(substateId.hash.toString('hex')).toBe(
+				'ace518e61b07f95c1fe16e120cc0691f9514f1fee21b0dac44e637453f538bbf',
+			)
+			expect(substateId.index).toBe(3)
 
-				const i0_DOWN = ins[0] as Ins_DOWN
-				expect(i0_DOWN.substateId.index).toBe(7)
-				const i1_UP = ins[1] as Ins_UP
-				expect(i1_UP.substate.substateType).toBe(SubStateType.TOKENS)
-				const tokens0 = i1_UP.substate as TokensT
-				expect(tokens0.amount.toString()).toBe(
-					'9999999999999999999999999991',
-				)
+			const i1UP = ins[1] as Ins_UP
+			expect(i1UP.instructionType).toBe(InstructionType.UP)
+			expect(i1UP.substate.substateType).toBe(SubStateType.TOKENS)
+			const transfer0 = i1UP.substate as TokensT
 
-				const i2_UP = ins[2] as Ins_UP
-				expect(i2_UP.substate.substateType).toBe(SubStateType.TOKENS)
-				const tokens1 = i2_UP.substate as TokensT
-				expect(tokens1.amount.toString()).toBe('9')
+			const expectedRRI =
+				'03c81161158edfd37cfee329ff957c1e31c9f45841549a3e3f8829'
 
-				const i3_END = ins[3] as Ins_END
-				const i4_LDOWN = ins[4] as Ins_LDOWN
-				const i5_UP = ins[5] as Ins_UP
-				expect(i5_UP.substate.substateType).toBe(SubStateType.TOKENS)
-				const tokens2 = i5_UP.substate as TokensT
-				expect(tokens2.amount.toString()).toBe(
-					'9999999999899999999999999991',
-				)
+			expect(transfer0.amount.valueOf()).toBe(4)
+			expect(transfer0.rri.toBuffer().toString('hex')).toBe(expectedRRI)
+			expect(transfer0.owner.toBuffer().toString('hex')).toBe(
+				'0403cc5a7e43d9e1174171a55b6c0ba8c1ad1693abd0c734d8782e8525e09b6c757a',
+			)
 
-				const i6_END = ins[6] as Ins_END
-				const i7_SIG = ins[7] as Ins_SIG
-			})
+			const i2UP = ins[2] as Ins_UP
+			expect(i2UP.instructionType).toBe(InstructionType.UP)
+			expect(i2UP.substate.substateType).toBe(SubStateType.TOKENS)
+			const transfer1 = i2UP.substate as TokensT
+			expect(transfer1.amount.valueOf()).toBe(6)
+			expect(transfer1.rri.toBuffer().toString('hex')).toBe(expectedRRI)
+			expect(transfer1.owner.toBuffer().toString('hex')).toBe(
+				'04021889ddebe74830d9a4714ef07f57d146ef925b9b436f223486bfcc6e9ea00a09',
+			)
+
+			const i3END = ins[3] as Ins_END
+			expect(i3END.instructionType).toBe(InstructionType.END)
+			expect(i3END.toBuffer().toString('hex')).toBe('00')
+
+			const i4SIG = ins[4] as Ins_SIG
+			expect(i4SIG.instructionType).toBe(InstructionType.SIG)
+			expect(i4SIG.signature.toBuffer().toString('hex')).toBe(
+				'01773f2aed8a8fe5a4614936dbc0c37dfc95fd97c899122ba3afd17cb2a9dd1f3b1cb7c9649741081470757011cecbe48c546398c61cab7c4b74640744865b7bda',
+			)
 		})
 	})
 })

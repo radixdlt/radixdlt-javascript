@@ -1,11 +1,5 @@
 import { combine, Result } from 'neverthrow'
-import {
-	PreparedUnstakeT,
-	REAddressT,
-	SubStateType,
-	BufferReaderT,
-	StakeShareT,
-} from './_types'
+import { REAddressT, SubStateType, BufferReaderT, StakeShareT } from './_types'
 import { REAddress } from './reAddress'
 import { amountToBuffer, uint256FromReadBuffer } from './tokens'
 import { UInt256 } from '@radixdlt/uint256'

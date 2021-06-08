@@ -68,30 +68,18 @@ type REPrimitive = Readonly<{
 }>
 
 export enum InstructionType {
-	END = 0,
-	UP = 1,
-	VDOWN = 2,
-	VDOWNARG = 3,
-	DOWN = 4,
-	LDOWN = 5,
-	MSG = 6,
-	SIG = 7,
-	DOWNALL = 8,
+	END = 0x00,
+	UP = 0x01,
+	VDOWN = 0x02,
+	VDOWNARG = 0x03,
+	DOWN = 0x04,
+	LDOWN = 0x05,
+	MSG = 0x06,
+	SIG = 0x07,
+	DOWNALL = 0x08,
+	SYSCALL = 0x09,
+	HEADER = 0x0a,
 }
-
-export const shouldInstructionBeParsedByLedger = (
-	instructionType: InstructionType,
-): boolean => {
-	switch (instructionType) {
-		case InstructionType.END:
-		case InstructionType.UP:
-		case InstructionType.MSG:
-			return true
-		default:
-			return false
-	}
-}
-
 export type BaseInstruction<IT extends InstructionType> = REPrimitive &
 	Readonly<{
 		instructionType: IT
@@ -136,19 +124,6 @@ export enum SubStateType {
 	STAKE_SHARE = 0x0b,
 	PREPARED_UNSTAKE = 0x0d,
 	EXITING_STAKE = 0x0e,
-}
-
-export const shouldSubstateBeParsedByLedger = (
-	substateType: SubStateType,
-): boolean => {
-	switch (substateType) {
-		case SubStateType.TOKENS:
-		case SubStateType.PREPARED_STAKE:
-		case SubStateType.PREPARED_UNSTAKE:
-			return true
-		default:
-			return false
-	}
 }
 
 export type BaseSubstate<SST extends SubStateType> = REPrimitive &
@@ -247,6 +222,16 @@ export type Ins_DOWNALL = BaseInstruction<InstructionType.DOWNALL> &
 		classId: Byte
 	}>
 
+export type Ins_SYSCALL = BaseInstruction<InstructionType.SYSCALL> &
+	Readonly<{
+		callData: BytesT
+	}>
+export type Ins_HEADER = BaseInstruction<InstructionType.HEADER> &
+	Readonly<{
+		version: Byte
+		flag: Byte
+	}>
+
 export type InstructionT =
 	| Ins_END
 	| Ins_UP
@@ -257,6 +242,8 @@ export type InstructionT =
 	| Ins_MSG
 	| Ins_SIG
 	| Ins_DOWNALL
+	| Ins_SYSCALL
+	| Ins_HEADER
 
 export type TransactionT = REPrimitive &
 	Readonly<{

@@ -164,17 +164,18 @@ type APDUDoSignTxInitialPackage = WithPath &
 
 type APDUDoSignTxSingleInstructionPackage = Readonly<{
 	instructionBytes: Buffer
+	isLastInstruction: boolean
 }>
 
 enum SignTxAPDUType {
-	INITIAL_SETUP_PACKAGE = 1,
-	STREAM_TX = 2,
+	SINGLE_RADIX_ENGINE_INSTRUCTION_APDU = 73, // Ascii code for 'I' as in "Instruction",
+	FIRST_METADATA_APDU = 77, // Ascii code for 'M', as in "Metadata"
 }
 
 const signTxInitialSetupPackage = (
 	input: APDUDoSignTxInitialPackage,
 ): RadixAPDUT => {
-	const p1 = SignTxAPDUType.INITIAL_SETUP_PACKAGE.valueOf()
+	const p1 = SignTxAPDUType.FIRST_METADATA_APDU.valueOf()
 	const p2 = input.numberOfInstructions
 
 	const pathData = hdPathToBuffer(input.path)
@@ -193,10 +194,12 @@ const signTxInitialSetupPackage = (
 const signTxStream = (
 	input: APDUDoSignTxSingleInstructionPackage,
 ): RadixAPDUT => {
-	const p1 = SignTxAPDUType.STREAM_TX.valueOf()
+	const p1 = SignTxAPDUType.SINGLE_RADIX_ENGINE_INSTRUCTION_APDU.valueOf()
+	const p2 = input.isLastInstruction ? 0x01 : 0x00 // Not needed, Ledger device can keep a counter and compare vs 'numberOfInstructions' (P2 of 'FIRST_METADATA_APDU').
 	return makeAPDU({
 		ins: LedgerInstruction.DO_SIGN_TX,
 		p1,
+		p2,
 		data: input.instructionBytes,
 	})
 }

@@ -5,9 +5,11 @@ import {
 	Ins_DOWN,
 	Ins_DOWNALL,
 	Ins_END,
+	Ins_HEADER,
 	Ins_LDOWN,
 	Ins_MSG,
 	Ins_SIG,
+	Ins_SYSCALL,
 	Ins_UP,
 	Ins_VDOWN,
 	Ins_VDOWNARG,
@@ -170,6 +172,49 @@ const parseFromBufferReader = (
 										`DOWNALL: { classId: ${classId.toString()} }`,
 								}),
 							)
+
+					case InstructionType.SYSCALL:
+						return Bytes.fromBufferReader(bufferReader).map(
+							(callData: BytesT): Ins_SYSCALL => ({
+								instructionType,
+								callData,
+								toBuffer: () =>
+									Buffer.concat([
+										insBuf,
+										callData.toBuffer(),
+									]),
+								toString: () =>
+									`SYSCALL: { callData: ${callData.data.toString()} }`,
+							}),
+						)
+
+					case InstructionType.HEADER:
+						return combine([
+							bufferReader.readNextBuffer(1),
+							bufferReader.readNextBuffer(1),
+						])
+							.map(resList => {
+								const versionBuf = resList[0]
+								const flagBuf = resList[1]
+								const version = versionBuf.readUInt8() as Byte
+								const flag = flagBuf.readUInt8() as Byte
+								const buffer = Buffer.concat([
+									versionBuf,
+									flagBuf,
+								])
+								return { version, flag, buffer }
+							})
+							.map(
+								(partial): Ins_HEADER => ({
+									...partial,
+									instructionType,
+									toBuffer: () =>
+										Buffer.concat([insBuf, partial.buffer]),
+									toString: () =>
+										`HEADER: { version: ${partial.version.toString()}, flag: ${partial.flag.toString()} }`,
+								}),
+							)
+
 					default:
 						return err(
 							new Error(

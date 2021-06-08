@@ -31,7 +31,6 @@ import { RadixAPDU } from './apdu'
 import { LedgerNanoT } from './_types'
 import { LedgerNano } from './ledgerNano'
 import { log } from '@radixdlt/util'
-import { BuiltTransactionReadyToSign } from '@radixdlt/primitives'
 import { Transaction } from '@radixdlt/tx-parser/dist/transaction'
 import { InstructionT } from '@radixdlt/tx-parser'
 
@@ -236,7 +235,7 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 			sendInstructionSubject.next(nextInstructionToSend())
 		}
 
-		const finishedSendingWholeTx = (): boolean => instructions.length === 0
+		const moreInstructionsToSend = (): boolean => instructions.length > 0
 
 		subs.add(
 			ledgerNano
@@ -273,12 +272,13 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 							ledgerNano.sendAPDUToDevice(
 								RadixAPDU.signTX.stream({
 									instructionBytes,
+									isLastInstruction: !moreInstructionsToSend(),
 								}),
 							),
 					),
 					tap({
 						next: (responseFromLedger: Buffer) => {
-							if (finishedSendingWholeTx()) {
+							if (moreInstructionsToSend()) {
 								signatureBytesSubject.next(responseFromLedger)
 							} else {
 								sendInstruction()
