@@ -248,4 +248,5 @@ export type InstructionT =
 export type TransactionT = REPrimitive &
 	Readonly<{
 		instructions: InstructionT[]
+		txID: () => string
 	}>
