@@ -19,7 +19,7 @@ const fromBufferReader = (bufferReader: BufferReaderT): Result<BytesT, Error> =>
 			return {
 				...partial,
 				toBuffer: () => buffer,
-				toString: () => buffer.toString('hex'),
+				toString: () => `0x${partial.data.toString('hex')}`,
 			}
 		})
 

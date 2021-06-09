@@ -15,6 +15,7 @@ import {
 	Ins_VDOWNARG,
 	InstructionT,
 	InstructionType,
+	SubstateIdT,
 	SubstateT,
 	TXSig,
 } from './_types'
@@ -42,8 +43,7 @@ const parseFromBufferReader = (
 						return ok({
 							instructionType,
 							toBuffer: () => insBuf,
-							toString: () =>
-								`${InstructionType[instructionType]}: (Always empty)`,
+							toString: () => 'END',
 						} as Ins_END)
 					case InstructionType.UP:
 						return parseSubstate().map(
@@ -56,7 +56,7 @@ const parseFromBufferReader = (
 										substate.toBuffer(),
 									]),
 								toString: () =>
-									`UP: { substate: ${substate.toString()} }`,
+									`UP(${substate.toString().trimStart()})`,
 							}),
 						)
 					case InstructionType.VDOWN:
@@ -69,8 +69,7 @@ const parseFromBufferReader = (
 										insBuf,
 										substate.toBuffer(),
 									]),
-								toString: () =>
-									`VDOWN: { substate: ${substate.toString()} }`,
+								toString: () => `VDOWN(${substate.toString()})`,
 							}),
 						)
 					case InstructionType.VDOWNARG:
@@ -94,14 +93,14 @@ const parseFromBufferReader = (
 											partial.argument.toBuffer(),
 										]),
 									toString: () =>
-										`VDOWNARG: { substate: ${partial.substate.toString()}, argument: ${partial.argument.toString()} }`,
+										`VDOWNARG(${partial.substate.toString()}, ${partial.argument.toString()})`,
 								}),
 							)
 					case InstructionType.DOWN:
 						return SubstateId.parseFromBufferReader(
 							bufferReader,
 						).map(
-							(substateId): Ins_DOWN => ({
+							(substateId: SubstateIdT): Ins_DOWN => ({
 								instructionType,
 								substateId,
 								toBuffer: () =>
@@ -110,7 +109,7 @@ const parseFromBufferReader = (
 										substateId.toBuffer(),
 									]),
 								toString: () =>
-									`DOWN: { substateId: ${substateId.toString()} }`,
+									`DOWN(${substateId.toString()})`,
 							}),
 						)
 					case InstructionType.LDOWN:
@@ -126,7 +125,7 @@ const parseFromBufferReader = (
 											substateIndexBytes,
 										]),
 									toString: () =>
-										`LDOWN: { substateIndex: ${substateIndex.toString()} }`,
+										`LDOWN(${substateIndex.toString()})`,
 								}
 							},
 						)
@@ -137,8 +136,7 @@ const parseFromBufferReader = (
 								bytes,
 								toBuffer: () =>
 									Buffer.concat([insBuf, bytes.toBuffer()]),
-								toString: () =>
-									`MSG: { bytes: ${bytes.toString()} }`,
+								toString: () => `MSG(${bytes.toString()})`,
 							}),
 						)
 					case InstructionType.SIG:
@@ -152,7 +150,9 @@ const parseFromBufferReader = (
 										signature.toBuffer(),
 									]),
 								toString: () =>
-									`SIG: { signature: ${signature.toString()} }`,
+									`SIG(0x${signature
+										.toBuffer()
+										.toString('hex')})`,
 							}),
 						)
 					case InstructionType.DOWNALL:
@@ -169,7 +169,7 @@ const parseFromBufferReader = (
 											Buffer.from([classId]),
 										]),
 									toString: () =>
-										`DOWNALL: { classId: ${classId.toString()} }`,
+										`DOWNALL(${classId.toString()})`,
 								}),
 							)
 
@@ -184,7 +184,7 @@ const parseFromBufferReader = (
 										callData.toBuffer(),
 									]),
 								toString: () =>
-									`SYSCALL: { callData: ${callData.data.toString()} }`,
+									`SYSCALL(${callData.toString()})`,
 							}),
 						)
 
@@ -211,7 +211,7 @@ const parseFromBufferReader = (
 									toBuffer: () =>
 										Buffer.concat([insBuf, partial.buffer]),
 									toString: () =>
-										`HEADER: { version: ${partial.version.toString()}, flag: ${partial.flag.toString()} }`,
+										`HEADER(${partial.version.toString()}, ${partial.flag.toString()})`,
 								}),
 							)
 

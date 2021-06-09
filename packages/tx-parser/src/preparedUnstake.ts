@@ -37,11 +37,12 @@ const fromBufferReader = (
 					...partial,
 					substateType: SubStateType.PREPARED_UNSTAKE,
 					toBuffer: () => buffer,
-					toString: () => `PreparedUnstakeT: { 
-						delegate: ${delegate.toString()},
-						owner: ${owner.toString()},
-						amount: ${amount.toString()},
-					}`,
+					toString: () =>
+						`PreparedUnstake { delegate: 0x${delegate.toString()}, owner: 0x${owner
+							.toBuffer()
+							.toString(
+								'hex',
+							)}, amount: U256 { raw: ${amount.toString()} } }`,
 				}
 			},
 		)

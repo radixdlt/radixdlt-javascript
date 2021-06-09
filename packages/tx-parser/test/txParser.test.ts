@@ -1,5 +1,11 @@
 import { Transaction } from '../src/transaction'
-import { Ins_HEADER, Ins_SYSCALL, InstructionType, StakeShareT, TransactionT } from '../src'
+import {
+	Ins_HEADER,
+	Ins_SYSCALL,
+	InstructionType,
+	StakeShareT,
+	TransactionT,
+} from '../src'
 import {
 	Ins_DOWN,
 	Ins_END,
@@ -13,9 +19,18 @@ import {
 } from '../dist'
 import { sha256, sha256Twice } from '@radixdlt/crypto'
 
+const diffStrings = (str1: string, str2: string): string => {
+	let diff = ''
+	str2.split('').forEach((val, i) => {
+		if (val != str1.charAt(i)) {
+			diff += val
+		}
+	})
+	return diff
+}
+
 describe('txParser', () => {
 	describe('complex tx with multiple substate groups', () => {
-
 		it('tokens transfer and stake', () => {
 			const blobHex =
 				'0a000104374c00efbe61f645a8b35d7746e106afa7422877e5d607975b6018e0a1aa6bf0000000040921000000000000000000000000000000000000000000000000000000000000000002010301040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba000000000000000000000000000000000000000000000001158e460913cffffe000500000003010301040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba0000000000000000000000000000000000000000000000008ac7230489e7fffe0104040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba02f19b2d095a553f3a41da4a8dc1f8453dfbdc733c5aece8b128b7d7999ae247a50000000000000000000000000000000000000000000000008ac7230489e80000000700dcb252005545207d4d0e0a72952acccf9466087fbecee7d5851467869aa8d6566dd9476f5e719fe1025dee78f975d9b5a5d136ced8e51cfcd7b7c85563edb23b'
@@ -25,7 +40,7 @@ describe('txParser', () => {
 				throw txRes.error
 			}
 			const parsedTx: TransactionT = txRes.value
-			console.log(`✅ parsed tx: ${parsedTx.toString()}`)
+			console.log(parsedTx.toString())
 			expect(parsedTx.toBuffer().toString('hex')).toBe(blobHex)
 
 			const ins = parsedTx.instructions
@@ -105,56 +120,95 @@ describe('txParser', () => {
 			)
 		})
 
+		// const testComplex = (
+		// 	blobHex: string,
+		// 	expected: {
+		// 		instructionTypes: string[],
+		// 		substateTypesInInsUP: SubStateType[],
+		// 		signature: string,
+		// 		txID: string
+		// 	}
+		// ): void => {
+		// 	const blob = Buffer.from(blobHex, 'hex')
+		// 	const txRes = Transaction.fromBuffer(blob)
+		// 	if (txRes.isErr()) {
+		// 		throw txRes.error
+		// 	}
+		// 	const parsedTx: TransactionT = txRes.value
+		// 	console.log(`✅ parsed tx: ${parsedTx.toString()}`)
+		// 	expect(parsedTx.toBuffer().toString('hex')).toBe(blobHex)
+		//
+		// 	const expIns = expected.instructionTypes
+		//
+		// 	const ins = parsedTx.instructions
+		// 	expect(ins.length).toBe(expIns.length)
+		//
+		// 	expect(
+		// 		ins.map(i => i.instructionType).map(it => InstructionType[it]),
+		// 	).toStrictEqual(expIns)
+		//
+		// 	expect(
+		// 		ins.filter(i => i.instructionType === InstructionType.UP).map(i => i as Ins_UP).map(upI => upI.substate.substateType),
+		// 	).toStrictEqual(expected.substateTypesInInsUP)
+		//
+		// 	const insSIG = ins[ins.length - 1] as Ins_SIG
+		// 	expect(insSIG.signature.toBuffer().toString('hex')).toBe(expected.signature)
+		//
+		// 	expect(parsedTx.txID()).toBe(expected.txID)
+		// }
 
-		const testComplex = (
-			blobHex: string,
+		const testComplex = (input: {
+			blobHex: string
 			expected: {
-				instructionTypes: string[],
-				substateTypesInInsUP: SubStateType[],
-				signature: string,
+				parsedTX: string
 				txID: string
 			}
-		): void => {
+		}): void => {
+			const { blobHex, expected } = input
 			const blob = Buffer.from(blobHex, 'hex')
 			const txRes = Transaction.fromBuffer(blob)
 			if (txRes.isErr()) {
 				throw txRes.error
 			}
 			const parsedTx: TransactionT = txRes.value
-			console.log(`✅ parsed tx: ${parsedTx.toString()}`)
-			expect(parsedTx.toBuffer().toString('hex')).toBe(blobHex)
-
-			const expIns = expected.instructionTypes
-
-			const ins = parsedTx.instructions
-			expect(ins.length).toBe(expIns.length)
-
-			expect(
-				ins.map(i => i.instructionType).map(it => InstructionType[it]),
-			).toStrictEqual(expIns)
-
-			expect(
-				ins.filter(i => i.instructionType === InstructionType.UP).map(i => i as Ins_UP).map(upI => upI.substate.substateType),
-			).toStrictEqual(expected.substateTypesInInsUP)
-
-			const insSIG = ins[ins.length - 1] as Ins_SIG
-			expect(insSIG.signature.toBuffer().toString('hex')).toBe(expected.signature)
-
+			console.log(parsedTx.toString())
+			expect(parsedTx.toString()).toBe(expected.parsedTX)
 			expect(parsedTx.txID()).toBe(expected.txID)
 		}
 
 		it('Fee_Stake_Transfer', () => {
-			testComplex('045d375643dded796e8d3526dcae7a068c642e35fb9931688f56ea20b56289330f0000000309210000000000000000000000000000000000000000000000000000000000000000020103010402ed0eeaf54a79df88f12f251f22b88df00afaad43497f448620353a94e5c2e155000000000000000000000000000000000000000000000001158e460913cffffe0005000000020103010402ed0eeaf54a79df88f12f251f22b88df00afaad43497f448620353a94e5c2e1550000000000000000000000000000000000000000000000008ac7230489e7fffe01040402ed0eeaf54a79df88f12f251f22b88df00afaad43497f448620353a94e5c2e15502fd72e14bae5305db65f51d723e0a68a54a49dc85d0875b44d3cf1e80413de8870000000000000000000000000000000000000000000000008ac7230489e800000005000000050103010402ed0eeaf54a79df88f12f251f22b88df00afaad43497f448620353a94e5c2e1550000000000000000000000000000000000000000000000008ac7230489e7fffd01030104036b062b0044f412f30a973947e5e986629669d055b78fcfbb68a63211462ed0f700000000000000000000000000000000000000000000000000000000000000010007012953bf9f14bb362b84e84086571a56c4bc04c620cc07e50bac8592a22f39938a3cacb9d5a8833211cbce4e51ec0916b94c0c0438bbea1b772aecfd95a61c1d3e', {
-				instructionTypes: ['DOWN', 'SYSCALL', 'UP', 'END', 'LDOWN', 'UP', 'UP', 'END', 'LDOWN', 'UP', 'UP', 'END', 'SIG'],
-				substateTypesInInsUP: [SubStateType.TOKENS, SubStateType.TOKENS, SubStateType.PREPARED_STAKE, SubStateType.TOKENS, SubStateType.TOKENS],
-				signature: '012953bf9f14bb362b84e84086571a56c4bc04c620cc07e50bac8592a22f39938a3cacb9d5a8833211cbce4e51ec0916b94c0c0438bbea1b772aecfd95a61c1d3e',
-				txID: '26c64c74a56863696e637f1efea710d39507cdf5a795a7dd645154a8c71d439f'
+			testComplex({
+				blobHex:
+					'045d375643dded796e8d3526dcae7a068c642e35fb9931688f56ea20b56289330f0000000309210000000000000000000000000000000000000000000000000000000000000000020103010402ed0eeaf54a79df88f12f251f22b88df00afaad43497f448620353a94e5c2e155000000000000000000000000000000000000000000000001158e460913cffffe0005000000020103010402ed0eeaf54a79df88f12f251f22b88df00afaad43497f448620353a94e5c2e1550000000000000000000000000000000000000000000000008ac7230489e7fffe01040402ed0eeaf54a79df88f12f251f22b88df00afaad43497f448620353a94e5c2e15502fd72e14bae5305db65f51d723e0a68a54a49dc85d0875b44d3cf1e80413de8870000000000000000000000000000000000000000000000008ac7230489e800000005000000050103010402ed0eeaf54a79df88f12f251f22b88df00afaad43497f448620353a94e5c2e1550000000000000000000000000000000000000000000000008ac7230489e7fffd01030104036b062b0044f412f30a973947e5e986629669d055b78fcfbb68a63211462ed0f700000000000000000000000000000000000000000000000000000000000000010007012953bf9f14bb362b84e84086571a56c4bc04c620cc07e50bac8592a22f39938a3cacb9d5a8833211cbce4e51ec0916b94c0c0438bbea1b772aecfd95a61c1d3e',
+				expected: {
+					parsedTX: `Instructions:
+|- DOWN(SubstateId { hash: 0x5d375643dded796e8d3526dcae7a068c642e35fb9931688f56ea20b56289330f, index: 3 })
+|- SYSCALL(0x000000000000000000000000000000000000000000000000000000000000000002)
+|- UP(Tokens { rri: 0x01, owner: 0x0402ed0eeaf54a79df88f12f251f22b88df00afaad43497f448620353a94e5c2e155, amount: U256 { raw: 19999999999999999998 } })
+|- END
+|- LDOWN(2)
+|- UP(Tokens { rri: 0x01, owner: 0x0402ed0eeaf54a79df88f12f251f22b88df00afaad43497f448620353a94e5c2e155, amount: U256 { raw: 9999999999999999998 } })
+|- UP(PreparedStake { owner: 0x0402ed0eeaf54a79df88f12f251f22b88df00afaad43497f448620353a94e5c2e155, delegate: 0x02fd72e14bae5305db65f51d723e0a68a54a49dc85d0875b44d3cf1e80413de887, amount: U256 { raw: 10000000000000000000 } })
+|- END
+|- LDOWN(5)
+|- UP(Tokens { rri: 0x01, owner: 0x0402ed0eeaf54a79df88f12f251f22b88df00afaad43497f448620353a94e5c2e155, amount: U256 { raw: 9999999999999999997 } })
+|- UP(Tokens { rri: 0x01, owner: 0x04036b062b0044f412f30a973947e5e986629669d055b78fcfbb68a63211462ed0f7, amount: U256 { raw: 1 } })
+|- END
+|- SIG(0x012953bf9f14bb362b84e84086571a56c4bc04c620cc07e50bac8592a22f39938a3cacb9d5a8833211cbce4e51ec0916b94c0c0438bbea1b772aecfd95a61c1d3e)`,
+					txID:
+						'26c64c74a56863696e637f1efea710d39507cdf5a795a7dd645154a8c71d439f',
+				},
 			})
 		})
 
-		/*
+		it('Fee_Transfer_Stake', () => {
+			testComplex({
+				blobHex:
+					'04c1e268b8b61ce5688d039aefa1e5ea6612a6c4d3b497713582916b533d6c502800000003092100000000000000000000000000000000000000000000000000000000000000000201030104035c8522494136cab2c7445cd485a905338fa9191d0d3314cf0e3b60a792119f2b000000000000000000000000000000000000000000000001158e460913cffffe00050000000201030104035c8522494136cab2c7445cd485a905338fa9191d0d3314cf0e3b60a792119f2b000000000000000000000000000000000000000000000001158e460913cffffd01030104022c4f0832c24ebc6477005c397fa51e8de0710098b816d43a85332658c7a21411000000000000000000000000000000000000000000000000000000000000000100050000000501030104035c8522494136cab2c7445cd485a905338fa9191d0d3314cf0e3b60a792119f2b0000000000000000000000000000000000000000000000008ac7230489e7fffd010404035c8522494136cab2c7445cd485a905338fa9191d0d3314cf0e3b60a792119f2b037bf52ffd736eda6554b3b7b03eae3f9e2bd9b4b1c11e73355191403ff96961ac0000000000000000000000000000000000000000000000008ac7230489e800000007011d3deb32ffff0d1b6c34e29a18cc78a35b575550026bc40210b5744964e553cb26f25a4ee823195b18ba17694e644f93758d52a6d37f5990e0068c778ad66f6f',
+				expected: {
+					parsedTX: `Instructions:
 |- DOWN(SubstateId { hash: 0xc1e268b8b61ce5688d039aefa1e5ea6612a6c4d3b497713582916b533d6c5028, index: 3 })
-|- SYSCALL(Bytes { length: 33, data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2] })
+|- SYSCALL(0x000000000000000000000000000000000000000000000000000000000000000002)
 |- UP(Tokens { rri: 0x01, owner: 0x04035c8522494136cab2c7445cd485a905338fa9191d0d3314cf0e3b60a792119f2b, amount: U256 { raw: 19999999999999999998 } })
 |- END
 |- LDOWN(2)
@@ -165,15 +219,106 @@ describe('txParser', () => {
 |- UP(Tokens { rri: 0x01, owner: 0x04035c8522494136cab2c7445cd485a905338fa9191d0d3314cf0e3b60a792119f2b, amount: U256 { raw: 9999999999999999997 } })
 |- UP(PreparedStake { owner: 0x04035c8522494136cab2c7445cd485a905338fa9191d0d3314cf0e3b60a792119f2b, delegate: 0x037bf52ffd736eda6554b3b7b03eae3f9e2bd9b4b1c11e73355191403ff96961ac, amount: U256 { raw: 10000000000000000000 } })
 |- END
-|- SIG(0x011d3deb32ffff0d1b6c34e29a18cc78a35b575550026bc40210b5744964e553cb26f25a4ee823195b18ba17694e644f93758d52a6d37f5990e0068c778ad66f6f)
+|- SIG(0x011d3deb32ffff0d1b6c34e29a18cc78a35b575550026bc40210b5744964e553cb26f25a4ee823195b18ba17694e644f93758d52a6d37f5990e0068c778ad66f6f)`,
+					txID:
+						'dd315ccecfe991fbfd6118a122c1b6c99d67094cba21028b94c81599049e7c9e',
+				},
+			})
+		})
 
-		* */
-		it('Fee_Transfer_Stake', () => {
-			testComplex('04c1e268b8b61ce5688d039aefa1e5ea6612a6c4d3b497713582916b533d6c502800000003092100000000000000000000000000000000000000000000000000000000000000000201030104035c8522494136cab2c7445cd485a905338fa9191d0d3314cf0e3b60a792119f2b000000000000000000000000000000000000000000000001158e460913cffffe00050000000201030104035c8522494136cab2c7445cd485a905338fa9191d0d3314cf0e3b60a792119f2b000000000000000000000000000000000000000000000001158e460913cffffd01030104022c4f0832c24ebc6477005c397fa51e8de0710098b816d43a85332658c7a21411000000000000000000000000000000000000000000000000000000000000000100050000000501030104035c8522494136cab2c7445cd485a905338fa9191d0d3314cf0e3b60a792119f2b0000000000000000000000000000000000000000000000008ac7230489e7fffd010404035c8522494136cab2c7445cd485a905338fa9191d0d3314cf0e3b60a792119f2b037bf52ffd736eda6554b3b7b03eae3f9e2bd9b4b1c11e73355191403ff96961ac0000000000000000000000000000000000000000000000008ac7230489e800000007011d3deb32ffff0d1b6c34e29a18cc78a35b575550026bc40210b5744964e553cb26f25a4ee823195b18ba17694e644f93758d52a6d37f5990e0068c778ad66f6f', {
-				instructionTypes: ['DOWN', 'SYSCALL', 'UP', 'END', 'LDOWN', 'UP', 'UP', 'END', 'LDOWN', 'UP', 'UP', 'END', 'SIG'],
-				substateTypesInInsUP: [SubStateType.TOKENS, SubStateType.TOKENS, SubStateType.TOKENS, SubStateType.TOKENS, SubStateType.PREPARED_STAKE],
-				signature: '011d3deb32ffff0d1b6c34e29a18cc78a35b575550026bc40210b5744964e553cb26f25a4ee823195b18ba17694e644f93758d52a6d37f5990e0068c778ad66f6f',
-				txID: 'dd315ccecfe991fbfd6118a122c1b6c99d67094cba21028b94c81599049e7c9e'
+		it('Fee_Unstake_Transfer', () => {
+			testComplex({
+				blobHex:
+					'0414f4235a478a63f7c17795bb482ed22efb8bcbe5239d3a5544f33b26f308747500000001092100000000000000000000000000000000000000000000000000000000000000000401030104033b8c4cfdf815828620bd5ed254225f2be4ecfcd1b7c72d096f385835ca1c8d700000000000000000000000000000000000000000000000008ac7230489e7fffc00045e01ca4385fe4ba31d3649ae7cc746446d46c4405064bf7c6d4faa853586eab700000007010d031fa3fe2db67d482ef3b3b6f6facf874cf1502af8a463d8ac75f378a09d78f01204033b8c4cfdf815828620bd5ed254225f2be4ecfcd1b7c72d096f385835ca1c8d700000000000000000000000000000000000000000000000008ac7230489e8000000050000000201030104033b8c4cfdf815828620bd5ed254225f2be4ecfcd1b7c72d096f385835ca1c8d700000000000000000000000000000000000000000000000008ac7230489e7fffb01030104039af69ffd4752e60d0f584f4ce39526dd855e1c35293473f683de09f6b19e4c960000000000000000000000000000000000000000000000000000000000000001000701d52f25d0690171b4d4cfc5e6df2415e395487b13e29fb71fc35617117e46d5bc2f5c0eb98495b350107143852badea414d34da674bccfda1639835b6a98ae35f',
+				expected: {
+					parsedTX: `Instructions:
+|- DOWN(SubstateId { hash: 0x14f4235a478a63f7c17795bb482ed22efb8bcbe5239d3a5544f33b26f3087475, index: 1 })
+|- SYSCALL(0x000000000000000000000000000000000000000000000000000000000000000004)
+|- UP(Tokens { rri: 0x01, owner: 0x04033b8c4cfdf815828620bd5ed254225f2be4ecfcd1b7c72d096f385835ca1c8d70, amount: U256 { raw: 9999999999999999996 } })
+|- END
+|- DOWN(SubstateId { hash: 0x5e01ca4385fe4ba31d3649ae7cc746446d46c4405064bf7c6d4faa853586eab7, index: 7 })
+|- UP(PreparedUnstake { delegate: 0x031fa3fe2db67d482ef3b3b6f6facf874cf1502af8a463d8ac75f378a09d78f012, owner: 0x04033b8c4cfdf815828620bd5ed254225f2be4ecfcd1b7c72d096f385835ca1c8d70, amount: U256 { raw: 10000000000000000000 } })
+|- END
+|- LDOWN(2)
+|- UP(Tokens { rri: 0x01, owner: 0x04033b8c4cfdf815828620bd5ed254225f2be4ecfcd1b7c72d096f385835ca1c8d70, amount: U256 { raw: 9999999999999999995 } })
+|- UP(Tokens { rri: 0x01, owner: 0x04039af69ffd4752e60d0f584f4ce39526dd855e1c35293473f683de09f6b19e4c96, amount: U256 { raw: 1 } })
+|- END
+|- SIG(0x01d52f25d0690171b4d4cfc5e6df2415e395487b13e29fb71fc35617117e46d5bc2f5c0eb98495b350107143852badea414d34da674bccfda1639835b6a98ae35f)`,
+					txID:
+						'58c89726be35fb33c8dee86eb6c1cfbc3107b07e3818d115201914735f02a85d',
+				},
+			})
+		})
+
+		it('Apa2', () => {
+			testComplex({
+				blobHex:
+					'BLOBBLOBBLOBBLOBBLOBBLOB',
+				expected: {
+					parsedTX: `Instructions: APA KATT BANAN`,
+					txID:
+						'txIDtxIDtxIDtxIDtxIDtxIDtxID',
+				},
+			})
+		})
+
+		it('Apa3', () => {
+			testComplex({
+				blobHex:
+					'BLOBBLOBBLOBBLOBBLOBBLOB',
+				expected: {
+					parsedTX: `Instructions: APA KATT BANAN`,
+					txID:
+						'txIDtxIDtxIDtxIDtxIDtxIDtxID',
+				},
+			})
+		})
+
+		it('Apa4', () => {
+			testComplex({
+				blobHex:
+					'BLOBBLOBBLOBBLOBBLOBBLOB',
+				expected: {
+					parsedTX: `Instructions: APA KATT BANAN`,
+					txID:
+						'txIDtxIDtxIDtxIDtxIDtxIDtxID',
+				},
+			})
+		})
+
+		it('Apa5', () => {
+			testComplex({
+				blobHex:
+					'BLOBBLOBBLOBBLOBBLOBBLOB',
+				expected: {
+					parsedTX: `Instructions: APA KATT BANAN`,
+					txID:
+						'txIDtxIDtxIDtxIDtxIDtxIDtxID',
+				},
+			})
+		})
+
+		it('Apa6', () => {
+			testComplex({
+				blobHex:
+					'BLOBBLOBBLOBBLOBBLOBBLOB',
+				expected: {
+					parsedTX: `Instructions: APA KATT BANAN`,
+					txID:
+						'txIDtxIDtxIDtxIDtxIDtxIDtxID',
+				},
+			})
+		})
+
+		it('Apa7', () => {
+			testComplex({
+				blobHex:
+					'BLOBBLOBBLOBBLOBBLOBBLOB',
+				expected: {
+					parsedTX: `Instructions: APA KATT BANAN`,
+					txID:
+						'txIDtxIDtxIDtxIDtxIDtxIDtxID',
+				},
 			})
 		})
 	})

@@ -2,7 +2,7 @@ import { err, ok, Result } from 'neverthrow'
 import { BufferReader, InstructionT, TransactionT } from './_types'
 import { Instruction } from './instruction'
 import { sha256Twice } from '@radixdlt/crypto'
-
+// import { trimWS } from './removeWhitespace'
 const fromBuffer = (blob: Buffer): Result<TransactionT, Error> => {
 	const instructions: InstructionT[] = []
 
@@ -32,14 +32,20 @@ const fromBuffer = (blob: Buffer): Result<TransactionT, Error> => {
 
 	const txID = (): string => sha256Twice(reassembledTxBlob).toString('hex')
 
+	const toString = (): string =>
+		[
+			'Instructions:',
+			instructions
+				.map(i => `|- ${i.toString()}`)
+				// .map(s => s.trimStart())
+				.join('\n'),
+		].join('\n')
+
 	return ok({
 		instructions,
 		txID,
 		toBuffer: () => reassembledTxBlob,
-		toString: () =>
-			`TX: { instructions: ${instructions
-				.map(i => i.toString())
-				.join('\n')} }`,
+		toString,
 	})
 }
 

@@ -1,5 +1,6 @@
 import { BufferReaderT, SubstateIdT } from './_types'
 import { combine, Result } from 'neverthrow'
+import { noTab } from './removeWhitespace'
 
 const parseFromBufferReader = (
 	bufferReader: BufferReaderT,
@@ -18,9 +19,11 @@ const parseFromBufferReader = (
 			index,
 			toBuffer: () => buffer,
 			toString: () =>
-				`SubstateId: { hash: ${hash.toString(
-					'hex',
-				)}, index: ${index} }`,
+				noTab(
+					`SubstateId { hash: 0x${hash.toString(
+						'hex',
+					)}, index: ${index} }`,
+				),
 		}
 	})
 

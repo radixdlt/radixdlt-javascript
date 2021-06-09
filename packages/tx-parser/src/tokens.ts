@@ -41,11 +41,16 @@ const fromBufferReader = (
 					...partial,
 					substateType: SubStateType.TOKENS,
 					toBuffer: () => buffer,
-					toString: () => `Tokens: { 
-						rri: ${rri.toString()},
-						owner: ${owner.toString()},
-						amount: ${amount.toString()},
-					}`,
+					toString: () =>
+						`Tokens { rri: 0x${rri
+							.toBuffer()
+							.toString(
+								'hex',
+							)}, owner: 0x${owner
+							.toBuffer()
+							.toString(
+								'hex',
+							)}, amount: U256 { raw: ${amount.toString()} } }`,
 				}
 			},
 		)
