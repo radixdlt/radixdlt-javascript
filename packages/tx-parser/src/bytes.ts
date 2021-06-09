@@ -1,5 +1,6 @@
 import { Result } from 'neverthrow'
-import { BytesT, BufferReaderT } from './_types'
+import { BytesT } from './_types'
+import { BufferReaderT } from '@radixdlt/util'
 
 const fromBufferReader = (bufferReader: BufferReaderT): Result<BytesT, Error> =>
 	bufferReader

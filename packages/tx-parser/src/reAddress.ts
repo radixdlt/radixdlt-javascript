@@ -1,5 +1,4 @@
 import {
-	BufferReaderT,
 	REAddressHashedKeyNonce,
 	REAddressNativeToken,
 	REAddressPublicKey,
@@ -9,6 +8,7 @@ import {
 } from './_types'
 import { ok, Result } from 'neverthrow'
 import { PublicKey, PublicKeyT } from '@radixdlt/crypto'
+import { BufferReaderT } from '@radixdlt/util'
 
 /* eslint-disable no-case-declarations */
 const fromBufferReader = (

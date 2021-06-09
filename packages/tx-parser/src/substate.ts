@@ -1,9 +1,10 @@
-import { BufferReaderT, SubStateType, SubstateT } from './_types'
+import { SubStateType, SubstateT } from './_types'
 import { Result } from 'neverthrow'
 import { Tokens } from './tokens'
 import { PreparedStake } from './preparedStake'
 import { PreparedUnstake } from './preparedUnstake'
 import { StakeShare } from './stakeShare'
+import { BufferReaderT } from '@radixdlt/util'
 
 const parseFromBufferReader = (
 	bufferReader: BufferReaderT,

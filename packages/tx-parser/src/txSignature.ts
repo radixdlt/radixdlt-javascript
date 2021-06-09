@@ -1,6 +1,6 @@
 import { combine, Result } from 'neverthrow'
-import { TXSig, BufferReaderT } from './_types'
-import { Byte } from '@radixdlt/util'
+import { TXSig } from './_types'
+import { BufferReaderT, Byte } from '@radixdlt/util'
 import { UInt256 } from '@radixdlt/uint256'
 import { amountToBuffer } from './tokens'
 

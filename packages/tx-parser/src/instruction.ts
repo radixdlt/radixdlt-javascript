@@ -1,6 +1,5 @@
 import { combine, err, ok, Result } from 'neverthrow'
 import {
-	BufferReaderT,
 	BytesT,
 	Ins_DOWN,
 	Ins_DOWNALL,
@@ -23,7 +22,7 @@ import { Bytes } from './bytes'
 import { TxSignature } from './txSignature'
 import { Substate } from './substate'
 import { SubstateId } from './substateId'
-import { Byte } from '@radixdlt/util'
+import { BufferReaderT, Byte } from '@radixdlt/util'
 
 const parseFromBufferReader = (
 	bufferReader: BufferReaderT,

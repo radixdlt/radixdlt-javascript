@@ -17,17 +17,6 @@ import {
 	SubStateType,
 	TokensT,
 } from '../dist'
-import { sha256, sha256Twice } from '@radixdlt/crypto'
-
-const diffStrings = (str1: string, str2: string): string => {
-	let diff = ''
-	str2.split('').forEach((val, i) => {
-		if (val != str1.charAt(i)) {
-			diff += val
-		}
-	})
-	return diff
-}
 
 describe('txParser', () => {
 	describe('complex tx with multiple substate groups', () => {

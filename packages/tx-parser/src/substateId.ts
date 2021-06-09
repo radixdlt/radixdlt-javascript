@@ -1,6 +1,7 @@
-import { BufferReaderT, SubstateIdT } from './_types'
+import { SubstateIdT } from './_types'
 import { combine, Result } from 'neverthrow'
 import { noTab } from './removeWhitespace'
+import { BufferReaderT } from '@radixdlt/util'
 
 const parseFromBufferReader = (
 	bufferReader: BufferReaderT,

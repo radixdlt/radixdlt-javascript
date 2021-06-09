@@ -1,15 +1,11 @@
 import { combine, Result } from 'neverthrow'
-import {
-	PreparedUnstakeT,
-	REAddressT,
-	SubStateType,
-	BufferReaderT,
-} from './_types'
+import { PreparedUnstakeT, REAddressT, SubStateType } from './_types'
 import { REAddress } from './reAddress'
 import { amountToBuffer, uint256FromReadBuffer } from './tokens'
 import { UInt256 } from '@radixdlt/uint256'
 import { pubKeyFromReadBuffer } from './preparedStake'
 import { PublicKeyT } from '@radixdlt/crypto'
+import { BufferReaderT } from '@radixdlt/util'
 
 const fromBufferReader = (
 	bufferReader: BufferReaderT,

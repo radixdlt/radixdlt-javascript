@@ -1,7 +1,8 @@
 import { combine, Result } from 'neverthrow'
-import { REAddressT, SubStateType, TokensT, BufferReaderT } from './_types'
+import { REAddressT, SubStateType, TokensT } from './_types'
 import { REAddress } from './reAddress'
 import { UInt256 } from '@radixdlt/uint256'
+import { BufferReaderT } from '@radixdlt/util'
 
 const uint256ByteCount = 32
 

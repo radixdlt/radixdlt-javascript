@@ -26,13 +26,15 @@ import {
 	SemVer,
 	signingKeyWithHardWareWallet,
 	SignTransactionInput,
+	SignTXOutput,
 } from '@radixdlt/hardware-wallet'
 import { RadixAPDU } from './apdu'
 import { LedgerNanoT } from './_types'
 import { LedgerNano } from './ledgerNano'
-import { log } from '@radixdlt/util'
+import { log, BufferReader } from '@radixdlt/util'
 import { Transaction } from '@radixdlt/tx-parser/dist/transaction'
 import { InstructionT } from '@radixdlt/tx-parser'
+import { err, Result } from 'neverthrow'
 
 const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 	const getPublicKey = (input: GetPublicKeyInput): Observable<PublicKeyT> =>
@@ -92,6 +94,45 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 				mergeMap(buf => toObservableFromResult(SemVer.fromBuffer(buf))),
 			)
 
+	const parseSignatureFromLedger = (
+		buf: Buffer,
+	): Result<{ signature: SignatureT; remainingBytes: Buffer }, Error> => {
+		// Response `buf`: pub_key_len (1) || pub_key (var) || chain_code_len (1) || chain_code (var)
+		const bufferReader = BufferReader.create(buf)
+
+		const signatureDERlengthResult = bufferReader.readNextBuffer(1)
+		if (signatureDERlengthResult.isErr()) {
+			const errMsg = `Failed to parse length of signature from response buffer: ${msgFromError(
+				signatureDERlengthResult.error,
+			)}`
+			log.error(errMsg)
+			return err(new Error(errMsg))
+		}
+		const signatureDERlength = signatureDERlengthResult.value.readUIntBE(
+			0,
+			1,
+		)
+		const signatureDERBytesResult = bufferReader.readNextBuffer(
+			signatureDERlength,
+		)
+
+		if (signatureDERBytesResult.isErr()) {
+			const errMsg = `Failed to parse Signature DER bytes from response buffer: ${msgFromError(
+				signatureDERBytesResult.error,
+			)}`
+			log.error(errMsg)
+			return err(new Error(errMsg))
+		}
+		const signatureDERBytes = signatureDERBytesResult.value
+
+		// We ignore remaining bytes, being: `Signature.V (1)`
+
+		return Signature.fromDER(signatureDERBytes).map(signature => ({
+			signature,
+			remainingBytes: bufferReader.remainingBytes(),
+		}))
+	}
+
 	const doSignHash = (input: SignHashInput): Observable<SignatureT> =>
 		ledgerNano
 			.sendAPDUToDevice(
@@ -103,41 +144,10 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 			)
 			.pipe(
 				mergeMap(
-					(buf: Buffer): Observable<SignatureT> => {
-						// Response `buf`: pub_key_len (1) || pub_key (var) || chain_code_len (1) || chain_code (var)
-						const readNextBuffer = readBuffer(buf)
-
-						const signatureDERlengthResult = readNextBuffer(1)
-						if (signatureDERlengthResult.isErr()) {
-							const errMsg = `Failed to parse length of signature from response buffer: ${msgFromError(
-								signatureDERlengthResult.error,
-							)}`
-							log.error(errMsg)
-							return throwError(new Error(errMsg))
-						}
-						const signatureDERlength = signatureDERlengthResult.value.readUIntBE(
-							0,
-							1,
-						)
-						const signatureDERBytesResult = readNextBuffer(
-							signatureDERlength,
-						)
-
-						if (signatureDERBytesResult.isErr()) {
-							const errMsg = `Failed to parse Signature DER bytes from response buffer: ${msgFromError(
-								signatureDERBytesResult.error,
-							)}`
-							log.error(errMsg)
-							return throwError(new Error(errMsg))
-						}
-						const signatureDERBytes = signatureDERBytesResult.value
-
-						// We ignore remaining bytes, being: `Signature.V (1)`
-
-						return toObservableFromResult(
-							Signature.fromDER(signatureDERBytes),
-						)
-					},
+					(buf: Buffer): Observable<SignatureT> =>
+						toObservableFromResult(
+							parseSignatureFromLedger(buf).map(r => r.signature),
+						),
 				),
 			)
 
@@ -196,7 +206,7 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 
 	const doSignTransaction = (
 		input: SignTransactionInput,
-	): Observable<SignatureT> => {
+	): Observable<SignTXOutput> => {
 		const subs = new Subscription()
 
 		const transactionRes = Transaction.fromBuffer(
@@ -214,8 +224,8 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 		const numberOfInstructions = instructions.length
 
 		const sendInstructionSubject = new Subject<InstructionT>()
-		const signatureBytesSubject = new Subject<Buffer>()
-		const signatureSubject = new Subject<SignatureT>()
+		const resultBufferFromLedgerSubject = new Subject<Buffer>()
+		const outputSubject = new Subject<SignTXOutput>()
 
 		const maxBytesPerExchange = 255
 
@@ -244,6 +254,7 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 						path: input.path ?? path000H,
 						txByteCount: input.tx.blob.length,
 						numberOfInstructions,
+						nonNativeTokenRriHRP: input.nonNativeTokenRriHRP,
 					}),
 				)
 				.subscribe({
@@ -278,8 +289,10 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 					),
 					tap({
 						next: (responseFromLedger: Buffer) => {
-							if (moreInstructionsToSend()) {
-								signatureBytesSubject.next(responseFromLedger)
+							if (!moreInstructionsToSend()) {
+								resultBufferFromLedgerSubject.next(
+									responseFromLedger,
+								)
 							} else {
 								sendInstruction()
 							}
@@ -292,30 +305,50 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 							error,
 						)}'`
 						log.error(errMsg)
-						signatureSubject.error(new Error(errMsg))
+						outputSubject.error(new Error(errMsg))
 					},
 				}),
 		)
 
 		subs.add(
-			signatureBytesSubject.subscribe({
+			resultBufferFromLedgerSubject.subscribe({
 				next: (bytes: Buffer) => {
-					const signatureResult = Signature.fromRSBuffer(bytes)
-					if (!signatureResult.isOk()) {
+					const parsedResult = parseSignatureFromLedger(bytes)
+
+					if (!parsedResult.isOk()) {
 						const errMsg = `Failed to parse signature from response from Ledger, underlying error: '${msgFromError(
-							signatureResult.error,
+							parsedResult.error,
 						)}'`
 						log.error(errMsg)
-						signatureSubject.error(new Error(errMsg))
+						outputSubject.error(new Error(errMsg))
 						return
 					}
-					const signature: SignatureT = signatureResult.value
-					signatureSubject.next(signature)
+					const signature: SignatureT = parsedResult.value.signature
+					const remainingBytes = parsedResult.value.remainingBytes
+					const signatureV = remainingBytes.readUInt8()
+					console.log(`Signature V: ${signatureV}`)
+					const hash = remainingBytes.slice(1)
+					if (hash.length !== 32) {
+						const errMsg = `Expected hash to have 32 bytes length`
+						log.error(errMsg)
+						outputSubject.error(new Error(errMsg))
+						return
+					}
+
+					console.log(
+						`Ledger app produced hash: ${hash.toString('hex')}`,
+					)
+
+					outputSubject.next({
+						signature,
+						signatureV,
+						hashCalculatedByLedger: hash,
+					})
 				},
 			}),
 		)
 
-		return signatureSubject.asObservable().pipe(take(1))
+		return outputSubject.asObservable().pipe(take(1))
 	}
 
 	const hwWithoutSK: HardwareWalletWithoutSK = {

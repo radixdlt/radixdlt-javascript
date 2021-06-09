@@ -32,8 +32,15 @@ export type GetPublicKeyInput = AtPath &
 
 export type SignTransactionInput = AtPath &
 	Readonly<{
+		nonNativeTokenRriHRP?: string
 		tx: BuiltTransactionReadyToSign
 	}>
+
+export type SignTXOutput = Readonly<{
+	signature: SignatureT
+	signatureV: number
+	hashCalculatedByLedger: Buffer
+}>
 
 export type SignHashInput = GetPublicKeyInput &
 	Readonly<{
@@ -58,7 +65,7 @@ export type HardwareWalletT = Readonly<{
 	getVersion: () => Observable<SemVerT>
 	getPublicKey: (input: GetPublicKeyInput) => Observable<PublicKeyT>
 	doSignHash: (input: SignHashInput) => Observable<SignatureT>
-	doSignTransaction: (input: SignTransactionInput) => Observable<SignatureT>
+	doSignTransaction: (input: SignTransactionInput) => Observable<SignTXOutput>
 	doKeyExchange: (input: KeyExchangeInput) => Observable<ECPointOnCurveT>
 
 	makeSigningKey: (path: HDPathRadixT) => Observable<HardwareSigningKeyT>

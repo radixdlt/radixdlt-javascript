@@ -159,6 +159,7 @@ const doSignHash = (input: APDUDoSignHashInput): RadixAPDUT => {
 type APDUDoSignTxInitialPackage = WithPath &
 	Readonly<{
 		txByteCount: number
+		nonNativeTokenRriHRP?: string
 		numberOfInstructions: number
 	}>
 
@@ -176,17 +177,45 @@ const signTxInitialSetupPackage = (
 	input: APDUDoSignTxInitialPackage,
 ): RadixAPDUT => {
 	const p1 = SignTxAPDUType.FIRST_METADATA_APDU.valueOf()
-	const p2 = input.numberOfInstructions
 
 	const pathData = hdPathToBuffer(input.path)
-	const sizeOfTXAsData = Buffer.alloc(2)
-	sizeOfTXAsData.writeUInt16BE(input.txByteCount)
-	const data = Buffer.concat([pathData, sizeOfTXAsData])
+	const sizeOfTXAsData = Buffer.alloc(4)
+	sizeOfTXAsData.writeUInt32BE(input.txByteCount)
+
+	const instructionCountAsData = Buffer.alloc(2)
+	instructionCountAsData.writeUInt16BE(input.numberOfInstructions)
+
+	const hrpLen =
+		input.nonNativeTokenRriHRP === undefined
+			? 0
+			: input.nonNativeTokenRriHRP.length
+
+	if (hrpLen > 255) {
+		throw new Error(`Non native token HRP must not longer than 255.`)
+	}
+	const nonNativeTokenHrpLengthAsData = Buffer.alloc(1)
+	nonNativeTokenHrpLengthAsData.writeUInt8(hrpLen)
+
+	const nonNativeTokenHrpData =
+		input.nonNativeTokenRriHRP === undefined
+			? Buffer.alloc(0)
+			: Buffer.from(input.nonNativeTokenRriHRP, 'utf8')
+
+	const hrpData = Buffer.concat([
+		nonNativeTokenHrpLengthAsData,
+		nonNativeTokenHrpData,
+	])
+
+	const data = Buffer.concat([
+		pathData,
+		sizeOfTXAsData,
+		instructionCountAsData,
+		hrpData,
+	])
 
 	return makeAPDU({
 		ins: LedgerInstruction.DO_SIGN_TX,
 		p1,
-		p2,
 		data,
 	})
 }
