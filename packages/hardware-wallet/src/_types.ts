@@ -34,6 +34,8 @@ export type SignTransactionInput = AtPath &
 	Readonly<{
 		nonNativeTokenRriHRP?: string
 		tx: BuiltTransactionReadyToSign
+		displayInstructionContentsOnLedgerDevice: boolean // useful to be able to set to `false` for testing.
+		displayTXSummaryOnLedgerDevice: boolean
 	}>
 
 export type SignTXOutput = Readonly<{

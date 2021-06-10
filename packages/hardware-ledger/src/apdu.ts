@@ -166,6 +166,8 @@ type APDUDoSignTxInitialPackage = WithPath &
 type APDUDoSignTxSingleInstructionPackage = Readonly<{
 	instructionBytes: Buffer
 	isLastInstruction: boolean
+	displayInstructionContentsOnLedgerDevice: boolean // useful to be able to set to `false` for testing.
+	displayTXSummaryOnLedgerDevice: boolean // useful to be able to set to `false` for testing.
 }>
 
 enum SignTxAPDUType {
@@ -220,11 +222,23 @@ const signTxInitialSetupPackage = (
 	})
 }
 
-const signTxStream = (
+const signTxSingleInstruction = (
 	input: APDUDoSignTxSingleInstructionPackage,
 ): RadixAPDUT => {
 	const p1 = SignTxAPDUType.SINGLE_RADIX_ENGINE_INSTRUCTION_APDU.valueOf()
-	const p2 = input.isLastInstruction ? 0x01 : 0x00 // Not needed, Ledger device can keep a counter and compare vs 'numberOfInstructions' (P2 of 'FIRST_METADATA_APDU').
+
+	let p2 = 0b00000000
+
+	if (input.displayInstructionContentsOnLedgerDevice) {
+		const bitMask_displayInstructionContentsOnLedgerDevice = 0b1 << 0
+		p2 = p2 ^ bitMask_displayInstructionContentsOnLedgerDevice
+	}
+
+	if (input.displayTXSummaryOnLedgerDevice) {
+		const bitMask_displayTXSummaryOnLedgerDevice = 0b1 << 1
+		p2 = p2 ^ bitMask_displayTXSummaryOnLedgerDevice
+	}
+
 	return makeAPDU({
 		ins: LedgerInstruction.DO_SIGN_TX,
 		p1,
@@ -245,6 +259,6 @@ export const RadixAPDU = {
 	doSignHash,
 	signTX: {
 		initialSetup: signTxInitialSetupPackage,
-		stream: signTxStream,
+		singleInstruction: signTxSingleInstruction,
 	},
 }

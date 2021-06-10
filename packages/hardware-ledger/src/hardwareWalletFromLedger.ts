@@ -207,6 +207,11 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 	const doSignTransaction = (
 		input: SignTransactionInput,
 	): Observable<SignTXOutput> => {
+		const {
+			displayInstructionContentsOnLedgerDevice,
+			displayTXSummaryOnLedgerDevice,
+		} = input
+
 		const subs = new Subscription()
 
 		const transactionRes = Transaction.fromBuffer(
@@ -281,9 +286,11 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 					mergeMap(
 						(instructionBytes): Observable<Buffer> =>
 							ledgerNano.sendAPDUToDevice(
-								RadixAPDU.signTX.stream({
+								RadixAPDU.signTX.singleInstruction({
 									instructionBytes,
 									isLastInstruction: !moreInstructionsToSend(),
+									displayInstructionContentsOnLedgerDevice,
+									displayTXSummaryOnLedgerDevice,
 								}),
 							),
 					),
