@@ -7,16 +7,14 @@
 import { SemVerT, SignTXOutput } from '@radixdlt/hardware-wallet'
 import { log } from '@radixdlt/util'
 import { Subscription } from 'rxjs'
-import {
-	testDoKeyExchange,
-	testDoSignHash,
-	testGetVersion,
-} from '../hardwareTestUtils'
 import { LedgerNanoT, LedgerNano, HardwareWalletLedger } from '../../src'
 import {
+	ECPointOnCurveT,
 	HDPathRadix,
-	PublicKey, PublicKeyT,
+	PublicKey,
+	PublicKeyT,
 	sha256Twice,
+	SignatureT,
 } from '@radixdlt/crypto'
 import { BuiltTransactionReadyToSign, NetworkT } from '@radixdlt/primitives'
 import { Transaction } from '@radixdlt/tx-parser/dist/transaction'
@@ -53,13 +51,19 @@ describe('hw_ledger_integration', () => {
 		})
 		const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
 
-		testGetVersion({
-			hardwareWallet,
-			onResponse: (version: SemVerT) => {
-				expect(version.toString()).toBe('0.3.1')
-				done()
-			},
-		})
+		const subs = new Subscription()
+
+		subs.add(
+			hardwareWallet.getVersion().subscribe({
+				next: (semVer: SemVerT) => {
+					expect(semVer.toString()).toBe('0.3.1')
+					done()
+				},
+				error: e => {
+					done(e)
+				},
+			}),
+		)
 	})
 
 	it('getPublicKey_integration', async done => {
@@ -113,22 +117,67 @@ describe('hw_ledger_integration', () => {
 		)
 	})
 
-	it.only('doKeyExchange_integration', async done => {
+	it('doKeyExchange_integration', async done => {
 		ledgerNano = await LedgerNano.connect({
 			deviceConnectionTimeout: 1_000,
 		})
 		const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
 
-		testDoKeyExchange({
-			hardwareWallet,
-			displayBIPAndPubKeyOtherParty: true,
-			onResponse: _pointOncurve => {
-				done()
-			},
-		})
+		const subs = new Subscription()
+
+		const publicKeyOfOtherParty = PublicKey.fromBuffer(
+			Buffer.from(
+				'0479be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8',
+				'hex',
+			),
+		)._unsafeUnwrap()
+
+		const displayBIPAndPubKeyOtherParty = true
+
+		if (displayBIPAndPubKeyOtherParty) {
+			console.log(
+				`🔮 publicKeyOfOtherParty: ${publicKeyOfOtherParty.toString(
+					false,
+				)}`,
+			)
+
+			const accountAddressOfOtherParty = AccountAddress.fromPublicKeyAndNetwork(
+				{
+					publicKey: publicKeyOfOtherParty,
+					network: NetworkT.BETANET,
+				},
+			)
+
+			console.log(
+				`🔮 other party address: ${accountAddressOfOtherParty.toString()}`,
+			)
+		}
+
+		subs.add(
+			hardwareWallet
+				.doKeyExchange({
+					// both Account and Address will be hardened.
+					path: HDPathRadix.fromString(
+						`m/44'/536'/2'/1/3`,
+					)._unsafeUnwrap(),
+					publicKeyOfOtherParty,
+					displayBIPAndPubKeyOtherParty,
+				})
+				.subscribe(
+					(ecPointOnCurve: ECPointOnCurveT) => {
+						expect(ecPointOnCurve.toString()).toBe(
+							'6d5e07cfde5df84b5ef884b629d28d15b0f6c66be229680699767cd57c6182883fa2aff69be05f792a02d6ef657240b17c44614a53e45dff4c529bfb012b9646',
+						)
+						done()
+					},
+					e => {
+						done(e)
+					},
+				),
+		)
 	}, 40_000)
 
-	it('doSignHash_integration', async done => {
+	it('doSignTX_integration', async done => {
 		ledgerNano = await LedgerNano.connect({
 			deviceConnectionTimeout: 1_000,
 		})
@@ -196,17 +245,45 @@ describe('hw_ledger_integration', () => {
 		)
 	}, 20_000)
 
-	it('doSignTX_integration', async done => {
+	it.only('doSignHash_integration', async done => {
 		ledgerNano = await LedgerNano.connect({
 			deviceConnectionTimeout: 1_000,
 		})
 		const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
 
-		testDoSignHash({
-			hardwareWallet,
-			onResponse: _signature => {
-				done()
-			},
-		})
+		const subs = new Subscription()
+
+		const hashToSign = sha256Twice(
+			`I'm testing Radix awesome hardware wallet!`,
+		)
+
+		const path = HDPathRadix.fromString(`m/44'/536'/2'/1/3`)._unsafeUnwrap()
+
+		const displayAddress = true
+
+		if (displayAddress) {
+			console.log(`🔮 Path: ${path.toString()}`)
+			console.log(`🔮 Hash: ${hashToSign.toString('hex')}`)
+		}
+
+		subs.add(
+			hardwareWallet
+				.doSignHash({
+					path,
+					hashToSign,
+					displayAddress,
+				})
+				.subscribe(
+					(signature: SignatureT) => {
+						expect(signature.toDER()).toBe(
+							'3044022078b0d2d17d227a8dd14ecdf0d7d65580ac6c17ab980c50074e6c096c4081313202207a9819ceedab3bfd3d22452224394d6cb41e3441f4675a5e7bf58f059fdf34cd',
+						)
+						done()
+					},
+					e => {
+						done(e)
+					},
+				),
+		)
 	}, 40_000)
 })
