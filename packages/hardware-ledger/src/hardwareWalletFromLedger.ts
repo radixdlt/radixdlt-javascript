@@ -237,11 +237,23 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 		const nextInstructionToSend = (): InstructionT => {
 			const instructionToSend: InstructionT = instructions.shift()! // "pop first"
 			log.debug(
-				`Sending instruction 📦 #${
+				`
+📦 📦 📦 📦 📦 📦 📦 📦 📦 📦 📦 📦 📦 📦 📦 📦
+Sending instruction #${
 					numberOfInstructions - instructions.length
 				}/#${numberOfInstructions}. (length: #${
 					instructionToSend.toBuffer().length
-				} bytes).`,
+				} bytes).
+				
+String representation: "
+${instructionToSend.toString()}
+"
+
+Bytes: "
+	${instructionToSend.toBuffer().toString('hex')}
+"
+📦 📦 📦 📦 📦 📦 📦 📦 📦 📦 📦 📦 📦 📦 📦 📦
+`,
 			)
 			return instructionToSend
 		}

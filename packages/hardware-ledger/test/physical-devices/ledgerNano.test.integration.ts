@@ -47,7 +47,7 @@ describe('hw_ledger_integration', () => {
 
 	it('getVersion_integration', async done => {
 		ledgerNano = await LedgerNano.connect({
-			deviceConnectionTimeout: 1_000,
+			deviceConnectionTimeout: 10_000,
 		})
 		const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
 
@@ -68,7 +68,7 @@ describe('hw_ledger_integration', () => {
 
 	it('getPublicKey_integration', async done => {
 		ledgerNano = await LedgerNano.connect({
-			deviceConnectionTimeout: 1_000,
+			deviceConnectionTimeout: 10_000,
 		})
 		const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
 
@@ -119,7 +119,7 @@ describe('hw_ledger_integration', () => {
 
 	it('doKeyExchange_integration', async done => {
 		ledgerNano = await LedgerNano.connect({
-			deviceConnectionTimeout: 1_000,
+			deviceConnectionTimeout: 10_000,
 		})
 		const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
 
@@ -175,11 +175,11 @@ describe('hw_ledger_integration', () => {
 					},
 				),
 		)
-	}, 40_000)
+	}, 20_000)
 
-	it('doSignTX_integration', async done => {
+	it.only('doSignTX_integration', async done => {
 		ledgerNano = await LedgerNano.connect({
-			deviceConnectionTimeout: 1_000,
+			deviceConnectionTimeout: 10_000,
 		})
 		const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
 
@@ -243,11 +243,11 @@ describe('hw_ledger_integration', () => {
 					},
 				),
 		)
-	}, 20_000)
+	}, 40_000)
 
-	it.only('doSignHash_integration', async done => {
+	it('doSignHash_integration', async done => {
 		ledgerNano = await LedgerNano.connect({
-			deviceConnectionTimeout: 1_000,
+			deviceConnectionTimeout: 10_000,
 		})
 		const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
 
