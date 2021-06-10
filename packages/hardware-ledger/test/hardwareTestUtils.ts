@@ -33,59 +33,6 @@ export const testGetVersion = (
 	)
 }
 
-export const testGetPublicKey = (
-	input: Readonly<{
-		hardwareWallet: HardwareWalletT
-		requireConfirmationOnDevice?: boolean
-		onResponse?: (publicKey: PublicKeyT) => void
-	}>,
-): void => {
-	const { hardwareWallet } = input
-	const onResponse = input.onResponse ?? (_ => undefined)
-	const subs = new Subscription()
-
-	const path = HDPathRadix.fromString(`m/44'/536'/2'/1/3`)._unsafeUnwrap()
-	const displayAddress = input.requireConfirmationOnDevice ?? false
-	const expectedPubKeyHex =
-		'026d5e07cfde5df84b5ef884b629d28d15b0f6c66be229680699767cd57c618288'
-	const expectedPubKey = PublicKey.fromBuffer(
-		Buffer.from(expectedPubKeyHex, 'hex'),
-	)._unsafeUnwrap()
-	if (displayAddress) {
-		console.log(`🔮 expected path: ${path.toString()}`)
-		const accountAddress = AccountAddress.fromPublicKeyAndNetwork({
-			publicKey: expectedPubKey,
-			network: NetworkT.BETANET,
-		})
-		const wrongAccountAddress = AccountAddress.fromPublicKeyAndNetwork({
-			publicKey: expectedPubKey,
-			network: NetworkT.MAINNET,
-		})
-		console.log(
-			`🔮 expected address: '${accountAddress.toString()}' ([wrong]mainnet: '${wrongAccountAddress.toString()}')`,
-		)
-	}
-
-	subs.add(
-		hardwareWallet
-			.getPublicKey({
-				// both Account and Address will be hardened.
-				path,
-				displayAddress,
-				// verifyAddressOnDeviceForNetwork: NetworkT.BETANET,
-			})
-			.subscribe(
-				(publicKey: PublicKeyT) => {
-					expect(publicKey.toString(true)).toBe(expectedPubKeyHex)
-					onResponse(publicKey)
-				},
-				e => {
-					throw e
-				},
-			),
-	)
-}
-
 export const testDoSignHash = (
 	input: Readonly<{
 		hardwareWallet: HardwareWalletT

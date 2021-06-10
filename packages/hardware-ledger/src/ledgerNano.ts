@@ -1,21 +1,12 @@
 import {
 	LedgerNanoT,
-	LedgerRequest,
-	LedgerResponse,
 	LedgerResponseCodes,
-	MockedLedgerNanoRecorderT,
-	MockedLedgerNanoT,
 	prettifyLedgerResponseCode,
 	RadixAPDUT,
 } from './_types'
-import { from, Observable, of, throwError } from 'rxjs'
-import { map, tap } from 'rxjs/operators'
-import { v4 as uuidv4 } from 'uuid'
-import { MockedLedgerNanoRecorder } from './mockedLedgerNanoRecorder'
-import { emulateSend } from './emulatedLedger'
+import { from, Observable, throwError } from 'rxjs'
 
 import { msgFromError, log } from '@radixdlt/util'
-import { MnemomicT, HDMasterSeed, Mnemonic } from '@radixdlt/crypto'
 
 import {
 	BasicLedgerTransport,
@@ -23,78 +14,6 @@ import {
 	OpenLedgerConnectionInput,
 	send,
 } from './device-connection'
-import { SemVerT, SemVer } from '@radixdlt/hardware-wallet'
-
-const __create = (
-	input: Readonly<{
-		close: () => Observable<void>
-		sendAPDUToDevice: (apdu: RadixAPDUT) => Observable<Buffer>
-		recorder?: MockedLedgerNanoRecorderT
-	}>,
-): LedgerNanoT => {
-	const { recorder, sendAPDUToDevice: exchange } = input
-
-	const sendRequestToDevice = (
-		request: LedgerRequest,
-	): Observable<LedgerResponse> => {
-		const { uuid, apdu } = request
-		recorder?.recordRequest(request)
-		return exchange(apdu).pipe(
-			map(data => ({ data, uuid })),
-			tap(response => {
-				recorder?.recordResponse(response)
-			}),
-		)
-	}
-
-	const sendAPDUToDevice = (apdu: RadixAPDUT): Observable<Buffer> => {
-		const uuid = uuidv4()
-		return sendRequestToDevice({ apdu, uuid }).pipe(
-			map(response => response.data),
-		)
-	}
-
-	return {
-		...input,
-		__sendRequestToDevice: sendRequestToDevice,
-		sendAPDUToDevice,
-	}
-}
-
-const emulate = (
-	input: Readonly<{
-		recorder?: MockedLedgerNanoRecorderT
-		mnemonic?: MnemomicT
-		passphrase?: string
-		version?: SemVerT
-	}>,
-): MockedLedgerNanoT => {
-	const passphrase = input.passphrase
-	const mnemonic = input.mnemonic ?? Mnemonic.generateNew()
-
-	const recorder = input.recorder ?? MockedLedgerNanoRecorder.create()
-
-	const sendAPDUToDevice = emulateSend({
-		recorder,
-		hdMasterNode: HDMasterSeed.fromMnemonic({
-			mnemonic,
-			passphrase,
-		}).masterNode(),
-		hardcodedVersion:
-			input.version ?? SemVer.fromString('0.2.3')._unsafeUnwrap(),
-	})
-
-	const ledgerNano = __create({
-		close: () => of(undefined),
-		sendAPDUToDevice,
-		recorder: recorder,
-	})
-
-	return {
-		...ledgerNano,
-		store: recorder,
-	}
-}
 
 const ledgerAPDUResponseCodeBufferLength = 2 // two bytes
 
@@ -196,13 +115,6 @@ const fromTransport = (
 	return {
 		close: (): Observable<void> => from(basicLedgerTransport.close()),
 		sendAPDUToDevice,
-		__sendRequestToDevice: (_): Observable<LedgerResponse> =>
-			throwError(
-				() =>
-					new Error(
-						`__sendRequestToDevice is not implemented for physical devices.`,
-					),
-			),
 	}
 }
 
@@ -221,5 +133,4 @@ const connect = async (
 
 export const LedgerNano = {
 	connect,
-	emulate,
 }

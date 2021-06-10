@@ -10,19 +10,18 @@ import { Subscription } from 'rxjs'
 import {
 	testDoKeyExchange,
 	testDoSignHash,
-	testGetPublicKey,
 	testGetVersion,
 } from '../hardwareTestUtils'
 import { LedgerNanoT, LedgerNano, HardwareWalletLedger } from '../../src'
 import {
 	HDPathRadix,
-	PublicKey,
+	PublicKey, PublicKeyT,
 	sha256Twice,
-	SignatureT,
 } from '@radixdlt/crypto'
-import { BuiltTransactionReadyToSign } from '@radixdlt/primitives'
+import { BuiltTransactionReadyToSign, NetworkT } from '@radixdlt/primitives'
 import { Transaction } from '@radixdlt/tx-parser/dist/transaction'
 import { TransactionT } from '@radixdlt/tx-parser'
+import { AccountAddress } from '@radixdlt/account'
 
 describe('hw_ledger_integration', () => {
 	let ledgerNano: LedgerNanoT
@@ -69,16 +68,52 @@ describe('hw_ledger_integration', () => {
 		})
 		const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
 
-		testGetPublicKey({
-			hardwareWallet,
-			requireConfirmationOnDevice: true,
-			onResponse: _publicKey => {
-				done()
-			},
-		})
+		const subs = new Subscription()
+
+		const path = HDPathRadix.fromString(`m/44'/536'/2'/1/3`)._unsafeUnwrap()
+		const displayAddress = true
+
+		const expectedPubKeyHex =
+			'026d5e07cfde5df84b5ef884b629d28d15b0f6c66be229680699767cd57c618288'
+
+		const expectedPubKey = PublicKey.fromBuffer(
+			Buffer.from(expectedPubKeyHex, 'hex'),
+		)._unsafeUnwrap()
+
+		if (displayAddress) {
+			console.log(`🔮 expected path: ${path.toString()}`)
+			const accountAddress = AccountAddress.fromPublicKeyAndNetwork({
+				publicKey: expectedPubKey,
+				network: NetworkT.BETANET,
+			})
+			const wrongAccountAddress = AccountAddress.fromPublicKeyAndNetwork({
+				publicKey: expectedPubKey,
+				network: NetworkT.MAINNET,
+			})
+			console.log(
+				`🔮 expected address: '${accountAddress.toString()}' ([wrong]mainnet: '${wrongAccountAddress.toString()}')`,
+			)
+		}
+
+		subs.add(
+			hardwareWallet
+				.getPublicKey({
+					path,
+					displayAddress,
+				})
+				.subscribe(
+					(publicKey: PublicKeyT) => {
+						expect(publicKey.toString(true)).toBe(expectedPubKeyHex)
+						done()
+					},
+					e => {
+						done(e)
+					},
+				),
+		)
 	})
 
-	it('doKeyExchange_integration', async done => {
+	it.only('doKeyExchange_integration', async done => {
 		ledgerNano = await LedgerNano.connect({
 			deviceConnectionTimeout: 1_000,
 		})
