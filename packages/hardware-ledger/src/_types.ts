@@ -11,13 +11,11 @@ export enum LedgerInstruction {
 
 /// Keep in sync with: https://github.com/radixdlt/app-radix/blob/main/src/sw.h
 export enum LedgerResponseCodes {
-	ERR_CMD_SIGN_TX_ERR_CMD_SIGN_TX_UNRECOGNIZED_INSTRUCTION_TYPE = 0xc606,
-	ERR_CMD_SIGN_TX_SUBSTATE_ID_HASH_PARSE_FAILURE = 0xc620,
-	ERR_CMD_SIGN_TX_DISABLE_MINT_AND_BURN_FLAG_NOT_SET = 0xc6e0,
+	ERR_CMD_SIGN_TX_UNSUPPORTED_INSTRUCTION_TYPE = 0xc608,
+
 	ERR_COMMON_BAD_STATE = 0xe001,
 	ERR_ASSERTION_FAILED = 0xe002,
 	ERR_FATAL_ERROR = 0xe003,
-
 
 	SW_DENY = 0x6985,
 	SW_WRONG_P1P2 = 0x6a86,

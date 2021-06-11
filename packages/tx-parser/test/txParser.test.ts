@@ -17,37 +17,10 @@ import {
 	SubStateType,
 	TokensT,
 } from '../dist'
+import { sha256Twice } from '@radixdlt/crypto'
 
 describe('txParser', () => {
 	describe('complex tx with multiple substate groups', () => {
-		it('really_plz_delete_me', () => {
-			const doTest = (
-				displayInstructionContentsOnLedgerDevice: boolean,
-				displayTXSummaryOnLedgerDevice: boolean,
-				expectedNumber: number,
-			): void => {
-				let p2 = 0b00000000
-
-				if (displayInstructionContentsOnLedgerDevice) {
-					const bitMask_displayInstructionContentsOnLedgerDevice =
-						0b1 << 0
-					p2 = p2 ^ bitMask_displayInstructionContentsOnLedgerDevice
-				}
-
-				if (displayTXSummaryOnLedgerDevice) {
-					const bitMask_displayTXSummaryOnLedgerDevice = 0b1 << 1
-					p2 = p2 ^ bitMask_displayTXSummaryOnLedgerDevice
-				}
-
-				expect(p2).toBe(expectedNumber)
-			}
-
-			doTest(false, false, 0)
-			doTest(true, true, 3)
-
-			doTest(true, false, 1)
-			doTest(false, true, 2)
-		})
 
 		it('tokens transfer and stake', () => {
 			const blobHex =
@@ -138,48 +111,12 @@ describe('txParser', () => {
 			)
 		})
 
-		// const testComplex = (
-		// 	blobHex: string,
-		// 	expected: {
-		// 		instructionTypes: string[],
-		// 		substateTypesInInsUP: SubStateType[],
-		// 		signature: string,
-		// 		txID: string
-		// 	}
-		// ): void => {
-		// 	const blob = Buffer.from(blobHex, 'hex')
-		// 	const txRes = Transaction.fromBuffer(blob)
-		// 	if (txRes.isErr()) {
-		// 		throw txRes.error
-		// 	}
-		// 	const parsedTx: TransactionT = txRes.value
-		// 	console.log(`✅ parsed tx: ${parsedTx.toString()}`)
-		// 	expect(parsedTx.toBuffer().toString('hex')).toBe(blobHex)
-		//
-		// 	const expIns = expected.instructionTypes
-		//
-		// 	const ins = parsedTx.instructions
-		// 	expect(ins.length).toBe(expIns.length)
-		//
-		// 	expect(
-		// 		ins.map(i => i.instructionType).map(it => InstructionType[it]),
-		// 	).toStrictEqual(expIns)
-		//
-		// 	expect(
-		// 		ins.filter(i => i.instructionType === InstructionType.UP).map(i => i as Ins_UP).map(upI => upI.substate.substateType),
-		// 	).toStrictEqual(expected.substateTypesInInsUP)
-		//
-		// 	const insSIG = ins[ins.length - 1] as Ins_SIG
-		// 	expect(insSIG.signature.toBuffer().toString('hex')).toBe(expected.signature)
-		//
-		// 	expect(parsedTx.txID()).toBe(expected.txID)
-		// }
-
 		const testComplex = (input: {
 			blobHex: string
 			expected: {
 				parsedTX: string
-				txID: string
+				txID?: string
+				hash?: string
 			}
 		}): void => {
 			const { blobHex, expected } = input
@@ -191,8 +128,37 @@ describe('txParser', () => {
 			const parsedTx: TransactionT = txRes.value
 			console.log(parsedTx.toString())
 			expect(parsedTx.toString()).toBe(expected.parsedTX)
-			expect(parsedTx.txID()).toBe(expected.txID)
+
+			if (expected.txID) {
+				expect(parsedTx.txID()).toBe(expected.txID)
+			}
+
+			if (expected.hash) {
+				const hash = sha256Twice(blob)
+				expect(hash.toString('hex')).toBe(expected.hash)
+			}
 		}
+
+		it('header_syscall_no_sig', () => {
+			testComplex({
+				blobHex:
+					'0a000104374c00efbe61f645a8b35d7746e106afa7422877e5d607975b6018e0a1aa6bf0000000040921000000000000000000000000000000000000000000000000000000000000000002010301040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba000000000000000000000000000000000000000000000001158e460913cffffe000500000003010301040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba0000000000000000000000000000000000000000000000008ac7230489e7fffe0104040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba02f19b2d095a553f3a41da4a8dc1f8453dfbdc733c5aece8b128b7d7999ae247a50000000000000000000000000000000000000000000000008ac7230489e8000000',
+				expected: {
+					parsedTX: `Instructions:
+|- HEADER(0, 1)
+|- DOWN(SubstateId { hash: 0x374c00efbe61f645a8b35d7746e106afa7422877e5d607975b6018e0a1aa6bf0, index: 4 })
+|- SYSCALL(0x000000000000000000000000000000000000000000000000000000000000000002)
+|- UP(Tokens { rri: 0x01, owner: 0x040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba, amount: U256 { raw: 19999999999999999998 } })
+|- END
+|- LDOWN(3)
+|- UP(Tokens { rri: 0x01, owner: 0x040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba, amount: U256 { raw: 9999999999999999998 } })
+|- UP(PreparedStake { owner: 0x040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba, delegate: 0x02f19b2d095a553f3a41da4a8dc1f8453dfbdc733c5aece8b128b7d7999ae247a5, amount: U256 { raw: 10000000000000000000 } })
+|- END`,
+					hash:
+						'apa',
+				},
+			})
+		})
 
 		it('Fee_Stake_Transfer', () => {
 			testComplex({

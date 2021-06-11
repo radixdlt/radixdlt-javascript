@@ -277,7 +277,7 @@ Bytes: "
 				.sendAPDUToDevice(
 					RadixAPDU.signTX.initialSetup({
 						path: input.path ?? path000H,
-						txByteCount: input.tx.blob.length,
+						txByteCount: input.tx.blob.length / 2, // 2 hex chars per byte
 						numberOfInstructions,
 						nonNativeTokenRriHRP: input.nonNativeTokenRriHRP,
 					}),
