@@ -56,6 +56,16 @@ const parseFromBufferReader = (
 									]),
 								toString: () =>
 									`UP(${substate.toString().trimStart()})`,
+								toHumanReadableString: () => {
+									if (!substate.toHumanReadableString) {
+										return `UP(${substate
+											.toString()
+											.trimStart()})`
+									}
+									return `UP(${substate
+										.toHumanReadableString()
+										.trimStart()})`
+								},
 							}),
 						)
 					case InstructionType.VDOWN:

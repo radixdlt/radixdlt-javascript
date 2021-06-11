@@ -1,11 +1,16 @@
 import { combine, Result } from 'neverthrow'
 import { PreparedUnstakeT, REAddressT, SubStateType } from './_types'
 import { REAddress } from './reAddress'
-import { amountToBuffer, uint256FromReadBuffer } from './tokens'
+import {
+	amountToBuffer,
+	stringifyUInt256,
+	uint256FromReadBuffer,
+} from './tokens'
 import { UInt256 } from '@radixdlt/uint256'
 import { pubKeyFromReadBuffer } from './preparedStake'
 import { PublicKeyT } from '@radixdlt/crypto'
 import { BufferReaderT } from '@radixdlt/util'
+import { AccountAddress, ValidatorAddress } from '@radixdlt/account'
 
 const fromBufferReader = (
 	bufferReader: BufferReaderT,
@@ -39,6 +44,18 @@ const fromBufferReader = (
 							.toString(
 								'hex',
 							)}, amount: U256 { raw: ${amount.toString()} } }`,
+					toHumanReadableString: () =>
+						`PreparedUnstake { owner: ${AccountAddress.fromUnsafe(
+							owner.toBuffer(),
+						)
+							._unsafeUnwrap()
+							.toString()}, delegate: ${ValidatorAddress.fromUnsafe(
+							delegate.asData({ compressed: true }),
+						)
+							._unsafeUnwrap()
+							.toString()}, amount: ${stringifyUInt256(
+							amount,
+						)} }`,
 				}
 			},
 		)

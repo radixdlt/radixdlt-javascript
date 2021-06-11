@@ -6,6 +6,7 @@ import { UInt256 } from '@radixdlt/uint256'
 import { pubKeyFromReadBuffer } from './preparedStake'
 import { PublicKeyT } from '@radixdlt/crypto'
 import { BufferReaderT } from '@radixdlt/util'
+import { AccountAddress, ValidatorAddress } from '@radixdlt/account'
 
 const fromBufferReader = (
 	bufferReader: BufferReaderT,
@@ -38,6 +39,16 @@ const fromBufferReader = (
 						owner: ${owner.toString()},
 						amount: ${amount.toString()},
 					}`,
+					toHumanReadableString: () =>
+						`StakeShare { owner: ${AccountAddress.fromUnsafe(
+							owner.toBuffer(),
+						)
+							._unsafeUnwrap()
+							.toString()}, delegate: ${ValidatorAddress.fromUnsafe(
+							delegate.asData({ compressed: true }),
+						)
+							._unsafeUnwrap()
+							.toString()}, amount: U256 { raw: ${amount.toString()} } }`,
 				}
 			},
 		)

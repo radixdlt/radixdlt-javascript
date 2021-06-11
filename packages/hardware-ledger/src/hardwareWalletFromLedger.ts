@@ -245,8 +245,16 @@ Sending instruction #${
 					instructionToSend.toBuffer().length
 				} bytes).
 				
-String representation: "
+Raw string representation: "
 ${instructionToSend.toString()}
+"
+
+Human readable string representation: "
+${
+	instructionToSend.toHumanReadableString !== undefined
+		? instructionToSend.toHumanReadableString()
+		: 'no human readable representation available.'
+}
 "
 
 Bytes: "

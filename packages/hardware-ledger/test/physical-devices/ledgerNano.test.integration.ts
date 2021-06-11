@@ -179,7 +179,7 @@ describe('hw_ledger_integration', () => {
 
 	it.only('doSignTX_integration', async done => {
 		ledgerNano = await LedgerNano.connect({
-			deviceConnectionTimeout: 10_000,
+			deviceConnectionTimeout: 20_000,
 		})
 		const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
 
@@ -243,7 +243,7 @@ describe('hw_ledger_integration', () => {
 					},
 				),
 		)
-	}, 40_000)
+	}, 10 * 60 * 1_000) // 10 min
 
 	it('doSignHash_integration', async done => {
 		ledgerNano = await LedgerNano.connect({

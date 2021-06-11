@@ -3,8 +3,9 @@ import { PreparedStakeT, REAddressT, SubStateType } from './_types'
 import { REAddress } from './reAddress'
 import { UInt256 } from '@radixdlt/uint256'
 import { PublicKey, PublicKeyT } from '@radixdlt/crypto'
-import { amountToBuffer, uint256FromReadBuffer } from './tokens'
+import { amountToBuffer, stringifyUInt256, uint256FromReadBuffer } from './tokens'
 import { BufferReaderT } from '@radixdlt/util'
+import { AccountAddress, ValidatorAddress } from '@radixdlt/account'
 
 export const pubKeyFromReadBuffer = (
 	bufferReader: BufferReaderT,
@@ -43,6 +44,17 @@ const fromBufferReader = (
 							.toString(
 								'hex',
 							)}, delegate: 0x${delegate.toString()}, amount: U256 { raw: ${amount.toString()} } }`,
+
+					toHumanReadableString: () =>
+						`PreparedStake { owner: ${AccountAddress.fromUnsafe(
+							owner.toBuffer(),
+						)
+							._unsafeUnwrap()
+							.toString()}, delegate: ${ValidatorAddress.fromUnsafe(
+							delegate.asData({ compressed: true }),
+						)
+							._unsafeUnwrap()
+							.toString()}, amount: ${stringifyUInt256(amount)} }`,
 				}
 			},
 		)

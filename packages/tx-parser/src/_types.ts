@@ -23,6 +23,7 @@ export enum InstructionType {
 }
 export type BaseInstruction<IT extends InstructionType> = REPrimitive &
 	Readonly<{
+		toHumanReadableString?: () => string
 		instructionType: IT
 	}>
 
@@ -70,6 +71,7 @@ export enum SubStateType {
 export type BaseSubstate<SST extends SubStateType> = REPrimitive &
 	Readonly<{
 		substateType: SST
+		toHumanReadableString?: () => string
 	}>
 
 export type TokensT = BaseSubstate<SubStateType.TOKENS> & {

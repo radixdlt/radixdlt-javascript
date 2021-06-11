@@ -3,8 +3,17 @@ import { REAddressT, SubStateType, TokensT } from './_types'
 import { REAddress } from './reAddress'
 import { UInt256 } from '@radixdlt/uint256'
 import { BufferReaderT } from '@radixdlt/util'
+import { ResourceIdentifier, AccountAddress } from '@radixdlt/account'
+import BigNumber from 'bignumber.js'
 
 const uint256ByteCount = 32
+
+export const stringifyUInt256 = (uint256: UInt256) => {
+	const factor = new BigNumber('1e18')
+	const bigNumber = new BigNumber(uint256.toString())
+	const precision = 4
+	return bigNumber.dividedToIntegerBy(factor).toFormat(precision)
+}
 
 export const uint256FromReadBuffer = (
 	bufferReader: BufferReaderT,
@@ -52,6 +61,17 @@ const fromBufferReader = (
 							.toString(
 								'hex',
 							)}, amount: U256 { raw: ${amount.toString()} } }`,
+					toHumanReadableString: () =>
+						`Tokens { rri: ${
+							rri.toBuffer().length === 1
+								? ResourceIdentifier.fromUnsafe(rri.toBuffer())
+										._unsafeUnwrap()
+										.toString()
+								: rri.toBuffer().toString('hex')
+						}, 
+							owner: ${AccountAddress.fromUnsafe(owner.toBuffer().slice(1))
+								._unsafeUnwrap()
+								.toString()}, amount: ${stringifyUInt256(amount)} }`,
 				}
 			},
 		)
