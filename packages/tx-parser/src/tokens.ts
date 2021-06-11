@@ -71,7 +71,9 @@ const fromBufferReader = (
 						}, 
 							owner: ${AccountAddress.fromUnsafe(owner.toBuffer().slice(1))
 								._unsafeUnwrap()
-								.toString()}, amount: ${stringifyUInt256(amount)} }`,
+								.toString()}, amount: ${stringifyUInt256(
+							amount,
+						)} }`,
 				}
 			},
 		)

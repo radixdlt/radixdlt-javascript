@@ -292,7 +292,11 @@ const fromBuffer = (buffer: Buffer): Result<ResourceIdentifierT, Error> => {
 			network: NetworkT.BETANET, // Yikes!
 		})
 	}
-	return err(new Error('Failed to create non XRD RRI because we do not have access to the HRP.'))
+	return err(
+		new Error(
+			'Failed to create non XRD RRI because we do not have access to the HRP.',
+		),
+	)
 }
 
 export const isResourceIdentifier = (

@@ -3,7 +3,11 @@ import { PreparedStakeT, REAddressT, SubStateType } from './_types'
 import { REAddress } from './reAddress'
 import { UInt256 } from '@radixdlt/uint256'
 import { PublicKey, PublicKeyT } from '@radixdlt/crypto'
-import { amountToBuffer, stringifyUInt256, uint256FromReadBuffer } from './tokens'
+import {
+	amountToBuffer,
+	stringifyUInt256,
+	uint256FromReadBuffer,
+} from './tokens'
 import { BufferReaderT } from '@radixdlt/util'
 import { AccountAddress, ValidatorAddress } from '@radixdlt/account'
 
@@ -54,7 +58,9 @@ const fromBufferReader = (
 							delegate.asData({ compressed: true }),
 						)
 							._unsafeUnwrap()
-							.toString()}, amount: ${stringifyUInt256(amount)} }`,
+							.toString()}, amount: ${stringifyUInt256(
+							amount,
+						)} }`,
 				}
 			},
 		)
