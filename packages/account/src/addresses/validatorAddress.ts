@@ -81,7 +81,7 @@ const fromBuffer = (buffer: Buffer): Result<ValidatorAddressT, Error> => {
 
 	if (buffer.length === 34 && buffer[0] === 0x04) {
 		const sliced = buffer.slice(1)
-		if (length !== 33) {
+		if (sliced.length !== 33) {
 			return err(new Error('Failed to slice buffer.'))
 		}
 		return fromBuf(sliced)
