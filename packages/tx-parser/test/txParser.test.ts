@@ -18,10 +18,11 @@ import {
 	TokensT,
 } from '../dist'
 import { sha256Twice } from '@radixdlt/crypto'
+import { Instruction } from '../dist/instruction'
 
 describe('txParser', () => {
 	describe('complex tx with multiple substate groups', () => {
-		it('tokens transfer and stake', () => {
+		it('tokens_transfer_and_stake_ledger_vector', () => {
 			const blobHex =
 				'0a000104374c00efbe61f645a8b35d7746e106afa7422877e5d607975b6018e0a1aa6bf0000000040921000000000000000000000000000000000000000000000000000000000000000002010301040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba000000000000000000000000000000000000000000000001158e460913cffffe000500000003010301040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba0000000000000000000000000000000000000000000000008ac7230489e7fffe0104040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba02f19b2d095a553f3a41da4a8dc1f8453dfbdc733c5aece8b128b7d7999ae247a50000000000000000000000000000000000000000000000008ac7230489e80000000700dcb252005545207d4d0e0a72952acccf9466087fbecee7d5851467869aa8d6566dd9476f5e719fe1025dee78f975d9b5a5d136ced8e51cfcd7b7c85563edb23b'
 			const blob = Buffer.from(blobHex, 'hex')
@@ -34,6 +35,25 @@ describe('txParser', () => {
 			expect(parsedTx.toBuffer().toString('hex')).toBe(blobHex)
 
 			const ins = parsedTx.instructions
+
+
+			const chunkArray = <T>(myArray: T[], chunk_size: number): T[][] => {
+				const results: T[][] = [] as T[][]
+				while (myArray.length) {
+					results.push(myArray.splice(0, chunk_size))
+				}
+				return results
+			}
+
+			let debugByteString = ''
+			for (const instruction of ins) {
+				debugByteString += `// Instruction '${InstructionType[instruction.instructionType]}' (#${instruction.toBuffer().length} bytes)\n`
+				// @ts-ignore
+				const byteString = chunkArray([...instruction.toBuffer()] as number[], 8).map(array => array.map((byte: number) => `0x${byte <= 0x0F ? '0' : ''}${byte.toString(16)}`).join(', ')).join(',\n')
+				debugByteString += byteString
+				debugByteString += '\n\n'
+			}
+			console.log(debugByteString)
 
 			expect(ins.length).toBe(10)
 			expect(
@@ -153,7 +173,7 @@ describe('txParser', () => {
 |- UP(Tokens { rri: 0x01, owner: 0x040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba, amount: U256 { raw: 9999999999999999998 } })
 |- UP(PreparedStake { owner: 0x040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba, delegate: 0x02f19b2d095a553f3a41da4a8dc1f8453dfbdc733c5aece8b128b7d7999ae247a5, amount: U256 { raw: 10000000000000000000 } })
 |- END`,
-					hash: 'apa',
+					hash: '83f4544ff1fbabc7be39c6f531c3f37fc50e0a0b653afdb22cc9f8e8aa461fc9',
 				},
 			})
 		})
