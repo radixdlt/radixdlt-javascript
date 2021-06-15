@@ -61,7 +61,7 @@ describe('hw_ledger_integration', () => {
 		subs.add(
 			hardwareWallet.getVersion().subscribe({
 				next: (semVer: SemVerT) => {
-					expect(semVer.toString()).toBe('0.3.1')
+					expect(semVer.toString()).toBe('0.3.2')
 					done()
 				},
 				error: e => {
