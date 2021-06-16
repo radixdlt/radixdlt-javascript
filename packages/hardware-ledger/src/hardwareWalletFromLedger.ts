@@ -25,6 +25,7 @@ import {
 import { RadixAPDU } from './apdu'
 import { LedgerNanoT } from './_types'
 import { LedgerNano } from './ledgerNano'
+import { BasicLedgerTransport } from './device-connection'
 
 const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 	const getPublicKey = (input: GetPublicKeyInput): Observable<PublicKeyT> =>
@@ -100,9 +101,9 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 	}
 }
 
-const create = (): Observable<HardwareWalletT> => {
+const create = (transport: BasicLedgerTransport): Observable<HardwareWalletT> => {
 	const ledgerNano$ = from(
-		LedgerNano.connect({
+		LedgerNano.connect(transport, {
 			// 2 minutes timeout arbitrarily chosen
 			deviceConnectionTimeout: 2 * 60 * 1_000,
 		}),

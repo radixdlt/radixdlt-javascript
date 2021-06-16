@@ -60,12 +60,14 @@ export type OpenLedgerConnectionInput = Readonly<{
 
 const __openConnection = async (
 	isLoggingEnabled: boolean,
+	transport: BasicLedgerTransport,
 	input?: OpenLedgerConnectionInput,
 ): Promise<BasicLedgerTransport> => {
 	if (isLoggingEnabled) {
 		log.debug(`🔌⏱ Looking for (unlocked 🔓) Ledger device to connect to.`)
 	}
 
+	/*
 	const basicLedgerTransport: BasicLedgerTransport = await import(
 		// @ts-ignore
 		'@aleworm/hw-transport-node-hid'
@@ -79,6 +81,7 @@ const __openConnection = async (
 			)
 		},
 	)
+	*/
 
 	if (isLoggingEnabled) {
 		log.debug(`🔌✅ Found Ledger device and connected to it.`)
@@ -86,7 +89,7 @@ const __openConnection = async (
 	const radixAppToOpenWaitPolicy = input?.radixAppToOpenWaitPolicy
 
 	if (!radixAppToOpenWaitPolicy) {
-		return Promise.resolve(basicLedgerTransport)
+		return Promise.resolve(transport)
 	} else {
 		if (isLoggingEnabled) {
 			log.debug(`📲 ⏱ Waiting for Radix app to be started on Ledger.`)
@@ -103,7 +106,7 @@ const __openConnection = async (
 
 		return send({
 			apdu: RadixAPDU.ping(),
-			with: basicLedgerTransport,
+			with: transport,
 		})
 			.then(response => {
 				log.debug(
@@ -124,15 +127,15 @@ const __openConnection = async (
 						? '👋🏻'
 						: '❌'
 				log.debug(`📲 ✅ Got ${debugResponseEmoji}, Radix app is open.`)
-				return Promise.resolve(basicLedgerTransport)
+				return Promise.resolve(transport)
 			})
 			.catch(_ =>
 				// We MUST close the transport and reopen it for pinging to work.
 				// Otherwise we get `Cannot write to hid device` forever.
 				// at least from macOS Big Sur on Ledger Nano with Secure Elements version 1.6.0
 				// and MCU 1.11
-				basicLedgerTransport.close().then(() =>
-					__openConnection(false, {
+				transport.close().then(() =>
+					__openConnection(false, transport, {
 						deviceConnectionTimeout: 1_000,
 						radixAppToOpenWaitPolicy: {
 							// Exponential backing off...
@@ -147,5 +150,6 @@ const __openConnection = async (
 }
 
 export const openConnection = async (
+	transport: BasicLedgerTransport,
 	input?: OpenLedgerConnectionInput,
-): Promise<BasicLedgerTransport> => __openConnection(true, input)
+): Promise<BasicLedgerTransport> => __openConnection(true, transport, input)
