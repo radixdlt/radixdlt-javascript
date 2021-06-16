@@ -60,7 +60,7 @@ describe('radix_hw_ledger', () => {
 			radix.deriveHWAccount(input).subscribe({
 				next: account => {
 					expect(account.hdPath!.toString()).toBe(
-						`m/44'/536'/0'/0/0'`,
+						`m/44'/1022'/0'/0/0'`,
 					)
 
 					const publicKeyCompressedHex = account.publicKey.toString(
@@ -68,22 +68,22 @@ describe('radix_hw_ledger', () => {
 					)
 					if (
 						publicKeyCompressedHex ===
-						'021d15f715b83b2067cb241a9ba6257cbcb145f4a635c9f73b56f72e658950241e'
+						'03bc2ec8f3668c869577bf66b7b48f8dee57b833916aa70966fa4a5029b63bb18f'
 					) {
 						done(
 							new Error(
-								`Implementation discrepancy between C code for Ledger Nano and this JS Lib. We, here in JS land, expected Ledger Nano app to respect the of hardening the 5th component 'addressIndex' if we explicitly state that (in 'signinKeychain.ts' method: 'deriveHWSigningKey' for input 'next'). But Ledger nano seems to ignore that input, because we got the publickey for the BIP32 path: "m/44'/536'/0'/0/0" instead of "m/44'/536'/0'/0/0'", i.e. HARDENING of address index got ignored.`,
+								`Implementation discrepancy between C code for Ledger Nano and this JS Lib. We, here in JS land, expected Ledger Nano app to respect the of hardening the 5th component 'addressIndex' if we explicitly state that (in 'signinKeychain.ts' method: 'deriveHWSigningKey' for input 'next'). But Ledger nano seems to ignore that input, because we got the publickey for the BIP32 path: "m/44'/1022'/0'/0/0" instead of "m/44'/1022'/0'/0/0'", i.e. HARDENING of address index got ignored.`,
 							),
 						)
 						return
 					}
 
 					expect(publicKeyCompressedHex).toBe(
-						'02486d8128388446ac8c239d0a615a5bcfd1ebbecce5c8704f68876187a18679d8',
+						'03f43fba6541031ef2195f5ba96677354d28147e45b40cde4662bec9162c361f55',
 					)
 
 					expect(account.address.toString()).toBe(
-						'brx1qspysmvp9qugg34v3s3e6znptfdul50thmxwtjrsfa5gwcv85xr8nkq06tlv7',
+						'brx1qsplg0a6v4qsx8hjr904h2txwu6562q50ezmgrx7ge3tajgk9smp74gh62u3y',
 					)
 					expect(account.network).toBe(NetworkT.BETANET)
 					expect(account.type.isHardwareSigningKey).toBe(true)
@@ -95,7 +95,7 @@ describe('radix_hw_ledger', () => {
 						(account.type as SigningKeyTypeHDT).hdSigningKeyType,
 					).toBe(HDSigningKeyTypeIdentifier.HARDWARE_OR_REMOTE)
 					expect(account.type.uniqueKey).toBe(
-						`Hardware_HD_signingKey_at_path_m/44'/536'/0'/0/0'`,
+						`Hardware_HD_signingKey_at_path_m/44'/1022'/0'/0/0'`,
 					)
 					done()
 				},

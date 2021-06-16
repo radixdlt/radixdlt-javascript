@@ -35,7 +35,7 @@ describe('signingKey_type', () => {
 		)._unsafeUnwrap()
 		const hdMasterSeed = HDMasterSeed.fromMnemonic({ mnemonic })
 		const hdPath = HDPathRadix.fromString(
-			`m/44'/536'/2'/1/3'`,
+			`m/44'/1022'/2'/1/3'`,
 		)._unsafeUnwrap()
 
 		const signingKey = SigningKey.fromHDPathWithHDMasterSeed({
@@ -50,7 +50,7 @@ describe('signingKey_type', () => {
 		expect(signingKey.hdPath!.equals(hdPath)).toBe(true)
 
 		expect(signingKey.publicKey.toString(true)).toBe(
-			'02a61e5f4dd2bdc5352243264aa431702c988e77ecf9e61bbcd0b0dd26ad2280fc',
+			'034d2fd914bb6045f58b239d6949dd35e73bc67a67fe9668ed0d9c05affe1c122b',
 		)
 	})
 
@@ -60,7 +60,7 @@ describe('signingKey_type', () => {
 		)._unsafeUnwrap()
 		const hdMasterSeed = HDMasterSeed.fromMnemonic({ mnemonic })
 		const hdPath = HDPathRadix.fromString(
-			`m/44'/536'/2'/1/3`,
+			`m/44'/1022'/2'/1/3`,
 		)._unsafeUnwrap()
 
 		const signingKey = SigningKey.fromHDPathWithHDMasterSeed({
@@ -69,7 +69,7 @@ describe('signingKey_type', () => {
 		})
 
 		expect(signingKey.publicKey.toString(true)).toBe(
-			'026d5e07cfde5df84b5ef884b629d28d15b0f6c66be229680699767cd57c618288',
+			'03d79039c428a6b835e136fbb582e9259df23f8660f928367c3f0d6912728a8444',
 		)
 
 		const accountAddress = AccountAddress.fromPublicKeyAndNetwork({
@@ -77,7 +77,7 @@ describe('signingKey_type', () => {
 			network: NetworkT.BETANET,
 		})
 		expect(accountAddress.toString()).toBe(
-			'brx1qspx6hs8el09m7zttmugfd3f62x3tv8kce47y2tgq6vhvlx403sc9zqmgsw9s',
+			'brx1qspa0ypecs52dwp4uym0hdvzayjemu3lses0j2pk0sls66gjw29gg3q09vgzx',
 		)
 
 		const otherPubKey = PublicKey.fromBuffer(
@@ -90,7 +90,7 @@ describe('signingKey_type', () => {
 			await signingKey.__diffieHellman(otherPubKey)
 		)._unsafeUnwrap()
 		expect(keyExchange.toString()).toBe(
-			'6d5e07cfde5df84b5ef884b629d28d15b0f6c66be229680699767cd57c6182883fa2aff69be05f792a02d6ef657240b17c44614a53e45dff4c529bfb012b9646',
+			'd79039c428a6b835e136fbb582e9259df23f8660f928367c3f0d6912728a8444a87d3a07191942666ca3d0396374531fe669e451bae6eeb79fb0884ef78a2f9d',
 		)
 
 		const message = `I'm testing Radix awesome hardware wallet!`
@@ -104,25 +104,25 @@ describe('signingKey_type', () => {
 		subs.add(
 			signingKey.sign(hashedMessage).subscribe(sig => {
 				expect(sig.toDER()).toBe(
-					'3044022078b0d2d17d227a8dd14ecdf0d7d65580ac6c17ab980c50074e6c096c4081313202207a9819ceedab3bfd3d22452224394d6cb41e3441f4675a5e7bf58f059fdf34cd',
+					'3045022100de5f8c5a92cc5bea386d7a5321d0aa1b46fc7d90c5d07098346252aacd59e52302202bbaeef1256d0185b550a7b661557eea11bb98b99ccc7e01d19fd931e617e824',
 				)
 
 				expect(sig.r.toString(16)).toBe(
-					'78b0d2d17d227a8dd14ecdf0d7d65580ac6c17ab980c50074e6c096c40813132',
+					'de5f8c5a92cc5bea386d7a5321d0aa1b46fc7d90c5d07098346252aacd59e523',
 				)
 				expect(sig.s.toString(16)).toBe(
-					'7a9819ceedab3bfd3d22452224394d6cb41e3441f4675a5e7bf58f059fdf34cd',
+					'2bbaeef1256d0185b550a7b661557eea11bb98b99ccc7e01d19fd931e617e824',
 				)
 
 				const rsBufHex =
-					'78b0d2d17d227a8dd14ecdf0d7d65580ac6c17ab980c50074e6c096c408131327a9819ceedab3bfd3d22452224394d6cb41e3441f4675a5e7bf58f059fdf34cd'
+					'de5f8c5a92cc5bea386d7a5321d0aa1b46fc7d90c5d07098346252aacd59e5232bbaeef1256d0185b550a7b661557eea11bb98b99ccc7e01d19fd931e617e824'
 
 				const sigFromRS = Signature.fromRSBuffer(
 					Buffer.from(rsBufHex, 'hex'),
 				)._unsafeUnwrap()
 
 				expect(sigFromRS.toDER()).toBe(
-					'3044022078b0d2d17d227a8dd14ecdf0d7d65580ac6c17ab980c50074e6c096c4081313202207a9819ceedab3bfd3d22452224394d6cb41e3441f4675a5e7bf58f059fdf34cd',
+					'3045022100de5f8c5a92cc5bea386d7a5321d0aa1b46fc7d90c5d07098346252aacd59e52302202bbaeef1256d0185b550a7b661557eea11bb98b99ccc7e01d19fd931e617e824',
 				)
 				expect(sigFromRS.equals(sig)).toBe(true)
 				expect(sig.equals(sigFromRS)).toBe(true)
@@ -138,7 +138,7 @@ describe('signingKey_type', () => {
 		)._unsafeUnwrap()
 		const hdMasterSeed = HDMasterSeed.fromMnemonic({ mnemonic })
 		const hdPath0H00 = HDPathRadix.fromString(
-			`m/44'/536'/0'/0/0`,
+			`m/44'/1022'/0'/0/0`,
 		)._unsafeUnwrap()
 
 		const signingKey0H00 = SigningKey.fromHDPathWithHDMasterSeed({
@@ -147,11 +147,11 @@ describe('signingKey_type', () => {
 		})
 
 		expect(signingKey0H00.publicKey.toString(true)).toBe(
-			'021d15f715b83b2067cb241a9ba6257cbcb145f4a635c9f73b56f72e658950241e',
+			'03bc2ec8f3668c869577bf66b7b48f8dee57b833916aa70966fa4a5029b63bb18f',
 		)
 
 		const hdPath0H00H = HDPathRadix.fromString(
-			`m/44'/536'/0'/0/0'`,
+			`m/44'/1022'/0'/0/0'`,
 		)._unsafeUnwrap()
 
 		const signingKey0H00H = SigningKey.fromHDPathWithHDMasterSeed({
@@ -160,7 +160,7 @@ describe('signingKey_type', () => {
 		})
 
 		expect(signingKey0H00H.publicKey.toString(true)).toBe(
-			'02486d8128388446ac8c239d0a615a5bcfd1ebbecce5c8704f68876187a18679d8',
+			'03f43fba6541031ef2195f5ba96677354d28147e45b40cde4662bec9162c361f55',
 		)
 	})
 
@@ -212,7 +212,7 @@ describe('signingKey_type', () => {
 			}
 		}
 
-		const path = `m/44'/536'/2'/1/3`
+		const path = `m/44'/1022'/2'/1/3`
 
 		const hdPath = HDPathRadix.fromString(path)._unsafeUnwrap()
 
@@ -222,7 +222,7 @@ describe('signingKey_type', () => {
 		const bobPubKey = bobPrivateKey.publicKey()
 
 		const expectedPublicKey =
-			'026d5e07cfde5df84b5ef884b629d28d15b0f6c66be229680699767cd57c618288'
+			'03d79039c428a6b835e136fbb582e9259df23f8660f928367c3f0d6912728a8444'
 
 		const hwSigningKey = SigningKey.fromHDPathWithHWSigningKey({
 			hdPath,
@@ -237,7 +237,7 @@ describe('signingKey_type', () => {
 			HDSigningKeyTypeIdentifier.HARDWARE_OR_REMOTE,
 		)
 		expect(hwSigningKey.uniqueIdentifier).toBe(
-			`Hardware_HD_signingKey_at_path_m/44'/536'/2'/1/3`,
+			`Hardware_HD_signingKey_at_path_m/44'/1022'/2'/1/3`,
 		)
 		expect(
 			hwSigningKey.equals(<SigningKeyT>{

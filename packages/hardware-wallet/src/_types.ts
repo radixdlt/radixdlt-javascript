@@ -20,7 +20,7 @@ export type SemVerT = Readonly<{
 }>
 
 export type AtPath = Readonly<{
-	// defaults to: `m/44'/536'/0'/0/0`
+	// defaults to: `m/44'/1022'/0'/0/0`
 	path?: HDPathRadixT
 }>
 

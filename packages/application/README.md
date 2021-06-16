@@ -120,10 +120,10 @@ subs.add(radix.accounts.subscribe(
 /* Instant */
 // "[🙋🏾‍♀️, 🙋🏼‍♀️] my accounts are: [
 //      {
-//          hdPath: "m/44'/536'/0'/0/0'"
+//          hdPath: "m/44'/1022'/0'/0/0'"
 //      },
 //      {
-//          hdPath: "m/44'/536'/0'/0/1'"
+//          hdPath: "m/44'/1022'/0'/0/1'"
 //      },
 // ]
 ```
@@ -140,7 +140,7 @@ subs.add(radix.activeAccount.subscribe(
 
 /* Instant */
 // "🙋🏼‍ my active account: {
-//  hdPath: "m/44'/536'/0'/0/0'"
+//  hdPath: "m/44'/1022'/0'/0/0'"
 // },
 ```
 
@@ -1023,4 +1023,4 @@ subs.unsubscribe()
 
 # Footnotes
 
-<b id="defaultDerivationPath">1:</b> At [derivation path (BIP44)](https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki#Path_levels) `"m/44'/536'/0'/0/0'"`.
+<b id="defaultDerivationPath">1:</b> At [derivation path (BIP44)](https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki#Path_levels) `"m/44'/1022'/0'/0/0'"`.

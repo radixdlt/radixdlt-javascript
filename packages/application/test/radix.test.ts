@@ -195,16 +195,16 @@ export const keystoreForTest: KeystoreForTest = {
 		version: 1,
 	},
 	// 1. input seed at https://iancoleman.io/bip39/
-	// 2. change to BIP32 and enter derivation path: m/44'/536'/0'/0
+	// 2. change to BIP32 and enter derivation path: m/44'/1022'/0'/0
 	// 3. Check 'use hardened addresses' checkbox
 	// 4. Copy Public Key from table
 	publicKeysCompressed: [
-		'03df4d988d2d0dcd61718a8a443ad457722a7eab4614a97bd9aefc8170a2b1329f',
-		'0323f9ae3e9d8065a03c32480017fdbdb95622050c058f16c5c3ed897451654ed2',
-		'038fa13602d11511870600a38076f2c1acc1cfc294337bdbfa38f68b3b41a2040f',
-		'0398b922a1a6a324ed34e874f561e98323379078408cebddb6fd84fc46d350568e',
-		'0255ea4081fe32854c15a4c1b1d308e3e5e9290645ec6981c64500d6a2f6d41767',
-		'02d42d80130d68f10318f850156a35c135f212dbee07e1001363388a2e2b7c7a4d',
+		'036d39bd3894fa2193f1ffc62236bfadf3d3c051e8fe9ca5cc02677ea5e1ad34e8',
+		'020eb0759d87beb9f97056dc8b3aee12c4b02ad37dd4d259e163a87b273cea8b54',
+		'0319ed42cc998f7cfa60e568b3c9f631b47582051affc478f68ea3727a977012e0',
+		'028d31597419a690f369a079dfc54276b643836189a375b56d8c1983bffbb53c36',
+		'0269f0794113243f60cf8a0ceceffcce93220d7e8531883eac24054d95998dd942',
+		'025974fa70072cba176a89afeb81b2a93ec8cde196014ff97f4d0a9da8c11ceca1',
 	],
 }
 
@@ -733,11 +733,11 @@ describe('radix_high_level_api', () => {
 		subs.add(
 			radix.__wallet.subscribe(_w => {
 				const expectedValues = [
-					{ pkIndex: 0, tokenBalancesCount: 3 },
-					{ pkIndex: 1, tokenBalancesCount: 5 },
+						{ pkIndex: 0, tokenBalancesCount: 1 },
+					{ pkIndex: 1, tokenBalancesCount: 4 },
 					{ pkIndex: 2, tokenBalancesCount: 1 },
 					{ pkIndex: 3, tokenBalancesCount: 1 },
-					{ pkIndex: 4, tokenBalancesCount: 4 },
+					{ pkIndex: 4, tokenBalancesCount: 1 },
 				]
 
 				subs.add(
@@ -782,9 +782,7 @@ describe('radix_high_level_api', () => {
 			radix.__wallet.subscribe(_w => {
 				type ExpectedValue = { name: string; amount: string }
 				const expectedValues: ExpectedValue[] = [
-					{ name: 'Gold token', amount: '1533000000' },
-					{ name: 'Bar token', amount: '9066000' },
-					{ name: 'Rad', amount: '5060' },
+					{ name: 'Bar token', amount: '8138000' },
 				]
 
 				subs.add(
@@ -821,9 +819,9 @@ describe('radix_high_level_api', () => {
 		subs.add(
 			radix.__wallet.subscribe(_w => {
 				const expectedValues = [
-					{ pkIndex: 0, actionsCountForEachTx: [1, 4, 2] },
-					{ pkIndex: 1, actionsCountForEachTx: [3, 1, 1] },
-					{ pkIndex: 2, actionsCountForEachTx: [1, 4, 3] },
+					{ pkIndex: 0, actionsCountForEachTx: [2, 1, 4] },
+					{ pkIndex: 1, actionsCountForEachTx: [8, 9, 10] },
+					{ pkIndex: 2, actionsCountForEachTx: [5, 6, 7] },
 				]
 
 				subs.add(
@@ -1054,7 +1052,7 @@ describe('radix_high_level_api', () => {
 
 		radix.login(keystoreForTest.password, loadKeystore)
 
-		const expectedStakes = [33, 96, 78, 5, 49]
+		const expectedStakes = [38, 22, 8]
 		const expectedValues = [expectedStakes, expectedStakes] // should be unchanged between updates (deterministically mocked).
 		subs.add(
 			radix.__wallet.subscribe(_w => {
@@ -1077,7 +1075,7 @@ describe('radix_high_level_api', () => {
 
 		const radix = Radix.create()
 			.__withAPI(mockedAPI)
-			.withStakingFetchTrigger(interval(100))
+			.withStakingFetchTrigger(interval(50))
 
 		const loadKeystore = (): Promise<KeystoreT> =>
 			Promise.resolve(keystoreForTest.keystore)
@@ -1085,9 +1083,7 @@ describe('radix_high_level_api', () => {
 		radix.login(keystoreForTest.password, loadKeystore)
 
 		const expectedStakes = [
-			{ amount: 396, validator: 'ld', epochsUntil: 60 },
-			{ amount: 878, validator: 'jq', epochsUntil: 46 },
-			{ amount: 649, validator: '6t', epochsUntil: 59 },
+			{ amount: 208, validator: '23', epochsUntil: 3 },
 		]
 		const expectedValues = [expectedStakes, expectedStakes] // should be unchanged between updates (deterministically mocked).
 		subs.add(

@@ -3,7 +3,7 @@ import { BIP44, BIP44T, HDPathRadix, HDPathRadixT } from '../src'
 describe('BIP44', () => {
 	it('bip44 can create one for radix', () => {
 		const hdPath = BIP44.create({ address: { index: 1337 } })
-		expect(hdPath.toString()).toBe(`m/44'/536'/0'/0/1337'`)
+		expect(hdPath.toString()).toBe(`m/44'/1022'/0'/0/1337'`)
 	})
 
 	it('bip44 can be created from a string', () => {
@@ -22,7 +22,7 @@ describe('BIP44', () => {
 			expect(coinType.name).toBe('coin type')
 			expect(coinType.level).toBe(2)
 			expect(coinType.isHardened).toBe(true)
-			expect(coinType.index.toString(16)).toBe('80000218') // 0x218 = 536 dec
+			expect(coinType.index.toString(16)).toBe('800003fe') // 0x218 = 1022 dec
 
 			// Check 'account' component
 			const account = hdPath.account
@@ -46,13 +46,13 @@ describe('BIP44', () => {
 			expect(addressIndex.index.toString(16)).toBe('0')
 		}
 
-		const path = `m/44'/536'/0'/1/0`
+		const path = `m/44'/1022'/0'/1/0`
 		doTestBIP44Path(BIP44.fromString(path)._unsafeUnwrap())
 		doTestBIP44Path(HDPathRadix.fromString(path)._unsafeUnwrap())
 	})
 
 	it('bip44 path with non zeros', done => {
-		const pathString = `m/44'/536'/2'/1/3'`
+		const pathString = `m/44'/1022'/2'/1/3'`
 		HDPathRadix.fromString(pathString).match(
 			path => {
 				expect(path.toString()).toBe(pathString)
@@ -71,7 +71,7 @@ describe('BIP44', () => {
 			},
 			f =>
 				expect(f.message).toBe(
-					'Incorrect coin type, expected Radix coin type: 536, but got: 123',
+					'Incorrect coin type, expected Radix coin type: 1022, but got: 123',
 				),
 		)
 	})

@@ -143,7 +143,7 @@ describe('hardwareWallet_emulated', () => {
 
 					expect(request.data).toBeDefined()
 					expect(request.data!.toString('hex')).toBe(
-						'058000002c80000218800000020000000100000003',
+						'058000002c800003fe800000020000000100000003',
 					)
 					expect(
 						request.requiredResponseStatusCodeFromDevice!,
@@ -213,7 +213,7 @@ describe('hardwareWallet_emulated', () => {
 					expect(request.p2).toBe(0)
 					expect(request.data).toBeDefined()
 					expect(request.data!.toString('hex')).toBe(
-						'058000002c8000021880000002000000010000000320be7515569e05daffc71bffe2a30365b74450c017a56184ee26699340a324d402',
+						'058000002c800003fe80000002000000010000000320be7515569e05daffc71bffe2a30365b74450c017a56184ee26699340a324d402',
 					)
 					expect(
 						request.requiredResponseStatusCodeFromDevice!,
@@ -285,7 +285,7 @@ describe('hardwareWallet_emulated', () => {
 					expect(request.p2).toBe(0)
 					expect(request.data).toBeDefined()
 					expect(request.data!.toString('hex')).toBe(
-						'058000002c80000218800000020000000100000003410479be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8',
+						'058000002c800003fe800000020000000100000003410479be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8',
 					)
 					expect(
 						request.requiredResponseStatusCodeFromDevice!,

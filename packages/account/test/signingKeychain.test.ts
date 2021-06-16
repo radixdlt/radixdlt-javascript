@@ -248,7 +248,7 @@ describe('signingKeychain_type', () => {
 		subs.add(
 			signingKeychain.observeActiveSigningKey().subscribe(active => {
 				expect(active.hdPath!.addressIndex.value()).toBe(0)
-				expect(active.hdPath!.toString()).toBe(`m/44'/536'/0'/0/0'`)
+				expect(active.hdPath!.toString()).toBe(`m/44'/1022'/0'/0/0'`)
 				expect(
 					signingKeychain
 						.__unsafeGetSigningKey()
