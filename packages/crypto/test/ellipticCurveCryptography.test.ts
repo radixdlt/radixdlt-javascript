@@ -235,6 +235,11 @@ describe('elliptic curve cryptography', () => {
 		const gBuf = manualG.toBuffer()
 		const gFromBuf = ECPointOnCurve.fromBuffer(gBuf)._unsafeUnwrap()
 		expect(gFromBuf.equals(Secp256k1.generator)).toBe(true)
+
+		expect(manualG.toBuffer(true).slice(0, 1).readUInt8()).toBe(0x04)
+		expect(manualG.toString(true)).toBe(
+			'0479be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8',
+		)
 	})
 
 	it('cannot construct points that is not on the curve', () => {

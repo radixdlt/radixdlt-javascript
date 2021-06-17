@@ -1,5 +1,5 @@
 import { err, ok, Result } from 'neverthrow'
-import { PublicKeyT } from '@radixdlt/crypto'
+import { PublicKey, PublicKeyT } from '@radixdlt/crypto'
 import { Encoding } from '../bech32'
 import {
 	AbstractAddress,
@@ -70,11 +70,38 @@ const fromString = (bechString: string): Result<ValidatorAddressT, Error> =>
 		maxLength,
 	})
 
-export type ValidatorAddressUnsafeInput = string
+const fromBuffer = (buffer: Buffer): Result<ValidatorAddressT, Error> => {
+	const fromBuf = (buf: Buffer): Result<ValidatorAddressT, Error> =>
+		PublicKey.fromBuffer(buf).map(publicKey =>
+			fromPublicKeyAndNetwork({
+				publicKey,
+				network: NetworkT.BETANET, // yikes!
+			}),
+		)
+
+	if (buffer.length === 34 && buffer[0] === 0x04) {
+		const sliced = buffer.slice(1)
+		if (sliced.length !== 33) {
+			return err(new Error('Failed to slice buffer.'))
+		}
+		return fromBuf(sliced)
+	} else if (buffer.length === 33) {
+		return fromBuf(buffer)
+	} else {
+		return err(
+			new Error(
+				`Bad length of buffer, got #${buffer.length} bytes, but expected 33.`,
+			),
+		)
+	}
+}
+
+export type ValidatorAddressUnsafeInput = string | Buffer
 
 const isValidatorAddressUnsafeInput = (
 	something: unknown,
-): something is ValidatorAddressUnsafeInput => typeof something === 'string'
+): something is ValidatorAddressUnsafeInput =>
+	typeof something === 'string' || Buffer.isBuffer(something)
 
 export type ValidatorAddressOrUnsafeInput =
 	| ValidatorAddressUnsafeInput
@@ -88,7 +115,11 @@ export const isValidatorAddressOrUnsafeInput = (
 const fromUnsafe = (
 	input: ValidatorAddressOrUnsafeInput,
 ): Result<ValidatorAddressT, Error> =>
-	isValidatorAddress(input) ? ok(input) : fromString(input)
+	isValidatorAddress(input)
+		? ok(input)
+		: typeof input === 'string'
+		? fromString(input)
+		: fromBuffer(input)
 
 export const ValidatorAddress = {
 	fromUnsafe,

@@ -15,8 +15,8 @@ import {
 } from '@radixdlt/account/src/_types'
 import { NetworkT } from '@radixdlt/primitives'
 import { HardwareWalletT } from '@radixdlt/hardware-wallet'
-import { HardwareWalletLedger } from '../../dist'
-import { DeriveHWSigningKeyInput } from '@radixdlt/account/dist/_types'
+import { HardwareWalletLedger } from '../../src'
+import { DeriveHWSigningKeyInput } from '@radixdlt/account'
 
 describe('radix_hw_ledger', () => {
 	beforeAll(() => {

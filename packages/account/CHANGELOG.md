@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.43](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/account@1.0.42...@radixdlt/account@1.0.43) (2021-06-04)
+
+**Note:** Version bump only for package @radixdlt/account
+
+
+
+
+
 ## [1.0.42](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/account@1.0.41...@radixdlt/account@1.0.42) (2021-06-01)
 
 **Note:** Version bump only for package @radixdlt/account

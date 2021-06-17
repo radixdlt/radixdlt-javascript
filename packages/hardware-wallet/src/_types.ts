@@ -5,7 +5,7 @@ import {
 	PublicKeyT,
 	SignatureT,
 } from '@radixdlt/crypto'
-import { NetworkT } from '@radixdlt/primitives'
+import { BuiltTransactionReadyToSign, NetworkT } from '@radixdlt/primitives'
 
 // Semantic versioning, e.g. 1.0.5
 export type SemVerT = Readonly<{
@@ -26,19 +26,33 @@ export type AtPath = Readonly<{
 
 export type GetPublicKeyInput = AtPath &
 	Readonly<{
-		requireConfirmationOnDevice?: boolean
-		verifyAddressOnDeviceForNetwork?: NetworkT
+		displayAddress?: boolean
+		// verifyAddressOnDeviceForNetwork?: NetworkT
 	}>
+
+export type SignTransactionInput = AtPath &
+	Readonly<{
+		nonNativeTokenRriHRP?: string
+		tx: BuiltTransactionReadyToSign
+		displayInstructionContentsOnLedgerDevice: boolean // useful to be able to set to `false` for testing.
+		displayTXSummaryOnLedgerDevice: boolean
+	}>
+
+export type SignTXOutput = Readonly<{
+	signature: SignatureT
+	signatureV: number
+	hashCalculatedByLedger: Buffer
+}>
 
 export type SignHashInput = GetPublicKeyInput &
 	Readonly<{
 		hashToSign: Buffer
 	}>
 
-export type KeyExchangeInput = GetPublicKeyInput &
+export type KeyExchangeInput = AtPath &
 	Readonly<{
 		publicKeyOfOtherParty: PublicKeyT
-		displaySharedKeyOnDevice: boolean
+		displayBIPAndPubKeyOtherParty: boolean
 	}>
 
 export type HardwareSigningKeyT = Readonly<{
@@ -53,6 +67,7 @@ export type HardwareWalletT = Readonly<{
 	getVersion: () => Observable<SemVerT>
 	getPublicKey: (input: GetPublicKeyInput) => Observable<PublicKeyT>
 	doSignHash: (input: SignHashInput) => Observable<SignatureT>
+	doSignTransaction: (input: SignTransactionInput) => Observable<SignTXOutput>
 	doKeyExchange: (input: KeyExchangeInput) => Observable<ECPointOnCurveT>
 
 	makeSigningKey: (path: HDPathRadixT) => Observable<HardwareSigningKeyT>

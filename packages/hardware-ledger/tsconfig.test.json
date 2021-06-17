@@ -11,5 +11,6 @@
     {"path": "../hardware-wallet"},
     {"path": "../account"},
     {"path": "../application"},
+    {"path": "../tx-parser"},
   ]
 }

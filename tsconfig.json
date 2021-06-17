@@ -10,5 +10,6 @@
     { "path": "packages/networking" },
     { "path": "packages/application" },
     { "path": "packages/hardware-ledger" },
+    { "path": "packages/tx-parser" },
   ]
 }
