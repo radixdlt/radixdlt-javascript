@@ -12,7 +12,7 @@ import {
 	TransferTokensInput,
 	UnstakeTokensInput,
 } from '../actions'
-import { AmountT } from '@radixdlt/primitives'
+import { AmountT, BuiltTransactionReadyToSign } from '@radixdlt/primitives'
 import { PublicKeyT, SignatureT } from '@radixdlt/crypto'
 import { Observable } from 'rxjs'
 import { Result } from 'neverthrow'
@@ -192,12 +192,6 @@ export type Token = Readonly<{
 export type StatusOfTransaction = Readonly<{
 	txID: TransactionIdentifierT
 	status: TransactionStatus
-}>
-
-export type BuiltTransactionReadyToSign = Readonly<{
-	// Bytes on hex format
-	blob: string
-	hashOfBlobToSign: string
 }>
 
 export type BuiltTransaction = Readonly<{

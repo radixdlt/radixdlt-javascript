@@ -1,5 +1,5 @@
 import { err, ok, Result } from 'neverthrow'
-import { PublicKeyT } from '@radixdlt/crypto'
+import { PublicKey, PublicKeyT } from '@radixdlt/crypto'
 import { Encoding } from '../bech32'
 import {
 	AbstractAddress,
@@ -93,11 +93,38 @@ const fromString = (bechString: string): Result<AccountAddressT, Error> =>
 		maxLength,
 	})
 
-export type AccountAddressUnsafeInput = string
+const fromBuffer = (buffer: Buffer): Result<AccountAddressT, Error> => {
+	const fromBuf = (buf: Buffer): Result<AccountAddressT, Error> =>
+		PublicKey.fromBuffer(buf).map(publicKey =>
+			fromPublicKeyAndNetwork({
+				publicKey,
+				network: NetworkT.BETANET, // yikes!
+			}),
+		)
+
+	if (buffer.length === 34 && buffer[0] === 0x04) {
+		const sliced = buffer.slice(1)
+		if (sliced.length !== 33) {
+			return err(new Error('Failed to slice buffer.'))
+		}
+		return fromBuf(sliced)
+	} else if (buffer.length === 33) {
+		return fromBuf(buffer)
+	} else {
+		return err(
+			new Error(
+				`Bad length of buffer, got #${buffer.length} bytes, but expected 33.`,
+			),
+		)
+	}
+}
+
+export type AccountAddressUnsafeInput = string | Buffer
 
 const isAccountAddressUnsafeInput = (
 	something: unknown,
-): something is AccountAddressUnsafeInput => typeof something === 'string'
+): something is AccountAddressUnsafeInput =>
+	typeof something === 'string' || Buffer.isBuffer(something)
 
 export type AddressOrUnsafeInput = AccountAddressUnsafeInput | AccountAddressT
 
@@ -109,7 +136,11 @@ export const isAccountAddressOrUnsafeInput = (
 const fromUnsafe = (
 	input: AddressOrUnsafeInput,
 ): Result<AccountAddressT, Error> =>
-	isAccountAddress(input) ? ok(input) : fromString(input)
+	isAccountAddress(input)
+		? ok(input)
+		: typeof input === 'string'
+		? fromString(input)
+		: fromBuffer(input)
 
 export const AccountAddress = {
 	isAccountAddress,

@@ -5,12 +5,9 @@
     "test"
   ],
   "references": [
-    {"path": "../crypto"},
-    {"path": "../primitives"},
     {"path": "../util"},
-    {"path": "../hardware-wallet"},
+    {"path": "../primitives"},
     {"path": "../account"},
-    {"path": "../application"},
-    {"path": "../tx-parser"},
+    {"path": "../crypto"},
   ]
 }

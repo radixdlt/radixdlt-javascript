@@ -285,6 +285,20 @@ const fromPublicKeyAndNameAndNetwork = (
 		hash: pkToHash(input),
 	})
 
+const fromBuffer = (buffer: Buffer): Result<ResourceIdentifierT, Error> => {
+	if (buffer.length === 1 && buffer[0] === 0x01) {
+		return systemRRIForNetwork({
+			name: 'xrd',
+			network: NetworkT.BETANET, // Yikes!
+		})
+	}
+	return err(
+		new Error(
+			'Failed to create non XRD RRI because we do not have access to the HRP.',
+		),
+	)
+}
+
 export const isResourceIdentifier = (
 	something: ResourceIdentifierT | unknown,
 ): something is ResourceIdentifierT => {
@@ -298,11 +312,13 @@ export const isResourceIdentifier = (
 		inspection.equals !== undefined
 	)
 }
-export type ResourceIdentifierUnsafeInput = string
+
+export type ResourceIdentifierUnsafeInput = string | Buffer
 
 export const isResourceIdentifierUnsafeInput = (
 	something: unknown,
-): something is ResourceIdentifierUnsafeInput => typeof something === 'string'
+): something is ResourceIdentifierUnsafeInput =>
+	typeof something === 'string' || Buffer.isBuffer(something)
 
 export type ResourceIdentifierOrUnsafeInput =
 	| ResourceIdentifierT
@@ -317,7 +333,11 @@ export const isResourceIdentifierOrUnsafeInput = (
 const fromUnsafe = (
 	input: ResourceIdentifierOrUnsafeInput,
 ): Result<ResourceIdentifierT, Error> =>
-	isResourceIdentifier(input) ? ok(input) : fromBech32String(input)
+	isResourceIdentifier(input)
+		? ok(input)
+		: typeof input === 'string'
+		? fromBech32String(input)
+		: fromBuffer(input)
 
 export const ResourceIdentifier = {
 	systemRRIForNetwork,

@@ -6,3 +6,9 @@ export enum NetworkT {
 	MAINNET = 'MAINNET',
 	BETANET = 'BETANET',
 }
+
+export type BuiltTransactionReadyToSign = Readonly<{
+	// Bytes on hex format
+	blob: string
+	hashOfBlobToSign: string
+}>
