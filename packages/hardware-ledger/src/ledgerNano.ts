@@ -27,6 +27,10 @@ const fromTransport = (
 				with: basicLedgerTransport,
 			})
 				.then(responseFromLedger => {
+					if(!Buffer.isBuffer(responseFromLedger)) {
+						responseFromLedger = Buffer.from(responseFromLedger) // Convert Uint8Array to Buffer for Electron renderer compatibility 💩
+					}
+
 					log.debug(
 						`📲 🥩 Raw response from Ledger device: ${responseFromLedger.toString(
 							'hex',
