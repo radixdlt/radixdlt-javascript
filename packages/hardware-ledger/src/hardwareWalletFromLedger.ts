@@ -51,6 +51,10 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 			.pipe(
 				mergeMap(
 					(buf): Observable<PublicKeyT> => {
+						if(!Buffer.isBuffer(buf)) {
+							buf = Buffer.from(buf) // Convert Uint8Array to Buffer for Electron renderer compatibility 
+						}
+
 						// Response `buf`: pub_key_len (1) || pub_key (var) || chain_code_len (1) || chain_code (var)
 						const readNextBuffer = readBuffer(buf)
 
