@@ -3,6 +3,7 @@ import {
 	Ins_HEADER,
 	Ins_SYSCALL,
 	InstructionType,
+	REAddressPublicKey,
 	StakeShareT,
 	TransactionT,
 } from '../src'
@@ -17,12 +18,59 @@ import {
 	SubStateType,
 	TokensT,
 } from '../dist'
-import { sha256Twice } from '@radixdlt/crypto'
-import { Instruction } from '../dist/instruction'
+import { PublicKey, PublicKeyT, sha256Twice } from '@radixdlt/crypto'
+import { UInt256 } from '@radixdlt/uint256'
+
+const chunkArray = <T>(myArray: T[], chunk_size: number): T[][] => {
+	const results: T[][] = [] as T[][]
+	while (myArray.length) {
+		results.push(myArray.splice(0, chunk_size))
+	}
+	return results
+}
+
+const feeOfTransaction = (tx: TransactionT): UInt256 => {
+	const sysCallIns = tx.instructions.find(
+		i => i.instructionType === InstructionType.SYSCALL,
+	)
+	if (!sysCallIns) {
+		return UInt256.valueOf(0)
+	}
+	const sysCall = sysCallIns as Ins_SYSCALL
+	const txFeeData = sysCall.callData.data
+	return new UInt256(txFeeData.toString('hex'), 16)
+}
+
+const costOfTransactionExcludingTxFee = (
+	tx: TransactionT,
+	myPublicKey: PublicKeyT,
+): UInt256 => {
+	return tx.instructions
+		.filter(i => i.instructionType === InstructionType.UP)
+		.map(i => i as Ins_UP)
+		.filter(i => i.substate.substateType === SubStateType.TOKENS)
+		.map(i => i.substate as TokensT)
+		.filter(
+			t => !(t.owner as REAddressPublicKey).publicKey.equals(myPublicKey),
+		)
+		.map(t => t.amount)
+		.reduce((prev, cur) => {
+			return prev.add(cur)
+		}, UInt256.valueOf(0))
+}
+
+const costOfTransactionIncludingTxFee = (
+	tx: TransactionT,
+	myPublicKey: PublicKeyT,
+): UInt256 => {
+	const txFee = feeOfTransaction(tx)
+	const costOfTransfers = costOfTransactionExcludingTxFee(tx, myPublicKey)
+	return txFee.add(costOfTransfers)
+}
 
 describe('txParser', () => {
 	describe('complex tx with multiple substate groups', () => {
-		it('tokens_transfer_and_stake_ledger_vector', () => {
+		it.skip('Transfer_Transfer_Stake_VERY_detailed_parse_assertion', () => {
 			const blobHex =
 				'0a000104374c00efbe61f645a8b35d7746e106afa7422877e5d607975b6018e0a1aa6bf0000000040921000000000000000000000000000000000000000000000000000000000000000002010301040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba000000000000000000000000000000000000000000000001158e460913cffffe000500000003010301040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba0000000000000000000000000000000000000000000000008ac7230489e7fffe0104040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba02f19b2d095a553f3a41da4a8dc1f8453dfbdc733c5aece8b128b7d7999ae247a50000000000000000000000000000000000000000000000008ac7230489e80000000700dcb252005545207d4d0e0a72952acccf9466087fbecee7d5851467869aa8d6566dd9476f5e719fe1025dee78f975d9b5a5d136ced8e51cfcd7b7c85563edb23b'
 			const blob = Buffer.from(blobHex, 'hex')
@@ -35,25 +83,6 @@ describe('txParser', () => {
 			expect(parsedTx.toBuffer().toString('hex')).toBe(blobHex)
 
 			const ins = parsedTx.instructions
-
-
-			const chunkArray = <T>(myArray: T[], chunk_size: number): T[][] => {
-				const results: T[][] = [] as T[][]
-				while (myArray.length) {
-					results.push(myArray.splice(0, chunk_size))
-				}
-				return results
-			}
-
-			let debugByteString = ''
-			for (const instruction of ins) {
-				debugByteString += `// Instruction '${InstructionType[instruction.instructionType]}' (#${instruction.toBuffer().length} bytes)\n`
-				// @ts-ignore
-				const byteString = chunkArray([...instruction.toBuffer()] as number[], 8).map(array => array.map((byte: number) => `0x${byte <= 0x0F ? '0' : ''}${byte.toString(16)}`).join(', ')).join(',\n')
-				debugByteString += byteString
-				debugByteString += '\n\n'
-			}
-			console.log(debugByteString)
 
 			expect(ins.length).toBe(10)
 			expect(
@@ -131,38 +160,143 @@ describe('txParser', () => {
 		})
 
 		const testComplex = (input: {
+			description: string
+			myPublicKeyHex: string // used to calculate cost of tx by filtering out transfer back to me
 			blobHex: string
 			expected: {
+				txFee: string
+				totalXRDCost: string
+				hash: string
 				parsedTX: string
-				txID?: string
-				hash?: string
 			}
 		}): void => {
-			const { blobHex, expected } = input
+			const { description, blobHex, expected } = input
 			const blob = Buffer.from(blobHex, 'hex')
+
+			const hash = sha256Twice(blob)
+			expect(hash.toString('hex')).toBe(expected.hash)
+
+			console.log(description)
+			console.log(blobHex)
 			const txRes = Transaction.fromBuffer(blob)
 			if (txRes.isErr()) {
 				throw txRes.error
 			}
 			const parsedTx: TransactionT = txRes.value
 			console.log(parsedTx.toString())
+
+			let humanReadableString = ''
+			for (const instruction of parsedTx.instructions) {
+				const humanReadableStr =
+					instruction.toHumanReadableString !== undefined
+						? instruction.toHumanReadableString()
+						: instruction.toString()
+				humanReadableString += humanReadableStr
+				humanReadableString += '\n\n'
+			}
+
+			console.log(humanReadableString)
+
 			expect(parsedTx.toString()).toBe(expected.parsedTX)
 
-			if (expected.txID) {
-				expect(parsedTx.txID()).toBe(expected.txID)
-			}
+			// if (expected.txID) {
+			// 	expect(parsedTx.txID()).toBe(expected.txID)
+			// }
+			//
+			// if (expected.hashOnce) {
+			// 	const hash = sha256(blob)
+			// 	expect(hash.toString('hex')).toBe(expected.hashOnce)
+			// }
 
-			if (expected.hash) {
-				const hash = sha256Twice(blob)
-				expect(hash.toString('hex')).toBe(expected.hash)
+			const myPublicKey = PublicKey.fromBuffer(
+				Buffer.from(input.myPublicKeyHex, 'hex'),
+			)._unsafeUnwrap()
+
+			const txFee = feeOfTransaction(parsedTx)
+			expect(txFee.toString(10)).toBe(expected.txFee)
+
+			const cost = costOfTransactionIncludingTxFee(parsedTx, myPublicKey)
+			expect(cost.toString(10)).toBe(expected.totalXRDCost)
+
+			// console.log(testVectorInsStr)
+
+			const hashByteString = chunkArray([...hash] as number[], 8)
+				.map((array: number[]) =>
+					array
+						.map(
+							(byte: number) =>
+								`0x${byte <= 0x0f ? '0' : ''}${byte.toString(
+									16,
+								)}`,
+						)
+						.join(', '),
+				)
+				.join(',\n')
+
+			let expectedInstructionsString = `expected_instruction_t expected_instructions[] = {\n`
+			for (const ins of parsedTx.instructions) {
+				expectedInstructionsString += '\t{\n'
+				expectedInstructionsString += `\t\t.ins_len = ${
+					ins.toBuffer().length
+				},\n`
+				expectedInstructionsString += `\t\t.ins_hex = "${ins
+					.toBuffer()
+					.toString('hex')}",\n`
+				expectedInstructionsString += `\t\t.instruction_type = INS_${
+					InstructionType[ins.instructionType]
+				},\n`
+				expectedInstructionsString += `\t\t.substate_type = ${
+					ins.instructionType === InstructionType.UP
+						? 'SUBSTATE_TYPE_' +
+						  SubStateType[ins.substate.substateType]
+						: 'IRRELEVANT'
+				},\n`
+				expectedInstructionsString += '\t},\n'
 			}
+			expectedInstructionsString += '};\n'
+			// console.log(expectedInstructionsString)
+
+			const testVectorString = `
+static void test_${description}(void **state) {
+    (void) state;
+			
+	${expectedInstructionsString}
+			
+  test_vector_t test_vector = (test_vector_t){
+        .total_number_of_instructions = ${parsedTx.instructions.length},
+        .expected_instructions = expected_instructions,
+        .expected_tx_fee = "${txFee.toString(10)}",
+        .expected_total_xrd_amount = "${cost.toString(10)}",
+        .expected_hash =
+            {
+                // clang-format off
+${hashByteString}
+                // clang-format on
+            },  //         expected hash:
+                //         ${hash.toString('hex')}
+		.my_public_key_hex = "${input.myPublicKeyHex}",
+    };
+    
+    
+    do_test_parse_tx(test_vector);
+}
+			`
+
+			console.log(testVectorString)
 		}
 
-		it('header_syscall_no_sig', () => {
+		it('Transfer_Transfer_Stake', () => {
 			testComplex({
+				description: 'Transfer_Transfer_Stake',
+				myPublicKeyHex:
+					'02486d8128388446ac8c239d0a615a5bcfd1ebbecce5c8704f68876187a18679d8',
 				blobHex:
 					'0a000104374c00efbe61f645a8b35d7746e106afa7422877e5d607975b6018e0a1aa6bf0000000040921000000000000000000000000000000000000000000000000000000000000000002010301040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba000000000000000000000000000000000000000000000001158e460913cffffe000500000003010301040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba0000000000000000000000000000000000000000000000008ac7230489e7fffe0104040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba02f19b2d095a553f3a41da4a8dc1f8453dfbdc733c5aece8b128b7d7999ae247a50000000000000000000000000000000000000000000000008ac7230489e8000000',
 				expected: {
+					txFee: '2',
+					totalXRDCost: '29999999999999999998',
+					hash:
+						'83f4544ff1fbabc7be39c6f531c3f37fc50e0a0b653afdb22cc9f8e8aa461fc9',
 					parsedTX: `Instructions:
 |- HEADER(0, 1)
 |- DOWN(SubstateId { hash: 0x374c00efbe61f645a8b35d7746e106afa7422877e5d607975b6018e0a1aa6bf0, index: 4 })
@@ -173,19 +307,26 @@ describe('txParser', () => {
 |- UP(Tokens { rri: 0x01, owner: 0x040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba, amount: U256 { raw: 9999999999999999998 } })
 |- UP(PreparedStake { owner: 0x040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba, delegate: 0x02f19b2d095a553f3a41da4a8dc1f8453dfbdc733c5aece8b128b7d7999ae247a5, amount: U256 { raw: 10000000000000000000 } })
 |- END`,
-					hash: '83f4544ff1fbabc7be39c6f531c3f37fc50e0a0b653afdb22cc9f8e8aa461fc9',
 				},
 			})
 		})
 
 		it('Fee_Stake_Transfer', () => {
 			testComplex({
+				description: 'Fee_Stake_Transfer',
+				myPublicKeyHex:
+					'036b062b0044f412f30a973947e5e986629669d055b78fcfbb68a63211462ed0f7',
 				blobHex:
-					'045d375643dded796e8d3526dcae7a068c642e35fb9931688f56ea20b56289330f0000000309210000000000000000000000000000000000000000000000000000000000000000020103010402ed0eeaf54a79df88f12f251f22b88df00afaad43497f448620353a94e5c2e155000000000000000000000000000000000000000000000001158e460913cffffe0005000000020103010402ed0eeaf54a79df88f12f251f22b88df00afaad43497f448620353a94e5c2e1550000000000000000000000000000000000000000000000008ac7230489e7fffe01040402ed0eeaf54a79df88f12f251f22b88df00afaad43497f448620353a94e5c2e15502fd72e14bae5305db65f51d723e0a68a54a49dc85d0875b44d3cf1e80413de8870000000000000000000000000000000000000000000000008ac7230489e800000005000000050103010402ed0eeaf54a79df88f12f251f22b88df00afaad43497f448620353a94e5c2e1550000000000000000000000000000000000000000000000008ac7230489e7fffd01030104036b062b0044f412f30a973947e5e986629669d055b78fcfbb68a63211462ed0f700000000000000000000000000000000000000000000000000000000000000010007012953bf9f14bb362b84e84086571a56c4bc04c620cc07e50bac8592a22f39938a3cacb9d5a8833211cbce4e51ec0916b94c0c0438bbea1b772aecfd95a61c1d3e',
+					'0a0001045d375643dded796e8d3526dcae7a068c642e35fb9931688f56ea20b56289330f0000000309210000000000000000000000000000000000000000000000000000000000deadbeef0103010402ed0eeaf54a79df88f12f251f22b88df00afaad43497f448620353a94e5c2e155000000000000000000000000000000000000000000000001158e460913cffffe0005000000020103010402ed0eeaf54a79df88f12f251f22b88df00afaad43497f448620353a94e5c2e1550000000000000000000000000000000000000000000000008ac7230489e7fffe01040402ed0eeaf54a79df88f12f251f22b88df00afaad43497f448620353a94e5c2e15502fd72e14bae5305db65f51d723e0a68a54a49dc85d0875b44d3cf1e80413de8870000000000000000000000000000000000000000000000008ac7230489e800000005000000050103010402ed0eeaf54a79df88f12f251f22b88df00afaad43497f448620353a94e5c2e1550000000000000000000000000000000000000000000000008ac7230489e7fffd01030104036b062b0044f412f30a973947e5e986629669d055b78fcfbb68a63211462ed0f7000000000000000000000000000000000000000000000000000000000000000100',
 				expected: {
+					txFee: '3735928559',
+					totalXRDCost: '40000000003735928552',
+					hash:
+						'42325f68c16071d0f244be9a7382b34e52037c4c6ba63543fc6856220f42270d',
 					parsedTX: `Instructions:
+|- HEADER(0, 1)
 |- DOWN(SubstateId { hash: 0x5d375643dded796e8d3526dcae7a068c642e35fb9931688f56ea20b56289330f, index: 3 })
-|- SYSCALL(0x000000000000000000000000000000000000000000000000000000000000000002)
+|- SYSCALL(0x0000000000000000000000000000000000000000000000000000000000deadbeef)
 |- UP(Tokens { rri: 0x01, owner: 0x0402ed0eeaf54a79df88f12f251f22b88df00afaad43497f448620353a94e5c2e155, amount: U256 { raw: 19999999999999999998 } })
 |- END
 |- LDOWN(2)
@@ -195,22 +336,26 @@ describe('txParser', () => {
 |- LDOWN(5)
 |- UP(Tokens { rri: 0x01, owner: 0x0402ed0eeaf54a79df88f12f251f22b88df00afaad43497f448620353a94e5c2e155, amount: U256 { raw: 9999999999999999997 } })
 |- UP(Tokens { rri: 0x01, owner: 0x04036b062b0044f412f30a973947e5e986629669d055b78fcfbb68a63211462ed0f7, amount: U256 { raw: 1 } })
-|- END
-|- SIG(0x012953bf9f14bb362b84e84086571a56c4bc04c620cc07e50bac8592a22f39938a3cacb9d5a8833211cbce4e51ec0916b94c0c0438bbea1b772aecfd95a61c1d3e)`,
-					txID:
-						'26c64c74a56863696e637f1efea710d39507cdf5a795a7dd645154a8c71d439f',
+|- END`,
 				},
 			})
 		})
 
-		it('Fee_Transfer_Stake', () => {
+		it('Transfer_PartialTransfer_Transfer_Stake', () => {
 			testComplex({
+				description: 'Transfer_PartialTransfer_Transfer_Stake',
+				myPublicKeyHex:
+					'022c4f0832c24ebc6477005c397fa51e8de0710098b816d43a85332658c7a21411',
 				blobHex:
-					'04c1e268b8b61ce5688d039aefa1e5ea6612a6c4d3b497713582916b533d6c502800000003092100000000000000000000000000000000000000000000000000000000000000000201030104035c8522494136cab2c7445cd485a905338fa9191d0d3314cf0e3b60a792119f2b000000000000000000000000000000000000000000000001158e460913cffffe00050000000201030104035c8522494136cab2c7445cd485a905338fa9191d0d3314cf0e3b60a792119f2b000000000000000000000000000000000000000000000001158e460913cffffd01030104022c4f0832c24ebc6477005c397fa51e8de0710098b816d43a85332658c7a21411000000000000000000000000000000000000000000000000000000000000000100050000000501030104035c8522494136cab2c7445cd485a905338fa9191d0d3314cf0e3b60a792119f2b0000000000000000000000000000000000000000000000008ac7230489e7fffd010404035c8522494136cab2c7445cd485a905338fa9191d0d3314cf0e3b60a792119f2b037bf52ffd736eda6554b3b7b03eae3f9e2bd9b4b1c11e73355191403ff96961ac0000000000000000000000000000000000000000000000008ac7230489e800000007011d3deb32ffff0d1b6c34e29a18cc78a35b575550026bc40210b5744964e553cb26f25a4ee823195b18ba17694e644f93758d52a6d37f5990e0068c778ad66f6f',
+					'0a000104c1e268b8b61ce5688d039aefa1e5ea6612a6c4d3b497713582916b533d6c5028000000030921000000000000000000000000000000000000000000000038821089088b6063da1801030104035c8522494136cab2c7445cd485a905338fa9191d0d3314cf0e3b60a792119f2b000000000000000000000000000000000000000000000001158e460913cffffe00050000000201030104035c8522494136cab2c7445cd485a905338fa9191d0d3314cf0e3b60a792119f2b000000000000000000000000000000000000000000000001158e460913cffffd01030104022c4f0832c24ebc6477005c397fa51e8de0710098b816d43a85332658c7a21411000000000000000000000000000000000000000000000000000000000000000100050000000501030104035c8522494136cab2c7445cd485a905338fa9191d0d3314cf0e3b60a792119f2b0000000000000000000000000000000000000000000000008ac7230489e7fffd010404035c8522494136cab2c7445cd485a905338fa9191d0d3314cf0e3b60a792119f2b037bf52ffd736eda6554b3b7b03eae3f9e2bd9b4b1c11e73355191403ff96961ac0000000000000000000000000000000000000000000000008ac7230489e8000000',
 				expected: {
+					txFee: '266851791263253500516888',
+					totalXRDCost: '266901791263253500516880',
+					hash: 'dabbe3c3601b3bbc5863368e8e8f061c24420a9b2e0658ad50a740eeb61602de',
 					parsedTX: `Instructions:
+|- HEADER(0, 1)
 |- DOWN(SubstateId { hash: 0xc1e268b8b61ce5688d039aefa1e5ea6612a6c4d3b497713582916b533d6c5028, index: 3 })
-|- SYSCALL(0x000000000000000000000000000000000000000000000000000000000000000002)
+|- SYSCALL(0x000000000000000000000000000000000000000000000038821089088b6063da18)
 |- UP(Tokens { rri: 0x01, owner: 0x04035c8522494136cab2c7445cd485a905338fa9191d0d3314cf0e3b60a792119f2b, amount: U256 { raw: 19999999999999999998 } })
 |- END
 |- LDOWN(2)
@@ -220,22 +365,26 @@ describe('txParser', () => {
 |- LDOWN(5)
 |- UP(Tokens { rri: 0x01, owner: 0x04035c8522494136cab2c7445cd485a905338fa9191d0d3314cf0e3b60a792119f2b, amount: U256 { raw: 9999999999999999997 } })
 |- UP(PreparedStake { owner: 0x04035c8522494136cab2c7445cd485a905338fa9191d0d3314cf0e3b60a792119f2b, delegate: 0x037bf52ffd736eda6554b3b7b03eae3f9e2bd9b4b1c11e73355191403ff96961ac, amount: U256 { raw: 10000000000000000000 } })
-|- END
-|- SIG(0x011d3deb32ffff0d1b6c34e29a18cc78a35b575550026bc40210b5744964e553cb26f25a4ee823195b18ba17694e644f93758d52a6d37f5990e0068c778ad66f6f)`,
-					txID:
-						'dd315ccecfe991fbfd6118a122c1b6c99d67094cba21028b94c81599049e7c9e',
+|- END`,
 				},
 			})
 		})
 
-		it('Fee_Unstake_Transfer', () => {
+		it('Transfer_Unstake_PartialTransfer', () => {
 			testComplex({
+				description: 'Transfer_Unstake_PartialTransfer',
+				myPublicKeyHex:
+					'039af69ffd4752e60d0f584f4ce39526dd855e1c35293473f683de09f6b19e4c96',
 				blobHex:
-					'0414f4235a478a63f7c17795bb482ed22efb8bcbe5239d3a5544f33b26f308747500000001092100000000000000000000000000000000000000000000000000000000000000000401030104033b8c4cfdf815828620bd5ed254225f2be4ecfcd1b7c72d096f385835ca1c8d700000000000000000000000000000000000000000000000008ac7230489e7fffc00045e01ca4385fe4ba31d3649ae7cc746446d46c4405064bf7c6d4faa853586eab700000007010d031fa3fe2db67d482ef3b3b6f6facf874cf1502af8a463d8ac75f378a09d78f01204033b8c4cfdf815828620bd5ed254225f2be4ecfcd1b7c72d096f385835ca1c8d700000000000000000000000000000000000000000000000008ac7230489e8000000050000000201030104033b8c4cfdf815828620bd5ed254225f2be4ecfcd1b7c72d096f385835ca1c8d700000000000000000000000000000000000000000000000008ac7230489e7fffb01030104039af69ffd4752e60d0f584f4ce39526dd855e1c35293473f683de09f6b19e4c960000000000000000000000000000000000000000000000000000000000000001000701d52f25d0690171b4d4cfc5e6df2415e395487b13e29fb71fc35617117e46d5bc2f5c0eb98495b350107143852badea414d34da674bccfda1639835b6a98ae35f',
+					'0a00010414f4235a478a63f7c17795bb482ed22efb8bcbe5239d3a5544f33b26f308747500000001092100000000000000000000000000000000000000000000000000000000000000303901030104033b8c4cfdf815828620bd5ed254225f2be4ecfcd1b7c72d096f385835ca1c8d700000000000000000000000000000000000000000000000008ac7230489e7fffc00045e01ca4385fe4ba31d3649ae7cc746446d46c4405064bf7c6d4faa853586eab700000007010d031fa3fe2db67d482ef3b3b6f6facf874cf1502af8a463d8ac75f378a09d78f01204033b8c4cfdf815828620bd5ed254225f2be4ecfcd1b7c72d096f385835ca1c8d700000000000000000000000000000000000000000000000008ac7230489e8000000050000000201030104033b8c4cfdf815828620bd5ed254225f2be4ecfcd1b7c72d096f385835ca1c8d700000000000000000000000000000000000000000000000008ac7230489e7fffb01030104039af69ffd4752e60d0f584f4ce39526dd855e1c35293473f683de09f6b19e4c96000000000000000000000000000000000000000000000000000000000000000100',
 				expected: {
+					txFee: '12345',
+					totalXRDCost: '20000000000000012336',
+					hash: 'de9e42d39c8a23bd39a7dec80aa313ed3e0c7095873fc9f7104e481b432068c4',
 					parsedTX: `Instructions:
+|- HEADER(0, 1)
 |- DOWN(SubstateId { hash: 0x14f4235a478a63f7c17795bb482ed22efb8bcbe5239d3a5544f33b26f3087475, index: 1 })
-|- SYSCALL(0x000000000000000000000000000000000000000000000000000000000000000004)
+|- SYSCALL(0x000000000000000000000000000000000000000000000000000000000000003039)
 |- UP(Tokens { rri: 0x01, owner: 0x04033b8c4cfdf815828620bd5ed254225f2be4ecfcd1b7c72d096f385835ca1c8d70, amount: U256 { raw: 9999999999999999996 } })
 |- END
 |- DOWN(SubstateId { hash: 0x5e01ca4385fe4ba31d3649ae7cc746446d46c4405064bf7c6d4faa853586eab7, index: 7 })
@@ -244,22 +393,26 @@ describe('txParser', () => {
 |- LDOWN(2)
 |- UP(Tokens { rri: 0x01, owner: 0x04033b8c4cfdf815828620bd5ed254225f2be4ecfcd1b7c72d096f385835ca1c8d70, amount: U256 { raw: 9999999999999999995 } })
 |- UP(Tokens { rri: 0x01, owner: 0x04039af69ffd4752e60d0f584f4ce39526dd855e1c35293473f683de09f6b19e4c96, amount: U256 { raw: 1 } })
-|- END
-|- SIG(0x01d52f25d0690171b4d4cfc5e6df2415e395487b13e29fb71fc35617117e46d5bc2f5c0eb98495b350107143852badea414d34da674bccfda1639835b6a98ae35f)`,
-					txID:
-						'58c89726be35fb33c8dee86eb6c1cfbc3107b07e3818d115201914735f02a85d',
+|- END`,
 				},
 			})
 		})
 
-		it('Fee_Transfer_Unstake', () => {
+		it('Transfer_PartialTransfer_Unstake', () => {
 			testComplex({
+				description: 'Transfer_PartialTransfer_Unstake',
+				myPublicKeyHex:
+					'02b8777eab54ba8818cb82376a5798c9c7a025c216fb05266e794cd8c5f0dd4d7a',
 				blobHex:
-					'04e31133f949d9d4a453c189e8b7c3b016215513f50b2ec9809b19f950954cbf040000000109210000000000000000000000000000000000000000000000000000000000000000040103010403a8791ee326620a8b0d5ba636eb0422122c577698cbdb1ea97a0d3d56c33c60be0000000000000000000000000000000000000000000000008ac7230489e7fffc0005000000020103010403a8791ee326620a8b0d5ba636eb0422122c577698cbdb1ea97a0d3d56c33c60be0000000000000000000000000000000000000000000000008ac7230489e7fffb0103010402b8777eab54ba8818cb82376a5798c9c7a025c216fb05266e794cd8c5f0dd4d7a00000000000000000000000000000000000000000000000000000000000000010004361a8ec30813bafdf3b547482353080cc6b7cbd8e893496fa141d9915ae180c300000007010d02ec11f6184839402b78f5a6fbe3e5eddf41cb999ac9c3ae0cdb324ab01f8e3f200403a8791ee326620a8b0d5ba636eb0422122c577698cbdb1ea97a0d3d56c33c60be0000000000000000000000000000000000000000000000008ac7230489e80000000701245999e301296f716d5a5dcf064bd72c9672bf9b84eb9b4fd410ac96b8942480594aa079000cbbf9da55d0ddda9e4fb50c2f5ddca539b1c9cf96a4e12ac45fd4',
+					'0a000104e31133f949d9d4a453c189e8b7c3b016215513f50b2ec9809b19f950954cbf0400000001092100000000000000000000000000000000000000000000000000000000003ade68b10103010403a8791ee326620a8b0d5ba636eb0422122c577698cbdb1ea97a0d3d56c33c60be0000000000000000000000000000000000000000000000008ac7230489e7fffc0005000000020103010403a8791ee326620a8b0d5ba636eb0422122c577698cbdb1ea97a0d3d56c33c60be0000000000000000000000000000000000000000000000008ac7230489e7fffb0103010402b8777eab54ba8818cb82376a5798c9c7a025c216fb05266e794cd8c5f0dd4d7a00000000000000000000000000000000000000000000000000000000000000010004361a8ec30813bafdf3b547482353080cc6b7cbd8e893496fa141d9915ae180c300000007010d02ec11f6184839402b78f5a6fbe3e5eddf41cb999ac9c3ae0cdb324ab01f8e3f200403a8791ee326620a8b0d5ba636eb0422122c577698cbdb1ea97a0d3d56c33c60be0000000000000000000000000000000000000000000000008ac7230489e8000000',
 				expected: {
+					txFee: '987654321',
+					totalXRDCost: '20000000000987654312',
+					hash: '1859c7a11b46aefb28860f37afff4fcf5aac2c4c995a65429a4f00f33e4298a3',
 					parsedTX: `Instructions:
+|- HEADER(0, 1)
 |- DOWN(SubstateId { hash: 0xe31133f949d9d4a453c189e8b7c3b016215513f50b2ec9809b19f950954cbf04, index: 1 })
-|- SYSCALL(0x000000000000000000000000000000000000000000000000000000000000000004)
+|- SYSCALL(0x00000000000000000000000000000000000000000000000000000000003ade68b1)
 |- UP(Tokens { rri: 0x01, owner: 0x0403a8791ee326620a8b0d5ba636eb0422122c577698cbdb1ea97a0d3d56c33c60be, amount: U256 { raw: 9999999999999999996 } })
 |- END
 |- LDOWN(2)
@@ -268,35 +421,36 @@ describe('txParser', () => {
 |- END
 |- DOWN(SubstateId { hash: 0x361a8ec30813bafdf3b547482353080cc6b7cbd8e893496fa141d9915ae180c3, index: 7 })
 |- UP(PreparedUnstake { delegate: 0x02ec11f6184839402b78f5a6fbe3e5eddf41cb999ac9c3ae0cdb324ab01f8e3f20, owner: 0x0403a8791ee326620a8b0d5ba636eb0422122c577698cbdb1ea97a0d3d56c33c60be, amount: U256 { raw: 10000000000000000000 } })
-|- END
-|- SIG(0x01245999e301296f716d5a5dcf064bd72c9672bf9b84eb9b4fd410ac96b8942480594aa079000cbbf9da55d0ddda9e4fb50c2f5ddca539b1c9cf96a4e12ac45fd4)`,
-					txID:
-						'd8a0aa158f7fd03b261709dc7d64561de653de8b1d9489567c43370728d73f12',
+|- END`,
 				},
 			})
 		})
 
-		it('Fee_Transfer_Transfer', () => {
+		it('Transfer_PartialTransfer_PartialTransfer', () => {
 			testComplex({
+				description: 'Transfer_PartialTransfer_PartialTransfer',
+				myPublicKeyHex:
+					'0345497f80cf2c495286a146178bc2ad1a95232a8fce45856c55d67716cda020b9',
 				blobHex:
-					'044b95e6aa95cae5010419b986e8913a5c9628647b0ea21d977dc96c4baa4ef2d200000001092100000000000000000000000000000000000000000000000000000000000000000401030104034ca24c2b7000f439ca21cbb11b044d48f90c987b2aee6608a2570a466612dae20000000000000000000000000000000000000000000000008ac7230489e7fffc00050000000201030104034ca24c2b7000f439ca21cbb11b044d48f90c987b2aee6608a2570a466612dae20000000000000000000000000000000000000000000000008ac7230489e7fffb0103010402bd961fbe8bb26ae1087392f5f7838841faaab23f7f8c67541627828caf49a06d000000000000000000000000000000000000000000000000000000000000000100050000000501030104034ca24c2b7000f439ca21cbb11b044d48f90c987b2aee6608a2570a466612dae20000000000000000000000000000000000000000000000008ac7230489e7fff9010301040345497f80cf2c495286a146178bc2ad1a95232a8fce45856c55d67716cda020b90000000000000000000000000000000000000000000000000000000000000002000700c3fc7baf6a473711f478168ebbed42717844e7dcd55d67bfdfb29c4fcdb0bc0438a3afff25fd161adaf7d43501f18ed9f229aec649873eb2933bf7f38ed1d7f6',
+					'0a0001044b95e6aa95cae5010419b986e8913a5c9628647b0ea21d977dc96c4baa4ef2d200000001092100000000000000000000000000000000000000000000000000000000000000fade01030104034ca24c2b7000f439ca21cbb11b044d48f90c987b2aee6608a2570a466612dae20000000000000000000000000000000000000000000000008ac7230489e7fffc00050000000201030104034ca24c2b7000f439ca21cbb11b044d48f90c987b2aee6608a2570a466612dae20000000000000000000000000000000000000000000000008ac7230489e7fffb010301040345497f80cf2c495286a146178bc2ad1a95232a8fce45856c55d67716cda020b9000000000000000000000000000000000000000000000000000000000000000100050000000501030104034ca24c2b7000f439ca21cbb11b044d48f90c987b2aee6608a2570a466612dae20000000000000000000000000000000000000000000000008ac7230489e7fff9010301040345497f80cf2c495286a146178bc2ad1a95232a8fce45856c55d67716cda020b9000000000000000000000000000000000000000000000000000000000000000200',
 				expected: {
+					txFee: '64222',
+					totalXRDCost: '30000000000000064206',
+					hash: '52e8974210ec91ae349b7d9c016fcdfc2408b3994dbca89d0a81dc0e1975a13b',
 					parsedTX: `Instructions:
+|- HEADER(0, 1)
 |- DOWN(SubstateId { hash: 0x4b95e6aa95cae5010419b986e8913a5c9628647b0ea21d977dc96c4baa4ef2d2, index: 1 })
-|- SYSCALL(0x000000000000000000000000000000000000000000000000000000000000000004)
+|- SYSCALL(0x00000000000000000000000000000000000000000000000000000000000000fade)
 |- UP(Tokens { rri: 0x01, owner: 0x04034ca24c2b7000f439ca21cbb11b044d48f90c987b2aee6608a2570a466612dae2, amount: U256 { raw: 9999999999999999996 } })
 |- END
 |- LDOWN(2)
 |- UP(Tokens { rri: 0x01, owner: 0x04034ca24c2b7000f439ca21cbb11b044d48f90c987b2aee6608a2570a466612dae2, amount: U256 { raw: 9999999999999999995 } })
-|- UP(Tokens { rri: 0x01, owner: 0x0402bd961fbe8bb26ae1087392f5f7838841faaab23f7f8c67541627828caf49a06d, amount: U256 { raw: 1 } })
+|- UP(Tokens { rri: 0x01, owner: 0x040345497f80cf2c495286a146178bc2ad1a95232a8fce45856c55d67716cda020b9, amount: U256 { raw: 1 } })
 |- END
 |- LDOWN(5)
 |- UP(Tokens { rri: 0x01, owner: 0x04034ca24c2b7000f439ca21cbb11b044d48f90c987b2aee6608a2570a466612dae2, amount: U256 { raw: 9999999999999999993 } })
 |- UP(Tokens { rri: 0x01, owner: 0x040345497f80cf2c495286a146178bc2ad1a95232a8fce45856c55d67716cda020b9, amount: U256 { raw: 2 } })
-|- END
-|- SIG(0x00c3fc7baf6a473711f478168ebbed42717844e7dcd55d67bfdfb29c4fcdb0bc0438a3afff25fd161adaf7d43501f18ed9f229aec649873eb2933bf7f38ed1d7f6)`,
-					txID:
-						'4744eaf2842d9d451c4293f1ee3964f638a14bca37fbdb900b4f5381c81af1d4',
+|- END`,
 				},
 			})
 		})

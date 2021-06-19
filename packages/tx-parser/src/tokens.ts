@@ -62,14 +62,14 @@ const fromBufferReader = (
 								'hex',
 							)}, amount: U256 { raw: ${amount.toString()} } }`,
 					toHumanReadableString: () =>
-						`Tokens { rri: ${
+						`
+						Tokens { rri: ${
 							rri.toBuffer().length === 1
 								? ResourceIdentifier.fromUnsafe(rri.toBuffer())
 										._unsafeUnwrap()
 										.toString()
 								: rri.toBuffer().toString('hex')
-						}, 
-							owner: ${AccountAddress.fromUnsafe(owner.toBuffer().slice(1))
+						}, owner: ${AccountAddress.fromUnsafe(owner.toBuffer().slice(1))
 								._unsafeUnwrap()
 								.toString()}, amount: ${stringifyUInt256(
 							amount,
