@@ -2,53 +2,53 @@
 # yarn lockfile v1
 
 
-"@aleworm/bindings@^1.5.8":
-  version "1.5.8"
-  resolved "https://registry.yarnpkg.com/@aleworm/bindings/-/bindings-1.5.8.tgz#f3ee8f966bcc5005156106f00b44e06063e81146"
-  integrity sha512-93wFgsSPAQnGBoQOCNrtHODXzpPblozNSOkruUlCC3a6h0vPbpNgu2GXydmrbao9S8Q5yar7RnJagxcd89d84A==
+"@aleworm/bindings@^1.5.9":
+  version "1.5.9"
+  resolved "https://registry.yarnpkg.com/@aleworm/bindings/-/bindings-1.5.9.tgz#a78cc7d52807833b1d427b64a3c1fc7fb312449c"
+  integrity sha512-sNQkExY7jy9xe+Np6uacYquyFN6bpKSKCYH77Pwig4AIC0c8hcwvcNbRZ5qMdQNPeRx3M0FK7T8NqKUCpLuARQ==
   dependencies:
     file-uri-to-path "1.0.0"
 
-"@aleworm/hw-transport-node-hid-noevents@^5.51.1":
-  version "5.51.1"
-  resolved "https://registry.yarnpkg.com/@aleworm/hw-transport-node-hid-noevents/-/hw-transport-node-hid-noevents-5.51.1.tgz#a4e3d9d86d1e4972c5cb3aa7eb7058edb94083bd"
-  integrity sha512-+f+iilRQIzj4AXQ2N6STOeV2zmYVrpkvV/qZpLe5ms6Ogiq0dtq69g2I4oqF25WlzC4nUYwrc4nWgd3oHhgz8g==
+"@aleworm/hw-transport-node-hid-noevents@^5.51.2":
+  version "5.51.2"
+  resolved "https://registry.yarnpkg.com/@aleworm/hw-transport-node-hid-noevents/-/hw-transport-node-hid-noevents-5.51.2.tgz#adfa13cc368f2262dfee969ad4a8274d1c3ab1d9"
+  integrity sha512-9bCKbLX4XyN4KjtqM+DqznDiH5pBzp6v8Jfisei/fEi2jpBSU9ovdOplMZSgGMg5Hk/L9z+K5K5KYCbJvwas5Q==
   dependencies:
-    "@aleworm/node-hid" "^2.1.1"
+    "@aleworm/node-hid" "^2.1.2"
     "@ledgerhq/devices" "^5.51.1"
     "@ledgerhq/errors" "^5.50.0"
     "@ledgerhq/hw-transport" "^5.51.1"
     "@ledgerhq/logs" "^5.50.0"
 
-"@aleworm/hw-transport-node-hid@^5.51.13":
-  version "5.51.13"
-  resolved "https://registry.yarnpkg.com/@aleworm/hw-transport-node-hid/-/hw-transport-node-hid-5.51.13.tgz#c488c8315b353c69e066f68b4aa451fbc19c9ef8"
-  integrity sha512-W321P/ka9v9nJEDEbzAIaLHYZkWbWIaDqe8un9kAIeb0L2Xk0aj1wDSlfN+YTP1/XFyqXhLhbxHcc99spcl+0A==
+"@aleworm/hw-transport-node-hid@^5.51.14":
+  version "5.51.14"
+  resolved "https://registry.yarnpkg.com/@aleworm/hw-transport-node-hid/-/hw-transport-node-hid-5.51.14.tgz#3b1a31cf0b83f727ce5fdfab9f0ac0b7f1e63112"
+  integrity sha512-O3ALi9bYBe8k1smH04sZMc3wT1ItVjOxxB7M2ySUBgcUFGDnLvOQIcQbfmRzoXJvooz7yiDOghTqT/xOC5AE0A==
   dependencies:
-    "@aleworm/hw-transport-node-hid-noevents" "^5.51.1"
-    "@aleworm/node-hid" "^2.1.1"
-    "@aleworm/usb2" "^1.7.9"
+    "@aleworm/hw-transport-node-hid-noevents" "^5.51.2"
+    "@aleworm/node-hid" "^2.1.2"
+    "@aleworm/usb2" "^1.7.10"
     "@ledgerhq/devices" "^5.51.1"
     "@ledgerhq/errors" "^5.50.0"
     "@ledgerhq/hw-transport" "^5.51.1"
     "@ledgerhq/logs" "^5.50.0"
     lodash "^4.17.21"
 
-"@aleworm/node-hid@^2.1.1":
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/@aleworm/node-hid/-/node-hid-2.1.1.tgz#f9503341b41d2858268f0bc7b0415b98791fa093"
-  integrity sha512-c7yHGZA3o/6/v2nElxxiYiv5K7yyvZ0ClgRGH8oSEcZBkmALM3KxcGwyVBg8Vx633zW2xvtXBQvtuqMACG0gfQ==
+"@aleworm/node-hid@^2.1.2":
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/@aleworm/node-hid/-/node-hid-2.1.2.tgz#d0831fe77eb2ef4f10872b54d3d80333f3bb833c"
+  integrity sha512-88cd7QEpirvP1P344hO14aFeCJLoHY94pT5QFpl8SnseIWLj+QQB/JDctpTSq6sQ0xMr9SOgiCPRLcG29C6r3Q==
   dependencies:
-    "@aleworm/bindings" "^1.5.8"
+    "@aleworm/bindings" "^1.5.9"
     node-addon-api "^3.0.2"
     prebuild-install "^6.0.0"
 
-"@aleworm/usb2@^1.7.9":
-  version "1.7.9"
-  resolved "https://registry.yarnpkg.com/@aleworm/usb2/-/usb2-1.7.9.tgz#0b8198eab5e05ed89eb71d1673399b0fb6a35530"
-  integrity sha512-U/FAyq5C19wDu5DJvbbiC2/3s0ftZxqXQ7UG2tA2+p5MLZDGZ6U6qnmdUbQF8qAXnN3weVh7yHRyKX+Z9u8NoA==
+"@aleworm/usb2@^1.7.10":
+  version "1.7.10"
+  resolved "https://registry.yarnpkg.com/@aleworm/usb2/-/usb2-1.7.10.tgz#34580719a7e34678304def9b5feed92d9c6515e4"
+  integrity sha512-xfccfXx2NlE1vfCIrY9RpA/r4y+/b+9QnZCIsT3NRS6lS6PlAVoG8NGIZi2DXai4iUpzyHh684Ltxw80TAbY9g==
   dependencies:
-    "@aleworm/bindings" "^1.5.8"
+    "@aleworm/bindings" "^1.5.9"
     node-addon-api "3.0.2"
     prebuild-install "^5.3.3"
 
