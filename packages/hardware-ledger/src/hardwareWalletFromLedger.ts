@@ -51,7 +51,7 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 			.pipe(
 				mergeMap(
 					(buf): Observable<PublicKeyT> => {
-						if(!Buffer.isBuffer(buf)) {
+						if (!Buffer.isBuffer(buf)) {
 							buf = Buffer.from(buf) // Convert Uint8Array to Buffer for Electron renderer compatibility 💩
 						}
 
@@ -398,7 +398,9 @@ Bytes: "
 	}
 }
 
-const create = (transport: BasicLedgerTransport): Observable<HardwareWalletT> => {
+const create = (
+	transport: BasicLedgerTransport,
+): Observable<HardwareWalletT> => {
 	const ledgerNano$ = from(
 		LedgerNano.connect(transport, {
 			// 2 minutes timeout arbitrarily chosen

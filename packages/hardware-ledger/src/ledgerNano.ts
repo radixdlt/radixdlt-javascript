@@ -27,7 +27,7 @@ const fromTransport = (
 				with: basicLedgerTransport,
 			})
 				.then(responseFromLedger => {
-					if(!Buffer.isBuffer(responseFromLedger)) {
+					if (!Buffer.isBuffer(responseFromLedger)) {
 						responseFromLedger = Buffer.from(responseFromLedger) // Convert Uint8Array to Buffer for Electron renderer compatibility 💩
 					}
 

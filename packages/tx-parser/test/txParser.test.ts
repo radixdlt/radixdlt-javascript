@@ -36,7 +36,6 @@ describe('txParser', () => {
 
 			const ins = parsedTx.instructions
 
-
 			const chunkArray = <T>(myArray: T[], chunk_size: number): T[][] => {
 				const results: T[][] = [] as T[][]
 				while (myArray.length) {
@@ -47,9 +46,25 @@ describe('txParser', () => {
 
 			let debugByteString = ''
 			for (const instruction of ins) {
-				debugByteString += `// Instruction '${InstructionType[instruction.instructionType]}' (#${instruction.toBuffer().length} bytes)\n`
+				debugByteString += `// Instruction '${
+					InstructionType[instruction.instructionType]
+				}' (#${instruction.toBuffer().length} bytes)\n`
 				// @ts-ignore
-				const byteString = chunkArray([...instruction.toBuffer()] as number[], 8).map(array => array.map((byte: number) => `0x${byte <= 0x0F ? '0' : ''}${byte.toString(16)}`).join(', ')).join(',\n')
+				const byteString = chunkArray(
+					[...instruction.toBuffer()] as number[],
+					8,
+				)
+					.map(array =>
+						array
+							.map(
+								(byte: number) =>
+									`0x${
+										byte <= 0x0f ? '0' : ''
+									}${byte.toString(16)}`,
+							)
+							.join(', '),
+					)
+					.join(',\n')
 				debugByteString += byteString
 				debugByteString += '\n\n'
 			}
@@ -173,7 +188,8 @@ describe('txParser', () => {
 |- UP(Tokens { rri: 0x01, owner: 0x040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba, amount: U256 { raw: 9999999999999999998 } })
 |- UP(PreparedStake { owner: 0x040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba, delegate: 0x02f19b2d095a553f3a41da4a8dc1f8453dfbdc733c5aece8b128b7d7999ae247a5, amount: U256 { raw: 10000000000000000000 } })
 |- END`,
-					hash: '83f4544ff1fbabc7be39c6f531c3f37fc50e0a0b653afdb22cc9f8e8aa461fc9',
+					hash:
+						'83f4544ff1fbabc7be39c6f531c3f37fc50e0a0b653afdb22cc9f8e8aa461fc9',
 				},
 			})
 		})

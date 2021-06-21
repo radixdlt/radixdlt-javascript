@@ -8,7 +8,7 @@ export type BufferReaderT = Readonly<{
 }>
 
 const createBufferReader = (buf: Buffer): BufferReaderT => {
-	if(!Buffer.isBuffer(buf)) {
+	if (!Buffer.isBuffer(buf)) {
 		buf = Buffer.from(buf) // Convert Uint8Array to Buffer for Electron renderer compatibility 💩
 	}
 

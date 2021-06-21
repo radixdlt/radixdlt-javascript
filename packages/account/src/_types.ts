@@ -73,6 +73,7 @@ export type HWSigningKeyDerivation = 'next' | HDPathRadixT
 export type DeriveHWSigningKeyInput = Readonly<{
 	keyDerivation: HWSigningKeyDerivation
 	hardwareWalletConnection: Observable<HardwareWalletT>
+	alsoSwitchTo: boolean
 }>
 
 export type SigningKeyT = Signing &

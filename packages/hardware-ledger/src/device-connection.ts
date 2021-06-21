@@ -1,6 +1,6 @@
 import { RadixAPDU } from './apdu'
 import { log } from '@radixdlt/util'
-import { LedgerInstruction, LedgerResponseCodes, RadixAPDUT } from './_types'
+import { LedgerResponseCodes, RadixAPDUT } from './_types'
 
 export type BasicLedgerTransport = Readonly<{
 	close: () => Promise<void>
@@ -65,22 +65,6 @@ const __openConnection = async (
 	if (isLoggingEnabled) {
 		log.debug(`🔌⏱ Looking for (unlocked 🔓) Ledger device to connect to.`)
 	}
-
-	/*
-	const basicLedgerTransport: BasicLedgerTransport = await import(
-		// @ts-ignore
-		'@aleworm/hw-transport-node-hid'
-	).then(
-		async (module): Promise<BasicLedgerTransport> => {
-			const TransportNodeHid = module.default
-
-			return await TransportNodeHid.create(
-				input?.deviceConnectionTimeout,
-				input?.deviceConnectionTimeout,
-			)
-		},
-	)
-	*/
 
 	if (isLoggingEnabled) {
 		log.debug(`🔌✅ Found Ledger device and connected to it.`)

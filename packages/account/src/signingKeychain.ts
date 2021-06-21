@@ -200,7 +200,9 @@ const create = (
 					hdPath,
 					hardwareSigningKey,
 				})
-				setActiveSigningKey(signingKey)
+				if (input.alsoSwitchTo) {
+					setActiveSigningKey(signingKey)
+				}
 				return signingKey
 			}),
 		)
