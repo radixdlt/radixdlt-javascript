@@ -27,6 +27,10 @@ const fromTransport = (
 				with: basicLedgerTransport,
 			})
 				.then(responseFromLedger => {
+					if (!Buffer.isBuffer(responseFromLedger)) {
+						responseFromLedger = Buffer.from(responseFromLedger) // Convert Uint8Array to Buffer for Electron renderer compatibility 💩
+					}
+
 					log.debug(
 						`📲 🥩 Raw response from Ledger device: ${responseFromLedger.toString(
 							'hex',
@@ -119,9 +123,10 @@ const fromTransport = (
 }
 
 const connect = async (
+	transport: BasicLedgerTransport,
 	input?: OpenLedgerConnectionInput,
 ): Promise<LedgerNanoT> => {
-	const ledgerTransportForDevice = await openConnection({
+	const ledgerTransportForDevice = await openConnection(transport, {
 		deviceConnectionTimeout: input?.deviceConnectionTimeout,
 		radixAppToOpenWaitPolicy: input?.radixAppToOpenWaitPolicy ?? {
 			delayBetweenRetries: 1_000,

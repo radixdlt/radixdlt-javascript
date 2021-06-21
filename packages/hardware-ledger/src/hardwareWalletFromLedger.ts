@@ -31,6 +31,7 @@ import {
 import { RadixAPDU } from './apdu'
 import { LedgerNanoT } from './_types'
 import { LedgerNano } from './ledgerNano'
+import { BasicLedgerTransport } from './device-connection'
 import { log, BufferReader } from '@radixdlt/util'
 import { Transaction } from '@radixdlt/tx-parser/dist/transaction'
 import { InstructionT } from '@radixdlt/tx-parser'
@@ -50,6 +51,10 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 			.pipe(
 				mergeMap(
 					(buf): Observable<PublicKeyT> => {
+						if (!Buffer.isBuffer(buf)) {
+							buf = Buffer.from(buf) // Convert Uint8Array to Buffer for Electron renderer compatibility 💩
+						}
+
 						// Response `buf`: pub_key_len (1) || pub_key (var) || chain_code_len (1) || chain_code (var)
 						const readNextBuffer = readBuffer(buf)
 
@@ -393,9 +398,11 @@ Bytes: "
 	}
 }
 
-const create = (): Observable<HardwareWalletT> => {
+const create = (
+	transport: BasicLedgerTransport,
+): Observable<HardwareWalletT> => {
 	const ledgerNano$ = from(
-		LedgerNano.connect({
+		LedgerNano.connect(transport, {
 			// 2 minutes timeout arbitrarily chosen
 			deviceConnectionTimeout: 2 * 60 * 1_000,
 		}),

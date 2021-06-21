@@ -18,6 +18,7 @@ import {
 	AddSigningKeyByPrivateKeyInput,
 	SigningKeychainT,
 	DeriveHWSigningKeyInput,
+	Signing,
 } from './_types'
 import { map, mergeMap, shareReplay, take } from 'rxjs/operators'
 import {
@@ -194,12 +195,16 @@ const create = (
 				): Observable<HardwareSigningKeyT> =>
 					hardwareWallet.makeSigningKey(hdPath),
 			),
-			map((hardwareSigningKey: HardwareSigningKeyT) =>
-				SigningKey.fromHDPathWithHWSigningKey({
+			map((hardwareSigningKey: HardwareSigningKeyT) => {
+				const signingKey = SigningKey.fromHDPathWithHWSigningKey({
 					hdPath,
 					hardwareSigningKey,
-				}),
-			),
+				})
+				if (input.alsoSwitchTo) {
+					setActiveSigningKey(signingKey)
+				}
+				return signingKey
+			}),
 		)
 	}
 
