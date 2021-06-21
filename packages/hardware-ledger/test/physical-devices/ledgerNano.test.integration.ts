@@ -182,7 +182,7 @@ describe('hw_ledger_integration', () => {
 		)
 	}, 20_000)
 
-	it.only(
+	it(
 		'doSignTX_integration',
 		async done => {
 			ledgerNano = await LedgerNano.connect({
