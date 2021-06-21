@@ -2,6 +2,56 @@
 # yarn lockfile v1
 
 
+"@aleworm/bindings@^1.5.8":
+  version "1.5.8"
+  resolved "https://registry.yarnpkg.com/@aleworm/bindings/-/bindings-1.5.8.tgz#f3ee8f966bcc5005156106f00b44e06063e81146"
+  integrity sha512-93wFgsSPAQnGBoQOCNrtHODXzpPblozNSOkruUlCC3a6h0vPbpNgu2GXydmrbao9S8Q5yar7RnJagxcd89d84A==
+  dependencies:
+    file-uri-to-path "1.0.0"
+
+"@aleworm/hw-transport-node-hid-noevents@^5.51.1":
+  version "5.51.1"
+  resolved "https://registry.yarnpkg.com/@aleworm/hw-transport-node-hid-noevents/-/hw-transport-node-hid-noevents-5.51.1.tgz#a4e3d9d86d1e4972c5cb3aa7eb7058edb94083bd"
+  integrity sha512-+f+iilRQIzj4AXQ2N6STOeV2zmYVrpkvV/qZpLe5ms6Ogiq0dtq69g2I4oqF25WlzC4nUYwrc4nWgd3oHhgz8g==
+  dependencies:
+    "@aleworm/node-hid" "^2.1.1"
+    "@ledgerhq/devices" "^5.51.1"
+    "@ledgerhq/errors" "^5.50.0"
+    "@ledgerhq/hw-transport" "^5.51.1"
+    "@ledgerhq/logs" "^5.50.0"
+
+"@aleworm/hw-transport-node-hid@^5.51.13":
+  version "5.51.13"
+  resolved "https://registry.yarnpkg.com/@aleworm/hw-transport-node-hid/-/hw-transport-node-hid-5.51.13.tgz#c488c8315b353c69e066f68b4aa451fbc19c9ef8"
+  integrity sha512-W321P/ka9v9nJEDEbzAIaLHYZkWbWIaDqe8un9kAIeb0L2Xk0aj1wDSlfN+YTP1/XFyqXhLhbxHcc99spcl+0A==
+  dependencies:
+    "@aleworm/hw-transport-node-hid-noevents" "^5.51.1"
+    "@aleworm/node-hid" "^2.1.1"
+    "@aleworm/usb2" "^1.7.9"
+    "@ledgerhq/devices" "^5.51.1"
+    "@ledgerhq/errors" "^5.50.0"
+    "@ledgerhq/hw-transport" "^5.51.1"
+    "@ledgerhq/logs" "^5.50.0"
+    lodash "^4.17.21"
+
+"@aleworm/node-hid@^2.1.1":
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/@aleworm/node-hid/-/node-hid-2.1.1.tgz#f9503341b41d2858268f0bc7b0415b98791fa093"
+  integrity sha512-c7yHGZA3o/6/v2nElxxiYiv5K7yyvZ0ClgRGH8oSEcZBkmALM3KxcGwyVBg8Vx633zW2xvtXBQvtuqMACG0gfQ==
+  dependencies:
+    "@aleworm/bindings" "^1.5.8"
+    node-addon-api "^3.0.2"
+    prebuild-install "^6.0.0"
+
+"@aleworm/usb2@^1.7.9":
+  version "1.7.9"
+  resolved "https://registry.yarnpkg.com/@aleworm/usb2/-/usb2-1.7.9.tgz#0b8198eab5e05ed89eb71d1673399b0fb6a35530"
+  integrity sha512-U/FAyq5C19wDu5DJvbbiC2/3s0ftZxqXQ7UG2tA2+p5MLZDGZ6U6qnmdUbQF8qAXnN3weVh7yHRyKX+Z9u8NoA==
+  dependencies:
+    "@aleworm/bindings" "^1.5.8"
+    node-addon-api "3.0.2"
+    prebuild-install "^5.3.3"
+
 "@babel/code-frame@^7.0.0":
   version "7.10.4"
   resolved "https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.10.4.tgz#168da1a36e90da68ae8d49c0f1b48c7c6249213a"
