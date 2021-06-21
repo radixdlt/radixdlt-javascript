@@ -1,6 +1,6 @@
 {
   "name": "@radixdlt/account",
-  "version": "1.0.44",
+  "version": "1.0.46",
   "description": "A JavaScript client library for interacting with the Radix Distributed Ledger.",
   "keywords": [
     "Account",
@@ -28,12 +28,12 @@
     "node": ">=15.5.0 <16"
   },
   "dependencies": {
-    "@radixdlt/crypto": "^1.0.38",
-    "@radixdlt/data-formats": "^1.0.26",
-    "@radixdlt/hardware-wallet": "^1.0.21",
-    "@radixdlt/primitives": "^1.0.30",
+    "@radixdlt/crypto": "^1.0.39",
+    "@radixdlt/data-formats": "^1.0.27",
+    "@radixdlt/hardware-wallet": "^1.0.22",
+    "@radixdlt/primitives": "^1.0.31",
     "@radixdlt/uint256": "^1.1.0",
-    "@radixdlt/util": "^1.0.26",
+    "@radixdlt/util": "^1.0.27",
     "bech32": "^2.0.0",
     "bip39": "^3.0.3",
     "hdkey": "^2.0.1",
