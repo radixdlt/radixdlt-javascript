@@ -186,6 +186,8 @@ const methodParams = {
 				type: 'TokenTransfer',
 			},
 		],
+		feePayer:
+			'brx1qspqljn9rg7x97s3rcvyzal2uxr5q22d9xn8nc4rpq8vq08kg4ch8yqhs9dq6',
 		message: 'xyz',
 	},
 

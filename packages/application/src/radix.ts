@@ -544,8 +544,9 @@ const create = (
 		}
 
 		const builtTransaction$ = transactionIntent$.pipe(
+			withLatestFrom(activeAddress),
 			switchMap(
-				(intent: TransactionIntent): Observable<BuiltTransaction> => {
+				([intent, address]): Observable<BuiltTransaction> => {
 					txLog.debug(
 						'Transaction intent created => requesting 🛰 API to build it now.',
 					)
@@ -553,7 +554,7 @@ const create = (
 						transactionState: intent,
 						eventUpdateType: TransactionTrackingEventType.INITIATED,
 					})
-					return api.buildTransaction(intent)
+					return api.buildTransaction(intent, address)
 				},
 			),
 			catchError((e: Error) => {

@@ -201,6 +201,7 @@ export namespace BuildTransactionEndpoint {
 					amount: string
 			  }
 		)[]
+		feePayer: string
 		message?: string
 	}
 

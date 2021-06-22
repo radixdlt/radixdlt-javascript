@@ -32,7 +32,7 @@ import { ActionType } from '../actions'
 import { toObservable } from '@radixdlt/util'
 import { NetworkT } from '@radixdlt/primitives'
 
-export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
+export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 	const toObs = <I, E, O>(
 		pickFn: (api: NodeAPI) => (input: I) => ResultAsync<O, E | E[]>,
 		input: I,
@@ -128,6 +128,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 
 		buildTransaction: (
 			transactionIntent: TransactionIntent,
+			from: AccountAddressT,
 		): Observable<BuiltTransaction> =>
 			toObs(a => a['construction.build_transaction'], {
 				actions: transactionIntent.actions.map(action =>
@@ -146,6 +147,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI): RadixCoreAPI => {
 								amount: action.amount.toString(),
 						  },
 				),
+				feePayer: from.toString(),
 				message: transactionIntent.message
 					? transactionIntent.message.toString('hex')
 					: undefined,
