@@ -749,7 +749,7 @@ describe('radix_high_level_api', () => {
 
 								expect(tb.owner.publicKey.toString(true)).toBe(
 									keystoreForTest.publicKeysCompressed[
-										expected.pkIndex
+									expected.pkIndex
 									],
 								)
 								expect(tb.tokenBalances.length).toBe(
@@ -971,9 +971,10 @@ describe('radix_high_level_api', () => {
 			.__syncBuildDoNotEncryptMessageIfAny(alice)
 			._unsafeUnwrap()
 
+
 		subs.add(
 			radix.ledger
-				.buildTransaction(transactionIntent)
+				.buildTransaction(transactionIntent, undefined as any)
 				.subscribe(unsignedTx => {
 					expect(
 						(unsignedTx as { fee: AmountT }).fee.toString(),
@@ -981,6 +982,7 @@ describe('radix_high_level_api', () => {
 					done()
 				}),
 		)
+
 	})
 
 	it('should get finalizeTransaction response', done => {
@@ -1133,7 +1135,7 @@ describe('radix_high_level_api', () => {
 					): Observable<BuiltTransaction> => {
 						receivedMsg =
 							txIntent.message?.toString('utf8') ?? errNoMessage
-						return mockedAPI.buildTransaction(txIntent)
+						return mockedAPI.buildTransaction(txIntent, undefined as any)
 					},
 				}),
 			)
@@ -1201,7 +1203,7 @@ describe('radix_high_level_api', () => {
 					): Observable<BuiltTransaction> => {
 						receivedMsgHex =
 							txIntent.message?.toString('hex') ?? errNoMessage
-						return mockedAPI.buildTransaction(txIntent)
+						return mockedAPI.buildTransaction(txIntent, undefined as any)
 					},
 				}),
 			)
@@ -1703,7 +1705,7 @@ describe('radix_high_level_api', () => {
 
 		describe('transaction flow errors', () => {
 			beforeAll(() => {
-				jest.spyOn(console, 'error').mockImplementation(() => {})
+				jest.spyOn(console, 'error').mockImplementation(() => { })
 			})
 
 			afterAll(() => {
