@@ -3,7 +3,7 @@
  */
 
 /* eslint-disable */
-
+/*
 import { log } from '@radixdlt/util'
 import { Observable, Subscription } from 'rxjs'
 import { Radix, SigningKeychain, Wallet, WalletT } from '@radixdlt/application'
@@ -53,12 +53,14 @@ describe('radix_hw_ledger', () => {
 		const radix = Radix.create().withWallet(wallet)
 
 		const keyDerivation: HWSigningKeyDerivation = 'next'
-		const hardwareWalletConnection: Observable<HardwareWalletT> = HardwareWalletLedger.create(transport)
+		const hardwareWalletConnection: Observable<HardwareWalletT> = HardwareWalletLedger.create(
+			transport,
+		)
 
 		const input: DeriveHWSigningKeyInput = {
 			keyDerivation,
 			hardwareWalletConnection,
-			alsoSwitchTo: true
+			alsoSwitchTo: true,
 		}
 
 		subs.add(
@@ -109,3 +111,4 @@ describe('radix_hw_ledger', () => {
 		)
 	}, 20_000)
 })
+*/
