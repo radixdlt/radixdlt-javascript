@@ -36,19 +36,20 @@ import {
 } from 'rxjs'
 import { KeystoreT, Message, MnemomicT } from '@radixdlt/crypto'
 import {
-	AddAccountByPrivateKeyInput,
 	AccountsT,
-	WalletT,
 	AccountT,
+	AddAccountByPrivateKeyInput,
+	DeriveHWAccountInput,
 	MakeTransactionOptions,
 	ManualUserConfirmTX,
+	MessageInTransactionMode,
 	RadixT,
 	StakeOptions,
 	SwitchAccountInput,
 	TransactionConfirmationBeforeFinalization,
 	TransferTokensOptions,
 	UnstakeOptions,
-	DeriveHWAccountInput,
+	WalletT,
 } from './_types'
 import {
 	APIError,
@@ -93,6 +94,8 @@ import {
 	TransactionIdentifierT,
 	TransactionIntent,
 	TransactionIntentBuilder,
+	TransactionIntentBuilderDoNotEncryptOption,
+	TransactionIntentBuilderEncryptOption,
 	TransactionIntentBuilderOptions,
 	TransactionIntentBuilderT,
 	TransactionStateError,
@@ -794,7 +797,8 @@ const create = (
 		const intent$ = transactionIntentBuilderT.build(
 			builderOptions ?? {
 				skipEncryptionOfMessageIfAny: {
-					spendingSender: activeAddress.pipe(take(1)), // IMPORTANT !
+					spendingSender: activeAddress.pipe(take(1)),
+					includeMessageVerbatim: false,
 				},
 			},
 		)
@@ -812,19 +816,31 @@ const create = (
 		let encryptMsgIfAny = false
 		if (input.message) {
 			builder.message(input.message)
-			encryptMsgIfAny = input.message.encrypt
+			encryptMsgIfAny =
+				input.message.mode === MessageInTransactionMode.ENCRYPT
 		}
+
+		const builderOptionsEncrypt: TransactionIntentBuilderEncryptOption = {
+			encryptMessageIfAnyWithAccount: activeAccount.pipe(take(1)), // IMPORTANT !,,
+		}
+
+		const builderOptionsDoNotEncrypt: TransactionIntentBuilderDoNotEncryptOption = {
+			skipEncryptionOfMessageIfAny: {
+				spendingSender: activeAddress.pipe(take(1)), // IMPORTANT !
+				includeMessageVerbatim:
+					input.message?.mode === MessageInTransactionMode.VERBATIM ??
+					false,
+			},
+		}
+
+		const builderOptions: TransactionIntentBuilderOptions = encryptMsgIfAny
+			? builderOptionsEncrypt
+			: builderOptionsDoNotEncrypt
 
 		return __makeTransactionFromBuilder(
 			builder,
 			{ ...input },
-			encryptMsgIfAny
-				? {
-						encryptMessageIfAnyWithAccount: activeAccount.pipe(
-							take(1), // Important !
-						),
-				  }
-				: undefined,
+			builderOptions,
 		)
 	}
 

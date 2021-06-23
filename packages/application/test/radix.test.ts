@@ -50,6 +50,7 @@ import {
 	isTransferTokensAction,
 	isUnstakeTokensAction,
 	ManualUserConfirmTX,
+	MessageInTransactionMode,
 	mockedAPI,
 	mockRadixCoreAPI,
 	NodeT,
@@ -749,7 +750,7 @@ describe('radix_high_level_api', () => {
 
 								expect(tb.owner.publicKey.toString(true)).toBe(
 									keystoreForTest.publicKeysCompressed[
-									expected.pkIndex
+										expected.pkIndex
 									],
 								)
 								expect(tb.tokenBalances.length).toBe(
@@ -968,9 +969,8 @@ describe('radix_high_level_api', () => {
 					'vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazy',
 				amount: 10000,
 			})
-			.__syncBuildDoNotEncryptMessageIfAny(alice)
+			.__syncBuildDoNotEncryptMessageIfAny( { from: alice, includeMessageVerbatim: false})
 			._unsafeUnwrap()
-
 
 		subs.add(
 			radix.ledger
@@ -982,7 +982,6 @@ describe('radix_high_level_api', () => {
 					done()
 				}),
 		)
-
 	})
 
 	it('should get finalizeTransaction response', done => {
@@ -1135,7 +1134,10 @@ describe('radix_high_level_api', () => {
 					): Observable<BuiltTransaction> => {
 						receivedMsg =
 							txIntent.message?.toString('utf8') ?? errNoMessage
-						return mockedAPI.buildTransaction(txIntent, undefined as any)
+						return mockedAPI.buildTransaction(
+							txIntent,
+							undefined as any,
+						)
 					},
 				}),
 			)
@@ -1149,7 +1151,7 @@ describe('radix_high_level_api', () => {
 						tokenIdentifier: 'xrd_rb1qya85pwq',
 					},
 					userConfirmation: 'skip',
-					message: { plaintext, encrypt: false },
+					message: { plaintext, mode: MessageInTransactionMode.PLAINTEXT },
 				})
 				.completion.subscribe({
 					next: _ => {
@@ -1203,7 +1205,10 @@ describe('radix_high_level_api', () => {
 					): Observable<BuiltTransaction> => {
 						receivedMsgHex =
 							txIntent.message?.toString('hex') ?? errNoMessage
-						return mockedAPI.buildTransaction(txIntent, undefined as any)
+						return mockedAPI.buildTransaction(
+							txIntent,
+							undefined as any,
+						)
 					},
 				}),
 			)
@@ -1215,7 +1220,7 @@ describe('radix_high_level_api', () => {
 				tokenIdentifier: 'xrd_rb1qya85pwq',
 			},
 			userConfirmation: 'skip',
-			message: { plaintext, encrypt: true },
+			message: { plaintext, mode: MessageInTransactionMode.ENCRYPT },
 		})
 
 		subs.add(
@@ -1335,7 +1340,7 @@ describe('radix_high_level_api', () => {
 						(account: AccountT): Observable<TransactionIntent> => {
 							return txIntentBuilder
 								.transferTokens(tokenTransferInput)
-								.message({ plaintext, encrypt: true })
+								.message({ plaintext, mode: MessageInTransactionMode.ENCRYPT })
 								.build({
 									encryptMessageIfAnyWithAccount: of(account),
 								})
@@ -1705,7 +1710,7 @@ describe('radix_high_level_api', () => {
 
 		describe('transaction flow errors', () => {
 			beforeAll(() => {
-				jest.spyOn(console, 'error').mockImplementation(() => { })
+				jest.spyOn(console, 'error').mockImplementation(() => {})
 			})
 
 			afterAll(() => {

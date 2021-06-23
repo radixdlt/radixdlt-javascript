@@ -3,6 +3,12 @@ import {
 	ActionType,
 	ExecutedAction,
 	IntendedAction,
+	IntendedStakeTokens,
+	IntendedTransferTokens,
+	IntendedUnstakeTokens,
+	isStakeTokensInput,
+	isTransferTokensInput,
+	isUnstakeTokensInput,
 	StakeTokensAction,
 	StakeTokensInput,
 	TransferTokensAction,
@@ -26,24 +32,21 @@ import {
 } from '@radixdlt/account'
 import { isObservable, Observable, of, throwError } from 'rxjs'
 import { map, mergeMap } from 'rxjs/operators'
-import {
-	IntendedTransferTokens,
-	isTransferTokensInput,
-	IntendedStakeTokens,
-	isStakeTokensInput,
-	IntendedUnstakeTokens,
-	isUnstakeTokensInput,
-} from '../actions'
 import { combine, err, ok, Result } from 'neverthrow'
 import {
 	EncryptedMessageT,
+	Message,
 	MessageEncryption,
 	PublicKeyT,
 } from '@radixdlt/crypto'
 import { Option } from 'prelude-ts'
 import { isAmount } from '@radixdlt/primitives'
 import { log, toObservableFromResult } from '@radixdlt/util'
-import { AccountT, MessageInTransaction } from '../_types'
+import {
+	AccountT,
+	MessageInTransaction,
+	MessageInTransactionMode,
+} from '../_types'
 
 type IntendedActionsFrom = Readonly<{
 	intendedActions: IntendedAction[]
@@ -227,6 +230,7 @@ const isTransactionIntentBuilderDoNotEncryptInput = (
 	}
 	const inspection = something as TransactionIntentBuilderDoNotEncryptInput
 	return (
+		inspection.includeMessageVerbatim !== undefined &&
 		inspection.spendingSender !== undefined &&
 		isObservable(inspection.spendingSender)
 	)
@@ -334,25 +338,39 @@ const create = (): TransactionIntentBuilderT => {
 	}
 
 	const syncBuildDoNotEncryptMessageIfAny = (
-		from: AccountAddressT,
-	): Result<TransactionIntent, Error> =>
-		intendedActionsFromIntermediateActions(from).map(
+		input: Readonly<{
+			from: AccountAddressT
+			includeMessageVerbatim: boolean
+		}>,
+	): Result<TransactionIntent, Error> => {
+		const { from, includeMessageVerbatim } = input
+
+		const message: Buffer | undefined = maybePlaintextMsgToEncrypt
+			.map(({ plaintext }) =>
+				includeMessageVerbatim
+					? // Do NOT prepend MessageType bytes
+					  MessageEncryption.encodePlaintext(plaintext)
+					: // DO prepend MessageType bytes
+					  Message.createPlaintext(plaintext).bytes,
+			)
+			.getOrUndefined()
+
+		return intendedActionsFromIntermediateActions(from).map(
 			({ intendedActions }) => ({
 				actions: intendedActions,
-				message: maybePlaintextMsgToEncrypt
-					.map(msg =>
-						MessageEncryption.encodePlaintext(msg.plaintext),
-					)
-					.getOrUndefined(),
+				message,
 			}),
 		)
+	}
 
 	const build = (
 		options: TransactionIntentBuilderOptions,
 	): Observable<TransactionIntent> => {
 		if (isTransactionIntentBuilderDoNotEncryptOption(options)) {
 			if (
-				maybePlaintextMsgToEncrypt.map(m => m.encrypt).getOrElse(false)
+				maybePlaintextMsgToEncrypt
+					.map(m => m.mode === MessageInTransactionMode.ENCRYPT)
+					.getOrElse(false)
 			) {
 				const errMsg = `Message in transaction specifies it should be encrypted, but input to TransactionIntentBuilder build method specifies that it (the builder) should not encrypt the message, and does not provide any account with which we can perform encryption.`
 				console.error(errMsg)
@@ -363,7 +381,12 @@ const create = (): TransactionIntentBuilderT => {
 			return options.skipEncryptionOfMessageIfAny.spendingSender.pipe(
 				mergeMap((from: AccountAddressT) =>
 					toObservableFromResult(
-						syncBuildDoNotEncryptMessageIfAny(from),
+						syncBuildDoNotEncryptMessageIfAny({
+							from,
+							includeMessageVerbatim:
+								options.skipEncryptionOfMessageIfAny
+									.includeMessageVerbatim,
+						}),
 					),
 				),
 			)
@@ -410,7 +433,10 @@ const create = (): TransactionIntentBuilderT => {
 
 					return maybePlaintextMsgToEncrypt.match({
 						Some: msgInTx => {
-							if (!msgInTx.encrypt) {
+							if (
+								msgInTx.mode !==
+								MessageInTransactionMode.ENCRYPT
+							) {
 								const errMsg =
 									'You are trying to encrypt a message which was specified not to be encrypted.'
 								console.error(errMsg)

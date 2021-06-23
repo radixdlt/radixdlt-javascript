@@ -5,8 +5,6 @@ import {
 	InstructionType,
 	StakeShareT,
 	TransactionT,
-} from '../src'
-import {
 	Ins_DOWN,
 	Ins_END,
 	Ins_LDOWN,
@@ -16,9 +14,9 @@ import {
 	PreparedUnstakeT,
 	SubStateType,
 	TokensT,
-} from '../dist'
+} from '../src'
+
 import { sha256Twice } from '@radixdlt/crypto'
-import { Instruction } from '../dist/instruction'
 
 describe('txParser', () => {
 	describe('complex tx with multiple substate groups', () => {
@@ -31,44 +29,44 @@ describe('txParser', () => {
 				throw txRes.error
 			}
 			const parsedTx: TransactionT = txRes.value
-			console.log(parsedTx.toString())
+			// console.log(parsedTx.toString())
 			expect(parsedTx.toBuffer().toString('hex')).toBe(blobHex)
 
 			const ins = parsedTx.instructions
 
-			const chunkArray = <T>(myArray: T[], chunk_size: number): T[][] => {
-				const results: T[][] = [] as T[][]
-				while (myArray.length) {
-					results.push(myArray.splice(0, chunk_size))
-				}
-				return results
-			}
+			// const chunkArray = <T>(myArray: T[], chunk_size: number): T[][] => {
+			// 	const results: T[][] = [] as T[][]
+			// 	while (myArray.length) {
+			// 		results.push(myArray.splice(0, chunk_size))
+			// 	}
+			// 	return results
+			// }
 
-			let debugByteString = ''
-			for (const instruction of ins) {
-				debugByteString += `// Instruction '${
-					InstructionType[instruction.instructionType]
-				}' (#${instruction.toBuffer().length} bytes)\n`
-				// @ts-ignore
-				const byteString = chunkArray(
-					[...instruction.toBuffer()] as number[],
-					8,
-				)
-					.map(array =>
-						array
-							.map(
-								(byte: number) =>
-									`0x${
-										byte <= 0x0f ? '0' : ''
-									}${byte.toString(16)}`,
-							)
-							.join(', '),
-					)
-					.join(',\n')
-				debugByteString += byteString
-				debugByteString += '\n\n'
-			}
-			console.log(debugByteString)
+			// let debugByteString = ''
+			// for (const instruction of ins) {
+			// 	debugByteString += `// Instruction '${
+			// 		InstructionType[instruction.instructionType]
+			// 	}' (#${instruction.toBuffer().length} bytes)\n`
+			// 	// @ts-ignore
+			// 	const byteString = chunkArray(
+			// 		[...instruction.toBuffer()] as number[],
+			// 		8,
+			// 	)
+			// 		.map(array =>
+			// 			array
+			// 				.map(
+			// 					(byte: number) =>
+			// 						`0x${
+			// 							byte <= 0x0f ? '0' : ''
+			// 						}${byte.toString(16)}`,
+			// 				)
+			// 				.join(', '),
+			// 		)
+			// 		.join(',\n')
+			// 	debugByteString += byteString
+			// 	debugByteString += '\n\n'
+			// }
+			// console.log(debugByteString)
 
 			expect(ins.length).toBe(10)
 			expect(
@@ -160,7 +158,7 @@ describe('txParser', () => {
 				throw txRes.error
 			}
 			const parsedTx: TransactionT = txRes.value
-			console.log(parsedTx.toString())
+			// console.log(parsedTx.toString())
 			expect(parsedTx.toString()).toBe(expected.parsedTX)
 
 			if (expected.txID) {
@@ -328,7 +326,7 @@ describe('txParser', () => {
 				throw txRes.error
 			}
 			const parsedTx: TransactionT = txRes.value
-			console.log(`✅ parsed tx: ${parsedTx.toString()}`)
+			// console.log(`✅ parsed tx: ${parsedTx.toString()}`)
 			expect(parsedTx.toBuffer().toString('hex')).toBe(blobHex)
 
 			const ins = parsedTx.instructions
@@ -372,7 +370,7 @@ describe('txParser', () => {
 				throw txRes.error
 			}
 			const parsedTx: TransactionT = txRes.value
-			console.log(`✅ parsed tx: ${parsedTx.toString()}`)
+			// console.log(`✅ parsed tx: ${parsedTx.toString()}`)
 			expect(parsedTx.toBuffer().toString('hex')).toBe(blobHex)
 
 			const ins = parsedTx.instructions
@@ -418,7 +416,7 @@ describe('txParser', () => {
 				throw txRes.error
 			}
 			const parsedTx: TransactionT = txRes.value
-			console.log(`✅ parsed tx: ${parsedTx.toString()}`)
+			// console.log(`✅ parsed tx: ${parsedTx.toString()}`)
 			expect(parsedTx.toBuffer().toString('hex')).toBe(blobHex)
 
 			const ins = parsedTx.instructions
@@ -458,7 +456,7 @@ describe('txParser', () => {
 				throw txRes.error
 			}
 			const parsedTx: TransactionT = txRes.value
-			console.log(`✅ parsed tx: ${parsedTx.toString()}`)
+			// console.log(`✅ parsed tx: ${parsedTx.toString()}`)
 			expect(parsedTx.toBuffer().toString('hex')).toBe(blobHex)
 
 			const ins = parsedTx.instructions
@@ -512,7 +510,7 @@ describe('txParser', () => {
 				throw txRes.error
 			}
 			const parsedTx: TransactionT = txRes.value
-			console.log(`✅ parsed tx: ${parsedTx.toString()}`)
+			// console.log(`✅ parsed tx: ${parsedTx.toString()}`)
 			expect(parsedTx.toBuffer().toString('hex')).toBe(blobHex)
 
 			const ins = parsedTx.instructions

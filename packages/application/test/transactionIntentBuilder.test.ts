@@ -1,11 +1,12 @@
 import { Amount } from '@radixdlt/primitives'
 import {
+	AccountT,
 	ActionType,
 	carol,
 	erin,
-	AccountT,
 	IntendedStakeTokensAction,
 	IntendedTransferTokensAction,
+	MessageInTransactionMode,
 	StakeTokensInput,
 	TransactionIntentBuilder,
 	TransactionIntentBuilderT,
@@ -22,7 +23,7 @@ import {
 import { merge, of, Subscription } from 'rxjs'
 
 import { mergeMap, take, toArray } from 'rxjs/operators'
-import { restoreDefaultLogLevel, log } from '@radixdlt/util'
+import { log, restoreDefaultLogLevel } from '@radixdlt/util'
 import { createWallet } from './util'
 
 describe('tx_intent_builder', () => {
@@ -99,7 +100,7 @@ describe('tx_intent_builder', () => {
 
 	const validateOneToBob = (builder: TransactionIntentBuilderT): void => {
 		const txIntent = builder
-			.__syncBuildDoNotEncryptMessageIfAny(alice)
+			.__syncBuildDoNotEncryptMessageIfAny( { from: alice, includeMessageVerbatim: false})
 			._unsafeUnwrap()
 
 		expect(txIntent.actions.length).toBe(1)
@@ -139,7 +140,7 @@ describe('tx_intent_builder', () => {
 		})
 
 		const txIntent = builder
-			.__syncBuildDoNotEncryptMessageIfAny(alice)
+			.__syncBuildDoNotEncryptMessageIfAny( { from: alice, includeMessageVerbatim: false})
 			._unsafeUnwrap()
 		expect(txIntent.actions.length).toBe(1)
 		const action0 = txIntent.actions[0]
@@ -163,7 +164,7 @@ describe('tx_intent_builder', () => {
 			.transferTokens(transfInputs[2])
 
 		const txIntent = builder
-			.__syncBuildDoNotEncryptMessageIfAny(alice)
+			.__syncBuildDoNotEncryptMessageIfAny( { from: alice, includeMessageVerbatim: false})
 			._unsafeUnwrap()
 
 		txIntent.actions.forEach(t => {
@@ -233,7 +234,7 @@ describe('tx_intent_builder', () => {
 			testWithMessage(
 				TransactionIntentBuilder.create()
 					.transferTokens(transfS(3, bob))
-					.message({ plaintext, encrypt: true }),
+					.message({ plaintext, mode: MessageInTransactionMode.ENCRYPT }),
 				plaintext,
 				done,
 			),
@@ -246,7 +247,7 @@ describe('tx_intent_builder', () => {
 		subs.add(
 			testWithMessage(
 				TransactionIntentBuilder.create()
-					.message({ plaintext, encrypt: true })
+					.message({ plaintext, mode: MessageInTransactionMode.ENCRYPT })
 					.transferTokens(transfS(3, bob)),
 				plaintext,
 				done,
@@ -256,7 +257,7 @@ describe('tx_intent_builder', () => {
 
 	it('throws errors if no action was specified', () => {
 		TransactionIntentBuilder.create()
-			.__syncBuildDoNotEncryptMessageIfAny(alice)
+			.__syncBuildDoNotEncryptMessageIfAny({ from: alice, includeMessageVerbatim: false })
 			.match(
 				() => {
 					throw new Error('expected error but got none')
@@ -269,15 +270,15 @@ describe('tx_intent_builder', () => {
 			)
 	})
 
-	it('can have transfer and attach message and skip encryption', done => {
+	it.only('can have transfer and attach message and skip encryption', done => {
 		const subs = new Subscription()
 
 		subs.add(
 			TransactionIntentBuilder.create()
 				.transferTokens(transfS(3, bob))
-				.message({ plaintext, encrypt: false })
+				.message({ plaintext, mode: MessageInTransactionMode.PLAINTEXT })
 				.build({
-					skipEncryptionOfMessageIfAny: { spendingSender: of(alice) },
+					skipEncryptionOfMessageIfAny: { spendingSender: of(alice), includeMessageVerbatim: false },
 				})
 				.subscribe(txIntent => {
 					expect(txIntent.actions.length).toBe(1)
@@ -287,6 +288,11 @@ describe('tx_intent_builder', () => {
 						done(new Error('Expected message...'))
 						return
 					} else {
+
+						console.log(`Expected plaintext message as utf8 buffer length: ${Buffer.from(plaintext, 'utf-8').length}`)
+						console.log(`Actual message 'attatchedMessage' as utf8 buffer length: ${attatchedMessage.length}`)
+						expect(Buffer.from(plaintext, 'utf-8').length).toBe(attatchedMessage.length)
+
 						expect(attatchedMessage.toString('utf8')).toBe(
 							plaintext,
 						)
@@ -304,7 +310,7 @@ describe('tx_intent_builder', () => {
 			.transferTokens(transfS(6, erin))
 
 		const txIntent = builder
-			.__syncBuildDoNotEncryptMessageIfAny(alice)
+			.__syncBuildDoNotEncryptMessageIfAny( { from: alice, includeMessageVerbatim: false})
 			._unsafeUnwrap()
 
 		expect(txIntent.actions.length).toBe(4)
@@ -378,7 +384,7 @@ describe('tx_intent_builder', () => {
 				.message({
 					plaintext:
 						'No one will be able to see this because we will get a crash',
-					encrypt: true,
+					mode: MessageInTransactionMode.ENCRYPT,
 				})
 
 			subs.add(
@@ -386,6 +392,7 @@ describe('tx_intent_builder', () => {
 					.build({
 						skipEncryptionOfMessageIfAny: {
 							spendingSender: of(alice),
+							includeMessageVerbatim: false,
 						},
 					})
 					.subscribe({
@@ -410,7 +417,7 @@ describe('tx_intent_builder', () => {
 				.message({
 					plaintext:
 						'No one will be able to see this because we will get a crash',
-					encrypt: false,
+					mode: MessageInTransactionMode.PLAINTEXT,
 				})
 
 			subs.add(
@@ -441,7 +448,7 @@ describe('tx_intent_builder', () => {
 				.message({
 					plaintext:
 						'No one will be able to see this because we will get a crash',
-					encrypt: true,
+					mode: MessageInTransactionMode.ENCRYPT,
 				})
 
 			subs.add(
@@ -471,7 +478,7 @@ describe('tx_intent_builder', () => {
 
 		const builder = TransactionIntentBuilder.create()
 			.transferTokens(transfS(1, alice))
-			.message({ plaintext, encrypt: true })
+			.message({ plaintext, mode: MessageInTransactionMode.ENCRYPT })
 
 		subs.add(
 			builder

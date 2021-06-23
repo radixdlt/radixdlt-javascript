@@ -158,7 +158,7 @@ type DeterministicMessageEncryptionInput = MessageEncryptionInput &
 		ephemeralPublicKey: PublicKeyT
 	}>
 
-const encodePlaintext = (plaintext: Buffer | string): Buffer =>
+export const encodePlaintext = (plaintext: Buffer | string): Buffer =>
 	typeof plaintext === 'string' ? Buffer.from(plaintext, 'utf-8') : plaintext
 
 const __encryptDeterministic = (

@@ -21,7 +21,6 @@ import {
 	NetworkT,
 	uint256FromUnsafe,
 } from '@radixdlt/primitives'
-import { Transaction } from '@radixdlt/tx-parser/dist/transaction'
 import { TransactionT } from '@radixdlt/tx-parser'
 import { AccountAddress } from '@radixdlt/account'
 import { stringifyUInt256 } from '@radixdlt/tx-parser/dist/tokens'

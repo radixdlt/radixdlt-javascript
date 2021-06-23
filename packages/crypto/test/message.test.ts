@@ -95,7 +95,7 @@ describe('EncryptedMessage', () => {
 
 		it('should create a plaintext message', () => {
 			const plaintext = 'Test message'
-			const message = Message.createPlaintext(plaintext)._unsafeUnwrap()
+			const message = Message.createPlaintext(plaintext)
 
 			expect(message.plaintext).toEqual(plaintext)
 			expect(message.kind).toEqual('PLAINTEXT')

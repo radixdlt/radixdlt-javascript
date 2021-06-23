@@ -53,11 +53,15 @@ export type TransactionIntentBuilderEncryptOption = Readonly<{
 
 export type TransactionIntentBuilderDoNotEncryptInput = Readonly<{
 	spendingSender: Observable<AccountAddressT>
+	// If the message should be included "as is", i.e. do not mutate it in any way,
+	// i.e. do not prepend any MessageType prefix bytes or something.
+	includeMessageVerbatim: boolean
 }>
 
 export type TransactionIntentBuilderDoNotEncryptOption = Readonly<{
 	skipEncryptionOfMessageIfAny: TransactionIntentBuilderDoNotEncryptInput
 }>
+
 export type TransactionIntentBuilderOptions =
 	| TransactionIntentBuilderDoNotEncryptOption
 	| TransactionIntentBuilderEncryptOption
@@ -72,7 +76,10 @@ export type TransactionIntentBuilderT = Readonly<{
 
 	// Build
 	__syncBuildDoNotEncryptMessageIfAny: (
-		from: AccountAddressT,
+		input: Readonly<{
+			from: AccountAddressT
+			includeMessageVerbatim: boolean
+		}>,
 	) => Result<TransactionIntent, Error>
 
 	build: (
