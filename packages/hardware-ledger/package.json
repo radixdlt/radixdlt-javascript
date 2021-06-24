@@ -29,7 +29,7 @@
     "node": ">=15.5.0 <16"
   },
   "dependencies": {
-    "@aleworm/hw-transport-node-hid": "^5.51.15",
+    "@aleworm/hw-transport-node-hid": "^5.51.16",
     "@radixdlt/crypto": "^1.0.41",
     "@radixdlt/hardware-wallet": "^1.0.24",
     "@radixdlt/primitives": "^1.0.33",

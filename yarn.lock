@@ -20,14 +20,14 @@
     "@ledgerhq/hw-transport" "^5.51.1"
     "@ledgerhq/logs" "^5.50.0"
 
-"@aleworm/hw-transport-node-hid@^5.51.15":
-  version "5.51.15"
-  resolved "https://registry.yarnpkg.com/@aleworm/hw-transport-node-hid/-/hw-transport-node-hid-5.51.15.tgz#50566ac14de1118ad73ec0b32ff4b1c735a8b0d9"
-  integrity sha512-d4ICmkewIV6vHml15SnJ1kONp/1PG/0kXdJVEmYJVECn5DQH8ijWNZCuDNqeqo4BApTQ6FLHNKedy5L6U/UXdA==
+"@aleworm/hw-transport-node-hid@^5.51.16":
+  version "5.51.16"
+  resolved "https://registry.yarnpkg.com/@aleworm/hw-transport-node-hid/-/hw-transport-node-hid-5.51.16.tgz#82f6e54ab2c172f7db3ae005eb5f2761f162bd19"
+  integrity sha512-YpgyJJpvL90X29OL+gyybz+0TeyD23oRtqcL2ci7XGwWJ/EoD667nUAwr4GMFxgJunNCOraFdMA5LBqUz+Nftg==
   dependencies:
     "@aleworm/hw-transport-node-hid-noevents" "^5.51.2"
     "@aleworm/node-hid" "^2.1.2"
-    "@aleworm/usb2" "^1.7.11"
+    "@aleworm/usb" "^1.7.15"
     "@ledgerhq/devices" "^5.51.1"
     "@ledgerhq/errors" "^5.50.0"
     "@ledgerhq/hw-transport" "^5.51.1"
@@ -43,14 +43,15 @@
     node-addon-api "^3.0.2"
     prebuild-install "^6.0.0"
 
-"@aleworm/usb2@^1.7.11":
-  version "1.7.11"
-  resolved "https://registry.yarnpkg.com/@aleworm/usb2/-/usb2-1.7.11.tgz#972d30901335515cc45254fc02f96258437e4518"
-  integrity sha512-Wk1ZM1Ix9me9oF2jMNN7RXMtZQTfGZW5SZFTxf7Xq6mbr9aHuLGwDpBujcaM3QsfdCrt6KPr8KyiElTJzPsjPw==
+"@aleworm/usb@^1.7.15":
+  version "1.7.15"
+  resolved "https://registry.yarnpkg.com/@aleworm/usb/-/usb-1.7.15.tgz#4efa529dd2ffb0df5b9bde08a0ae7356a6ceea90"
+  integrity sha512-2o1urtr0OE4dYxRxaxuaj4cD0ZcgNHVGBgaZsCM59t6DLShHjit3D1F0gwsJS9iEqfzWeMP0ZWaCDsdruwmLiA==
   dependencies:
     "@aleworm/bindings" "^1.5.9"
     node-addon-api "3.0.2"
     prebuild-install "^5.3.3"
+    prebuildify "^4.1.2"
 
 "@babel/code-frame@^7.0.0":
   version "7.10.4"
@@ -4072,6 +4073,13 @@ execa@^4.0.0, execa@^4.1.0:
     signal-exit "^3.0.2"
     strip-final-newline "^2.0.0"
 
+execspawn@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/execspawn/-/execspawn-1.0.1.tgz#8286f9dde7cecde7905fbdc04e24f368f23f8da6"
+  integrity sha1-gob53efOzeeQX73ATiTzaPI/jaY=
+  dependencies:
+    util-extend "^1.0.1"
+
 exit@^0.1.2:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/exit/-/exit-0.1.2.tgz#0632638f8d877cc82107d30a0fff1a17cba1cd0c"
@@ -6878,7 +6886,7 @@ nice-try@^1.0.4:
   resolved "https://registry.yarnpkg.com/nice-try/-/nice-try-1.0.5.tgz#a3378a7696ce7d223e88fc9b764bd7ef1089e366"
   integrity sha512-1nh45deeb5olNY7eX82BkPO7SSxR5SSYJiPTrTdFUVYwAl8CKMA5N9PjTYkHiRjisVcxcQ1HXdLhx2qxxJzLNQ==
 
-node-abi@^2.21.0, node-abi@^2.7.0:
+node-abi@^2.19.1, node-abi@^2.21.0, node-abi@^2.7.0:
   version "2.30.0"
   resolved "https://registry.yarnpkg.com/node-abi/-/node-abi-2.30.0.tgz#8be53bf3e7945a34eea10e0fc9a5982776cf550b"
   integrity sha512-g6bZh3YCKQRdwuO/tSZZYJAw622SjsRfJ2X0Iy4sSOHZ34/sPPdVBn8fev2tj7njzLwuqPw9uMtGsGkO5kIQvg==
@@ -7089,6 +7097,13 @@ npm-run-path@^2.0.0:
   integrity sha1-NakjLfo11wZ7TLLd8jV7GHFTbF8=
   dependencies:
     path-key "^2.0.0"
+
+npm-run-path@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/npm-run-path/-/npm-run-path-3.1.0.tgz#7f91be317f6a466efed3c9f2980ad8a4ee8b0fa5"
+  integrity sha512-Dbl4A/VfiVGLgQv29URL9xshU8XDY1GeLy+fsaZ1AA8JDSfjvr5P5+pzRbWqRSBxk6/DW7MIh8lTM/PaGnP2kg==
+  dependencies:
+    path-key "^3.0.0"
 
 npm-run-path@^4.0.0:
   version "4.0.1"
@@ -7676,6 +7691,19 @@ prebuild-install@^6.0.0:
     simple-get "^3.0.3"
     tar-fs "^2.0.0"
     tunnel-agent "^0.6.0"
+
+prebuildify@^4.1.2:
+  version "4.1.2"
+  resolved "https://registry.yarnpkg.com/prebuildify/-/prebuildify-4.1.2.tgz#b4eec5d9aa01d291d0be4a93fafeec62dfdda514"
+  integrity sha512-KEICWdLcz37OAVXcyf/h3y4FbUG/tUF+C7y/CJzHp6lZA1+T/obLLThd7w5vQHf1tr31CNDI34wKZUVT0hL2vw==
+  dependencies:
+    execspawn "^1.0.1"
+    minimist "^1.2.5"
+    mkdirp-classic "^0.5.3"
+    node-abi "^2.19.1"
+    npm-run-path "^3.1.0"
+    pump "^3.0.0"
+    tar-fs "^2.1.0"
 
 prelude-ls@^1.2.1:
   version "1.2.1"
@@ -8978,7 +9006,7 @@ table@^6.0.4:
     slice-ansi "^4.0.0"
     string-width "^4.2.0"
 
-tar-fs@^2.0.0:
+tar-fs@^2.0.0, tar-fs@^2.1.0:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/tar-fs/-/tar-fs-2.1.1.tgz#489a15ab85f1f0befabb370b7de4f9eb5cbe8784"
   integrity sha512-V0r2Y9scmbDRLCNex/+hYzvp/zyYjvFbHPNgVTKfQvVrb6guiE/fxP+XblDNR011utopbkex2nM4dHNV6GDsng==
@@ -9438,6 +9466,11 @@ util-deprecate@^1.0.1, util-deprecate@~1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/util-deprecate/-/util-deprecate-1.0.2.tgz#450d4dc9fa70de732762fbd2d4a28981419a0ccf"
   integrity sha1-RQ1Nyfpw3nMnYvvS1KKJgUGaDM8=
+
+util-extend@^1.0.1:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/util-extend/-/util-extend-1.0.3.tgz#a7c216d267545169637b3b6edc6ca9119e2ff93f"
+  integrity sha1-p8IW0mdUUWljeztu3GypEZ4v+T8=
 
 util-promisify@^2.1.0:
   version "2.1.0"
