@@ -28,6 +28,7 @@ import {
 	UnstakePositionsEndpoint,
 	ValidatorsEndpoint,
 	ApiMethod,
+	Message,
 } from '../src'
 import { Amount, NetworkT } from '@radixdlt/primitives'
 
@@ -251,7 +252,7 @@ const expectedDecodedResponses = {
 					fee: Amount.fromUnsafe(
 						response.transactions[0].fee,
 					)._unsafeUnwrap({ withStackTrace: true }),
-					message: response.transactions[0].message,
+					message: 'Example message',
 					actions: response.transactions[0].actions.map(raw =>
 						executedActionFromRaw(raw),
 					),
@@ -303,7 +304,7 @@ const expectedDecodedResponses = {
 			fee: Amount.fromUnsafe(response.fee)._unsafeUnwrap({
 				withStackTrace: true,
 			}),
-			message: response.message,
+			message: 'Example message',
 			actions: response.actions.map(action =>
 				executedActionFromRaw(action),
 			),

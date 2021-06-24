@@ -11,6 +11,7 @@ import {
 	TransactionIntentBuilderT,
 	TransferTokensInput,
 	xrd,
+	Message,
 } from '../src'
 import {
 	AccountAddressT,
@@ -282,12 +283,12 @@ describe('tx_intent_builder', () => {
 				.subscribe(txIntent => {
 					expect(txIntent.actions.length).toBe(1)
 
-					const attatchedMessage = txIntent.message
-					if (!attatchedMessage) {
+					const attachedMessage = txIntent.message
+					if (!attachedMessage) {
 						done(new Error('Expected message...'))
 						return
 					} else {
-						expect(attatchedMessage.toString('utf8')).toBe(
+						expect(Message.plaintextToString(attachedMessage)).toBe(
 							plaintext,
 						)
 						done()

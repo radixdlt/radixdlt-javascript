@@ -3,7 +3,7 @@
  */
 
 /* eslint-disable */
-/*
+
 import { SemVerT, SignTXOutput } from '@radixdlt/hardware-wallet'
 import { log } from '@radixdlt/util'
 import { Subscription } from 'rxjs'
@@ -320,4 +320,3 @@ describe('hw_ledger_integration', () => {
 		)
 	}, 40_000)
 })
-*/

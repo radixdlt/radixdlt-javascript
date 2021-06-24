@@ -68,18 +68,18 @@ const createEncrypted = (
 		combined: (): Buffer => combinedBuffer,
 	}))
 
-const createPlaintext = (
-	message: string | Buffer,
-): Result<PlaintextMessageT, Error> =>
-	ok({
-		kind: 'PLAINTEXT',
-		plaintext: isString(message) ? message : message.toString('utf8'),
-		bytes: Buffer.concat([
-			Buffer.from([MessageType.PLAINTEXT]),
-			Buffer.from([EncryptionScheme.NONE]),
-			MessageEncryption.encodePlaintext(message),
-		]),
-	})
+const createPlaintext = (message: string | Buffer): PlaintextMessageT => ({
+	kind: 'PLAINTEXT',
+	plaintext: isString(message) ? message : message.toString('utf8'),
+	bytes: Buffer.concat([
+		Buffer.from([MessageType.PLAINTEXT]),
+		Buffer.from([EncryptionScheme.NONE]),
+		MessageEncryption.encodePlaintext(message),
+	]),
+})
+
+const plaintextToString = (plaintext: Buffer) =>
+	Buffer.from(plaintext.slice(2).toString('hex'), 'hex').toString('utf-8')
 
 const fromBuffer = (
 	buf: Buffer,
@@ -124,7 +124,7 @@ const fromBuffer = (
 				messageType === MessageType.PLAINTEXT &&
 				scheme === EncryptionScheme.NONE
 			) {
-				return createPlaintext(payload)
+				return ok(createPlaintext(payload))
 			}
 
 			return err(
@@ -142,4 +142,5 @@ export const Message = {
 	createEncrypted,
 	createPlaintext,
 	fromBuffer,
+	plaintextToString,
 }

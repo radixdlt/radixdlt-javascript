@@ -3,7 +3,7 @@
  */
 
 /* eslint-disable */
-/*
+
 import { log } from '@radixdlt/util'
 import { Observable, Subscription } from 'rxjs'
 import { Radix, SigningKeychain, Wallet, WalletT } from '@radixdlt/application'
@@ -111,4 +111,3 @@ describe('radix_hw_ledger', () => {
 		)
 	}, 20_000)
 })
-*/

@@ -37,7 +37,7 @@
     "@radixdlt/crypto": "^1.0.41",
     "@radixdlt/data-formats": "^1.0.29",
     "@radixdlt/networking": "^1.0.36",
-    "@radixdlt/open-rpc-spec": "^1.0.10",
+    "@radixdlt/open-rpc-spec": "^1.0.12",
     "@radixdlt/primitives": "^1.0.33",
     "@radixdlt/util": "^1.0.29",
     "jest": "^26.6.3",
