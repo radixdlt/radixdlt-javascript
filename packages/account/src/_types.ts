@@ -10,10 +10,14 @@ import {
 	SignatureT,
 } from '@radixdlt/crypto'
 import { HardwareWalletT } from '@radixdlt/hardware-wallet'
+import { BuiltTransactionReadyToSign } from '@radixdlt/primitives'
 
-/* A reactive counterpart of `Signer` in '@radixdlt/crypto' package  */
 export type Signing = Readonly<{
-	sign: (hashedMessage: Buffer) => Observable<SignatureT>
+	signHash: (hashedMessage: Buffer) => Observable<SignatureT>
+	sign: (
+		tx: BuiltTransactionReadyToSign,
+		nonXrdHRP?: string,
+	) => Observable<SignatureT>
 }>
 
 export type SigningKeyEncryptionInput = Readonly<{

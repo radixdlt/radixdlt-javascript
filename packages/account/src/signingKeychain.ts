@@ -37,6 +37,7 @@ import { Option } from 'prelude-ts'
 import { arraysEqual, log, msgFromError } from '@radixdlt/util'
 import { ResultAsync } from 'neverthrow'
 import { HardwareSigningKeyT, HardwareWalletT } from '@radixdlt/hardware-wallet'
+import { BuiltTransactionReadyToSign } from '@radixdlt/primitives'
 
 const stringifySigningKeysArray = (signingKeys: SigningKeyT[]): string =>
 	signingKeys.map(a => a.toString()).join(',\n')
@@ -365,8 +366,13 @@ const create = (
 		observeSigningKeys: (): Observable<SigningKeysT> => signingKeys$,
 		observeActiveSigningKey: (): Observable<SigningKeyT> =>
 			activeSigningKey$,
-		sign: (hashedMessage: Buffer): Observable<SignatureT> =>
-			activeSigningKey$.pipe(mergeMap(a => a.sign(hashedMessage))),
+		sign: (
+			tx: BuiltTransactionReadyToSign,
+			nonXrdHRP?: string,
+		): Observable<SignatureT> =>
+			activeSigningKey$.pipe(mergeMap(a => a.sign(tx, nonXrdHRP))),
+		signHash: (hashedMessage: Buffer): Observable<SignatureT> =>
+			activeSigningKey$.pipe(mergeMap(a => a.signHash(hashedMessage))),
 	}
 }
 
