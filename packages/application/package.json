@@ -1,6 +1,6 @@
 {
   "name": "@radixdlt/application",
-  "version": "1.0.64",
+  "version": "1.0.65",
   "description": "A JavaScript client library for interacting with the Radix Distributed Ledger.",
   "keywords": [
     "RadixApplicationClient",
@@ -33,7 +33,7 @@
   "dependencies": {
     "@open-rpc/mock-server": "^1.7.2",
     "@open-rpc/schema-utils-js": "^1.14.3",
-    "@radixdlt/account": "^1.0.49",
+    "@radixdlt/account": "^1.0.50",
     "@radixdlt/crypto": "^1.0.42",
     "@radixdlt/data-formats": "^1.0.29",
     "@radixdlt/networking": "^1.0.37",
