@@ -102,7 +102,7 @@ import {
 	TransactionTrackingEventType,
 	TransactionType,
 } from './dto'
-import { ExecutedAction } from './actions'
+import { ActionType, ExecutedAction, TransferTokensAction } from './actions'
 import { Wallet } from './wallet'
 
 const txTypeFromActions = (
@@ -455,27 +455,55 @@ const create = (
 			unsignedTx: BuiltTransaction,
 		): Observable<SignedTransaction> => {
 			txLog.debug('Starting signing transaction (async).')
-			return activeAccount.pipe(
-				take(1), // IMPORTANT!
+			return combineLatest(
+				transactionIntent$,
+				activeAccount.pipe(take(1)),
+			).pipe(
 				mergeMap(
-					(account: AccountT): Observable<SignedTransaction> => {
-						const msgToSignFromTx = Buffer.from(
-							unsignedTx.transaction.hashOfBlobToSign,
-							'hex',
-						)
-						return account.sign(msgToSignFromTx).pipe(
-							map(
-								(signature): SignedTransaction => {
-									const publicKeyOfSigner = account.publicKey
-									txLog.debug(`Finished signing transaction`)
-									return {
-										transaction: unsignedTx.transaction,
-										signature,
-										publicKeyOfSigner,
-									}
-								},
-							),
-						)
+					([
+						transactionIntent,
+						account,
+					]): Observable<SignedTransaction> => {
+
+						const nonXRDHRPsOfRRIsInTx: string[] = transactionIntent.actions
+							.filter(a => a.type === ActionType.TOKEN_TRANSFER)
+							.map(a => a as TransferTokensAction)
+							.filter(t => t.rri.name !== 'xrd')
+							.map(t => t.rri.name)
+
+						const uniquenonXRDHRPsOfRRIsInTx = [
+							...new Set(nonXRDHRPsOfRRIsInTx),
+						]
+
+						if (uniquenonXRDHRPsOfRRIsInTx.length > 1) {
+							const errMsg = `Error cannot sign transction with multiple non-XRD RRIs. Unsupported by Ledger app.`
+							log.error(errMsg)
+							return throwError(new Error(errMsg))
+						}
+
+						const nonXRDHrp =
+							uniquenonXRDHRPsOfRRIsInTx.length === 1
+								? uniquenonXRDHRPsOfRRIsInTx[0]
+								: undefined
+
+						return account
+							.sign(unsignedTx.transaction, nonXRDHrp)
+							.pipe(
+								map(
+									(signature): SignedTransaction => {
+										const publicKeyOfSigner =
+											account.publicKey
+										txLog.debug(
+											`Finished signing transaction`,
+										)
+										return {
+											transaction: unsignedTx.transaction,
+											signature,
+											publicKeyOfSigner,
+										}
+									},
+								),
+							)
 					},
 				),
 			)

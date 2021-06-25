@@ -102,7 +102,7 @@ describe('signingKey_type', () => {
 		const subs = new Subscription()
 
 		subs.add(
-			signingKey.sign(hashedMessage).subscribe(sig => {
+			signingKey.signHash(hashedMessage).subscribe(sig => {
 				expect(sig.toDER()).toBe(
 					'3044022078b0d2d17d227a8dd14ecdf0d7d65580ac6c17ab980c50074e6c096c4081313202207a9819ceedab3bfd3d22452224394d6cb41e3441f4675a5e7bf58f059fdf34cd',
 				)
@@ -206,8 +206,11 @@ describe('signingKey_type', () => {
 					)
 				},
 				publicKey: signingKeyLocalHD.publicKey,
-				sign: (hashedMessage: Buffer): Observable<SignatureT> => {
-					return signingKeyLocalHD.sign(hashedMessage)
+				signHash: (hashedMessage: Buffer): Observable<SignatureT> => {
+					return signingKeyLocalHD.signHash(hashedMessage)
+				},
+				sign: (_) => {
+					throw new Error('not implemented')
 				},
 			}
 		}

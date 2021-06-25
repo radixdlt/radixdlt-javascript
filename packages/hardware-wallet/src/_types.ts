@@ -30,14 +30,6 @@ export type GetPublicKeyInput = AtPath &
 		// verifyAddressOnDeviceForNetwork?: NetworkT
 	}>
 
-export type SignTransactionInput = AtPath &
-	Readonly<{
-		nonNativeTokenRriHRP?: string
-		tx: BuiltTransactionReadyToSign
-		displayInstructionContentsOnLedgerDevice: boolean // useful to be able to set to `false` for testing.
-		displayTXSummaryOnLedgerDevice: boolean
-	}>
-
 export type SignTXOutput = Readonly<{
 	signature: SignatureT
 	signatureV: number
@@ -60,7 +52,17 @@ export type HardwareSigningKeyT = Readonly<{
 		publicKeyOfOtherParty: PublicKeyT,
 	) => Observable<ECPointOnCurveT>
 	publicKey: PublicKeyT
-	sign: (hashedMessage: Buffer) => Observable<SignatureT>
+	signHash: (hashedMessage: Buffer) => Observable<SignatureT>
+	sign: (
+		tx: BuiltTransactionReadyToSign,
+		nonXrdHRP?: string,
+	) => Observable<SignatureT>
+}>
+
+export type SignTransactionInput = Readonly<{
+	tx: BuiltTransactionReadyToSign
+	path: HDPathRadixT
+	nonXrdHRP?: string
 }>
 
 export type HardwareWalletT = Readonly<{

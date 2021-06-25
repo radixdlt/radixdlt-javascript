@@ -212,10 +212,8 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 	const doSignTransaction = (
 		input: SignTransactionInput,
 	): Observable<SignTXOutput> => {
-		const {
-			displayInstructionContentsOnLedgerDevice,
-			displayTXSummaryOnLedgerDevice,
-		} = input
+		const displayInstructionContentsOnLedgerDevice = true
+		const displayTXSummaryOnLedgerDevice = true
 
 		const subs = new Subscription()
 
@@ -284,7 +282,7 @@ Bytes: "
 						path: input.path ?? path000H,
 						txByteCount: input.tx.blob.length / 2, // 2 hex chars per byte
 						numberOfInstructions,
-						nonNativeTokenRriHRP: input.nonNativeTokenRriHRP,
+						nonNativeTokenRriHRP: input.nonXrdHRP,
 					}),
 				)
 				.subscribe({
