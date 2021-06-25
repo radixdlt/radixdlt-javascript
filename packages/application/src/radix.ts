@@ -455,13 +455,14 @@ const create = (
 			unsignedTx: BuiltTransaction,
 		): Observable<SignedTransaction> => {
 			txLog.debug('Starting signing transaction (async).')
-			return activeAccount.pipe(
-				take(1), // IMPORTANT!
-				withLatestFrom(transactionIntent$),
+			return combineLatest(
+				transactionIntent$,
+				activeAccount.pipe(take(1)),
+			).pipe(
 				mergeMap(
 					([
-						account,
 						transactionIntent,
+						account,
 					]): Observable<SignedTransaction> => {
 
 						const nonXRDHRPsOfRRIsInTx: string[] = transactionIntent.actions
