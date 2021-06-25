@@ -1561,10 +1561,10 @@
     node-ipc "^9.1.1"
     ws "^7.3.1"
 
-"@radixdlt/open-rpc-spec@^1.0.10":
-  version "1.0.10"
-  resolved "https://registry.yarnpkg.com/@radixdlt/open-rpc-spec/-/open-rpc-spec-1.0.10.tgz#29b2f9bf49cb7d1fda50115ce4989a531f872cad"
-  integrity sha512-vJ/oC/RTUDAS58MyZvETO0VYaXevm5mL7d7oVnhuOj//A9lXa1CTFjmZfZNWiDxMSNYW587LQ5InuNyUIqGl7w==
+"@radixdlt/open-rpc-spec@^1.0.13":
+  version "1.0.13"
+  resolved "https://registry.yarnpkg.com/@radixdlt/open-rpc-spec/-/open-rpc-spec-1.0.13.tgz#5b58ed3febbbcf04196b9fa1b8a57ef241b74c81"
+  integrity sha512-gcmcCkcLePZS2fWrAtB2Z0yEz/a9saWaJ76yngjVoHwk0bXjQLjYuPklGJVbo6a0Il0B4JXdOKzadBD/46TzRg==
 
 "@radixdlt/uint256@^1.1.0":
   version "1.1.0"

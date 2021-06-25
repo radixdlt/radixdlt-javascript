@@ -29,6 +29,7 @@ import {
 } from './_types'
 import { TransactionIdentifier } from '../../dto'
 import { pipe } from 'ramda'
+import { Message } from '@radixdlt/crypto/src/encryption'
 
 const amountDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
@@ -128,15 +129,46 @@ const hasRequiredProps = <T extends Record<string, unknown>>(
 	return ok(obj)
 }
 
-export const handleTransactionHistoryResponse = executedTXDecoders.create<
-	TransactionHistoryEndpoint.Response,
-	TransactionHistoryEndpoint.DecodedResponse
->()
+export const handleTransactionHistoryResponse = (
+	json: TransactionHistoryEndpoint.Response,
+) =>
+	executedTXDecoders
+		.create<
+			TransactionHistoryEndpoint.Response,
+			TransactionHistoryEndpoint.DecodedResponse
+		>()(json)
+		.andThen(decoded =>
+			ok({
+				...decoded,
+				transactions: decoded.transactions.map(tx => ({
+					...tx,
+					message: tx.message
+						? Message.isPlaintext(tx.message)
+							? Message.plaintextToString(Buffer.from(tx.message, 'hex'))
+							: tx.message
+						: undefined
+				}))
+			})
+		)
 
-export const handleLookupTXResponse = executedTXDecoders.create<
-	LookupTransactionEndpoint.Response,
-	LookupTransactionEndpoint.DecodedResponse
->()
+export const handleLookupTXResponse = (
+	json: LookupTransactionEndpoint.Response,
+) =>
+	executedTXDecoders
+		.create<
+			LookupTransactionEndpoint.Response,
+			LookupTransactionEndpoint.DecodedResponse
+		>()(json)
+		.andThen(decoded =>
+			ok({
+				...decoded,
+				message: decoded.message
+					? Message.isPlaintext(decoded.message)
+						? Message.plaintextToString(Buffer.from(decoded.message, 'hex'))
+						: decoded.message
+					: undefined
+			}),
+		)
 
 export const handleNetworkIdResponse = (json: NetworkIdEndpoint.Response) =>
 	JSONDecoding.withDecoders(networkDecoder('networkId'))
@@ -245,16 +277,16 @@ export const handleTransactionStatusResponse = (
 	isRPCRequestFailureResponse(json)
 		? err([new Error(json.failure)])
 		: JSONDecoding.withDecoders(transactionIdentifierDecoder('txID'))
-				.create<
-					TransactionStatusEndpoint.Response,
-					TransactionStatusEndpoint.DecodedResponse
-				>()(json)
-				.andThen(decoded =>
-					hasRequiredProps('transactionStatus', decoded, [
-						'txID',
-						'status',
-					]),
-				)
+			.create<
+				TransactionStatusEndpoint.Response,
+				TransactionStatusEndpoint.DecodedResponse
+			>()(json)
+			.andThen(decoded =>
+				hasRequiredProps('transactionStatus', decoded, [
+					'txID',
+					'status',
+				]),
+			)
 
 export const handleNetworkTxThroughputResponse = (
 	json: NetworkTransactionThroughputEndpoint.Response,
@@ -297,13 +329,13 @@ export const handleFinalizeTransactionResponse = (
 	isRPCRequestFailureResponse(json)
 		? err([new Error(json.failure)])
 		: JSONDecoding.withDecoders(transactionIdentifierDecoder('txID'))
-				.create<
-					FinalizeTransactionEndpoint.Response,
-					FinalizeTransactionEndpoint.DecodedResponse
-				>()(json)
-				.andThen(decoded =>
-					hasRequiredProps('finalizeTransaction', decoded, ['txID']),
-				)
+			.create<
+				FinalizeTransactionEndpoint.Response,
+				FinalizeTransactionEndpoint.DecodedResponse
+			>()(json)
+			.andThen(decoded =>
+				hasRequiredProps('finalizeTransaction', decoded, ['txID']),
+			)
 
 export const handleSubmitTransactionResponse = (
 	json: SubmitTransactionEndpoint.Response,
@@ -311,10 +343,10 @@ export const handleSubmitTransactionResponse = (
 	isRPCRequestFailureResponse(json)
 		? err([new Error(json.failure)])
 		: JSONDecoding.withDecoders(transactionIdentifierDecoder('txID'))
-				.create<
-					SubmitTransactionEndpoint.Response,
-					SubmitTransactionEndpoint.DecodedResponse
-				>()(json)
-				.andThen(decoded =>
-					hasRequiredProps('submitTransaction', decoded, ['txID']),
-				)
+			.create<
+				SubmitTransactionEndpoint.Response,
+				SubmitTransactionEndpoint.DecodedResponse
+			>()(json)
+			.andThen(decoded =>
+				hasRequiredProps('submitTransaction', decoded, ['txID']),
+			)

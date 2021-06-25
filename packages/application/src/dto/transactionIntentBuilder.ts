@@ -37,6 +37,7 @@ import {
 import { combine, err, ok, Result } from 'neverthrow'
 import {
 	EncryptedMessageT,
+	Message,
 	MessageEncryption,
 	PublicKeyT,
 } from '@radixdlt/crypto'
@@ -340,9 +341,7 @@ const create = (): TransactionIntentBuilderT => {
 			({ intendedActions }) => ({
 				actions: intendedActions,
 				message: maybePlaintextMsgToEncrypt
-					.map(msg =>
-						MessageEncryption.encodePlaintext(msg.plaintext),
-					)
+					.map(msg => Message.createPlaintext(msg.plaintext).bytes)
 					.getOrUndefined(),
 			}),
 		)
