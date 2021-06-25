@@ -56,6 +56,8 @@ const MethodEndpoints = {
 	[Endpoint.FINALIZE_TX]: MethodLocation.CONSTRUCTION,
 }
 
+const correlationID = uuid()
+
 export const RPCClient: Client = (url: URL): Transport => {
 	const call = async (
 		method: string,
@@ -67,7 +69,7 @@ export const RPCClient: Client = (url: URL): Transport => {
 		const transport = new HTTPTransport(endpoint, {
 			headers: {
 				[headers[0]]: method,
-				[headers[1]]: uuid(),
+				[headers[1]]: correlationID,
 			},
 		})
 
