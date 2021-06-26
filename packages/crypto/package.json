@@ -35,10 +35,10 @@
     "node": ">=15.5.0 <16"
   },
   "dependencies": {
-    "@radixdlt/data-formats": "^1.0.29",
-    "@radixdlt/primitives": "^1.0.33",
-    "@radixdlt/uint256": "^1.1.0",
-    "@radixdlt/util": "^1.0.29",
+    "@radixdlt/data-formats": "1.0.29",
+    "@radixdlt/primitives": "1.0.33",
+    "@radixdlt/uint256": "1.1.0",
+    "@radixdlt/util": "1.0.29",
     "base-x": "^3.0.8",
     "elliptic": "^6.5.3",
     "neverthrow": "^4.0.1",

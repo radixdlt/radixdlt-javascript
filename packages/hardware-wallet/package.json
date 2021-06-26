@@ -27,9 +27,9 @@
     "node": ">=15.5.0 <16"
   },
   "dependencies": {
-    "@radixdlt/crypto": "^1.0.42",
-    "@radixdlt/primitives": "^1.0.33",
-    "@radixdlt/util": "^1.0.29",
+    "@radixdlt/crypto": "1.0.42",
+    "@radixdlt/primitives": "1.0.33",
+    "@radixdlt/util": "1.0.29",
     "neverthrow": "4.0.1",
     "prelude-ts": "^1.0.2",
     "rxjs": "7.0.0",
