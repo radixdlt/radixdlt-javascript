@@ -1501,7 +1501,7 @@
     "@octokit/openapi-types" "^2.0.0"
     "@types/node" ">= 8"
 
-"@open-rpc/client-js@^1.6.2":
+"@open-rpc/client-js@1.6.2":
   version "1.6.2"
   resolved "https://registry.yarnpkg.com/@open-rpc/client-js/-/client-js-1.6.2.tgz#6f63053af16f577c574279702bbee8152296d11f"
   integrity sha512-GT6mFF7tH/ANaKuRz6tULakZpW0lgaogwl4VZoLm1yHOZnHKUCwe+I6QRRebwUyAYH4rD6weoihoIH2j4U+HLg==
@@ -1521,7 +1521,7 @@
   resolved "https://registry.yarnpkg.com/@open-rpc/meta-schema/-/meta-schema-1.14.0.tgz#8d53978757de765c47c455c254052ccf36e5c22d"
   integrity sha512-xuoTeDu5STWiufLeWEVwb1zhYVSx7uX7HSF12I79+OCw4KgBm5WjBN/+bKwnBbOVncuzUk6O1riJknLhYv4V+g==
 
-"@open-rpc/mock-server@^1.7.2":
+"@open-rpc/mock-server@1.7.2":
   version "1.7.2"
   resolved "https://registry.yarnpkg.com/@open-rpc/mock-server/-/mock-server-1.7.2.tgz#96a925dd52b85fefe421fb25c1585027e441d30f"
   integrity sha512-KwlCXi9ZmAR+ZVU4nvBPdiF+EpvJ1g3tO/ftwYcVICmzCKbm/9xAYsyMFCjZ/yWoAqHZYJBr7lDR1mkhi3CqlA==
@@ -1532,7 +1532,7 @@
     commander "^6.1.0"
     lodash "^4.17.19"
 
-"@open-rpc/schema-utils-js@^1.14.0", "@open-rpc/schema-utils-js@^1.14.3":
+"@open-rpc/schema-utils-js@1.14.3", "@open-rpc/schema-utils-js@^1.14.0":
   version "1.14.3"
   resolved "https://registry.yarnpkg.com/@open-rpc/schema-utils-js/-/schema-utils-js-1.14.3.tgz#225a98858e096192789de28ae2aacb7a726305dc"
   integrity sha512-NSdeCpf7l2eNH28fshCHtRAgHUU56ugiHk09Utrq3jBhSP4VBhbna2ieFxFSDg9jgTeb9+XlApphpCoSzT4Kpg==
@@ -1561,12 +1561,12 @@
     node-ipc "^9.1.1"
     ws "^7.3.1"
 
-"@radixdlt/open-rpc-spec@^1.0.13":
+"@radixdlt/open-rpc-spec@1.0.13":
   version "1.0.13"
   resolved "https://registry.yarnpkg.com/@radixdlt/open-rpc-spec/-/open-rpc-spec-1.0.13.tgz#5b58ed3febbbcf04196b9fa1b8a57ef241b74c81"
   integrity sha512-gcmcCkcLePZS2fWrAtB2Z0yEz/a9saWaJ76yngjVoHwk0bXjQLjYuPklGJVbo6a0Il0B4JXdOKzadBD/46TzRg==
 
-"@radixdlt/uint256@^1.1.0":
+"@radixdlt/uint256@1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@radixdlt/uint256/-/uint256-1.1.0.tgz#e0d46b14b63c55b366a53692fb4cc38b37f0a475"
   integrity sha512-jpthXXsTJhvBTQrSSi0lXA0HPTmhrYIJklTRNicZgvITosvpByinCzZEebJbYeGfWlWRsqFHsKbFWgNTRVNIUg==
