@@ -205,7 +205,8 @@ describe('signingKey_type', () => {
 						),
 					)
 				},
-				getPublicKeyDisplayOnlyAddress: () => throwError(new Error('Not impl')),
+				getPublicKeyDisplayOnlyAddress: () =>
+					throwError(new Error('Not impl')),
 				publicKey: signingKeyLocalHD.publicKey,
 				signHash: (hashedMessage: Buffer): Observable<SignatureT> => {
 					return signingKeyLocalHD.signHash(hashedMessage)

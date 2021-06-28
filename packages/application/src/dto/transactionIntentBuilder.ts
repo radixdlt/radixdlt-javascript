@@ -341,7 +341,11 @@ const create = (): TransactionIntentBuilderT => {
 			({ intendedActions }) => ({
 				actions: intendedActions,
 				message: maybePlaintextMsgToEncrypt
-					.map(msg => Message.createPlaintext(msg.plaintext).bytes)
+					.map(msg =>
+						msg.plaintext
+							? Message.createPlaintext(msg.plaintext).bytes
+							: undefined,
+					)
 					.getOrUndefined(),
 			}),
 		)

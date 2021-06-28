@@ -84,7 +84,6 @@ const parameterValueForDisplayECDHInputOnLedger = (
 ): number => (input.displayBIPAndPubKeyOtherParty ? 0x01 : 0x00)
 
 const getPublicKey = (input: APDUGetPublicKeyInput): RadixAPDUT => {
-
 	const p1 = parameterValueForDisplayAddressOnLedger(input)
 	const p2 = input.verifyAddressOnly ? 0x01 : 0x00
 
