@@ -142,7 +142,6 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 			.sendAPDUToDevice(
 				RadixAPDU.doSignHash({
 					path: input.path ?? path000H,
-					display: input.display ?? false,
 					hashToSign: input.hashToSign,
 				}),
 			)
