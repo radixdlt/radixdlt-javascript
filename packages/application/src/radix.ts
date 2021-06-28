@@ -1038,6 +1038,13 @@ const create = (
 		deriveHWAccount: (input: DeriveHWAccountInput): Observable<AccountT> =>
 			wallet$.pipe(mergeMap(wallet => wallet.deriveHWAccount(input))),
 
+		displayAddressForActiveHWAccountOnHWDeviceForVerification: (): Observable<void> =>
+			wallet$.pipe(
+				mergeMap(wallet =>
+					wallet.displayAddressForActiveHWAccountOnHWDeviceForVerification(),
+				),
+			),
+
 		addAccountFromPrivateKey: function (
 			input: AddAccountByPrivateKeyInput,
 		): RadixT {

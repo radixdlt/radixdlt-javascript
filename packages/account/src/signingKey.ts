@@ -12,7 +12,7 @@ import {
 	HDNodeT,
 } from '@radixdlt/crypto'
 import { map, mergeMap } from 'rxjs/operators'
-import { Observable } from 'rxjs'
+import { Observable, of } from 'rxjs'
 import { toObservable } from '@radixdlt/util'
 import {
 	SigningKeyDecryptionInput,
@@ -181,6 +181,8 @@ const fromPrivateKeyNamedOrFromHDPath = (
 				? undefined
 				: input.pathOrName,
 		publicKey,
+		getPublicKeyDisplayOnlyAddress: (): Observable<PublicKeyT> =>
+			of(publicKey),
 		type,
 		uniqueIdentifier: type.uniqueKey,
 		toString: (): string => {
@@ -232,6 +234,8 @@ const fromHDPathWithHWSigningKey = (
 		isLocalHDSigningKey: false, // hardware is not local
 		publicKey: hardwareSigningKey.publicKey,
 		hdPath,
+		getPublicKeyDisplayOnlyAddress: (): Observable<PublicKeyT> =>
+			hardwareSigningKey.getPublicKeyDisplayOnlyAddress(),
 		sign: (
 			tx: BuiltTransactionReadyToSign,
 			nonXrdHRP?: string,

@@ -31,7 +31,6 @@ describe('txParser', () => {
 				throw txRes.error
 			}
 			const parsedTx: TransactionT = txRes.value
-			console.log(parsedTx.toString())
 			expect(parsedTx.toBuffer().toString('hex')).toBe(blobHex)
 
 			const ins = parsedTx.instructions
@@ -68,7 +67,6 @@ describe('txParser', () => {
 				debugByteString += byteString
 				debugByteString += '\n\n'
 			}
-			console.log(debugByteString)
 
 			expect(ins.length).toBe(10)
 			expect(
@@ -160,7 +158,6 @@ describe('txParser', () => {
 				throw txRes.error
 			}
 			const parsedTx: TransactionT = txRes.value
-			console.log(parsedTx.toString())
 			expect(parsedTx.toString()).toBe(expected.parsedTX)
 
 			if (expected.txID) {
@@ -328,7 +325,6 @@ describe('txParser', () => {
 				throw txRes.error
 			}
 			const parsedTx: TransactionT = txRes.value
-			console.log(`✅ parsed tx: ${parsedTx.toString()}`)
 			expect(parsedTx.toBuffer().toString('hex')).toBe(blobHex)
 
 			const ins = parsedTx.instructions
@@ -372,7 +368,6 @@ describe('txParser', () => {
 				throw txRes.error
 			}
 			const parsedTx: TransactionT = txRes.value
-			console.log(`✅ parsed tx: ${parsedTx.toString()}`)
 			expect(parsedTx.toBuffer().toString('hex')).toBe(blobHex)
 
 			const ins = parsedTx.instructions
@@ -418,7 +413,6 @@ describe('txParser', () => {
 				throw txRes.error
 			}
 			const parsedTx: TransactionT = txRes.value
-			console.log(`✅ parsed tx: ${parsedTx.toString()}`)
 			expect(parsedTx.toBuffer().toString('hex')).toBe(blobHex)
 
 			const ins = parsedTx.instructions
@@ -458,7 +452,6 @@ describe('txParser', () => {
 				throw txRes.error
 			}
 			const parsedTx: TransactionT = txRes.value
-			console.log(`✅ parsed tx: ${parsedTx.toString()}`)
 			expect(parsedTx.toBuffer().toString('hex')).toBe(blobHex)
 
 			const ins = parsedTx.instructions
@@ -512,7 +505,6 @@ describe('txParser', () => {
 				throw txRes.error
 			}
 			const parsedTx: TransactionT = txRes.value
-			console.log(`✅ parsed tx: ${parsedTx.toString()}`)
 			expect(parsedTx.toBuffer().toString('hex')).toBe(blobHex)
 
 			const ins = parsedTx.instructions

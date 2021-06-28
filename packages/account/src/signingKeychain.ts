@@ -20,7 +20,7 @@ import {
 	DeriveHWSigningKeyInput,
 	Signing,
 } from './_types'
-import { map, mergeMap, shareReplay, take } from 'rxjs/operators'
+import { map, mergeMap, shareReplay, take, tap } from 'rxjs/operators'
 import {
 	Keystore,
 	KeystoreT,

@@ -26,8 +26,9 @@ export type AtPath = Readonly<{
 
 export type GetPublicKeyInput = AtPath &
 	Readonly<{
-		displayAddress?: boolean
-		// verifyAddressOnDeviceForNetwork?: NetworkT
+		display?: boolean
+		/// Only relevant if `display` is true, this skips showing BIP32 Path on display.
+		verifyAddressOnly?: boolean
 	}>
 
 export type SignTXOutput = Readonly<{
@@ -52,6 +53,10 @@ export type HardwareSigningKeyT = Readonly<{
 		publicKeyOfOtherParty: PublicKeyT,
 	) => Observable<ECPointOnCurveT>
 	publicKey: PublicKeyT
+
+	// Like property `publicKey` but a function and omits BIP32 path on HW display
+	getPublicKeyDisplayOnlyAddress: () => Observable<PublicKeyT>
+
 	signHash: (hashedMessage: Buffer) => Observable<SignatureT>
 	sign: (
 		tx: BuiltTransactionReadyToSign,

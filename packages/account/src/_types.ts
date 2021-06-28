@@ -91,6 +91,10 @@ export type SigningKeyT = Signing &
 		type: SigningKeyTypeT
 		publicKey: PublicKeyT
 
+		// Only relevant for Hardware accounts. Like property `publicKey` but a function and omits BIP32 path on HW display
+		// For NON-Hardware accounts this will just return the cached `publicKey` property.
+		getPublicKeyDisplayOnlyAddress: () => Observable<PublicKeyT>
+
 		// sugar for `type.uniqueKey`
 		uniqueIdentifier: string
 
