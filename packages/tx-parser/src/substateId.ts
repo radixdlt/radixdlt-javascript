@@ -11,7 +11,7 @@ const parseFromBufferReader = (
 		bufferReader.readNextBuffer(4),
 	]).map(resList => {
 		const hash = resList[0]
-		const index = resList[1].readUInt32BE()
+		const index = resList[1].readUInt32BE(0)
 
 		const buffer = Buffer.concat([resList[0], resList[1]])
 

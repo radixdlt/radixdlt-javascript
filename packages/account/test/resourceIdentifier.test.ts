@@ -131,6 +131,78 @@ describe('rri_on_bech32_format', () => {
 			},
 			{
 				rri:
+					'stella_rb1qw4m4h4dhmhaatd7al02m0h0m6kmam774klwlh4dhmhsa766sk',
+				name: 'stella',
+				data: `03abba${'deadbeef'.repeat(6)}`,
+			},
+			{
+				rri:
+					'marantz_rb1qw4m4h4dhmhaatd7al02m0h0m6kmam774klwlh4dhmhsypduqu',
+				name: 'marantz',
+				data: `03abba${'deadbeef'.repeat(6)}`,
+			},
+			{
+				rri:
+					'nintendo_rb1qw4m4h4dhmhaatd7al02m0h0m6kmam774klwlh4dhmhsrepq7q',
+				name: 'nintendo',
+				data: `03abba${'deadbeef'.repeat(6)}`,
+			},
+			{
+				rri:
+					'deadlocks_rb1qw4m4h4dhmhaatd7al02m0h0m6kmam774klwlh4dhmhssxkuvg',
+				name: 'deadlocks',
+				data: `03abba${'deadbeef'.repeat(6)}`,
+			},
+			{
+				rri:
+					'cryptocarp_rb1qw4m4h4dhmhaatd7al02m0h0m6kmam774klwlh4dhmhs22mk4k',
+				name: 'cryptocarp',
+				data: `03abba${'deadbeef'.repeat(6)}`,
+			},
+			{
+				rri:
+					'frostbitten_rb1qw4m4h4dhmhaatd7al02m0h0m6kmam774klwlh4dhmhs9hvdqj',
+				name: 'frostbitten',
+				data: `03abba${'deadbeef'.repeat(6)}`,
+			},
+			{
+				rri:
+					'jeopordizing_rb1qw4m4h4dhmhaatd7al02m0h0m6kmam774klwlh4dhmhs97d2cr',
+				name: 'jeopordizing',
+				data: `03abba${'deadbeef'.repeat(6)}`,
+			},
+			{
+				rri:
+					'paradoxically_rb1qw4m4h4dhmhaatd7al02m0h0m6kmam774klwlh4dhmhs5t2ggh',
+				name: 'paradoxically',
+				data: `03abba${'deadbeef'.repeat(6)}`,
+			},
+			{
+				rri:
+					'transformation_rb1qw4m4h4dhmhaatd7al02m0h0m6kmam774klwlh4dhmhsp2ls68',
+				name: 'transformation',
+				data: `03abba${'deadbeef'.repeat(6)}`,
+			},
+			{
+				rri:
+					'insignificantly_rb1qw4m4h4dhmhaatd7al02m0h0m6kmam774klwlh4dhmhsh2e8gx',
+				name: 'insignificantly',
+				data: `03abba${'deadbeef'.repeat(6)}`,
+			},
+			{
+				rri:
+					'characterisation_rb1qw4m4h4dhmhaatd7al02m0h0m6kmam774klwlh4dhmhsdyejyy',
+				name: 'characterisation',
+				data: `03abba${'deadbeef'.repeat(6)}`,
+			},
+			{
+				rri:
+					'onetwothreefour_rb1qw4m4h4dhmhaatd7al02m0h0m6kmam774klwlh4dhmhsk8y3ya',
+				name: 'onetwothreefour',
+				data: `03abba${'deadbeef'.repeat(6)}`,
+			},
+			{
+				rri:
 					't2t2t2_rb1qvpsxqcrqvpsxqcrqvpsxqcrqvpsxqcrqvpsxqcrqvpsmr9n0r',
 				name: 't2t2t2',
 				data: `03${'03'.repeat(26)}`,

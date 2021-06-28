@@ -3,6 +3,46 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.16](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/hardware-ledger@1.0.15...@radixdlt/hardware-ledger@1.0.16) (2021-06-28)
+
+**Note:** Version bump only for package @radixdlt/hardware-ledger
+
+
+
+
+
+## [1.0.15](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/hardware-ledger@1.0.14...@radixdlt/hardware-ledger@1.0.15) (2021-06-28)
+
+**Note:** Version bump only for package @radixdlt/hardware-ledger
+
+
+
+
+
+## [1.0.14](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/hardware-ledger@1.0.13...@radixdlt/hardware-ledger@1.0.14) (2021-06-28)
+
+**Note:** Version bump only for package @radixdlt/hardware-ledger
+
+
+
+
+
+## [1.0.13](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/hardware-ledger@1.0.12...@radixdlt/hardware-ledger@1.0.13) (2021-06-28)
+
+**Note:** Version bump only for package @radixdlt/hardware-ledger
+
+
+
+
+
+## [1.0.12](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/hardware-ledger@1.0.11...@radixdlt/hardware-ledger@1.0.12) (2021-06-28)
+
+**Note:** Version bump only for package @radixdlt/hardware-ledger
+
+
+
+
+
 ## [1.0.11](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/hardware-ledger@1.0.10...@radixdlt/hardware-ledger@1.0.11) (2021-06-26)
 
 **Note:** Version bump only for package @radixdlt/hardware-ledger

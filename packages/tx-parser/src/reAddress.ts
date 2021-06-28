@@ -18,7 +18,7 @@ const fromBufferReader = (
 		.readNextBuffer(1)
 		.map(b => ({
 			reAddressTypeBuf: b,
-			reAddressType: b.readUInt8() as REAddressType,
+			reAddressType: b.readUInt8(0) as REAddressType,
 		}))
 		.andThen(
 			(aa): Result<REAddressT, Error> => {
