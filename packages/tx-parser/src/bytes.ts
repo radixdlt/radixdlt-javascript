@@ -5,7 +5,7 @@ import { BufferReaderT } from '@radixdlt/util'
 const fromBufferReader = (bufferReader: BufferReaderT): Result<BytesT, Error> =>
 	bufferReader
 		.readNextBuffer(1)
-		.map(b => b.readUInt8())
+		.map(b => b.readUInt8(0))
 		.andThen((length: number) =>
 			bufferReader.readNextBuffer(length).map(data => ({
 				length,
