@@ -29,10 +29,10 @@
     "node": ">=15.5.0 <16"
   },
   "dependencies": {
-    "@radixdlt/crypto": "^1.0.44",
-    "@radixdlt/hardware-wallet": "^1.0.28",
-    "@radixdlt/primitives": "^1.0.34",
-    "@radixdlt/tx-parser": "^1.0.9",
+    "@radixdlt/crypto": "1.0.43",
+    "@radixdlt/hardware-wallet": "1.0.28",
+    "@radixdlt/primitives": "1.0.34",
+    "@radixdlt/tx-parser": "1.0.9",
     "@radixdlt/util": "1.0.29",
     "neverthrow": "4.0.1",
     "prelude-ts": "^1.0.2",
@@ -40,8 +40,8 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@radixdlt/account": "^1.0.53",
-    "@radixdlt/application": "^1.0.68",
+    "@radixdlt/account": "1.0.53",
+    "@radixdlt/application": "1.0.68",
     "@types/ledgerhq__hw-transport-node-hid": "^4.22.2",
     "@types/uuid": "^8.3.0"
   }
