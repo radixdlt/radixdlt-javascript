@@ -26,8 +26,9 @@ export type AtPath = Readonly<{
 
 export type GetPublicKeyInput = AtPath &
 	Readonly<{
-		displayAddress?: boolean
-		// verifyAddressOnDeviceForNetwork?: NetworkT
+		display?: boolean
+		/// Only relevant if `display` is true, this skips showing BIP32 Path on display.
+		verifyAddressOnly?: boolean
 	}>
 
 export type SignTXOutput = Readonly<{

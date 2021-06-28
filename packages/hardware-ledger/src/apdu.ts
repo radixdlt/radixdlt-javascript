@@ -70,34 +70,30 @@ type WithPath = Readonly<{
 
 type APDUGetPublicKeyInput = WithPath &
 	Readonly<{
-		displayAddress: boolean
-		// verifyAddressOnDeviceForNetwork?: NetworkT
+		display?: boolean
+		/// Only relevant if `display` is true, this skips showing BIP32 Path on display.
+		verifyAddressOnly?: boolean
 	}>
 
 const parameterValueForDisplayAddressOnLedger = (
 	input: APDUGetPublicKeyInput,
-): number => (input.displayAddress ? 0x01 : 0x00)
+): number => (input.display ? 0x01 : 0x00)
 
 const parameterValueForDisplayECDHInputOnLedger = (
 	input: APDUDoKeyExchangeInput,
 ): number => (input.displayBIPAndPubKeyOtherParty ? 0x01 : 0x00)
 
 const getPublicKey = (input: APDUGetPublicKeyInput): RadixAPDUT => {
-	// const p1: number = input.requireConfirmationOnDevice ? 0x01 : 0x00
-	// const p1: number =
-	// 	input.verifyAddressOnDeviceForNetwork !== undefined
-	// 		? input.verifyAddressOnDeviceForNetwork === NetworkT.MAINNET
-	// 			? 0x01
-	// 			: 0x02
-	// 		: 0x00
 
 	const p1 = parameterValueForDisplayAddressOnLedger(input)
+	const p2 = input.verifyAddressOnly ? 0x01 : 0x00
 
 	const data = hdPathToBuffer(input.path)
 
 	return makeAPDU({
 		ins: LedgerInstruction.GET_PUBLIC_KEY,
 		p1,
+		p2,
 		data,
 	})
 }
