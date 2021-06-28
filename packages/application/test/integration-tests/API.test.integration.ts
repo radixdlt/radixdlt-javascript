@@ -33,7 +33,7 @@ import { makeWalletWithFunds } from '../radix.test'
 const fetch = require('node-fetch')
 
 // local
-const NODE_URL = 'http://localhost:8080'
+const NODE_URL = 'https://sandpitnet.radixdlt.com'
 
 // RCNet
 //const NODE_URL = 'https://54.73.253.49'
@@ -705,7 +705,7 @@ describe('integration API tests', () => {
 		)
 	})
 
-	it('can fetch unstake positions', done => {
+	it.only('can fetch unstake positions', done => {
 		const triggerSubject = new Subject<number>()
 
 		const radix = Radix.create({
@@ -715,7 +715,7 @@ describe('integration API tests', () => {
 			.withWallet(makeWalletWithFunds())
 			.withStakingFetchTrigger(triggerSubject)
 
-		const stakeAmount = Amount.fromUnsafe(1)._unsafeUnwrap()
+		const stakeAmount = Amount.fromUnsafe(20)._unsafeUnwrap()
 
 		subs.add(
 			radix.ledger

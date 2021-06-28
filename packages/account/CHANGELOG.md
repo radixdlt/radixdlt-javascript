@@ -3,6 +3,118 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.58](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/account@1.0.57...@radixdlt/account@1.0.58) (2021-06-28)
+
+**Note:** Version bump only for package @radixdlt/account
+
+
+
+
+
+## [1.0.57](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/account@1.0.56...@radixdlt/account@1.0.57) (2021-06-28)
+
+**Note:** Version bump only for package @radixdlt/account
+
+
+
+
+
+## [1.0.56](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/account@1.0.55...@radixdlt/account@1.0.56) (2021-06-28)
+
+**Note:** Version bump only for package @radixdlt/account
+
+
+
+
+
+## [1.0.55](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/account@1.0.54...@radixdlt/account@1.0.55) (2021-06-28)
+
+**Note:** Version bump only for package @radixdlt/account
+
+
+
+
+
+## [1.0.54](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/account@1.0.53...@radixdlt/account@1.0.54) (2021-06-28)
+
+**Note:** Version bump only for package @radixdlt/account
+
+
+
+
+
+## [1.0.53](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/account@1.0.52...@radixdlt/account@1.0.53) (2021-06-28)
+
+**Note:** Version bump only for package @radixdlt/account
+
+
+
+
+
+## [1.0.52](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/account@1.0.51...@radixdlt/account@1.0.52) (2021-06-28)
+
+**Note:** Version bump only for package @radixdlt/account
+
+
+
+
+
+## [1.0.51](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/account@1.0.50...@radixdlt/account@1.0.51) (2021-06-26)
+
+**Note:** Version bump only for package @radixdlt/account
+
+
+
+
+
+## [1.0.50](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/account@1.0.49...@radixdlt/account@1.0.50) (2021-06-25)
+
+**Note:** Version bump only for package @radixdlt/account
+
+
+
+
+
+## [1.0.49](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/account@1.0.48...@radixdlt/account@1.0.49) (2021-06-25)
+
+**Note:** Version bump only for package @radixdlt/account
+
+
+
+
+
+## [1.0.48](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/account@1.0.47...@radixdlt/account@1.0.48) (2021-06-21)
+
+**Note:** Version bump only for package @radixdlt/account
+
+
+
+
+
+## [1.0.47](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/account@1.0.46...@radixdlt/account@1.0.47) (2021-06-21)
+
+**Note:** Version bump only for package @radixdlt/account
+
+
+
+
+
+## [1.0.46](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/account@1.0.43...@radixdlt/account@1.0.46) (2021-06-17)
+
+**Note:** Version bump only for package @radixdlt/account
+
+
+
+
+
+## [1.0.44](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/account@1.0.43...@radixdlt/account@1.0.44) (2021-06-17)
+
+**Note:** Version bump only for package @radixdlt/account
+
+
+
+
+
 ## [1.0.43](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/account@1.0.42...@radixdlt/account@1.0.43) (2021-06-04)
 
 **Note:** Version bump only for package @radixdlt/account

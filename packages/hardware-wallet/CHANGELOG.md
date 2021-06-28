@@ -3,6 +3,102 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.32](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/hardware-wallet@1.0.31...@radixdlt/hardware-wallet@1.0.32) (2021-06-28)
+
+**Note:** Version bump only for package @radixdlt/hardware-wallet
+
+
+
+
+
+## [1.0.31](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/hardware-wallet@1.0.30...@radixdlt/hardware-wallet@1.0.31) (2021-06-28)
+
+**Note:** Version bump only for package @radixdlt/hardware-wallet
+
+
+
+
+
+## [1.0.30](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/hardware-wallet@1.0.29...@radixdlt/hardware-wallet@1.0.30) (2021-06-28)
+
+**Note:** Version bump only for package @radixdlt/hardware-wallet
+
+
+
+
+
+## [1.0.29](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/hardware-wallet@1.0.28...@radixdlt/hardware-wallet@1.0.29) (2021-06-28)
+
+**Note:** Version bump only for package @radixdlt/hardware-wallet
+
+
+
+
+
+## [1.0.28](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/hardware-wallet@1.0.27...@radixdlt/hardware-wallet@1.0.28) (2021-06-28)
+
+**Note:** Version bump only for package @radixdlt/hardware-wallet
+
+
+
+
+
+## [1.0.27](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/hardware-wallet@1.0.26...@radixdlt/hardware-wallet@1.0.27) (2021-06-26)
+
+**Note:** Version bump only for package @radixdlt/hardware-wallet
+
+
+
+
+
+## [1.0.26](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/hardware-wallet@1.0.25...@radixdlt/hardware-wallet@1.0.26) (2021-06-25)
+
+**Note:** Version bump only for package @radixdlt/hardware-wallet
+
+
+
+
+
+## [1.0.25](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/hardware-wallet@1.0.24...@radixdlt/hardware-wallet@1.0.25) (2021-06-25)
+
+**Note:** Version bump only for package @radixdlt/hardware-wallet
+
+
+
+
+
+## [1.0.24](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/hardware-wallet@1.0.23...@radixdlt/hardware-wallet@1.0.24) (2021-06-21)
+
+**Note:** Version bump only for package @radixdlt/hardware-wallet
+
+
+
+
+
+## [1.0.23](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/hardware-wallet@1.0.22...@radixdlt/hardware-wallet@1.0.23) (2021-06-21)
+
+**Note:** Version bump only for package @radixdlt/hardware-wallet
+
+
+
+
+
+## [1.0.22](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/hardware-wallet@1.0.20...@radixdlt/hardware-wallet@1.0.22) (2021-06-17)
+
+**Note:** Version bump only for package @radixdlt/hardware-wallet
+
+
+
+
+
+## [1.0.21](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/hardware-wallet@1.0.20...@radixdlt/hardware-wallet@1.0.21) (2021-06-17)
+
+**Note:** Version bump only for package @radixdlt/hardware-wallet
+
+
+
+
+
 ## [1.0.20](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/hardware-wallet@1.0.19...@radixdlt/hardware-wallet@1.0.20) (2021-06-04)
 
 **Note:** Version bump only for package @radixdlt/hardware-wallet

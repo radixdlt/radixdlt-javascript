@@ -10,10 +10,14 @@ import {
 	SignatureT,
 } from '@radixdlt/crypto'
 import { HardwareWalletT } from '@radixdlt/hardware-wallet'
+import { BuiltTransactionReadyToSign } from '@radixdlt/primitives'
 
-/* A reactive counterpart of `Signer` in '@radixdlt/crypto' package  */
 export type Signing = Readonly<{
-	sign: (hashedMessage: Buffer) => Observable<SignatureT>
+	signHash: (hashedMessage: Buffer) => Observable<SignatureT>
+	sign: (
+		tx: BuiltTransactionReadyToSign,
+		nonXrdHRP?: string,
+	) => Observable<SignatureT>
 }>
 
 export type SigningKeyEncryptionInput = Readonly<{
@@ -73,6 +77,7 @@ export type HWSigningKeyDerivation = 'next' | HDPathRadixT
 export type DeriveHWSigningKeyInput = Readonly<{
 	keyDerivation: HWSigningKeyDerivation
 	hardwareWalletConnection: Observable<HardwareWalletT>
+	alsoSwitchTo: boolean
 }>
 
 export type SigningKeyT = Signing &
@@ -85,6 +90,10 @@ export type SigningKeyT = Signing &
 		// Type of signingKey: `SigningKeyTypeHDT` or `SigningKeyTypeNonHDT`, where HD has `hdSigningKeyType` which can be `LOCAL` or `HARDWARE_OR_REMOTE` (e.g. Ledger Nano)
 		type: SigningKeyTypeT
 		publicKey: PublicKeyT
+
+		// Only relevant for Hardware accounts. Like property `publicKey` but a function and omits BIP32 path on HW display
+		// For NON-Hardware accounts this will just return the cached `publicKey` property.
+		getPublicKeyDisplayOnlyAddress: () => Observable<PublicKeyT>
 
 		// sugar for `type.uniqueKey`
 		uniqueIdentifier: string

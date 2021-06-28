@@ -32,6 +32,7 @@ import {
 	PublicKeyT,
 	HDMasterSeed,
 	Mnemonic,
+	Message,
 } from '@radixdlt/crypto'
 import {
 	AccountT,
@@ -971,7 +972,7 @@ describe('radix_high_level_api', () => {
 
 		subs.add(
 			radix.ledger
-				.buildTransaction(transactionIntent)
+				.buildTransaction(transactionIntent, undefined as any)
 				.subscribe(unsignedTx => {
 					expect(
 						(unsignedTx as { fee: AmountT }).fee.toString(),
@@ -1127,9 +1128,13 @@ describe('radix_high_level_api', () => {
 					buildTransaction: (
 						txIntent: TransactionIntent,
 					): Observable<BuiltTransaction> => {
-						receivedMsg =
-							txIntent.message?.toString('utf8') ?? errNoMessage
-						return mockedAPI.buildTransaction(txIntent)
+						receivedMsg = txIntent.message
+							? Message.plaintextToString(txIntent.message)
+							: errNoMessage
+						return mockedAPI.buildTransaction(
+							txIntent,
+							undefined as any,
+						)
 					},
 				}),
 			)
@@ -1197,7 +1202,10 @@ describe('radix_high_level_api', () => {
 					): Observable<BuiltTransaction> => {
 						receivedMsgHex =
 							txIntent.message?.toString('hex') ?? errNoMessage
-						return mockedAPI.buildTransaction(txIntent)
+						return mockedAPI.buildTransaction(
+							txIntent,
+							undefined as any,
+						)
 					},
 				}),
 			)

@@ -3,6 +3,54 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.35](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/primitives@1.0.34...@radixdlt/primitives@1.0.35) (2021-06-28)
+
+**Note:** Version bump only for package @radixdlt/primitives
+
+
+
+
+
+## [1.0.34](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/primitives@1.0.33...@radixdlt/primitives@1.0.34) (2021-06-26)
+
+**Note:** Version bump only for package @radixdlt/primitives
+
+
+
+
+
+## [1.0.33](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/primitives@1.0.32...@radixdlt/primitives@1.0.33) (2021-06-21)
+
+**Note:** Version bump only for package @radixdlt/primitives
+
+
+
+
+
+## [1.0.32](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/primitives@1.0.31...@radixdlt/primitives@1.0.32) (2021-06-21)
+
+**Note:** Version bump only for package @radixdlt/primitives
+
+
+
+
+
+## [1.0.31](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/primitives@1.0.29...@radixdlt/primitives@1.0.31) (2021-06-17)
+
+**Note:** Version bump only for package @radixdlt/primitives
+
+
+
+
+
+## [1.0.30](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/primitives@1.0.29...@radixdlt/primitives@1.0.30) (2021-06-17)
+
+**Note:** Version bump only for package @radixdlt/primitives
+
+
+
+
+
 ## [1.0.29](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/primitives@1.0.28...@radixdlt/primitives@1.0.29) (2021-06-01)
 
 **Note:** Version bump only for package @radixdlt/primitives

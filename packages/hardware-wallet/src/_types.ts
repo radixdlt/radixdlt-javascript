@@ -5,7 +5,7 @@ import {
 	PublicKeyT,
 	SignatureT,
 } from '@radixdlt/crypto'
-import { NetworkT } from '@radixdlt/primitives'
+import { BuiltTransactionReadyToSign, NetworkT } from '@radixdlt/primitives'
 
 // Semantic versioning, e.g. 1.0.5
 export type SemVerT = Readonly<{
@@ -26,9 +26,16 @@ export type AtPath = Readonly<{
 
 export type GetPublicKeyInput = AtPath &
 	Readonly<{
-		displayAddress?: boolean
-		// verifyAddressOnDeviceForNetwork?: NetworkT
+		display?: boolean
+		/// Only relevant if `display` is true, this skips showing BIP32 Path on display.
+		verifyAddressOnly?: boolean
 	}>
+
+export type SignTXOutput = Readonly<{
+	signature: SignatureT
+	signatureV: number
+	hashCalculatedByLedger: Buffer
+}>
 
 export type SignHashInput = GetPublicKeyInput &
 	Readonly<{
@@ -46,13 +53,28 @@ export type HardwareSigningKeyT = Readonly<{
 		publicKeyOfOtherParty: PublicKeyT,
 	) => Observable<ECPointOnCurveT>
 	publicKey: PublicKeyT
-	sign: (hashedMessage: Buffer) => Observable<SignatureT>
+
+	// Like property `publicKey` but a function and omits BIP32 path on HW display
+	getPublicKeyDisplayOnlyAddress: () => Observable<PublicKeyT>
+
+	signHash: (hashedMessage: Buffer) => Observable<SignatureT>
+	sign: (
+		tx: BuiltTransactionReadyToSign,
+		nonXrdHRP?: string,
+	) => Observable<SignatureT>
+}>
+
+export type SignTransactionInput = Readonly<{
+	tx: BuiltTransactionReadyToSign
+	path: HDPathRadixT
+	nonXrdHRP?: string
 }>
 
 export type HardwareWalletT = Readonly<{
 	getVersion: () => Observable<SemVerT>
 	getPublicKey: (input: GetPublicKeyInput) => Observable<PublicKeyT>
 	doSignHash: (input: SignHashInput) => Observable<SignatureT>
+	doSignTransaction: (input: SignTransactionInput) => Observable<SignTXOutput>
 	doKeyExchange: (input: KeyExchangeInput) => Observable<ECPointOnCurveT>
 
 	makeSigningKey: (path: HDPathRadixT) => Observable<HardwareSigningKeyT>

@@ -12,7 +12,7 @@ import {
 	HDNodeT,
 } from '@radixdlt/crypto'
 import { map, mergeMap } from 'rxjs/operators'
-import { Observable } from 'rxjs'
+import { Observable, of } from 'rxjs'
 import { toObservable } from '@radixdlt/util'
 import {
 	SigningKeyDecryptionInput,
@@ -28,6 +28,7 @@ import {
 import { okAsync, ResultAsync } from 'neverthrow'
 import { Option } from 'prelude-ts'
 import { HardwareSigningKeyT } from '@radixdlt/hardware-wallet'
+import { BuiltTransactionReadyToSign } from '@radixdlt/primitives'
 
 const stringifySigningKey = (signingKey: SigningKeyT): string => `
 		type: ${signingKey.type.typeIdentifier.toString()},
@@ -147,8 +148,11 @@ const fromPrivateKeyNamedOrFromHDPath = (
 ): SigningKeyT => {
 	const { privateKey } = input
 	const publicKey: PublicKeyT = privateKey.publicKey()
-	const sign = (hashedMessage: Buffer): Observable<SignatureT> =>
-		toObservable(privateKey.sign(hashedMessage))
+	const sign = (
+		tx: BuiltTransactionReadyToSign,
+		_nonXrdHRP?: string,
+	): Observable<SignatureT> =>
+		toObservable(privateKey.sign(Buffer.from(tx.hashOfBlobToSign, 'hex')))
 
 	const diffieHellman = privateKey.diffieHellman
 
@@ -169,12 +173,16 @@ const fromPrivateKeyNamedOrFromHDPath = (
 		decrypt: makeDecrypt(diffieHellman),
 		encrypt: makeEncrypt(diffieHellman),
 		sign: sign,
+		signHash: (hashedMessage: Buffer): Observable<SignatureT> =>
+			toObservable(privateKey.sign(hashedMessage)),
 		hdPath:
 			input.pathOrName === undefined ||
 			typeof input.pathOrName === 'string'
 				? undefined
 				: input.pathOrName,
 		publicKey,
+		getPublicKeyDisplayOnlyAddress: (): Observable<PublicKeyT> =>
+			of(publicKey),
 		type,
 		uniqueIdentifier: type.uniqueKey,
 		toString: (): string => {
@@ -226,8 +234,14 @@ const fromHDPathWithHWSigningKey = (
 		isLocalHDSigningKey: false, // hardware is not local
 		publicKey: hardwareSigningKey.publicKey,
 		hdPath,
-		sign: (hashedMessage: Buffer): Observable<SignatureT> =>
-			hardwareSigningKey.sign(hashedMessage),
+		getPublicKeyDisplayOnlyAddress: (): Observable<PublicKeyT> =>
+			hardwareSigningKey.getPublicKeyDisplayOnlyAddress(),
+		sign: (
+			tx: BuiltTransactionReadyToSign,
+			nonXrdHRP?: string,
+		): Observable<SignatureT> => hardwareSigningKey.sign(tx, nonXrdHRP),
+		signHash: (hashesMessage: Buffer): Observable<SignatureT> =>
+			hardwareSigningKey.signHash(hashesMessage),
 		decrypt: makeDecryptHW(hardwareSigningKey),
 		encrypt: makeEncryptHW(hardwareSigningKey),
 		type,

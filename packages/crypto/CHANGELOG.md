@@ -3,6 +3,78 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.46](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/crypto@1.0.45...@radixdlt/crypto@1.0.46) (2021-06-28)
+
+**Note:** Version bump only for package @radixdlt/crypto
+
+
+
+
+
+## [1.0.45](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/crypto@1.0.44...@radixdlt/crypto@1.0.45) (2021-06-28)
+
+**Note:** Version bump only for package @radixdlt/crypto
+
+
+
+
+
+## [1.0.44](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/crypto@1.0.43...@radixdlt/crypto@1.0.44) (2021-06-28)
+
+**Note:** Version bump only for package @radixdlt/crypto
+
+
+
+
+
+## [1.0.43](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/crypto@1.0.42...@radixdlt/crypto@1.0.43) (2021-06-26)
+
+**Note:** Version bump only for package @radixdlt/crypto
+
+
+
+
+
+## [1.0.42](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/crypto@1.0.41...@radixdlt/crypto@1.0.42) (2021-06-25)
+
+**Note:** Version bump only for package @radixdlt/crypto
+
+
+
+
+
+## [1.0.41](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/crypto@1.0.40...@radixdlt/crypto@1.0.41) (2021-06-21)
+
+**Note:** Version bump only for package @radixdlt/crypto
+
+
+
+
+
+## [1.0.40](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/crypto@1.0.39...@radixdlt/crypto@1.0.40) (2021-06-21)
+
+**Note:** Version bump only for package @radixdlt/crypto
+
+
+
+
+
+## [1.0.39](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/crypto@1.0.37...@radixdlt/crypto@1.0.39) (2021-06-17)
+
+**Note:** Version bump only for package @radixdlt/crypto
+
+
+
+
+
+## [1.0.38](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/crypto@1.0.37...@radixdlt/crypto@1.0.38) (2021-06-17)
+
+**Note:** Version bump only for package @radixdlt/crypto
+
+
+
+
+
 ## [1.0.37](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/crypto@1.0.36...@radixdlt/crypto@1.0.37) (2021-06-04)
 
 **Note:** Version bump only for package @radixdlt/crypto

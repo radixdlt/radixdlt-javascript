@@ -20,7 +20,7 @@ import {
 	SigningKeyT,
 	SigningKeyTypeHDT,
 } from '../src'
-import { Observable, Subscription } from 'rxjs'
+import { Observable, Subscription, throwError } from 'rxjs'
 import { toObservable } from '@radixdlt/util'
 import { HardwareSigningKeyT } from '@radixdlt/hardware-wallet'
 import { NetworkT } from '@radixdlt/primitives'
@@ -102,7 +102,7 @@ describe('signingKey_type', () => {
 		const subs = new Subscription()
 
 		subs.add(
-			signingKey.sign(hashedMessage).subscribe(sig => {
+			signingKey.signHash(hashedMessage).subscribe(sig => {
 				expect(sig.toDER()).toBe(
 					'3045022100de5f8c5a92cc5bea386d7a5321d0aa1b46fc7d90c5d07098346252aacd59e52302202bbaeef1256d0185b550a7b661557eea11bb98b99ccc7e01d19fd931e617e824',
 				)
@@ -205,9 +205,14 @@ describe('signingKey_type', () => {
 						),
 					)
 				},
+				getPublicKeyDisplayOnlyAddress: () =>
+					throwError(new Error('Not impl')),
 				publicKey: signingKeyLocalHD.publicKey,
-				sign: (hashedMessage: Buffer): Observable<SignatureT> => {
-					return signingKeyLocalHD.sign(hashedMessage)
+				signHash: (hashedMessage: Buffer): Observable<SignatureT> => {
+					return signingKeyLocalHD.signHash(hashedMessage)
+				},
+				sign: _ => {
+					throw new Error('not implemented')
 				},
 			}
 		}

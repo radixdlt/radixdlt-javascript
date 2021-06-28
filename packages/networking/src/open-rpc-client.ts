@@ -56,6 +56,8 @@ const MethodEndpoints = {
 	[Endpoint.FINALIZE_TX]: MethodLocation.CONSTRUCTION,
 }
 
+const correlationID = uuid()
+
 export const RPCClient: Client = (url: URL): Transport => {
 	const call = async (
 		method: string,
@@ -67,7 +69,7 @@ export const RPCClient: Client = (url: URL): Transport => {
 		const transport = new HTTPTransport(endpoint, {
 			headers: {
 				[headers[0]]: method,
-				[headers[1]]: uuid(),
+				[headers[1]]: correlationID,
 			},
 		})
 
@@ -93,7 +95,7 @@ export const RPCClient: Client = (url: URL): Transport => {
 
 		/*
 		console.log(
-			`sending to ${endpoint}: ${JSON.stringify(
+			`calling ${method} at ${endpoint} with: ${JSON.stringify(
 				filteredParams,
 				null,
 				2,
@@ -115,7 +117,7 @@ export const RPCClient: Client = (url: URL): Transport => {
 			)}`,
 		)
 
-		//console.log(`response for ${endpoint} `, JSON.stringify(response, null, 2))
+		// console.log(`response for ${method} at ${endpoint}`, JSON.stringify(response, null, 2))
 		// TODO validate response
 
 		return response

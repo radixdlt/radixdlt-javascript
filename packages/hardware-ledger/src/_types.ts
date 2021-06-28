@@ -1,4 +1,4 @@
-import { LedgerButtonPress, PromptUserForInput } from './emulatedLedger'
+import { Observable } from 'rxjs'
 
 export enum LedgerInstruction {
 	GET_VERSION = 0x03,
@@ -11,64 +11,25 @@ export enum LedgerInstruction {
 
 /// Keep in sync with: https://github.com/radixdlt/app-radix/blob/main/src/sw.h
 export enum LedgerResponseCodes {
-	/// Status word for success.
-	SW_OK = 0x9000,
+	ERR_CMD_SIGN_TX_UNSUPPORTED_INSTRUCTION_TYPE = 0xc608,
 
-	// Status word for denied by user.
+	ERR_COMMON_BAD_STATE = 0xe001,
+	ERR_ASSERTION_FAILED = 0xe002,
+	ERR_FATAL_ERROR = 0xe003,
+
 	SW_DENY = 0x6985,
-
-	/// Status word for incorrect P1 or P2.
 	SW_WRONG_P1P2 = 0x6a86,
-
-	/// Status word for either wrong Lc or lenght of APDU command less than 5.
 	SW_WRONG_DATA_LENGTH = 0x6a87,
-
-	/// Status word for unknown command with this INS.
 	SW_INS_NOT_SUPPORTED = 0x6d00,
-
-	/// Status word for instruction class is different than CLA.
 	SW_CLA_NOT_SUPPORTED = 0x6e00,
 
-	/// Status word for wrong reponse length (buffer too small or too big).
-	SW_WRONG_RESPONSE_LENGTH = 0xb000,
-
-	/// Status word for fail to display BIP32 path.
-	SW_DISPLAY_BIP32_PATH_FAIL = 0xb001,
-
-	/// Status word for fail to display address.
-	SW_DISPLAY_ADDRESS_FAIL = 0xb002,
-
-	/// Status word for fail to display amount.
-	SW_DISPLAY_AMOUNT_FAIL = 0xb003,
-
-	/// Status word for wrong transaction length.
-	SW_WRONG_TX_LENGTH = 0xb004,
-
-	/// Status word for fail of transaction parsing.
-	SW_TX_PARSING_FAIL = 0xb005,
-
-	/// Status word for fail of transaction hash.
-	SW_TX_HASH_FAIL = 0xb006,
-
-	/// Status word for bad state.
-	SW_BAD_STATE = 0xb007,
-
-	/// Status word for signature fail.
-	SW_SIGNATURE_FAIL = 0xb008,
-
-	/// Status word for ECDH key exchange, failed to parse public key of other party.
-	SW_ECDH_FAILED_TO_PARSE_PUBKEY = 0xb009,
-
-	///  Status word for ECDH failed to perform ECDH.
-	SW_ECDH_FAILED_TO_PERFORM_ECDH = 0xb00a,
+	SW_OK = 0x9000,
 }
 
 export const prettifyLedgerResponseCode = (code: LedgerResponseCodes): string =>
 	`${code === LedgerResponseCodes.SW_OK ? '✅' : '❌'} code: '${
 		LedgerResponseCodes[code]
 	}' 0x${code.toString(16)} (0d${code.toString(10)})`
-
-import { Observable, Subject } from 'rxjs'
 
 export type CreateLedgerNanoTransportInput = Readonly<{
 	openTimeout?: number
@@ -115,60 +76,7 @@ export type RadixAPDUT = APDUT &
 		ins: LedgerInstruction
 	}>
 
-export type LedgerRequest = Readonly<{
-	apdu: RadixAPDUT
-	uuid: string
-}>
-
-export type LedgerResponse = Readonly<{
-	data: Buffer
-	uuid: string // should match one of request.
-}>
-
 export type LedgerNanoT = Readonly<{
 	close: () => Observable<void>
 	sendAPDUToDevice: (apdu: RadixAPDUT) => Observable<Buffer>
-	__sendRequestToDevice: (
-		request: LedgerRequest,
-	) => Observable<LedgerResponse>
 }>
-
-export type RequestAndResponse = Readonly<{
-	apdu: RadixAPDUT
-	response: LedgerResponse
-}>
-
-export type UserOutputAndInput = Readonly<{
-	toUser: PromptUserForInput
-	fromUser: LedgerButtonPress
-}>
-
-export type MockedLedgerNanoStoreT = Readonly<{
-	// IO between GUI wallet and Ledger Nano
-	recorded: RequestAndResponse[]
-	lastRnR: () => RequestAndResponse
-	lastRequest: () => RadixAPDUT
-	lastResponse: () => LedgerResponse
-
-	// Input from user using buttons and output to user on display
-	userIO: UserOutputAndInput[]
-	lastUserInput: () => LedgerButtonPress
-	lastPromptToUser: () => PromptUserForInput
-}>
-
-export type EmulatedLedgerIO = Readonly<{
-	usersInputOnLedger: Subject<LedgerButtonPress>
-	promptUserForInputOnLedger: Subject<PromptUserForInput>
-}>
-
-export type MockedLedgerNanoRecorderT = MockedLedgerNanoStoreT &
-	EmulatedLedgerIO &
-	Readonly<{
-		recordRequest: (request: LedgerRequest) => void
-		recordResponse: (response: LedgerResponse) => RequestAndResponse
-	}>
-
-export type MockedLedgerNanoT = LedgerNanoT &
-	Readonly<{
-		store: MockedLedgerNanoStoreT
-	}>
