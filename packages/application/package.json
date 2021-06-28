@@ -34,7 +34,7 @@
     "@open-rpc/mock-server": "1.7.2",
     "@open-rpc/schema-utils-js": "1.14.3",
     "@radixdlt/account": "^1.0.54",
-    "@radixdlt/crypto": "1.0.43",
+    "@radixdlt/crypto": "1.0.45",
     "@radixdlt/data-formats": "1.0.30",
     "@radixdlt/networking": "1.0.38",
     "@radixdlt/open-rpc-spec": "1.0.13",

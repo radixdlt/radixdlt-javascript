@@ -29,7 +29,7 @@
     "node": ">=15.5.0 <16"
   },
   "dependencies": {
-    "@radixdlt/crypto": "1.0.43",
+    "@radixdlt/crypto": "1.0.45",
     "@radixdlt/hardware-wallet": "^1.0.29",
     "@radixdlt/primitives": "^1.0.35",
     "@radixdlt/tx-parser": "^1.0.10",

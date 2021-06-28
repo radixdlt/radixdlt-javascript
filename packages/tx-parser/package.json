@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@radixdlt/account": "^1.0.54",
-    "@radixdlt/crypto": "1.0.43",
+    "@radixdlt/crypto": "1.0.45",
     "@radixdlt/primitives": "^1.0.35",
     "@radixdlt/uint256": "1.1.0",
     "@radixdlt/util": "1.0.29",
