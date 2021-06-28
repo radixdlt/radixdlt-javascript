@@ -202,6 +202,7 @@ export namespace BuildTransactionEndpoint {
 			  }
 		)[]
 		feePayer: string
+		disableResourceAllocationAndDestroy: boolean
 		message?: string
 	}
 

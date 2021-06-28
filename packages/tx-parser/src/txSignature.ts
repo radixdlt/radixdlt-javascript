@@ -11,7 +11,7 @@ const fromBufferReader = (bufferReader: BufferReaderT): Result<TXSig, Error> =>
 		bufferReader.readNextBuffer(32),
 	])
 		.map(resList => {
-			const v = resList[0].readUInt8() as Byte
+			const v = resList[0].readUInt8(0) as Byte
 
 			const uint256FromBuffer = (b: unknown): UInt256 => {
 				const hex = (b as Buffer).toString('hex')

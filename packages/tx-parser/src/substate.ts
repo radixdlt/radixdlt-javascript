@@ -11,7 +11,7 @@ const parseFromBufferReader = (
 ): Result<SubstateT, Error> =>
 	bufferReader
 		.readNextBuffer(1)
-		.map(b => b.readUInt8())
+		.map(b => b.readUInt8(0))
 		.map(n => n as SubStateType)
 		.andThen(
 			(substateType: SubStateType): Result<SubstateT, Error> => {

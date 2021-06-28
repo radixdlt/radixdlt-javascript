@@ -209,7 +209,7 @@ describe('signingKey_type', () => {
 				signHash: (hashedMessage: Buffer): Observable<SignatureT> => {
 					return signingKeyLocalHD.signHash(hashedMessage)
 				},
-				sign: (_) => {
+				sign: _ => {
 					throw new Error('not implemented')
 				},
 			}

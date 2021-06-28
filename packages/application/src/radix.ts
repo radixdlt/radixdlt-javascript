@@ -464,7 +464,6 @@ const create = (
 						transactionIntent,
 						account,
 					]): Observable<SignedTransaction> => {
-
 						const nonXRDHRPsOfRRIsInTx: string[] = transactionIntent.actions
 							.filter(a => a.type === ActionType.TOKEN_TRANSFER)
 							.map(a => a as TransferTokensAction)
