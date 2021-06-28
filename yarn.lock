@@ -1561,6 +1561,22 @@
     node-ipc "^9.1.1"
     ws "^7.3.1"
 
+"@radixdlt/crypto@1.0.43":
+  version "1.0.43"
+  resolved "https://registry.yarnpkg.com/@radixdlt/crypto/-/crypto-1.0.43.tgz#728d9a1ca410098f4c45887015ea02fbcc120724"
+  integrity sha512-KvLZRCJig2W+vdDGIf3jzAiTrIkS1Nnf5HATAy71tsp4/gZLCPh2J7MOuamDqcPOFQN3xnk4pROKpUt0mBZNMA==
+  dependencies:
+    "@radixdlt/data-formats" "^1.0.30"
+    "@radixdlt/primitives" "^1.0.34"
+    "@radixdlt/uint256" "1.1.0"
+    "@radixdlt/util" "1.0.29"
+    base-x "^3.0.8"
+    elliptic "^6.5.3"
+    neverthrow "^4.0.1"
+    node-forge "^0.10.0"
+    scrypt-js "^3.0.1"
+    uuid "^8.3.2"
+
 "@radixdlt/open-rpc-spec@1.0.13":
   version "1.0.13"
   resolved "https://registry.yarnpkg.com/@radixdlt/open-rpc-spec/-/open-rpc-spec-1.0.13.tgz#5b58ed3febbbcf04196b9fa1b8a57ef241b74c81"
