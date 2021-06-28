@@ -21,9 +21,9 @@ export type HDPathRadixT = BIP44T &
 			name: 'purpose'
 		}
 		coinType: {
-			index: 0x80000218 // <=> 536' dec
+			index: 0x80000218 // <=> 1022' dec
 			isHardened: true
-			toString: () => `536'`
+			toString: () => `1022'`
 			level: 2
 			name: 'coin type'
 		}

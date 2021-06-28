@@ -6,7 +6,7 @@ import { BIP32PathComponentT, BIP32PathSimpleT, BIP32T, Int32 } from '../_types'
 import { BIP44T, BIP44ChangeIndex, HDPathRadixT } from './_types'
 import { msgFromError } from '@radixdlt/util'
 
-export const RADIX_COIN_TYPE: Int32 = 536
+export const RADIX_COIN_TYPE: Int32 = 1022
 
 const bip44Component = (
 	input: Readonly<{
@@ -63,7 +63,7 @@ const bip44Change = (index: BIP44ChangeIndex): BIP32PathComponentT =>
 
 const create = (
 	input: Readonly<{
-		coinType?: Int32 // defauts to `536'` (Radix)
+		coinType?: Int32 // defauts to `1022'` (Radix)
 		account?: Int32 // defaults to `0'`
 		change?: BIP44ChangeIndex // defaults to `0`
 		address: Readonly<{

@@ -65,7 +65,7 @@ describe('hw_ledger_integration', () => {
 		subs.add(
 			hardwareWallet.getVersion().subscribe({
 				next: (semVer: SemVerT) => {
-					expect(semVer.toString()).toBe('0.3.2')
+					expect(semVer.toString()).toBe('0.3.5')
 					done()
 				},
 				error: e => {
@@ -85,11 +85,11 @@ describe('hw_ledger_integration', () => {
 
 		const subs = new Subscription()
 
-		const path = HDPathRadix.fromString(`m/44'/536'/2'/1/3`)._unsafeUnwrap()
+		const path = HDPathRadix.fromString(`m/44'/1022'/2'/1/3`)._unsafeUnwrap()
 		const displayAddress = true
 
 		const expectedPubKeyHex =
-			'026d5e07cfde5df84b5ef884b629d28d15b0f6c66be229680699767cd57c618288'
+			'03d79039c428a6b835e136fbb582e9259df23f8660f928367c3f0d6912728a8444'
 
 		const expectedPubKey = PublicKey.fromBuffer(
 			Buffer.from(expectedPubKeyHex, 'hex'),
@@ -114,7 +114,7 @@ describe('hw_ledger_integration', () => {
 			hardwareWallet
 				.getPublicKey({
 					path,
-					displayAddress,
+					display: displayAddress,
 				})
 				.subscribe(
 					(publicKey: PublicKeyT) => {
@@ -171,7 +171,7 @@ describe('hw_ledger_integration', () => {
 				.doKeyExchange({
 					// both Account and Address will be hardened.
 					path: HDPathRadix.fromString(
-						`m/44'/536'/2'/1/3`,
+						`m/44'/1022'/2'/1/3`,
 					)._unsafeUnwrap(),
 					publicKeyOfOtherParty,
 					displayBIPAndPubKeyOtherParty,
@@ -179,7 +179,7 @@ describe('hw_ledger_integration', () => {
 				.subscribe(
 					(ecPointOnCurve: ECPointOnCurveT) => {
 						expect(ecPointOnCurve.toString()).toBe(
-							'6d5e07cfde5df84b5ef884b629d28d15b0f6c66be229680699767cd57c6182883fa2aff69be05f792a02d6ef657240b17c44614a53e45dff4c529bfb012b9646',
+							'd79039c428a6b835e136fbb582e9259df23f8660f928367c3f0d6912728a8444a87d3a07191942666ca3d0396374531fe669e451bae6eeb79fb0884ef78a2f9d',
 						)
 						done()
 					},
@@ -190,7 +190,7 @@ describe('hw_ledger_integration', () => {
 		)
 	}, 20_000)
 
-	it.only(
+	it(
 		'doSignTX_integration',
 		async done => {
 			const transport = await TransportNodeHid.create()
@@ -203,11 +203,11 @@ describe('hw_ledger_integration', () => {
 			const subs = new Subscription()
 
 			const path = HDPathRadix.fromString(
-				`m/44'/536'/2'/1/3`,
+				`m/44'/1022'/2'/1/3`,
 			)._unsafeUnwrap()
 
 			const expectedPubKeyHex =
-				'026d5e07cfde5df84b5ef884b629d28d15b0f6c66be229680699767cd57c618288'
+				'03d79039c428a6b835e136fbb582e9259df23f8660f928367c3f0d6912728a8444'
 			const expectedPubKey = PublicKey.fromBuffer(
 				Buffer.from(expectedPubKeyHex, 'hex'),
 			)._unsafeUnwrap()
@@ -244,10 +244,8 @@ describe('hw_ledger_integration', () => {
 				hardwareWallet
 					.doSignTransaction({
 						path,
-						nonNativeTokenRriHRP: 'btc',
-						tx,
-						displayInstructionContentsOnLedgerDevice: true,
-						displayTXSummaryOnLedgerDevice: true,
+						nonXrdHRP: 'btc',
+						tx
 					})
 					.subscribe(
 						(result: SignTXOutput) => {
@@ -290,26 +288,21 @@ describe('hw_ledger_integration', () => {
 			`I'm testing Radix awesome hardware wallet!`,
 		)
 
-		const path = HDPathRadix.fromString(`m/44'/536'/2'/1/3`)._unsafeUnwrap()
+		const path = HDPathRadix.fromString(`m/44'/1022'/2'/1/3`)._unsafeUnwrap()
 
-		const displayAddress = true
-
-		if (displayAddress) {
-			console.log(`🔮 Path: ${path.toString()}`)
-			console.log(`🔮 Hash: ${hashToSign.toString('hex')}`)
-		}
+		console.log(`🔮 Path: ${path.toString()}`)
+		console.log(`🔮 Hash: ${hashToSign.toString('hex')}`)
 
 		subs.add(
 			hardwareWallet
 				.doSignHash({
 					path,
 					hashToSign,
-					displayAddress,
 				})
 				.subscribe(
 					(signature: SignatureT) => {
 						expect(signature.toDER()).toBe(
-							'3044022078b0d2d17d227a8dd14ecdf0d7d65580ac6c17ab980c50074e6c096c4081313202207a9819ceedab3bfd3d22452224394d6cb41e3441f4675a5e7bf58f059fdf34cd',
+							'3045022100de5f8c5a92cc5bea386d7a5321d0aa1b46fc7d90c5d07098346252aacd59e52302202bbaeef1256d0185b550a7b661557eea11bb98b99ccc7e01d19fd931e617e824',
 						)
 						done()
 					},

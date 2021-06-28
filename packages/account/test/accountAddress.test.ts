@@ -1,6 +1,6 @@
-import { AccountAddress } from '../src'
+import { AccountAddress, SigningKey, ValidatorAddress } from '../src'
 
-import { PrivateKey, PublicKey, sha256Twice } from '@radixdlt/crypto'
+import { HDMasterSeed, HDPathRadix, Mnemonic, PrivateKey, PublicKey, sha256Twice } from '@radixdlt/crypto'
 import { msgFromError } from '@radixdlt/util'
 import { NetworkT } from '@radixdlt/primitives'
 
@@ -99,6 +99,147 @@ describe('account_address_on_bech32_format', () => {
 		reAddressToRri.forEach((v, i) => doTest(v, i))
 	})
 
+	it('addresses_for_readme', () => {
+		const doTest = (input: { path: string, network: NetworkT, isValidatorAddress: boolean, expectedBech32: string}): void => {
+			const { path, network, isValidatorAddress, expectedBech32 } = input
+			// const publicKey = PublicKey.fromBuffer(Buffer.from(publicKeyHex, 'hex'))._unsafeUnwrapErr()
+
+			const mnemonic = Mnemonic.fromEnglishPhrase(
+				'equip will roof matter pink blind book anxiety banner elbow sun young',
+			)._unsafeUnwrap()
+			const hdMasterSeed = HDMasterSeed.fromMnemonic({ mnemonic })
+			const hdPath = HDPathRadix.fromString(path)._unsafeUnwrap()
+
+			const signingKey = SigningKey.fromHDPathWithHDMasterSeed({
+				hdPath,
+				hdMasterSeed,
+			})
+
+			const publicKey = signingKey.publicKey
+
+			const addressInput = { publicKey, network }
+			if (isValidatorAddress) {
+				const address = ValidatorAddress.fromPublicKeyAndNetwork(addressInput)
+				expect(address.toString()).toBe(expectedBech32)
+			} else {
+				const address = AccountAddress.fromPublicKeyAndNetwork(addressInput)
+				expect(address.toString()).toBe(expectedBech32)
+			}
+		}
+
+		doTest({
+			path: `m/44'/1022'/0'/0/0`,
+			network: NetworkT.BETANET,
+			isValidatorAddress: false,
+			expectedBech32: 'brx1qspmctkg7dngep54w7lkdda537x7u4acxwgk4fcfvmay55pfkcamrrc0z4uz0'
+		})
+
+		doTest({
+			path: `m/44'/1022'/0'/0/0`,
+			network: NetworkT.MAINNET,
+			isValidatorAddress: false,
+			expectedBech32: 'rdx1qspmctkg7dngep54w7lkdda537x7u4acxwgk4fcfvmay55pfkcamrrc0lcarp'
+		})
+
+		doTest({
+			path: `m/44'/1022'/0'/0/0`,
+			network: NetworkT.BETANET,
+			isValidatorAddress: true,
+			expectedBech32: 'vb1qw7zaj8nv6xgd9thhant0dy03hh90wpnj942wztxlf99q2dk8wcc7d4erkm'
+		})
+
+		doTest({
+			path: `m/44'/1022'/0'/0/0`,
+			network: NetworkT.MAINNET,
+			isValidatorAddress: true,
+			expectedBech32: 'vr1qw7zaj8nv6xgd9thhant0dy03hh90wpnj942wztxlf99q2dk8wcc7as4y70'
+		})
+
+		doTest({
+			path: `m/44'/1022'/0'/0/0'`,
+			network: NetworkT.BETANET,
+			isValidatorAddress: false,
+			expectedBech32: 'brx1qsplg0a6v4qsx8hjr904h2txwu6562q50ezmgrx7ge3tajgk9smp74gh62u3y'
+		})
+
+		doTest({
+			path: `m/44'/1022'/0'/0/0'`,
+			network: NetworkT.MAINNET,
+			isValidatorAddress: false,
+			expectedBech32: 'rdx1qsplg0a6v4qsx8hjr904h2txwu6562q50ezmgrx7ge3tajgk9smp74gh88as2'
+		})
+
+		doTest({
+			path: `m/44'/1022'/0'/0/0'`,
+			network: NetworkT.BETANET,
+			isValidatorAddress: true,
+			expectedBech32: 'vb1q06rlwn9gyp3ausetad6jenhx4xjs9r7gk6qehjxv2lvj93vxc0420fstg6'
+		})
+
+		doTest({
+			path: `m/44'/1022'/0'/0/0'`,
+			network: NetworkT.MAINNET,
+			isValidatorAddress: true,
+			expectedBech32: 'vr1q06rlwn9gyp3ausetad6jenhx4xjs9r7gk6qehjxv2lvj93vxc042lvuvqw'
+		})
+
+		doTest({
+			path: `m/44'/1022'/2'/1/3`,
+			network: NetworkT.BETANET,
+			isValidatorAddress: false,
+			expectedBech32: 'brx1qspa0ypecs52dwp4uym0hdvzayjemu3lses0j2pk0sls66gjw29gg3q09vgzx'
+		})
+
+		doTest({
+			path: `m/44'/1022'/2'/1/3`,
+			network: NetworkT.MAINNET,
+			isValidatorAddress: false,
+			expectedBech32: 'rdx1qspa0ypecs52dwp4uym0hdvzayjemu3lses0j2pk0sls66gjw29gg3q0cpfrg'
+		})
+
+		doTest({
+			path: `m/44'/1022'/2'/1/3`,
+			network: NetworkT.BETANET,
+			isValidatorAddress: true,
+			expectedBech32: 'vb1q0teqwwy9zntsd0pxmamtqhfykwly0uxvrujsdnu8uxkjynj32zyg9yt3ug'
+		})
+
+		doTest({
+			path: `m/44'/1022'/2'/1/3`,
+			network: NetworkT.MAINNET,
+			isValidatorAddress: true,
+			expectedBech32: 'vr1q0teqwwy9zntsd0pxmamtqhfykwly0uxvrujsdnu8uxkjynj32zyg4p8k5u'
+		})
+
+		doTest({
+			path: `m/44'/1022'/2'/1/3'`,
+			network: NetworkT.BETANET,
+			isValidatorAddress: false,
+			expectedBech32: 'brx1qsp56t7ezjakq3043v3e662fm567ww7x0fnla9nga5xecpd0lcwpy2cvmfn6t'
+		})
+
+		doTest({
+			path: `m/44'/1022'/2'/1/3'`,
+			network: NetworkT.MAINNET,
+			isValidatorAddress: false,
+			expectedBech32: 'rdx1qsp56t7ezjakq3043v3e662fm567ww7x0fnla9nga5xecpd0lcwpy2cvxyjm9'
+		})
+
+		doTest({
+			path: `m/44'/1022'/2'/1/3'`,
+			network: NetworkT.BETANET,
+			isValidatorAddress: true,
+			expectedBech32: 'vb1qdxjlkg5hdsytavtywwkjjwaxhnnh3n6vllfv68dpkwqttl7rsfzk89dm26'
+		})
+
+		doTest({
+			path: `m/44'/1022'/2'/1/3'`,
+			network: NetworkT.MAINNET,
+			isValidatorAddress: true,
+			expectedBech32: 'vr1qdxjlkg5hdsytavtywwkjjwaxhnnh3n6vllfv68dpkwqttl7rsfzkhqpuzw'
+		})
+	})
+
 	describe('test non happy paths', () => {
 		beforeAll(() => {
 			jest.spyOn(console, 'error').mockImplementation(() => {})
@@ -154,14 +295,14 @@ describe('account_address_on_bech32_format', () => {
 		const address = AccountAddress.fromPublicKeyAndNetwork({
 			publicKey: PublicKey.fromBuffer(
 				Buffer.from(
-					'02486d8128388446ac8c239d0a615a5bcfd1ebbecce5c8704f68876187a18679d8',
+					'03f43fba6541031ef2195f5ba96677354d28147e45b40cde4662bec9162c361f55',
 					'hex',
 				),
 			)._unsafeUnwrap(),
 			network: NetworkT.BETANET,
 		})
 		expect(address.toString()).toBe(
-			'brx1qspysmvp9qugg34v3s3e6znptfdul50thmxwtjrsfa5gwcv85xr8nkq06tlv7',
+			'brx1qsplg0a6v4qsx8hjr904h2txwu6562q50ezmgrx7ge3tajgk9smp74gh62u3y',
 		)
 	})
 })

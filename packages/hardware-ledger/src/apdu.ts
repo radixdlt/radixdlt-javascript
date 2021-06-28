@@ -85,8 +85,10 @@ const parameterValueForDisplayECDHInputOnLedger = (
 
 const getPublicKey = (input: APDUGetPublicKeyInput): RadixAPDUT => {
 	const p1 = parameterValueForDisplayAddressOnLedger(input)
-	const p2 = input.verifyAddressOnly ? 0x01 : 0x00
-
+	let p2 = 0
+	if (input.verifyAddressOnly !== undefined) {
+		p2 = input.verifyAddressOnly ? 0x01 : 0x00
+	}
 	const data = hdPathToBuffer(input.path)
 
 	return makeAPDU({
@@ -128,14 +130,12 @@ const doKeyExchange = (input: APDUDoKeyExchangeInput): RadixAPDUT => {
 	})
 }
 
-type APDUDoSignHashInput = APDUGetPublicKeyInput &
+type APDUDoSignHashInput = WithPath &
 	Readonly<{
 		hashToSign: Buffer
 	}>
 
 const doSignHash = (input: APDUDoSignHashInput): RadixAPDUT => {
-	const p1 = parameterValueForDisplayAddressOnLedger(input)
-
 	const pathData = hdPathToBuffer(input.path)
 	const hashLenBuf = Buffer.alloc(1)
 	const hashedMessageByteCount = input.hashToSign.length
@@ -146,7 +146,6 @@ const doSignHash = (input: APDUDoSignHashInput): RadixAPDUT => {
 
 	return makeAPDU({
 		ins: LedgerInstruction.DO_SIGN_HASH,
-		p1,
 		data,
 	})
 }

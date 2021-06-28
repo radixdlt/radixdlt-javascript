@@ -48,23 +48,23 @@ describe('signingKeychain_hw_ledger', () => {
 		subs.add(
 			keychain.deriveHWSigningKey(input).subscribe({
 				next: sk => {
-					expect(sk.hdPath!.toString()).toBe(`m/44'/536'/0'/0/0'`)
+					expect(sk.hdPath!.toString()).toBe(`m/44'/1022'/0'/0/0'`)
 
 					const publicKeyCompressedHex = sk.publicKey.toString(true)
 					if (
 						publicKeyCompressedHex ===
-						'021d15f715b83b2067cb241a9ba6257cbcb145f4a635c9f73b56f72e658950241e'
+						'03bc2ec8f3668c869577bf66b7b48f8dee57b833916aa70966fa4a5029b63bb18f'
 					) {
 						done(
 							new Error(
-								`Implementation discrepancy between C code for Ledger Nano and this JS Lib. We, here in JS land, expected Ledger Nano app to respect the of hardening the 5th component 'addressIndex' if we explicitly state that (in 'signinKeychain.ts' method: 'deriveHWSigningKey' for input 'next'). But Ledger nano seems to ignore that input, because we got the publickey for the BIP32 path: "m/44'/536'/0'/0/0" instead of "m/44'/536'/0'/0/0'", i.e. HARDENING of address index got ignored.`,
+								`Implementation discrepancy between C code for Ledger Nano and this JS Lib. We, here in JS land, expected Ledger Nano app to respect the of hardening the 5th component 'addressIndex' if we explicitly state that (in 'signinKeychain.ts' method: 'deriveHWSigningKey' for input 'next'). But Ledger nano seems to ignore that input, because we got the publickey for the BIP32 path: "m/44'/1022'/0'/0/0" instead of "m/44'/1022'/0'/0/0'", i.e. HARDENING of address index got ignored.`,
 							),
 						)
 						return
 					}
 
 					expect(publicKeyCompressedHex).toBe(
-						'02486d8128388446ac8c239d0a615a5bcfd1ebbecce5c8704f68876187a18679d8',
+						'03f43fba6541031ef2195f5ba96677354d28147e45b40cde4662bec9162c361f55',
 					)
 					done()
 				},
