@@ -15,12 +15,13 @@ import {
 	AddAccountByPrivateKeyInput,
 	DeriveHWAccountInput,
 } from './_types'
-import { Observable, of } from 'rxjs'
+import { Observable, of, throwError } from 'rxjs'
 import { Account, isAccount } from './account'
-import { map } from 'rxjs/operators'
+import { map, mergeMap } from 'rxjs/operators'
 import { Option } from 'prelude-ts'
 import { PublicKeyT, HDPathRadixT } from '@radixdlt/crypto'
 import { NetworkT } from '@radixdlt/primitives'
+import { log } from '@radixdlt/util/dist/logging'
 
 const create = (
 	input: Readonly<{
@@ -67,6 +68,9 @@ const create = (
 		}
 	}
 
+	const observeActiveAccount = (): Observable<AccountT> =>
+		signingKeychain.observeActiveSigningKey().pipe(map(skToAccount))
+
 	return {
 		__unsafeGetAccount: (): AccountT =>
 			skToAccount(signingKeychain.__unsafeGetSigningKey()),
@@ -83,9 +87,37 @@ const create = (
 		deriveHWAccount: (input: DeriveHWAccountInput): Observable<AccountT> =>
 			signingKeychain.deriveHWSigningKey(input).pipe(map(skToAccount)),
 
-		observeActiveAccount: (): Observable<AccountT> =>
-			signingKeychain.observeActiveSigningKey().pipe(map(skToAccount)),
+		displayAddressForActiveHWAccountOnHWDeviceForVerification: (): Observable<void> =>
+			observeActiveAccount().pipe(
+				mergeMap(
+					(a: AccountT): Observable<AccountT> => {
+						if (!a.signingKey.isHardwareSigningKey) {
+							const errMsg = `Active account is not a hardware account, so cannot verify the address on hardware device. Type identifier of active account: ${a.signingKey.type.typeIdentifier}`
+							log.error(errMsg)
+							return throwError(new Error(errMsg))
+						}
+						return of(a)
+					},
+				),
+				mergeMap(
+					(a: AccountT): Observable<void> =>
+						a.signingKey.getPublicKeyDisplayOnlyAddress().pipe(
+							mergeMap(
+								(pk: PublicKeyT): Observable<void> => {
+									if (pk.equals(a.publicKey)) {
+										return of(undefined)
+									} else {
+										const errMsg = `Hardware wallet returned a different public key than the cached one, this is bad. Probably incorrect implementation.`
+										log.error(errMsg)
+										return throwError(new Error(errMsg))
+									}
+								},
+							),
+						),
+				),
+			),
 
+		observeActiveAccount,
 		observeAccounts: (): Observable<AccountsT> =>
 			signingKeychain.observeSigningKeys().pipe(map(sksToAccounts)),
 

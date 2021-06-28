@@ -53,6 +53,10 @@ export type HardwareSigningKeyT = Readonly<{
 		publicKeyOfOtherParty: PublicKeyT,
 	) => Observable<ECPointOnCurveT>
 	publicKey: PublicKeyT
+
+	// Like property `publicKey` but a function and omits BIP32 path on HW display
+	getPublicKeyDisplayOnlyAddress: () => Observable<PublicKeyT>
+
 	signHash: (hashedMessage: Buffer) => Observable<SignatureT>
 	sign: (
 		tx: BuiltTransactionReadyToSign,

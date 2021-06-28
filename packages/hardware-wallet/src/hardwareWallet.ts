@@ -23,11 +23,21 @@ export const signingKeyWithHardWareWallet = (
 	hardwareWallet
 		.getPublicKey({
 			path,
-			displayAddress: true,
+			display: true,
+			// display BIP32 path as part of derivation call.
+			verifyAddressOnly: false,
 		})
 		.pipe(
 			map((publicKey: PublicKeyT) => ({
 				publicKey,
+				getPublicKeyDisplayOnlyAddress: (): Observable<PublicKeyT> => {
+					return hardwareWallet.getPublicKey({
+						path,
+						display: true,
+						// Omits BIP32 path screen on Ledger.
+						verifyAddressOnly: true,
+					})
+				},
 				signHash: (hashedMessage: Buffer): Observable<SignatureT> =>
 					hardwareWallet.doSignHash({
 						hashToSign: hashedMessage,

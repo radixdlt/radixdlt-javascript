@@ -82,6 +82,7 @@ export type AccountT = Signing &
 	Readonly<{
 		equals: (other: AccountT) => boolean
 		signingKey: SigningKeyT
+
 		address: AccountAddressT
 
 		// sugar for signingKey.publicKey/address.publicKey
@@ -140,6 +141,7 @@ export type WalletT = Readonly<{
 	deriveNextLocalHDAccount: (input?: DeriveNextInput) => Observable<AccountT>
 
 	deriveHWAccount: (input: DeriveHWAccountInput) => Observable<AccountT>
+	displayAddressForActiveHWAccountOnHWDeviceForVerification: () => Observable<void>
 
 	addAccountFromPrivateKey: (
 		input: AddAccountByPrivateKeyInput,
@@ -178,6 +180,7 @@ export type RadixT = Readonly<{
 	// Wait for Ledger Nano S/X to connect and app be opened and derive
 	// account according to `input`.
 	deriveHWAccount: (input: DeriveHWAccountInput) => Observable<AccountT>
+	displayAddressForActiveHWAccountOnHWDeviceForVerification: () => Observable<void>
 
 	addAccountFromPrivateKey: (input: AddAccountByPrivateKeyInput) => RadixT
 

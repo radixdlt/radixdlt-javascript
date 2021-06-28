@@ -43,9 +43,8 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 			.sendAPDUToDevice(
 				RadixAPDU.getPublicKey({
 					path: input.path ?? path000H,
-					displayAddress: input.displayAddress ?? false, // passing 'false' is convenient for testing,
-					// verifyAddressOnDeviceForNetwork:
-					// 	input.verifyAddressOnDeviceForNetwork,
+					display: input.display ?? false, // passing 'false' is convenient for testing,
+					verifyAddressOnly: input.verifyAddressOnly ?? false,
 				}),
 			)
 			.pipe(
@@ -143,7 +142,7 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 			.sendAPDUToDevice(
 				RadixAPDU.doSignHash({
 					path: input.path ?? path000H,
-					displayAddress: input.displayAddress ?? false,
+					display: input.display ?? false,
 					hashToSign: input.hashToSign,
 				}),
 			)
