@@ -355,7 +355,7 @@ Bytes: "
 					}
 					const signature: SignatureT = parsedResult.value.signature
 					const remainingBytes = parsedResult.value.remainingBytes
-					const signatureV = remainingBytes.readUInt8()
+					const signatureV = remainingBytes.readUInt8(0)
 					console.log(`Signature V: ${signatureV}`)
 					const hash = remainingBytes.slice(1)
 					if (hash.length !== 32) {

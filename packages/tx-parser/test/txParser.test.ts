@@ -105,7 +105,7 @@ describe('txParser', () => {
 			expect(i3_UP.substate.substateType).toBe(SubStateType.TOKENS)
 			const tokens0 = i3_UP.substate as TokensT
 			expect(tokens0.amount.toString()).toBe('19999999999999999998')
-			expect(tokens0.rri.toBuffer().readUInt8()).toBe(1)
+			expect(tokens0.rri.toBuffer().readUInt8(0)).toBe(1)
 			expect(tokens0.owner.toBuffer().toString('hex')).toBe(
 				'040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba',
 			)
@@ -119,7 +119,7 @@ describe('txParser', () => {
 			expect(i6_UP.substate.substateType).toBe(SubStateType.TOKENS)
 			const tokens1 = i6_UP.substate as TokensT
 			expect(tokens1.amount.toString()).toBe('9999999999999999998')
-			expect(tokens1.rri.toBuffer().readUInt8()).toBe(1)
+			expect(tokens1.rri.toBuffer().readUInt8(0)).toBe(1)
 			expect(tokens1.owner.toBuffer().toString('hex')).toBe(
 				'040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba',
 			)
