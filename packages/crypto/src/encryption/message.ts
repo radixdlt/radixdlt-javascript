@@ -26,9 +26,11 @@ const minLengthEncryptedMessage =
 const maxLengthOfCipherTextOfSealedMsg =
 	maxLengthEncryptedMessage - minLengthEncryptedMessage
 
-const isPlaintext = (rawHex: string) => parseInt(rawHex.slice(0, 2)) === MessageType.PLAINTEXT
+const isPlaintext = (rawHex: string) =>
+	parseInt(rawHex.slice(0, 2)) === MessageType.PLAINTEXT
 
-const isEncrypted = (rawHex: string) => parseInt(rawHex.slice(0, 2)) === MessageType.ENCRYPTED
+const isEncrypted = (rawHex: string) =>
+	parseInt(rawHex.slice(0, 2)) === MessageType.ENCRYPTED
 
 const __validateEncryptedMessageMaxLength: (
 	buffer: Buffer,
@@ -148,5 +150,5 @@ export const Message = {
 	fromBuffer,
 	plaintextToString,
 	isPlaintext,
-	isEncrypted
+	isEncrypted,
 }

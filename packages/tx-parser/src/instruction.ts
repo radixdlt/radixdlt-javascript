@@ -32,7 +32,7 @@ const parseFromBufferReader = (
 		.readNextBuffer(1)
 		.map(b => ({
 			insBuf: b,
-			instructionType: b.readUInt8() as InstructionType,
+			instructionType: b.readUInt8(0) as InstructionType,
 		}))
 		.andThen(
 			(ii): Result<InstructionT, Error> => {
@@ -124,7 +124,9 @@ const parseFromBufferReader = (
 					case InstructionType.LDOWN:
 						return bufferReader.readNextBuffer(4).map(
 							(substateIndexBytes): Ins_LDOWN => {
-								const substateIndex = substateIndexBytes.readUInt32BE()
+								const substateIndex = substateIndexBytes.readUInt32BE(
+									0,
+								)
 								return {
 									substateIndex,
 									instructionType,
@@ -167,7 +169,7 @@ const parseFromBufferReader = (
 					case InstructionType.DOWNALL:
 						return bufferReader
 							.readNextBuffer(1)
-							.map(b => b.readUInt8() as Byte)
+							.map(b => b.readUInt8(0) as Byte)
 							.map(
 								(classId: Byte): Ins_DOWNALL => ({
 									instructionType,
@@ -205,8 +207,8 @@ const parseFromBufferReader = (
 							.map(resList => {
 								const versionBuf = resList[0]
 								const flagBuf = resList[1]
-								const version = versionBuf.readUInt8() as Byte
-								const flag = flagBuf.readUInt8() as Byte
+								const version = versionBuf.readUInt8(0) as Byte
+								const flag = flagBuf.readUInt8(0) as Byte
 								const buffer = Buffer.concat([
 									versionBuf,
 									flagBuf,

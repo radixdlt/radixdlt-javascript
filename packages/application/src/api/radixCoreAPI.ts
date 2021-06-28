@@ -148,6 +148,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 						  },
 				),
 				feePayer: from.toString(),
+				disableResourceAllocationAndDestroy: true,
 				message: transactionIntent.message
 					? transactionIntent.message.toString('hex')
 					: undefined,
