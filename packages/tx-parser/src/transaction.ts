@@ -2,7 +2,7 @@ import { err, ok, Result } from 'neverthrow'
 import { InstructionT, TransactionT } from './_types'
 import { Instruction } from './instruction'
 import { sha256Twice } from '@radixdlt/crypto'
-import { BufferReader, BufferReaderT } from '@radixdlt/util'
+import { BufferReader } from '@radixdlt/util'
 const fromBuffer = (blob: Buffer): Result<TransactionT, Error> => {
 	const instructions: InstructionT[] = []
 

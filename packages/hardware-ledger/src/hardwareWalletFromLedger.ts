@@ -33,7 +33,7 @@ import { LedgerNanoT } from './_types'
 import { LedgerNano } from './ledgerNano'
 import { BasicLedgerTransport } from './device-connection'
 import { log, BufferReader } from '@radixdlt/util'
-import { Transaction } from '@radixdlt/tx-parser/dist/transaction'
+import { Transaction } from '@radixdlt/tx-parser'
 import { InstructionT } from '@radixdlt/tx-parser'
 import { err, Result } from 'neverthrow'
 

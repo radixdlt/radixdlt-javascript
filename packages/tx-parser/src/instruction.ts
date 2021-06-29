@@ -11,7 +11,7 @@ import {
 	Ins_SYSCALL,
 	Ins_UP,
 	Ins_VDOWN,
-	Ins_VDOWNARG,
+	Ins_VDOWNARG, Ins_VREAD,
 	InstructionT,
 	InstructionType,
 	SubstateIdT,
@@ -225,7 +225,30 @@ const parseFromBufferReader = (
 										`HEADER(${partial.version.toString()}, ${partial.flag.toString()})`,
 								}),
 							)
-
+					case InstructionType.VREAD:
+						return parseSubstate().map(
+							(substate): Ins_VREAD => ({
+								instructionType,
+								substate,
+								toBuffer: () =>
+									Buffer.concat([
+										insBuf,
+										substate.toBuffer(),
+									]),
+								toString: () =>
+									`VREAD(${substate.toString().trimStart()})`,
+								toHumanReadableString: () => {
+									if (!substate.toHumanReadableString) {
+										return `VREAD(${substate
+											.toString()
+											.trimStart()})`
+									}
+									return `VREAD(${substate
+										.toHumanReadableString()
+										.trimStart()})`
+								},
+							}),
+						)
 					default:
 						return err(
 							new Error(

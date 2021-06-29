@@ -20,6 +20,10 @@ export enum InstructionType {
 	DOWNALL = 0x08,
 	SYSCALL = 0x09,
 	HEADER = 0x0a,
+	DOWNINDEX = 0x0b,
+	LREAD = 0x0c,
+	VREAD = 0x0d,
+	READ = 0x0e,
 }
 export type BaseInstruction<IT extends InstructionType> = REPrimitive &
 	Readonly<{
@@ -57,15 +61,25 @@ export type REAddressT =
 	| REAddressPublicKey
 
 export enum SubStateType {
-	RE_ADDRESS = 0x00,
-	TOKEN_DEFINITION = 0x02,
-	TOKENS = 0x03,
-	PREPARED_STAKE = 0x04,
-	VALIDATOR = 0x05,
-	UNIQUE = 0x06,
-	STAKE_SHARE = 0x0b,
-	PREPARED_UNSTAKE = 0x0d,
-	EXITING_STAKE = 0x0e,
+	UNCLAIMED_RE_ADDR = 0x00,
+	ROUND_DATA = 0x01,
+	EPOCH_DATA = 0x02,
+	TOKEN_DEF = 0x03,
+	TOKENS = 0x04,
+	PREPARED_STAKE = 0x05,
+	STAKE_OWNERSHIP = 0x06,
+	PREPARED_UNSTAKE = 0x07,
+	EXITING_STAKE = 0x08,
+	VALIDATOR_META_DATA = 0x09,
+	VALIDATOR_STAKE_DATA = 0x0a,
+	VALIDATOR_BFT_DATA = 0x0b,
+	VALIDATOR_ALLOW_DELEGATION_FLAG = 0x0c,
+	VALIDATOR_REGISTRED_FLAG_COPY = 0x0d,
+	VALIDATOR_REGISTRED_FLAG_UPDATE = 0x0e,
+	VALIDATOR_RAKE_COPY = 0x0f,
+	PREPARED_RAKE_UPDATE = 0x10,
+	VALIDATOR_OWNER_COPY = 0x11,
+	PREPARED_VALIDATOR_OWNER_UPDATE = 0x12,
 }
 
 export type BaseSubstate<SST extends SubStateType> = REPrimitive &
@@ -75,34 +89,73 @@ export type BaseSubstate<SST extends SubStateType> = REPrimitive &
 	}>
 
 export type TokensT = BaseSubstate<SubStateType.TOKENS> & {
-	rri: REAddressT
+	// Reserved, always 0
+	reserved: Byte
 	owner: REAddressT
+	// RRI
+	resource: REAddressT
 	amount: AmountT
 }
 
-export type PreparedStakeT = BaseSubstate<SubStateType.PREPARED_STAKE> & {
-	owner: REAddressT
-	delegate: PublicKeyT
-	amount: AmountT
-}
+export type BaseValidatorSubstate<
+	SST extends SubStateType
+> = BaseSubstate<SST> &
+	Readonly<{
+		// Reserved, always 0
+		reserved: Byte
+		// The validator public key
+		validator: PublicKeyT
+	}>
 
-export type PreparedUnstakeT = BaseSubstate<SubStateType.PREPARED_UNSTAKE> & {
-	delegate: PublicKeyT
-	owner: REAddressT
-	amount: AmountT
-}
+export type BaseStakingSubstate<
+	SST extends SubStateType
+> = BaseValidatorSubstate<SST> &
+	Readonly<{
+		// The stake owner
+		owner: REAddressT
+		amount: AmountT
+	}>
 
-export type StakeShareT = BaseSubstate<SubStateType.STAKE_SHARE> & {
-	delegate: PublicKeyT
-	owner: REAddressT
-	amount: AmountT
-}
+export type PreparedStakeT = BaseStakingSubstate<SubStateType.PREPARED_STAKE>
+export type PreparedUnstakeT = BaseStakingSubstate<SubStateType.PREPARED_UNSTAKE>
+export type StakeOwnershipT = BaseStakingSubstate<SubStateType.STAKE_OWNERSHIP>
+
+export type ValidatorAllowDelegationFlagT = BaseValidatorSubstate<SubStateType.VALIDATOR_ALLOW_DELEGATION_FLAG> &
+	Readonly<{
+		isDelegationAllowed: boolean
+	}>
+
+export type ValidatorOwnerCopyT = BaseValidatorSubstate<SubStateType.VALIDATOR_OWNER_COPY> &
+	Readonly<{
+		owner: REAddressT
+	}>
 
 export type SubstateT =
 	| TokensT
 	| PreparedStakeT
 	| PreparedUnstakeT
-	| StakeShareT
+	| StakeOwnershipT
+	| ValidatorAllowDelegationFlagT
+	| ValidatorOwnerCopyT
+
+export const stringifySubstateType = (substateType: SubStateType): string => {
+	switch (substateType) {
+		case SubStateType.TOKENS:
+			return 'Tokens'
+		case SubStateType.VALIDATOR_OWNER_COPY:
+			return 'ValidatorOwnerCopy'
+		case SubStateType.PREPARED_STAKE:
+			return 'PreparedStake'
+		case SubStateType.PREPARED_UNSTAKE:
+			return 'PreparedUnstake'
+		case SubStateType.STAKE_OWNERSHIP:
+			return 'StakeOwnership'
+		case SubStateType.VALIDATOR_ALLOW_DELEGATION_FLAG:
+			return 'ValidatorAllowDelegationFlag'
+		default:
+			return `Unsupported-${SubStateType[substateType]}`
+	}
+}
 
 export type BaseInstructionWithSubState<
 	IT extends InstructionType
@@ -175,6 +228,8 @@ export type Ins_HEADER = BaseInstruction<InstructionType.HEADER> &
 		flag: Byte
 	}>
 
+export type Ins_VREAD = BaseInstructionWithSubState<InstructionType.VREAD>
+
 export type InstructionT =
 	| Ins_END
 	| Ins_UP
@@ -187,6 +242,7 @@ export type InstructionT =
 	| Ins_DOWNALL
 	| Ins_SYSCALL
 	| Ins_HEADER
+	| Ins_VREAD
 
 export type TransactionT = REPrimitive &
 	Readonly<{

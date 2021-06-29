@@ -21,7 +21,7 @@ import { map, mergeMap } from 'rxjs/operators'
 import { Option } from 'prelude-ts'
 import { PublicKeyT, HDPathRadixT } from '@radixdlt/crypto'
 import { NetworkT } from '@radixdlt/primitives'
-import { log } from '@radixdlt/util/dist/logging'
+import { log } from '@radixdlt/util'
 
 const create = (
 	input: Readonly<{
