@@ -12,9 +12,9 @@ export enum InstructionType {
 	END = 0x00,
 	UP = 0x01,
 	DOWN = 0x04,
-	LDOWN = 0x05, // TODO needs to be tested
+	LDOWN = 0x05,
 	MSG = 0x06,
-	SIG = 0x07, // TODO Remove this, only used for tests...
+	SIG = 0x07, // Only used for tests...
 	SYSCALL = 0x09,
 	HEADER = 0x0a,
 	VREAD = 0x0d,

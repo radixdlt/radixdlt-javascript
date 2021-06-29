@@ -89,7 +89,7 @@ const generate_ledger_app_unit_test_c_code_from_test_vector = (
 		}
 		const substate = (instruction as BaseInstructionWithSubState<InstructionType>)
 			.substate
-		return SubStateType[substate.substateType]
+		return `SUBSTATE_TYPE_${SubStateType[substate.substateType]}`
 	}
 
 	const c_code_body_expected_instructions_obj_strings = tx.instructions
@@ -155,10 +155,12 @@ const generate_ledger_app_unit_test_c_code_from_test_vector = (
 		'\tdo_test_parse_tx(test_vector);',
 	].join(';\n\n')
 
-	const c_code = [c_code_test_doc, c_code_test_header, c_code_body].join('\n')
+	const c_code = [c_code_test_doc, c_code_test_header, c_code_body, '}'].join(
+		'\n',
+	)
 
 	// Outcomment this line to generate unit tests for Ledger app C code.
-	// console.log(c_code)
+	console.log(c_code)
 
 	return c_code
 }
@@ -293,12 +295,12 @@ const doTestParseTX = (testVector: TestVector): void => {
 
 	generate_ledger_app_unit_test_c_code_from_test_vector({
 		testVector,
-		testName: it.name,
+		testName: expect.getState().currentTestName.split(' ')[1],
 	})
 }
 
 describe('txParser', () => {
-	it('token_transfer_only_xrd', () => {
+	it.only('token_transfer_only_xrd', () => {
 		doTestParseTX({
 			blobHex:
 				'0a000104a0686a487f9d3adf4892a358e4460cda432068f069e5e9f4c815af21bc3dd1d600000000092100000000000000000000000000000000000000000000000abbade0b6b3a76400000105000402935deebcad35bcf27d05b431276be8fcba26312cd1d54c33ac6748a72fe427ca0100000000000000000000000000000000000000000000d3c1e44bf21f037000000005000000000105000402935deebcad35bcf27d05b431276be8fcba26312cd1d54c33ac6748a72fe427ca0100000000000000000000000000000000000000000000d38bae82445924d00000010500040356959464545aa2787984fe4ac76496721a22f150c0076724ad7190fe3a597bb70100000000000000000000000000000000000000000000003635c9adc5dea00000000921010000000000000000000000000000000000000000000000000de0b6b3a76400000105000402935deebcad35bcf27d05b431276be8fcba26312cd1d54c33ac6748a72fe427ca010000000000000000000000000000000000000000000000000de0b6b3a764000000',
