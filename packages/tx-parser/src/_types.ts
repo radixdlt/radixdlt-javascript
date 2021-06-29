@@ -11,19 +11,19 @@ type REPrimitive = Readonly<{
 export enum InstructionType {
 	END = 0x00,
 	UP = 0x01,
-	VDOWN = 0x02,
-	VDOWNARG = 0x03,
+	// VDOWN = 0x02,  // UNSUPPORTED
+	// VDOWNARG = 0x03, // UNSUPPORTED
 	DOWN = 0x04,
-	LDOWN = 0x05,
+	LDOWN = 0x05, // TODO needs to be tested
 	MSG = 0x06,
-	SIG = 0x07,
-	DOWNALL = 0x08,
+	SIG = 0x07, // TODO Remove this, only used for tests...
+	// DOWNALL = 0x08, // UNSUPPORTED
 	SYSCALL = 0x09,
 	HEADER = 0x0a,
-	DOWNINDEX = 0x0b,
-	LREAD = 0x0c,
+	// DOWNINDEX = 0x0b, // UNSUPPORTED
+	// LREAD = 0x0c, // UNSUPPORTED
 	VREAD = 0x0d,
-	READ = 0x0e,
+	// READ = 0x0e, // UNSUPPORTED
 }
 export type BaseInstruction<IT extends InstructionType> = REPrimitive &
 	Readonly<{
@@ -61,25 +61,25 @@ export type REAddressT =
 	| REAddressPublicKey
 
 export enum SubStateType {
-	UNCLAIMED_RE_ADDR = 0x00,
-	ROUND_DATA = 0x01,
-	EPOCH_DATA = 0x02,
-	TOKEN_DEF = 0x03,
+	// UNCLAIMED_RE_ADDR = 0x00,    // UNSUPPORTED
+	// ROUND_DATA = 0x01,           // UNSUPPORTED
+	// EPOCH_DATA = 0x02,           // UNSUPPORTED
+	// TOKEN_DEF = 0x03,            // UNSUPPORTED
 	TOKENS = 0x04,
 	PREPARED_STAKE = 0x05,
-	STAKE_OWNERSHIP = 0x06,
+	// STAKE_OWNERSHIP = 0x06,     // UNSUPPORTED
 	PREPARED_UNSTAKE = 0x07,
-	EXITING_STAKE = 0x08,
-	VALIDATOR_META_DATA = 0x09,
-	VALIDATOR_STAKE_DATA = 0x0a,
-	VALIDATOR_BFT_DATA = 0x0b,
+	// EXITING_STAKE = 0x08,       // UNSUPPORTED
+	// VALIDATOR_META_DATA = 0x09, // UNSUPPORTED
+	// VALIDATOR_STAKE_DATA = 0x0a, // UNSUPPORTED
+	// VALIDATOR_BFT_DATA = 0x0b, // UNSUPPORTED
 	VALIDATOR_ALLOW_DELEGATION_FLAG = 0x0c,
-	VALIDATOR_REGISTRED_FLAG_COPY = 0x0d,
-	VALIDATOR_REGISTRED_FLAG_UPDATE = 0x0e,
-	VALIDATOR_RAKE_COPY = 0x0f,
-	PREPARED_RAKE_UPDATE = 0x10,
+	// VALIDATOR_REGISTRED_FLAG_COPY = 0x0d, // UNSUPPORTED
+	// VALIDATOR_REGISTRED_FLAG_UPDATE = 0x0e, // UNSUPPORTED
+	// VALIDATOR_RAKE_COPY = 0x0f, // UNSUPPORTED
+	// PREPARED_RAKE_UPDATE = 0x10, // UNSUPPORTED
 	VALIDATOR_OWNER_COPY = 0x11,
-	PREPARED_VALIDATOR_OWNER_UPDATE = 0x12,
+	// PREPARED_VALIDATOR_OWNER_UPDATE = 0x12, // UNSUPPORTED
 }
 
 export type BaseSubstate<SST extends SubStateType> = REPrimitive &
@@ -118,7 +118,6 @@ export type BaseStakingSubstate<
 
 export type PreparedStakeT = BaseStakingSubstate<SubStateType.PREPARED_STAKE>
 export type PreparedUnstakeT = BaseStakingSubstate<SubStateType.PREPARED_UNSTAKE>
-export type StakeOwnershipT = BaseStakingSubstate<SubStateType.STAKE_OWNERSHIP>
 
 export type ValidatorAllowDelegationFlagT = BaseValidatorSubstate<SubStateType.VALIDATOR_ALLOW_DELEGATION_FLAG> &
 	Readonly<{
@@ -134,7 +133,6 @@ export type SubstateT =
 	| TokensT
 	| PreparedStakeT
 	| PreparedUnstakeT
-	| StakeOwnershipT
 	| ValidatorAllowDelegationFlagT
 	| ValidatorOwnerCopyT
 
@@ -148,8 +146,6 @@ export const stringifySubstateType = (substateType: SubStateType): string => {
 			return 'PreparedStake'
 		case SubStateType.PREPARED_UNSTAKE:
 			return 'PreparedUnstake'
-		case SubStateType.STAKE_OWNERSHIP:
-			return 'StakeOwnership'
 		case SubStateType.VALIDATOR_ALLOW_DELEGATION_FLAG:
 			return 'ValidatorAllowDelegationFlag'
 		default:
@@ -176,12 +172,6 @@ export type Ins_MSG = BaseInstruction<InstructionType.MSG> &
 	Readonly<{
 		bytes: BytesT
 	}>
-export type Ins_VDOWN = BaseInstructionWithSubState<InstructionType.VDOWN>
-
-export type Ins_VDOWNARG = BaseInstructionWithSubState<InstructionType.VDOWNARG> &
-	Readonly<{
-		argument: BytesT
-	}>
 
 export type UInt32 = number
 
@@ -200,7 +190,6 @@ export type Ins_LDOWN = BaseInstruction<InstructionType.LDOWN> &
 	Readonly<{
 		substateIndex: UInt32
 	}>
-
 export type TXSig = REPrimitive &
 	Readonly<{
 		v: Byte
@@ -212,12 +201,6 @@ export type Ins_SIG = BaseInstruction<InstructionType.SIG> &
 	Readonly<{
 		signature: TXSig
 	}>
-
-export type Ins_DOWNALL = BaseInstruction<InstructionType.DOWNALL> &
-	Readonly<{
-		classId: Byte
-	}>
-
 export type Ins_SYSCALL = BaseInstruction<InstructionType.SYSCALL> &
 	Readonly<{
 		callData: BytesT
@@ -233,13 +216,10 @@ export type Ins_VREAD = BaseInstructionWithSubState<InstructionType.VREAD>
 export type InstructionT =
 	| Ins_END
 	| Ins_UP
-	| Ins_VDOWN
-	| Ins_VDOWNARG
 	| Ins_DOWN
 	| Ins_LDOWN
 	| Ins_MSG
 	| Ins_SIG
-	| Ins_DOWNALL
 	| Ins_SYSCALL
 	| Ins_HEADER
 	| Ins_VREAD

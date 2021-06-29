@@ -3,7 +3,6 @@ import { Result } from 'neverthrow'
 import { Tokens } from './tokens'
 import { PreparedStake } from './preparedStake'
 import { PreparedUnstake } from './preparedUnstake'
-import { StakeOwnership } from './stakeOwnership'
 import { ValidatorAllowDelegationFlag } from './validatorAllowDelegationFlag'
 import { BufferReaderT } from '@radixdlt/util'
 import { ValidatorOwnerCopy } from './validatorOwnerCopy'
@@ -24,8 +23,6 @@ const parseFromBufferReader = (
 						return PreparedStake.fromBufferReader(bufferReader)
 					case SubStateType.PREPARED_UNSTAKE:
 						return PreparedUnstake.fromBufferReader(bufferReader)
-					case SubStateType.STAKE_OWNERSHIP:
-						return StakeOwnership.fromBufferReader(bufferReader)
 					case SubStateType.VALIDATOR_ALLOW_DELEGATION_FLAG:
 						return ValidatorAllowDelegationFlag.fromBufferReader(
 							bufferReader,
