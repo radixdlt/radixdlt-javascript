@@ -11,19 +11,14 @@ type REPrimitive = Readonly<{
 export enum InstructionType {
 	END = 0x00,
 	UP = 0x01,
-	// VDOWN = 0x02,  // UNSUPPORTED
-	// VDOWNARG = 0x03, // UNSUPPORTED
 	DOWN = 0x04,
 	LDOWN = 0x05, // TODO needs to be tested
 	MSG = 0x06,
 	SIG = 0x07, // TODO Remove this, only used for tests...
-	// DOWNALL = 0x08, // UNSUPPORTED
 	SYSCALL = 0x09,
 	HEADER = 0x0a,
-	// DOWNINDEX = 0x0b, // UNSUPPORTED
-	// LREAD = 0x0c, // UNSUPPORTED
 	VREAD = 0x0d,
-	// READ = 0x0e, // UNSUPPORTED
+	READ = 0x0e,
 }
 export type BaseInstruction<IT extends InstructionType> = REPrimitive &
 	Readonly<{
@@ -206,6 +201,11 @@ export type Ins_HEADER = BaseInstruction<InstructionType.HEADER> &
 
 export type Ins_VREAD = BaseInstructionWithSubState<InstructionType.VREAD>
 
+export type Ins_READ = BaseInstruction<InstructionType.READ> &
+	Readonly<{
+		substateId: SubstateIdT
+	}>
+
 export type InstructionT =
 	| Ins_END
 	| Ins_UP
@@ -216,6 +216,7 @@ export type InstructionT =
 	| Ins_SYSCALL
 	| Ins_HEADER
 	| Ins_VREAD
+	| Ins_READ
 
 export type TransactionT = REPrimitive &
 	Readonly<{

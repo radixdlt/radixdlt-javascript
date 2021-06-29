@@ -65,59 +65,20 @@ const parseFromBufferReader = (
 								},
 							}),
 						)
-					// case InstructionType.VDOWN:
-					// 	return parseSubstate().map(
-					// 		(substate): Ins_VDOWN => ({
-					// 			instructionType,
-					// 			substate,
-					// 			toBuffer: () =>
-					// 				Buffer.concat([
-					// 					insBuf,
-					// 					substate.toBuffer(),
-					// 				]),
-					// 			toString: () => `VDOWN(${substate.toString()})`,
-					// 		}),
-					// 	)
-					// case InstructionType.VDOWNARG:
-					// 	return combine([
-					// 		parseSubstate(),
-					// 		Bytes.fromBufferReader(bufferReader),
-					// 	])
-					// 		.map(resList => {
-					// 			const substate = resList[0] as SubstateT
-					// 			const argument = resList[1] as BytesT
-					// 			return { substate, argument }
-					// 		})
-					// 		.map(
-					// 			(partial): Ins_VDOWNARG => ({
-					// 				...partial,
-					// 				instructionType,
-					// 				toBuffer: () =>
-					// 					Buffer.concat([
-					// 						insBuf,
-					// 						partial.substate.toBuffer(),
-					// 						partial.argument.toBuffer(),
-					// 					]),
-					// 				toString: () =>
-					// 					`VDOWNARG(${partial.substate.toString()}, ${partial.argument.toString()})`,
-					// 			}),
-					// 		)
 					case InstructionType.DOWN:
+					case InstructionType.READ:
 						return SubstateId.parseFromBufferReader(
 							bufferReader,
-						).map(
-							(substateId: SubstateIdT): Ins_DOWN => ({
-								instructionType,
-								substateId,
-								toBuffer: () =>
-									Buffer.concat([
-										insBuf,
-										substateId.toBuffer(),
-									]),
-								toString: () =>
-									`DOWN(${substateId.toString()})`,
-							}),
-						)
+						).map((substateId: SubstateIdT) => ({
+							instructionType,
+							substateId,
+							toBuffer: () =>
+								Buffer.concat([insBuf, substateId.toBuffer()]),
+							toString: () =>
+								`${
+									InstructionType[instructionType]
+								}(${substateId.toString()})`,
+						}))
 					case InstructionType.LDOWN:
 						return bufferReader.readNextBuffer(4).map(
 							(substateIndexBytes): Ins_LDOWN => {
@@ -163,24 +124,6 @@ const parseFromBufferReader = (
 										.toString('hex')})`,
 							}),
 						)
-					// case InstructionType.DOWNALL:
-					// 	return bufferReader
-					// 		.readNextBuffer(1)
-					// 		.map(b => b.readUInt8(0) as Byte)
-					// 		.map(
-					// 			(classId: Byte): Ins_DOWNALL => ({
-					// 				instructionType,
-					// 				classId,
-					// 				toBuffer: () =>
-					// 					Buffer.concat([
-					// 						insBuf,
-					// 						Buffer.from([classId]),
-					// 					]),
-					// 				toString: () =>
-					// 					`DOWNALL(${classId.toString()})`,
-					// 			}),
-					// 		)
-
 					case InstructionType.SYSCALL:
 						return Bytes.fromBufferReader(bufferReader).map(
 							(callData: BytesT): Ins_SYSCALL => ({
