@@ -734,7 +734,7 @@ describe('radix_high_level_api', () => {
 		subs.add(
 			radix.__wallet.subscribe(_w => {
 				const expectedValues = [
-						{ pkIndex: 0, tokenBalancesCount: 1 },
+					{ pkIndex: 0, tokenBalancesCount: 1 },
 					{ pkIndex: 1, tokenBalancesCount: 4 },
 					{ pkIndex: 2, tokenBalancesCount: 1 },
 					{ pkIndex: 3, tokenBalancesCount: 1 },

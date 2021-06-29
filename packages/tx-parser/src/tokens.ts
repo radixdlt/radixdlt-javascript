@@ -55,7 +55,15 @@ const fromBufferReader = (
 					substateType: SubStateType.TOKENS,
 					toBuffer: () => buffer,
 					toString: () =>
-						`Tokens { reserved: ${reserved}, owner: 0x${owner.toBuffer().toString('hex')}, resource: 0x${resource.toBuffer().toString('hex')}, amount: U256 { raw: ${amount.toString()} } }`,
+						`Tokens { reserved: ${reserved}, owner: 0x${owner
+							.toBuffer()
+							.toString(
+								'hex',
+							)}, resource: 0x${resource
+							.toBuffer()
+							.toString(
+								'hex',
+							)}, amount: U256 { raw: ${amount.toString()} } }`,
 					toHumanReadableString: () =>
 						`Tokens { 
 						reserved: ${reserved},

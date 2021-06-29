@@ -27,7 +27,9 @@ const makeValidatorValidatorOwnerCopy = (
 						toString: () =>
 							`${stringifySubstateType(
 								SubStateType.VALIDATOR_OWNER_COPY,
-							)} { reserved: ${reserved}, validator: 0x${validator.toString()}, owner: 0x${owner.toBuffer().toString('hex')} }`,
+							)} { reserved: ${reserved}, validator: 0x${validator.toString()}, owner: 0x${owner
+								.toBuffer()
+								.toString('hex')} }`,
 					}
 				},
 			),

@@ -1,4 +1,8 @@
-import { stringifySubstateType, SubStateType, ValidatorAllowDelegationFlagT } from './_types'
+import {
+	stringifySubstateType,
+	SubStateType,
+	ValidatorAllowDelegationFlagT,
+} from './_types'
 import { BufferReaderT } from '@radixdlt/util'
 import { err, ok, Result } from 'neverthrow'
 import { makeBaseValidatorSubstateFromBuffer } from './preparedStake'
