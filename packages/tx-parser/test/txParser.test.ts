@@ -1,117 +1,282 @@
-import { Transaction, TransactionT } from '../src'
+import {
+	BaseInstructionWithSubState,
+	InstructionType,
+	SYSCALL_TX_FEE_RESERVE_PUT,
+	SYSCALL_TX_FEE_RESERVE_TAKE,
+	Transaction,
+	TransactionT,
+	Ins_SYSCALL, Ins_UP, InstructionT, REAddressType, SubStateType, TokensT
+} from '../src'
 
 import { sha256Twice } from '@radixdlt/crypto'
+import { UInt256 } from '@radixdlt/uint256'
+import { err, ok, Result } from 'neverthrow'
+import { msgFromError } from '@radixdlt/util'
+import { REAddressPublicKey } from '../dist'
 
-const testComplex = (input: {
+export type TestVector = Readonly<{
 	blobHex: string
 	expected: {
 		parsedTX: string
-		hash?: string
+		// Used for total XRD amount calculation
+		myPublicKeyHex: string
+		txFee: string
+		totalXRDAmount: string
+		hash: string
 	}
-}): void => {
-	const { blobHex, expected } = input
+}>
+
+const generate_ledger_app_unit_test_c_code_from_test_vector = (input: Readonly<{
+	testVector: TestVector
+	testName: string
+	testDescription?: string
+}>): string => {
+	const { testVector, testName, testDescription } = input
+	const expectedHashHex = testVector.expected.hash
+	const expectedTxFee = testVector.expected.txFee
+	const expectedTotalXRDAmount = testVector.expected.totalXRDAmount
+	const myPublicKeyHex = testVector.expected.myPublicKeyHex
+
+	const chunkSubstr = (str: string, size: number): string[] => {
+		const numChunks = Math.ceil(str.length / size)
+		const chunks = new Array(numChunks)
+
+		for (let i = 0, o = 0; i < numChunks; ++i, o += size) {
+			chunks[i] = str.substr(o, size)
+		}
+
+		return chunks
+	}
+
+	const tx = Transaction.fromBuffer(Buffer.from(testVector.blobHex, 'hex'))._unsafeUnwrap()
+
+	const descriptionOfTest = testDescription ?? `Test of successful parsing of TX with #${tx.toBuffer().length} bytes and #${tx.instructions.length} instructions.`
+
+	const c_code_test_doc = `
+/**
+ * @brief ${descriptionOfTest}.
+ *
+ * Test parsing transaction with blob:
+ * ${chunkSubstr(testVector.blobHex, 80).join('\n\t')}
+ *
+ * Deserializes into these instructions:
+ * ${chunkSubstr(tx.toString(), 80).join('\n\t')}
+ *
+ * Expected hash of transaction:
+ * ${testVector.expected.hash}
+ *
+ */
+`
+	const c_code_test_header = `static void test_success_${testName}(void **state) {`
+
+	const sstOrIrrelevant = (instruction: InstructionT): string => {
+		const it = instruction.instructionType
+		if (!(it === InstructionType.UP || it === InstructionType.VREAD)) {
+			return 'IRRELEVANT'
+		}
+		const substate = (instruction as BaseInstructionWithSubState<InstructionType>).substate
+		return SubStateType[substate.substateType]
+	}
+
+	const c_code_body_expected_instructions_obj_strings = tx.instructions.map((ins): string =>
+		`
+		{
+			.ins_len = ${ins.toBuffer().length},
+            .ins_hex = "${ins.toBuffer().toString('hex')}",
+            .instruction_type = INS_${InstructionType[ins.instructionType].toUpperCase()},
+            .substate_type = ${sstOrIrrelevant(ins)},
+		}`
+	).join(',\n')
+
+	const c_code_body_expected_instructions = [
+		'expected_instruction_t expected_instructions[] = {',
+		c_code_body_expected_instructions_obj_strings,
+		'}'
+	].join('\n')
+
+	const chunkArray = <T>(myArray: T[], chunk_size: number): T[][] => {
+		const results: T[][] = [] as T[][]
+		while (myArray.length) {
+			results.push(myArray.splice(0, chunk_size))
+		}
+		return results
+	}
+
+
+	const expectedHashAsUInt8ArrayString: string = chunkArray(
+		// @ts-ignore
+		[...Buffer.from(expectedHashHex, 'hex')], 8
+	).map(array => array.map((byte: number) => `0x${byte.toString(16)}`).join(', ')).join(',\n\t\t\t')
+
+	const c_code_test_vector = `
+    test_vector_t test_vector = (test_vector_t){
+        .total_number_of_instructions = ${tx.instructions.length},
+        .expected_instructions = expected_instructions,
+        .expected_result = EXPECTED_RESULT_SUCCESS,
+        .expected_success = {
+            .my_public_key_hex =
+                "${myPublicKeyHex}",
+            .expected_tx_fee = "${expectedTxFee}",
+            .expected_total_xrd_amount = "${expectedTotalXRDAmount}",
+            .expected_hash = { // clang-format off
+\t\t\t${expectedHashAsUInt8ArrayString}
+            }, // clang-format on
+        }
+    }
+	`
+
+	const c_code_body = [
+		'\t(void) state',
+		c_code_body_expected_instructions,
+		c_code_test_vector,
+		'\tdo_test_parse_tx(test_vector);'
+	].join(';\n\n')
+
+	const c_code = [
+		c_code_test_doc,
+		c_code_test_header,
+		c_code_body
+
+	].join('\n')
+
+	console.log(c_code)
+	return c_code
+}
+
+/*
+		Tx fee is calculated like so ( https://radixdltworkspace.slack.com/archives/C01M90Y2448/p1624862932060600?thread_ts=1624862126.059900&cid=C01M90Y2448 )
+		=====================================================
+
+		Also a new syscall was added `FEE_RESERVE_TAKE (0x01)`, apart from old `FEE_RESERVE_PUT (0x00)` to be able
+		to claim back unused fees in the fee reserve. A general user transaction will look like:
+
+			```
+			DOWN <substate_id>
+			SYSCALL FEE_RESERVE_PUT <put_amt>
+			...
+			SYSCALL FEE_RESERVE_TAKE <take_amt0>
+			...
+			SYSCALL FEE_RESERVE_TAKE <take_amt1>
+			END
+			SIG <signature>
+			```
+
+		The corresponding fee paid in the transaction is then:
+
+			```
+			fee_paid = put_amt - sum(take_amt*)
+			```
+
+		There should only be one and only one put_amt value. There may be 0 or more take_amt values.
+
+	*/
+const calculateFeeOfTransaction = (transaction: TransactionT): Result<UInt256, Error> => {
+	const txFeeSysCallInsWithPrefix = (prefix: typeof SYSCALL_TX_FEE_RESERVE_PUT | typeof SYSCALL_TX_FEE_RESERVE_TAKE): Ins_SYSCALL[] => transaction.instructions
+		.filter(ins => ins.instructionType === InstructionType.SYSCALL)
+		.map(ins => ins as Ins_SYSCALL)
+		.filter(ins => ins.callData.data[0] === prefix)
+
+	const txFeePutInstructions = txFeeSysCallInsWithPrefix(SYSCALL_TX_FEE_RESERVE_PUT)
+
+	if (txFeePutInstructions.length !== 1) {
+		const errMsg = `ERROR transaction fee did not contain one, and exacly one, SYSCALL with 'TX_FEE_RESERVE_PUT' (0x01 + UInt256), but that is required.`
+		return err(new Error(errMsg))
+	}
+
+	const amountFromIns = (instruction: Ins_SYSCALL): UInt256 => new UInt256(
+		instruction.callData.data
+			.slice(1) // we skip first byte, specifying that this is either TX_FEE_RESERVE_PUT or SYSCALL_TX_FEE_RESERVE_TAKE
+			.toString('hex')
+		, 16)
+
+	// Earler asserted that we have one, and exactly one element.
+	const txFeePut = amountFromIns(txFeePutInstructions[0])
+
+	const txFeeTakenSum = txFeeSysCallInsWithPrefix(SYSCALL_TX_FEE_RESERVE_TAKE)
+		.map(amountFromIns)
+		.reduce((prev, cur) => prev.add(cur), UInt256.valueOf(0))
+
+	if (txFeeTakenSum.gt(txFeePut)) {
+		const errMsg = `ERROR: Sum of 'txFeeTakenSum' exceeds 'txFeePut', which is not allowed.`
+		return err(new Error(errMsg))
+	}
+
+	return ok(txFeePut.sub(txFeeTakenSum))
+}
+
+const amountOfXRDTransferredOutInTX = (transaction: TransactionT, myPublicKeyHex: string): UInt256 => transaction.instructions
+		.filter(ins => ins.instructionType === InstructionType.UP)
+		.map(ins => ins as Ins_UP)
+		.filter(insUp => insUp.substate.substateType === SubStateType.TOKENS)
+		.map(insUp => insUp.substate as TokensT)
+		.filter(tokens => tokens.resource.reAddressType === REAddressType.RADIX_NATIVE_TOKEN)
+		.filter((xrdTokens): boolean => {
+			const lhs = (xrdTokens.owner as REAddressPublicKey).publicKey.toString(true)
+			const isChangeBackToMe = lhs === myPublicKeyHex
+			return !isChangeBackToMe
+		})
+		.map(xrdTokens => xrdTokens.amount)
+		.reduce((prev, cur) => prev.add(cur), UInt256.valueOf(0))
+
+const testComplex = (testVector: TestVector): void => {
+	const { blobHex, expected } = testVector
 	const blob = Buffer.from(blobHex, 'hex')
 	const txRes = Transaction.fromBuffer(blob)
 	if (txRes.isErr()) {
 		throw txRes.error
 	}
 	const parsedTx: TransactionT = txRes.value
-	// console.log(parsedTx.toString())
+	console.log(parsedTx.toString())
 	expect(parsedTx.toString()).toBe(expected.parsedTX)
 
-	if (expected.hash) {
-		const hash = sha256Twice(blob)
-		expect(hash.toString('hex')).toBe(expected.hash)
+	const hash = sha256Twice(blob)
+	expect(hash.toString('hex')).toBe(expected.hash)
+
+
+	const txFeeResult = calculateFeeOfTransaction(parsedTx)
+	if (txFeeResult.isErr()) {
+		console.error(`Failed to calculated tx fee, underlying error: ${msgFromError(txFeeResult.error)}`)
+		return
 	}
+	const txFee = txFeeResult.value
+	const xrdSentOut = amountOfXRDTransferredOutInTX(parsedTx, expected.myPublicKeyHex)
+	const totalXRDCost = txFee.add(xrdSentOut)
+
+	expect(txFee.toString(10)).toBe(expected.txFee)
+	expect(totalXRDCost.toString(10)).toBe(expected.totalXRDAmount)
+
+	generate_ledger_app_unit_test_c_code_from_test_vector({
+		testVector,
+		testName: it.name
+	})
 }
 
 describe('txParser', () => {
 	it('txParser_token_transfer', () => {
 		testComplex({
 			blobHex:
-				'0a0001047d3d0287c2680bd4266aa773d8f135f749db64805e389250936d655481117c21000000000921000000000000000000000000000000000000000000000000000de0b6b3a76400000104000402efb587ffa428c453a5ad5812fa992a62eb202f67b7800db95f314ce0db62e6dc010000000000000000000000000000000000000000204fce5e1482de4619d4000000047d3d0287c2680bd4266aa773d8f135f749db64805e389250936d655481117c21000000010104000402efb587ffa428c453a5ad5812fa992a62eb202f67b7800db95f314ce0db62e6dc03ba4b5904a3c28b9fd463b8970c571ed60cbc7472dd82d6c237e400000000000000000000000000000000000000000000000000000000000000080104000403d837067161d778019939703b0c3bb953357ee845a631c79f0eb800bcf6e056c503ba4b5904a3c28b9fd463b8970c571ed60cbc7472dd82d6c237e40000000000000000000000000000000000000000000000000000000000000001000921010000000000000000000000000000000000000000000000000de0b6b3a76400000104000402efb587ffa428c453a5ad5812fa992a62eb202f67b7800db95f314ce0db62e6dc010000000000000000000000000000000000000000000000000de0b6b3a7640000',
+				'0a000104a0686a487f9d3adf4892a358e4460cda432068f069e5e9f4c815af21bc3dd1d600000000092100000000000000000000000000000000000000000000000abbade0b6b3a76400000105000402935deebcad35bcf27d05b431276be8fcba26312cd1d54c33ac6748a72fe427ca0100000000000000000000000000000000000000000000d3c1e44bf21f037000000005000000000105000402935deebcad35bcf27d05b431276be8fcba26312cd1d54c33ac6748a72fe427ca0100000000000000000000000000000000000000000000d38bae82445924d00000010500040356959464545aa2787984fe4ac76496721a22f150c0076724ad7190fe3a597bb70100000000000000000000000000000000000000000000003635c9adc5dea00000000921010000000000000000000000000000000000000000000000000de0b6b3a76400000105000402935deebcad35bcf27d05b431276be8fcba26312cd1d54c33ac6748a72fe427ca010000000000000000000000000000000000000000000000000de0b6b3a764000000',
 			expected: {
 				parsedTX: `Instructions:
 |- HEADER(0, 1)
-|- DOWN(SubstateId { hash: 0x7d3d0287c2680bd4266aa773d8f135f749db64805e389250936d655481117c21, index: 0 })
-|- SYSCALL(0x000000000000000000000000000000000000000000000000000de0b6b3a7640000)
-|- UP(Tokens { reserved: 0, owner: 0x0402efb587ffa428c453a5ad5812fa992a62eb202f67b7800db95f314ce0db62e6dc, resource: 0x01, amount: U256 { raw: 9999999997000000000000000000 } })
+|- DOWN(SubstateId { hash: 0xa0686a487f9d3adf4892a358e4460cda432068f069e5e9f4c815af21bc3dd1d6, index: 0 })
+|- SYSCALL(0x00000000000000000000000000000000000000000000000abbade0b6b3a7640000)
+|- UP(Tokens { reserved: 0, owner: 0x0402935deebcad35bcf27d05b431276be8fcba26312cd1d54c33ac6748a72fe427ca, resource: 0x01, amount: U256 { raw: 999996000000000000000000 } })
 |- END
-|- DOWN(SubstateId { hash: 0x7d3d0287c2680bd4266aa773d8f135f749db64805e389250936d655481117c21, index: 1 })
-|- UP(Tokens { reserved: 0, owner: 0x0402efb587ffa428c453a5ad5812fa992a62eb202f67b7800db95f314ce0db62e6dc, resource: 0x03ba4b5904a3c28b9fd463b8970c571ed60cbc7472dd82d6c237e4, amount: U256 { raw: 8 } })
-|- UP(Tokens { reserved: 0, owner: 0x0403d837067161d778019939703b0c3bb953357ee845a631c79f0eb800bcf6e056c5, resource: 0x03ba4b5904a3c28b9fd463b8970c571ed60cbc7472dd82d6c237e4, amount: U256 { raw: 1 } })
+|- LDOWN(0)
+|- UP(Tokens { reserved: 0, owner: 0x0402935deebcad35bcf27d05b431276be8fcba26312cd1d54c33ac6748a72fe427ca, resource: 0x01, amount: U256 { raw: 998996000000000000000000 } })
+|- UP(Tokens { reserved: 0, owner: 0x040356959464545aa2787984fe4ac76496721a22f150c0076724ad7190fe3a597bb7, resource: 0x01, amount: U256 { raw: 1000000000000000000000 } })
 |- END
 |- SYSCALL(0x010000000000000000000000000000000000000000000000000de0b6b3a7640000)
-|- UP(Tokens { reserved: 0, owner: 0x0402efb587ffa428c453a5ad5812fa992a62eb202f67b7800db95f314ce0db62e6dc, resource: 0x01, amount: U256 { raw: 1000000000000000000 } })`,
+|- UP(Tokens { reserved: 0, owner: 0x0402935deebcad35bcf27d05b431276be8fcba26312cd1d54c33ac6748a72fe427ca, resource: 0x01, amount: U256 { raw: 1000000000000000000 } })
+|- END`,
 				hash:
-					'f481b8e67996bba0272657180fe39ba7159ac5d18f0d9a500f275f665dc0aff3',
+					'2376fa3504b06ad5df0ddfc9baa67af328d1d55a6bbd75e32429b773f18eda6a',
+				myPublicKeyHex: '0356959464545aa2787984fe4ac76496721a22f150c0076724ad7190fe3a597bb7',
+				txFee: '50684735185526206758912',
+				totalXRDAmount: '2049677735185526206758912',
 			},
 		})
 	})
 
-	it('txParser_stake_1', () => {
-		testComplex({
-			blobHex:
-				'0a000104d846624816e608fdbe4cf82a279581c5bb4ab99234cf09c14295de49a074f089000000030d0c00025f73e00a095eb9b8ccf463e5b4014238b3a0d6b093a9ea2666ca3e4767ba4776000d1100025f73e00a095eb9b8ccf463e5b4014238b3a0d6b093a9ea2666ca3e4767ba477604025f73e00a095eb9b8ccf463e5b4014238b3a0d6b093a9ea2666ca3e4767ba4776010500025f73e00a095eb9b8ccf463e5b4014238b3a0d6b093a9ea2666ca3e4767ba477604025f73e00a095eb9b8ccf463e5b4014238b3a0d6b093a9ea2666ca3e4767ba47760000000000000000000000000000000000000000000000056bc75e2d63100000',
-			expected: {
-				parsedTX: `Instructions:
-|- HEADER(0, 1)
-|- DOWN(SubstateId { hash: 0xd846624816e608fdbe4cf82a279581c5bb4ab99234cf09c14295de49a074f089, index: 3 })
-|- VREAD(ValidatorAllowDelegationFlag { reserved: 0, validator: 0x025f73e00a095eb9b8ccf463e5b4014238b3a0d6b093a9ea2666ca3e4767ba4776, is_delegation_allowed: false })
-|- VREAD(ValidatorOwnerCopy { reserved: 0, validator: 0x025f73e00a095eb9b8ccf463e5b4014238b3a0d6b093a9ea2666ca3e4767ba4776, owner: 0x04025f73e00a095eb9b8ccf463e5b4014238b3a0d6b093a9ea2666ca3e4767ba4776 })
-|- UP(PreparedStake { reserved: 0, validator: 0x025f73e00a095eb9b8ccf463e5b4014238b3a0d6b093a9ea2666ca3e4767ba4776, owner: 0x04025f73e00a095eb9b8ccf463e5b4014238b3a0d6b093a9ea2666ca3e4767ba4776, amount: U256 { raw: 100000000000000000000 } })`,
-				hash:
-					'911da3088e0bda98a9433d8b3b92ac2ed7ad847fa8ea63e4501ca3825a6ca513',
-			},
-		})
-	})
-
-	it('txParser_stake_2', () => {
-		testComplex({
-			blobHex:
-				'0a0001043b73933a76a76299251b9c0f1358ed80388267fc3c415e2023c6fea1fe4e8c12000000030d0c0003cd30679958c47883299a48f18afc06050ed013d5780b976bb9645572768cfa7b000d110003cd30679958c47883299a48f18afc06050ed013d5780b976bb9645572768cfa7b0403cd30679958c47883299a48f18afc06050ed013d5780b976bb9645572768cfa7b01050003cd30679958c47883299a48f18afc06050ed013d5780b976bb9645572768cfa7b0403cd30679958c47883299a48f18afc06050ed013d5780b976bb9645572768cfa7b0000000000000000000000000000000000000000000000056bc75e2d63100000',
-			expected: {
-				parsedTX: `Instructions:
-|- HEADER(0, 1)
-|- DOWN(SubstateId { hash: 0x3b73933a76a76299251b9c0f1358ed80388267fc3c415e2023c6fea1fe4e8c12, index: 3 })
-|- VREAD(ValidatorAllowDelegationFlag { reserved: 0, validator: 0x03cd30679958c47883299a48f18afc06050ed013d5780b976bb9645572768cfa7b, is_delegation_allowed: false })
-|- VREAD(ValidatorOwnerCopy { reserved: 0, validator: 0x03cd30679958c47883299a48f18afc06050ed013d5780b976bb9645572768cfa7b, owner: 0x0403cd30679958c47883299a48f18afc06050ed013d5780b976bb9645572768cfa7b })
-|- UP(PreparedStake { reserved: 0, validator: 0x03cd30679958c47883299a48f18afc06050ed013d5780b976bb9645572768cfa7b, owner: 0x0403cd30679958c47883299a48f18afc06050ed013d5780b976bb9645572768cfa7b, amount: U256 { raw: 100000000000000000000 } })`,
-				hash:
-					'0f5ebd8787bcd83176c729d64144f06bb28d05862cd8983a042e5832d647260a',
-			},
-		})
-	})
-
-	it('txParser_unstake_1', () => {
-		testComplex({
-			blobHex:
-				'0a000104f9c4e95c066a83a77318023bee49786f71ce0fb690bef2876d034ab86dadcc4e000000000107000254a6f00336125eccb39911b04ddc317020fdab80c9bd1007c21c4a9a3b571b91040254a6f00336125eccb39911b04ddc317020fdab80c9bd1007c21c4a9a3b571b910000000000000000000000000000000000000000000000056bc75e2d631000000007003df37e175c1bd9635ef460f265ff0e8538ae3e25734ecb5a40f43760a26262055ed030043f028ffbca59fc8e139bc28313736cee2fa0f8741f566d7cf9aaaab8',
-			expected: {
-				parsedTX: `Instructions:
-|- HEADER(0, 1)
-|- DOWN(SubstateId { hash: 0xf9c4e95c066a83a77318023bee49786f71ce0fb690bef2876d034ab86dadcc4e, index: 0 })
-|- UP(PreparedUnstake { reserved: 0, validator: 0x0254a6f00336125eccb39911b04ddc317020fdab80c9bd1007c21c4a9a3b571b91, owner: 0x040254a6f00336125eccb39911b04ddc317020fdab80c9bd1007c21c4a9a3b571b91, amount: U256 { raw: 100000000000000000000 } })
-|- END
-|- SIG(0x003df37e175c1bd9635ef460f265ff0e8538ae3e25734ecb5a40f43760a26262055ed030043f028ffbca59fc8e139bc28313736cee2fa0f8741f566d7cf9aaaab8)`,
-				hash:
-					'5399cf91b9e61511067f1a05f2e82d8f4a90459c4cf03366420f462d07c705c1',
-			},
-		})
-	})
-
-	it('txParser_unstake_2', () => {
-		testComplex({
-			blobHex:
-				'0a000104cb746ef53e02b6fc2f6ed5fd958ecdc1c25372d221d0020fc84e703ba74a675100000007010700039cd7a83f8ddf53a0511302246d70ba628736c0b26c6fd5431c5a0d6885ea3f8704039cd7a83f8ddf53a0511302246d70ba628736c0b26c6fd5431c5a0d6885ea3f870000000000000000000000000000000000000000000000056bc75e2d63100000',
-			expected: {
-				parsedTX: `Instructions:
-|- HEADER(0, 1)
-|- DOWN(SubstateId { hash: 0xcb746ef53e02b6fc2f6ed5fd958ecdc1c25372d221d0020fc84e703ba74a6751, index: 7 })
-|- UP(PreparedUnstake { reserved: 0, validator: 0x039cd7a83f8ddf53a0511302246d70ba628736c0b26c6fd5431c5a0d6885ea3f87, owner: 0x04039cd7a83f8ddf53a0511302246d70ba628736c0b26c6fd5431c5a0d6885ea3f87, amount: U256 { raw: 100000000000000000000 } })`,
-				hash:
-					'be185e01a5064410e031abfc4b301c844d4f1c2bdb2919d5e50f999177b88724',
-			},
-		})
-	})
 })

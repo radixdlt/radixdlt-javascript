@@ -61,25 +61,11 @@ export type REAddressT =
 	| REAddressPublicKey
 
 export enum SubStateType {
-	// UNCLAIMED_RE_ADDR = 0x00,    // UNSUPPORTED
-	// ROUND_DATA = 0x01,           // UNSUPPORTED
-	// EPOCH_DATA = 0x02,           // UNSUPPORTED
-	// TOKEN_DEF = 0x03,            // UNSUPPORTED
-	TOKENS = 0x04,
-	PREPARED_STAKE = 0x05,
-	// STAKE_OWNERSHIP = 0x06,     // UNSUPPORTED
-	PREPARED_UNSTAKE = 0x07,
-	// EXITING_STAKE = 0x08,       // UNSUPPORTED
-	// VALIDATOR_META_DATA = 0x09, // UNSUPPORTED
-	// VALIDATOR_STAKE_DATA = 0x0a, // UNSUPPORTED
-	// VALIDATOR_BFT_DATA = 0x0b, // UNSUPPORTED
-	VALIDATOR_ALLOW_DELEGATION_FLAG = 0x0c,
-	// VALIDATOR_REGISTRED_FLAG_COPY = 0x0d, // UNSUPPORTED
-	// VALIDATOR_REGISTRED_FLAG_UPDATE = 0x0e, // UNSUPPORTED
-	// VALIDATOR_RAKE_COPY = 0x0f, // UNSUPPORTED
-	// PREPARED_RAKE_UPDATE = 0x10, // UNSUPPORTED
-	VALIDATOR_OWNER_COPY = 0x11,
-	// PREPARED_VALIDATOR_OWNER_UPDATE = 0x12, // UNSUPPORTED
+	TOKENS = 0x05,
+	PREPARED_STAKE = 0x06,
+	PREPARED_UNSTAKE = 0x08,
+	VALIDATOR_ALLOW_DELEGATION_FLAG = 0x0d,
+	VALIDATOR_OWNER_COPY = 0x12,
 }
 
 export type BaseSubstate<SST extends SubStateType> = REPrimitive &
@@ -201,6 +187,13 @@ export type Ins_SIG = BaseInstruction<InstructionType.SIG> &
 	Readonly<{
 		signature: TXSig
 	}>
+
+export const SYSCALL_TX_FEE_RESERVE_PUT = 0x00
+export const SYSCALL_TX_FEE_RESERVE_TAKE = 0x01
+
+// When SYSCALL is used for TX FEE then callData SHOULD have length 33 bytes, where first byte
+// is either `SYSCALL_TX_FEE_RESERVE_PUT` (0x01) or `SYSCALL_TX_FEE_RESERVE_TAKE` (0x01) followed
+// by 32 Bytes representing UInt256 (tx fee amount).
 export type Ins_SYSCALL = BaseInstruction<InstructionType.SYSCALL> &
 	Readonly<{
 		callData: BytesT
