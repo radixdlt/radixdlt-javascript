@@ -58,6 +58,7 @@ export type REAddressT =
 export enum SubStateType {
 	TOKENS = 0x05,
 	PREPARED_STAKE = 0x06,
+	STAKE_OWNERSHIP = 0x07,
 	PREPARED_UNSTAKE = 0x08,
 	VALIDATOR_ALLOW_DELEGATION_FLAG = 0x0d,
 	VALIDATOR_OWNER_COPY = 0x12,
@@ -99,6 +100,7 @@ export type BaseStakingSubstate<
 
 export type PreparedStakeT = BaseStakingSubstate<SubStateType.PREPARED_STAKE>
 export type PreparedUnstakeT = BaseStakingSubstate<SubStateType.PREPARED_UNSTAKE>
+export type StakeOwnershipT = BaseStakingSubstate<SubStateType.STAKE_OWNERSHIP>
 
 export type ValidatorAllowDelegationFlagT = BaseValidatorSubstate<SubStateType.VALIDATOR_ALLOW_DELEGATION_FLAG> &
 	Readonly<{
@@ -114,6 +116,7 @@ export type SubstateT =
 	| TokensT
 	| PreparedStakeT
 	| PreparedUnstakeT
+	| StakeOwnershipT
 	| ValidatorAllowDelegationFlagT
 	| ValidatorOwnerCopyT
 
@@ -127,6 +130,8 @@ export const stringifySubstateType = (substateType: SubStateType): string => {
 			return 'PreparedStake'
 		case SubStateType.PREPARED_UNSTAKE:
 			return 'PreparedUnstake'
+		case SubStateType.STAKE_OWNERSHIP:
+			return 'StakeOwnership'
 		case SubStateType.VALIDATOR_ALLOW_DELEGATION_FLAG:
 			return 'ValidatorAllowDelegationFlag'
 		default:
