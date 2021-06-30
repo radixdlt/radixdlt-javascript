@@ -24,7 +24,7 @@ import {
 import { Transaction } from '@radixdlt/tx-parser'
 import { TransactionT } from '@radixdlt/tx-parser'
 import { AccountAddress } from '@radixdlt/account'
-import { stringifyUInt256 } from '@radixdlt/tx-parser/dist/tokens'
+import { stringifyUInt256 } from '@radixdlt/tx-parser/'
 // @ts-ignore
 import TransportNodeHid from '@aleworm/hw-transport-node-hid'
 

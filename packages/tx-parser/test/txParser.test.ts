@@ -11,13 +11,15 @@ import {
 	REAddressType,
 	SubStateType,
 	TokensT,
+	REAddressPublicKey
 } from '../src'
 
 import { sha256Twice } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
 import { err, ok, Result } from 'neverthrow'
 import { msgFromError } from '@radixdlt/util'
-import { REAddressPublicKey } from '../dist'
+
+let c_unit_tests_string = ''
 
 export type TestVector = Readonly<{
 	blobHex: string
@@ -30,6 +32,8 @@ export type TestVector = Readonly<{
 		hash: string
 	}
 }>
+
+
 
 const generate_ledger_app_unit_test_c_code_from_test_vector = (
 	input: Readonly<{
@@ -78,8 +82,7 @@ const generate_ledger_app_unit_test_c_code_from_test_vector = (
  * Expected hash of transaction:
  * ${testVector.expected.hash}
  *
- */
-`
+ */`
 	const c_code_test_header = `static void test_success_${testName}(void **state) {`
 
 	const sstOrIrrelevant = (instruction: InstructionT): string => {
@@ -95,15 +98,14 @@ const generate_ledger_app_unit_test_c_code_from_test_vector = (
 	const c_code_body_expected_instructions_obj_strings = tx.instructions
 		.map(
 			(ins): string =>
-				`
-		{
-			.ins_len = ${ins.toBuffer().length},
-            .ins_hex = "${ins.toBuffer().toString('hex')}",
-            .instruction_type = INS_${InstructionType[
-				ins.instructionType
-			].toUpperCase()},
-            .substate_type = ${sstOrIrrelevant(ins)},
-		}`,
+				`{
+\t\t.ins_len = ${ins.toBuffer().length},
+\t\t// clang-format off
+\t\t.ins_hex = "${ins.toBuffer().toString('hex')}",
+\t\t// clang-format on
+\t\t.instruction_type = INS_${InstructionType[ins.instructionType].toUpperCase()},
+\t\t.substate_type = ${sstOrIrrelevant(ins)},
+}`,
 		)
 		.join(',\n')
 
@@ -158,9 +160,6 @@ const generate_ledger_app_unit_test_c_code_from_test_vector = (
 	const c_code = [c_code_test_doc, c_code_test_header, c_code_body, '}'].join(
 		'\n',
 	)
-
-	// Outcomment this line to generate unit tests for Ledger app C code.
-	// console.log(c_code)
 
 	return c_code
 }
@@ -294,13 +293,20 @@ const doTestParseTX = (testVector: TestVector): void => {
 	expect(txFee.toString(10)).toBe(expected.txFee)
 	expect(totalXRDCost.toString(10)).toBe(expected.totalXRDAmount)
 
-	generate_ledger_app_unit_test_c_code_from_test_vector({
+	const c_unit_test_code_string_from_vector = generate_ledger_app_unit_test_c_code_from_test_vector({
 		testVector,
 		testName: expect.getState().currentTestName.split(' ')[1],
 	})
+
+	c_unit_tests_string = `${c_unit_tests_string}\n\n${c_unit_test_code_string_from_vector}`
 }
 
 describe('txParser', () => {
+	afterAll(() => {
+		// Use log below to output C unit tests string.
+		// 	console.log(c_unit_tests_string)
+	})
+
 	it('token_transfer_only_xrd', () => {
 		doTestParseTX({
 			blobHex:
