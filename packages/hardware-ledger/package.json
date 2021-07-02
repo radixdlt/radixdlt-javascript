@@ -29,6 +29,7 @@
     "node": ">=15.5.0 <16"
   },
   "dependencies": {
+    "@ledgerhq/hw-transport-node-hid": "^6.0.2",
     "@radixdlt/crypto": "^1.0.47",
     "@radixdlt/hardware-wallet": "^1.0.33",
     "@radixdlt/primitives": "^1.0.35",

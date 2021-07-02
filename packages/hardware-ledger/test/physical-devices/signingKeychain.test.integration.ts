@@ -12,6 +12,8 @@ import { DeriveHWSigningKeyInput } from '@radixdlt/account'
 import { HardwareWalletT } from '@radixdlt/hardware-wallet'
 import { HWSigningKeyDerivation } from '@radixdlt/account'
 import { HardwareWalletLedger } from '../../src'
+// @ts-ignore
+import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 
 describe('signingKeychain_hw_ledger', () => {
 	beforeAll(() => {
@@ -35,14 +37,17 @@ describe('signingKeychain_hw_ledger', () => {
 	})
 
 	it('deriveHWSigningKey', async done => {
+		const transport = await TransportNodeHid.create()
+
 		const subs = new Subscription()
 
 		const keyDerivation: HWSigningKeyDerivation = 'next'
-		const hardwareWalletConnection: Observable<HardwareWalletT> = HardwareWalletLedger.create()
+		const hardwareWalletConnection: Observable<HardwareWalletT> = HardwareWalletLedger.create(transport)
 
 		const input: DeriveHWSigningKeyInput = {
 			keyDerivation,
 			hardwareWalletConnection,
+			alsoSwitchTo: true
 		}
 
 		subs.add(

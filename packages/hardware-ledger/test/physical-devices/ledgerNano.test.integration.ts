@@ -3,7 +3,7 @@
  */
 
 /* eslint-disable */
-/*
+
 import { SemVerT, SignTXOutput } from '@radixdlt/hardware-wallet'
 import { log } from '@radixdlt/util'
 import { Subscription } from 'rxjs'
@@ -25,8 +25,9 @@ import { Transaction } from '@radixdlt/tx-parser/dist/transaction'
 import { TransactionT } from '@radixdlt/tx-parser'
 import { AccountAddress } from '@radixdlt/account'
 import { stringifyUInt256 } from '@radixdlt/tx-parser/dist/tokens'
+
 // @ts-ignore
-import TransportNodeHid from '@aleworm/hw-transport-node-hid'
+import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 
 describe('hw_ledger_integration', () => {
 	let ledgerNano: LedgerNanoT
@@ -55,7 +56,7 @@ describe('hw_ledger_integration', () => {
 	it('getVersion_integration', async done => {
 		const transport = await TransportNodeHid.create()
 
-		ledgerNano = await LedgerNano.connect(transport, {
+		ledgerNano = await LedgerNano.connect(transport as any, {
 			deviceConnectionTimeout: 10_000,
 		})
 		const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
@@ -78,7 +79,7 @@ describe('hw_ledger_integration', () => {
 	it('getPublicKey_integration', async done => {
 		const transport = await TransportNodeHid.create()
 
-		ledgerNano = await LedgerNano.connect(transport, {
+		ledgerNano = await LedgerNano.connect(transport as any, {
 			deviceConnectionTimeout: 10_000,
 		})
 		const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
@@ -131,7 +132,7 @@ describe('hw_ledger_integration', () => {
 	it('doKeyExchange_integration', async done => {
 		const transport = await TransportNodeHid.create()
 
-		ledgerNano = await LedgerNano.connect(transport, {
+		ledgerNano = await LedgerNano.connect(transport as any, {
 			deviceConnectionTimeout: 10_000,
 		})
 		const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
@@ -195,7 +196,7 @@ describe('hw_ledger_integration', () => {
 		async done => {
 			const transport = await TransportNodeHid.create()
 
-			ledgerNano = await LedgerNano.connect(transport, {
+			ledgerNano = await LedgerNano.connect(transport as any, {
 				deviceConnectionTimeout: 20_000,
 			})
 			const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
@@ -277,7 +278,7 @@ describe('hw_ledger_integration', () => {
 	it('doSignHash_integration', async done => {
 		const transport = await TransportNodeHid.create()
 
-		ledgerNano = await LedgerNano.connect(transport, {
+		ledgerNano = await LedgerNano.connect(transport as any, {
 			deviceConnectionTimeout: 10_000,
 		})
 		const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
@@ -313,4 +314,3 @@ describe('hw_ledger_integration', () => {
 		)
 	}, 40_000)
 })
-*/

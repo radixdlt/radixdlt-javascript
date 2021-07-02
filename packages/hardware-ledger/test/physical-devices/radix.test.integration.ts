@@ -3,7 +3,7 @@
  */
 
 /* eslint-disable */
-/*
+
 import { log } from '@radixdlt/util'
 import { Observable, Subscription } from 'rxjs'
 import { Radix, SigningKeychain, Wallet, WalletT } from '@radixdlt/application'
@@ -17,8 +17,9 @@ import { NetworkT } from '@radixdlt/primitives'
 import { HardwareWalletT } from '@radixdlt/hardware-wallet'
 import { HardwareWalletLedger } from '../../src'
 import { DeriveHWSigningKeyInput } from '@radixdlt/account'
+
 // @ts-ignore
-import TransportNodeHid from '@aleworm/hw-transport-node-hid'
+import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 
 describe('radix_hw_ledger', () => {
 	beforeAll(() => {
@@ -54,7 +55,7 @@ describe('radix_hw_ledger', () => {
 
 		const keyDerivation: HWSigningKeyDerivation = 'next'
 		const hardwareWalletConnection: Observable<HardwareWalletT> = HardwareWalletLedger.create(
-			transport,
+			transport as any,
 		)
 
 		const input: DeriveHWSigningKeyInput = {
@@ -111,4 +112,3 @@ describe('radix_hw_ledger', () => {
 		)
 	}, 20_000)
 })
-*/
