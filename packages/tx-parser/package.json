@@ -1,6 +1,6 @@
 {
   "name": "@radixdlt/tx-parser",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "description": "Parsing of Radix Engine transactions and instructions",
   "keywords": [
     "Radix Engine",
