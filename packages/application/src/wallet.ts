@@ -20,13 +20,13 @@ import { Account, isAccount } from './account'
 import { map, mergeMap } from 'rxjs/operators'
 import { Option } from 'prelude-ts'
 import { PublicKeyT, HDPathRadixT } from '@radixdlt/crypto'
-import { NetworkT } from '@radixdlt/primitives'
+import { Network } from '@radixdlt/primitives'
 import { log } from '@radixdlt/util/dist/logging'
 
 const create = (
 	input: Readonly<{
 		signingKeychain: SigningKeychainT
-		network: NetworkT
+		network: Network
 	}>,
 ): WalletT => {
 	const { network, signingKeychain } = input

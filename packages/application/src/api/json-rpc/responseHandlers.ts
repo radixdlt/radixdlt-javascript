@@ -7,7 +7,7 @@ import {
 	ResourceIdentifier,
 } from '@radixdlt/account'
 
-import { NetworkT, Amount } from '@radixdlt/primitives'
+import { Network, Amount } from '@radixdlt/primitives'
 
 import { isString } from '@radixdlt/util'
 import {
@@ -15,8 +15,8 @@ import {
 	SubmitTransactionEndpoint,
 	LookupTransactionEndpoint,
 	NetworkIdEndpoint,
-	NetworkTransactionDemandEndpoint,
-	NetworkTransactionThroughputEndpoint,
+	NetworkransactionDemandEndpoint,
+	NetworkransactionThroughputEndpoint,
 	StakePositionsEndpoint,
 	FinalizeTransactionEndpoint,
 	TokenBalancesEndpoint,
@@ -74,7 +74,7 @@ const transactionIdentifierDecoder = (...keys: string[]) =>
 const networkDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
 		key !== undefined && keys.includes(key) && typeof value === 'number'
-			? ok(NetworkT.BETANET) // temporary until mainnet
+			? ok(Network.MAINNET)
 			: undefined,
 	)
 
@@ -292,24 +292,24 @@ export const handleTransactionStatusResponse = (
 					]),
 				)
 
-export const handleNetworkTxThroughputResponse = (
-	json: NetworkTransactionThroughputEndpoint.Response,
+export const handleNetworkxThroughputResponse = (
+	json: NetworkransactionThroughputEndpoint.Response,
 ) =>
 	JSONDecoding.create<
-		NetworkTransactionThroughputEndpoint.Response,
-		NetworkTransactionThroughputEndpoint.DecodedResponse
+		NetworkransactionThroughputEndpoint.Response,
+		NetworkransactionThroughputEndpoint.DecodedResponse
 	>()(json).andThen(decoded =>
-		hasRequiredProps('networkTransactionThroughput', decoded, ['tps']),
+		hasRequiredProps('NetworkransactionThroughput', decoded, ['tps']),
 	)
 
-export const handleNetworkTxDemandResponse = (
-	json: NetworkTransactionDemandEndpoint.Response,
+export const handleNetworkxDemandResponse = (
+	json: NetworkransactionDemandEndpoint.Response,
 ) =>
 	JSONDecoding.create<
-		NetworkTransactionDemandEndpoint.Response,
-		NetworkTransactionDemandEndpoint.DecodedResponse
+		NetworkransactionDemandEndpoint.Response,
+		NetworkransactionDemandEndpoint.DecodedResponse
 	>()(json).andThen(decoded =>
-		hasRequiredProps('networkTransactionDemand', decoded, ['tps']),
+		hasRequiredProps('NetworkransactionDemand', decoded, ['tps']),
 	)
 
 export const handleBuildTransactionResponse = (

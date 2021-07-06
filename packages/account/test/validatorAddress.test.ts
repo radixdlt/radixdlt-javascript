@@ -2,45 +2,45 @@ import { PrivateKey, sha256Twice } from '@radixdlt/crypto'
 import { ValidatorAddress } from '../src'
 import { msgFromError, restoreDefaultLogLevel } from '@radixdlt/util'
 import { log } from '@radixdlt/util'
-import { NetworkT } from '@radixdlt/primitives'
+import { Network } from '@radixdlt/primitives'
 
 describe('validator_address_on_bech32_format', () => {
 	describe('addr from seeded private key', () => {
 		type PrivateKeySeedVector = {
 			privateKeySeed: string
 			expectedAddr: string
-			network: NetworkT
+			network: Network
 		}
 		const privateKeySeedVectors: PrivateKeySeedVector[] = [
 			{
 				privateKeySeed: '00',
 				expectedAddr:
 					'vb1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq9u3702',
-				network: NetworkT.BETANET,
+				network: Network.BETANET,
 			},
 			{
 				privateKeySeed: 'deadbeef',
 				expectedAddr:
 					'vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazy',
-				network: NetworkT.BETANET,
+				network: Network.BETANET,
 			},
 			{
 				privateKeySeed: 'deadbeefdeadbeef',
 				expectedAddr:
 					'vb1q0jym8jxnc0a4306y95j9m07tprxws6ccjz9h352tkcdfzfysh0jxll64dl',
-				network: NetworkT.BETANET,
+				network: Network.BETANET,
 			},
 			{
 				privateKeySeed: 'bead',
 				expectedAddr:
 					'vb1qgtnc40hs73dxe2fgy5yvujnxmdnvg69w6fhj6drr68vqac525k2gkfdady',
-				network: NetworkT.BETANET,
+				network: Network.BETANET,
 			},
 			{
 				privateKeySeed: 'aaaaaaaaaaaaaaaa',
 				expectedAddr:
 					'vb1qgyz0t0kd9j4302q8429tl0mu3w8lm8nne8l2m9e8k74t3qm3xe9z8l2049',
-				network: NetworkT.BETANET,
+				network: Network.BETANET,
 			},
 		]
 

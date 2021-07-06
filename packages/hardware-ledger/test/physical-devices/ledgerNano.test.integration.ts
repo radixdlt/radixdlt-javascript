@@ -18,7 +18,7 @@ import {
 } from '@radixdlt/crypto'
 import {
 	BuiltTransactionReadyToSign,
-	NetworkT,
+	Network,
 	uint256FromUnsafe,
 } from '@radixdlt/primitives'
 import { Transaction } from '@radixdlt/tx-parser/dist/transaction'
@@ -86,7 +86,9 @@ describe('hw_ledger_integration', () => {
 
 		const subs = new Subscription()
 
-		const path = HDPathRadix.fromString(`m/44'/1022'/2'/1/3`)._unsafeUnwrap()
+		const path = HDPathRadix.fromString(
+			`m/44'/1022'/2'/1/3`,
+		)._unsafeUnwrap()
 		const displayAddress = true
 
 		const expectedPubKeyHex =
@@ -100,11 +102,11 @@ describe('hw_ledger_integration', () => {
 			console.log(`🔮 expected path: ${path.toString()}`)
 			const accountAddress = AccountAddress.fromPublicKeyAndNetwork({
 				publicKey: expectedPubKey,
-				network: NetworkT.BETANET,
+				network: Network.BETANET,
 			})
 			const wrongAccountAddress = AccountAddress.fromPublicKeyAndNetwork({
 				publicKey: expectedPubKey,
-				network: NetworkT.MAINNET,
+				network: Network.MAINNET,
 			})
 			console.log(
 				`🔮 expected address: '${accountAddress.toString()}' ([wrong]mainnet: '${wrongAccountAddress.toString()}')`,
@@ -158,7 +160,7 @@ describe('hw_ledger_integration', () => {
 			const accountAddressOfOtherParty = AccountAddress.fromPublicKeyAndNetwork(
 				{
 					publicKey: publicKeyOfOtherParty,
-					network: NetworkT.BETANET,
+					network: Network.BETANET,
 				},
 			)
 
@@ -246,7 +248,7 @@ describe('hw_ledger_integration', () => {
 					.doSignTransaction({
 						path,
 						nonXrdHRP: 'btc',
-						tx
+						tx,
 					})
 					.subscribe(
 						(result: SignTXOutput) => {
@@ -289,7 +291,9 @@ describe('hw_ledger_integration', () => {
 			`I'm testing Radix awesome hardware wallet!`,
 		)
 
-		const path = HDPathRadix.fromString(`m/44'/1022'/2'/1/3`)._unsafeUnwrap()
+		const path = HDPathRadix.fromString(
+			`m/44'/1022'/2'/1/3`,
+		)._unsafeUnwrap()
 
 		console.log(`🔮 Path: ${path.toString()}`)
 		console.log(`🔮 Hash: ${hashToSign.toString('hex')}`)

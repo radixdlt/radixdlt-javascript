@@ -1,11 +1,11 @@
 import { Wallet, WalletT } from '../src'
-import { NetworkT } from '@radixdlt/primitives'
+import { Network } from '@radixdlt/primitives'
 import { SigningKeychain } from '@radixdlt/account'
 import { Mnemonic } from '@radixdlt/crypto'
 
 export const createWallet = (
 	input?: Readonly<{
-		network?: NetworkT
+		network?: Network
 		startWithInitialSigningKey?: boolean
 	}>,
 ): WalletT => {
@@ -18,7 +18,7 @@ export const createWallet = (
 		startWithInitialSigningKey,
 	})
 
-	const network = input?.network ?? NetworkT.BETANET
+	const network = input?.network ?? Network.BETANET
 
 	return Wallet.create({
 		signingKeychain,

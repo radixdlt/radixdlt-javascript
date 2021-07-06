@@ -253,10 +253,10 @@ export type RawUnstakesAction = RawExecutedActionBase<ActionType.UNSTAKE_TOKENS>
 		amount: string
 	}>
 
-export type NetworkTransactionThroughput = Readonly<{
+export type NetworkransactionThroughput = Readonly<{
 	tps: number
 }>
-export type NetworkTransactionDemand = NetworkTransactionThroughput
+export type NetworkransactionDemand = NetworkransactionThroughput
 
 export enum TransactionStatus {
 	PENDING = 'PENDING',

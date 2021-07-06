@@ -70,7 +70,7 @@ import {
 	Wallet,
 	WalletT,
 } from '../src'
-import { Amount, AmountT, NetworkT } from '@radixdlt/primitives'
+import { Amount, AmountT, Network } from '@radixdlt/primitives'
 
 import {
 	log,
@@ -97,7 +97,7 @@ import { createWallet } from './util'
 export const makeWalletWithFunds = (): WalletT => {
 	return Wallet.create({
 		signingKeychain: makeSigningKeyChainWithFunds(),
-		network: NetworkT.BETANET,
+		network: Network.MAINNET,
 	})
 }
 
@@ -355,7 +355,7 @@ describe('radix_high_level_api', () => {
 
 		radix.activeAddress.subscribe(
 			address => {
-				expect(address.network).toBe(NetworkT.BETANET)
+				expect(address.network).toBe(Network.BETANET)
 				done()
 			},
 			error => done(error),
@@ -734,7 +734,7 @@ describe('radix_high_level_api', () => {
 		subs.add(
 			radix.__wallet.subscribe(_w => {
 				const expectedValues = [
-						{ pkIndex: 0, tokenBalancesCount: 1 },
+					{ pkIndex: 0, tokenBalancesCount: 1 },
 					{ pkIndex: 1, tokenBalancesCount: 4 },
 					{ pkIndex: 2, tokenBalancesCount: 1 },
 					{ pkIndex: 3, tokenBalancesCount: 1 },
@@ -1021,7 +1021,7 @@ describe('radix_high_level_api', () => {
 		const radix = Radix.create().__withAPI(mockedAPI)
 
 		subs.add(
-			radix.ledger.networkTransactionDemand().subscribe(result => {
+			radix.ledger.NetworkransactionDemand().subscribe(result => {
 				expect(result.tps).toEqual(109)
 				done()
 			}),
@@ -1034,7 +1034,7 @@ describe('radix_high_level_api', () => {
 		const radix = Radix.create().__withAPI(mockedAPI)
 
 		subs.add(
-			radix.ledger.networkTransactionThroughput().subscribe(result => {
+			radix.ledger.NetworkransactionThroughput().subscribe(result => {
 				expect(result.tps).toEqual(10)
 				done()
 			}),
@@ -1183,7 +1183,7 @@ describe('radix_high_level_api', () => {
 		const bobPublicKey = bobPrivateKey.publicKey()
 		const bob = AccountAddress.fromPublicKeyAndNetwork({
 			publicKey: bobPublicKey,
-			network: NetworkT.BETANET,
+			network: Network.BETANET,
 		})
 
 		const plaintext =
@@ -1305,7 +1305,7 @@ describe('radix_high_level_api', () => {
 		)._unsafeUnwrap()
 		const recipientAddress = AccountAddress.fromPublicKeyAndNetwork({
 			publicKey: recipientPK,
-			network: NetworkT.BETANET,
+			network: Network.BETANET,
 		})
 		const tokenTransferInput: TransferTokensInput = {
 			to: recipientAddress,
@@ -1790,8 +1790,8 @@ describe('radix_high_level_api', () => {
 			.__withAPI(
 				of({
 					...mockRadixCoreAPI(),
-					networkId: (): Observable<NetworkT> => {
-						return of(NetworkT.BETANET).pipe(shareReplay(1))
+					networkId: (): Observable<Network> => {
+						return of(Network.BETANET).pipe(shareReplay(1))
 					},
 				}),
 			)
@@ -1859,7 +1859,7 @@ describe('radix_high_level_api', () => {
 			}
 
 			const wallet = makeWalletWithFunds()
-			const network = NetworkT.BETANET
+			const network = Network.BETANET
 			const myAddress = AccountAddress.fromPublicKeyAndNetwork({
 				publicKey: wallet.__unsafeGetAccount().publicKey,
 				network,

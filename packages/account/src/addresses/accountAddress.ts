@@ -11,7 +11,7 @@ import {
 } from './abstractAddress'
 import { buffersEquals } from '@radixdlt/util'
 import { AccountAddressT, AddressTypeT } from './_types'
-import { NetworkT } from '@radixdlt/primitives'
+import { HRP, Network } from '@radixdlt/primitives'
 
 export const isAccountAddress = (
 	something: unknown,
@@ -20,27 +20,28 @@ export const isAccountAddress = (
 	return something.addressType === AddressTypeT.ACCOUNT
 }
 
-const hrpMainnet = 'rdx'
-const hrpBetanet = 'brx'
 const maxLength = 300 // arbitrarily chosen
 const versionByte = Buffer.from([0x04])
 const encoding = Encoding.BECH32
 
-const hrpFromNetwork: HRPFromNetwork = network => {
-	switch (network) {
-		case NetworkT.BETANET:
-			return hrpBetanet
-		case NetworkT.MAINNET:
-			return hrpMainnet
-	}
-}
+const hrpFromNetwork = (network: Network) => HRP[network].account
 
-const networkFromHRP: NetworkFromHRP = hrp => {
-	if (hrp === hrpMainnet) return ok(NetworkT.MAINNET)
-	if (hrp === hrpBetanet) return ok(NetworkT.BETANET)
-	const errMsg = `Failed to parse network from HRP ${hrp} for ValidatorAddress.`
-	return err(new Error(errMsg))
-}
+const networkFromHRP: NetworkFromHRP = hrp =>
+	hrp === HRP.MAINNET.account
+		? ok(Network.MAINNET)
+		: hrp === HRP.STOKENET.account
+		? ok(Network.STOKENET)
+		: hrp === HRP.TESTNET3.account
+		? ok(Network.TESTNET3)
+		: hrp === HRP.TESTNET4.account
+		? ok(Network.TESTNET4)
+		: hrp === HRP.TESTNET5.account
+		? ok(Network.TESTNET5)
+		: err(
+				Error(
+					`Failed to parse network from HRP ${hrp} for AccountAddress.`,
+				),
+		  )
 
 const formatDataToBech32Convert: FormatDataToBech32Convert = data =>
 	Buffer.concat([versionByte, data])
@@ -62,7 +63,7 @@ const validateDataAndExtractPubKeyBytes: ValidateDataAndExtractPubKeyBytes = (
 const fromPublicKeyAndNetwork = (
 	input: Readonly<{
 		publicKey: PublicKeyT
-		network: NetworkT
+		network: Network
 	}>,
 ): AccountAddressT =>
 	AbstractAddress.byFormattingPublicKeyDataAndBech32ConvertingIt({
@@ -98,7 +99,7 @@ const fromBuffer = (buffer: Buffer): Result<AccountAddressT, Error> => {
 		PublicKey.fromBuffer(buf).map(publicKey =>
 			fromPublicKeyAndNetwork({
 				publicKey,
-				network: NetworkT.BETANET, // yikes!
+				network: Network.MAINNET, // yikes!
 			}),
 		)
 

@@ -10,9 +10,6 @@ export enum Encoding {
 
 export const defaultEncoding = Encoding.BECH32
 
-export type HRP = string
-export type Data = Buffer
-
 const convertDataFromBech32 = (bech32Data: Buffer): Result<Buffer, Error> => {
 	try {
 		const data = bech32.fromWords(bech32Data)
@@ -38,8 +35,8 @@ const convertDataToBech32 = (data: Buffer): Result<Buffer, Error> => {
 const __unsafeCreate = (
 	input: Readonly<{
 		bech32String: string
-		hrp: HRP
-		data: Data
+		hrp: string
+		data: Buffer
 	}>,
 ): Bech32T => {
 	const toString = (): string => input.bech32String
@@ -48,8 +45,8 @@ const __unsafeCreate = (
 }
 
 export type Bech32EncodeInput = Readonly<{
-	hrp: HRP
-	data: Data
+	hrp: string
+	data: Buffer
 	encoding?: Encoding
 	maxLength?: number
 }>

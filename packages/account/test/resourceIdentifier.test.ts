@@ -3,7 +3,7 @@ import { msgFromError, restoreDefaultLogLevel } from '@radixdlt/util'
 import { PrivateKey } from '@radixdlt/crypto'
 import { UInt256 } from '@radixdlt/uint256'
 import { log } from '@radixdlt/util'
-import { NetworkT } from '@radixdlt/primitives'
+import { Network } from '@radixdlt/primitives'
 
 describe('rri_on_bech32_format', () => {
 	it('xrd rri can be parsed from string', () => {
@@ -13,7 +13,7 @@ describe('rri_on_bech32_format', () => {
 			rri => {
 				expect(rri.name).toBe('xrd')
 				expect(rri.toString()).toBe(rriString)
-				expect(rri.network).toBe(NetworkT.BETANET)
+				expect(rri.network).toBe(Network.BETANET)
 			},
 			e => {
 				throw e
@@ -23,7 +23,7 @@ describe('rri_on_bech32_format', () => {
 
 	it('can create mainnet rri that not equals rri of betanet with same name.', () => {
 		const name = 'foo'
-		const network = NetworkT.MAINNET
+		const network = Network.MAINNET
 		const rriMainnet = ResourceIdentifier.systemRRIForNetwork({
 			name,
 			network,
@@ -36,7 +36,7 @@ describe('rri_on_bech32_format', () => {
 
 		const rriBetanet = ResourceIdentifier.systemRRIForNetwork({
 			name,
-			network: NetworkT.BETANET,
+			network: Network.BETANET,
 		})._unsafeUnwrap()
 
 		expect(rriBetanet.equals(rriMainnet)).toBe(false)
@@ -49,7 +49,7 @@ describe('rri_on_bech32_format', () => {
 			pkScalar: number
 			name: string
 			expectedRRI: string
-			network: NetworkT
+			network: Network
 		}
 		const privateKeyAndNameToRri: Vector[] = [
 			{
@@ -57,28 +57,28 @@ describe('rri_on_bech32_format', () => {
 				name: 'foo',
 				expectedRRI:
 					'foo_rb1qv9ee5j4qun9frqj2mcg79maqq55n46u5ypn2j0g9c3q32j6y3',
-				network: NetworkT.BETANET,
+				network: Network.BETANET,
 			},
 			{
 				pkScalar: 1,
 				name: 'bar',
 				expectedRRI:
 					'bar_rb1qwaa87cznx0nmeq08dya2ae43u92g4g0nkfktd9u9lpq6hgjca',
-				network: NetworkT.BETANET,
+				network: Network.BETANET,
 			},
 			{
 				pkScalar: 2,
 				name: 'foo',
 				expectedRRI:
 					'foo_rb1qvmf6ak360gxjfhxeh0x5tn99gjzzh5d7u3kvktj26rsu5qa3u',
-				network: NetworkT.BETANET,
+				network: Network.BETANET,
 			},
 			{
 				pkScalar: 2,
 				name: 'bar',
 				expectedRRI:
 					'bar_rb1qd3t7gnvwxddj2wxg5dl4adr7er9uw62g7x0ku6hyw4qfk0pfz',
-				network: NetworkT.BETANET,
+				network: Network.BETANET,
 			},
 		]
 
@@ -228,43 +228,43 @@ describe('rri_on_bech32_format', () => {
 		type SystemRRIVector = {
 			name: string
 			expectedRRI: string
-			network: NetworkT
+			network: Network
 		}
 		const privateKeyAndNameToRri: SystemRRIVector[] = [
 			{
 				name: 'xrd',
 				expectedRRI: 'xrd_rb1qya85pwq',
-				network: NetworkT.BETANET,
+				network: Network.BETANET,
 			},
 			{
 				name: 'foo',
 				expectedRRI: 'foo_rb1qy3q706k',
-				network: NetworkT.BETANET,
+				network: Network.BETANET,
 			},
 			{
 				name: 'bar',
 				expectedRRI: 'bar_rb1qy6gq5vc',
-				network: NetworkT.BETANET,
+				network: Network.BETANET,
 			},
 			{
 				name: 'alex',
 				expectedRRI: 'alex_rb1qy7s58lc',
-				network: NetworkT.BETANET,
+				network: Network.BETANET,
 			},
 			{
 				name: 'gold',
 				expectedRRI: 'gold_rb1qydtpdac',
-				network: NetworkT.BETANET,
+				network: Network.BETANET,
 			},
 			{
 				name: 'btcrw',
 				expectedRRI: 'btcrw_rb1qyerpvjk',
-				network: NetworkT.BETANET,
+				network: Network.BETANET,
 			},
 			{
 				name: 'ethrw',
 				expectedRRI: 'ethrw_rb1qyeev2v5',
-				network: NetworkT.BETANET,
+				network: Network.BETANET,
 			},
 		]
 

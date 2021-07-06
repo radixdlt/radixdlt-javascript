@@ -13,7 +13,7 @@ import {
 	HDSigningKeyTypeIdentifier,
 	HWSigningKeyDerivation,
 } from '@radixdlt/account/src/_types'
-import { NetworkT } from '@radixdlt/primitives'
+import { Network } from '@radixdlt/primitives'
 import { HardwareWalletT } from '@radixdlt/hardware-wallet'
 import { HardwareWalletLedger } from '../../src'
 import { DeriveHWSigningKeyInput } from '@radixdlt/account'
@@ -32,7 +32,7 @@ describe('radix_hw_ledger', () => {
 		})
 		return Wallet.create({
 			signingKeychain,
-			network: NetworkT.BETANET,
+			network: Network.BETANET,
 		})
 	}
 
@@ -93,7 +93,7 @@ describe('radix_hw_ledger', () => {
 					expect(account.address.toString()).toBe(
 						'brx1qsplg0a6v4qsx8hjr904h2txwu6562q50ezmgrx7ge3tajgk9smp74gh62u3y',
 					)
-					expect(account.network).toBe(NetworkT.BETANET)
+					expect(account.network).toBe(Network.BETANET)
 					expect(account.type.isHardwareSigningKey).toBe(true)
 					expect(account.type.isHDSigningKey).toBe(true)
 					expect(account.type.typeIdentifier).toBe(

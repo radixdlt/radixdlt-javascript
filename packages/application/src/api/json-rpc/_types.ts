@@ -1,9 +1,9 @@
-import { NetworkT } from '@radixdlt/primitives'
+import { Network } from '@radixdlt/primitives'
 import { ActionType } from '../../actions'
 import {
 	SimpleExecutedTransaction,
-	NetworkTransactionDemand,
-	NetworkTransactionThroughput,
+	NetworkransactionDemand,
+	NetworkransactionThroughput,
 	PendingTransaction,
 	RawExecutedTransaction,
 	RawToken,
@@ -48,7 +48,7 @@ export namespace NetworkIdEndpoint {
 	}
 
 	export type DecodedResponse = {
-		networkId: NetworkT
+		networkId: Network
 	}
 }
 
@@ -137,24 +137,24 @@ export namespace TransactionStatusEndpoint {
 	export type DecodedResponse = StatusOfTransaction
 }
 
-export namespace NetworkTransactionThroughputEndpoint {
+export namespace NetworkransactionThroughputEndpoint {
 	export type Input = Record<string, never>
 
 	export type Response = {
 		tps: number
 	}
 
-	export type DecodedResponse = NetworkTransactionThroughput
+	export type DecodedResponse = NetworkransactionThroughput
 }
 
-export namespace NetworkTransactionDemandEndpoint {
+export namespace NetworkransactionDemandEndpoint {
 	export type Input = Record<string, never>
 
 	export type Response = {
 		tps: number
 	}
 
-	export type DecodedResponse = NetworkTransactionDemand
+	export type DecodedResponse = NetworkransactionDemand
 }
 
 export namespace ValidatorsEndpoint {

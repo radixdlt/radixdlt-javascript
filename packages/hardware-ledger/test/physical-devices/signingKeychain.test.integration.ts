@@ -42,12 +42,14 @@ describe('signingKeychain_hw_ledger', () => {
 		const subs = new Subscription()
 
 		const keyDerivation: HWSigningKeyDerivation = 'next'
-		const hardwareWalletConnection: Observable<HardwareWalletT> = HardwareWalletLedger.create(transport)
+		const hardwareWalletConnection: Observable<HardwareWalletT> = HardwareWalletLedger.create(
+			transport,
+		)
 
 		const input: DeriveHWSigningKeyInput = {
 			keyDerivation,
 			hardwareWalletConnection,
-			alsoSwitchTo: true
+			alsoSwitchTo: true,
 		}
 
 		subs.add(

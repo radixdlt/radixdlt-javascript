@@ -2,7 +2,7 @@ import {
 	AmountOrUnsafeInput,
 	AmountT,
 	uint256Max,
-	NetworkT,
+	Network,
 } from '@radixdlt/primitives'
 import {
 	AccountAddress,
@@ -17,8 +17,8 @@ import {
 	BuiltTransaction,
 	ExecutedTransaction,
 	FinalizedTransaction,
-	NetworkTransactionDemand,
-	NetworkTransactionThroughput,
+	NetworkransactionDemand,
+	NetworkransactionThroughput,
 	PendingTransaction,
 	SignedTransaction,
 	SimpleExecutedTransaction,
@@ -412,12 +412,12 @@ const detRandomSignedUnconfirmedTransaction = (
 }
 
 const rndDemand = detPRNGWithBuffer(Buffer.from('dmnd'))
-const randomDemand = (): NetworkTransactionDemand => ({
+const randomDemand = (): NetworkransactionDemand => ({
 	tps: rndDemand() % 200,
 })
 
 const rndThroughput = detPRNGWithBuffer(Buffer.from('trpt'))
-const randomThroughput = (): NetworkTransactionDemand => ({
+const randomThroughput = (): NetworkransactionDemand => ({
 	tps: rndThroughput() % 200,
 })
 
@@ -666,7 +666,7 @@ const deterministicRandomLookupTXUsingHist = (
 	const seed = sha256(Buffer.from(txID.__hex, 'hex'))
 	const addressWithTXIdBytesAsSeed = AccountAddress.fromPublicKeyAndNetwork({
 		publicKey: PrivateKey.fromBuffer(seed)._unsafeUnwrap().publicKey(),
-		network: NetworkT.BETANET,
+		network: Network.MAINNET,
 	})
 	const txs = deterministicRandomTxHistoryWithInput({
 		size: 1,
@@ -709,7 +709,7 @@ export const deterministicRandomStakesForAddr = (
 export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
 	node: { url: new URL(nodeUrl ?? 'https://www.radixdlt.com/') },
 
-	networkId: (): Observable<NetworkT> => {
+	networkId: (): Observable<Network> => {
 		throw Error('Not implemented')
 	},
 
@@ -765,11 +765,11 @@ export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
 		throw Error('Not implemented')
 	},
 
-	networkTransactionThroughput: (): Observable<NetworkTransactionThroughput> => {
+	NetworkransactionThroughput: (): Observable<NetworkransactionThroughput> => {
 		throw Error('Not implemented')
 	},
 
-	networkTransactionDemand: (): Observable<NetworkTransactionDemand> => {
+	NetworkransactionDemand: (): Observable<NetworkransactionDemand> => {
 		throw Error('Not implemented')
 	},
 
@@ -800,15 +800,15 @@ let txStatusMapCounter: Map<
 export const mockRadixCoreAPI = (
 	input?: Readonly<{
 		nodeUrl?: string
-		network?: NetworkT
+		network?: Network
 	}>,
 ): RadixCoreAPI => {
 	txStatusMapCounter = new Map<TransactionIdentifierT, number>()
 	return {
 		node: { url: new URL(input?.nodeUrl ?? 'https://www.radixdlt.com/') },
 
-		networkId: (): Observable<NetworkT> =>
-			of(input?.network ?? NetworkT.BETANET).pipe(shareReplay(1)),
+		networkId: (): Observable<Network> =>
+			of(input?.network ?? Network.MAINNET).pipe(shareReplay(1)),
 		nativeToken: (): Observable<Token> => of(xrd),
 		tokenInfo: (rri: ResourceIdentifierT): Observable<Token> =>
 			of(tokenByRRIMap.get(rri) ?? __fallBackAlexToken),
@@ -855,9 +855,9 @@ export const mockRadixCoreAPI = (
 			of(detRandomSignedUnconfirmedTransaction(signedTransaction)),
 		submitSignedTransaction: signedUnconfirmedTX =>
 			of(randomPendingTransaction(signedUnconfirmedTX)),
-		networkTransactionDemand: (): Observable<NetworkTransactionDemand> =>
+		NetworkransactionDemand: (): Observable<NetworkransactionDemand> =>
 			of(randomDemand()),
-		networkTransactionThroughput: (): Observable<NetworkTransactionThroughput> =>
+		NetworkransactionThroughput: (): Observable<NetworkransactionThroughput> =>
 			of(randomThroughput()),
 		transactionHistory: deterministicRandomTXHistory,
 		lookupTransaction: deterministicRandomLookupTX,

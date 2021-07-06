@@ -4,7 +4,7 @@ import {
 	SigningKeychain,
 	SigningKeychainT,
 } from '@radixdlt/account'
-import { NetworkT } from '@radixdlt/primitives'
+import { Network } from '@radixdlt/primitives'
 import { nodeAPI, NodeT, RadixAPI, radixCoreAPI, RadixCoreAPI } from './api'
 
 import {
@@ -61,8 +61,8 @@ import {
 	lookupValidatorErr,
 	nativeTokenErr,
 	networkIdErr,
-	networkTxDemandErr,
-	networkTxThroughputErr,
+	NetworkxDemandErr,
+	NetworkxThroughputErr,
 	stakesForAddressErr,
 	submitSignedTxErr,
 	tokenBalancesErr,
@@ -153,10 +153,10 @@ const shouldConfirmTransactionAutomatically = (
 
 const create = (
 	input?: Readonly<{
-		network?: NetworkT
+		network?: Network
 	}>,
 ): RadixT => {
-	const requestedNetwork = input?.network ?? NetworkT.BETANET // TODO Mainnet replace with NetworkT.MAINNET when launched
+	const requestedNetwork = input?.network ?? Network.MAINNET
 	const subs = new Subscription()
 	const radixLog = log // TODO configure child loggers
 
@@ -246,13 +246,13 @@ const create = (
 			a => a.transactionStatus,
 			m => txStatusErr(m),
 		),
-		networkTransactionThroughput: fwdAPICall(
-			a => a.networkTransactionThroughput,
-			m => networkTxThroughputErr(m),
+		NetworkransactionThroughput: fwdAPICall(
+			a => a.NetworkransactionThroughput,
+			m => NetworkxThroughputErr(m),
 		),
-		networkTransactionDemand: fwdAPICall(
-			a => a.networkTransactionDemand,
-			m => networkTxDemandErr(m),
+		NetworkransactionDemand: fwdAPICall(
+			a => a.NetworkransactionDemand,
+			m => NetworkxDemandErr(m),
 		),
 		buildTransaction: fwdAPICall(
 			a => a.buildTransaction,

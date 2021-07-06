@@ -17,8 +17,8 @@ import {
 	LookupValidatorEndpoint,
 	NativeTokenEndpoint,
 	NetworkIdEndpoint,
-	NetworkTransactionDemandEndpoint,
-	NetworkTransactionThroughputEndpoint,
+	NetworkransactionDemandEndpoint,
+	NetworkransactionThroughputEndpoint,
 	StakePositionsEndpoint,
 	SubmitTransactionEndpoint,
 	TokenBalancesEndpoint,
@@ -30,7 +30,7 @@ import {
 	ApiMethod,
 	Message,
 } from '../src'
-import { Amount, NetworkT } from '@radixdlt/primitives'
+import { Amount, Network } from '@radixdlt/primitives'
 
 import { isArray, isObject } from '@radixdlt/util'
 import {
@@ -371,18 +371,18 @@ const expectedDecodedResponses = {
 	[rpcSpec.methods[10].name]: (
 		response: NetworkIdEndpoint.Response,
 	): NetworkIdEndpoint.DecodedResponse => ({
-		networkId: NetworkT.BETANET,
+		networkId: Network.BETANET,
 	}),
 
 	[rpcSpec.methods[11].name]: (
-		response: NetworkTransactionThroughputEndpoint.Response,
-	): NetworkTransactionThroughputEndpoint.DecodedResponse => ({
+		response: NetworkransactionThroughputEndpoint.Response,
+	): NetworkransactionThroughputEndpoint.DecodedResponse => ({
 		tps: response.tps,
 	}),
 
 	[rpcSpec.methods[12].name]: (
-		response: NetworkTransactionDemandEndpoint.Response,
-	): NetworkTransactionDemandEndpoint.DecodedResponse => ({
+		response: NetworkransactionDemandEndpoint.Response,
+	): NetworkransactionDemandEndpoint.DecodedResponse => ({
 		tps: response.tps,
 	}),
 
