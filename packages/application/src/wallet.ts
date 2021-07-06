@@ -17,7 +17,12 @@ import {
 } from './_types'
 import { Observable, of, throwError } from 'rxjs'
 import { Account, isAccount } from './account'
-import { map, mergeMap } from 'rxjs/operators'
+import {
+	distinctUntilChanged,
+	map,
+	mergeMap,
+	shareReplay,
+} from 'rxjs/operators'
 import { Option } from 'prelude-ts'
 import { PublicKeyT, HDPathRadixT } from '@radixdlt/crypto'
 import { NetworkT } from '@radixdlt/primitives'
@@ -69,7 +74,11 @@ const create = (
 	}
 
 	const observeActiveAccount = (): Observable<AccountT> =>
-		signingKeychain.observeActiveSigningKey().pipe(map(skToAccount))
+		signingKeychain.observeActiveSigningKey().pipe(
+			map(skToAccount),
+			shareReplay(1),
+			distinctUntilChanged((prev, cur) => prev.equals(cur)),
+		)
 
 	return {
 		__unsafeGetAccount: (): AccountT =>
@@ -91,7 +100,10 @@ const create = (
 			observeActiveAccount().pipe(
 				mergeMap(
 					(a: AccountT): Observable<AccountT> => {
-						if (!a.signingKey.isHardwareSigningKey) {
+						if (
+							!signingKeychain.__unsafeGetSigningKey()
+								.isHardwareSigningKey
+						) {
 							const errMsg = `Active account is not a hardware account, so cannot verify the address on hardware device. Type identifier of active account: ${a.signingKey.type.typeIdentifier}`
 							log.error(errMsg)
 							return throwError(new Error(errMsg))
@@ -101,19 +113,22 @@ const create = (
 				),
 				mergeMap(
 					(a: AccountT): Observable<void> =>
-						a.signingKey.getPublicKeyDisplayOnlyAddress().pipe(
-							mergeMap(
-								(pk: PublicKeyT): Observable<void> => {
-									if (pk.equals(a.publicKey)) {
-										return of(undefined)
-									} else {
-										const errMsg = `Hardware wallet returned a different public key than the cached one, this is bad. Probably incorrect implementation.`
-										log.error(errMsg)
-										return throwError(new Error(errMsg))
-									}
-								},
+						signingKeychain
+							.__unsafeGetSigningKey()
+							.getPublicKeyDisplayOnlyAddress()
+							.pipe(
+								mergeMap(
+									(pk: PublicKeyT): Observable<void> => {
+										if (pk.equals(a.publicKey)) {
+											return of(undefined)
+										} else {
+											const errMsg = `Hardware wallet returned a different public key than the cached one, this is bad. Probably incorrect implementation.`
+											log.error(errMsg)
+											return throwError(new Error(errMsg))
+										}
+									},
+								),
 							),
-						),
 				),
 			),
 

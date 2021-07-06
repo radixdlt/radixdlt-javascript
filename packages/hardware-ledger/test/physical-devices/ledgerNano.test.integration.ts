@@ -86,7 +86,9 @@ describe('hw_ledger_integration', () => {
 
 		const subs = new Subscription()
 
-		const path = HDPathRadix.fromString(`m/44'/1022'/2'/1/3`)._unsafeUnwrap()
+		const path = HDPathRadix.fromString(
+			`m/44'/1022'/2'/1/3`,
+		)._unsafeUnwrap()
 		const displayAddress = true
 
 		const expectedPubKeyHex =
@@ -246,7 +248,7 @@ describe('hw_ledger_integration', () => {
 					.doSignTransaction({
 						path,
 						nonXrdHRP: 'btc',
-						tx
+						tx,
 					})
 					.subscribe(
 						(result: SignTXOutput) => {
@@ -289,7 +291,9 @@ describe('hw_ledger_integration', () => {
 			`I'm testing Radix awesome hardware wallet!`,
 		)
 
-		const path = HDPathRadix.fromString(`m/44'/1022'/2'/1/3`)._unsafeUnwrap()
+		const path = HDPathRadix.fromString(
+			`m/44'/1022'/2'/1/3`,
+		)._unsafeUnwrap()
 
 		console.log(`🔮 Path: ${path.toString()}`)
 		console.log(`🔮 Hash: ${hashToSign.toString('hex')}`)

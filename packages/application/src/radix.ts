@@ -413,8 +413,6 @@ const create = (
 
 	const activeAccount: Observable<AccountT> = wallet$.pipe(
 		mergeMap(wallet => wallet.observeActiveAccount()),
-		shareReplay(1),
-		distinctUntilChanged((prev, cur) => prev.equals(cur)),
 	)
 
 	const accounts = wallet$.pipe(
