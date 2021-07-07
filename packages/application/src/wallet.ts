@@ -90,18 +90,8 @@ const create = (
 		displayAddressForActiveHWAccountOnHWDeviceForVerification: (): Observable<void> =>
 			observeActiveAccount().pipe(
 				mergeMap(
-					(a: AccountT): Observable<AccountT> => {
-						if (!a.signingKey.isHardwareSigningKey) {
-							const errMsg = `Active account is not a hardware account, so cannot verify the address on hardware device. Type identifier of active account: ${a.signingKey.type.typeIdentifier}`
-							log.error(errMsg)
-							return throwError(new Error(errMsg))
-						}
-						return of(a)
-					},
-				),
-				mergeMap(
 					(a: AccountT): Observable<void> =>
-						a.signingKey.getPublicKeyDisplayOnlyAddress().pipe(
+						signingKeychain.__unsafeGetSigningKey().getPublicKeyDisplayOnlyAddress().pipe(
 							mergeMap(
 								(pk: PublicKeyT): Observable<void> => {
 									if (pk.equals(a.publicKey)) {
