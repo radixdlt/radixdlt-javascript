@@ -1,6 +1,6 @@
 {
   "name": "@radixdlt/primitives",
-  "version": "1.2.10",
+  "version": "1.2.11",
   "description": "Shared common data types",
   "keywords": [
     "Integers",
@@ -29,9 +29,9 @@
     "node": ">=15.5.0 <16"
   },
   "dependencies": {
-    "@radixdlt/data-formats": "^1.1.1",
+    "@radixdlt/data-formats": "^1.2.11",
     "@radixdlt/uint256": "1.1.0",
-    "@radixdlt/util": "^1.1.1",
+    "@radixdlt/util": "^1.2.11",
     "bn.js": "^5.1.3",
     "long": "^4.0.0",
     "neverthrow": "^4.0.1"
