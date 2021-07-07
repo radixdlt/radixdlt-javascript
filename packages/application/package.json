@@ -1,6 +1,6 @@
 {
   "name": "@radixdlt/application",
-  "version": "1.1.1",
+  "version": "1.2.10",
   "description": "A JavaScript client library for interacting with the Radix Distributed Ledger.",
   "keywords": [
     "RadixApplicationClient",
@@ -50,5 +50,6 @@
   "devDependencies": {
     "@types/bignumber.js": "^5.0.0",
     "bignumber.js": "^9.0.1"
-  }
+  },
+  "gitHead": "8dc0bb6385cadfb44004e4da0fbdc1988e522038"
 }
