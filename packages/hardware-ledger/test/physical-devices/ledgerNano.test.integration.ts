@@ -102,7 +102,7 @@ describe('hw_ledger_integration', () => {
 			console.log(`🔮 expected path: ${path.toString()}`)
 			const accountAddress = AccountAddress.fromPublicKeyAndNetwork({
 				publicKey: expectedPubKey,
-				network: Network.BETANET,
+				network: Network.MAINNET,
 			})
 			const wrongAccountAddress = AccountAddress.fromPublicKeyAndNetwork({
 				publicKey: expectedPubKey,
@@ -160,7 +160,7 @@ describe('hw_ledger_integration', () => {
 			const accountAddressOfOtherParty = AccountAddress.fromPublicKeyAndNetwork(
 				{
 					publicKey: publicKeyOfOtherParty,
-					network: Network.BETANET,
+					network: Network.MAINNET,
 				},
 			)
 

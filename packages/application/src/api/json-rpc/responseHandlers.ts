@@ -15,8 +15,8 @@ import {
 	SubmitTransactionEndpoint,
 	LookupTransactionEndpoint,
 	NetworkIdEndpoint,
-	NetworkransactionDemandEndpoint,
-	NetworkransactionThroughputEndpoint,
+	NetworkTransactionDemandEndpoint,
+	NetworkTransactionThroughputEndpoint,
 	StakePositionsEndpoint,
 	FinalizeTransactionEndpoint,
 	TokenBalancesEndpoint,
@@ -293,23 +293,23 @@ export const handleTransactionStatusResponse = (
 				)
 
 export const handleNetworkxThroughputResponse = (
-	json: NetworkransactionThroughputEndpoint.Response,
+	json: NetworkTransactionThroughputEndpoint.Response,
 ) =>
 	JSONDecoding.create<
-		NetworkransactionThroughputEndpoint.Response,
-		NetworkransactionThroughputEndpoint.DecodedResponse
+		NetworkTransactionThroughputEndpoint.Response,
+		NetworkTransactionThroughputEndpoint.DecodedResponse
 	>()(json).andThen(decoded =>
-		hasRequiredProps('NetworkransactionThroughput', decoded, ['tps']),
+		hasRequiredProps('NetworkTransactionThroughput', decoded, ['tps']),
 	)
 
 export const handleNetworkxDemandResponse = (
-	json: NetworkransactionDemandEndpoint.Response,
+	json: NetworkTransactionDemandEndpoint.Response,
 ) =>
 	JSONDecoding.create<
-		NetworkransactionDemandEndpoint.Response,
-		NetworkransactionDemandEndpoint.DecodedResponse
+		NetworkTransactionDemandEndpoint.Response,
+		NetworkTransactionDemandEndpoint.DecodedResponse
 	>()(json).andThen(decoded =>
-		hasRequiredProps('NetworkransactionDemand', decoded, ['tps']),
+		hasRequiredProps('NetworkTransactionDemand', decoded, ['tps']),
 	)
 
 export const handleBuildTransactionResponse = (

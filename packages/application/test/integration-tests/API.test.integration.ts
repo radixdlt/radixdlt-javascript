@@ -67,7 +67,7 @@ describe('integration API tests', () => {
 
 	it('can connect and is chainable', () => {
 		const radix = Radix.create({
-			network: Network.BETANET,
+			network: Network.MAINNET,
 		}).connect(`${NODE_URL}`)
 		expect(radix).toBeDefined()
 		expect(radix.ledger.nativeToken).toBeDefined()
@@ -76,7 +76,7 @@ describe('integration API tests', () => {
 
 	it('emits node connection without wallet', async done => {
 		const radix = Radix.create({
-			network: Network.BETANET,
+			network: Network.MAINNET,
 		}).connect(`${NODE_URL}`)
 
 		subs.add(
@@ -92,7 +92,7 @@ describe('integration API tests', () => {
 
 	it('provides network for wallets', async done => {
 		const radix = Radix.create({
-			network: Network.BETANET,
+			network: Network.MAINNET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}`)
@@ -110,7 +110,7 @@ describe('integration API tests', () => {
 
 	it('returns native token without wallet', async done => {
 		const radix = Radix.create({
-			network: Network.BETANET,
+			network: Network.MAINNET,
 		})
 		radix.connect(`${NODE_URL}`)
 
@@ -127,7 +127,7 @@ describe('integration API tests', () => {
 
 	it('deriveNextSigningKey method on radix updates accounts', done => {
 		const radix = Radix.create({
-			network: Network.BETANET,
+			network: Network.MAINNET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}`)
@@ -153,7 +153,7 @@ describe('integration API tests', () => {
 
 	it('deriveNextSigningKey alsoSwitchTo method on radix updates activeSigningKey', done => {
 		const radix = Radix.create({
-			network: Network.BETANET,
+			network: Network.MAINNET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}`)
@@ -180,7 +180,7 @@ describe('integration API tests', () => {
 
 	it('deriveNextSigningKey alsoSwitchTo method on radix updates activeAddress', done => {
 		const radix = Radix.create({
-			network: Network.BETANET,
+			network: Network.MAINNET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}`)
@@ -203,7 +203,7 @@ describe('integration API tests', () => {
 
 	it('should compare token balance before and after transfer', done => {
 		const radix = Radix.create({
-			network: Network.BETANET,
+			network: Network.MAINNET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}`)
@@ -280,7 +280,7 @@ describe('integration API tests', () => {
 
 	it('should increment transaction history with a new transaction after transfer', async done => {
 		const radix = Radix.create({
-			network: Network.BETANET,
+			network: Network.MAINNET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}`)
@@ -369,7 +369,7 @@ describe('integration API tests', () => {
 
 	it('should be able to get transaction history', done => {
 		const radix = Radix.create({
-			network: Network.BETANET,
+			network: Network.MAINNET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}`)
@@ -418,7 +418,7 @@ describe('integration API tests', () => {
 	it.skip('should handle transaction status updates', done => {
 		// can't test because it becomes confirmed immediately
 		const radix = Radix.create({
-			network: Network.BETANET,
+			network: Network.MAINNET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}`)
@@ -464,7 +464,7 @@ describe('integration API tests', () => {
 
 	it('can lookup tx', async done => {
 		const radix = Radix.create({
-			network: Network.BETANET,
+			network: Network.MAINNET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}`)
@@ -494,7 +494,7 @@ describe('integration API tests', () => {
 
 	it('can lookup validator', done => {
 		const radix = Radix.create({
-			network: Network.BETANET,
+			network: Network.MAINNET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}`)
@@ -523,7 +523,7 @@ describe('integration API tests', () => {
 
 	it('should get validators', done => {
 		const radix = Radix.create({
-			network: Network.BETANET,
+			network: Network.MAINNET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}`)
@@ -542,7 +542,7 @@ describe('integration API tests', () => {
 
 	it('should be able to paginate validators', done => {
 		const radix = Radix.create({
-			network: Network.BETANET,
+			network: Network.MAINNET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}`)
@@ -590,13 +590,13 @@ describe('integration API tests', () => {
 
 	it('should get network transaction demand response', done => {
 		const radix = Radix.create({
-			network: Network.BETANET,
+			network: Network.MAINNET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}`)
 
 		subs.add(
-			radix.ledger.NetworkransactionDemand().subscribe(result => {
+			radix.ledger.NetworkTransactionDemand().subscribe(result => {
 				expect(result.tps).toEqual(0)
 				done()
 			}),
@@ -605,13 +605,13 @@ describe('integration API tests', () => {
 
 	it('should get network transaction throughput response', done => {
 		const radix = Radix.create({
-			network: Network.BETANET,
+			network: Network.MAINNET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}`)
 
 		subs.add(
-			radix.ledger.NetworkransactionThroughput().subscribe(result => {
+			radix.ledger.NetworkTransactionThroughput().subscribe(result => {
 				expect(result.tps).toBeGreaterThan(0)
 				done()
 			}),
@@ -622,7 +622,7 @@ describe('integration API tests', () => {
 		const triggerSubject = new Subject<number>()
 
 		const radix = Radix.create({
-			network: Network.BETANET,
+			network: Network.MAINNET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}`)
@@ -709,7 +709,7 @@ describe('integration API tests', () => {
 		const triggerSubject = new Subject<number>()
 
 		const radix = Radix.create({
-			network: Network.BETANET,
+			network: Network.MAINNET,
 		})
 			.connect(`${NODE_URL}`)
 			.withWallet(makeWalletWithFunds())
@@ -766,7 +766,7 @@ describe('integration API tests', () => {
 
 	it('should be able to paginate validator result', done => {
 		const radix = Radix.create({
-			network: Network.BETANET,
+			network: Network.MAINNET,
 		})
 			.withWallet(makeWalletWithFunds())
 			.connect(`${NODE_URL}`)
@@ -836,7 +836,7 @@ describe('integration API tests', () => {
 		it.skip('events emits expected values', done => {
 			// can't see pending state because quick confirmation
 			const radix = Radix.create({
-				network: Network.BETANET,
+				network: Network.MAINNET,
 			})
 				.withWallet(makeWalletWithFunds())
 				.connect(`${NODE_URL}`)
@@ -881,7 +881,7 @@ describe('integration API tests', () => {
 
 		it('automatic confirmation', done => {
 			const radix = Radix.create({
-				network: Network.BETANET,
+				network: Network.MAINNET,
 			})
 				.withWallet(makeWalletWithFunds())
 				.connect(`${NODE_URL}`)
@@ -909,7 +909,7 @@ describe('integration API tests', () => {
 
 		it('manual confirmation', done => {
 			const radix = Radix.create({
-				network: Network.BETANET,
+				network: Network.MAINNET,
 			})
 				.withWallet(makeWalletWithFunds())
 				.connect(`${NODE_URL}`)

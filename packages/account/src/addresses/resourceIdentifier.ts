@@ -65,18 +65,18 @@ const fromBech32String = (
 	if (!decodingResult.isOk()) {
 		const errMsg = `Failed to Bech32 decode RRI, underlying error: ${msgFromError(
 			decodingResult.error,
-		)}, but expect to always be able to.`
+		)}`
 		return err(new Error(errMsg))
 	}
 	const decoded = decodingResult.value
 	const hrp = decoded.hrp
-
+	
 	if (
 		!Object.keys(HRP).some(network =>
 			hrp.endsWith(HRP[network as Network].RRI_suffix),
 		)
 	) {
-		const errMsg = `suffix found for hrp ${hrp} not supported.`
+		const errMsg = `suffix found for hrp "${hrp}" not supported.`
 		return err(new Error(errMsg))
 	}
 

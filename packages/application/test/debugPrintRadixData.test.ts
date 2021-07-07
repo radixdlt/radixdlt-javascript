@@ -10,7 +10,7 @@ import {
 } from './stringifyTypes'
 
 describe.skip('debugPrintRadixData', () => {
-	const radix = Radix.create({ network: Network.BETANET }).connect(
+	const radix = Radix.create({ network: Network.MAINNET }).connect(
 		'https://18.168.73.103/rpc',
 	)
 

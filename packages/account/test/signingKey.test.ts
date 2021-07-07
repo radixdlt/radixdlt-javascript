@@ -74,7 +74,7 @@ describe('signingKey_type', () => {
 
 		const accountAddress = AccountAddress.fromPublicKeyAndNetwork({
 			publicKey: signingKey.publicKey,
-			network: Network.BETANET,
+			network: Network.MAINNET,
 		})
 		expect(accountAddress.toString()).toBe(
 			'brx1qspa0ypecs52dwp4uym0hdvzayjemu3lses0j2pk0sls66gjw29gg3q09vgzx',

@@ -32,7 +32,7 @@ describe('radix_hw_ledger', () => {
 		})
 		return Wallet.create({
 			signingKeychain,
-			network: Network.BETANET,
+			network: Network.MAINNET,
 		})
 	}
 
@@ -93,7 +93,7 @@ describe('radix_hw_ledger', () => {
 					expect(account.address.toString()).toBe(
 						'brx1qsplg0a6v4qsx8hjr904h2txwu6562q50ezmgrx7ge3tajgk9smp74gh62u3y',
 					)
-					expect(account.network).toBe(Network.BETANET)
+					expect(account.network).toBe(Network.MAINNET)
 					expect(account.type.isHardwareSigningKey).toBe(true)
 					expect(account.type.isHDSigningKey).toBe(true)
 					expect(account.type.typeIdentifier).toBe(

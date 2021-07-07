@@ -7,7 +7,7 @@ describe('TransferTokensActions', () => {
 		{
 			publicKey: alice.publicKey,
 			name: 'foobar',
-			network: Network.BETANET,
+			network: Network.MAINNET,
 		},
 	)._unsafeUnwrap()
 	const amount = Amount.fromUnsafe(6)._unsafeUnwrap()

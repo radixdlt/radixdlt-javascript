@@ -355,7 +355,7 @@ describe('radix_high_level_api', () => {
 
 		radix.activeAddress.subscribe(
 			address => {
-				expect(address.network).toBe(Network.BETANET)
+				expect(address.network).toBe(Network.MAINNET)
 				done()
 			},
 			error => done(error),
@@ -1021,7 +1021,7 @@ describe('radix_high_level_api', () => {
 		const radix = Radix.create().__withAPI(mockedAPI)
 
 		subs.add(
-			radix.ledger.NetworkransactionDemand().subscribe(result => {
+			radix.ledger.NetworkTransactionDemand().subscribe(result => {
 				expect(result.tps).toEqual(109)
 				done()
 			}),
@@ -1034,7 +1034,7 @@ describe('radix_high_level_api', () => {
 		const radix = Radix.create().__withAPI(mockedAPI)
 
 		subs.add(
-			radix.ledger.NetworkransactionThroughput().subscribe(result => {
+			radix.ledger.NetworkTransactionThroughput().subscribe(result => {
 				expect(result.tps).toEqual(10)
 				done()
 			}),
@@ -1183,7 +1183,7 @@ describe('radix_high_level_api', () => {
 		const bobPublicKey = bobPrivateKey.publicKey()
 		const bob = AccountAddress.fromPublicKeyAndNetwork({
 			publicKey: bobPublicKey,
-			network: Network.BETANET,
+			network: Network.MAINNET,
 		})
 
 		const plaintext =
@@ -1305,7 +1305,7 @@ describe('radix_high_level_api', () => {
 		)._unsafeUnwrap()
 		const recipientAddress = AccountAddress.fromPublicKeyAndNetwork({
 			publicKey: recipientPK,
-			network: Network.BETANET,
+			network: Network.MAINNET,
 		})
 		const tokenTransferInput: TransferTokensInput = {
 			to: recipientAddress,
@@ -1791,7 +1791,7 @@ describe('radix_high_level_api', () => {
 				of({
 					...mockRadixCoreAPI(),
 					networkId: (): Observable<Network> => {
-						return of(Network.BETANET).pipe(shareReplay(1))
+						return of(Network.MAINNET).pipe(shareReplay(1))
 					},
 				}),
 			)
@@ -1859,7 +1859,7 @@ describe('radix_high_level_api', () => {
 			}
 
 			const wallet = makeWalletWithFunds()
-			const network = Network.BETANET
+			const network = Network.MAINNET
 			const myAddress = AccountAddress.fromPublicKeyAndNetwork({
 				publicKey: wallet.__unsafeGetAccount().publicKey,
 				network,

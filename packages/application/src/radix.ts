@@ -61,8 +61,8 @@ import {
 	lookupValidatorErr,
 	nativeTokenErr,
 	networkIdErr,
-	NetworkxDemandErr,
-	NetworkxThroughputErr,
+	NetworkTxDemandErr,
+	NetworkTxThroughputErr,
 	stakesForAddressErr,
 	submitSignedTxErr,
 	tokenBalancesErr,
@@ -246,13 +246,13 @@ const create = (
 			a => a.transactionStatus,
 			m => txStatusErr(m),
 		),
-		NetworkransactionThroughput: fwdAPICall(
-			a => a.NetworkransactionThroughput,
-			m => NetworkxThroughputErr(m),
+		NetworkTransactionThroughput: fwdAPICall(
+			a => a.NetworkTransactionThroughput,
+			m => NetworkTxThroughputErr(m),
 		),
-		NetworkransactionDemand: fwdAPICall(
-			a => a.NetworkransactionDemand,
-			m => NetworkxDemandErr(m),
+		NetworkTransactionDemand: fwdAPICall(
+			a => a.NetworkTransactionDemand,
+			m => NetworkTxDemandErr(m),
 		),
 		buildTransaction: fwdAPICall(
 			a => a.buildTransaction,

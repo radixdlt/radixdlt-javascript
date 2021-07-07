@@ -18,7 +18,7 @@ export const createWallet = (
 		startWithInitialSigningKey,
 	})
 
-	const network = input?.network ?? Network.BETANET
+	const network = input?.network ?? Network.MAINNET
 
 	return Wallet.create({
 		signingKeychain,

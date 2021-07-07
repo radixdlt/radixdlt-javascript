@@ -24,8 +24,8 @@ import {
 	LookupTransactionEndpoint,
 	NativeTokenEndpoint,
 	NetworkIdEndpoint,
-	NetworkransactionDemandEndpoint,
-	NetworkransactionThroughputEndpoint,
+	NetworkTransactionDemandEndpoint,
+	NetworkTransactionThroughputEndpoint,
 	StakePositionsEndpoint,
 	FinalizeTransactionEndpoint,
 	TokenBalancesEndpoint,
@@ -123,13 +123,13 @@ export const getAPI = (
 		>(handleTransactionStatusResponse)(ApiMethod.TX_STATUS),
 
 		[ApiMethod.NETWORK_TX_THROUGHPUT]: setupAPIResponse<
-			NetworkransactionThroughputEndpoint.Input,
-			NetworkransactionThroughputEndpoint.DecodedResponse
+			NetworkTransactionThroughputEndpoint.Input,
+			NetworkTransactionThroughputEndpoint.DecodedResponse
 		>(handleNetworkxThroughputResponse)(ApiMethod.NETWORK_TX_THROUGHPUT),
 
 		[ApiMethod.NETWORK_TX_DEMAND]: setupAPIResponse<
-			NetworkransactionDemandEndpoint.Input,
-			NetworkransactionDemandEndpoint.DecodedResponse
+			NetworkTransactionDemandEndpoint.Input,
+			NetworkTransactionDemandEndpoint.DecodedResponse
 		>(handleNetworkxDemandResponse)(ApiMethod.NETWORK_TX_DEMAND),
 
 		[ApiMethod.BUILD_TX_FROM_INTENT]: setupAPIResponse<

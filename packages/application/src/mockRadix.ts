@@ -17,8 +17,8 @@ import {
 	BuiltTransaction,
 	ExecutedTransaction,
 	FinalizedTransaction,
-	NetworkransactionDemand,
-	NetworkransactionThroughput,
+	NetworkTransactionDemand,
+	NetworkTransactionThroughput,
 	PendingTransaction,
 	SignedTransaction,
 	SimpleExecutedTransaction,
@@ -412,12 +412,12 @@ const detRandomSignedUnconfirmedTransaction = (
 }
 
 const rndDemand = detPRNGWithBuffer(Buffer.from('dmnd'))
-const randomDemand = (): NetworkransactionDemand => ({
+const randomDemand = (): NetworkTransactionDemand => ({
 	tps: rndDemand() % 200,
 })
 
 const rndThroughput = detPRNGWithBuffer(Buffer.from('trpt'))
-const randomThroughput = (): NetworkransactionDemand => ({
+const randomThroughput = (): NetworkTransactionDemand => ({
 	tps: rndThroughput() % 200,
 })
 
@@ -765,11 +765,11 @@ export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
 		throw Error('Not implemented')
 	},
 
-	NetworkransactionThroughput: (): Observable<NetworkransactionThroughput> => {
+	NetworkTransactionThroughput: (): Observable<NetworkTransactionThroughput> => {
 		throw Error('Not implemented')
 	},
 
-	NetworkransactionDemand: (): Observable<NetworkransactionDemand> => {
+	NetworkTransactionDemand: (): Observable<NetworkTransactionDemand> => {
 		throw Error('Not implemented')
 	},
 
@@ -855,9 +855,9 @@ export const mockRadixCoreAPI = (
 			of(detRandomSignedUnconfirmedTransaction(signedTransaction)),
 		submitSignedTransaction: signedUnconfirmedTX =>
 			of(randomPendingTransaction(signedUnconfirmedTX)),
-		NetworkransactionDemand: (): Observable<NetworkransactionDemand> =>
+		NetworkTransactionDemand: (): Observable<NetworkTransactionDemand> =>
 			of(randomDemand()),
-		NetworkransactionThroughput: (): Observable<NetworkransactionThroughput> =>
+		NetworkTransactionThroughput: (): Observable<NetworkTransactionThroughput> =>
 			of(randomThroughput()),
 		transactionHistory: deterministicRandomTXHistory,
 		lookupTransaction: deterministicRandomLookupTX,

@@ -17,8 +17,8 @@ import {
 	LookupValidatorEndpoint,
 	NativeTokenEndpoint,
 	NetworkIdEndpoint,
-	NetworkransactionDemandEndpoint,
-	NetworkransactionThroughputEndpoint,
+	NetworkTransactionDemandEndpoint,
+	NetworkTransactionThroughputEndpoint,
 	StakePositionsEndpoint,
 	SubmitTransactionEndpoint,
 	TokenBalancesEndpoint,
@@ -371,18 +371,18 @@ const expectedDecodedResponses = {
 	[rpcSpec.methods[10].name]: (
 		response: NetworkIdEndpoint.Response,
 	): NetworkIdEndpoint.DecodedResponse => ({
-		networkId: Network.BETANET,
+		networkId: Network.MAINNET,
 	}),
 
 	[rpcSpec.methods[11].name]: (
-		response: NetworkransactionThroughputEndpoint.Response,
-	): NetworkransactionThroughputEndpoint.DecodedResponse => ({
+		response: NetworkTransactionThroughputEndpoint.Response,
+	): NetworkTransactionThroughputEndpoint.DecodedResponse => ({
 		tps: response.tps,
 	}),
 
 	[rpcSpec.methods[12].name]: (
-		response: NetworkransactionDemandEndpoint.Response,
-	): NetworkransactionDemandEndpoint.DecodedResponse => ({
+		response: NetworkTransactionDemandEndpoint.Response,
+	): NetworkTransactionDemandEndpoint.DecodedResponse => ({
 		tps: response.tps,
 	}),
 

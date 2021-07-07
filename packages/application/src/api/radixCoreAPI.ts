@@ -9,8 +9,8 @@ import {
 import { map } from 'rxjs/operators'
 import {
 	SimpleExecutedTransaction,
-	NetworkransactionDemand,
-	NetworkransactionThroughput,
+	NetworkTransactionDemand,
+	NetworkTransactionThroughput,
 	PendingTransaction,
 	FinalizedTransaction,
 	SignedTransaction,
@@ -120,10 +120,10 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 				txID: txID.toString(),
 			}),
 
-		NetworkransactionThroughput: (): Observable<NetworkransactionThroughput> =>
+		NetworkTransactionThroughput: (): Observable<NetworkTransactionThroughput> =>
 			toObs(a => a['network.get_throughput'], {}),
 
-		NetworkransactionDemand: (): Observable<NetworkransactionDemand> =>
+		NetworkTransactionDemand: (): Observable<NetworkTransactionDemand> =>
 			toObs(a => a['network.get_demand'], {}),
 
 		buildTransaction: (
