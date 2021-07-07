@@ -1,6 +1,6 @@
 {
   "name": "@radixdlt/hardware-wallet",
-  "version": "1.0.34",
+  "version": "1.0.36",
   "description": "Types for hardware wallets",
   "keywords": [
     "Hardware",
@@ -27,9 +27,9 @@
     "node": ">=15.5.0 <16"
   },
   "dependencies": {
-    "@radixdlt/crypto": "^1.0.48",
-    "@radixdlt/primitives": "^1.0.36",
-    "@radixdlt/util": "^1.0.30",
+    "@radixdlt/crypto": "^1.0.50",
+    "@radixdlt/primitives": "^1.0.38",
+    "@radixdlt/util": "^1.0.32",
     "neverthrow": "4.0.1",
     "prelude-ts": "^1.0.2",
     "rxjs": "7.0.0",
