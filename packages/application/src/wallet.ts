@@ -99,38 +99,21 @@ const create = (
 		displayAddressForActiveHWAccountOnHWDeviceForVerification: (): Observable<void> =>
 			observeActiveAccount().pipe(
 				mergeMap(
-					(a: AccountT): Observable<AccountT> => {
-						if (
-							!signingKeychain.__unsafeGetSigningKey()
-								.isHardwareSigningKey
-						) {
-							const errMsg = `Active account is not a hardware account, so cannot verify the address on hardware device. Type identifier of active account: ${a.signingKey.type.typeIdentifier}`
-							log.error(errMsg)
-							return throwError(new Error(errMsg))
-						}
-						return of(a)
-					},
-				),
-				mergeMap(
 					(a: AccountT): Observable<void> =>
-						signingKeychain
-							.__unsafeGetSigningKey()
-							.getPublicKeyDisplayOnlyAddress()
-							.pipe(
-								mergeMap(
-									(pk: PublicKeyT): Observable<void> => {
-										if (pk.equals(a.publicKey)) {
-											return of(undefined)
-										} else {
-											const errMsg = `Hardware wallet returned a different public key than the cached one, this is bad. Probably incorrect implementation.`
-											log.error(errMsg)
-											return throwError(new Error(errMsg))
-										}
-									},
-								),
+						signingKeychain.__unsafeGetSigningKey().getPublicKeyDisplayOnlyAddress().pipe(
+							mergeMap(
+								(pk: PublicKeyT): Observable<void> => {
+									if (pk.equals(a.publicKey)) {
+										return of(undefined)
+									} else {
+										const errMsg = `Hardware wallet returned a different public key than the cached one, this is bad. Probably incorrect implementation.`
+										log.error(errMsg)
+										return throwError(new Error(errMsg))
+									}
+								},
 							),
 				),
-			),
+			)),
 
 		observeActiveAccount,
 		observeAccounts: (): Observable<AccountsT> =>
