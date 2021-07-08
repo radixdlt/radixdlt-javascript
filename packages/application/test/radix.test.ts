@@ -88,7 +88,7 @@ import {
 	IntendedAction,
 	SimpleExecutedTransaction,
 	TransactionIntent,
-} from '..'
+} from '../'
 import { signatureFromHexStrings } from '@radixdlt/crypto/test/utils'
 import { makeSigningKeyChainWithFunds } from '@radixdlt/account/test/utils'
 import { UInt256 } from '@radixdlt/uint256'
