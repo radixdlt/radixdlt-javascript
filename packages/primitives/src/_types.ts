@@ -14,29 +14,29 @@ export const hrpFullSuffixLength = 3
 
 export const HRP = {
 	[Network.MAINNET]: {
-		account: 'brx',
-		validator: 'vb',
+		account: 'rdx',
+		validator: 'vr',
 		RRI_suffix: '_rr',
 	},
 	[Network.STOKENET]: {
 		account: 'trx',
 		validator: 'vt',
-		RRI_suffix: '_rt',
+		RRI_suffix: '_tr',
 	},
 	[Network.TESTNET3]: {
 		account: 'trx3',
 		validator: 'vt3',
-		RRI_suffix: '_rt3',
+		RRI_suffix: '_tr3',
 	},
 	[Network.TESTNET4]: {
 		account: 'trx4',
 		validator: 'vt4',
-		RRI_suffix: '_rt4',
+		RRI_suffix: '_tr4',
 	},
 	[Network.TESTNET5]: {
 		account: 'trx5',
 		validator: 'vt5',
-		RRI_suffix: '_rt5',
+		RRI_suffix: '_tr5',
 	},
 }
 

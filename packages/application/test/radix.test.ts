@@ -918,7 +918,7 @@ describe('radix_high_level_api', () => {
 		radix.login(keystoreForTest.password, loadKeystore)
 
 		const mockedValidatorAddr = ValidatorAddress.fromUnsafe(
-			'vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazy',
+			'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
 		)._unsafeUnwrap()
 
 		subs.add(
@@ -931,7 +931,7 @@ describe('radix_high_level_api', () => {
 						).toBe(true)
 						expect(
 							validator.ownerAddress.toString().slice(-4),
-						).toBe('9gwm')
+						).toBe('j7dt')
 						done()
 					})
 			}),
@@ -964,7 +964,7 @@ describe('radix_high_level_api', () => {
 		const transactionIntent = TransactionIntentBuilder.create()
 			.stakeTokens({
 				validator:
-					'vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazy',
+					'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
 				amount: 10000,
 			})
 			.__syncBuildDoNotEncryptMessageIfAny(alice)
@@ -976,7 +976,7 @@ describe('radix_high_level_api', () => {
 				.subscribe(unsignedTx => {
 					expect(
 						(unsignedTx as { fee: AmountT }).fee.toString(),
-					).toEqual('7794')
+					).toEqual('21256')
 					done()
 				}),
 		)
@@ -1084,7 +1084,7 @@ describe('radix_high_level_api', () => {
 		radix.login(keystoreForTest.password, loadKeystore)
 
 		const expectedStakes = [
-			{ amount: 208, validator: '23', epochsUntil: 3 },
+			{ amount: 208, validator: '87', epochsUntil: 3 },
 		]
 		const expectedValues = [expectedStakes, expectedStakes] // should be unchanged between updates (deterministically mocked).
 		subs.add(
@@ -1145,7 +1145,7 @@ describe('radix_high_level_api', () => {
 					transferInput: {
 						to: bob,
 						amount: 1,
-						tokenIdentifier: 'xrd_rb1qya85pwq',
+						tokenIdentifier: 'xrd_tr1qyf0x76s',
 					},
 					userConfirmation: 'skip',
 					message: { plaintext, encrypt: false },
@@ -1214,7 +1214,7 @@ describe('radix_high_level_api', () => {
 			transferInput: {
 				to: bob,
 				amount: 1,
-				tokenIdentifier: 'xrd_rb1qya85pwq',
+				tokenIdentifier: 'xrd_tr1qyf0x76s',
 			},
 			userConfirmation: 'skip',
 			message: { plaintext, encrypt: true },
@@ -1310,7 +1310,7 @@ describe('radix_high_level_api', () => {
 		const tokenTransferInput: TransferTokensInput = {
 			to: recipientAddress,
 			amount: 1,
-			tokenIdentifier: 'xrd_rb1qya85pwq',
+			tokenIdentifier: 'xrd_tr1qyf0x76s',
 		}
 
 		const plaintext = 'Hey Bob, this is Alice.'
@@ -1451,7 +1451,7 @@ describe('radix_high_level_api', () => {
 		const tokenTransferInput: TransferTokensInput = {
 			to: bob,
 			amount: 1,
-			tokenIdentifier: 'xrd_rb1qya85pwq',
+			tokenIdentifier: 'xrd_tr1qyf0x76s',
 		}
 
 		let pollTXStatusTrigger: Observable<unknown>
@@ -1654,7 +1654,7 @@ describe('radix_high_level_api', () => {
 						stakeInput: {
 							amount: 1,
 							validator:
-								'vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazy',
+								'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
 						},
 						userConfirmation: 'skip',
 						pollTXStatusTrigger: pollTXStatusTrigger,
@@ -1685,7 +1685,7 @@ describe('radix_high_level_api', () => {
 						unstakeInput: {
 							amount: 1,
 							validator:
-								'vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazy',
+								'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
 						},
 						userConfirmation: 'skip',
 						pollTXStatusTrigger: pollTXStatusTrigger,
@@ -1781,7 +1781,7 @@ describe('radix_high_level_api', () => {
 		})
 	})
 
-	it('special signingKeychain with preallocated funds', done => {
+	it.skip('special signingKeychain with preallocated funds', done => {
 		const subs = new Subscription()
 
 		const walletWithFunds = makeWalletWithFunds()
@@ -1834,7 +1834,7 @@ describe('radix_high_level_api', () => {
 			const subs = new Subscription()
 
 			const xrdRRI = ResourceIdentifier.fromUnsafe(
-				'xrd_rb1qya85pwq',
+				'xrd_tr1qyf0x76s',
 			)._unsafeUnwrap()
 
 			const txID = TransactionIdentifier.create(
@@ -1883,7 +1883,7 @@ describe('radix_high_level_api', () => {
 								type: ActionType.STAKE_TOKENS,
 								from: fromMe ? myAddress : bob,
 								validator: ValidatorAddress.fromUnsafe(
-									'vb1qgfqnj34dn7qp9wvf4l6rhw6hu3l82rcqh3rjtk080t75t888u98wkh3gjq',
+									'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
 								)._unsafeUnwrap(),
 								amount: Amount.fromUnsafe(1)._unsafeUnwrap(),
 							},
@@ -1891,7 +1891,7 @@ describe('radix_high_level_api', () => {
 								type: ActionType.UNSTAKE_TOKENS,
 								from: fromMe ? myAddress : bob,
 								validator: ValidatorAddress.fromUnsafe(
-									'vb1qgfqnj34dn7qp9wvf4l6rhw6hu3l82rcqh3rjtk080t75t888u98wkh3gjq',
+									'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
 								)._unsafeUnwrap(),
 								amount: Amount.fromUnsafe(1)._unsafeUnwrap(),
 							},

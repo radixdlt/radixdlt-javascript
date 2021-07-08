@@ -15,31 +15,31 @@ describe('validator_address_on_bech32_format', () => {
 			{
 				privateKeySeed: '00',
 				expectedAddr:
-					'vb1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq9u3702',
+					'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
 				network: Network.MAINNET,
 			},
 			{
 				privateKeySeed: 'deadbeef',
 				expectedAddr:
-					'vb1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvrwrazy',
+					'vr1qvx0emaq0tua6md7wu9c047mm5krrwnlfl8c7ws3jm2s9uf4vxcyvnt062s',
 				network: Network.MAINNET,
 			},
 			{
 				privateKeySeed: 'deadbeefdeadbeef',
 				expectedAddr:
-					'vb1q0jym8jxnc0a4306y95j9m07tprxws6ccjz9h352tkcdfzfysh0jxll64dl',
+					'vr1q0jym8jxnc0a4306y95j9m07tprxws6ccjz9h352tkcdfzfysh0jx06kj9t',
 				network: Network.MAINNET,
 			},
 			{
 				privateKeySeed: 'bead',
 				expectedAddr:
-					'vb1qgtnc40hs73dxe2fgy5yvujnxmdnvg69w6fhj6drr68vqac525k2gkfdady',
+					'vr1qgtnc40hs73dxe2fgy5yvujnxmdnvg69w6fhj6drr68vqac525k2gxvp69s',
 				network: Network.MAINNET,
 			},
 			{
 				privateKeySeed: 'aaaaaaaaaaaaaaaa',
 				expectedAddr:
-					'vb1qgyz0t0kd9j4302q8429tl0mu3w8lm8nne8l2m9e8k74t3qm3xe9z8l2049',
+					'vr1qgyz0t0kd9j4302q8429tl0mu3w8lm8nne8l2m9e8k74t3qm3xe9zh6xga3',
 				network: Network.MAINNET,
 			},
 		]
