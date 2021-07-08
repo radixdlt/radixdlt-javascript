@@ -1,6 +1,6 @@
 {
   "name": "@radixdlt/util",
-  "version": "1.1.31",
+  "version": "1.1.32",
   "description": "Shared utility methods",
   "keywords": [
     "Utility"
