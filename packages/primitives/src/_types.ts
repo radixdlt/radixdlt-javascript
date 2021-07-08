@@ -19,22 +19,22 @@ export const HRP = {
 		RRI_suffix: '_rr',
 	},
 	[Network.STOKENET]: {
-		account: 'trx',
+		account: 'tdx',
 		validator: 'vt',
 		RRI_suffix: '_tr',
 	},
 	[Network.TESTNET3]: {
-		account: 'trx3',
+		account: 'tdx3',
 		validator: 'vt3',
 		RRI_suffix: '_tr3',
 	},
 	[Network.TESTNET4]: {
-		account: 'trx4',
+		account: 'tdx4',
 		validator: 'vt4',
 		RRI_suffix: '_tr4',
 	},
 	[Network.TESTNET5]: {
-		account: 'trx5',
+		account: 'tdx5',
 		validator: 'vt5',
 		RRI_suffix: '_tr5',
 	},
