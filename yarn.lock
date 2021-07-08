@@ -1615,15 +1615,50 @@
     node-ipc "^9.1.1"
     ws "^7.3.1"
 
-"@radixdlt/open-rpc-spec@^1.0.15":
-  version "1.0.15"
-  resolved "https://registry.yarnpkg.com/@radixdlt/open-rpc-spec/-/open-rpc-spec-1.0.15.tgz#d52bb10e8faa0cabebf0f726e9b4d4955858a932"
-  integrity sha512-jEa0NjXDCwgfcFxg79SL3qNB/fyMJ8G278h1Dnorte74JBDkH2t0orrv5Tirs94YpTv2HRZNbPYBiIYBNJZCQw==
+"@radixdlt/data-formats@1.0.30":
+  version "1.0.30"
+  resolved "https://registry.yarnpkg.com/@radixdlt/data-formats/-/data-formats-1.0.30.tgz#236b61e300be5295847f1519680874222ee1aced"
+  integrity sha512-PbcEZ2DALhc02HSmFxOaFR/g2rqDzFLWohLPYHoPcsVRczc7Fnpajd/Y2kYsLXDOULzMkYUKpZSLYoD8S/mk9g==
+  dependencies:
+    "@radixdlt/util" "1.0.29"
+    neverthrow "^4.0.1"
+    ramda "^0.27.1"
+
+"@radixdlt/networking@1.0.38":
+  version "1.0.38"
+  resolved "https://registry.yarnpkg.com/@radixdlt/networking/-/networking-1.0.38.tgz#bdb820d61204f64bdc633aa27ba35470bdbbab6f"
+  integrity sha512-MYIDT74CQGKg5HtItycwa/MdphR1ufVcAhErlAZpxscy2Pg9HxVcKFfa0QaN8qdu71AW9fuJtm1VcFTXDa7wxA==
+  dependencies:
+    "@open-rpc/client-js" "1.6.2"
+    "@open-rpc/schema-utils-js" "1.14.3"
+    "@radixdlt/open-rpc-spec" "1.0.13"
+    "@radixdlt/util" "1.0.29"
+    "@types/uuid" "^8.3.0"
+    neverthrow "^4.0.1"
+    open-rpc-utils "^1.1.1"
+    uuid "^8.3.2"
+
+"@radixdlt/open-rpc-spec@1.0.13":
+  version "1.0.13"
+  resolved "https://registry.yarnpkg.com/@radixdlt/open-rpc-spec/-/open-rpc-spec-1.0.13.tgz#5b58ed3febbbcf04196b9fa1b8a57ef241b74c81"
+  integrity sha512-gcmcCkcLePZS2fWrAtB2Z0yEz/a9saWaJ76yngjVoHwk0bXjQLjYuPklGJVbo6a0Il0B4JXdOKzadBD/46TzRg==
 
 "@radixdlt/uint256@1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@radixdlt/uint256/-/uint256-1.1.0.tgz#e0d46b14b63c55b366a53692fb4cc38b37f0a475"
   integrity sha512-jpthXXsTJhvBTQrSSi0lXA0HPTmhrYIJklTRNicZgvITosvpByinCzZEebJbYeGfWlWRsqFHsKbFWgNTRVNIUg==
+
+"@radixdlt/util@1.0.29":
+  version "1.0.29"
+  resolved "https://registry.yarnpkg.com/@radixdlt/util/-/util-1.0.29.tgz#2297efd562ba0e26ac7aaf24a0a614558012455d"
+  integrity sha512-Ty3cl+6o47hDllwemiEYM4p5Cj/gn33y0SLRjnICncnxnHuMbpgXZNW41tk9J6KZwwmel8eb+h84hjxb1dikjw==
+  dependencies:
+    loglevel "^1.7.1"
+    loglevel-plugin-prefix "^0.8.4"
+    neverthrow "^4.0.1"
+    ramda "^0.27.1"
+    randombytes "^2.1.0"
+    sodium-native "^3.2.0"
 
 "@sinonjs/commons@^1.7.0":
   version "1.8.1"
