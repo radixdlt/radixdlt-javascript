@@ -219,9 +219,7 @@ export namespace BuildTransactionEndpoint {
 
 export namespace FinalizeTransactionEndpoint {
 	export type Input = {
-		transaction: Readonly<{
-			blob: string
-		}>
+		blob: string,
 		publicKeyOfSigner: string
 		signatureDER: string
 	}
