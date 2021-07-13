@@ -8,7 +8,7 @@ import {
 	NetworkFromHRP,
 } from './abstractAddress'
 import { AddressTypeT, ValidatorAddressT } from './_types'
-import { NetworkT } from '@radixdlt/primitives'
+import { HRP, Network } from '@radixdlt/primitives'
 
 export const isValidatorAddress = (
 	something: unknown,
@@ -17,31 +17,32 @@ export const isValidatorAddress = (
 	return something.addressType === AddressTypeT.VALIDATOR
 }
 
-const hrpMainnet = 'vr'
-const hrpBetanet = 'vb'
 const maxLength = 300 // arbitrarily chosen
 const encoding = Encoding.BECH32
 
-const hrpFromNetwork: HRPFromNetwork = network => {
-	switch (network) {
-		case NetworkT.BETANET:
-			return hrpBetanet
-		case NetworkT.MAINNET:
-			return hrpMainnet
-	}
-}
+const hrpFromNetwork = (network: Network) => HRP[network].validator
 
-const networkFromHRP: NetworkFromHRP = hrp => {
-	if (hrp === hrpMainnet) return ok(NetworkT.MAINNET)
-	if (hrp === hrpBetanet) return ok(NetworkT.BETANET)
-	const errMsg = `Failed to parse network from HRP ${hrp} for ValidatorAddress.`
-	return err(new Error(errMsg))
-}
+const networkFromHRP: NetworkFromHRP = hrp =>
+	hrp === HRP.MAINNET.validator
+		? ok(Network.MAINNET)
+		: hrp === HRP.STOKENET.validator
+		? ok(Network.STOKENET)
+		: hrp === HRP.TESTNET3.validator
+		? ok(Network.TESTNET3)
+		: hrp === HRP.TESTNET4.validator
+		? ok(Network.TESTNET4)
+		: hrp === HRP.TESTNET5.validator
+		? ok(Network.TESTNET5)
+		: err(
+				Error(
+					`Failed to parse network from HRP ${hrp} for ValidatorAddress.`,
+				),
+		  )
 
 const fromPublicKeyAndNetwork = (
 	input: Readonly<{
 		publicKey: PublicKeyT
-		network: NetworkT
+		network: Network
 	}>,
 ): ValidatorAddressT =>
 	AbstractAddress.byFormattingPublicKeyDataAndBech32ConvertingIt({
@@ -75,7 +76,7 @@ const fromBuffer = (buffer: Buffer): Result<ValidatorAddressT, Error> => {
 		PublicKey.fromBuffer(buf).map(publicKey =>
 			fromPublicKeyAndNetwork({
 				publicKey,
-				network: NetworkT.BETANET, // yikes!
+				network: Network.MAINNET, // should change
 			}),
 		)
 

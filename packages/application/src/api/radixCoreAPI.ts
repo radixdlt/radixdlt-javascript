@@ -30,7 +30,7 @@ import {
 } from '../dto'
 import { ActionType } from '../actions'
 import { toObservable } from '@radixdlt/util'
-import { NetworkT } from '@radixdlt/primitives'
+import { Network } from '@radixdlt/primitives'
 
 export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 	const toObs = <I, E, O>(
@@ -69,7 +69,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 				txID: txID.toString(),
 			}),
 
-		networkId: (): Observable<NetworkT> =>
+		networkId: (): Observable<Network> =>
 			toObsMap(
 				a => a['network.get_id'],
 				m => m.networkId,
@@ -120,10 +120,10 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 				txID: txID.toString(),
 			}),
 
-		networkTransactionThroughput: (): Observable<NetworkTransactionThroughput> =>
+		NetworkTransactionThroughput: (): Observable<NetworkTransactionThroughput> =>
 			toObs(a => a['network.get_throughput'], {}),
 
-		networkTransactionDemand: (): Observable<NetworkTransactionDemand> =>
+		NetworkTransactionDemand: (): Observable<NetworkTransactionDemand> =>
 			toObs(a => a['network.get_demand'], {}),
 
 		buildTransaction: (
@@ -166,14 +166,10 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 			}),
 
 		submitSignedTransaction: (
-			finalizedTx: FinalizedTransaction & SignedTransaction,
+			finalizedTx: FinalizedTransaction,
 		): Observable<PendingTransaction> =>
 			toObs(a => a['construction.submit_transaction'], {
-				transaction: {
-					blob: finalizedTx.transaction.blob,
-				},
-				signatureDER: finalizedTx.signature.toDER(),
-				publicKeyOfSigner: finalizedTx.publicKeyOfSigner.toString(true),
+				blob: finalizedTx.blob,
 				txID: finalizedTx.txID.toString(),
 			}),
 	}

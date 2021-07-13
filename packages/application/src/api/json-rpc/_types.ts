@@ -1,4 +1,4 @@
-import { NetworkT } from '@radixdlt/primitives'
+import { Network } from '@radixdlt/primitives'
 import { ActionType } from '../../actions'
 import {
 	SimpleExecutedTransaction,
@@ -48,7 +48,7 @@ export namespace NetworkIdEndpoint {
 	}
 
 	export type DecodedResponse = {
-		networkId: NetworkT
+		networkId: Network
 	}
 }
 
@@ -219,12 +219,13 @@ export namespace BuildTransactionEndpoint {
 
 export namespace FinalizeTransactionEndpoint {
 	export type Input = {
-		blob: string,
+		blob: string
 		publicKeyOfSigner: string
 		signatureDER: string
 	}
 
 	export type Response = {
+		blob: string
 		txID: string
 	}
 
@@ -233,11 +234,7 @@ export namespace FinalizeTransactionEndpoint {
 
 export namespace SubmitTransactionEndpoint {
 	export type Input = {
-		transaction: Readonly<{
-			blob: string
-		}>
-		publicKeyOfSigner: string
-		signatureDER: string
+		blob: string
 		txID: string
 	}
 

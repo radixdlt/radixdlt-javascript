@@ -4,7 +4,7 @@ import {
 	SigningKeychain,
 	SigningKeychainT,
 } from '@radixdlt/account'
-import { NetworkT } from '@radixdlt/primitives'
+import { Network } from '@radixdlt/primitives'
 import { nodeAPI, NodeT, RadixAPI, radixCoreAPI, RadixCoreAPI } from './api'
 
 import {
@@ -61,8 +61,8 @@ import {
 	lookupValidatorErr,
 	nativeTokenErr,
 	networkIdErr,
-	networkTxDemandErr,
-	networkTxThroughputErr,
+	NetworkTxDemandErr,
+	NetworkTxThroughputErr,
 	stakesForAddressErr,
 	submitSignedTxErr,
 	tokenBalancesErr,
@@ -153,10 +153,10 @@ const shouldConfirmTransactionAutomatically = (
 
 const create = (
 	input?: Readonly<{
-		network?: NetworkT
+		network?: Network
 	}>,
 ): RadixT => {
-	const requestedNetwork = input?.network ?? NetworkT.BETANET // TODO Mainnet replace with NetworkT.MAINNET when launched
+	const requestedNetwork = input?.network ?? Network.MAINNET
 	const subs = new Subscription()
 	const radixLog = log // TODO configure child loggers
 
@@ -190,6 +190,7 @@ const create = (
 			take(1), // Important!
 			// We do NOT omit/supress error, we merely DECORATE the error
 			catchError((errors: unknown) => {
+				console.error(errors)
 				const underlyingError = msgFromError(errors)
 				throw errorFn(underlyingError)
 			}),
@@ -246,13 +247,13 @@ const create = (
 			a => a.transactionStatus,
 			m => txStatusErr(m),
 		),
-		networkTransactionThroughput: fwdAPICall(
-			a => a.networkTransactionThroughput,
-			m => networkTxThroughputErr(m),
+		NetworkTransactionThroughput: fwdAPICall(
+			a => a.NetworkTransactionThroughput,
+			m => NetworkTxThroughputErr(m),
 		),
-		networkTransactionDemand: fwdAPICall(
-			a => a.networkTransactionDemand,
-			m => networkTxDemandErr(m),
+		NetworkTransactionDemand: fwdAPICall(
+			a => a.NetworkTransactionDemand,
+			m => NetworkTxDemandErr(m),
 		),
 		buildTransaction: fwdAPICall(
 			a => a.buildTransaction,
@@ -674,16 +675,12 @@ const create = (
 		)
 
 		txSubs.add(
-			combineLatest([finalizedTx$, signedTransaction$])
+			finalizedTx$
 				.pipe(
 					mergeMap(
-						([
-							finalizedTx,
-							signedTx,
-						]): Observable<PendingTransaction> =>
+						(finalizedTx): Observable<PendingTransaction> =>
 							api.submitSignedTransaction({
 								...finalizedTx,
-								...signedTx,
 							}),
 					),
 					catchError((e: Error) => {

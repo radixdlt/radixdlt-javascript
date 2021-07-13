@@ -7,7 +7,7 @@ import {
 	ResourceIdentifier,
 } from '@radixdlt/account'
 
-import { NetworkT, Amount } from '@radixdlt/primitives'
+import { Network, Amount } from '@radixdlt/primitives'
 
 import { isString } from '@radixdlt/util'
 import {
@@ -74,7 +74,7 @@ const transactionIdentifierDecoder = (...keys: string[]) =>
 const networkDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
 		key !== undefined && keys.includes(key) && typeof value === 'number'
-			? ok(NetworkT.BETANET) // temporary until mainnet
+			? ok(Network.MAINNET)
 			: undefined,
 	)
 
@@ -292,24 +292,24 @@ export const handleTransactionStatusResponse = (
 					]),
 				)
 
-export const handleNetworkTxThroughputResponse = (
+export const handleNetworkxThroughputResponse = (
 	json: NetworkTransactionThroughputEndpoint.Response,
 ) =>
 	JSONDecoding.create<
 		NetworkTransactionThroughputEndpoint.Response,
 		NetworkTransactionThroughputEndpoint.DecodedResponse
 	>()(json).andThen(decoded =>
-		hasRequiredProps('networkTransactionThroughput', decoded, ['tps']),
+		hasRequiredProps('NetworkTransactionThroughput', decoded, ['tps']),
 	)
 
-export const handleNetworkTxDemandResponse = (
+export const handleNetworkxDemandResponse = (
 	json: NetworkTransactionDemandEndpoint.Response,
 ) =>
 	JSONDecoding.create<
 		NetworkTransactionDemandEndpoint.Response,
 		NetworkTransactionDemandEndpoint.DecodedResponse
 	>()(json).andThen(decoded =>
-		hasRequiredProps('networkTransactionDemand', decoded, ['tps']),
+		hasRequiredProps('NetworkTransactionDemand', decoded, ['tps']),
 	)
 
 export const handleBuildTransactionResponse = (

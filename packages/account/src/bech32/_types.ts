@@ -1,10 +1,8 @@
-import { Data, HRP } from './bech32'
-
 export type Bech32T = Readonly<{
-	hrp: HRP
+	hrp: string
 
 	// excluding checksum
-	data: Data
+	data: Buffer
 
 	// including checksum
 	toString: () => string

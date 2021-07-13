@@ -5,7 +5,7 @@ import {
 	PublicKeyT,
 	SignatureT,
 } from '@radixdlt/crypto'
-import { BuiltTransactionReadyToSign, NetworkT } from '@radixdlt/primitives'
+import { BuiltTransactionReadyToSign, Network } from '@radixdlt/primitives'
 
 // Semantic versioning, e.g. 1.0.5
 export type SemVerT = Readonly<{

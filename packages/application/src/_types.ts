@@ -16,7 +16,7 @@ import {
 	MnemomicT,
 } from '@radixdlt/crypto'
 import { LogLevel } from '@radixdlt/util'
-import { NetworkT } from '@radixdlt/primitives'
+import { Network } from '@radixdlt/primitives'
 import { Observable, ReplaySubject } from 'rxjs'
 import { NodeT, RadixAPI, RadixCoreAPI } from './api'
 import { ErrorNotification } from './errors'
@@ -88,7 +88,7 @@ export type AccountT = Signing &
 		// sugar for signingKey.publicKey/address.publicKey
 		publicKey: PublicKeyT
 		// sugar for address.network
-		network: NetworkT
+		network: Network
 
 		// sugar for `signingKey.type`
 		type: SigningKeyTypeT

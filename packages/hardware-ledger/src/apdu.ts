@@ -4,7 +4,7 @@ import {
 	PublicKeyT,
 	RADIX_COIN_TYPE,
 } from '@radixdlt/crypto'
-import { NetworkT } from '@radixdlt/primitives'
+import { Network } from '@radixdlt/primitives'
 import {
 	LedgerInstruction,
 	LedgerResponseCodes,
