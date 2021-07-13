@@ -1,6 +1,6 @@
 {
   "name": "@radixdlt/hardware-ledger",
-  "version": "2.0.1",
+  "version": "2.0.3",
   "description": "Ledger Nano hardware wallet connection",
   "keywords": [
     "Ledger",
