@@ -91,7 +91,7 @@ export const RPCClient: Client = (url: URL): Transport => {
 		const result = await validateMethod(method, filteredParams)
 		result.mapErr(err => {
 			// need to disable this until rpc spec is fixed with the latest addresses and RRI's
-		//	throw err 
+			//	throw err
 		})
 
 		/*

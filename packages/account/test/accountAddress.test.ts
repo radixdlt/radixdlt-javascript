@@ -148,7 +148,7 @@ describe('account_address_on_bech32_format', () => {
 			network: Network.STOKENET,
 			isValidatorAddress: false,
 			expectedBech32:
-				'trx1qspmctkg7dngep54w7lkdda537x7u4acxwgk4fcfvmay55pfkcamrrc38y9wy',
+				'tdx1qspmctkg7dngep54w7lkdda537x7u4acxwgk4fcfvmay55pfkcamrrcwnd0nz',
 		})
 
 		doTest({

@@ -70,7 +70,7 @@ const fromBech32String = (
 	}
 	const decoded = decodingResult.value
 	const hrp = decoded.hrp
-	
+
 	if (
 		!Object.keys(HRP).some(network =>
 			hrp.endsWith(HRP[network as Network].RRI_suffix),

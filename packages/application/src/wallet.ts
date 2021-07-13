@@ -91,19 +91,22 @@ const create = (
 			observeActiveAccount().pipe(
 				mergeMap(
 					(a: AccountT): Observable<void> =>
-						signingKeychain.__unsafeGetSigningKey().getPublicKeyDisplayOnlyAddress().pipe(
-							mergeMap(
-								(pk: PublicKeyT): Observable<void> => {
-									if (pk.equals(a.publicKey)) {
-										return of(undefined)
-									} else {
-										const errMsg = `Hardware wallet returned a different public key than the cached one, this is bad. Probably incorrect implementation.`
-										log.error(errMsg)
-										return throwError(new Error(errMsg))
-									}
-								},
+						signingKeychain
+							.__unsafeGetSigningKey()
+							.getPublicKeyDisplayOnlyAddress()
+							.pipe(
+								mergeMap(
+									(pk: PublicKeyT): Observable<void> => {
+										if (pk.equals(a.publicKey)) {
+											return of(undefined)
+										} else {
+											const errMsg = `Hardware wallet returned a different public key than the cached one, this is bad. Probably incorrect implementation.`
+											log.error(errMsg)
+											return throwError(new Error(errMsg))
+										}
+									},
+								),
 							),
-						),
 				),
 			),
 
