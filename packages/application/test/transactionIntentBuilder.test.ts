@@ -28,11 +28,11 @@ import { createWallet } from './util'
 
 describe('tx_intent_builder', () => {
 	const validatorCarol: ValidatorAddressT = ValidatorAddress.fromUnsafe(
-		'rv1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'tv1qdqft0u899axwce955fkh9rundr5s2sgvhpp8wzfe3ty0rn0rgqj2x6y86p',
 	)._unsafeUnwrap()
 
 	const validatorDan: ValidatorAddressT = ValidatorAddress.fromUnsafe(
-		'rv1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'tv1qdqft0u899axwce955fkh9rundr5s2sgvhpp8wzfe3ty0rn0rgqj2x6y86p',
 	)._unsafeUnwrap()
 
 	const one = Amount.fromUnsafe(1)._unsafeUnwrap()
@@ -135,7 +135,7 @@ describe('tx_intent_builder', () => {
 	it('can stake from unsafe inputs', () => {
 		const builder = TransactionIntentBuilder.create().stakeTokens({
 			validator:
-				'rv1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+				'tv1qdqft0u899axwce955fkh9rundr5s2sgvhpp8wzfe3ty0rn0rgqj2x6y86p',
 			amount: 1234567890,
 		})
 
