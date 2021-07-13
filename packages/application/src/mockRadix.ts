@@ -395,21 +395,18 @@ const randomUnsignedTransaction = (
 
 const randomPendingTransaction = (
 	signedTx: SignedTransaction,
-): PendingTransaction => ({
+): FinalizedTransaction => ({
 	txID: TransactionIdentifier.create(
 		sha256(Buffer.from(signedTx.transaction.blob)),
 	)._unsafeUnwrap(),
+	blob: 'awd',
 })
 
 const detRandomSignedUnconfirmedTransaction = (
 	signedTransaction: SignedTransaction,
-): FinalizedTransaction => {
-	const txID = randomPendingTransaction(signedTransaction).txID
-	return {
-		...signedTransaction,
-		txID,
-	}
-}
+): FinalizedTransaction => ({
+	...randomPendingTransaction(signedTransaction),
+})
 
 const rndDemand = detPRNGWithBuffer(Buffer.from('dmnd'))
 const randomDemand = (): NetworkTransactionDemand => ({
@@ -853,8 +850,7 @@ export const mockRadixCoreAPI = (
 			signedTransaction: SignedTransaction,
 		): Observable<FinalizedTransaction> =>
 			of(detRandomSignedUnconfirmedTransaction(signedTransaction)),
-		submitSignedTransaction: signedUnconfirmedTX =>
-			of(randomPendingTransaction(signedUnconfirmedTX)),
+		submitSignedTransaction: signedUnconfirmedTX => of(signedUnconfirmedTX),
 		NetworkTransactionDemand: (): Observable<NetworkTransactionDemand> =>
 			of(randomDemand()),
 		NetworkTransactionThroughput: (): Observable<NetworkTransactionThroughput> =>

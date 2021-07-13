@@ -126,14 +126,14 @@ const connect = async (
 	transport: BasicLedgerTransport,
 	input?: OpenLedgerConnectionInput,
 ): Promise<LedgerNanoT> => {
-	const ledgerTransportForDevice = await openConnection(transport, {
+	await openConnection(transport, {
 		deviceConnectionTimeout: input?.deviceConnectionTimeout,
 		radixAppToOpenWaitPolicy: input?.radixAppToOpenWaitPolicy ?? {
 			delayBetweenRetries: 1_000,
 			retryCount: 60,
 		},
 	})
-	return fromTransport(ledgerTransportForDevice)
+	return fromTransport(transport)
 }
 
 export const LedgerNano = {

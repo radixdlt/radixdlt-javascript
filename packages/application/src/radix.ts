@@ -190,6 +190,7 @@ const create = (
 			take(1), // Important!
 			// We do NOT omit/supress error, we merely DECORATE the error
 			catchError((errors: unknown) => {
+				console.error(errors)
 				const underlyingError = msgFromError(errors)
 				throw errorFn(underlyingError)
 			}),
@@ -674,16 +675,12 @@ const create = (
 		)
 
 		txSubs.add(
-			combineLatest([finalizedTx$, signedTransaction$])
+			finalizedTx$
 				.pipe(
 					mergeMap(
-						([
-							finalizedTx,
-							signedTx,
-						]): Observable<PendingTransaction> =>
+						(finalizedTx): Observable<PendingTransaction> =>
 							api.submitSignedTransaction({
 								...finalizedTx,
-								...signedTx,
 							}),
 					),
 					catchError((e: Error) => {
