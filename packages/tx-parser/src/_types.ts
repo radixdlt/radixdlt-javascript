@@ -10,15 +10,21 @@ type REPrimitive = Readonly<{
 
 export enum InstructionType {
 	END = 0x00,
-	UP = 0x01,
-	DOWN = 0x04,
-	LDOWN = 0x05,
-	MSG = 0x06,
-	SIG = 0x07, // Only used for tests...
-	SYSCALL = 0x09,
-	HEADER = 0x0a,
-	VREAD = 0x0d,
-	READ = 0x0e,
+	SYSCALL = 0x01,
+	UP = 0x02,
+	READ = 0x03,
+	LREAD = 0x04,
+	VREAD = 0x05,
+	LVREAD = 0x06,
+	DOWN = 0x07,
+	LDOWN = 0x08,
+	VDOWN = 0x09,
+	LVDOWN = 0x0a,
+	SIG = 0x0b, // Only used for tests...
+	MSG = 0x0c,
+	HEADER = 0x0d,
+	READINDEX = 0x0e,
+	DOWNINDEX = 0x0f
 }
 export type BaseInstruction<IT extends InstructionType> = REPrimitive &
 	Readonly<{
@@ -56,12 +62,12 @@ export type REAddressT =
 	| REAddressPublicKey
 
 export enum SubStateType {
-	TOKENS = 0x05,
-	PREPARED_STAKE = 0x06,
-	STAKE_OWNERSHIP = 0x07,
-	PREPARED_UNSTAKE = 0x08,
-	VALIDATOR_ALLOW_DELEGATION_FLAG = 0x0d,
-	VALIDATOR_OWNER_COPY = 0x12,
+	TOKENS = 0x06,
+	PREPARED_STAKE = 0x07,
+	STAKE_OWNERSHIP = 0x08,
+	PREPARED_UNSTAKE = 0x09,
+	VALIDATOR_ALLOW_DELEGATION_FLAG = 0x0e,
+	VALIDATOR_OWNER_COPY = 0x11,
 }
 
 export type BaseSubstate<SST extends SubStateType> = REPrimitive &
