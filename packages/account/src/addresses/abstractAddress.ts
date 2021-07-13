@@ -176,7 +176,7 @@ const fromString = <A extends AbstractAddressT>(
 		.andThen(({ bech32Data, hrp, network, publicKey }) =>
 			__create({
 				...input,
-				network,
+				network: network as Network,
 				hrp,
 				data: bech32Data,
 				publicKey,

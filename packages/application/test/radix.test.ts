@@ -918,7 +918,7 @@ describe('radix_high_level_api', () => {
 		radix.login(keystoreForTest.password, loadKeystore)
 
 		const mockedValidatorAddr = ValidatorAddress.fromUnsafe(
-			'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+			'rv1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
 		)._unsafeUnwrap()
 
 		subs.add(
@@ -964,7 +964,7 @@ describe('radix_high_level_api', () => {
 		const transactionIntent = TransactionIntentBuilder.create()
 			.stakeTokens({
 				validator:
-					'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+					'rv1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
 				amount: 10000,
 			})
 			.__syncBuildDoNotEncryptMessageIfAny(alice)
@@ -1654,7 +1654,7 @@ describe('radix_high_level_api', () => {
 						stakeInput: {
 							amount: 1,
 							validator:
-								'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+								'rv1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
 						},
 						userConfirmation: 'skip',
 						pollTXStatusTrigger: pollTXStatusTrigger,
@@ -1685,7 +1685,7 @@ describe('radix_high_level_api', () => {
 						unstakeInput: {
 							amount: 1,
 							validator:
-								'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+								'rv1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
 						},
 						userConfirmation: 'skip',
 						pollTXStatusTrigger: pollTXStatusTrigger,
@@ -1883,7 +1883,7 @@ describe('radix_high_level_api', () => {
 								type: ActionType.STAKE_TOKENS,
 								from: fromMe ? myAddress : bob,
 								validator: ValidatorAddress.fromUnsafe(
-									'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+									'rv1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
 								)._unsafeUnwrap(),
 								amount: Amount.fromUnsafe(1)._unsafeUnwrap(),
 							},
@@ -1891,7 +1891,7 @@ describe('radix_high_level_api', () => {
 								type: ActionType.UNSTAKE_TOKENS,
 								from: fromMe ? myAddress : bob,
 								validator: ValidatorAddress.fromUnsafe(
-									'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+									'rv1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
 								)._unsafeUnwrap(),
 								amount: Amount.fromUnsafe(1)._unsafeUnwrap(),
 							},

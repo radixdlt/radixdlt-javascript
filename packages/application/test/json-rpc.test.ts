@@ -168,7 +168,7 @@ const methodParams = {
 
 	[rpcSpec.methods[9].name]: {
 		validatorAddress:
-			'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+			'rv1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
 	},
 
 	[rpcSpec.methods[10].name]: {},
@@ -404,6 +404,7 @@ const expectedDecodedResponses = {
 		txID: TransactionIdentifier.create(response.txID)._unsafeUnwrap({
 			withStackTrace: true,
 		}),
+		blob: ''
 	}),
 
 	[rpcSpec.methods[15].name]: (
