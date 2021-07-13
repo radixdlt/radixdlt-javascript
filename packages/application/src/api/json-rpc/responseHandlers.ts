@@ -29,7 +29,7 @@ import {
 } from './_types'
 import { TransactionIdentifier } from '../../dto'
 import { pipe } from 'ramda'
-import { Message } from '@radixdlt/crypto/src/encryption'
+import { Message } from '@radixdlt/crypto'
 
 const amountDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
