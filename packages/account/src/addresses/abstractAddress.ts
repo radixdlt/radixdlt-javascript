@@ -163,7 +163,7 @@ const fromString = <A extends AbstractAddressT>(
 				networkFromHRP(hrp),
 				PublicKey.fromBuffer(publicKeyBytes),
 			]).map(resultList => {
-				const network = resultList[0] as Network
+				const network = resultList[0]
 				const publicKey = resultList[1] as PublicKeyT
 				return {
 					bech32Data,
@@ -176,7 +176,7 @@ const fromString = <A extends AbstractAddressT>(
 		.andThen(({ bech32Data, hrp, network, publicKey }) =>
 			__create({
 				...input,
-				network,
+				network: network as Network,
 				hrp,
 				data: bech32Data,
 				publicKey,
