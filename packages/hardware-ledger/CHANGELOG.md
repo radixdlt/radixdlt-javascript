@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.0.0](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/hardware-ledger@1.1.32...@radixdlt/hardware-ledger@2.0.0) (2021-07-13)
+
+
+* Hrp changes (#157) ([683c9cc](https://github.com/radixdlt/radixdlt-javascript/commit/683c9cc79d6e9f07c54ca8ac77dd5dd0616e379c)), closes [#157](https://github.com/radixdlt/radixdlt-javascript/issues/157)
+
+
+### BREAKING CHANGES
+
+* Breaks compatibility with networks using the old formats
+
+
+
+
+
 ## [1.1.35](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/hardware-ledger@1.1.34...@radixdlt/hardware-ledger@1.1.35) (2021-07-08)
 
 **Note:** Version bump only for package @radixdlt/hardware-ledger

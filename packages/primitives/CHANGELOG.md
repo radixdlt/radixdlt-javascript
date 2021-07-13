@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.0.0](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/primitives@1.1.31...@radixdlt/primitives@2.0.0) (2021-07-13)
+
+
+* Hrp changes (#157) ([683c9cc](https://github.com/radixdlt/radixdlt-javascript/commit/683c9cc79d6e9f07c54ca8ac77dd5dd0616e379c)), closes [#157](https://github.com/radixdlt/radixdlt-javascript/issues/157)
+
+
+### BREAKING CHANGES
+
+* Breaks compatibility with networks using the old formats
+
+
+
+
+
 ## [1.1.34](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/primitives@1.1.33...@radixdlt/primitives@1.1.34) (2021-07-08)
 
 **Note:** Version bump only for package @radixdlt/primitives
