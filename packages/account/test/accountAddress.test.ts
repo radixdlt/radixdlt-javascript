@@ -228,7 +228,7 @@ describe('account_address_on_bech32_format', () => {
 			network: Network.MAINNET,
 			isValidatorAddress: true,
 			expectedBech32:
-				'rv1q0teqwwy9zntsd0pxmamtqhfykwly0uxvrujsdnu8uxkjynj32zyg4p8k5u',
+				'rv1q0teqwwy9zntsd0pxmamtqhfykwly0uxvrujsdnu8uxkjynj32zyg4redur',
 		})
 
 		doTest({
@@ -236,7 +236,7 @@ describe('account_address_on_bech32_format', () => {
 			network: Network.MAINNET,
 			isValidatorAddress: true,
 			expectedBech32:
-				'rv1q0teqwwy9zntsd0pxmamtqhfykwly0uxvrujsdnu8uxkjynj32zyg4p8k5u',
+				'rv1q0teqwwy9zntsd0pxmamtqhfykwly0uxvrujsdnu8uxkjynj32zyg4redur',
 		})
 
 		doTest({
@@ -260,7 +260,7 @@ describe('account_address_on_bech32_format', () => {
 			network: Network.MAINNET,
 			isValidatorAddress: true,
 			expectedBech32:
-				'rv1qdxjlkg5hdsytavtywwkjjwaxhnnh3n6vllfv68dpkwqttl7rsfzkhqpuzw',
+				'rv1qdxjlkg5hdsytavtywwkjjwaxhnnh3n6vllfv68dpkwqttl7rsfzkhzl823',
 		})
 
 		doTest({
@@ -268,7 +268,7 @@ describe('account_address_on_bech32_format', () => {
 			network: Network.MAINNET,
 			isValidatorAddress: true,
 			expectedBech32:
-				'rv1qdxjlkg5hdsytavtywwkjjwaxhnnh3n6vllfv68dpkwqttl7rsfzkhqpuzw',
+				'rv1qdxjlkg5hdsytavtywwkjjwaxhnnh3n6vllfv68dpkwqttl7rsfzkhzl823',
 		})
 	})
 
