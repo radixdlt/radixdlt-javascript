@@ -2,9 +2,42 @@ import { UInt256 } from '@radixdlt/uint256'
 
 export type AmountT = UInt256
 
-export enum NetworkT {
+export enum Network {
 	MAINNET = 'MAINNET',
-	BETANET = 'BETANET',
+	STOKENET = 'STOKENET',
+	TESTNET3 = 'TESTNET3',
+	TESTNET4 = 'TESTNET4',
+	TESTNET5 = 'TESTNET5',
+}
+
+export const hrpFullSuffixLength = 3
+
+export const HRP = {
+	[Network.MAINNET]: {
+		account: 'rdx',
+		validator: 'vr',
+		RRI_suffix: '_rr',
+	},
+	[Network.STOKENET]: {
+		account: 'tdx',
+		validator: 'vt',
+		RRI_suffix: '_tr',
+	},
+	[Network.TESTNET3]: {
+		account: 'tdx3',
+		validator: 'vt3',
+		RRI_suffix: '_tr3',
+	},
+	[Network.TESTNET4]: {
+		account: 'tdx4',
+		validator: 'vt4',
+		RRI_suffix: '_tr4',
+	},
+	[Network.TESTNET5]: {
+		account: 'tdx5',
+		validator: 'vt5',
+		RRI_suffix: '_tr5',
+	},
 }
 
 export type BuiltTransactionReadyToSign = Readonly<{

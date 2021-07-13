@@ -3,7 +3,7 @@
  */
 
 /* eslint-disable */
-/*
+
 import { log } from '@radixdlt/util'
 import { Observable, Subscription } from 'rxjs'
 import { Radix, SigningKeychain, Wallet, WalletT } from '@radixdlt/application'
@@ -13,12 +13,13 @@ import {
 	HDSigningKeyTypeIdentifier,
 	HWSigningKeyDerivation,
 } from '@radixdlt/account/src/_types'
-import { NetworkT } from '@radixdlt/primitives'
+import { Network } from '@radixdlt/primitives'
 import { HardwareWalletT } from '@radixdlt/hardware-wallet'
 import { HardwareWalletLedger } from '../../src'
 import { DeriveHWSigningKeyInput } from '@radixdlt/account'
+
 // @ts-ignore
-import TransportNodeHid from '@aleworm/hw-transport-node-hid'
+import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 
 describe('radix_hw_ledger', () => {
 	beforeAll(() => {
@@ -31,7 +32,7 @@ describe('radix_hw_ledger', () => {
 		})
 		return Wallet.create({
 			signingKeychain,
-			network: NetworkT.BETANET,
+			network: Network.MAINNET,
 		})
 	}
 
@@ -54,7 +55,7 @@ describe('radix_hw_ledger', () => {
 
 		const keyDerivation: HWSigningKeyDerivation = 'next'
 		const hardwareWalletConnection: Observable<HardwareWalletT> = HardwareWalletLedger.create(
-			transport,
+			transport as any,
 		)
 
 		const input: DeriveHWSigningKeyInput = {
@@ -92,7 +93,7 @@ describe('radix_hw_ledger', () => {
 					expect(account.address.toString()).toBe(
 						'brx1qsplg0a6v4qsx8hjr904h2txwu6562q50ezmgrx7ge3tajgk9smp74gh62u3y',
 					)
-					expect(account.network).toBe(NetworkT.BETANET)
+					expect(account.network).toBe(Network.MAINNET)
 					expect(account.type.isHardwareSigningKey).toBe(true)
 					expect(account.type.isHDSigningKey).toBe(true)
 					expect(account.type.typeIdentifier).toBe(
@@ -111,4 +112,3 @@ describe('radix_hw_ledger', () => {
 		)
 	}, 20_000)
 })
-*/

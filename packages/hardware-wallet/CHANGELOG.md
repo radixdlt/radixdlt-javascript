@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.1.34](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/hardware-wallet@1.1.33...@radixdlt/hardware-wallet@1.1.34) (2021-07-08)
+
+**Note:** Version bump only for package @radixdlt/hardware-wallet
+
+
+
+
+
 ## [1.1.33](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/hardware-wallet@1.1.32...@radixdlt/hardware-wallet@1.1.33) (2021-07-08)
 
 **Note:** Version bump only for package @radixdlt/hardware-wallet

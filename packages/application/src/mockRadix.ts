@@ -2,7 +2,7 @@ import {
 	AmountOrUnsafeInput,
 	AmountT,
 	uint256Max,
-	NetworkT,
+	Network,
 } from '@radixdlt/primitives'
 import {
 	AccountAddress,
@@ -49,7 +49,7 @@ import { Amount } from '@radixdlt/primitives'
 
 export const xrd: Token = {
 	name: 'Rad',
-	rri: ResourceIdentifier.fromUnsafe('xrd_rb1qya85pwq')._unsafeUnwrap(),
+	rri: ResourceIdentifier.fromUnsafe('xrd_tr1qyf0x76s')._unsafeUnwrap(),
 	symbol: 'XRD',
 	description: 'The native coin of Radix network',
 	granularity: Amount.fromUnsafe(1)._unsafeUnwrap(),
@@ -61,7 +61,7 @@ export const xrd: Token = {
 
 export const fooToken: Token = {
 	name: 'Foo token',
-	rri: ResourceIdentifier.fromUnsafe('foo_rb1qy3q706k')._unsafeUnwrap(),
+	rri: ResourceIdentifier.fromUnsafe('xrd_tr1qyf0x76s')._unsafeUnwrap(),
 	symbol: 'FOO',
 	description: 'FOOest token.',
 	granularity: Amount.fromUnsafe(1)._unsafeUnwrap(),
@@ -73,7 +73,7 @@ export const fooToken: Token = {
 
 export const barToken: Token = {
 	name: 'Bar token',
-	rri: ResourceIdentifier.fromUnsafe('bar_rb1qy6gq5vc')._unsafeUnwrap(),
+	rri: ResourceIdentifier.fromUnsafe('xrd_tr1qyf0x76s')._unsafeUnwrap(),
 	symbol: 'BAR',
 	description: 'Bar token. Granularity E-3.',
 	granularity: Amount.fromUnsafe(1000)._unsafeUnwrap(),
@@ -85,7 +85,7 @@ export const barToken: Token = {
 
 export const goldToken: Token = {
 	name: 'Gold token',
-	rri: ResourceIdentifier.fromUnsafe('gold_rb1qydtpdac')._unsafeUnwrap(),
+	rri: ResourceIdentifier.fromUnsafe('xrd_tr1qyf0x76s')._unsafeUnwrap(),
 	symbol: 'GOLD',
 	description: 'Gold token. Granularity E-12.',
 	granularity: Amount.fromUnsafe(1_000_000)._unsafeUnwrap(),
@@ -97,7 +97,7 @@ export const goldToken: Token = {
 
 export const radixWrappedBitcoinToken: Token = {
 	name: 'Bitcoin (wrapped on Radix)',
-	rri: ResourceIdentifier.fromUnsafe('btcrw_rb1qyerpvjk')._unsafeUnwrap(),
+	rri: ResourceIdentifier.fromUnsafe('xrd_tr1qyf0x76s')._unsafeUnwrap(),
 	symbol: 'BTCRW',
 	description: 'Radix wrapped Bitcoin. Granularity E-18.',
 	granularity: Amount.fromUnsafe(1)._unsafeUnwrap(),
@@ -109,7 +109,7 @@ export const radixWrappedBitcoinToken: Token = {
 
 export const radixWrappedEtherToken: Token = {
 	name: 'Ether (wrapped on Radix)',
-	rri: ResourceIdentifier.fromUnsafe('ethrw_rb1qyeev2v5')._unsafeUnwrap(),
+	rri: ResourceIdentifier.fromUnsafe('xrd_tr1qyf0x76s')._unsafeUnwrap(),
 	symbol: 'ETHRW',
 	description: 'Radix wrapped Ether. Granularity E-9.',
 	granularity: Amount.fromUnsafe(1_000_000_000)._unsafeUnwrap(),
@@ -121,7 +121,7 @@ export const radixWrappedEtherToken: Token = {
 
 export const __fallBackAlexToken: Token = {
 	name: 'Alex token',
-	rri: ResourceIdentifier.fromUnsafe('alex_rb1qy7s58lc')._unsafeUnwrap(),
+	rri: ResourceIdentifier.fromUnsafe('xrd_tr1qyf0x76s')._unsafeUnwrap(),
 	symbol: 'ALEX',
 	description:
 		'Fallback token for when token for requested symbol was not found.',
@@ -195,36 +195,36 @@ const detPRNGWithBuffer = (buffer: Buffer): (() => number) => {
 }
 
 const addressesString: string[] = [
-	'brx1qspqljn9rg7x97s3rcvyzal2uxr5q22d9xn8nc4rpq8vq08kg4ch8yqhs9dq6',
-	'brx1qsp0mejfswrmcy5xf9up2ve7zez7w2th0fw4ne8js0u0q22vya7kg8getv7av',
-	'brx1qspvp5dklh3psxxegmrxvcxf657zfnh6z3t3snlh3qsa9twk56zlz3qyx6lhz',
-	'brx1qsppfpt0shel54s245fsk576tpcck3588qd32nknp5tghln93ltvl2q9ytt32',
-	'brx1qspp5vgf0l05ftl2qsu58u7zcel2gznfe9qduf0sfz20kt348fm8h6g0rs8g2',
-	'brx1qsplvk5mts5unklcmdlgzuyr4nm3ez4lkax9g99mhdzv60lv52wdlnqc2zk90',
-	'brx1qsp4mzazl97ynj37pud86e9l6ycam29qjtj89gl0j3ngs44wpf726gc2m9gwm',
-	'brx1qspdcmak8mq5w359sjayu7rr6umsmechxjpj5jtdy3jku3zj9p8n8fqza8lzg',
-	'brx1qsph24szj4jhl5ysefd8lma4el2lgpuhga7azwd9062r5hx98jw9mvssxl9cx',
-	'brx1qspavumjx92gcetz2klgc23fr28s2pf9q0nfssdxf2cnsjhxt3k8q5qzt2jme',
-	'brx1qspmk4lcn48p776g0djruqxyuy8f3l9639fpams8kuv0fwxsm9rqcsqfaw3rd',
-	'brx1qsp6g9ey8erzare0kedr0ymw9x00xnspksnkmvkczwg9tqea490n8qcypnzq4',
-	'brx1qspvrkaccvzd2cmh2w8awl4naxln5ssjuzarejl6fhakedhnkqn7d6qpflpty',
-	'brx1qspte4df856phvm8zq3ns37g7ax6qj9sc2ud559pa9vlque30nuxlgq9hwucz',
-	'brx1qsp4yj8ypkda0lt90yds8v8gknal0wwp4w8zzst5mtj7w6dr9gmlxdghckufj',
-	'brx1qspshc06mfs9d4hp4n696s3kapal8sck4nyxzl38mufvz3kw8cgktvs7wvfem',
-	'brx1qspvk7dj2af7x2nrccw58pe789a9s9hz6wyg9yqd6mnqetllr64gfdshs0adp',
-	'brx1qspwmz963arljtpte327hw04axj9pkeav5r8gkdvx6jpyxtmd0esfwgsczr92',
-	'brx1qspj2gpcnkc46x4t0lzqm6sxa0md42tfuwvshnuc0kg2zyt5mz5fs3saun8n2',
-	'brx1qspmv3m7c70mdegm4dkwmlnekzdas58g8fp83snmf0wz9yqpkepf43gjhan7g',
-	'brx1qspks7jgg0uksy8n7zvd6y93dpgy82653kq79mnk39eacyrjcnsy48ss8v8s3',
-	'brx1qsp6s2epnqhgnshjvktkz7j8ycf948xvcgmwcde04a8pcrzeqfe7z3qmakp5k',
-	'brx1qsp07ca60zv3heutkrguvd5j0f3a0y2785kynn9cfqrq2n4z962jxksthv4qp',
-	'brx1qsplvt0dkj7494mqk4pu2m9j2v68h0w8t8l0z2xj2kl09x7a5ssnz6se4thng',
-	'brx1qspc8cm2x2466x9n9tvurnvedqq9ukn95zjsfmhv2w04qkhgdx2dcrct7z9d2',
-	'brx1qsp68th9ywzwdzq0vsnkqr07sa6hdflg0jzerk7x535ekxjrvzsk07szync20',
-	'brx1qspxkq70fnkerexlfxeznkg2plxm4g25msu889t9z6pr3fqwyadev8gdn58en',
-	'brx1qspk03jsd52z7pqtxh80rhcx8ej8ee9dz4skc3kx7vymztfed3cpttgdfwg37',
-	'brx1qspp3ycx66gsm3r8vsycs04p9delgpu9h4y9agaw3v99rtd2fdyqh5cw4hquv',
-	'brx1qspgp2ce5lfmvqj2zp4ky6nef0wh24us2gp2rrxzjxrmzvgvvs53kzgzscgad',
+	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
+	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
+	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
+	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
+	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
+	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
+	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
+	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
+	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
+	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
+	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
+	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
+	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
+	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
+	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
+	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
+	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
+	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
+	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
+	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
+	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
+	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
+	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
+	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
+	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
+	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
+	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
+	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
+	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
+	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
 ]
 
 const characterNames: string[] = [
@@ -273,49 +273,49 @@ export const erin = castOfCharacters[4]
 
 const makeListOfValidatorAddresses = (): ValidatorAddressT[] => {
 	const stringAddresses = [
-		'vb1qgfqnj34dn7qp9wvf4l6rhw6hu3l82rcqh3rjtk080t75t888u98wkh3gjq',
-		'vb1q2hjzctnunty0g2e39qpg7mawkmv4k4ep733p7khxdzdjfkmlfhp2phu80q',
-		'vb1qv8yvu0266mj996nqdk5skj7r88udjx4wpsagg7x64fsggs0s9hz5f8wtld',
-		'vb1qgppq78aq420903ndag4un4mccuskzl0fmv7nx5xpnrjq43ry6rtw26mqek',
-		'vb1qdyekkzm7n5h4yppdaw9hl3rzjc29vtul4ptm0agskjw5esuqy77usz5vm2',
-		'vb1q2p582qlnwjq42d8xrxqdah2kutds0f3tyfnnkqanjyyn742rzl35t7wy52',
-		'vb1qw59u3e0l5zh52rlnuf3gdche8rtaclq75u03lr6rga6hyrxfytngr64v62',
-		'vb1q0qdqu93fj35qvdtfz96wetce04x4q84qk6v5p06nz9axah294rfzc9xqsu',
-		'vb1q2j4298q80yxs4nnx7uc6ats3jmtmpxc2d8ae3n6rhkeakd2chrgzt6dje8',
-		'vb1qw2kkxsp2uga40hmfr405s4khx2k0etw4vttlvhaqa0vqaragvaegmeu7ml',
-		'vb1qvzzmu6c23hsa286ujmlydzclzpq9uuxm0qevf4yzr0xgu3cc5q86zjt4rw',
-		'vb1qfdvz6frcf65y2x7xtdsw2865atjzn8phgf3f05mdsxcx2zkryv6v42ya23',
-		'vb1q2y8deq8tqn5en37jcaxfyap4e20je448v87yttuzzvlztcylud46s2zhs9',
-		'vb1q2hs5wdeaq7sf6u6s7d7fchnlp8wmgm4ns7mzqyje58dlmt3mvyfkq73y9h',
-		'vb1qtqhujwqnly3xnkr8pjgmlupnnswwuxpc982enzwqcf7l9c06ghqy2veqmp',
-		'vb1q2wqas50dev0w78tzh06pghkvmjcakqhlwru6stawjwcvf20t8srymp07e7',
-		'vb1qwqsxvvd0djcvnnfkxu3p0jdq0wejvd3ndz56ucr0j69ahqj0gjlv2x7zc9',
-		'vb1qdwz0sgu94n6dpmltg3fye6gmldg8zd8u4rmwzp7f7sce3qzu2k769ff3f2',
-		'vb1qdpmnqtzkuqp857j9h65mh3zr8cwjwhtezas69featrqt72z0mfysrn6w4q',
-		'vb1qw7cg95sjccyjrc9hsm0hp6nmxxxqffcqyk98q9yvfg8kqdjav4kquahme3',
-		'vb1q2u3asfddcyhqu5r444rmk6u2v4nzrx8urqa8rpnkg68krulwqyd5mpd4t7',
-		'vb1qfd68uzg9pnxuvps75ps2739ay3g6ljjygvnjq5gz5e48x3z9f5ekum9ete',
-		'vb1q222920dw34vmm7z2je3l7z2npdfujrd2zzf3aplzmwsqfsasrth5xwadth',
-		'vb1qdy58u6hec2dfcjl6u8e9pnz07dtzpxym58rw8a4sa2c30mxxlyvwy8rp4t',
-		'vb1q2dv2vts2xgtcm0rqakpjv7sztxk2q0tmwqt54h434da0fuv9yg5v4w2yu8',
-		'vb1qtgu78y7cq04m3r82kzyfwr8669ax62wg0n0ddj62tvnfklms7flxtlvxqy',
-		'vb1qthrved6r0s2609k6lw55n8yl7vq709zx72uunawuy96le6z5xxxx94kt0c',
-		'vb1qvvjydy0gqt9wu32h8drm2ly4sjtcav0tt9nhnwvyjhgwtekmp37w06tegw',
-		'vb1qtjskjnzmdaa4k7s209l530cuc2smwpdt7ndf9dalueard3p90gpxjmyqen',
-		'vb1qtqtksw26jcqqzqaa59955jhxn4asw7hlzl92q66fj7fr0tf8sq85327ull',
-		'vb1q0yjnqs8adkqk3w2zzvqpq8qc2ejvz8tsxh9vejvg3d3np26atk25w24qdm',
-		'vb1qf8660tsghyxu5p9sfyul9urvemag8laktknxu3lyrqld566gh02ghrsdum',
-		'vb1q0w8dh43evpkw29t24aj98akzl6qeq3za7rx568grvz3kw0nchh520tyznw',
-		'vb1q20g62apnpwvz3cf86v5adc5ukvkm8x5qaf4wc04wjxhwpddruu7609wrs4',
-		'vb1qw2dwpmw8vg5qzg5m0htkl7gfjrc630xn4cuwn65n29k58skjl9hx8uqw3a',
-		'vb1qfcsanpjz4rs9kefaj2dzrrrt97l0lddxek2yp6nnu56sljuwgdpujwtadd',
-		'vb1q0l89534zvsddk0ww92963hgnjzx5h4lse2mx5q09psc96c4gga62uzlwwk',
-		'vb1qwseqk8cpcprf6g39uw7xjns5kua46hy4w0ekxa0tn99dmc4uu7wg5dc0mc',
-		'vb1qdspy3d6n54yg7jth6fg696zpkftnsz6vs6tn533glf4gz4kardrsa0e9gj',
-		'vb1qd7zm8a7jcya5qgua6nwphe64338rrk9vzhgg6ddkcsq0r40emjmqm5ynd3',
-		'vb1q0jqfcyyxf4a6jl00v27r4hwhcrerq7qnx93p8fglqgfsf5ykt30qgthv6t',
-		'vb1qv9yf9emtcfwvdmms0zwxjjkevr3dawmwlvnhld2346ylr3g8ldmzx56a70',
-		'vb1qg9l7vdfx430n2p0qktuxh8nv4anhvhjlqzd8yecn6krnx7jqqq7jyv2vjz',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
 	]
 
 	return stringAddresses.map(s =>
@@ -666,7 +666,7 @@ const deterministicRandomLookupTXUsingHist = (
 	const seed = sha256(Buffer.from(txID.__hex, 'hex'))
 	const addressWithTXIdBytesAsSeed = AccountAddress.fromPublicKeyAndNetwork({
 		publicKey: PrivateKey.fromBuffer(seed)._unsafeUnwrap().publicKey(),
-		network: NetworkT.BETANET,
+		network: Network.MAINNET,
 	})
 	const txs = deterministicRandomTxHistoryWithInput({
 		size: 1,
@@ -709,7 +709,7 @@ export const deterministicRandomStakesForAddr = (
 export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
 	node: { url: new URL(nodeUrl ?? 'https://www.radixdlt.com/') },
 
-	networkId: (): Observable<NetworkT> => {
+	networkId: (): Observable<Network> => {
 		throw Error('Not implemented')
 	},
 
@@ -765,11 +765,11 @@ export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
 		throw Error('Not implemented')
 	},
 
-	networkTransactionThroughput: (): Observable<NetworkTransactionThroughput> => {
+	NetworkTransactionThroughput: (): Observable<NetworkTransactionThroughput> => {
 		throw Error('Not implemented')
 	},
 
-	networkTransactionDemand: (): Observable<NetworkTransactionDemand> => {
+	NetworkTransactionDemand: (): Observable<NetworkTransactionDemand> => {
 		throw Error('Not implemented')
 	},
 
@@ -800,15 +800,15 @@ let txStatusMapCounter: Map<
 export const mockRadixCoreAPI = (
 	input?: Readonly<{
 		nodeUrl?: string
-		network?: NetworkT
+		network?: Network
 	}>,
 ): RadixCoreAPI => {
 	txStatusMapCounter = new Map<TransactionIdentifierT, number>()
 	return {
 		node: { url: new URL(input?.nodeUrl ?? 'https://www.radixdlt.com/') },
 
-		networkId: (): Observable<NetworkT> =>
-			of(input?.network ?? NetworkT.BETANET).pipe(shareReplay(1)),
+		networkId: (): Observable<Network> =>
+			of(input?.network ?? Network.MAINNET).pipe(shareReplay(1)),
 		nativeToken: (): Observable<Token> => of(xrd),
 		tokenInfo: (rri: ResourceIdentifierT): Observable<Token> =>
 			of(tokenByRRIMap.get(rri) ?? __fallBackAlexToken),
@@ -855,9 +855,9 @@ export const mockRadixCoreAPI = (
 			of(detRandomSignedUnconfirmedTransaction(signedTransaction)),
 		submitSignedTransaction: signedUnconfirmedTX =>
 			of(randomPendingTransaction(signedUnconfirmedTX)),
-		networkTransactionDemand: (): Observable<NetworkTransactionDemand> =>
+		NetworkTransactionDemand: (): Observable<NetworkTransactionDemand> =>
 			of(randomDemand()),
-		networkTransactionThroughput: (): Observable<NetworkTransactionThroughput> =>
+		NetworkTransactionThroughput: (): Observable<NetworkTransactionThroughput> =>
 			of(randomThroughput()),
 		transactionHistory: deterministicRandomTXHistory,
 		lookupTransaction: deterministicRandomLookupTX,

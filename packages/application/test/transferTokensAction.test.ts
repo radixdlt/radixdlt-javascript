@@ -1,5 +1,5 @@
 import { ResourceIdentifier } from '@radixdlt/account'
-import { Amount, NetworkT } from '@radixdlt/primitives'
+import { Amount, Network } from '@radixdlt/primitives'
 import { IntendedTransferTokens, TransferTokensInput, alice, bob } from '../src'
 
 describe('TransferTokensActions', () => {
@@ -7,7 +7,7 @@ describe('TransferTokensActions', () => {
 		{
 			publicKey: alice.publicKey,
 			name: 'foobar',
-			network: NetworkT.BETANET,
+			network: Network.MAINNET,
 		},
 	)._unsafeUnwrap()
 	const amount = Amount.fromUnsafe(6)._unsafeUnwrap()
