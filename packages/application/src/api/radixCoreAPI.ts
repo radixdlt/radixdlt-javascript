@@ -166,14 +166,10 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 			}),
 
 		submitSignedTransaction: (
-			finalizedTx: FinalizedTransaction & SignedTransaction,
+			finalizedTx: FinalizedTransaction,
 		): Observable<PendingTransaction> =>
 			toObs(a => a['construction.submit_transaction'], {
-				transaction: {
-					blob: finalizedTx.transaction.blob,
-				},
-				signatureDER: finalizedTx.signature.toDER(),
-				publicKeyOfSigner: finalizedTx.publicKeyOfSigner.toString(true),
+				blob: finalizedTx.blob,
 				txID: finalizedTx.txID.toString(),
 			}),
 	}

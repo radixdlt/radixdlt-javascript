@@ -61,18 +61,15 @@ const __openConnection = async (
 	isLoggingEnabled: boolean,
 	transport: BasicLedgerTransport,
 	input?: OpenLedgerConnectionInput,
-): Promise<BasicLedgerTransport> => {
+): Promise<void> => {
 	if (isLoggingEnabled) {
 		log.debug(`🔌⏱ Looking for (unlocked 🔓) Ledger device to connect to.`)
 	}
 
-	if (isLoggingEnabled) {
-		log.debug(`🔌✅ Found Ledger device and connected to it.`)
-	}
 	const radixAppToOpenWaitPolicy = input?.radixAppToOpenWaitPolicy
 
 	if (!radixAppToOpenWaitPolicy) {
-		return Promise.resolve(transport)
+		return Promise.resolve()
 	} else {
 		if (isLoggingEnabled) {
 			log.debug(`📲 ⏱ Waiting for Radix app to be started on Ledger.`)
@@ -108,7 +105,7 @@ const __openConnection = async (
 				log.debug(
 					`📲 ${debugResponseEmoji} App '${responseString}' is open.`,
 				)
-				return Promise.resolve(transport)
+				return Promise.resolve()
 			})
 			.catch(_ =>
 				// We MUST close the transport and reopen it for pinging to work.
@@ -133,4 +130,4 @@ const __openConnection = async (
 export const openConnection = async (
 	transport: BasicLedgerTransport,
 	input?: OpenLedgerConnectionInput,
-): Promise<BasicLedgerTransport> => __openConnection(true, transport, input)
+): Promise<void> => __openConnection(true, transport, input)
