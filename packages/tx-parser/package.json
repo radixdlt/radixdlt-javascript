@@ -1,6 +1,6 @@
 {
   "name": "@radixdlt/tx-parser",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "Parsing of Radix Engine transactions and instructions",
   "keywords": [
     "Radix Engine",
@@ -28,9 +28,9 @@
     "node": ">=15.5.0 <16"
   },
   "dependencies": {
-    "@radixdlt/account": "^2.0.2",
-    "@radixdlt/crypto": "^2.0.1",
-    "@radixdlt/primitives": "^2.0.2",
+    "@radixdlt/account": "^2.0.4",
+    "@radixdlt/crypto": "^2.0.3",
+    "@radixdlt/primitives": "^2.0.4",
     "@radixdlt/uint256": "1.1.0",
     "@radixdlt/util": "1.0.29",
     "long": "^4.0.0",
