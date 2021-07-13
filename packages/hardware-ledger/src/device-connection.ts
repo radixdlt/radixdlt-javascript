@@ -1,6 +1,7 @@
 import { RadixAPDU } from './apdu'
 import { log } from '@radixdlt/util'
 import { LedgerResponseCodes, RadixAPDUT } from './_types'
+import { Subscription } from 'rxjs'
 
 export type BasicLedgerTransport = Readonly<{
 	close: () => Promise<void>
@@ -56,6 +57,20 @@ export type OpenLedgerConnectionInput = Readonly<{
 		delayBetweenRetries: number
 	}>
 }>
+
+export const subscribeDeviceConnection = async (next: (isConnected: boolean) => any): Promise<Subscription>  => 
+	transportNodeHid.listen({
+        next: async (obj: any) => {
+            switch (obj.type) {
+                case 'add':
+                    next(true)
+                    break
+                case 'remove':
+                    next(false)
+                    break
+            }
+        },
+    })
 
 const __openConnection = async (
 	isLoggingEnabled: boolean,
