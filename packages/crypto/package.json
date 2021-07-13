@@ -1,6 +1,6 @@
 {
   "name": "@radixdlt/crypto",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Cryptographic primitives such as digests (hashing) and Elliptic Curve Cryptography (ECC) methods such as key generation, signing and verify.",
   "keywords": [
     "Crypto",
