@@ -1,10 +1,10 @@
 import { PublicKeyT } from '@radixdlt/crypto'
-import { NetworkT } from '@radixdlt/primitives'
+import { Network } from '@radixdlt/primitives'
 
 export type ResourceIdentifierT = Readonly<{
 	hash: Buffer
 	__witness: 'isRRI'
-	network: NetworkT
+	network: Network
 	name: string
 	toString: () => string
 	equals: (other: ResourceIdentifierT) => boolean
@@ -17,7 +17,7 @@ export enum AddressTypeT {
 
 export type AbstractAddressT = Readonly<{
 	addressType: AddressTypeT
-	network: NetworkT
+	network: Network
 	publicKey: PublicKeyT
 	toString: () => string
 	equals: (other: AbstractAddressT) => boolean

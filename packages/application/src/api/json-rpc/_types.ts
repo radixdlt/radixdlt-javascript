@@ -1,4 +1,4 @@
-import { NetworkT } from '@radixdlt/primitives'
+import { Network } from '@radixdlt/primitives'
 import { ActionType } from '../../actions'
 import {
 	SimpleExecutedTransaction,
@@ -48,7 +48,7 @@ export namespace NetworkIdEndpoint {
 	}
 
 	export type DecodedResponse = {
-		networkId: NetworkT
+		networkId: Network
 	}
 }
 

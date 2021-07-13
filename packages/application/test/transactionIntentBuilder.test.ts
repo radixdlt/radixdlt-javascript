@@ -28,11 +28,11 @@ import { createWallet } from './util'
 
 describe('tx_intent_builder', () => {
 	const validatorCarol: ValidatorAddressT = ValidatorAddress.fromUnsafe(
-		'vb1qgfqnj34dn7qp9wvf4l6rhw6hu3l82rcqh3rjtk080t75t888u98wkh3gjq',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
 	)._unsafeUnwrap()
 
 	const validatorDan: ValidatorAddressT = ValidatorAddress.fromUnsafe(
-		'vb1q2hjzctnunty0g2e39qpg7mawkmv4k4ep733p7khxdzdjfkmlfhp2phu80q',
+		'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
 	)._unsafeUnwrap()
 
 	const one = Amount.fromUnsafe(1)._unsafeUnwrap()
@@ -126,7 +126,7 @@ describe('tx_intent_builder', () => {
 			// unsafe inputs
 			amount: 1,
 			to: bob.toString(),
-			tokenIdentifier: 'xrd_rb1qya85pwq',
+			tokenIdentifier: 'xrd_tr1qyf0x76s',
 		})
 
 		validateOneToBob(builder)
@@ -135,7 +135,7 @@ describe('tx_intent_builder', () => {
 	it('can stake from unsafe inputs', () => {
 		const builder = TransactionIntentBuilder.create().stakeTokens({
 			validator:
-				'vb1qv8yvu0266mj996nqdk5skj7r88udjx4wpsagg7x64fsggs0s9hz5f8wtld',
+				'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
 			amount: 1234567890,
 		})
 

@@ -88,10 +88,10 @@ export const unstakesForAddressErr = APIError(
 	APIErrorCause.UNSTAKES_FOR_ADDRESS_FAILED,
 )
 export const txStatusErr = APIError(APIErrorCause.TX_STATUS_FAILED)
-export const networkTxThroughputErr = APIError(
+export const NetworkTxThroughputErr = APIError(
 	APIErrorCause.NETWORK_TX_THROUGHPUT_FAILED,
 )
-export const networkTxDemandErr = APIError(
+export const NetworkTxDemandErr = APIError(
 	APIErrorCause.NETWORK_TX_DEMAND_FAILED,
 )
 export const buildTxFromIntentErr = (
