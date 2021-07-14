@@ -15,13 +15,16 @@ export type BasicLedgerTransport = Readonly<{
 	) => Promise<Buffer>
 }>
 
-export const send = (
+export const send = async (
 	input: Readonly<{
 		apdu: RadixAPDUT
 		with: BasicLedgerTransport
 	}>,
 ): Promise<Buffer> => {
 	const { apdu, with: connectedLedgerTransport } = input
+	
+	await openConnection(connectedLedgerTransport)
+
 	const acceptableStatusCodes = apdu.requiredResponseStatusCodeFromDevice ?? [
 		LedgerResponseCodes.SW_OK,
 	]
@@ -57,20 +60,6 @@ export type OpenLedgerConnectionInput = Readonly<{
 		delayBetweenRetries: number
 	}>
 }>
-
-export const subscribeDeviceConnection = async (next: (isConnected: boolean) => any): Promise<Subscription>  => 
-	transportNodeHid.listen({
-        next: async (obj: any) => {
-            switch (obj.type) {
-                case 'add':
-                    next(true)
-                    break
-                case 'remove':
-                    next(false)
-                    break
-            }
-        },
-    })
 
 const __openConnection = async (
 	isLoggingEnabled: boolean,
