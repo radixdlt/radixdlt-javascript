@@ -80,9 +80,9 @@ const parseFromBufferReader = (
 								}(${substateId.toString()})`,
 						}))
 					case InstructionType.LDOWN:
-						return bufferReader.readNextBuffer(4).map(
+						return bufferReader.readNextBuffer(2).map(
 							(substateIndexBytes): Ins_LDOWN => {
-								const substateIndex = substateIndexBytes.readUInt32BE(
+								const substateIndex = substateIndexBytes.readUInt16BE(
 									0,
 								)
 								return {
