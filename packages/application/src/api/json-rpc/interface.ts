@@ -2,8 +2,8 @@ import { Result, ResultAsync } from 'neverthrow'
 import {
 	handleBuildTransactionResponse,
 	handleLookupTXResponse,
-	handleNetworkTxDemandResponse,
-	handleNetworkTxThroughputResponse,
+	handleNetworkxDemandResponse,
+	handleNetworkxThroughputResponse,
 	handleStakesResponse,
 	handleFinalizeTransactionResponse,
 	handleTokenBalancesResponse,
@@ -125,12 +125,12 @@ export const getAPI = (
 		[ApiMethod.NETWORK_TX_THROUGHPUT]: setupAPIResponse<
 			NetworkTransactionThroughputEndpoint.Input,
 			NetworkTransactionThroughputEndpoint.DecodedResponse
-		>(handleNetworkTxThroughputResponse)(ApiMethod.NETWORK_TX_THROUGHPUT),
+		>(handleNetworkxThroughputResponse)(ApiMethod.NETWORK_TX_THROUGHPUT),
 
 		[ApiMethod.NETWORK_TX_DEMAND]: setupAPIResponse<
 			NetworkTransactionDemandEndpoint.Input,
 			NetworkTransactionDemandEndpoint.DecodedResponse
-		>(handleNetworkTxDemandResponse)(ApiMethod.NETWORK_TX_DEMAND),
+		>(handleNetworkxDemandResponse)(ApiMethod.NETWORK_TX_DEMAND),
 
 		[ApiMethod.BUILD_TX_FROM_INTENT]: setupAPIResponse<
 			BuildTransactionEndpoint.Input,

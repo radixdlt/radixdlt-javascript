@@ -3,7 +3,7 @@ import { isPublicKey, PublicKey, PublicKeyT } from '@radixdlt/crypto'
 import { log, msgFromError } from '@radixdlt/util'
 import { Bech32, Encoding } from '../bech32'
 import { AbstractAddressT, AddressTypeT } from './_types'
-import { NetworkT } from '@radixdlt/primitives'
+import { Network } from '@radixdlt/primitives'
 
 export const isAbstractAddress = (
 	something: unknown,
@@ -22,8 +22,8 @@ export type TypeGuard<A extends AbstractAddressT> = (
 	something: unknown,
 ) => something is A
 
-export type NetworkFromHRP = (hrp: string) => Result<NetworkT, Error>
-export type HRPFromNetwork = (network: NetworkT) => string
+export type NetworkFromHRP = (hrp: string) => Result<Network, Error>
+export type HRPFromNetwork = (network: Network) => string
 export type FormatDataToBech32Convert = (publicKeyBytes: Buffer) => Buffer
 
 export type ValidateDataAndExtractPubKeyBytes = (
@@ -36,7 +36,7 @@ const __create = <A extends AbstractAddressT>(
 		data: Buffer
 		addressType: AddressTypeT
 		publicKey: PublicKeyT
-		network: NetworkT
+		network: Network
 		typeguard: TypeGuard<A>
 		encoding?: Encoding
 		maxLength?: number
@@ -99,7 +99,7 @@ const byFormattingPublicKeyDataAndBech32ConvertingIt = <
 		publicKey: PublicKeyT
 		hrpFromNetwork: HRPFromNetwork
 		addressType: AddressTypeT
-		network: NetworkT
+		network: Network
 		typeguard: TypeGuard<A>
 		formatDataToBech32Convert?: FormatDataToBech32Convert
 		encoding?: Encoding
@@ -163,7 +163,7 @@ const fromString = <A extends AbstractAddressT>(
 				networkFromHRP(hrp),
 				PublicKey.fromBuffer(publicKeyBytes),
 			]).map(resultList => {
-				const network = resultList[0] as NetworkT
+				const network = resultList[0]
 				const publicKey = resultList[1] as PublicKeyT
 				return {
 					bech32Data,
@@ -176,7 +176,7 @@ const fromString = <A extends AbstractAddressT>(
 		.andThen(({ bech32Data, hrp, network, publicKey }) =>
 			__create({
 				...input,
-				network,
+				network: network as Network,
 				hrp,
 				data: bech32Data,
 				publicKey,

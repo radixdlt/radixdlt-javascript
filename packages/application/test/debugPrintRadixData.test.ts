@@ -2,7 +2,7 @@ import { Subscription } from 'rxjs'
 import { AccountAddress } from '@radixdlt/account'
 import { Radix } from '../src'
 import { msgFromError } from '@radixdlt/util'
-import { NetworkT } from '@radixdlt/primitives'
+import { Network } from '@radixdlt/primitives'
 
 import {
 	stringifySimpleTokenBalances,
@@ -10,7 +10,7 @@ import {
 } from './stringifyTypes'
 
 describe.skip('debugPrintRadixData', () => {
-	const radix = Radix.create({ network: NetworkT.BETANET }).connect(
+	const radix = Radix.create({ network: Network.MAINNET }).connect(
 		'https://18.168.73.103/rpc',
 	)
 

@@ -20,13 +20,13 @@ import { Account, isAccount } from './account'
 import { map, mergeMap } from 'rxjs/operators'
 import { Option } from 'prelude-ts'
 import { PublicKeyT, HDPathRadixT } from '@radixdlt/crypto'
-import { NetworkT } from '@radixdlt/primitives'
-import { log } from '@radixdlt/util'
+import { Network } from '@radixdlt/primitives'
+import { log } from '@radixdlt/util/dist/logging'
 
 const create = (
 	input: Readonly<{
 		signingKeychain: SigningKeychainT
-		network: NetworkT
+		network: Network
 	}>,
 ): WalletT => {
 	const { network, signingKeychain } = input
@@ -90,30 +90,23 @@ const create = (
 		displayAddressForActiveHWAccountOnHWDeviceForVerification: (): Observable<void> =>
 			observeActiveAccount().pipe(
 				mergeMap(
-					(a: AccountT): Observable<AccountT> => {
-						if (!a.signingKey.isHardwareSigningKey) {
-							const errMsg = `Active account is not a hardware account, so cannot verify the address on hardware device. Type identifier of active account: ${a.signingKey.type.typeIdentifier}`
-							log.error(errMsg)
-							return throwError(new Error(errMsg))
-						}
-						return of(a)
-					},
-				),
-				mergeMap(
 					(a: AccountT): Observable<void> =>
-						a.signingKey.getPublicKeyDisplayOnlyAddress().pipe(
-							mergeMap(
-								(pk: PublicKeyT): Observable<void> => {
-									if (pk.equals(a.publicKey)) {
-										return of(undefined)
-									} else {
-										const errMsg = `Hardware wallet returned a different public key than the cached one, this is bad. Probably incorrect implementation.`
-										log.error(errMsg)
-										return throwError(new Error(errMsg))
-									}
-								},
+						signingKeychain
+							.__unsafeGetSigningKey()
+							.getPublicKeyDisplayOnlyAddress()
+							.pipe(
+								mergeMap(
+									(pk: PublicKeyT): Observable<void> => {
+										if (pk.equals(a.publicKey)) {
+											return of(undefined)
+										} else {
+											const errMsg = `Hardware wallet returned a different public key than the cached one, this is bad. Probably incorrect implementation.`
+											log.error(errMsg)
+											return throwError(new Error(errMsg))
+										}
+									},
+								),
 							),
-						),
 				),
 			),
 

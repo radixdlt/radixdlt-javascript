@@ -1,6 +1,6 @@
 {
   "name": "@radixdlt/primitives",
-  "version": "1.0.35",
+  "version": "2.1.1",
   "description": "Shared common data types",
   "keywords": [
     "Integers",

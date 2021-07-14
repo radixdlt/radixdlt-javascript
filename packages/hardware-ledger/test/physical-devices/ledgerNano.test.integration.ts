@@ -3,7 +3,7 @@
  */
 
 /* eslint-disable */
-/*
+
 import { SemVerT, SignTXOutput } from '@radixdlt/hardware-wallet'
 import { log } from '@radixdlt/util'
 import { Subscription } from 'rxjs'
@@ -18,15 +18,13 @@ import {
 } from '@radixdlt/crypto'
 import {
 	BuiltTransactionReadyToSign,
-	NetworkT,
+	Network,
 	uint256FromUnsafe,
 } from '@radixdlt/primitives'
-import { Transaction } from '@radixdlt/tx-parser'
-import { TransactionT } from '@radixdlt/tx-parser'
+import { Transaction, stringifyUInt256, TransactionT } from '@radixdlt/tx-parser'
 import { AccountAddress } from '@radixdlt/account'
-import { stringifyUInt256 } from '@radixdlt/tx-parser/'
 // @ts-ignore
-import TransportNodeHid from '@aleworm/hw-transport-node-hid'
+import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 
 describe('hw_ledger_integration', () => {
 	let ledgerNano: LedgerNanoT
@@ -55,7 +53,7 @@ describe('hw_ledger_integration', () => {
 	it('getVersion_integration', async done => {
 		const transport = await TransportNodeHid.create()
 
-		ledgerNano = await LedgerNano.connect(transport, {
+		ledgerNano = await LedgerNano.connect(transport as any, {
 			deviceConnectionTimeout: 10_000,
 		})
 		const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
@@ -78,14 +76,16 @@ describe('hw_ledger_integration', () => {
 	it('getPublicKey_integration', async done => {
 		const transport = await TransportNodeHid.create()
 
-		ledgerNano = await LedgerNano.connect(transport, {
+		ledgerNano = await LedgerNano.connect(transport as any, {
 			deviceConnectionTimeout: 10_000,
 		})
 		const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
 
 		const subs = new Subscription()
 
-		const path = HDPathRadix.fromString(`m/44'/1022'/2'/1/3`)._unsafeUnwrap()
+		const path = HDPathRadix.fromString(
+			`m/44'/1022'/2'/1/3`,
+		)._unsafeUnwrap()
 		const displayAddress = true
 
 		const expectedPubKeyHex =
@@ -99,11 +99,11 @@ describe('hw_ledger_integration', () => {
 			console.log(`🔮 expected path: ${path.toString()}`)
 			const accountAddress = AccountAddress.fromPublicKeyAndNetwork({
 				publicKey: expectedPubKey,
-				network: NetworkT.BETANET,
+				network: Network.MAINNET,
 			})
 			const wrongAccountAddress = AccountAddress.fromPublicKeyAndNetwork({
 				publicKey: expectedPubKey,
-				network: NetworkT.MAINNET,
+				network: Network.MAINNET,
 			})
 			console.log(
 				`🔮 expected address: '${accountAddress.toString()}' ([wrong]mainnet: '${wrongAccountAddress.toString()}')`,
@@ -131,7 +131,7 @@ describe('hw_ledger_integration', () => {
 	it('doKeyExchange_integration', async done => {
 		const transport = await TransportNodeHid.create()
 
-		ledgerNano = await LedgerNano.connect(transport, {
+		ledgerNano = await LedgerNano.connect(transport as any, {
 			deviceConnectionTimeout: 10_000,
 		})
 		const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
@@ -157,7 +157,7 @@ describe('hw_ledger_integration', () => {
 			const accountAddressOfOtherParty = AccountAddress.fromPublicKeyAndNetwork(
 				{
 					publicKey: publicKeyOfOtherParty,
-					network: NetworkT.BETANET,
+					network: Network.MAINNET,
 				},
 			)
 
@@ -195,7 +195,7 @@ describe('hw_ledger_integration', () => {
 		async done => {
 			const transport = await TransportNodeHid.create()
 
-			ledgerNano = await LedgerNano.connect(transport, {
+			ledgerNano = await LedgerNano.connect(transport as any, {
 				deviceConnectionTimeout: 20_000,
 			})
 			const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
@@ -244,7 +244,8 @@ describe('hw_ledger_integration', () => {
 				hardwareWallet
 					.doSignTransaction({
 						path,
-						tx
+						nonXrdHRP: 'btc',
+						tx,
 					})
 					.subscribe(
 						(result: SignTXOutput) => {
@@ -276,7 +277,7 @@ describe('hw_ledger_integration', () => {
 	it('doSignHash_integration', async done => {
 		const transport = await TransportNodeHid.create()
 
-		ledgerNano = await LedgerNano.connect(transport, {
+		ledgerNano = await LedgerNano.connect(transport as any, {
 			deviceConnectionTimeout: 10_000,
 		})
 		const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
@@ -287,7 +288,9 @@ describe('hw_ledger_integration', () => {
 			`I'm testing Radix awesome hardware wallet!`,
 		)
 
-		const path = HDPathRadix.fromString(`m/44'/1022'/2'/1/3`)._unsafeUnwrap()
+		const path = HDPathRadix.fromString(
+			`m/44'/1022'/2'/1/3`,
+		)._unsafeUnwrap()
 
 		console.log(`🔮 Path: ${path.toString()}`)
 		console.log(`🔮 Hash: ${hashToSign.toString('hex')}`)
@@ -312,4 +315,3 @@ describe('hw_ledger_integration', () => {
 		)
 	}, 40_000)
 })
-*/

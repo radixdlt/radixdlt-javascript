@@ -3,6 +3,76 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.1.2](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@2.0.1...@radixdlt/application@2.1.2) (2021-07-13)
+
+**Note:** Version bump only for package @radixdlt/application
+
+
+
+
+
+## [2.0.1](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@2.0.0...@radixdlt/application@2.0.1) (2021-07-13)
+
+**Note:** Version bump only for package @radixdlt/application
+
+
+
+
+
+# [2.0.0](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@1.1.32...@radixdlt/application@2.0.0) (2021-07-13)
+
+
+* Hrp changes (#157) ([683c9cc](https://github.com/radixdlt/radixdlt-javascript/commit/683c9cc79d6e9f07c54ca8ac77dd5dd0616e379c)), closes [#157](https://github.com/radixdlt/radixdlt-javascript/issues/157)
+
+
+### BREAKING CHANGES
+
+* Breaks compatibility with networks using the old formats
+
+
+
+
+
+## [1.1.35](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@1.1.34...@radixdlt/application@1.1.35) (2021-07-08)
+
+**Note:** Version bump only for package @radixdlt/application
+
+
+
+
+
+## [1.1.34](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@1.1.33...@radixdlt/application@1.1.34) (2021-07-08)
+
+**Note:** Version bump only for package @radixdlt/application
+
+
+
+
+
+## [1.1.33](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@1.1.32...@radixdlt/application@1.1.33) (2021-07-08)
+
+**Note:** Version bump only for package @radixdlt/application
+
+
+
+
+
+## [1.1.32](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@1.1.31...@radixdlt/application@1.1.32) (2021-07-07)
+
+**Note:** Version bump only for package @radixdlt/application
+
+
+
+
+
+## [1.1.31](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@1.0.74...@radixdlt/application@1.1.31) (2021-07-07)
+
+**Note:** Version bump only for package @radixdlt/application
+
+
+
+
+
 ## [1.0.74](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@1.0.73...@radixdlt/application@1.0.74) (2021-06-28)
 
 **Note:** Version bump only for package @radixdlt/application

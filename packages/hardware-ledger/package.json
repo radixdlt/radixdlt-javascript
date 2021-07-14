@@ -1,6 +1,6 @@
 {
   "name": "@radixdlt/hardware-ledger",
-  "version": "1.0.19",
+  "version": "2.1.2",
   "description": "Ledger Nano hardware wallet connection",
   "keywords": [
     "Ledger",
@@ -29,10 +29,10 @@
     "node": ">=15.5.0 <16"
   },
   "dependencies": {
-    "@radixdlt/crypto": "^1.0.47",
-    "@radixdlt/hardware-wallet": "^1.0.33",
-    "@radixdlt/primitives": "^1.0.35",
-    "@radixdlt/tx-parser": "^1.0.15",
+    "@radixdlt/crypto": "^2.1.1",
+    "@radixdlt/hardware-wallet": "^2.1.1",
+    "@radixdlt/primitives": "^2.1.1",
+    "@radixdlt/tx-parser": "^2.1.1",
     "@radixdlt/util": "1.0.29",
     "neverthrow": "4.0.1",
     "prelude-ts": "^1.0.2",
@@ -40,8 +40,8 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@radixdlt/account": "^1.0.59",
-    "@radixdlt/application": "^1.0.74",
+    "@radixdlt/account": "^2.1.1",
+    "@radixdlt/application": "^2.1.2",
     "@types/ledgerhq__hw-transport-node-hid": "^4.22.2",
     "@types/uuid": "^8.3.0"
   }
