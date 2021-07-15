@@ -7,7 +7,7 @@ const LENGTH_BYTES = 2
 const fromBufferReader = (bufferReader: BufferReaderT): Result<BytesT, Error> =>
 	bufferReader
 		.readNextBuffer(LENGTH_BYTES)
-		.map(b => b.readUInt16BE())
+		.map(b => b.readUInt16BE(0))
 		.andThen((length: number) =>
 			bufferReader.readNextBuffer(length).map(data => ({
 				length,
