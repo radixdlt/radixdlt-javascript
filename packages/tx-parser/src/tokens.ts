@@ -27,6 +27,7 @@ export const amountToBuffer = (amount: UInt256): Buffer =>
 
 const fromBufferReader = (
 	bufferReader: BufferReaderT,
+	lengthData: Buffer
 ): Result<TokensT, Error> =>
 	combine([
 		bufferReader.readNextBuffer(1).map(b => b.readUInt8(0)),
@@ -44,6 +45,7 @@ const fromBufferReader = (
 			(partial): TokensT => {
 				const { resource, owner, reserved, amount } = partial
 				const buffer = Buffer.concat([
+					lengthData,
 					Buffer.from([SubStateType.TOKENS]),
 					Buffer.from([reserved]),
 					owner.toBuffer(),

@@ -54,7 +54,7 @@ export const makeBaseValidatorSubstateFromBuffer = <SST extends SubStateType>(
 
 export const makeBaseStakeSubstateFromBuffer = <SST extends SubStateType>(
 	substateType: SST,
-) => (bufferReader: BufferReaderT): Result<BaseStakingSubstate<SST>, Error> =>
+) => (bufferReader: BufferReaderT, lengthData: Buffer): Result<BaseStakingSubstate<SST>, Error> =>
 	makeBaseValidatorSubstateFromBuffer(substateType)(bufferReader).andThen(
 		base =>
 			combine([
@@ -72,6 +72,7 @@ export const makeBaseStakeSubstateFromBuffer = <SST extends SubStateType>(
 						amount,
 						toBuffer: (): Buffer =>
 							Buffer.concat([
+								lengthData,
 								base.toBuffer(),
 								owner.toBuffer(),
 								amountToBuffer(amount),
@@ -107,8 +108,10 @@ export const makeBaseStakeSubstateFromBuffer = <SST extends SubStateType>(
 export const PreparedStake = {
 	fromBufferReader: (
 		bufferReader: BufferReaderT,
+		lengthData: Buffer
 	): Result<PreparedStakeT, Error> =>
 		makeBaseStakeSubstateFromBuffer(SubStateType.PREPARED_STAKE)(
 			bufferReader,
+			lengthData
 		),
 }

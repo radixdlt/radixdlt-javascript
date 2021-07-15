@@ -15,10 +15,14 @@ const fromBufferReader = (bufferReader: BufferReaderT): Result<BytesT, Error> =>
 			})),
 		)
 		.map(partial => {
+			const lengthBuf = Buffer.alloc(LENGTH_BYTES)
+			lengthBuf.writeUInt16BE(partial.length)
+
 			const buffer = Buffer.concat([
-				Buffer.from([partial.length]),
+				lengthBuf,
 				partial.data,
 			])
+
 			return {
 				...partial,
 				toBuffer: () => buffer,

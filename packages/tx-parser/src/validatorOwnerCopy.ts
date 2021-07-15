@@ -10,6 +10,7 @@ import { REAddress } from './reAddress'
 
 const makeValidatorValidatorOwnerCopy = (
 	bufferReader: BufferReaderT,
+	lengthData: Buffer
 ): Result<ValidatorOwnerCopyT, Error> =>
 	makeBaseValidatorSubstateFromBuffer(SubStateType.VALIDATOR_OWNER_COPY)(
 		bufferReader,
@@ -23,7 +24,7 @@ const makeValidatorValidatorOwnerCopy = (
 						...base,
 						owner,
 						toBuffer: (): Buffer =>
-							Buffer.concat([base.toBuffer(), owner.toBuffer()]),
+							Buffer.concat([lengthData, base.toBuffer(), owner.toBuffer()]),
 						toString: () =>
 							`${stringifySubstateType(
 								SubStateType.VALIDATOR_OWNER_COPY,
@@ -38,6 +39,7 @@ const makeValidatorValidatorOwnerCopy = (
 export const ValidatorOwnerCopy = {
 	fromBufferReader: (
 		bufferReader: BufferReaderT,
+		lengthData: Buffer
 	): Result<ValidatorOwnerCopyT, Error> =>
-		makeValidatorValidatorOwnerCopy(bufferReader),
+		makeValidatorValidatorOwnerCopy(bufferReader, lengthData),
 }
