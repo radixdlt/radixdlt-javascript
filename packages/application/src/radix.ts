@@ -372,10 +372,6 @@ const create = (
 		stakingFetchSubject,
 		a => a.unstakesForAddress,
 		unstakesForAddressErr,
-	).pipe(
-		map(positions =>
-			positions.filter(position => position.epochsUntil > 0),
-		),
 	)
 
 	const transactionHistory = (

@@ -6,10 +6,10 @@ import { makeBaseStakeSubstateFromBuffer } from './preparedStake'
 export const StakeOwnership = {
 	fromBufferReader: (
 		bufferReader: BufferReaderT,
-		lengthData: Buffer
+		lengthData: Buffer,
 	): Result<StakeOwnershipT, Error> =>
 		makeBaseStakeSubstateFromBuffer(SubStateType.STAKE_OWNERSHIP)(
 			bufferReader,
-			lengthData
+			lengthData,
 		),
 }

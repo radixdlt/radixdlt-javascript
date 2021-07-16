@@ -1084,6 +1084,8 @@ describe('radix_high_level_api', () => {
 		radix.login(keystoreForTest.password, loadKeystore)
 
 		const expectedStakes = [
+			{ amount: 138, validator: '6p', epochsUntil: 0 },
+			{ amount: 722, validator: '6p', epochsUntil: 0 },
 			{ amount: 208, validator: '6p', epochsUntil: 3 },
 		]
 		const expectedValues = [expectedStakes, expectedStakes] // should be unchanged between updates (deterministically mocked).

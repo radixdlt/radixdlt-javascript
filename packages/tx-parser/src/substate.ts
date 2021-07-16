@@ -20,25 +20,40 @@ const parseFromBufferReader = (
 			const lengthData = Buffer.from(b.slice(0, LENGTH_BYTES))
 			return [b.readUInt8(LENGTH_BYTES), lengthData]
 		})
-		.map(([type, lengthData]) => [type, lengthData] as [SubStateType, Buffer])
+		.map(
+			([type, lengthData]) =>
+				[type, lengthData] as [SubStateType, Buffer],
+		)
 		.andThen(
 			([substateType, lengthData]): Result<SubstateT, Error> => {
 				switch (substateType) {
 					case SubStateType.TOKENS:
 						return Tokens.fromBufferReader(bufferReader, lengthData)
 					case SubStateType.PREPARED_STAKE:
-						return PreparedStake.fromBufferReader(bufferReader, lengthData)
+						return PreparedStake.fromBufferReader(
+							bufferReader,
+							lengthData,
+						)
 					case SubStateType.PREPARED_UNSTAKE:
-						return PreparedUnstake.fromBufferReader(bufferReader, lengthData)
+						return PreparedUnstake.fromBufferReader(
+							bufferReader,
+							lengthData,
+						)
 					case SubStateType.STAKE_OWNERSHIP:
-						return StakeOwnership.fromBufferReader(bufferReader, lengthData)
+						return StakeOwnership.fromBufferReader(
+							bufferReader,
+							lengthData,
+						)
 					case SubStateType.VALIDATOR_ALLOW_DELEGATION_FLAG:
 						return ValidatorAllowDelegationFlag.fromBufferReader(
 							bufferReader,
-							lengthData
+							lengthData,
 						)
 					case SubStateType.VALIDATOR_OWNER_COPY:
-						return ValidatorOwnerCopy.fromBufferReader(bufferReader, lengthData)
+						return ValidatorOwnerCopy.fromBufferReader(
+							bufferReader,
+							lengthData,
+						)
 					default:
 						throw new Error(
 							`Substate ${substateType} of type: ${SubStateType[substateType]} not implemented.`,

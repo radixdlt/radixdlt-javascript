@@ -18,10 +18,7 @@ const fromBufferReader = (bufferReader: BufferReaderT): Result<BytesT, Error> =>
 			const lengthBuf = Buffer.alloc(LENGTH_BYTES)
 			lengthBuf.writeUInt16BE(partial.length)
 
-			const buffer = Buffer.concat([
-				lengthBuf,
-				partial.data,
-			])
+			const buffer = Buffer.concat([lengthBuf, partial.data])
 
 			return {
 				...partial,

@@ -76,7 +76,8 @@ const parseFromBufferReader = (
 							toBuffer: () =>
 								Buffer.concat([insBuf, substateId.toBuffer()]),
 							toString: () =>
-								`${InstructionType[instructionType]
+								`${
+									InstructionType[instructionType]
 								}(${substateId.toString()})`,
 						}))
 					case InstructionType.LDOWN:
@@ -175,8 +176,7 @@ const parseFromBufferReader = (
 										insBuf,
 										callData.toBuffer(),
 									]),
-								toString: () =>
-									`VDOWN(${callData.toString()})`,
+								toString: () => `VDOWN(${callData.toString()})`,
 							}),
 						)
 					case InstructionType.VREAD:
@@ -189,8 +189,7 @@ const parseFromBufferReader = (
 										insBuf,
 										callData.toBuffer(),
 									]),
-								toString: () =>
-									`VREAD(${callData.toString()})`,
+								toString: () => `VREAD(${callData.toString()})`,
 							}),
 						)
 					default:

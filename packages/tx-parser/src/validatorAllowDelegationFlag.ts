@@ -25,7 +25,7 @@ export const boolToBuf = (bool: boolean): Buffer => Buffer.from([bool ? 1 : 0])
 
 const makeValidatorAllowDelegationFlagFromBuffer = (
 	bufferReader: BufferReaderT,
-	lengthData: Buffer
+	lengthData: Buffer,
 ): Result<ValidatorAllowDelegationFlagT, Error> =>
 	makeBaseValidatorSubstateFromBuffer(
 		SubStateType.VALIDATOR_ALLOW_DELEGATION_FLAG,
@@ -56,7 +56,7 @@ const makeValidatorAllowDelegationFlagFromBuffer = (
 export const ValidatorAllowDelegationFlag = {
 	fromBufferReader: (
 		bufferReader: BufferReaderT,
-		lengthData: Buffer
+		lengthData: Buffer,
 	): Result<ValidatorAllowDelegationFlagT, Error> =>
 		makeValidatorAllowDelegationFlagFromBuffer(bufferReader, lengthData),
 }

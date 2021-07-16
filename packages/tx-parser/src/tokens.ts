@@ -27,7 +27,7 @@ export const amountToBuffer = (amount: UInt256): Buffer =>
 
 const fromBufferReader = (
 	bufferReader: BufferReaderT,
-	lengthData: Buffer
+	lengthData: Buffer,
 ): Result<TokensT, Error> =>
 	combine([
 		bufferReader.readNextBuffer(1).map(b => b.readUInt8(0)),

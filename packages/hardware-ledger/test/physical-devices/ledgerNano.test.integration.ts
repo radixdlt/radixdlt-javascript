@@ -21,7 +21,11 @@ import {
 	Network,
 	uint256FromUnsafe,
 } from '@radixdlt/primitives'
-import { Transaction, stringifyUInt256, TransactionT } from '@radixdlt/tx-parser'
+import {
+	Transaction,
+	stringifyUInt256,
+	TransactionT,
+} from '@radixdlt/tx-parser'
 import { AccountAddress } from '@radixdlt/account'
 // @ts-ignore
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'

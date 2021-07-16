@@ -24,7 +24,7 @@ export enum InstructionType {
 	MSG = 0x0c,
 	HEADER = 0x0d,
 	READINDEX = 0x0e,
-	DOWNINDEX = 0x0f
+	DOWNINDEX = 0x0f,
 }
 export type BaseInstruction<IT extends InstructionType> = REPrimitive &
 	Readonly<{
@@ -87,7 +87,7 @@ export type TokensT = BaseSubstate<SubStateType.TOKENS> & {
 
 export type BaseValidatorSubstate<
 	SST extends SubStateType
-	> = BaseSubstate<SST> &
+> = BaseSubstate<SST> &
 	Readonly<{
 		// Reserved, always 0
 		reserved: Byte
@@ -97,7 +97,7 @@ export type BaseValidatorSubstate<
 
 export type BaseStakingSubstate<
 	SST extends SubStateType
-	> = BaseValidatorSubstate<SST> &
+> = BaseValidatorSubstate<SST> &
 	Readonly<{
 		// The stake owner
 		owner: REAddressT
@@ -147,7 +147,7 @@ export const stringifySubstateType = (substateType: SubStateType): string => {
 
 export type BaseInstructionWithSubState<
 	IT extends InstructionType
-	> = BaseInstruction<IT> &
+> = BaseInstruction<IT> &
 	Readonly<{
 		substate: SubstateT
 	}>
