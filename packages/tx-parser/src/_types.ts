@@ -87,7 +87,7 @@ export type TokensT = BaseSubstate<SubStateType.TOKENS> & {
 
 export type BaseValidatorSubstate<
 	SST extends SubStateType
-> = BaseSubstate<SST> &
+	> = BaseSubstate<SST> &
 	Readonly<{
 		// Reserved, always 0
 		reserved: Byte
@@ -97,7 +97,7 @@ export type BaseValidatorSubstate<
 
 export type BaseStakingSubstate<
 	SST extends SubStateType
-> = BaseValidatorSubstate<SST> &
+	> = BaseValidatorSubstate<SST> &
 	Readonly<{
 		// The stake owner
 		owner: REAddressT
@@ -147,7 +147,7 @@ export const stringifySubstateType = (substateType: SubStateType): string => {
 
 export type BaseInstructionWithSubState<
 	IT extends InstructionType
-> = BaseInstruction<IT> &
+	> = BaseInstruction<IT> &
 	Readonly<{
 		substate: SubstateT
 	}>
@@ -210,7 +210,10 @@ export type Ins_HEADER = BaseInstruction<InstructionType.HEADER> &
 		flag: Byte
 	}>
 
-export type Ins_VREAD = BaseInstructionWithSubState<InstructionType.VREAD>
+export type Ins_VREAD = BaseInstruction<InstructionType.VREAD> &
+	Readonly<{
+		callData: BytesT
+	}>
 
 export type Ins_READ = BaseInstruction<InstructionType.READ> &
 	Readonly<{
