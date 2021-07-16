@@ -41,7 +41,7 @@ const parseFromBufferReader = (
 						return ValidatorOwnerCopy.fromBufferReader(bufferReader, lengthData)
 					default:
 						throw new Error(
-							`Substate of type: ${SubStateType[substateType]} not implemented.`,
+							`Substate ${substateType} of type: ${SubStateType[substateType]} not implemented.`,
 						)
 				}
 			},
