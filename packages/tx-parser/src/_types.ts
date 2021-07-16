@@ -10,16 +10,21 @@ type REPrimitive = Readonly<{
 
 export enum InstructionType {
 	END = 0x00,
-	UP = 0x01,
-	VDOWN = 0x02,
-	VDOWNARG = 0x03,
-	DOWN = 0x04,
-	LDOWN = 0x05,
-	MSG = 0x06,
-	SIG = 0x07,
-	DOWNALL = 0x08,
-	SYSCALL = 0x09,
-	HEADER = 0x0a,
+	SYSCALL = 0x01,
+	UP = 0x02,
+	READ = 0x03,
+	LREAD = 0x04,
+	VREAD = 0x05,
+	LVREAD = 0x06,
+	DOWN = 0x07,
+	LDOWN = 0x08,
+	VDOWN = 0x09,
+	LVDOWN = 0x0a,
+	SIG = 0x0b, // Only used for tests...
+	MSG = 0x0c,
+	HEADER = 0x0d,
+	READINDEX = 0x0e,
+	DOWNINDEX = 0x0f
 }
 export type BaseInstruction<IT extends InstructionType> = REPrimitive &
 	Readonly<{
@@ -57,15 +62,12 @@ export type REAddressT =
 	| REAddressPublicKey
 
 export enum SubStateType {
-	RE_ADDRESS = 0x00,
-	TOKEN_DEFINITION = 0x02,
-	TOKENS = 0x03,
-	PREPARED_STAKE = 0x04,
-	VALIDATOR = 0x05,
-	UNIQUE = 0x06,
-	STAKE_SHARE = 0x0b,
-	PREPARED_UNSTAKE = 0x0d,
-	EXITING_STAKE = 0x0e,
+	TOKENS = 0x06,
+	PREPARED_STAKE = 0x07,
+	STAKE_OWNERSHIP = 0x08,
+	PREPARED_UNSTAKE = 0x09,
+	VALIDATOR_ALLOW_DELEGATION_FLAG = 0x0e,
+	VALIDATOR_OWNER_COPY = 0x11,
 }
 
 export type BaseSubstate<SST extends SubStateType> = REPrimitive &
@@ -75,38 +77,77 @@ export type BaseSubstate<SST extends SubStateType> = REPrimitive &
 	}>
 
 export type TokensT = BaseSubstate<SubStateType.TOKENS> & {
-	rri: REAddressT
+	// Reserved, always 0
+	reserved: Byte
 	owner: REAddressT
+	// RRI
+	resource: REAddressT
 	amount: AmountT
 }
 
-export type PreparedStakeT = BaseSubstate<SubStateType.PREPARED_STAKE> & {
-	owner: REAddressT
-	delegate: PublicKeyT
-	amount: AmountT
-}
+export type BaseValidatorSubstate<
+	SST extends SubStateType
+	> = BaseSubstate<SST> &
+	Readonly<{
+		// Reserved, always 0
+		reserved: Byte
+		// The validator public key
+		validator: PublicKeyT
+	}>
 
-export type PreparedUnstakeT = BaseSubstate<SubStateType.PREPARED_UNSTAKE> & {
-	delegate: PublicKeyT
-	owner: REAddressT
-	amount: AmountT
-}
+export type BaseStakingSubstate<
+	SST extends SubStateType
+	> = BaseValidatorSubstate<SST> &
+	Readonly<{
+		// The stake owner
+		owner: REAddressT
+		amount: AmountT
+	}>
 
-export type StakeShareT = BaseSubstate<SubStateType.STAKE_SHARE> & {
-	delegate: PublicKeyT
-	owner: REAddressT
-	amount: AmountT
-}
+export type PreparedStakeT = BaseStakingSubstate<SubStateType.PREPARED_STAKE>
+export type PreparedUnstakeT = BaseStakingSubstate<SubStateType.PREPARED_UNSTAKE>
+export type StakeOwnershipT = BaseStakingSubstate<SubStateType.STAKE_OWNERSHIP>
+
+export type ValidatorAllowDelegationFlagT = BaseValidatorSubstate<SubStateType.VALIDATOR_ALLOW_DELEGATION_FLAG> &
+	Readonly<{
+		isDelegationAllowed: boolean
+	}>
+
+export type ValidatorOwnerCopyT = BaseValidatorSubstate<SubStateType.VALIDATOR_OWNER_COPY> &
+	Readonly<{
+		owner: REAddressT
+	}>
 
 export type SubstateT =
 	| TokensT
 	| PreparedStakeT
 	| PreparedUnstakeT
-	| StakeShareT
+	| StakeOwnershipT
+	| ValidatorAllowDelegationFlagT
+	| ValidatorOwnerCopyT
+
+export const stringifySubstateType = (substateType: SubStateType): string => {
+	switch (substateType) {
+		case SubStateType.TOKENS:
+			return 'Tokens'
+		case SubStateType.VALIDATOR_OWNER_COPY:
+			return 'ValidatorOwnerCopy'
+		case SubStateType.PREPARED_STAKE:
+			return 'PreparedStake'
+		case SubStateType.PREPARED_UNSTAKE:
+			return 'PreparedUnstake'
+		case SubStateType.STAKE_OWNERSHIP:
+			return 'StakeOwnership'
+		case SubStateType.VALIDATOR_ALLOW_DELEGATION_FLAG:
+			return 'ValidatorAllowDelegationFlag'
+		default:
+			return `Unsupported-${SubStateType[substateType]}`
+	}
+}
 
 export type BaseInstructionWithSubState<
 	IT extends InstructionType
-> = BaseInstruction<IT> &
+	> = BaseInstruction<IT> &
 	Readonly<{
 		substate: SubstateT
 	}>
@@ -122,12 +163,6 @@ export type Ins_UP = BaseInstructionWithSubState<InstructionType.UP>
 export type Ins_MSG = BaseInstruction<InstructionType.MSG> &
 	Readonly<{
 		bytes: BytesT
-	}>
-export type Ins_VDOWN = BaseInstructionWithSubState<InstructionType.VDOWN>
-
-export type Ins_VDOWNARG = BaseInstructionWithSubState<InstructionType.VDOWNARG> &
-	Readonly<{
-		argument: BytesT
 	}>
 
 export type UInt32 = number
@@ -147,7 +182,6 @@ export type Ins_LDOWN = BaseInstruction<InstructionType.LDOWN> &
 	Readonly<{
 		substateIndex: UInt32
 	}>
-
 export type TXSig = REPrimitive &
 	Readonly<{
 		v: Byte
@@ -160,11 +194,12 @@ export type Ins_SIG = BaseInstruction<InstructionType.SIG> &
 		signature: TXSig
 	}>
 
-export type Ins_DOWNALL = BaseInstruction<InstructionType.DOWNALL> &
-	Readonly<{
-		classId: Byte
-	}>
+export const SYSCALL_TX_FEE_RESERVE_PUT = 0x00
+export const SYSCALL_TX_FEE_RESERVE_TAKE = 0x01
 
+// When SYSCALL is used for TX FEE then callData SHOULD have length 33 bytes, where first byte
+// is either `SYSCALL_TX_FEE_RESERVE_PUT` (0x01) or `SYSCALL_TX_FEE_RESERVE_TAKE` (0x01) followed
+// by 32 Bytes representing UInt256 (tx fee amount).
 export type Ins_SYSCALL = BaseInstruction<InstructionType.SYSCALL> &
 	Readonly<{
 		callData: BytesT
@@ -175,18 +210,33 @@ export type Ins_HEADER = BaseInstruction<InstructionType.HEADER> &
 		flag: Byte
 	}>
 
+export type Ins_VREAD = BaseInstruction<InstructionType.VREAD> &
+	Readonly<{
+		callData: BytesT
+	}>
+
+export type Ins_VDOWN = BaseInstruction<InstructionType.VDOWN> &
+	Readonly<{
+		callData: BytesT
+	}>
+
+export type Ins_READ = BaseInstruction<InstructionType.READ> &
+	Readonly<{
+		substateId: SubstateIdT
+	}>
+
 export type InstructionT =
 	| Ins_END
 	| Ins_UP
-	| Ins_VDOWN
-	| Ins_VDOWNARG
 	| Ins_DOWN
 	| Ins_LDOWN
 	| Ins_MSG
 	| Ins_SIG
-	| Ins_DOWNALL
 	| Ins_SYSCALL
 	| Ins_HEADER
+	| Ins_VREAD
+	| Ins_VDOWN
+	| Ins_READ
 
 export type TransactionT = REPrimitive &
 	Readonly<{

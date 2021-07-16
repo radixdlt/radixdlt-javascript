@@ -21,11 +21,8 @@ import {
 	Network,
 	uint256FromUnsafe,
 } from '@radixdlt/primitives'
-import { Transaction } from '@radixdlt/tx-parser/dist/transaction'
-import { TransactionT } from '@radixdlt/tx-parser'
+import { Transaction, stringifyUInt256, TransactionT } from '@radixdlt/tx-parser'
 import { AccountAddress } from '@radixdlt/account'
-import { stringifyUInt256 } from '@radixdlt/tx-parser/dist/tokens'
-
 // @ts-ignore
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 
@@ -66,7 +63,7 @@ describe('hw_ledger_integration', () => {
 		subs.add(
 			hardwareWallet.getVersion().subscribe({
 				next: (semVer: SemVerT) => {
-					expect(semVer.toString()).toBe('0.3.5')
+					expect(semVer.toString()).toBe('0.3.7')
 					done()
 				},
 				error: e => {
@@ -216,7 +213,7 @@ describe('hw_ledger_integration', () => {
 			)._unsafeUnwrap()
 
 			const blobHex =
-				'0a000104374c00efbe61f645a8b35d7746e106afa7422877e5d607975b6018e0a1aa6bf0000000040921000000000000000000000000000000000000000000000000000000000000000002010301040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba000000000000000000000000000000000000000000000001158e460913cffffe000500000003010301040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba0000000000000000000000000000000000000000000000008ac7230489e7fffe0104040377bac8066e51cd0d6b320c338d5abbcdbcca25572b6b3eee9443eafc92106bba02f19b2d095a553f3a41da4a8dc1f8453dfbdc733c5aece8b128b7d7999ae247a50000000000000000000000000000000000000000000000008ac7230489e8000000'
+				'0d000107a0686a487f9d3adf4892a358e4460cda432068f069e5e9f4c815af21bc3dd1d600000000012100000000000000000000000000000000000000000000000abbade0b6b3a76400000206000402935deebcad35bcf27d05b431276be8fcba26312cd1d54c33ac6748a72fe427ca0100000000000000000000000000000000000000000000d3c1e44bf21f037000000008000000000206000402935deebcad35bcf27d05b431276be8fcba26312cd1d54c33ac6748a72fe427ca0100000000000000000000000000000000000000000000d38bae82445924d00000020600040356959464545aa2787984fe4ac76496721a22f150c0076724ad7190fe3a597bb70100000000000000000000000000000000000000000000003635c9adc5dea00000000121010000000000000000000000000000000000000000000000000de0b6b3a76400000206000402935deebcad35bcf27d05b431276be8fcba26312cd1d54c33ac6748a72fe427ca010000000000000000000000000000000000000000000000000de0b6b3a764000000'
 			const blob = Buffer.from(blobHex, 'hex')
 			const txRes = Transaction.fromBuffer(blob)
 			if (txRes.isErr()) {
@@ -234,7 +231,7 @@ describe('hw_ledger_integration', () => {
 			console.log(`🔮 Expected Hash: ${expectedHash.toString('hex')}`)
 			console.log(`🔮 Signing tx:\n${parsedTx.toString()}`)
 
-			const totalCostDecATTOString = '29999999999999999998' // sum of tx fee and two token transfers: 2 + 19999999999999999998 + 9999999999999999998
+			const totalCostDecATTOString = '2048463735185526206758912'
 			const totalCost = uint256FromUnsafe(
 				totalCostDecATTOString,
 			)._unsafeUnwrap()
