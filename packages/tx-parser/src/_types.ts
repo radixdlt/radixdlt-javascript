@@ -215,6 +215,11 @@ export type Ins_VREAD = BaseInstruction<InstructionType.VREAD> &
 		callData: BytesT
 	}>
 
+export type Ins_VDOWN = BaseInstruction<InstructionType.VDOWN> &
+	Readonly<{
+		callData: BytesT
+	}>
+
 export type Ins_READ = BaseInstruction<InstructionType.READ> &
 	Readonly<{
 		substateId: SubstateIdT
@@ -230,6 +235,7 @@ export type InstructionT =
 	| Ins_SYSCALL
 	| Ins_HEADER
 	| Ins_VREAD
+	| Ins_VDOWN
 	| Ins_READ
 
 export type TransactionT = REPrimitive &

@@ -10,6 +10,7 @@ import {
 	Ins_SYSCALL,
 	Ins_UP,
 	Ins_VREAD,
+	Ins_VDOWN,
 	InstructionT,
 	InstructionType,
 	SubstateIdT,
@@ -164,6 +165,20 @@ const parseFromBufferReader = (
 										`HEADER(${partial.version.toString()}, ${partial.flag.toString()})`,
 								}),
 							)
+					case InstructionType.VDOWN:
+						return Bytes.fromBufferReader(bufferReader).map(
+							(callData: BytesT): Ins_VDOWN => ({
+								instructionType,
+								callData,
+								toBuffer: () =>
+									Buffer.concat([
+										insBuf,
+										callData.toBuffer(),
+									]),
+								toString: () =>
+									`VDOWN(${callData.toString()})`,
+							}),
+						)
 					case InstructionType.VREAD:
 						return Bytes.fromBufferReader(bufferReader).map(
 							(callData: BytesT): Ins_VREAD => ({
@@ -181,7 +196,7 @@ const parseFromBufferReader = (
 					default:
 						return err(
 							new Error(
-								`Unrecognized instruction type: ${insBuf.toString()}`,
+								`Unrecognized instruction type (${instructionType.toString()}): ${insBuf.toString()}`,
 							),
 						)
 				}
