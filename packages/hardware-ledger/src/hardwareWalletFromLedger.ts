@@ -396,7 +396,7 @@ Bytes: "
 }
 
 const create = (
-	transport: BasicLedgerTransport
+	transport: BasicLedgerTransport,
 ): Observable<HardwareWalletT> => {
 	const ledgerNano$ = from(LedgerNano.connect(transport))
 

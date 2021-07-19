@@ -27,7 +27,8 @@ export enum LedgerResponseCodes {
 }
 
 export const prettifyLedgerResponseCode = (code: LedgerResponseCodes): string =>
-	`${code === LedgerResponseCodes.SW_OK ? '✅' : '❌'} code: '${LedgerResponseCodes[code]
+	`${code === LedgerResponseCodes.SW_OK ? '✅' : '❌'} code: '${
+		LedgerResponseCodes[code]
 	}' 0x${code.toString(16)} (0d${code.toString(10)})`
 
 export type CreateLedgerNanoTransportInput = Readonly<{
@@ -80,21 +81,22 @@ export type LedgerNanoT = Readonly<{
 }>
 
 export type Device = {
-	send: (cla: number,
+	send: (
+		cla: number,
 		ins: number,
 		p1: number,
 		p2: number,
 		data?: Buffer,
-		statusList?: ReadonlyArray<number>
+		statusList?: ReadonlyArray<number>,
 	) => Promise<Buffer>
 	device: {
-		getDeviceInfo: () => {},
+		getDeviceInfo: () => void
 	}
 }
 
 export type ConnectionEvent = {
-	type: 'add' | 'remove',
-	descriptor: string,
-	deviceModel: string,
+	type: 'add' | 'remove'
+	descriptor: string
+	deviceModel: string
 	device: any
 }

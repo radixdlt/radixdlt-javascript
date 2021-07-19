@@ -19,7 +19,7 @@ export const send = async (
 	}>,
 ): Promise<Buffer> => {
 	const { apdu, with: connectedLedgerTransport } = input
-	
+
 	const acceptableStatusCodes = apdu.requiredResponseStatusCodeFromDevice ?? [
 		LedgerResponseCodes.SW_OK,
 	]
@@ -32,7 +32,7 @@ export const send = async (
 			p2: ${apdu.p2},
 			data: ${apdu.data !== undefined ? apdu.data.toString('hex') : '<UNDEFINED>'},
 		`)
-		
+
 	return connectedLedgerTransport.send(
 		apdu.cla,
 		apdu.ins,

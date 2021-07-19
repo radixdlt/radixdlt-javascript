@@ -404,6 +404,7 @@ const expectedDecodedResponses = {
 		txID: TransactionIdentifier.create(response.txID)._unsafeUnwrap({
 			withStackTrace: true,
 		}),
+		blob: 'xyz'
 	}),
 
 	[rpcSpec.methods[15].name]: (

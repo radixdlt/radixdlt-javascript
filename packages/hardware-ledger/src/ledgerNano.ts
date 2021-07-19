@@ -121,7 +121,8 @@ const fromTransport = (
 	}
 }
 
-const connect = async (transport: BasicLedgerTransport): Promise<LedgerNanoT> => fromTransport(transport)
+const connect = async (transport: BasicLedgerTransport): Promise<LedgerNanoT> =>
+	fromTransport(transport)
 
 export const LedgerNano = {
 	connect,
