@@ -142,13 +142,19 @@ export const handleTransactionHistoryResponse = (
 				...decoded,
 				transactions: decoded.transactions.map(tx => ({
 					...tx,
-					message: tx.message
-						? Message.isPlaintext(tx.message)
+					message: (() => {
+						if (!tx.message) return undefined
+
+						// Check format
+						if (!/^(00|01)[0-9a-fA-F]+$/.test(tx.message))
+							return '<Failed to interpret message>'
+
+						return Message.isPlaintext(tx.message)
 							? Message.plaintextToString(
 									Buffer.from(tx.message, 'hex'),
 							  )
 							: tx.message
-						: undefined,
+					})(),
 				})),
 			}),
 		)
