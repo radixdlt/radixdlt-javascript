@@ -1,7 +1,6 @@
 import { log } from '@radixdlt/util'
 import { ConnectionEvent, Device, LedgerResponseCodes, RadixAPDUT } from './_types'
 import { Subscription } from 'rxjs'
-import type TransportNodeHid from 'ledgerhq__hw-transport-node-hid'
 
 export type BasicLedgerTransport = Readonly<{
 	close: () => Promise<void>
@@ -13,13 +12,20 @@ export type BasicLedgerTransport = Readonly<{
 		data?: Buffer,
 		statusList?: ReadonlyArray<number>,
 	) => Promise<Buffer>,
-	listen: () => {}
+	listen: ({
+		next
+	}: {
+		next: (obj: ConnectionEvent) => Promise<void>
+	}) => Promise<Subscription>,
+	list: () => Promise<string[]>,
+	open: (device: string) => Promise<Device>
+
 }>
 
 export const send = async (
 	input: Readonly<{
 		apdu: RadixAPDUT
-		with: TransportNodeHid
+		with: BasicLedgerTransport
 	}>,
 ): Promise<Buffer> => {
 	const { apdu, with: connectedLedgerTransport } = input
@@ -57,8 +63,8 @@ export type OpenLedgerConnectionInput = Readonly<{
 	}>
 }>
 
-export const subscribeDeviceConnection = async (transport: TransportNodeHid, next: (isConnected: boolean) => any): Promise<Subscription> =>
-    (transport as any).listen({
+export const subscribeDeviceConnection = async (transport: BasicLedgerTransport, next: (isConnected: boolean) => any): Promise<Subscription> =>
+    transport.listen({
         next: async (obj: ConnectionEvent) => {
             switch (obj.type) {
                 case 'add':
@@ -71,9 +77,9 @@ export const subscribeDeviceConnection = async (transport: TransportNodeHid, nex
         },
     })
 
-const openConnection = async (transport: TransportNodeHid): Promise<Device> => {
-    const devices = await (transport as any).list()
+const openConnection = async (transport: BasicLedgerTransport): Promise<Device> => {
+    const devices = await transport.list()
 
     if (!devices[0]) { throw new Error('No device found.') }
-    return (transport as any).open(devices[0])
+    return transport.open(devices[0])
 }

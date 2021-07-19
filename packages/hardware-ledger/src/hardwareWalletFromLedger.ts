@@ -396,9 +396,21 @@ Bytes: "
 }
 
 const create = (
-	transport: TransportNodeHid,
+	send: (
+		cla: number,
+		ins: number,
+		p1: number,
+		p2: number,
+		data?: Buffer,
+		statusList?: ReadonlyArray<number>,
+	) => Promise<Buffer>,
+	close: () => Promise<void>,
+	listen: () => {}
 ): Observable<HardwareWalletT> => {
-	const ledgerNano$ = from(LedgerNano.connect(transport))
+	const ledgerNano$ = from(LedgerNano.connect({
+		send,
+		close
+	}))
 
 	return ledgerNano$.pipe(
 		map((ledger: LedgerNanoT) => withLedgerNano(ledger)),

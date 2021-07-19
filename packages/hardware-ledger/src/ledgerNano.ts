@@ -18,7 +18,7 @@ import type TransportNodeHid from 'ledgerhq__hw-transport-node-hid'
 const ledgerAPDUResponseCodeBufferLength = 2 // two bytes
 
 const fromTransport = (
-	basicLedgerTransport: TransportNodeHid,
+	basicLedgerTransport: BasicLedgerTransport,
 ): LedgerNanoT => {
 	const sendAPDUToDevice = (apdu: RadixAPDUT): Observable<Buffer> =>
 		new Observable<Buffer>(subscriber => {
@@ -122,7 +122,7 @@ const fromTransport = (
 	}
 }
 
-const connect = async (transport: TransportNodeHid): Promise<LedgerNanoT> => fromTransport(transport)
+const connect = async (transport: BasicLedgerTransport): Promise<LedgerNanoT> => fromTransport(transport)
 
 export const LedgerNano = {
 	connect,
