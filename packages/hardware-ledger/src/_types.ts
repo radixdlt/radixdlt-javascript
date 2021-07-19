@@ -76,7 +76,6 @@ export type RadixAPDUT = APDUT &
 	}>
 
 export type LedgerNanoT = Readonly<{
-	close: () => Observable<void>
 	sendAPDUToDevice: (apdu: RadixAPDUT) => Observable<Buffer>
 }>
 

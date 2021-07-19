@@ -117,7 +117,6 @@ const fromTransport = (
 		})
 
 	return {
-		close: (): Observable<void> => from(basicLedgerTransport.close()),
 		sendAPDUToDevice,
 	}
 }

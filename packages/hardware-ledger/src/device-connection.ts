@@ -1,9 +1,7 @@
 import { log } from '@radixdlt/util'
-import { ConnectionEvent, Device, LedgerResponseCodes, RadixAPDUT } from './_types'
-import { Subscription } from 'rxjs'
+import { LedgerResponseCodes, RadixAPDUT } from './_types'
 
 export type BasicLedgerTransport = Readonly<{
-	close: () => Promise<void>
 	send: (
 		cla: number,
 		ins: number,
@@ -11,15 +9,7 @@ export type BasicLedgerTransport = Readonly<{
 		p2: number,
 		data?: Buffer,
 		statusList?: ReadonlyArray<number>,
-	) => Promise<Buffer>,
-	listen: ({
-		next
-	}: {
-		next: (obj: ConnectionEvent) => Promise<void>
-	}) => Promise<Subscription>,
-	list: () => Promise<string[]>,
-	open: (device: string) => Promise<Device>
-
+	) => Promise<Buffer>
 }>
 
 export const send = async (
@@ -30,8 +20,6 @@ export const send = async (
 ): Promise<Buffer> => {
 	const { apdu, with: connectedLedgerTransport } = input
 	
-	const device = await openConnection(connectedLedgerTransport)
-
 	const acceptableStatusCodes = apdu.requiredResponseStatusCodeFromDevice ?? [
 		LedgerResponseCodes.SW_OK,
 	]
@@ -45,7 +33,7 @@ export const send = async (
 			data: ${apdu.data !== undefined ? apdu.data.toString('hex') : '<UNDEFINED>'},
 		`)
 		
-	return device.send(
+	return connectedLedgerTransport.send(
 		apdu.cla,
 		apdu.ins,
 		apdu.p1,
@@ -62,24 +50,3 @@ export type OpenLedgerConnectionInput = Readonly<{
 		delayBetweenRetries: number
 	}>
 }>
-
-export const subscribeDeviceConnection = async (transport: BasicLedgerTransport, next: (isConnected: boolean) => any): Promise<Subscription> =>
-    transport.listen({
-        next: async (obj: ConnectionEvent) => {
-            switch (obj.type) {
-                case 'add':
-                    next(true)
-                    break
-                case 'remove':
-                    next(false)
-                    break
-            }
-        },
-    })
-
-const openConnection = async (transport: BasicLedgerTransport): Promise<Device> => {
-    const devices = await transport.list()
-
-    if (!devices[0]) { throw new Error('No device found.') }
-    return transport.open(devices[0])
-}
