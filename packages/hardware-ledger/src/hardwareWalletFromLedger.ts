@@ -36,7 +36,6 @@ import { log, BufferReader } from '@radixdlt/util'
 import { Transaction } from '@radixdlt/tx-parser'
 import { InstructionT } from '@radixdlt/tx-parser'
 import { err, Result } from 'neverthrow'
-import type TransportNodeHid from 'ledgerhq__hw-transport-node-hid'
 
 const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 	const getPublicKey = (input: GetPublicKeyInput): Observable<PublicKeyT> =>

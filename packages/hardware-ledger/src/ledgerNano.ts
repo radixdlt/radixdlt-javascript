@@ -4,16 +4,14 @@ import {
 	prettifyLedgerResponseCode,
 	RadixAPDUT,
 } from './_types'
-import { from, Observable, throwError } from 'rxjs'
+import { Observable } from 'rxjs'
 
 import { msgFromError, log } from '@radixdlt/util'
 
 import {
 	BasicLedgerTransport,
-	OpenLedgerConnectionInput,
 	send,
 } from './device-connection'
-import type TransportNodeHid from 'ledgerhq__hw-transport-node-hid'
 
 const ledgerAPDUResponseCodeBufferLength = 2 // two bytes
 
