@@ -1,6 +1,6 @@
 {
   "name": "@radixdlt/data-formats",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Data formats used for serialization.",
   "keywords": [
     "Data"
