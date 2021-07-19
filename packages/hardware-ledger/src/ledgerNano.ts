@@ -4,14 +4,12 @@ import {
 	prettifyLedgerResponseCode,
 	RadixAPDUT,
 } from './_types'
-import { from, Observable, throwError } from 'rxjs'
+import { Observable } from 'rxjs'
 
 import { msgFromError, log } from '@radixdlt/util'
 
 import {
 	BasicLedgerTransport,
-	openConnection,
-	OpenLedgerConnectionInput,
 	send,
 } from './device-connection'
 
@@ -117,24 +115,12 @@ const fromTransport = (
 		})
 
 	return {
-		close: (): Observable<void> => from(basicLedgerTransport.close()),
 		sendAPDUToDevice,
 	}
 }
 
-const connect = async (
-	transport: BasicLedgerTransport,
-	input?: OpenLedgerConnectionInput,
-): Promise<LedgerNanoT> => {
-	await openConnection(transport, {
-		deviceConnectionTimeout: input?.deviceConnectionTimeout,
-		radixAppToOpenWaitPolicy: input?.radixAppToOpenWaitPolicy ?? {
-			delayBetweenRetries: 1_000,
-			retryCount: 60,
-		},
-	})
-	return fromTransport(transport)
-}
+const connect = async (transport: BasicLedgerTransport): Promise<LedgerNanoT> =>
+	fromTransport(transport)
 
 export const LedgerNano = {
 	connect,

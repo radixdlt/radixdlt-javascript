@@ -397,12 +397,7 @@ Bytes: "
 const create = (
 	transport: BasicLedgerTransport,
 ): Observable<HardwareWalletT> => {
-	const ledgerNano$ = from(
-		LedgerNano.connect(transport, {
-			// 2 minutes timeout arbitrarily chosen
-			deviceConnectionTimeout: 2 * 60 * 1_000,
-		}),
-	)
+	const ledgerNano$ = from(LedgerNano.connect(transport))
 
 	return ledgerNano$.pipe(
 		map((ledger: LedgerNanoT) => withLedgerNano(ledger)),

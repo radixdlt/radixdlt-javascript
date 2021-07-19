@@ -77,6 +77,26 @@ export type RadixAPDUT = APDUT &
 	}>
 
 export type LedgerNanoT = Readonly<{
-	close: () => Observable<void>
 	sendAPDUToDevice: (apdu: RadixAPDUT) => Observable<Buffer>
 }>
+
+export type Device = {
+	send: (
+		cla: number,
+		ins: number,
+		p1: number,
+		p2: number,
+		data?: Buffer,
+		statusList?: ReadonlyArray<number>,
+	) => Promise<Buffer>
+	device: {
+		getDeviceInfo: () => void
+	}
+}
+
+export type ConnectionEvent = {
+	type: 'add' | 'remove'
+	descriptor: string
+	deviceModel: string
+	device: any
+}
