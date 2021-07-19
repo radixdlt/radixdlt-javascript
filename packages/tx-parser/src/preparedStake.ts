@@ -1,5 +1,12 @@
 import { combine, Result } from 'neverthrow'
-import { PreparedStakeT, REAddressT, SubStateType } from './_types'
+import {
+	BaseStakingSubstate,
+	BaseValidatorSubstate,
+	PreparedStakeT,
+	REAddressT,
+	stringifySubstateType,
+	SubStateType,
+} from './_types'
 import { REAddress } from './reAddress'
 import { UInt256 } from '@radixdlt/uint256'
 import { PublicKey, PublicKeyT } from '@radixdlt/crypto'
@@ -8,7 +15,7 @@ import {
 	stringifyUInt256,
 	uint256FromReadBuffer,
 } from './tokens'
-import { BufferReaderT } from '@radixdlt/util'
+import { BufferReaderT, Byte } from '@radixdlt/util'
 import { AccountAddress, ValidatorAddress } from '@radixdlt/account'
 
 export const pubKeyFromReadBuffer = (
@@ -16,55 +23,98 @@ export const pubKeyFromReadBuffer = (
 ): Result<PublicKeyT, Error> =>
 	bufferReader.readNextBuffer(33).andThen(b => PublicKey.fromBuffer(b))
 
-const fromBufferReader = (
+export const makeBaseValidatorSubstateFromBuffer = <SST extends SubStateType>(
+	substateType: SST,
+) => (
 	bufferReader: BufferReaderT,
-): Result<PreparedStakeT, Error> =>
+): Result<Omit<BaseValidatorSubstate<SST>, 'toString'>, Error> =>
 	combine([
-		REAddress.fromBufferReader(bufferReader),
+		bufferReader.readNextBuffer(1).map(b => b.readUInt8(0)),
 		pubKeyFromReadBuffer(bufferReader),
-		uint256FromReadBuffer(bufferReader),
 	])
 		.map(resList => ({
-			owner: resList[0] as REAddressT,
-			delegate: resList[1] as PublicKeyT,
-			amount: resList[2] as UInt256,
+			reserved: resList[0] as Byte,
+			validator: resList[1] as PublicKeyT,
 		}))
 		.map(
-			(partial): PreparedStakeT => {
-				const { owner, delegate, amount } = partial
+			(partial): BaseValidatorSubstate<SST> => {
+				const { reserved, validator } = partial
 				const buffer = Buffer.concat([
-					Buffer.from([SubStateType.PREPARED_STAKE]),
-					owner.toBuffer(),
-					delegate.asData({ compressed: true }),
-					amountToBuffer(amount),
+					Buffer.from([substateType]),
+					Buffer.from([reserved]),
+					validator.asData({ compressed: true }),
 				])
 				return {
 					...partial,
-					substateType: SubStateType.PREPARED_STAKE,
+					substateType,
 					toBuffer: () => buffer,
-					toString: () =>
-						`PreparedStake { owner: 0x${owner
-							.toBuffer()
-							.toString(
-								'hex',
-							)}, delegate: 0x${delegate.toString()}, amount: U256 { raw: ${amount.toString()} } }`,
-
-					toHumanReadableString: () =>
-						`PreparedStake { owner: ${AccountAddress.fromUnsafe(
-							owner.toBuffer(),
-						)
-							._unsafeUnwrap()
-							.toString()}, delegate: ${ValidatorAddress.fromUnsafe(
-							delegate.asData({ compressed: true }),
-						)
-							._unsafeUnwrap()
-							.toString()}, amount: ${stringifyUInt256(
-							amount,
-						)} }`,
 				}
 			},
 		)
 
+export const makeBaseStakeSubstateFromBuffer = <SST extends SubStateType>(
+	substateType: SST,
+) => (
+	bufferReader: BufferReaderT,
+	lengthData: Buffer,
+): Result<BaseStakingSubstate<SST>, Error> =>
+	makeBaseValidatorSubstateFromBuffer(substateType)(bufferReader).andThen(
+		base =>
+			combine([
+				REAddress.fromBufferReader(bufferReader),
+				uint256FromReadBuffer(bufferReader),
+			]).map(
+				(resList): BaseStakingSubstate<SST> => {
+					const owner = resList[0] as REAddressT
+					const amount = resList[1] as UInt256
+					const reserved = base.reserved
+					const validator = base.validator
+					return {
+						...base,
+						owner,
+						amount,
+						toBuffer: (): Buffer =>
+							Buffer.concat([
+								lengthData,
+								base.toBuffer(),
+								owner.toBuffer(),
+								amountToBuffer(amount),
+							]),
+						toString: () =>
+							`${stringifySubstateType(
+								substateType,
+							)} { reserved: ${reserved}, validator: 0x${validator.toString()}, owner: 0x${owner
+								.toBuffer()
+								.toString(
+									'hex',
+								)}, amount: U256 { raw: ${amount.toString()} } }`,
+
+						toHumanReadableString: () =>
+							`${stringifySubstateType(
+								substateType,
+							)} { reserved: ${reserved}, validator: ${ValidatorAddress.fromUnsafe(
+								validator.asData({ compressed: true }),
+							)
+								._unsafeUnwrap()
+								.toString()}, owner: ${AccountAddress.fromUnsafe(
+								owner.toBuffer(),
+							)
+								._unsafeUnwrap()
+								.toString()}, amount: ${stringifyUInt256(
+								amount,
+							)} }`,
+					}
+				},
+			),
+	)
+
 export const PreparedStake = {
-	fromBufferReader,
+	fromBufferReader: (
+		bufferReader: BufferReaderT,
+		lengthData: Buffer,
+	): Result<PreparedStakeT, Error> =>
+		makeBaseStakeSubstateFromBuffer(SubStateType.PREPARED_STAKE)(
+			bufferReader,
+			lengthData,
+		),
 }

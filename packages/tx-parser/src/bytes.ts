@@ -2,10 +2,12 @@ import { Result } from 'neverthrow'
 import { BytesT } from './_types'
 import { BufferReaderT } from '@radixdlt/util'
 
+const LENGTH_BYTES = 2
+
 const fromBufferReader = (bufferReader: BufferReaderT): Result<BytesT, Error> =>
 	bufferReader
-		.readNextBuffer(1)
-		.map(b => b.readUInt8(0))
+		.readNextBuffer(LENGTH_BYTES)
+		.map(b => b.readUInt16BE(0))
 		.andThen((length: number) =>
 			bufferReader.readNextBuffer(length).map(data => ({
 				length,
@@ -13,10 +15,11 @@ const fromBufferReader = (bufferReader: BufferReaderT): Result<BytesT, Error> =>
 			})),
 		)
 		.map(partial => {
-			const buffer = Buffer.concat([
-				Buffer.from([partial.length]),
-				partial.data,
-			])
+			const lengthBuf = Buffer.alloc(LENGTH_BYTES)
+			lengthBuf.writeUInt16BE(partial.length)
+
+			const buffer = Buffer.concat([lengthBuf, partial.data])
+
 			return {
 				...partial,
 				toBuffer: () => buffer,

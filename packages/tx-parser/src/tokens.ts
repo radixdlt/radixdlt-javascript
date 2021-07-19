@@ -2,7 +2,7 @@ import { combine, Result } from 'neverthrow'
 import { REAddressT, SubStateType, TokensT } from './_types'
 import { REAddress } from './reAddress'
 import { UInt256 } from '@radixdlt/uint256'
-import { BufferReaderT } from '@radixdlt/util'
+import { BufferReaderT, Byte } from '@radixdlt/util'
 import { ResourceIdentifier, AccountAddress } from '@radixdlt/account'
 import BigNumber from 'bignumber.js'
 
@@ -27,24 +27,29 @@ export const amountToBuffer = (amount: UInt256): Buffer =>
 
 const fromBufferReader = (
 	bufferReader: BufferReaderT,
+	lengthData: Buffer,
 ): Result<TokensT, Error> =>
 	combine([
+		bufferReader.readNextBuffer(1).map(b => b.readUInt8(0)),
 		REAddress.fromBufferReader(bufferReader),
 		REAddress.fromBufferReader(bufferReader),
 		uint256FromReadBuffer(bufferReader),
 	])
 		.map(resList => ({
-			rri: resList[0] as REAddressT,
+			reserved: resList[0] as Byte,
 			owner: resList[1] as REAddressT,
-			amount: resList[2] as UInt256,
+			resource: resList[2] as REAddressT,
+			amount: resList[3] as UInt256,
 		}))
 		.map(
 			(partial): TokensT => {
-				const { rri, owner, amount } = partial
+				const { resource, owner, reserved, amount } = partial
 				const buffer = Buffer.concat([
+					lengthData,
 					Buffer.from([SubStateType.TOKENS]),
-					rri.toBuffer(),
+					Buffer.from([reserved]),
 					owner.toBuffer(),
+					resource.toBuffer(),
 					amountToBuffer(amount),
 				])
 				return {
@@ -52,28 +57,31 @@ const fromBufferReader = (
 					substateType: SubStateType.TOKENS,
 					toBuffer: () => buffer,
 					toString: () =>
-						`Tokens { rri: 0x${rri
+						`Tokens { reserved: ${reserved}, owner: 0x${owner
 							.toBuffer()
 							.toString(
 								'hex',
-							)}, owner: 0x${owner
+							)}, resource: 0x${resource
 							.toBuffer()
 							.toString(
 								'hex',
 							)}, amount: U256 { raw: ${amount.toString()} } }`,
 					toHumanReadableString: () =>
-						`Tokens { rri: ${
-							rri.toBuffer().length === 1
-								? ResourceIdentifier.fromUnsafe(rri.toBuffer())
+						`Tokens { 
+						reserved: ${reserved},
+						owner: ${AccountAddress.fromUnsafe(owner.toBuffer().slice(1))
+							._unsafeUnwrap()
+							.toString()}
+						resource: ${
+							resource.toBuffer().length === 1
+								? ResourceIdentifier.fromUnsafe(
+										resource.toBuffer(),
+								  )
 										._unsafeUnwrap()
 										.toString()
-								: rri.toBuffer().toString('hex')
+								: resource.toBuffer().toString('hex')
 						}, 
-							owner: ${AccountAddress.fromUnsafe(owner.toBuffer().slice(1))
-								._unsafeUnwrap()
-								.toString()}, amount: ${stringifyUInt256(
-							amount,
-						)} }`,
+							, amount: ${stringifyUInt256(amount)} }`,
 				}
 			},
 		)

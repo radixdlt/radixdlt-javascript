@@ -164,7 +164,7 @@ describe('account_address_on_bech32_format', () => {
 			network: Network.MAINNET,
 			isValidatorAddress: true,
 			expectedBech32:
-				'vr1qw7zaj8nv6xgd9thhant0dy03hh90wpnj942wztxlf99q2dk8wcc7as4y70',
+				'rv1qw7zaj8nv6xgd9thhant0dy03hh90wpnj942wztxlf99q2dk8wcc7ajtlks',
 		})
 
 		doTest({
@@ -172,7 +172,7 @@ describe('account_address_on_bech32_format', () => {
 			network: Network.MAINNET,
 			isValidatorAddress: true,
 			expectedBech32:
-				'vr1qw7zaj8nv6xgd9thhant0dy03hh90wpnj942wztxlf99q2dk8wcc7as4y70',
+				'rv1qw7zaj8nv6xgd9thhant0dy03hh90wpnj942wztxlf99q2dk8wcc7ajtlks',
 		})
 
 		doTest({
@@ -196,7 +196,7 @@ describe('account_address_on_bech32_format', () => {
 			network: Network.MAINNET,
 			isValidatorAddress: true,
 			expectedBech32:
-				'vr1q06rlwn9gyp3ausetad6jenhx4xjs9r7gk6qehjxv2lvj93vxc042lvuvqw',
+				'rv1q06rlwn9gyp3ausetad6jenhx4xjs9r7gk6qehjxv2lvj93vxc042lwzhg3',
 		})
 
 		doTest({
@@ -204,7 +204,7 @@ describe('account_address_on_bech32_format', () => {
 			network: Network.MAINNET,
 			isValidatorAddress: true,
 			expectedBech32:
-				'vr1q06rlwn9gyp3ausetad6jenhx4xjs9r7gk6qehjxv2lvj93vxc042lvuvqw',
+				'rv1q06rlwn9gyp3ausetad6jenhx4xjs9r7gk6qehjxv2lvj93vxc042lwzhg3',
 		})
 
 		doTest({
@@ -228,7 +228,7 @@ describe('account_address_on_bech32_format', () => {
 			network: Network.MAINNET,
 			isValidatorAddress: true,
 			expectedBech32:
-				'vr1q0teqwwy9zntsd0pxmamtqhfykwly0uxvrujsdnu8uxkjynj32zyg4p8k5u',
+				'rv1q0teqwwy9zntsd0pxmamtqhfykwly0uxvrujsdnu8uxkjynj32zyg4redur',
 		})
 
 		doTest({
@@ -236,7 +236,7 @@ describe('account_address_on_bech32_format', () => {
 			network: Network.MAINNET,
 			isValidatorAddress: true,
 			expectedBech32:
-				'vr1q0teqwwy9zntsd0pxmamtqhfykwly0uxvrujsdnu8uxkjynj32zyg4p8k5u',
+				'rv1q0teqwwy9zntsd0pxmamtqhfykwly0uxvrujsdnu8uxkjynj32zyg4redur',
 		})
 
 		doTest({
@@ -260,7 +260,7 @@ describe('account_address_on_bech32_format', () => {
 			network: Network.MAINNET,
 			isValidatorAddress: true,
 			expectedBech32:
-				'vr1qdxjlkg5hdsytavtywwkjjwaxhnnh3n6vllfv68dpkwqttl7rsfzkhqpuzw',
+				'rv1qdxjlkg5hdsytavtywwkjjwaxhnnh3n6vllfv68dpkwqttl7rsfzkhzl823',
 		})
 
 		doTest({
@@ -268,7 +268,7 @@ describe('account_address_on_bech32_format', () => {
 			network: Network.MAINNET,
 			isValidatorAddress: true,
 			expectedBech32:
-				'vr1qdxjlkg5hdsytavtywwkjjwaxhnnh3n6vllfv68dpkwqttl7rsfzkhqpuzw',
+				'rv1qdxjlkg5hdsytavtywwkjjwaxhnnh3n6vllfv68dpkwqttl7rsfzkhzl823',
 		})
 	})
 

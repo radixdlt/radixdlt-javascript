@@ -918,7 +918,7 @@ describe('radix_high_level_api', () => {
 		radix.login(keystoreForTest.password, loadKeystore)
 
 		const mockedValidatorAddr = ValidatorAddress.fromUnsafe(
-			'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+			'tv1qdqft0u899axwce955fkh9rundr5s2sgvhpp8wzfe3ty0rn0rgqj2x6y86p',
 		)._unsafeUnwrap()
 
 		subs.add(
@@ -964,7 +964,7 @@ describe('radix_high_level_api', () => {
 		const transactionIntent = TransactionIntentBuilder.create()
 			.stakeTokens({
 				validator:
-					'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+					'tv1qdqft0u899axwce955fkh9rundr5s2sgvhpp8wzfe3ty0rn0rgqj2x6y86p',
 				amount: 10000,
 			})
 			.__syncBuildDoNotEncryptMessageIfAny(alice)
@@ -976,7 +976,7 @@ describe('radix_high_level_api', () => {
 				.subscribe(unsignedTx => {
 					expect(
 						(unsignedTx as { fee: AmountT }).fee.toString(),
-					).toEqual('21256')
+					).toEqual('47540')
 					done()
 				}),
 		)
@@ -1084,7 +1084,9 @@ describe('radix_high_level_api', () => {
 		radix.login(keystoreForTest.password, loadKeystore)
 
 		const expectedStakes = [
-			{ amount: 208, validator: '87', epochsUntil: 3 },
+			{ amount: 138, validator: '6p', epochsUntil: 0 },
+			{ amount: 722, validator: '6p', epochsUntil: 0 },
+			{ amount: 208, validator: '6p', epochsUntil: 3 },
 		]
 		const expectedValues = [expectedStakes, expectedStakes] // should be unchanged between updates (deterministically mocked).
 		subs.add(
@@ -1654,7 +1656,7 @@ describe('radix_high_level_api', () => {
 						stakeInput: {
 							amount: 1,
 							validator:
-								'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+								'tv1qdqft0u899axwce955fkh9rundr5s2sgvhpp8wzfe3ty0rn0rgqj2x6y86p',
 						},
 						userConfirmation: 'skip',
 						pollTXStatusTrigger: pollTXStatusTrigger,
@@ -1685,7 +1687,7 @@ describe('radix_high_level_api', () => {
 						unstakeInput: {
 							amount: 1,
 							validator:
-								'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+								'tv1qdqft0u899axwce955fkh9rundr5s2sgvhpp8wzfe3ty0rn0rgqj2x6y86p',
 						},
 						userConfirmation: 'skip',
 						pollTXStatusTrigger: pollTXStatusTrigger,
@@ -1883,7 +1885,7 @@ describe('radix_high_level_api', () => {
 								type: ActionType.STAKE_TOKENS,
 								from: fromMe ? myAddress : bob,
 								validator: ValidatorAddress.fromUnsafe(
-									'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+									'tv1qdqft0u899axwce955fkh9rundr5s2sgvhpp8wzfe3ty0rn0rgqj2x6y86p',
 								)._unsafeUnwrap(),
 								amount: Amount.fromUnsafe(1)._unsafeUnwrap(),
 							},
@@ -1891,7 +1893,7 @@ describe('radix_high_level_api', () => {
 								type: ActionType.UNSTAKE_TOKENS,
 								from: fromMe ? myAddress : bob,
 								validator: ValidatorAddress.fromUnsafe(
-									'vr1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4eae87',
+									'tv1qdqft0u899axwce955fkh9rundr5s2sgvhpp8wzfe3ty0rn0rgqj2x6y86p',
 								)._unsafeUnwrap(),
 								amount: Amount.fromUnsafe(1)._unsafeUnwrap(),
 							},
