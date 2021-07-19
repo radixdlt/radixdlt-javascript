@@ -1,7 +1,7 @@
-import { RadixAPDU } from './apdu'
 import { log } from '@radixdlt/util'
-import { LedgerResponseCodes, RadixAPDUT } from './_types'
+import { ConnectionEvent, Device, LedgerResponseCodes, RadixAPDUT } from './_types'
 import { Subscription } from 'rxjs'
+import type TransportNodeHid from 'ledgerhq__hw-transport-node-hid'
 
 export type BasicLedgerTransport = Readonly<{
 	close: () => Promise<void>
@@ -12,22 +12,24 @@ export type BasicLedgerTransport = Readonly<{
 		p2: number,
 		data?: Buffer,
 		statusList?: ReadonlyArray<number>,
-	) => Promise<Buffer>
+	) => Promise<Buffer>,
+	listen: () => {}
 }>
 
 export const send = async (
 	input: Readonly<{
 		apdu: RadixAPDUT
-		with: BasicLedgerTransport
+		with: TransportNodeHid
 	}>,
 ): Promise<Buffer> => {
 	const { apdu, with: connectedLedgerTransport } = input
 	
-	await openConnection(connectedLedgerTransport)
+	const device = await openConnection(connectedLedgerTransport)
 
 	const acceptableStatusCodes = apdu.requiredResponseStatusCodeFromDevice ?? [
 		LedgerResponseCodes.SW_OK,
 	]
+
 	const statusList = [...acceptableStatusCodes.map(s => s.valueOf())]
 
 	log.debug(`📦📲 sending APDU to Ledger device:
@@ -36,7 +38,8 @@ export const send = async (
 			p2: ${apdu.p2},
 			data: ${apdu.data !== undefined ? apdu.data.toString('hex') : '<UNDEFINED>'},
 		`)
-	return connectedLedgerTransport.send(
+		
+	return device.send(
 		apdu.cla,
 		apdu.ins,
 		apdu.p1,
@@ -46,13 +49,6 @@ export const send = async (
 	)
 }
 
-const delay = async (ms: number): Promise<void> =>
-	new Promise((resolve, _) => {
-		setTimeout(() => {
-			resolve()
-		}, ms)
-	})
-
 export type OpenLedgerConnectionInput = Readonly<{
 	deviceConnectionTimeout?: number
 	radixAppToOpenWaitPolicy?: Readonly<{
@@ -61,77 +57,23 @@ export type OpenLedgerConnectionInput = Readonly<{
 	}>
 }>
 
-const __openConnection = async (
-	isLoggingEnabled: boolean,
-	transport: BasicLedgerTransport,
-	input?: OpenLedgerConnectionInput,
-): Promise<void> => {
-	if (isLoggingEnabled) {
-		log.debug(`🔌⏱ Looking for (unlocked 🔓) Ledger device to connect to.`)
-	}
+export const subscribeDeviceConnection = async (transport: TransportNodeHid, next: (isConnected: boolean) => any): Promise<Subscription> =>
+    (transport as any).listen({
+        next: async (obj: ConnectionEvent) => {
+            switch (obj.type) {
+                case 'add':
+                    next(true)
+                    break
+                case 'remove':
+                    next(false)
+                    break
+            }
+        },
+    })
 
-	const radixAppToOpenWaitPolicy = input?.radixAppToOpenWaitPolicy
+const openConnection = async (transport: TransportNodeHid): Promise<Device> => {
+    const devices = await (transport as any).list()
 
-	if (!radixAppToOpenWaitPolicy) {
-		return Promise.resolve()
-	} else {
-		if (isLoggingEnabled) {
-			log.debug(`📲 ⏱ Waiting for Radix app to be started on Ledger.`)
-		}
-		const delayBetweenRetries = radixAppToOpenWaitPolicy.delayBetweenRetries
-		const retryCount = radixAppToOpenWaitPolicy.retryCount
-		if (retryCount < 1) {
-			const errMsg = `Timedout waiting for Radix App to open`
-			log.error(errMsg)
-			return Promise.reject(new Error(errMsg))
-		}
-
-		await delay(delayBetweenRetries)
-
-		return send({
-			apdu: RadixAPDU.getAppName(),
-			with: transport,
-		})
-			.then(response => {
-				log.debug(
-					`🥩 raw response: '0x${response.toString(
-						'hex',
-					)}' (utf8: '${response.toString('utf8')}')`,
-				)
-				const responseWithoutCode = response.slice(
-					0,
-					response.length - 2,
-				)
-				const responseString = responseWithoutCode.toString('utf8')
-				log.debug(`🔮 response without code: ${responseString}`)
-				const debugResponseEmoji =
-					responseString === 'Radix' ? `✅` : '❌'
-				log.debug(
-					`📲 ${debugResponseEmoji} App '${responseString}' is open.`,
-				)
-				return Promise.resolve()
-			})
-			.catch(_ =>
-				// We MUST close the transport and reopen it for pinging to work.
-				// Otherwise we get `Cannot write to hid device` forever.
-				// at least from macOS Big Sur on Ledger Nano with Secure Elements version 1.6.0
-				// and MCU 1.11
-				transport.close().then(() =>
-					__openConnection(false, transport, {
-						deviceConnectionTimeout: 1_000,
-						radixAppToOpenWaitPolicy: {
-							// Exponential backing off...
-							delayBetweenRetries: delayBetweenRetries * 1.1,
-							// Decrease retry count
-							retryCount: retryCount - 1,
-						},
-					}),
-				),
-			)
-	}
+    if (!devices[0]) { throw new Error('No device found.') }
+    return (transport as any).open(devices[0])
 }
-
-export const openConnection = async (
-	transport: BasicLedgerTransport,
-	input?: OpenLedgerConnectionInput,
-): Promise<void> => __openConnection(true, transport, input)

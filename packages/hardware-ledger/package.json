@@ -29,6 +29,7 @@
     "node": ">=15.5.0 <16"
   },
   "dependencies": {
+    "@types/ledgerhq__hw-transport-node-hid": "^4.22.2",
     "@radixdlt/crypto": "^2.0.0",
     "@radixdlt/hardware-wallet": "^2.0.0",
     "@radixdlt/primitives": "^2.0.0",
@@ -42,7 +43,7 @@
   "devDependencies": {
     "@radixdlt/account": "^2.0.0",
     "@radixdlt/application": "^2.0.1",
-    "@types/ledgerhq__hw-transport-node-hid": "^4.22.2",
+ 
     "@types/uuid": "^8.3.0"
   }
 }

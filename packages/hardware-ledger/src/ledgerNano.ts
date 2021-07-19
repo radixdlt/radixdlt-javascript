@@ -10,15 +10,15 @@ import { msgFromError, log } from '@radixdlt/util'
 
 import {
 	BasicLedgerTransport,
-	openConnection,
 	OpenLedgerConnectionInput,
 	send,
 } from './device-connection'
+import type TransportNodeHid from 'ledgerhq__hw-transport-node-hid'
 
 const ledgerAPDUResponseCodeBufferLength = 2 // two bytes
 
 const fromTransport = (
-	basicLedgerTransport: BasicLedgerTransport,
+	basicLedgerTransport: TransportNodeHid,
 ): LedgerNanoT => {
 	const sendAPDUToDevice = (apdu: RadixAPDUT): Observable<Buffer> =>
 		new Observable<Buffer>(subscriber => {
@@ -122,19 +122,7 @@ const fromTransport = (
 	}
 }
 
-const connect = async (
-	transport: BasicLedgerTransport,
-	input?: OpenLedgerConnectionInput,
-): Promise<LedgerNanoT> => {
-	await openConnection(transport, {
-		deviceConnectionTimeout: input?.deviceConnectionTimeout,
-		radixAppToOpenWaitPolicy: input?.radixAppToOpenWaitPolicy ?? {
-			delayBetweenRetries: 1_000,
-			retryCount: 60,
-		},
-	})
-	return fromTransport(transport)
-}
+const connect = async (transport: TransportNodeHid): Promise<LedgerNanoT> => fromTransport(transport)
 
 export const LedgerNano = {
 	connect,

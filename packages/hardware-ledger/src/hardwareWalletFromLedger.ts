@@ -36,6 +36,7 @@ import { log, BufferReader } from '@radixdlt/util'
 import { Transaction } from '@radixdlt/tx-parser/dist/transaction'
 import { InstructionT } from '@radixdlt/tx-parser'
 import { err, Result } from 'neverthrow'
+import type TransportNodeHid from 'ledgerhq__hw-transport-node-hid'
 
 const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 	const getPublicKey = (input: GetPublicKeyInput): Observable<PublicKeyT> =>
@@ -395,14 +396,9 @@ Bytes: "
 }
 
 const create = (
-	transport: BasicLedgerTransport,
+	transport: TransportNodeHid,
 ): Observable<HardwareWalletT> => {
-	const ledgerNano$ = from(
-		LedgerNano.connect(transport, {
-			// 2 minutes timeout arbitrarily chosen
-			deviceConnectionTimeout: 2 * 60 * 1_000,
-		}),
-	)
+	const ledgerNano$ = from(LedgerNano.connect(transport))
 
 	return ledgerNano$.pipe(
 		map((ledger: LedgerNanoT) => withLedgerNano(ledger)),
