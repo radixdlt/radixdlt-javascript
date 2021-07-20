@@ -170,13 +170,19 @@ export const handleLookupTXResponse = (
 		.andThen(decoded =>
 			ok({
 				...decoded,
-				message: decoded.message
-					? Message.isPlaintext(decoded.message)
+				message: (() => {
+					if (!decoded.message) return undefined
+
+					// Check format
+					if (!/^(00|01)[0-9a-fA-F]+$/.test(decoded.message))
+						return '<Failed to interpret message>'
+
+					return Message.isPlaintext(decoded.message)
 						? Message.plaintextToString(
 								Buffer.from(decoded.message, 'hex'),
 						  )
 						: decoded.message
-					: undefined,
+					})(),
 			}),
 		)
 
