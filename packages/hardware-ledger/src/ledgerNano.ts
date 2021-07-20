@@ -8,10 +8,7 @@ import { Observable } from 'rxjs'
 
 import { msgFromError, log } from '@radixdlt/util'
 
-import {
-	BasicLedgerTransport,
-	send,
-} from './device-connection'
+import { BasicLedgerTransport, send } from './device-connection'
 
 const ledgerAPDUResponseCodeBufferLength = 2 // two bytes
 
