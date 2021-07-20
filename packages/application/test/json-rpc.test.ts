@@ -337,9 +337,7 @@ const expectedDecodedResponses = {
 				totalDelegatedStake: Amount.fromUnsafe(
 					response.validators[0].totalDelegatedStake,
 				)._unsafeUnwrap({ withStackTrace: true }),
-				validatorFee: Amount.fromUnsafe(
-					response.validators[0].validatorFee,
-				)._unsafeUnwrap(),
+				validatorFee: response.validators[0].validatorFee,
 				registered: response.validators[0].registered,
 				ownerDelegation: Amount.fromUnsafe(
 					response.validators[0].ownerDelegation,
@@ -369,7 +367,7 @@ const expectedDecodedResponses = {
 		ownerDelegation: Amount.fromUnsafe(
 			response.ownerDelegation,
 		)._unsafeUnwrap({ withStackTrace: true }),
-		validatorFee: Amount.fromUnsafe(response.validatorFee)._unsafeUnwrap(),
+		validatorFee: response.validatorFee,
 		registered: response.registered,
 		isExternalStakeAccepted: response.isExternalStakeAccepted,
 	}),

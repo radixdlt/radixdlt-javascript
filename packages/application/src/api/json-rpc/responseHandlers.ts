@@ -229,7 +229,7 @@ const validatorDecoders = JSONDecoding.withDecoders(
 	validatorAddressDecoder('address'),
 	addressDecoder('ownerAddress'),
 	URLDecoder('infoURL'),
-	amountDecoder('totalDelegatedStake', 'ownerDelegation', 'validatorFee'),
+	amountDecoder('totalDelegatedStake', 'ownerDelegation'),
 )
 
 export const handleValidatorsResponse = (json: ValidatorsEndpoint.Response) =>

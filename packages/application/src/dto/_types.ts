@@ -298,7 +298,7 @@ export type Validator = Readonly<{
 	infoURL: URL
 	totalDelegatedStake: AmountT
 	ownerDelegation: AmountT
-	validatorFee: AmountT
+	validatorFee: number
 	registered: boolean
 	isExternalStakeAccepted: boolean
 }>

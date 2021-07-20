@@ -362,7 +362,7 @@ const randomValidatorList = (
 			infoURL: new URL('https://rewards.radixtokens.comcom'),
 			totalDelegatedStake: amount,
 			ownerDelegation: amount,
-			validatorFee: amount,
+			validatorFee: 2.5,
 			registered: bool,
 			isExternalStakeAccepted: bool,
 		})
