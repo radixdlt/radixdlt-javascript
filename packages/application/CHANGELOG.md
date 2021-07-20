@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.1.7](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@2.1.6...@radixdlt/application@2.1.7) (2021-07-20)
+
+
+### Bug Fixes
+
+* Lookup TX Response invalid messages ([#165](https://github.com/radixdlt/radixdlt-javascript/issues/165)) ([5d82e1f](https://github.com/radixdlt/radixdlt-javascript/commit/5d82e1f31091d098e3508252a0290133af0809e8))
+
+
+
+
+
 ## [2.1.6](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@2.1.5...@radixdlt/application@2.1.6) (2021-07-20)
 
 **Note:** Version bump only for package @radixdlt/application
