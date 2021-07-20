@@ -33,7 +33,7 @@ import { makeWalletWithFunds } from '../radix.test'
 const fetch = require('node-fetch')
 
 // local
-const NODE_URL = 'https://sandpitnet.radixdlt.com'
+const NODE_URL = 'https://stokenet.radixdlt.com'
 
 // RCNet
 //const NODE_URL = 'https://54.73.253.49'
@@ -492,7 +492,7 @@ describe('integration API tests', () => {
 		)
 	})
 
-	it('can lookup validator', done => {
+	it.only('can lookup validator', done => {
 		const radix = Radix.create({
 			network: Network.MAINNET,
 		})
