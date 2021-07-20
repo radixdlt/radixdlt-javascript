@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.1.8](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@2.1.7...@radixdlt/application@2.1.8) (2021-07-20)
+
+
+### Bug Fixes
+
+* validator fee format ([d6d1240](https://github.com/radixdlt/radixdlt-javascript/commit/d6d1240068eb77efcebc0f9d13a2ee95a7fc6e2e))
+
+
+
+
+
 ## [2.1.7](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@2.1.6...@radixdlt/application@2.1.7) (2021-07-20)
 
 
