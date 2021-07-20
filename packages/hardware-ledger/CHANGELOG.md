@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.1.6](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/hardware-ledger@2.1.5...@radixdlt/hardware-ledger@2.1.6) (2021-07-20)
+
+**Note:** Version bump only for package @radixdlt/hardware-ledger
+
+
+
+
+
 ## [2.1.5](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/hardware-ledger@2.1.3...@radixdlt/hardware-ledger@2.1.5) (2021-07-19)
 
 **Note:** Version bump only for package @radixdlt/hardware-ledger
