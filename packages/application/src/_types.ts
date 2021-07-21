@@ -122,8 +122,6 @@ export type AccountsT = Readonly<{
 
 export type SwitchToAccount = Readonly<{ toAccount: AccountT }>
 
-export type DeriveHWAccountInput = DeriveHWSigningKeyInput
-
 export type SwitchAccountInput =
 	| 'first'
 	| 'last'
@@ -140,7 +138,7 @@ export type WalletT = Readonly<{
 
 	deriveNextLocalHDAccount: (input?: DeriveNextInput) => Observable<AccountT>
 
-	deriveHWAccount: (input: DeriveHWAccountInput) => Observable<AccountT>
+	deriveHWAccount: (input: DeriveHWSigningKeyInput) => Observable<AccountT>
 	displayAddressForActiveHWAccountOnHWDeviceForVerification: () => Observable<void>
 
 	addAccountFromPrivateKey: (
@@ -179,7 +177,7 @@ export type RadixT = Readonly<{
 
 	// Wait for Ledger Nano S/X to connect and app be opened and derive
 	// account according to `input`.
-	deriveHWAccount: (input: DeriveHWAccountInput) => Observable<AccountT>
+	deriveHWAccount: (input: DeriveHWSigningKeyInput) => Observable<AccountT>
 	displayAddressForActiveHWAccountOnHWDeviceForVerification: () => Observable<void>
 
 	addAccountFromPrivateKey: (input: AddAccountByPrivateKeyInput) => RadixT

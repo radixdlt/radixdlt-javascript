@@ -78,6 +78,7 @@ export type DeriveHWSigningKeyInput = Readonly<{
 	keyDerivation: HWSigningKeyDerivation
 	hardwareWalletConnection: Observable<HardwareWalletT>
 	alsoSwitchTo: boolean
+	verificationPrompt?: boolean
 }>
 
 export type SigningKeyT = Signing &
