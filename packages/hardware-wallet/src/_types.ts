@@ -45,12 +45,13 @@ export type SignHashInput = GetPublicKeyInput &
 export type KeyExchangeInput = AtPath &
 	Readonly<{
 		publicKeyOfOtherParty: PublicKeyT
-		displayBIPAndPubKeyOtherParty: boolean
+		display?: 'encrypt' | 'decrypt'
 	}>
 
 export type HardwareSigningKeyT = Readonly<{
 	keyExchange: (
 		publicKeyOfOtherParty: PublicKeyT,
+		display?: 'encrypt' | 'decrypt'
 	) => Observable<ECPointOnCurveT>
 	publicKey: PublicKeyT
 
