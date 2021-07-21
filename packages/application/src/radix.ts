@@ -1,5 +1,6 @@
 import {
 	AccountAddressT,
+	DeriveHWSigningKeyInput,
 	DeriveNextInput,
 	SigningKeychain,
 	SigningKeychainT,
@@ -47,8 +48,7 @@ import {
 	SwitchAccountInput,
 	TransactionConfirmationBeforeFinalization,
 	TransferTokensOptions,
-	UnstakeOptions,
-	DeriveHWAccountInput,
+	UnstakeOptions
 } from './_types'
 import {
 	APIError,
@@ -1028,7 +1028,7 @@ const create = (
 			return this
 		},
 
-		deriveHWAccount: (input: DeriveHWAccountInput): Observable<AccountT> =>
+		deriveHWAccount: (input: DeriveHWSigningKeyInput): Observable<AccountT> =>
 			wallet$.pipe(mergeMap(wallet => wallet.deriveHWAccount(input))),
 
 		displayAddressForActiveHWAccountOnHWDeviceForVerification: (): Observable<void> =>

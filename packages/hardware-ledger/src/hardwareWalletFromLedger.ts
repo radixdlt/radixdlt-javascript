@@ -389,8 +389,8 @@ Bytes: "
 
 	return {
 		...hwWithoutSK,
-		makeSigningKey: (path: HDPathRadixT): Observable<HardwareSigningKeyT> =>
-			signingKeyWithHardWareWallet(hwWithoutSK, path),
+		makeSigningKey: (path: HDPathRadixT, verificationPrompt?: boolean): Observable<HardwareSigningKeyT> =>
+			signingKeyWithHardWareWallet(hwWithoutSK, path, verificationPrompt),
 	}
 }
 

@@ -5,6 +5,7 @@ import {
 	AccountAddressT,
 	DeriveNextInput,
 	AccountAddress,
+	DeriveHWSigningKeyInput,
 } from '@radixdlt/account'
 import {
 	WalletT,
@@ -12,8 +13,7 @@ import {
 	AccountsT,
 	SwitchAccountInput,
 	SwitchToAccount,
-	AddAccountByPrivateKeyInput,
-	DeriveHWAccountInput,
+	AddAccountByPrivateKeyInput
 } from './_types'
 import { Observable, of, throwError } from 'rxjs'
 import { Account, isAccount } from './account'
@@ -84,7 +84,7 @@ const create = (
 				.deriveNextLocalHDSigningKey(input)
 				.pipe(map(skToAccount)),
 
-		deriveHWAccount: (input: DeriveHWAccountInput): Observable<AccountT> =>
+		deriveHWAccount: (input: DeriveHWSigningKeyInput): Observable<AccountT> =>
 			signingKeychain.deriveHWSigningKey(input).pipe(map(skToAccount)),
 
 		displayAddressForActiveHWAccountOnHWDeviceForVerification: (): Observable<void> =>
