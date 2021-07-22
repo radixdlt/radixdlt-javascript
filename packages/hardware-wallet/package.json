@@ -1,6 +1,6 @@
 {
   "name": "@radixdlt/hardware-wallet",
-  "version": "2.1.4",
+  "version": "2.1.5",
   "description": "Types for hardware wallets",
   "keywords": [
     "Hardware",

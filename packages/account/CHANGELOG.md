@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.1.5](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/account@2.1.4...@radixdlt/account@2.1.5) (2021-07-22)
+
+
+### Bug Fixes
+
+* hrp parsing error for RRI ([1484b0a](https://github.com/radixdlt/radixdlt-javascript/commit/1484b0a0ea1e21694113c7116d78ca42b0640c04))
+
+
+
+
+
 ## [2.1.4](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/account@2.1.3...@radixdlt/account@2.1.4) (2021-07-21)
 
 **Note:** Version bump only for package @radixdlt/account
