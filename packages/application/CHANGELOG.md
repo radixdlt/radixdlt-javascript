@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.1.14](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@2.1.13...@radixdlt/application@2.1.14) (2021-07-22)
+
+
+### Bug Fixes
+
+* update open rpc spec ([b787b3b](https://github.com/radixdlt/radixdlt-javascript/commit/b787b3bdc8974ca20fe431b520cc9eb4ad9c5368))
+
+
+
+
+
 ## [2.1.13](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@2.1.12...@radixdlt/application@2.1.13) (2021-07-22)
 
 
