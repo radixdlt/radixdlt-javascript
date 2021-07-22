@@ -17,9 +17,7 @@ import { Network } from '@radixdlt/primitives'
 import { HardwareWalletT } from '@radixdlt/hardware-wallet'
 import { HardwareWalletLedger } from '../../src'
 import { DeriveHWSigningKeyInput } from '@radixdlt/account'
-
-// @ts-ignore
-import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
+import { sendAPDU } from './utils'
 
 describe('radix_hw_ledger', () => {
 	beforeAll(() => {
@@ -47,16 +45,14 @@ describe('radix_hw_ledger', () => {
 	})
 
 	it('wallet_derive_hw_account', async done => {
-		const transport = await TransportNodeHid.create()
-
 		const subs = new Subscription()
 
 		const radix = Radix.create().withWallet(wallet)
 
 		const keyDerivation: HWSigningKeyDerivation = 'next'
-		const hardwareWalletConnection: Observable<HardwareWalletT> = HardwareWalletLedger.create(
-			transport as any,
-		)
+		const hardwareWalletConnection: Observable<HardwareWalletT> = HardwareWalletLedger.create({
+			send: sendAPDU
+		})
 
 		const input: DeriveHWSigningKeyInput = {
 			keyDerivation,

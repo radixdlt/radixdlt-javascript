@@ -27,8 +27,7 @@ import {
 	TransactionT,
 } from '@radixdlt/tx-parser'
 import { AccountAddress } from '@radixdlt/account'
-// @ts-ignore
-import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
+import { sendAPDU } from './utils'
 
 describe('hw_ledger_integration', () => {
 	let ledgerNano: LedgerNanoT
@@ -41,13 +40,6 @@ describe('hw_ledger_integration', () => {
 			done()
 			return
 		}
-		const subs = new Subscription()
-		// must close connection in between else finding a free ledger device for subsequent test will fail.
-		subs.add(
-			ledgerNano.close().subscribe(() => {
-				done()
-			}),
-		)
 	})
 
 	afterAll(() => {
@@ -55,10 +47,8 @@ describe('hw_ledger_integration', () => {
 	})
 
 	it('getVersion_integration', async done => {
-		const transport = await TransportNodeHid.create()
-
-		ledgerNano = await LedgerNano.connect(transport as any, {
-			deviceConnectionTimeout: 10_000,
+		ledgerNano = await LedgerNano.connect({
+			send: sendAPDU
 		})
 		const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
 
@@ -78,10 +68,8 @@ describe('hw_ledger_integration', () => {
 	})
 
 	it('getPublicKey_integration', async done => {
-		const transport = await TransportNodeHid.create()
-
-		ledgerNano = await LedgerNano.connect(transport as any, {
-			deviceConnectionTimeout: 10_000,
+		ledgerNano = await LedgerNano.connect({
+			send: sendAPDU
 		})
 		const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
 
@@ -132,11 +120,10 @@ describe('hw_ledger_integration', () => {
 		)
 	})
 
-	it('doKeyExchange_integration', async done => {
-		const transport = await TransportNodeHid.create()
+	it.only('doKeyExchange_integration', async done => {
 
-		ledgerNano = await LedgerNano.connect(transport as any, {
-			deviceConnectionTimeout: 10_000,
+		ledgerNano = await LedgerNano.connect({
+			send: sendAPDU
 		})
 		const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
 
@@ -178,7 +165,6 @@ describe('hw_ledger_integration', () => {
 						`m/44'/1022'/2'/1/3`,
 					)._unsafeUnwrap(),
 					publicKeyOfOtherParty,
-					displayBIPAndPubKeyOtherParty,
 				})
 				.subscribe(
 					(ecPointOnCurve: ECPointOnCurveT) => {
@@ -197,10 +183,9 @@ describe('hw_ledger_integration', () => {
 	it(
 		'doSignTX_integration',
 		async done => {
-			const transport = await TransportNodeHid.create()
 
-			ledgerNano = await LedgerNano.connect(transport as any, {
-				deviceConnectionTimeout: 20_000,
+			ledgerNano = await LedgerNano.connect({
+				send: sendAPDU
 			})
 			const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
 
@@ -279,10 +264,9 @@ describe('hw_ledger_integration', () => {
 	) // 10 min
 
 	it('doSignHash_integration', async done => {
-		const transport = await TransportNodeHid.create()
 
-		ledgerNano = await LedgerNano.connect(transport as any, {
-			deviceConnectionTimeout: 10_000,
+		ledgerNano = await LedgerNano.connect({
+			send: sendAPDU
 		})
 		const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
 
