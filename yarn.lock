@@ -1570,15 +1570,10 @@
     neverthrow "^4.0.1"
     ramda "^0.27.1"
 
-"@radixdlt/open-rpc-spec@^1.0.15":
-  version "1.0.15"
-  resolved "https://registry.yarnpkg.com/@radixdlt/open-rpc-spec/-/open-rpc-spec-1.0.15.tgz#d52bb10e8faa0cabebf0f726e9b4d4955858a932"
-  integrity sha512-jEa0NjXDCwgfcFxg79SL3qNB/fyMJ8G278h1Dnorte74JBDkH2t0orrv5Tirs94YpTv2HRZNbPYBiIYBNJZCQw==
-
-"@radixdlt/open-rpc-spec@^1.0.17":
-  version "1.0.17"
-  resolved "https://registry.yarnpkg.com/@radixdlt/open-rpc-spec/-/open-rpc-spec-1.0.17.tgz#e0634ee6826a3bfb48078d5b411d0827c27c3896"
-  integrity sha512-51zV918QljWo+YlnXfnrNqEHcM4cjqFSQRRo2gAeIKKvnExLQvVKyYTlDCySoitrY0qAdbMYL+FGS5GBA2h4uw==
+"@radixdlt/open-rpc-spec@^1.0.19":
+  version "1.0.19"
+  resolved "https://registry.yarnpkg.com/@radixdlt/open-rpc-spec/-/open-rpc-spec-1.0.19.tgz#7392359e28a11f652c2501c25b3d4048cb68a0f9"
+  integrity sha512-pcrUTk66h6jDXpq5Ly6uHpktO/lW5lCzdC7YqwsGfXzdFOLcRC8eCC9Teh9k6zH1gvMRyqid9gLRTE7nP2/L8A==
 
 "@radixdlt/uint256@1.1.0":
   version "1.1.0"
