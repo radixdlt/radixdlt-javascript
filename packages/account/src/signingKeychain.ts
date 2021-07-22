@@ -194,7 +194,10 @@ const create = (
 				(
 					hardwareWallet: HardwareWalletT,
 				): Observable<HardwareSigningKeyT> =>
-					hardwareWallet.makeSigningKey(hdPath, input.verificationPrompt),
+					hardwareWallet.makeSigningKey(
+						hdPath,
+						input.verificationPrompt,
+					),
 			),
 			map((hardwareSigningKey: HardwareSigningKeyT) => {
 				const signingKey = SigningKey.fromHDPathWithHWSigningKey({

@@ -13,7 +13,7 @@ import {
 	AccountsT,
 	SwitchAccountInput,
 	SwitchToAccount,
-	AddAccountByPrivateKeyInput
+	AddAccountByPrivateKeyInput,
 } from './_types'
 import { Observable, of, throwError } from 'rxjs'
 import { Account, isAccount } from './account'
@@ -84,7 +84,9 @@ const create = (
 				.deriveNextLocalHDSigningKey(input)
 				.pipe(map(skToAccount)),
 
-		deriveHWAccount: (input: DeriveHWSigningKeyInput): Observable<AccountT> =>
+		deriveHWAccount: (
+			input: DeriveHWSigningKeyInput,
+		): Observable<AccountT> =>
 			signingKeychain.deriveHWSigningKey(input).pipe(map(skToAccount)),
 
 		displayAddressForActiveHWAccountOnHWDeviceForVerification: (): Observable<void> =>

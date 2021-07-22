@@ -81,7 +81,7 @@ const fromBech32String = (
 	}
 
 	const nameToValidate = hrp.slice(0, hrp.length - hrpFullSuffixLength)
-	const hrpSuffix = hrp.slice(hrpFullSuffixLength)
+	const hrpSuffix = hrp.slice(nameToValidate.length)
 	const networkResult = networkFromHRPSuffix(hrpSuffix)
 
 	if (!networkResult.isOk()) {

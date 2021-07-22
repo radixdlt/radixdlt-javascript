@@ -3,6 +3,52 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.1.13](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@2.1.12...@radixdlt/application@2.1.13) (2021-07-22)
+
+
+### Bug Fixes
+
+* add validator fields ([7eaffe9](https://github.com/radixdlt/radixdlt-javascript/commit/7eaffe967b3fa1ec03d09e3256a115e5377036a5))
+
+
+
+
+
+## [2.1.12](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@2.1.11...@radixdlt/application@2.1.12) (2021-07-22)
+
+
+### Bug Fixes
+
+* hrp parsing error for RRI ([1484b0a](https://github.com/radixdlt/radixdlt-javascript/commit/1484b0a0ea1e21694113c7116d78ca42b0640c04))
+
+
+
+
+
+## [2.1.11](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@2.1.10...@radixdlt/application@2.1.11) (2021-07-21)
+
+**Note:** Version bump only for package @radixdlt/application
+
+
+
+
+
+## [2.1.10](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@2.1.9...@radixdlt/application@2.1.10) (2021-07-21)
+
+**Note:** Version bump only for package @radixdlt/application
+
+
+
+
+
+## [2.1.9](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@2.1.8...@radixdlt/application@2.1.9) (2021-07-21)
+
+**Note:** Version bump only for package @radixdlt/application
+
+
+
+
+
 ## [2.1.8](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@2.1.7...@radixdlt/application@2.1.8) (2021-07-20)
 
 

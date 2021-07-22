@@ -78,5 +78,8 @@ export type HardwareWalletT = Readonly<{
 	doSignTransaction: (input: SignTransactionInput) => Observable<SignTXOutput>
 	doKeyExchange: (input: KeyExchangeInput) => Observable<ECPointOnCurveT>
 
-	makeSigningKey: (path: HDPathRadixT, verificationPrompt?: boolean) => Observable<HardwareSigningKeyT>
+	makeSigningKey: (
+		path: HDPathRadixT,
+		verificationPrompt?: boolean,
+	) => Observable<HardwareSigningKeyT>
 }>

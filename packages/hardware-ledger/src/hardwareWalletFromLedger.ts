@@ -380,7 +380,10 @@ Bytes: "
 
 	return {
 		...hwWithoutSK,
-		makeSigningKey: (path: HDPathRadixT, verificationPrompt?: boolean): Observable<HardwareSigningKeyT> =>
+		makeSigningKey: (
+			path: HDPathRadixT,
+			verificationPrompt?: boolean,
+		): Observable<HardwareSigningKeyT> =>
 			signingKeyWithHardWareWallet(hwWithoutSK, path, verificationPrompt),
 	}
 }
