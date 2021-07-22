@@ -120,7 +120,7 @@ describe('hw_ledger_integration', () => {
 		)
 	})
 
-	it.only('doKeyExchange_integration', async done => {
+	it('doKeyExchange_integration', async done => {
 
 		ledgerNano = await LedgerNano.connect({
 			send: sendAPDU
@@ -165,6 +165,7 @@ describe('hw_ledger_integration', () => {
 						`m/44'/1022'/2'/1/3`,
 					)._unsafeUnwrap(),
 					publicKeyOfOtherParty,
+					display: 'encrypt'
 				})
 				.subscribe(
 					(ecPointOnCurve: ECPointOnCurveT) => {
