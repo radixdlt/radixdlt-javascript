@@ -182,7 +182,7 @@ export const handleLookupTXResponse = (
 								Buffer.from(decoded.message, 'hex'),
 						  )
 						: decoded.message
-					})(),
+				})(),
 			}),
 		)
 

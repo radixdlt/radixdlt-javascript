@@ -19,7 +19,7 @@ export type HardwareWalletWithoutSK = Omit<HardwareWalletT, 'makeSigningKey'>
 export const signingKeyWithHardWareWallet = (
 	hardwareWallet: HardwareWalletWithoutSK,
 	path: HDPathRadixT,
-	verificationPrompt: boolean = true
+	verificationPrompt: boolean = true,
 ): Observable<HardwareSigningKeyT> =>
 	hardwareWallet
 		.getPublicKey({
