@@ -50,9 +50,11 @@ describe('radix_hw_ledger', () => {
 		const radix = Radix.create().withWallet(wallet)
 
 		const keyDerivation: HWSigningKeyDerivation = 'next'
-		const hardwareWalletConnection: Observable<HardwareWalletT> = HardwareWalletLedger.create({
-			send: sendAPDU
-		})
+		const hardwareWalletConnection: Observable<HardwareWalletT> = HardwareWalletLedger.create(
+			{
+				send: sendAPDU,
+			},
+		)
 
 		const input: DeriveHWSigningKeyInput = {
 			keyDerivation,

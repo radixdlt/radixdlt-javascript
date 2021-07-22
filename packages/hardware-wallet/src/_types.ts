@@ -51,7 +51,7 @@ export type KeyExchangeInput = AtPath &
 export type HardwareSigningKeyT = Readonly<{
 	keyExchange: (
 		publicKeyOfOtherParty: PublicKeyT,
-		display?: 'encrypt' | 'decrypt'
+		display?: 'encrypt' | 'decrypt',
 	) => Observable<ECPointOnCurveT>
 	publicKey: PublicKeyT
 

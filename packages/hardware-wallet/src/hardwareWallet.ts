@@ -53,7 +53,7 @@ export const signingKeyWithHardWareWallet = (
 						.pipe(map(o => o.signature)),
 				keyExchange: (
 					publicKeyOfOtherParty: PublicKeyT,
-					display?: 'encrypt' | 'decrypt'
+					display?: 'encrypt' | 'decrypt',
 				): Observable<ECPointOnCurveT> =>
 					hardwareWallet.doKeyExchange({
 						display,

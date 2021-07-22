@@ -48,7 +48,7 @@ describe('hw_ledger_integration', () => {
 
 	it('getVersion_integration', async done => {
 		ledgerNano = await LedgerNano.connect({
-			send: sendAPDU
+			send: sendAPDU,
 		})
 		const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
 
@@ -69,7 +69,7 @@ describe('hw_ledger_integration', () => {
 
 	it('getPublicKey_integration', async done => {
 		ledgerNano = await LedgerNano.connect({
-			send: sendAPDU
+			send: sendAPDU,
 		})
 		const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
 
@@ -121,9 +121,8 @@ describe('hw_ledger_integration', () => {
 	})
 
 	it('doKeyExchange_integration', async done => {
-
 		ledgerNano = await LedgerNano.connect({
-			send: sendAPDU
+			send: sendAPDU,
 		})
 		const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
 
@@ -165,7 +164,7 @@ describe('hw_ledger_integration', () => {
 						`m/44'/1022'/2'/1/3`,
 					)._unsafeUnwrap(),
 					publicKeyOfOtherParty,
-					display: 'encrypt'
+					display: 'encrypt',
 				})
 				.subscribe(
 					(ecPointOnCurve: ECPointOnCurveT) => {
@@ -184,9 +183,8 @@ describe('hw_ledger_integration', () => {
 	it(
 		'doSignTX_integration',
 		async done => {
-
 			ledgerNano = await LedgerNano.connect({
-				send: sendAPDU
+				send: sendAPDU,
 			})
 			const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
 
@@ -265,9 +263,8 @@ describe('hw_ledger_integration', () => {
 	) // 10 min
 
 	it('doSignHash_integration', async done => {
-
 		ledgerNano = await LedgerNano.connect({
-			send: sendAPDU
+			send: sendAPDU,
 		})
 		const hardwareWallet = HardwareWalletLedger.from(ledgerNano)
 

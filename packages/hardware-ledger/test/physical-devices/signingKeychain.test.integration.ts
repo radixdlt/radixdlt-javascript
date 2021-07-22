@@ -39,9 +39,11 @@ describe('signingKeychain_hw_ledger', () => {
 		const subs = new Subscription()
 
 		const keyDerivation: HWSigningKeyDerivation = 'next'
-		const hardwareWalletConnection: Observable<HardwareWalletT> = HardwareWalletLedger.create({
-			send: sendAPDU
-		})
+		const hardwareWalletConnection: Observable<HardwareWalletT> = HardwareWalletLedger.create(
+			{
+				send: sendAPDU,
+			},
+		)
 
 		const input: DeriveHWSigningKeyInput = {
 			keyDerivation,

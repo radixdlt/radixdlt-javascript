@@ -159,7 +159,11 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 	): Observable<ECPointOnCurveT> =>
 		ledgerNano
 			.sendAPDUToDevice(
-				RadixAPDU.doKeyExchange(input.path ?? path000H, input.publicKeyOfOtherParty, input.display),
+				RadixAPDU.doKeyExchange(
+					input.path ?? path000H,
+					input.publicKeyOfOtherParty,
+					input.display,
+				),
 			)
 			.pipe(
 				mergeMap(
@@ -234,8 +238,10 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 			log.debug(
 				`
 📦 📦 📦 📦 📦 📦 📦 📦 📦 📦 📦 📦 📦 📦 📦 📦
-Sending instruction #${numberOfInstructions - instructions.length
-				}/#${numberOfInstructions}. (length: #${instructionToSend.toBuffer().length
+Sending instruction #${
+					numberOfInstructions - instructions.length
+				}/#${numberOfInstructions}. (length: #${
+					instructionToSend.toBuffer().length
 				} bytes).
 				
 Raw string representation: "
@@ -243,10 +249,11 @@ ${instructionToSend.toString()}
 "
 
 Human readable string representation: "
-${instructionToSend.toHumanReadableString !== undefined
-					? instructionToSend.toHumanReadableString()
-					: 'no human readable representation available.'
-				}
+${
+	instructionToSend.toHumanReadableString !== undefined
+		? instructionToSend.toHumanReadableString()
+		: 'no human readable representation available.'
+}
 "
 
 Bytes: "

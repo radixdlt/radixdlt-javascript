@@ -95,8 +95,13 @@ const getPublicKey = (input: APDUGetPublicKeyInput): RadixAPDUT => {
 	})
 }
 
-const doKeyExchange = (path: HDPathRadixT, publicKeyOfOtherParty: PublicKeyT, display?: 'encrypt' | 'decrypt'): RadixAPDUT => {
-	const p1 = display === 'encrypt' ? 0x01 : display === 'decrypt' ? 0x02 : 0x00
+const doKeyExchange = (
+	path: HDPathRadixT,
+	publicKeyOfOtherParty: PublicKeyT,
+	display?: 'encrypt' | 'decrypt',
+): RadixAPDUT => {
+	const p1 =
+		display === 'encrypt' ? 0x01 : display === 'decrypt' ? 0x02 : 0x00
 
 	const publicKeyUncompressedData = publicKeyOfOtherParty.asData({
 		compressed: false,
