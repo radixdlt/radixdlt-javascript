@@ -1,6 +1,6 @@
 {
   "name": "@radixdlt/hardware-ledger",
-  "version": "2.1.13",
+  "version": "2.1.14",
   "description": "Ledger Nano hardware wallet connection",
   "keywords": [
     "Ledger",
@@ -42,7 +42,7 @@
   },
   "devDependencies": {
     "@radixdlt/account": "^2.1.5",
-    "@radixdlt/application": "^2.1.13",
+    "@radixdlt/application": "^2.1.14",
     "@types/uuid": "^8.3.0"
   }
 }
