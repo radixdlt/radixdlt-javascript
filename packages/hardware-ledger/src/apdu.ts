@@ -79,10 +79,6 @@ const parameterValueForDisplayAddressOnLedger = (
 	input: APDUGetPublicKeyInput,
 ): number => (input.display ? 0x01 : 0x00)
 
-const parameterValueForDisplayECDHInputOnLedger = (
-	input: APDUDoKeyExchangeInput,
-): number => (input.displayBIPAndPubKeyOtherParty ? 0x01 : 0x00)
-
 const getPublicKey = (input: APDUGetPublicKeyInput): RadixAPDUT => {
 	const p1 = parameterValueForDisplayAddressOnLedger(input)
 	let p2 = 0
@@ -99,16 +95,15 @@ const getPublicKey = (input: APDUGetPublicKeyInput): RadixAPDUT => {
 	})
 }
 
-type APDUDoKeyExchangeInput = WithPath &
-	Readonly<{
-		publicKeyOfOtherParty: PublicKeyT
-		displayBIPAndPubKeyOtherParty: boolean
-	}>
+const doKeyExchange = (
+	path: HDPathRadixT,
+	publicKeyOfOtherParty: PublicKeyT,
+	display?: 'encrypt' | 'decrypt',
+): RadixAPDUT => {
+	const p1 =
+		display === 'encrypt' ? 0x01 : display === 'decrypt' ? 0x02 : 0x00
 
-const doKeyExchange = (input: APDUDoKeyExchangeInput): RadixAPDUT => {
-	const p1 = parameterValueForDisplayECDHInputOnLedger(input)
-
-	const publicKeyUncompressedData = input.publicKeyOfOtherParty.asData({
+	const publicKeyUncompressedData = publicKeyOfOtherParty.asData({
 		compressed: false,
 	})
 	const publicKeyLengthBuf = Buffer.alloc(1)
@@ -119,7 +114,7 @@ const doKeyExchange = (input: APDUDoKeyExchangeInput): RadixAPDUT => {
 		publicKeyUncompressedData,
 	])
 
-	const pathData = hdPathToBuffer(input.path)
+	const pathData = hdPathToBuffer(path)
 
 	const data = Buffer.concat([pathData, publicKeyData])
 

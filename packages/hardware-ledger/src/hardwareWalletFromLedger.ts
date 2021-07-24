@@ -159,13 +159,11 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 	): Observable<ECPointOnCurveT> =>
 		ledgerNano
 			.sendAPDUToDevice(
-				RadixAPDU.doKeyExchange({
-					...input,
-					path: input.path ?? path000H,
-					displayBIPAndPubKeyOtherParty:
-						input.displayBIPAndPubKeyOtherParty,
-					// displaySharedKeyOnDevice: input.displaySharedKeyOnDevice,
-				}),
+				RadixAPDU.doKeyExchange(
+					input.path ?? path000H,
+					input.publicKeyOfOtherParty,
+					input.display,
+				),
 			)
 			.pipe(
 				mergeMap(

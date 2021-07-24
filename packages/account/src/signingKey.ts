@@ -111,7 +111,7 @@ const makeEncrypt = (diffieHellman: DiffieHellman): Encrypt => (
 const makeEncryptHW = (hardwareSigningKey: HardwareSigningKeyT): Encrypt => (
 	input: SigningKeyEncryptionInput,
 ): Observable<EncryptedMessageT> =>
-	hardwareSigningKey.keyExchange(input.publicKeyOfOtherParty).pipe(
+	hardwareSigningKey.keyExchange(input.publicKeyOfOtherParty, 'encrypt').pipe(
 		mergeMap((dhPoint: ECPointOnCurveT) =>
 			toObservable(
 				MessageEncryption.encrypt({
@@ -125,7 +125,7 @@ const makeEncryptHW = (hardwareSigningKey: HardwareSigningKeyT): Encrypt => (
 const makeDecryptHW = (hardwareSigningKey: HardwareSigningKeyT): Decrypt => (
 	input: SigningKeyDecryptionInput,
 ): Observable<string> =>
-	hardwareSigningKey.keyExchange(input.publicKeyOfOtherParty).pipe(
+	hardwareSigningKey.keyExchange(input.publicKeyOfOtherParty, 'decrypt').pipe(
 		mergeMap((dhPoint: ECPointOnCurveT) =>
 			toObservable(
 				MessageEncryption.decrypt({

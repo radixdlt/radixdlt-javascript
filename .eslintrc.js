@@ -92,5 +92,6 @@ module.exports = {
 		'no-useless-return': 1,
 		'@typescript-eslint/restrict-template-expressions': 'off',
 		'no-param-reassign': 'off',
+		'@typescript-eslint/no-floating-promises': 'off',
 	},
 }
