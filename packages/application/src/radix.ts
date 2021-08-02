@@ -188,11 +188,9 @@ const create = (
 		coreAPI$.pipe(
 			mergeMap(a => pickFn(a)(...input)),
 			take(1), // Important!
-			// We do NOT omit/supress error, we merely DECORATE the error
-			catchError((errors: unknown) => {
-				console.error(errors)
-				const underlyingError = msgFromError(errors)
-				throw errorFn(underlyingError)
+			catchError((error: unknown) => {
+				console.error(error)
+				throw errorFn(error as any)
 			}),
 		)
 
