@@ -53,9 +53,11 @@ const ErrorT = <E extends ErrorCategory, C extends ErrorCause>(category: E) => (
 	let errors: Error[] = []
 
 	if (typeof error === 'string') {
-		errors = [new Error(error)]
+		errors.push(new Error(error))
 	} else if (isArray(error)) {
 		errors = error
+	} else {
+		errors.push(error)
 	}
 
 	return {
