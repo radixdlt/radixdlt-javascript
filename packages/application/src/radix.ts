@@ -25,8 +25,10 @@ import {
 import {
 	combineLatest,
 	EMPTY,
+	firstValueFrom,
 	forkJoin,
 	interval,
+	lastValueFrom,
 	merge,
 	Observable,
 	of,
@@ -43,7 +45,6 @@ import {
 	AccountT,
 	MakeTransactionOptions,
 	ManualUserConfirmTX,
-	RadixT,
 	StakeOptions,
 	SwitchAccountInput,
 	TransactionConfirmationBeforeFinalization,
@@ -151,12 +152,7 @@ const shouldConfirmTransactionAutomatically = (
 	confirmationScheme: TransactionConfirmationBeforeFinalization,
 ): confirmationScheme is 'skip' => confirmationScheme === 'skip'
 
-const create = (
-	input?: Readonly<{
-		network?: Network
-	}>,
-): RadixT => {
-	const requestedNetwork = input?.network ?? Network.MAINNET
+const create = () => {
 	const subs = new Subscription()
 	const radixLog = log // TODO configure child loggers
 
@@ -172,6 +168,10 @@ const create = (
 	const tokenBalanceFetchSubject = new Subject<number>()
 	const stakingFetchSubject = new Subject<number>()
 	const wallet$ = walletSubject.asObservable()
+
+	const networkSubject = new ReplaySubject<Network>()
+
+	let walletSubscription: Subscription
 
 	const coreAPIViaNode$ = nodeSubject
 		.asObservable()
@@ -194,13 +194,11 @@ const create = (
 			}),
 		)
 
-	const networkId = fwdAPICall(
-		a => a.networkId,
-		m => networkIdErr(m),
-	)
-
 	const api: RadixAPI = {
-		networkId,
+		networkId: fwdAPICall(
+			a => a.networkId,
+			m => networkIdErr(m),
+		),
 		tokenBalancesForAddress: fwdAPICall(
 			a => a.tokenBalancesForAddress,
 			m => tokenBalancesErr(m),
@@ -416,24 +414,6 @@ const create = (
 		mergeMap(wallet => wallet.observeAccounts()),
 		shareReplay(1),
 	)
-
-	const _withNode = (node: Observable<NodeT>): void => {
-		subs.add(
-			node.subscribe(
-				n => {
-					radixLog.debug(`Using node ${n.url.toString()}`)
-					nodeSubject.next(n)
-				},
-				(error: Error) => {
-					errorNotificationSubject.next(getNodeErr(error.message))
-				},
-			),
-		)
-	}
-
-	const _withWallet = (wallet: WalletT): void => {
-		walletSubject.next(wallet)
-	}
 
 	const __makeTransactionFromIntent = (
 		transactionIntent$: Observable<TransactionIntent>,
@@ -961,7 +941,7 @@ const create = (
 			.subscribe(),
 	)
 
-	return {
+	const methods = {
 		// we forward the full `RadixAPI`, but we also provide some convenience methods based on active account/address.
 		ledger: {
 			...api,
@@ -970,42 +950,69 @@ const create = (
 		__wallet: wallet$,
 		__node: node$,
 
+		__reset: () => subs.unsubscribe(),
+
 		// Primarily useful for testing
-		withNodeConnection: function (node$: Observable<NodeT>): RadixT {
-			_withNode(node$)
-			return this
+		__withNodeConnection: (node$: Observable<NodeT>) => {
+			subs.add(
+				node$.subscribe(
+					n => {
+						radixLog.debug(`Using node ${n.url.toString()}`)
+						nodeSubject.next(n)
+					},
+					(error: Error) => {
+						errorNotificationSubject.next(getNodeErr(error.message))
+					},
+				),
+			)
+			return methods
 		},
 
-		__withAPI: function (radixCoreAPI$: Observable<RadixCoreAPI>): RadixT {
+		__withAPI: (radixCoreAPI$: Observable<RadixCoreAPI>) => {
 			subs.add(radixCoreAPI$.subscribe(a => coreAPISubject.next(a)))
-			return this
+			return methods
 		},
 
-		connect: function (url: string): RadixT {
-			_withNode(of({ url: new URL(url) }))
-			return this
+		__withWallet: (wallet: WalletT) => {
+			walletSubject.next(wallet)
+			return methods
 		},
 
-		withWallet: function (wallet: WalletT): RadixT {
-			_withWallet(wallet)
-			return this
+		__withKeychain: (signingKeychain: SigningKeychainT) => {
+			firstValueFrom(networkSubject).then(network => {
+				const wallet = Wallet.create({
+					signingKeychain,
+					network,
+				})
+				methods.__withWallet(wallet)
+			})
+			return methods
 		},
 
-		login: function (
-			password: string,
-			loadKeystore: () => Promise<KeystoreT>,
-		): RadixT {
+		connect: async (url: string) => {
+			methods.__withNodeConnection(of({ url: new URL(url) }))
+			const networkId = await firstValueFrom(api.networkId())
+			networkSubject.next(networkId)
+		},
+
+		login: (password: string, loadKeystore: () => Promise<KeystoreT>) => {
+			walletSubscription?.unsubscribe()
+
 			void SigningKeychain.byLoadingAndDecryptingKeystore({
 				password,
 				load: loadKeystore,
 			}).then(signingKeychainResult => {
 				signingKeychainResult.match(
 					(signingKeychain: SigningKeychainT) => {
-						const wallet = Wallet.create({
-							signingKeychain,
-							network: requestedNetwork,
-						})
-						_withWallet(wallet)
+						walletSubscription = networkSubject.subscribe(
+							network => {
+								const wallet = Wallet.create({
+									signingKeychain,
+									network,
+								})
+								methods.__withWallet(wallet)
+							},
+						)
 					},
 					error => {
 						errorNotificationSubject.next(
@@ -1015,15 +1022,15 @@ const create = (
 				)
 			})
 
-			return this
+			return methods
 		},
 
 		errors: errorNotificationSubject.asObservable(),
 
-		deriveNextAccount: function (input?: DeriveNextInput): RadixT {
+		deriveNextAccount: (input?: DeriveNextInput) => {
 			const derivation: DeriveNextInput = input ?? {}
 			deriveNextLocalHDAccountSubject.next(derivation)
-			return this
+			return methods
 		},
 
 		deriveHWAccount: (
@@ -1038,25 +1045,23 @@ const create = (
 				),
 			),
 
-		addAccountFromPrivateKey: function (
-			input: AddAccountByPrivateKeyInput,
-		): RadixT {
+		addAccountFromPrivateKey: (input: AddAccountByPrivateKeyInput) => {
 			addAccountByPrivateKeySubject.next(input)
-			return this
+			return methods
 		},
 
-		switchAccount: function (input: SwitchAccountInput): RadixT {
+		switchAccount: (input: SwitchAccountInput) => {
 			switchAccountSubject.next(input)
-			return this
+			return methods
 		},
 
 		restoreLocalHDAccountsToIndex,
 
 		decryptTransaction: decryptTransaction,
 
-		logLevel: function (level: LogLevel) {
+		logLevel: (level: LogLevel) => {
 			log.setLevel(level)
-			return this
+			return methods
 		},
 
 		transactionStatus: (
@@ -1074,14 +1079,14 @@ const create = (
 				),
 			),
 
-		withTokenBalanceFetchTrigger: function (trigger: Observable<number>) {
+		withTokenBalanceFetchTrigger: (trigger: Observable<number>) => {
 			subs.add(trigger.subscribe(tokenBalanceFetchSubject))
-			return this
+			return methods
 		},
 
-		withStakingFetchTrigger: function (trigger: Observable<number>) {
+		withStakingFetchTrigger: (trigger: Observable<number>) => {
 			subs.add(trigger.subscribe(stakingFetchSubject))
-			return this
+			return methods
 		},
 
 		// Wallet APIs
@@ -1102,6 +1107,8 @@ const create = (
 		stakeTokens,
 		unstakeTokens,
 	}
+
+	return methods
 }
 
 export const Radix = {

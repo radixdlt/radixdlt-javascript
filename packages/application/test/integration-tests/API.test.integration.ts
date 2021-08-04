@@ -6,6 +6,7 @@
 import { Radix } from '../../src/radix'
 import { ValidatorAddressT } from '@radixdlt/account'
 import {
+	firstValueFrom,
 	interval,
 	Observable,
 	ReplaySubject,
@@ -27,9 +28,11 @@ import {
 	TransferTokensInput,
 	TransactionTrackingEventType,
 	LogLevel,
+	KeystoreT,
 } from '../../src'
 import { UInt256 } from '@radixdlt/uint256'
-import { makeWalletWithFunds } from '../radix.test'
+import { keystoreForTest, makeWalletWithFunds } from '../radix.test'
+import { makeSigningKeyChainWithFunds } from '@radixdlt/account/test/utils'
 const fetch = require('node-fetch')
 
 // local
@@ -40,6 +43,9 @@ const NODE_URL = 'https://stokenet.radixdlt.com'
 
 // release net
 //const NODE_URL = 'https://18.168.73.103'
+
+const loadKeystore = (): Promise<KeystoreT> =>
+	Promise.resolve(keystoreForTest.keystore)
 
 const requestFaucet = async (address: string) => {
 	let request = {
@@ -65,19 +71,17 @@ describe('integration API tests', () => {
 		subs.unsubscribe()
 	})
 
-	it('can connect and is chainable', () => {
-		const radix = Radix.create({
-			network: Network.MAINNET,
-		}).connect(`${NODE_URL}`)
+	it('can connect and is chainable', async () => {
+		const radix = Radix.create()
+		await radix.connect(`${NODE_URL}`)
 		expect(radix).toBeDefined()
 		expect(radix.ledger.nativeToken).toBeDefined()
 		expect(radix.ledger.tokenBalancesForAddress).toBeDefined() // etc
 	})
 
 	it('emits node connection without wallet', async done => {
-		const radix = Radix.create({
-			network: Network.MAINNET,
-		}).connect(`${NODE_URL}`)
+		const radix = Radix.create()
+		await radix.connect(`${NODE_URL}`)
 
 		subs.add(
 			radix.__node.subscribe(
@@ -90,28 +94,34 @@ describe('integration API tests', () => {
 		)
 	})
 
-	it('provides network for wallets', async done => {
-		const radix = Radix.create({
-			network: Network.MAINNET,
-		})
-			.withWallet(makeWalletWithFunds())
+	it('can switch networks', async done => {
+		const radix = Radix.create()
+
+		await radix
+			.login(keystoreForTest.password, loadKeystore)
 			.connect(`${NODE_URL}`)
 
-		subs.add(
-			radix.activeAddress.subscribe(
-				address => {
-					expect(address.network).toBeDefined()
-					done()
-				},
-				error => done(error),
-			),
-		)
+		const address1 = await firstValueFrom(radix.activeAddress)
+		expect(address1.network).toBeDefined()
+		console.log(address1.toString())
+
+		await radix.connect('https://mainnet.radixdlt.com')
+
+		const address2 = await firstValueFrom(radix.activeAddress)
+		expect(address2.network).toBeDefined()
+		console.log(address2.toString())
+
+		await radix.connect('https://stokenet.radixdlt.com')
+
+		const address3 = await firstValueFrom(radix.activeAddress)
+		expect(address3.network).toBeDefined()
+		console.log(address3.toString())
+
+		done()
 	})
 
 	it('returns native token without wallet', async done => {
-		const radix = Radix.create({
-			network: Network.MAINNET,
-		})
+		const radix = Radix.create()
 		radix.connect(`${NODE_URL}`)
 
 		subs.add(
@@ -126,11 +136,9 @@ describe('integration API tests', () => {
 	})
 
 	it('deriveNextSigningKey method on radix updates accounts', done => {
-		const radix = Radix.create({
-			network: Network.MAINNET,
-		})
-			.withWallet(makeWalletWithFunds())
-			.connect(`${NODE_URL}`)
+		const radix = Radix.create()
+
+		radix.__withWallet(makeWalletWithFunds()).connect(`${NODE_URL}`)
 
 		const expected = [1, 2, 3]
 
@@ -152,11 +160,9 @@ describe('integration API tests', () => {
 	})
 
 	it('deriveNextSigningKey alsoSwitchTo method on radix updates activeSigningKey', done => {
-		const radix = Radix.create({
-			network: Network.MAINNET,
-		})
-			.withWallet(makeWalletWithFunds())
-			.connect(`${NODE_URL}`)
+		const radix = Radix.create()
+
+		radix.__withWallet(makeWalletWithFunds()).connect(`${NODE_URL}`)
 
 		const expected = [0, 1, 3]
 
@@ -179,11 +185,9 @@ describe('integration API tests', () => {
 	})
 
 	it('deriveNextSigningKey alsoSwitchTo method on radix updates activeAddress', done => {
-		const radix = Radix.create({
-			network: Network.MAINNET,
-		})
-			.withWallet(makeWalletWithFunds())
-			.connect(`${NODE_URL}`)
+		const radix = Radix.create()
+
+		radix.__withWallet(makeWalletWithFunds()).connect(`${NODE_URL}`)
 
 		const expectedCount = 3
 
@@ -202,11 +206,9 @@ describe('integration API tests', () => {
 	})
 
 	it('should compare token balance before and after transfer', done => {
-		const radix = Radix.create({
-			network: Network.MAINNET,
-		})
-			.withWallet(makeWalletWithFunds())
-			.connect(`${NODE_URL}`)
+		const radix = Radix.create()
+
+		radix.__withWallet(makeWalletWithFunds()).connect(`${NODE_URL}`)
 
 		const getTokenBalanceSubject = new Subject<number>()
 
@@ -279,11 +281,9 @@ describe('integration API tests', () => {
 	})
 
 	it('should increment transaction history with a new transaction after transfer', async done => {
-		const radix = Radix.create({
-			network: Network.MAINNET,
-		})
-			.withWallet(makeWalletWithFunds())
-			.connect(`${NODE_URL}`)
+		const radix = Radix.create()
+
+		radix.__withWallet(makeWalletWithFunds()).connect(`${NODE_URL}`)
 
 		const pageSize = 3
 
@@ -368,11 +368,9 @@ describe('integration API tests', () => {
 	})
 
 	it('should be able to get transaction history', done => {
-		const radix = Radix.create({
-			network: Network.MAINNET,
-		})
-			.withWallet(makeWalletWithFunds())
-			.connect(`${NODE_URL}`)
+		const radix = Radix.create()
+
+		radix.__withWallet(makeWalletWithFunds()).connect(`${NODE_URL}`)
 
 		radix
 			.transferTokens({
@@ -417,11 +415,9 @@ describe('integration API tests', () => {
 
 	it.skip('should handle transaction status updates', done => {
 		// can't test because it becomes confirmed immediately
-		const radix = Radix.create({
-			network: Network.MAINNET,
-		})
-			.withWallet(makeWalletWithFunds())
-			.connect(`${NODE_URL}`)
+		const radix = Radix.create()
+
+		radix.__withWallet(makeWalletWithFunds()).connect(`${NODE_URL}`)
 
 		const expectedValues: TransactionStatus[] = [
 			TransactionStatus.PENDING,
@@ -463,11 +459,9 @@ describe('integration API tests', () => {
 	})
 
 	it('can lookup tx', async done => {
-		const radix = Radix.create({
-			network: Network.MAINNET,
-		})
-			.withWallet(makeWalletWithFunds())
-			.connect(`${NODE_URL}`)
+		const radix = Radix.create()
+
+		radix.__withWallet(makeWalletWithFunds()).connect(`${NODE_URL}`)
 
 		const { completion } = radix.transferTokens({
 			transferInput: {
@@ -492,12 +486,10 @@ describe('integration API tests', () => {
 		)
 	})
 
-	it.only('can lookup validator', done => {
-		const radix = Radix.create({
-			network: Network.MAINNET,
-		})
-			.withWallet(makeWalletWithFunds())
-			.connect(`${NODE_URL}`)
+	it('can lookup validator', done => {
+		const radix = Radix.create()
+
+		radix.__withWallet(makeWalletWithFunds()).connect(`${NODE_URL}`)
 
 		subs.add(
 			radix.ledger
@@ -522,11 +514,9 @@ describe('integration API tests', () => {
 	})
 
 	it('should get validators', done => {
-		const radix = Radix.create({
-			network: Network.MAINNET,
-		})
-			.withWallet(makeWalletWithFunds())
-			.connect(`${NODE_URL}`)
+		const radix = Radix.create()
+
+		radix.__withWallet(makeWalletWithFunds()).connect(`${NODE_URL}`)
 
 		subs.add(
 			radix.ledger
@@ -541,11 +531,9 @@ describe('integration API tests', () => {
 	})
 
 	it('should be able to paginate validators', done => {
-		const radix = Radix.create({
-			network: Network.MAINNET,
-		})
-			.withWallet(makeWalletWithFunds())
-			.connect(`${NODE_URL}`)
+		const radix = Radix.create()
+
+		radix.__withWallet(makeWalletWithFunds()).connect(`${NODE_URL}`)
 
 		subs.add(
 			radix.ledger
@@ -589,11 +577,9 @@ describe('integration API tests', () => {
 	})
 
 	it('should get network transaction demand response', done => {
-		const radix = Radix.create({
-			network: Network.MAINNET,
-		})
-			.withWallet(makeWalletWithFunds())
-			.connect(`${NODE_URL}`)
+		const radix = Radix.create()
+
+		radix.__withWallet(makeWalletWithFunds()).connect(`${NODE_URL}`)
 
 		subs.add(
 			radix.ledger.NetworkTransactionDemand().subscribe(result => {
@@ -604,11 +590,9 @@ describe('integration API tests', () => {
 	})
 
 	it('should get network transaction throughput response', done => {
-		const radix = Radix.create({
-			network: Network.MAINNET,
-		})
-			.withWallet(makeWalletWithFunds())
-			.connect(`${NODE_URL}`)
+		const radix = Radix.create()
+
+		radix.__withWallet(makeWalletWithFunds()).connect(`${NODE_URL}`)
 
 		subs.add(
 			radix.ledger.NetworkTransactionThroughput().subscribe(result => {
@@ -621,12 +605,12 @@ describe('integration API tests', () => {
 	it('can fetch stake positions', async done => {
 		const triggerSubject = new Subject<number>()
 
-		const radix = Radix.create({
-			network: Network.MAINNET,
-		})
-			.withWallet(makeWalletWithFunds())
-			.connect(`${NODE_URL}`)
+		const radix = Radix.create()
+
+		radix
+			.__withWallet(makeWalletWithFunds())
 			.withStakingFetchTrigger(triggerSubject)
+			.connect(`${NODE_URL}`)
 
 		const stakeAmount = Amount.fromUnsafe(1)._unsafeUnwrap()
 
@@ -705,15 +689,15 @@ describe('integration API tests', () => {
 		)
 	})
 
-	it.only('can fetch unstake positions', done => {
+	it('can fetch unstake positions', done => {
 		const triggerSubject = new Subject<number>()
 
-		const radix = Radix.create({
-			network: Network.MAINNET,
-		})
-			.connect(`${NODE_URL}`)
-			.withWallet(makeWalletWithFunds())
+		const radix = Radix.create()
+
+		radix
+			.__withWallet(makeWalletWithFunds())
 			.withStakingFetchTrigger(triggerSubject)
+			.connect(`${NODE_URL}`)
 
 		const stakeAmount = Amount.fromUnsafe(20)._unsafeUnwrap()
 
@@ -765,11 +749,9 @@ describe('integration API tests', () => {
 	})
 
 	it('should be able to paginate validator result', done => {
-		const radix = Radix.create({
-			network: Network.MAINNET,
-		})
-			.withWallet(makeWalletWithFunds())
-			.connect(`${NODE_URL}`)
+		const radix = Radix.create()
+
+		radix.__withWallet(makeWalletWithFunds()).connect(`${NODE_URL}`)
 
 		subs.add(
 			radix.ledger
@@ -811,7 +793,7 @@ describe('integration API tests', () => {
 		const tokenTransferInput: TransferTokensInput = {
 			to: bob,
 			amount: 1,
-			tokenIdentifier: 'xrd_rb1qya85pwq',
+			tokenIdentifier: 'xrd_tr1qyf0x76s',
 		}
 
 		let pollTXStatusTrigger: Observable<unknown>
@@ -835,11 +817,9 @@ describe('integration API tests', () => {
 
 		it.skip('events emits expected values', done => {
 			// can't see pending state because quick confirmation
-			const radix = Radix.create({
-				network: Network.MAINNET,
-			})
-				.withWallet(makeWalletWithFunds())
-				.connect(`${NODE_URL}`)
+			const radix = Radix.create()
+
+			radix.__withWallet(makeWalletWithFunds()).connect(`${NODE_URL}`)
 
 			const expectedValues = [
 				TransactionTrackingEventType.INITIATED,
@@ -880,11 +860,11 @@ describe('integration API tests', () => {
 		})
 
 		it('automatic confirmation', done => {
-			const radix = Radix.create({
-				network: Network.MAINNET,
-			})
-				.withWallet(makeWalletWithFunds())
-				.connect(`${NODE_URL}`)
+			const radix = Radix.create()
+
+			radix.connect(`${NODE_URL}`)
+
+			radix.__withWallet(makeWalletWithFunds())
 
 			subs.add(
 				radix.transferTokens(transferTokens()).completion.subscribe({
@@ -908,11 +888,9 @@ describe('integration API tests', () => {
 		})
 
 		it('manual confirmation', done => {
-			const radix = Radix.create({
-				network: Network.MAINNET,
-			})
-				.withWallet(makeWalletWithFunds())
-				.connect(`${NODE_URL}`)
+			const radix = Radix.create()
+
+			radix.__withWallet(makeWalletWithFunds()).connect(`${NODE_URL}`)
 
 			//@ts-ignore
 			let transaction
