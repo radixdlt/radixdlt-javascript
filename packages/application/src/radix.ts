@@ -950,6 +950,8 @@ const create = () => {
 		__wallet: wallet$,
 		__node: node$,
 
+		__reset: () => subs.unsubscribe(),
+
 		// Primarily useful for testing
 		__withNodeConnection: (node$: Observable<NodeT>) => {
 			subs.add(
