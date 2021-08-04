@@ -189,7 +189,7 @@ const create = () => {
 			mergeMap(a => pickFn(a)(...input)),
 			take(1), // Important!
 			catchError((error: unknown) => {
-				console.error('dawdawdwa', error)
+				console.error(error)
 				throw errorFn(error as any)
 			}),
 		)
