@@ -1,9 +1,27 @@
-import { isArray } from '@radixdlt/util'
+export type APIError = ErrorT<'api'> & {
+	type: APIErrorType
+}
 
-export type ErrorT<Category extends ErrorCategory, Cause extends ErrorCause> = {
-	category: Category
-	cause: Cause
-	errors: Error[]
+export type WalletError = ErrorT<'wallet'>
+
+export type NodeError = ErrorT<'node'>
+
+export type ErrorT<T extends 'api' | 'node' | 'wallet'> = {
+	cause: T extends 'api'
+		? APIErrorCause
+		: T extends 'node'
+		? NodeErrorCause
+		: T extends 'wallet'
+		? WalletErrorCause
+		: unknown
+	category: T extends 'api'
+		? ErrorCategory.API
+		: T extends 'node'
+		? ErrorCategory.NODE
+		: T extends 'wallet'
+		? ErrorCategory.WALLET
+		: unknown
+	message: string
 }
 
 export enum ErrorCategory {
@@ -18,6 +36,91 @@ export enum WalletErrorCause {
 
 export enum NodeErrorCause {
 	GET_NODE_FAILED = 'GET_NODE_FAILED',
+}
+
+export type APIErrorObject = { code: number; message: string }
+
+enum APIErrorType {
+	INVALID_VALIDATOR_ADDRESS = 'INVALID_VALIDATOR_ADDRESS',
+	INVALID_ACCOUNT_ADDRESS = 'INVALID_ACCOUNT_ADDRESS',
+	INVALID_PUBLIC_KEY = 'INVALID_PUBLIC_KEY',
+	ASYNC_PROCESSING_ERROR = 'ASYNC_PROCESSING_ERROR',
+	AID_IS_NULL = 'AID_IS_NULL',
+	INVALID_LENGTH = 'INVALID_LENGTH',
+	UNABLE_TO_DECODE = 'UNABLE_TO_DECODE',
+	UNABLE_TO_DESERIALIZE = 'UNABLE_TO_DESERIALIZE',
+	SSL_KEY_ERROR = 'SSL_KEY_ERROR',
+	SSL_ALGORITHM_ERROR = 'SSL_ALGORITHM_ERROR',
+	SSL_GENERAL_ERROR = 'SSL_GENERAL_ERROR',
+	VALUE_OUT_OF_RANGE = 'VALUE_OUT_OF_RANGE',
+	CANT_MAKE_RECOVERABLE = 'CANT_MAKE_RECOVERABLE',
+	INVALID_RADIX_ADDRESS = 'INVALID_RADIX_ADDRESS',
+	INVALID_UINT_VALUE = 'INVALID_UINT_VALUE',
+	UNKNOWN_ADDRESS_TYPE = 'UNKNOWN_ADDRESS_TYPE',
+	SUBMISSION_FAILURE = 'SUBMISSION_FAILURE',
+	MALFORMED_TRANSACTION = 'MALFORMED_TRANSACTION',
+	INSUFFICIENT_FUNDS = 'INSUFFICIENT_FUNDS',
+	NOT_PERMITTED = 'NOT_PERMITTED',
+	ADDRESS_IS_MISSING = 'ADDRESS_IS_MISSING',
+	NOT_A_SYSTEM = 'NOT_A_SYSTEM',
+	RRI_NOT_AVAILABLE = 'RRI_NOT_AVAILABLE',
+	ALREADY_A_VALIDATOR = 'ALREADY_A_VALIDATOR',
+	INVALID_STATE = 'INVALID_STATE',
+	NO_SYSTEM_PARTICLE = 'NO_SYSTEM_PARTICLE',
+	NOT_ENOUGH_STAKED = 'NOT_ENOUGH_STAKED',
+	NEXT_VIEW_LE_CURRENT = 'NEXT_VIEW_LE_CURRENT',
+	ALREADY_UNREGISTERED = 'ALREADY_UNREGISTERED',
+	INSUFFICIENT_FUNDS_FOR_FEE = 'INSUFFICIENT_FUNDS_FOR_FEE',
+	DIFFERENT_SOURCE_ADDRESSES = 'DIFFERENT_SOURCE_ADDRESSES',
+	INVALID_ACTION = 'INVALID_ACTION',
+	INVALID_ACTION_TYPE = 'INVALID_ACTION_TYPE',
+	INVALID_RRI = 'INVALID_RRI',
+	INVALID_ADDRESS = 'INVALID_ADDRESS',
+	INVALID_AMOUNT = 'INVALID_AMOUNT',
+	TRANSACTION_ADDRESS_DOES_NOT_MATCH = 'TRANSACTION_ADDRESS_DOES_NOT_MATCH',
+	EMPTY_TRANSACTIONS_NOT_SUPPORTED = 'EMPTY_TRANSACTIONS_NOT_SUPPORTED',
+}
+
+const ErrorCode: Record<number, APIErrorType> = {
+	2509: APIErrorType.INVALID_VALIDATOR_ADDRESS,
+	2510: APIErrorType.INVALID_ACCOUNT_ADDRESS,
+	2513: APIErrorType.INVALID_PUBLIC_KEY,
+	2525: APIErrorType.ASYNC_PROCESSING_ERROR,
+	1601: APIErrorType.AID_IS_NULL,
+	1602: APIErrorType.INVALID_LENGTH,
+	1603: APIErrorType.UNABLE_TO_DECODE,
+	1604: APIErrorType.UNABLE_TO_DESERIALIZE,
+	1605: APIErrorType.SSL_KEY_ERROR,
+	1606: APIErrorType.SSL_ALGORITHM_ERROR,
+	1607: APIErrorType.SSL_GENERAL_ERROR,
+	1608: APIErrorType.VALUE_OUT_OF_RANGE,
+	1701: APIErrorType.CANT_MAKE_RECOVERABLE,
+	1702: APIErrorType.INVALID_RADIX_ADDRESS,
+	1703: APIErrorType.INVALID_UINT_VALUE,
+	1710: APIErrorType.UNKNOWN_ADDRESS_TYPE,
+	1500: APIErrorType.SUBMISSION_FAILURE,
+	1300: APIErrorType.MALFORMED_TRANSACTION,
+	1301: APIErrorType.INSUFFICIENT_FUNDS,
+	1302: APIErrorType.NOT_PERMITTED,
+	1303: APIErrorType.ADDRESS_IS_MISSING,
+	1304: APIErrorType.NOT_A_SYSTEM,
+	1305: APIErrorType.RRI_NOT_AVAILABLE,
+	1306: APIErrorType.ALREADY_A_VALIDATOR,
+	1307: APIErrorType.INVALID_STATE,
+	1308: APIErrorType.NO_SYSTEM_PARTICLE,
+	1309: APIErrorType.NOT_ENOUGH_STAKED,
+	1310: APIErrorType.NEXT_VIEW_LE_CURRENT,
+	1311: APIErrorType.ALREADY_UNREGISTERED,
+	1312: APIErrorType.INSUFFICIENT_FUNDS_FOR_FEE,
+	1313: APIErrorType.DIFFERENT_SOURCE_ADDRESSES,
+	1314: APIErrorType.INVALID_ACTION,
+	1315: APIErrorType.INVALID_ACTION_TYPE,
+	1316: APIErrorType.INVALID_RRI,
+	1317: APIErrorType.INVALID_ADDRESS,
+	1318: APIErrorType.INVALID_VALIDATOR_ADDRESS,
+	1319: APIErrorType.INVALID_AMOUNT,
+	1320: APIErrorType.TRANSACTION_ADDRESS_DOES_NOT_MATCH,
+	1321: APIErrorType.EMPTY_TRANSACTIONS_NOT_SUPPORTED,
 }
 
 export enum APIErrorCause {
@@ -39,43 +142,26 @@ export enum APIErrorCause {
 	NETWORK_ID_FAILED = 'NETWORK_ID_FAILED',
 }
 
-export type ErrorCause = APIErrorCause | WalletErrorCause | NodeErrorCause
+const APIError = (cause: APIErrorCause) => (
+	error: APIErrorObject,
+): APIError => ({
+	cause,
+	category: ErrorCategory.API,
+	type: ErrorCode[error.code],
+	message: error.message,
+})
 
-export type APIError = ErrorT<ErrorCategory.API, APIErrorCause>
-type WalletError = ErrorT<ErrorCategory.WALLET, WalletErrorCause>
-type NodeError = ErrorT<ErrorCategory.NODE, NodeErrorCause>
+export const nodeError = (error: Error): ErrorT<'node'> => ({
+	cause: NodeErrorCause.GET_NODE_FAILED,
+	category: ErrorCategory.NODE,
+	message: error.message,
+})
 
-export type ErrorNotification = NodeError | WalletError | APIError
-
-const ErrorT = <E extends ErrorCategory, C extends ErrorCause>(category: E) => (
-	cause: C,
-) => (error: string | Error[]): ErrorT<E, C> => {
-	let errors: Error[] = []
-
-	if (typeof error === 'string') {
-		errors.push(new Error(error))
-	} else if (isArray(error)) {
-		errors = error
-	} else {
-		errors.push(error)
-	}
-
-	return {
-		category,
-		cause,
-		errors,
-	}
-}
-
-export const APIError = ErrorT<ErrorCategory.API, APIErrorCause>(
-	ErrorCategory.API,
-)
-export const nodeError = ErrorT<ErrorCategory.NODE, NodeErrorCause>(
-	ErrorCategory.NODE,
-)
-export const walletError = ErrorT<ErrorCategory.WALLET, WalletErrorCause>(
-	ErrorCategory.WALLET,
-)
+export const walletError = (error: Error): ErrorT<'wallet'> => ({
+	cause: WalletErrorCause.LOAD_KEYSTORE_FAILED,
+	category: ErrorCategory.WALLET,
+	message: error.message,
+})
 
 export const tokenBalancesErr = APIError(APIErrorCause.TOKEN_BALANCES_FAILED)
 export const transactionHistoryErr = APIError(
@@ -96,9 +182,7 @@ export const NetworkTxThroughputErr = APIError(
 export const NetworkTxDemandErr = APIError(
 	APIErrorCause.NETWORK_TX_DEMAND_FAILED,
 )
-export const buildTxFromIntentErr = (
-	error: string | Error[],
-): ErrorT<ErrorCategory.API, APIErrorCause> =>
+export const buildTxFromIntentErr = (error: APIErrorObject): APIError =>
 	APIError(APIErrorCause.BUILD_TRANSACTION_FAILED)(error)
 
 export const submitSignedTxErr = APIError(APIErrorCause.SUBMIT_SIGNED_TX_FAILED)
@@ -113,9 +197,3 @@ export const lookupValidatorErr = APIError(
 )
 
 export const validatorsErr = APIError(APIErrorCause.VALIDATORS_FAILED)
-
-export const getNodeErr = nodeError(NodeErrorCause.GET_NODE_FAILED)
-
-export const loadKeystoreErr = walletError(
-	WalletErrorCause.LOAD_KEYSTORE_FAILED,
-)

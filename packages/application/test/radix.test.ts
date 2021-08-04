@@ -45,7 +45,6 @@ import {
 	BuiltTransaction,
 	carol,
 	ErrorCategory,
-	ErrorCause,
 	ExecutedTransaction,
 	isStakeTokensAction,
 	isTransferTokensAction,
@@ -1046,7 +1045,7 @@ describe('radix_high_level_api', () => {
 		const radix = Radix.create()
 			.__withAPI(mockedAPI)
 			.withStakingFetchTrigger(interval(100))
-			
+
 		radix.connect('http://www.test.com')
 
 		const loadKeystore = (): Promise<KeystoreT> =>
@@ -1078,7 +1077,7 @@ describe('radix_high_level_api', () => {
 		const radix = Radix.create()
 			.__withAPI(mockedAPI)
 			.withStakingFetchTrigger(interval(50))
-	
+
 		radix.connect('http://www.test.com')
 
 		const loadKeystore = (): Promise<KeystoreT> =>
@@ -1445,8 +1444,7 @@ describe('radix_high_level_api', () => {
 					done(Error('Should throw'))
 				},
 				error: (e: APIError) => {
-					expect(e.errors.length).toEqual(1)
-					expect(e.errors[0].message).toEqual(errorMsg)
+					expect(e.message).toEqual(errorMsg)
 					done()
 				},
 			}),
@@ -1722,7 +1720,7 @@ describe('radix_high_level_api', () => {
 
 			const testFailure = (
 				method: string,
-				cause: ErrorCause,
+				cause: APIErrorCause,
 				done: any,
 			) => {
 				const errorMsg = mockErrorMsg(`TXFlow`)
@@ -1753,8 +1751,7 @@ describe('radix_high_level_api', () => {
 							)
 						},
 						error: (error: APIError) => {
-							expect(error.errors.length).toBe(1)
-							expect(error.errors[0].message).toBe(errorMsg)
+							expect(error.message).toBe(errorMsg)
 							expect(error.category).toEqual(ErrorCategory.API)
 							expect(error.cause).toEqual(cause)
 							done()

@@ -53,17 +53,17 @@ import {
 } from './_types'
 import {
 	APIError,
+	APIErrorObject,
 	buildTxFromIntentErr,
-	ErrorNotification,
+	ErrorT,
 	finalizeTxErr,
-	getNodeErr,
-	loadKeystoreErr,
 	lookupTxErr,
 	lookupValidatorErr,
 	nativeTokenErr,
 	networkIdErr,
 	NetworkTxDemandErr,
 	NetworkTxThroughputErr,
+	nodeError,
 	stakesForAddressErr,
 	submitSignedTxErr,
 	tokenBalancesErr,
@@ -72,6 +72,7 @@ import {
 	txStatusErr,
 	unstakesForAddressErr,
 	validatorsErr,
+	walletError,
 } from './errors'
 import { log, LogLevel, msgFromError } from '@radixdlt/util'
 import {
@@ -159,7 +160,7 @@ const create = () => {
 	const nodeSubject = new ReplaySubject<NodeT>()
 	const coreAPISubject = new ReplaySubject<RadixCoreAPI>()
 	const walletSubject = new ReplaySubject<WalletT>()
-	const errorNotificationSubject = new Subject<ErrorNotification>()
+	const errorNotificationSubject = new Subject<ErrorT<any>>()
 
 	const deriveNextLocalHDAccountSubject = new Subject<DeriveNextInput>()
 	const addAccountByPrivateKeySubject = new Subject<AddAccountByPrivateKeyInput>()
@@ -183,7 +184,7 @@ const create = () => {
 	// Forwards calls to RadixCoreAPI, return type is a function: `(input?: I) => Observable<O>`
 	const fwdAPICall = <I extends unknown[], O>(
 		pickFn: (api: RadixCoreAPI) => (...input: I) => Observable<O>,
-		errorFn: (message: string | Error[]) => ErrorNotification,
+		errorFn: (error: APIErrorObject) => APIError,
 	) => (...input: I) =>
 		coreAPI$.pipe(
 			mergeMap(a => pickFn(a)(...input)),
@@ -291,7 +292,7 @@ const create = () => {
 		pickFn: (
 			api: RadixCoreAPI,
 		) => (address: AccountAddressT) => Observable<O>,
-		errorFn: (errorMessage: string) => APIError,
+		errorFn: (error: APIErrorObject) => APIError,
 	): Observable<O> =>
 		merge(
 			trigger.pipe(
@@ -303,8 +304,8 @@ const create = () => {
 			withLatestFrom(coreAPI$),
 			switchMap(([address, api]) =>
 				pickFn(api)(address).pipe(
-					catchError((error: Error) => {
-						errorNotificationSubject.next(errorFn(error.message))
+					catchError(error => {
+						errorNotificationSubject.next(errorFn(error))
 						return EMPTY
 					}),
 				),
@@ -961,7 +962,7 @@ const create = () => {
 						nodeSubject.next(n)
 					},
 					(error: Error) => {
-						errorNotificationSubject.next(getNodeErr(error.message))
+						errorNotificationSubject.next(nodeError(error))
 					},
 				),
 			)
@@ -1015,9 +1016,7 @@ const create = () => {
 						)
 					},
 					error => {
-						errorNotificationSubject.next(
-							loadKeystoreErr(error.message),
-						)
+						errorNotificationSubject.next(walletError(error))
 					},
 				)
 			})
