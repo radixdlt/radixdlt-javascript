@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.0.0](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@2.1.17...@radixdlt/application@3.0.0) (2021-08-04)
+
+
+* enable switching networks (#170) ([d135f65](https://github.com/radixdlt/radixdlt-javascript/commit/d135f65027cdb518aa20cf21c62e77c77190efb1)), closes [#170](https://github.com/radixdlt/radixdlt-javascript/issues/170)
+
+
+### BREAKING CHANGES
+
+* `Radix.create()` now takes no parameters, and networkId is fetched from node API when calling `radix.connect()`
+
+
+
+
+
 ## [2.1.17](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@2.1.16...@radixdlt/application@2.1.17) (2021-08-03)
 
 **Note:** Version bump only for package @radixdlt/application
