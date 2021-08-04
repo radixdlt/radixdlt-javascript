@@ -284,18 +284,8 @@ describe('radix_high_level_api', () => {
 		const n2 = 'https://www.radixdlt.com/'
 
 		await testChangeNode([n1, n2], done, (radix: RadixT) => {
-			radix.withNodeConnection(dummyNode(n1))
-			radix.withNodeConnection(dummyNode(n2))
-		})
-	})
-
-	it('can_change_node_connection', async done => {
-		const n1 = 'https://www.rewards.radixtokens.com/'
-		const n2 = 'https://www.radixdlt.com/'
-
-		await testChangeNode([n1, n2], done, (radix: RadixT) => {
-			radix.connect(n1)
-			radix.connect(n2)
+			radix.__withNodeConnection(dummyNode(n1))
+			radix.__withNodeConnection(dummyNode(n2))
 		})
 	})
 
@@ -312,7 +302,7 @@ describe('radix_high_level_api', () => {
 	it('can observe active account without API', async done => {
 		const radix = Radix.create()
 		const wallet = createWallet({ startWithInitialSigningKey: true })
-		radix.withWallet(wallet)
+		radix.__withWallet(wallet)
 
 		radix.activeAccount.subscribe(
 			account => {
@@ -326,7 +316,7 @@ describe('radix_high_level_api', () => {
 	it('radix can restoreSigningKeysUpToIndex', done => {
 		const subs = new Subscription()
 
-		const radix = Radix.create().withWallet(
+		const radix = Radix.create().__withWallet(
 			createWallet({ startWithInitialSigningKey: false }),
 		)
 
@@ -350,7 +340,7 @@ describe('radix_high_level_api', () => {
 	it('provides networkId for wallets', async done => {
 		const radix = Radix.create()
 		const wallet = createWallet()
-		radix.withWallet(wallet)
+		radix.__withWallet(wallet)
 		radix.__withAPI(mockedAPI)
 
 		radix.activeAddress.subscribe(
@@ -400,11 +390,13 @@ describe('radix_high_level_api', () => {
 			}),
 		)
 
-		radix.withNodeConnection(failingNode)
+		radix.__withNodeConnection(failingNode)
 	})
 
 	it('login_with_keystore', async done => {
-		const radix = Radix.create()
+		const radix = Radix.create().__withAPI(mockedAPI)
+		radix.connect('http://www.test.com')
+
 		radix.__wallet.subscribe(
 			(im: WalletT) => {
 				const account = im.__unsafeGetAccount()
@@ -426,7 +418,8 @@ describe('radix_high_level_api', () => {
 	it('radix can reveal mnemonic', done => {
 		const subs = new Subscription()
 
-		const radix = Radix.create()
+		const radix = Radix.create().__withAPI(mockedAPI)
+		radix.connect('http://www.test.com')
 
 		subs.add(
 			radix.revealMnemonic().subscribe(
@@ -458,7 +451,8 @@ describe('radix_high_level_api', () => {
 
 		it('should handle signingKeychain error', done => {
 			const subs = new Subscription()
-			const radix = Radix.create()
+			const radix = Radix.create().__withAPI(mockedAPI)
+			radix.connect('http://www.test.com')
 
 			let haveSeenError = false
 
@@ -537,7 +531,7 @@ describe('radix_high_level_api', () => {
 				}),
 			)
 
-			radix.withWallet(createWallet())
+			radix.__withWallet(createWallet())
 		})
 
 		it('does not kill property observables when rpc requests fail', async done => {
@@ -563,7 +557,7 @@ describe('radix_high_level_api', () => {
 			})
 
 			const radix = Radix.create()
-			radix.withWallet(createWallet())
+			radix.__withWallet(createWallet())
 			radix.__withAPI(api).withTokenBalanceFetchTrigger(interval(250))
 
 			const expectedValues = [100, 200, 300]
@@ -604,7 +598,7 @@ describe('radix_high_level_api', () => {
 		)
 
 		radix
-			.withWallet(createWallet())
+			.__withWallet(createWallet())
 			.deriveNextAccount()
 			.deriveNextAccount({ alsoSwitchTo: true })
 	})
@@ -635,7 +629,7 @@ describe('radix_high_level_api', () => {
 		const firstAccount = wallet.__unsafeGetAccount()
 
 		radix
-			.withWallet(wallet) //0
+			.__withWallet(wallet) //0
 			.deriveNextAccount({ alsoSwitchTo: true }) // 1
 			.deriveNextAccount({ alsoSwitchTo: true }) // 2
 			.deriveNextAccount({ alsoSwitchTo: true }) // 3
@@ -649,7 +643,7 @@ describe('radix_high_level_api', () => {
 		const subs = new Subscription()
 
 		const radix = Radix.create()
-			.withWallet(createWallet())
+			.__withWallet(createWallet())
 			.__withAPI(mockedAPI)
 
 		const expected = [1, 2, 3]
@@ -675,7 +669,7 @@ describe('radix_high_level_api', () => {
 		const subs = new Subscription()
 
 		const radix = Radix.create()
-			.withWallet(createWallet())
+			.__withWallet(createWallet())
 			.__withAPI(mockedAPI)
 
 		const expected = [0, 1, 3]
@@ -702,7 +696,7 @@ describe('radix_high_level_api', () => {
 		const subs = new Subscription()
 
 		const radix = Radix.create()
-			.withWallet(createWallet())
+			.__withWallet(createWallet())
 			.__withAPI(mockedAPI)
 
 		const expectedCount = 3
@@ -725,6 +719,7 @@ describe('radix_high_level_api', () => {
 		const subs = new Subscription()
 
 		const radix = Radix.create().__withAPI(mockedAPI)
+		radix.connect('http://www.test.com')
 
 		const loadKeystore = (): Promise<KeystoreT> =>
 			Promise.resolve(keystoreForTest.keystore)
@@ -773,6 +768,7 @@ describe('radix_high_level_api', () => {
 		const subs = new Subscription()
 
 		const radix = Radix.create().__withAPI(mockedAPI)
+		radix.connect('http://www.test.com')
 
 		const loadKeystore = (): Promise<KeystoreT> =>
 			Promise.resolve(keystoreForTest.keystore)
@@ -811,6 +807,7 @@ describe('radix_high_level_api', () => {
 		const subs = new Subscription()
 
 		const radix = Radix.create().__withAPI(mockedAPI)
+		radix.connect('http://www.test.com')
 
 		const loadKeystore = (): Promise<KeystoreT> =>
 			Promise.resolve(keystoreForTest.keystore)
@@ -883,6 +880,7 @@ describe('radix_high_level_api', () => {
 		const subs = new Subscription()
 
 		const radix = Radix.create().__withAPI(mockedAPI)
+		radix.connect('http://www.test.com')
 
 		const loadKeystore = (): Promise<KeystoreT> =>
 			Promise.resolve(keystoreForTest.keystore)
@@ -911,6 +909,7 @@ describe('radix_high_level_api', () => {
 		const subs = new Subscription()
 
 		const radix = Radix.create().__withAPI(mockedAPI)
+		radix.connect('http://www.test.com')
 
 		const loadKeystore = (): Promise<KeystoreT> =>
 			Promise.resolve(keystoreForTest.keystore)
@@ -976,7 +975,7 @@ describe('radix_high_level_api', () => {
 				.subscribe(unsignedTx => {
 					expect(
 						(unsignedTx as { fee: AmountT }).fee.toString(),
-					).toEqual('47540')
+					).toEqual('14370')
 					done()
 				}),
 		)
@@ -1047,6 +1046,8 @@ describe('radix_high_level_api', () => {
 		const radix = Radix.create()
 			.__withAPI(mockedAPI)
 			.withStakingFetchTrigger(interval(100))
+			
+		radix.connect('http://www.test.com')
 
 		const loadKeystore = (): Promise<KeystoreT> =>
 			Promise.resolve(keystoreForTest.keystore)
@@ -1077,6 +1078,8 @@ describe('radix_high_level_api', () => {
 		const radix = Radix.create()
 			.__withAPI(mockedAPI)
 			.withStakingFetchTrigger(interval(50))
+	
+		radix.connect('http://www.test.com')
 
 		const loadKeystore = (): Promise<KeystoreT> =>
 			Promise.resolve(keystoreForTest.keystore)
@@ -1123,7 +1126,7 @@ describe('radix_high_level_api', () => {
 
 		const mockedAPI = mockRadixCoreAPI()
 		const radix = Radix.create()
-			.withWallet(makeWalletWithFunds())
+			.__withWallet(makeWalletWithFunds())
 			.__withAPI(
 				of({
 					...mockedAPI,
@@ -1195,7 +1198,7 @@ describe('radix_high_level_api', () => {
 
 		const mockedAPI = mockRadixCoreAPI()
 		const radix = Radix.create()
-			.withWallet(makeWalletWithFunds())
+			.__withWallet(makeWalletWithFunds())
 			.__withAPI(
 				of({
 					...mockedAPI,
@@ -1288,6 +1291,7 @@ describe('radix_high_level_api', () => {
 		const subs = new Subscription()
 
 		const radix = Radix.create().__withAPI(mockedAPI)
+		radix.connect('http://www.test.com')
 
 		const loadKeystore = (): Promise<KeystoreT> =>
 			Promise.resolve(keystoreForTest.keystore)
@@ -1425,7 +1429,7 @@ describe('radix_high_level_api', () => {
 		const errorMsg = 'failed to fetch native token'
 
 		const radix = Radix.create()
-			.withWallet(createWallet())
+			.__withWallet(createWallet())
 			.__withAPI(
 				of({
 					...mockRadixCoreAPI(),
@@ -1477,7 +1481,7 @@ describe('radix_high_level_api', () => {
 
 		it('events emits expected values', done => {
 			const radix = Radix.create()
-				.withWallet(createWallet())
+				.__withWallet(createWallet())
 				.__withAPI(mockedAPI)
 
 			const expectedValues = [
@@ -1519,7 +1523,7 @@ describe('radix_high_level_api', () => {
 
 		it('automatic confirmation', done => {
 			const radix = Radix.create()
-				.withWallet(createWallet())
+				.__withWallet(createWallet())
 				.__withAPI(mockedAPI)
 
 			let gotTXId = false
@@ -1545,7 +1549,7 @@ describe('radix_high_level_api', () => {
 
 		it('radix_tx_manual_confirmation', done => {
 			const radix = Radix.create()
-				.withWallet(createWallet())
+				.__withWallet(createWallet())
 				.__withAPI(mockedAPI)
 
 			const userConfirmation = new ReplaySubject<ManualUserConfirmTX>(1)
@@ -1579,7 +1583,7 @@ describe('radix_high_level_api', () => {
 
 		it('should not emit sign tx event when switching accounts', done => {
 			const radix = Radix.create()
-				.withWallet(createWallet())
+				.__withWallet(createWallet())
 				.__withAPI(mockedAPI)
 
 			const userConfirmation = new ReplaySubject<ManualUserConfirmTX>()
@@ -1647,7 +1651,7 @@ describe('radix_high_level_api', () => {
 
 		it('should be able to call stake tokens', done => {
 			const radix = Radix.create()
-				.withWallet(createWallet())
+				.__withWallet(createWallet())
 				.__withAPI(mockedAPI)
 
 			subs.add(
@@ -1678,7 +1682,7 @@ describe('radix_high_level_api', () => {
 
 		it('should be able to call unstake tokens', done => {
 			const radix = Radix.create()
-				.withWallet(createWallet())
+				.__withWallet(createWallet())
 				.__withAPI(mockedAPI)
 
 			subs.add(
@@ -1724,7 +1728,7 @@ describe('radix_high_level_api', () => {
 				const errorMsg = mockErrorMsg(`TXFlow`)
 
 				const radix = Radix.create()
-					.withWallet(createWallet())
+					.__withWallet(createWallet())
 					.__withAPI(
 						of({
 							...mockRadixCoreAPI(),
@@ -1797,7 +1801,7 @@ describe('radix_high_level_api', () => {
 					},
 				}),
 			)
-			.withWallet(walletWithFunds)
+			.__withWallet(walletWithFunds)
 
 		const expectedAddresses: string[] = [
 			'brx1qsp8n0nx0muaewav2ksx99wwsu9swq5mlndjmn3gm9vl9q2mzmup0xqmhf7fh',
@@ -1915,8 +1919,8 @@ describe('radix_high_level_api', () => {
 				}
 			}
 
-			const radix = Radix.create({ network })
-				.withWallet(wallet)
+			const radix = Radix.create()
+				.__withWallet(wallet)
 				.__withAPI(of(mockApi()))
 
 			const assertTX = (tx: ExecutedTransaction): void => {

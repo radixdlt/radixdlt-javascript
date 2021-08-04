@@ -7,7 +7,7 @@ import {
 	ResourceIdentifier,
 } from '@radixdlt/account'
 
-import { Network, Amount } from '@radixdlt/primitives'
+import { Network, Amount, NetworkId } from '@radixdlt/primitives'
 
 import { isString } from '@radixdlt/util'
 import {
@@ -73,8 +73,12 @@ const transactionIdentifierDecoder = (...keys: string[]) =>
 
 const networkDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
-		key !== undefined && keys.includes(key) && typeof value === 'number'
-			? ok(Network.MAINNET)
+		key !== undefined &&
+		keys.includes(key) &&
+		typeof value === 'number' &&
+		Object.keys(NetworkId).includes(value.toString())
+			? // @ts-ignore
+			  ok(NetworkId[value.toString()])
 			: undefined,
 	)
 

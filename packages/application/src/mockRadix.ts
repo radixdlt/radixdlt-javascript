@@ -195,8 +195,8 @@ const detPRNGWithBuffer = (buffer: Buffer): (() => number) => {
 }
 
 const addressesString: string[] = [
-	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
-	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
+	'tdx1qspksqs77z9e24e2dr9t5de6a9kymzhszp9k7jmr2ldkzl4hvn45xsqk409dt',
+	'tdx1qspksqs77z9e24e2dr9t5de6a9kymzhszp9k7jmr2ldkzl4hvn45xsqk409dt',
 	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
 	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
 	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',

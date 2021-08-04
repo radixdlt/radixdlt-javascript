@@ -10,6 +10,11 @@ export enum Network {
 	TESTNET5 = 'TESTNET5',
 }
 
+export const NetworkId = {
+	1: Network.MAINNET,
+	2: Network.STOKENET,
+}
+
 export const hrpFullSuffixLength = 3
 
 export const HRP = {
