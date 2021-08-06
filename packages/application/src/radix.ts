@@ -50,6 +50,7 @@ import {
 	TransactionConfirmationBeforeFinalization,
 	TransferTokensOptions,
 	UnstakeOptions,
+	RadixT,
 } from './_types'
 import {
 	APIError,
@@ -153,7 +154,7 @@ const shouldConfirmTransactionAutomatically = (
 	confirmationScheme: TransactionConfirmationBeforeFinalization,
 ): confirmationScheme is 'skip' => confirmationScheme === 'skip'
 
-const create = () => {
+const create = (): RadixT => {
 	const subs = new Subscription()
 	const radixLog = log // TODO configure child loggers
 
@@ -942,7 +943,7 @@ const create = () => {
 			.subscribe(),
 	)
 
-	const methods = {
+	const methods: RadixT = {
 		// we forward the full `RadixAPI`, but we also provide some convenience methods based on active account/address.
 		ledger: {
 			...api,
@@ -954,7 +955,7 @@ const create = () => {
 		__reset: () => subs.unsubscribe(),
 
 		// Primarily useful for testing
-		__withNodeConnection: (node$: Observable<NodeT>) => {
+		__withNodeConnection: (node$: Observable<NodeT>): RadixT => {
 			subs.add(
 				node$.subscribe(
 					n => {
@@ -969,7 +970,7 @@ const create = () => {
 			return methods
 		},
 
-		__withAPI: (radixCoreAPI$: Observable<RadixCoreAPI>) => {
+		__withAPI: (radixCoreAPI$: Observable<RadixCoreAPI>): RadixT => {
 			subs.add(radixCoreAPI$.subscribe(a => coreAPISubject.next(a)))
 			return methods
 		},
