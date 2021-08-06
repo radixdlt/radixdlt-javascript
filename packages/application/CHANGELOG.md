@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.0.2](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@3.0.1...@radixdlt/application@3.0.2) (2021-08-06)
+
+
+### Bug Fixes
+
+* add missing errors ([aacde66](https://github.com/radixdlt/radixdlt-javascript/commit/aacde6685653ed36a2c034079808ac87624d45e1))
+
+
+
+
+
 ## [3.0.1](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@3.0.0...@radixdlt/application@3.0.1) (2021-08-04)
 
 **Note:** Version bump only for package @radixdlt/application
