@@ -20,7 +20,7 @@ export const isValidatorAddress = (
 const maxLength = 300 // arbitrarily chosen
 const encoding = Encoding.BECH32
 
-const hrpFromNetwork = (network: Network) => HRP[network].validator
+const hrpFromNetwork = (network: Network) => HRP(network).validator
 
 const networkFromHRP: NetworkFromHRP = hrp =>
 	hrp === HRP.MAINNET.validator

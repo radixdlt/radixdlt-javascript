@@ -192,7 +192,7 @@ const create = (): RadixT => {
 			take(1), // Important!
 			catchError((error: unknown) => {
 				console.error(error)
-				throw errorFn(error as any)
+				throw errorFn((error as any)[0])
 			}),
 		)
 

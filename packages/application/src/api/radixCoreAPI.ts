@@ -94,6 +94,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 
 		nativeToken: (): Observable<Token> =>
 			toObs(a => a['tokens.get_native_token'], {}),
+			
 		tokenInfo: (rri: ResourceIdentifierT): Observable<Token> =>
 			toObs(a => a['tokens.get_info'], {
 				rri: rri.toString(),

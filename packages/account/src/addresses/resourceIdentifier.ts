@@ -1,7 +1,7 @@
 import { err, ok, Result } from 'neverthrow'
 import { buffersEquals, msgFromError } from '@radixdlt/util'
 import { PublicKeyT, sha256Twice } from '@radixdlt/crypto'
-import { HRP, hrpFullSuffixLength, Network } from '@radixdlt/primitives'
+import { HRP, hrpFullSuffixLength, Network, RRIHRP } from '@radixdlt/primitives'
 import { Bech32, Encoding } from '../bech32'
 import { ResourceIdentifierT } from './_types'
 
@@ -11,24 +11,15 @@ const maxLength: number | undefined = undefined // arbitrarily chosen
 const versionByteNativeToken = 0x01
 const versionByteNonNativeToken = 0x03
 
-const hrpSuffixFromNetwork = (network: Network) => HRP[network].RRI_suffix
+const hrpSuffixFromNetwork = (network: Network) => HRP(network).RRI_suffix
 
-const networkFromHRPSuffix = (hrp: string): Result<Network, Error> =>
-	hrp === HRP.MAINNET.RRI_suffix
-		? ok(Network.MAINNET)
-		: hrp === HRP.STOKENET.RRI_suffix
-		? ok(Network.STOKENET)
-		: hrp === HRP.TESTNET3.RRI_suffix
-		? ok(Network.TESTNET3)
-		: hrp === HRP.TESTNET4.RRI_suffix
-		? ok(Network.TESTNET4)
-		: hrp === HRP.TESTNET5.RRI_suffix
-		? ok(Network.TESTNET5)
-		: err(
-				new Error(
-					`Failed to parse network from HRP ${hrp} for ValidatorAddress.`,
-				),
-		  )
+const networkFromHRPSuffix = (hrp: RRIHRP): Result<Network, Error> =>
+	// @ts-ignore
+	hrp === '_rr' ?
+		ok('MAINNET')
+	: hrp === '_tr' ?
+		ok('STOKENET')
+	: ok(`TESTNET${parseInt(hrp.split('_tr')[1])}`)
 
 const __create = (input: {
 	hash: Buffer
@@ -73,7 +64,7 @@ const fromBech32String = (
 
 	if (
 		!Object.keys(HRP).some(network =>
-			hrp.endsWith(HRP[network as Network].RRI_suffix),
+			hrp.endsWith(HRP(network as Network).RRI_suffix),
 		)
 	) {
 		const errMsg = `suffix found for hrp "${hrp}" not supported.`
@@ -82,7 +73,7 @@ const fromBech32String = (
 
 	const nameToValidate = hrp.slice(0, hrp.length - hrpFullSuffixLength)
 	const hrpSuffix = hrp.slice(nameToValidate.length)
-	const networkResult = networkFromHRPSuffix(hrpSuffix)
+	const networkResult = networkFromHRPSuffix(hrpSuffix as RRIHRP)
 
 	if (!networkResult.isOk()) {
 		const errMsg = `Expected to get network from HRP suffix '${hrpSuffix}', but failed to get it.`
@@ -248,7 +239,7 @@ const fromBuffer = (buffer: Buffer): Result<ResourceIdentifierT, Error> => {
 	if (buffer.length === 1 && buffer[0] === 0x01) {
 		return systemRRIForNetwork({
 			name: 'xrd',
-			network: Network.MAINNET, // Yikes!
+			network: 'MAINNET', // Yikes!
 		})
 	}
 	return err(

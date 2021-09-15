@@ -36,7 +36,7 @@ import { makeSigningKeyChainWithFunds } from '@radixdlt/account/test/utils'
 const fetch = require('node-fetch')
 
 // local
-const NODE_URL = 'https://stokenet.radixdlt.com'
+const NODE_URL = 'https://sandpitnet.radixdlt.com'
 
 // RCNet
 //const NODE_URL = 'https://54.73.253.49'
@@ -71,29 +71,6 @@ describe('integration API tests', () => {
 		subs.unsubscribe()
 	})
 
-	it('can connect and is chainable', async () => {
-		const radix = Radix.create()
-		await radix.connect(`${NODE_URL}`)
-		expect(radix).toBeDefined()
-		expect(radix.ledger.nativeToken).toBeDefined()
-		expect(radix.ledger.tokenBalancesForAddress).toBeDefined() // etc
-	})
-
-	it('emits node connection without wallet', async done => {
-		const radix = Radix.create()
-		await radix.connect(`${NODE_URL}`)
-
-		subs.add(
-			radix.__node.subscribe(
-				node => {
-					expect(node.url.host).toBe(new URL(NODE_URL).host)
-					done()
-				},
-				error => done(error),
-			),
-		)
-	})
-
 	it('can switch networks', async done => {
 		const radix = Radix.create()
 
@@ -120,7 +97,7 @@ describe('integration API tests', () => {
 		done()
 	})
 
-	it('returns native token without wallet', async done => {
+	it.only('returns native token without wallet', async done => {
 		const radix = Radix.create()
 		radix.connect(`${NODE_URL}`)
 
