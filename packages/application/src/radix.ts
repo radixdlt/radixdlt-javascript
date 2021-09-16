@@ -75,7 +75,7 @@ import {
 	validatorsErr,
 	walletError,
 } from './errors'
-import { log, LogLevel, msgFromError } from '@radixdlt/util'
+import { log, LogLevel, msgFromError, isArray } from '@radixdlt/util'
 import {
 	BuiltTransaction,
 	ExecutedTransaction,
@@ -191,8 +191,8 @@ const create = (): RadixT => {
 			mergeMap(a => pickFn(a)(...input)),
 			take(1), // Important!
 			catchError((error: unknown) => {
-				console.error(error)
-				throw errorFn(error as any)
+				// console.error(error)
+				throw errorFn(isArray(error) ? (error as any)[0] : error)
 			}),
 		)
 
@@ -306,6 +306,7 @@ const create = (): RadixT => {
 			switchMap(([address, api]) =>
 				pickFn(api)(address).pipe(
 					catchError(error => {
+						console.error(error)
 						errorNotificationSubject.next(errorFn(error))
 						return EMPTY
 					}),
@@ -562,13 +563,10 @@ const create = (): RadixT => {
 				},
 			),
 			catchError((e: Error) => {
+				/*
 				txLog.error(
-					`API failed to build transaction, error: ${JSON.stringify(
-						e,
-						null,
-						4,
-					)}`,
-				)
+					`API failed to build transaction, error: ${e}`,
+				)*/
 				trackError({
 					error: e,
 					inStep: TransactionTrackingEventType.BUILT_FROM_INTENT,

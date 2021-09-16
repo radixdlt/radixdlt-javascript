@@ -24,6 +24,10 @@ const networkFromHRPSuffix = (hrp: string): Result<Network, Error> =>
 		? ok(Network.TESTNET4)
 		: hrp === HRP.TESTNET5.RRI_suffix
 		? ok(Network.TESTNET5)
+		: hrp === HRP.TESTNET6.RRI_suffix
+		? ok(Network.TESTNET6)
+		: hrp === HRP.TESTNET7.RRI_suffix
+		? ok(Network.TESTNET7)
 		: err(
 				new Error(
 					`Failed to parse network from HRP ${hrp} for ValidatorAddress.`,
@@ -80,8 +84,8 @@ const fromBech32String = (
 		return err(new Error(errMsg))
 	}
 
-	const nameToValidate = hrp.slice(0, hrp.length - hrpFullSuffixLength)
-	const hrpSuffix = hrp.slice(nameToValidate.length)
+	const nameToValidate = hrp.split('_')[0]
+	const hrpSuffix = '_' + hrp.split('_')[1]
 	const networkResult = networkFromHRPSuffix(hrpSuffix)
 
 	if (!networkResult.isOk()) {

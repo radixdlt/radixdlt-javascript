@@ -1,5 +1,5 @@
 export type APIError = ErrorT<'api'> & {
-	type: APIErrorType
+	type: APIErrorType | undefined
 }
 
 export type WalletError = ErrorT<'wallet'>
@@ -21,7 +21,7 @@ export type ErrorT<T extends 'api' | 'node' | 'wallet'> = {
 		: T extends 'wallet'
 		? ErrorCategory.WALLET
 		: unknown
-	message: string
+	message: string | undefined
 }
 
 export enum ErrorCategory {
@@ -97,7 +97,7 @@ enum APIErrorType {
 	UNKNOWN_RRI = 'UNKNOWN_RRI',
 	UNKNOWN_ACCOUNT_ADDRESS = 'UNKNOWN_ACCOUNT_ADDRESS',
 	UNABLE_TO_RESTORE_CREATOR = 'UNABLE_TO_RESTORE_CREATOR',
-	UNKNOWN_TX_ID = 'UNKNOWN_TX_ID'
+	UNKNOWN_TX_ID = 'UNKNOWN_TX_ID',
 }
 
 const ErrorCode: Record<number, APIErrorType> = {
@@ -158,7 +158,7 @@ const ErrorCode: Record<number, APIErrorType> = {
 	2520: APIErrorType.UNKNOWN_RRI,
 	2521: APIErrorType.UNKNOWN_ACCOUNT_ADDRESS,
 	2522: APIErrorType.UNABLE_TO_RESTORE_CREATOR,
-	2523: APIErrorType.UNKNOWN_TX_ID
+	2523: APIErrorType.UNKNOWN_TX_ID,
 }
 
 export enum APIErrorCause {
@@ -185,8 +185,8 @@ const APIError = (cause: APIErrorCause) => (
 ): APIError => ({
 	cause,
 	category: ErrorCategory.API,
-	type: ErrorCode[error.code],
-	message: error.message,
+	type: error ? ErrorCode[error.code] : undefined,
+	message: error ? error.message : undefined,
 })
 
 export const nodeError = (error: Error): ErrorT<'node'> => ({

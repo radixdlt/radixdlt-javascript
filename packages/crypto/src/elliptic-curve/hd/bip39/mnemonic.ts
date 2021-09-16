@@ -211,7 +211,7 @@ const fromPhraseInLanguage = (
 			return err(new Error(notChecksummedErr))
 		}
 
-		return err(e)
+		return err(e as Error)
 	}
 	const normalizedPhrase = phrase.normalize('NFKD')
 	const words = normalizedPhrase.split(separator)
