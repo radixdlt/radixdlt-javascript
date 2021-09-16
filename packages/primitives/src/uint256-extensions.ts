@@ -63,7 +63,7 @@ export const uint256FromUnsafe = (
 		const bn = new BN(unsafe)
 		return uint256FromBN(bn)
 	} catch (e) {
-		return err(e)
+		return err(e as Error)
 	}
 }
 

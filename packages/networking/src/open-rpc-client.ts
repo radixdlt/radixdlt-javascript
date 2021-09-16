@@ -118,7 +118,7 @@ export const RPCClient: Client = (url: URL): Transport => {
 			)}`,
 		)
 
-		// console.log(`response for ${method} at ${endpoint}`, JSON.stringify(response, null, 2))
+		//console.log(`response for ${method} at ${endpoint}`, JSON.stringify(response, null, 2))
 		// TODO validate response
 
 		return response

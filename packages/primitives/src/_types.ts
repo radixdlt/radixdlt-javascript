@@ -8,11 +8,18 @@ export enum Network {
 	TESTNET3 = 'TESTNET3',
 	TESTNET4 = 'TESTNET4',
 	TESTNET5 = 'TESTNET5',
+	TESTNET6 = 'TESTNET6',
+	TESTNET7 = 'TESTNET7',
 }
 
 export const NetworkId = {
 	1: Network.MAINNET,
 	2: Network.STOKENET,
+	3: Network.TESTNET3,
+	4: Network.TESTNET4,
+	5: Network.TESTNET5,
+	6: Network.TESTNET6,
+	7: Network.TESTNET7,
 }
 
 export const hrpFullSuffixLength = 3
@@ -42,6 +49,16 @@ export const HRP = {
 		account: 'tdx5',
 		validator: 'tv5',
 		RRI_suffix: '_tr5',
+	},
+	[Network.TESTNET6]: {
+		account: 'tdx6',
+		validator: 'tv6',
+		RRI_suffix: '_tr6',
+	},
+	[Network.TESTNET7]: {
+		account: 'tdx7',
+		validator: 'tv7',
+		RRI_suffix: '_tr7',
 	},
 }
 
