@@ -31,6 +31,8 @@ const networkFromHRP: NetworkFromHRP = hrp =>
 		? ok(Network.MAINNET)
 		: hrp === HRP.STOKENET.account
 		? ok(Network.STOKENET)
+		: hrp === HRP.LOCALHOST.account
+		? ok(Network.LOCALHOST)
 		: hrp === HRP.TESTNET3.account
 		? ok(Network.TESTNET3)
 		: hrp === HRP.TESTNET4.account

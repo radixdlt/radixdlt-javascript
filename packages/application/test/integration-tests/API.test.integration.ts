@@ -28,16 +28,18 @@ import {
 	TransactionTrackingEventType,
 	KeystoreT,
 } from '../../src'
-import { UInt256 } from '@radixdlt/uint256'
 import { AccountT, RadixT, TokenBalance, TokenBalances } from '../../src'
 import { keystoreForTest, makeWalletWithFunds } from '../util'
 
 const fetch = require('node-fetch')
 
-const network = Network.TESTNET7
+const network = Network.LOCALHOST
 
-// local
-const NODE_URL = 'https://sandpitnet.radixdlt.com'
+// Localhost
+const NODE_URL = 'http://localhost:8080'
+
+// Sandpit
+//const NODE_URL = 'https://sandpitnet.radixdlt.com'
 
 // RCNet
 //const NODE_URL = 'https://54.73.253.49'
@@ -222,159 +224,97 @@ describe('integration API tests', () => {
 
 	// 🟢
 	it('should compare token balance before and after transfer', async done => {
-		const getTokenBalanceSubject = new Subject<number>()
-
-		radix.withTokenBalanceFetchTrigger(getTokenBalanceSubject)
-
-		getTokenBalanceSubject.next(1)
-
-		let transferDone = false
 		const amountToSend = Amount.fromUnsafe(
 			`1${'0'.repeat(18)}`,
 		)._unsafeUnwrap()
 
-		let initialBalance: AmountT
-		let balanceAfterTransfer: AmountT
+		let initialBalance: AmountT | undefined
+		let balanceAfterTransfer: AmountT | undefined
 		let fee: AmountT
 
-		radix.activeAddress.subscribe(async address => {
-			await requestFaucet(address.toString())
+		initialBalance = (await firstValueFrom(radix.tokenBalances)).tokenBalances.find(
+			a => a.token.symbol.toLowerCase() === 'xrd',
+		)?.amount
 
-			subs.add(
-				radix.tokenBalances.subscribe(balance => {
-					const getXRDBalanceOrZero = (): AmountT => {
-						const maybeTokenBalance = balance.tokenBalances.find(
-							a => a.token.symbol.toLowerCase() === 'xrd',
-						)
-						return maybeTokenBalance !== undefined
-							? maybeTokenBalance.amount
-							: UInt256.valueOf(0)
-					}
+		const txID = await firstValueFrom(
+			radix.transferTokens({
+				transferInput: {
+					to: accounts[2].address,
+					amount: amountToSend,
+					tokenIdentifier: nativeTokenBalance.token.rri,
+				},
+				userConfirmation: 'skip',
+				pollTXStatusTrigger: interval(500),
+			}).completion
+		)
 
-					if (transferDone) {
-						balanceAfterTransfer = getXRDBalanceOrZero()
+		balanceAfterTransfer = (await firstValueFrom(radix.tokenBalances)).tokenBalances.find(
+			a => a.token.symbol.toLowerCase() === 'xrd',
+		)?.amount
 
-						expect(
-							initialBalance
-								.sub(balanceAfterTransfer)
-								.eq(amountToSend.add(fee)),
-						).toBe(true)
-						done()
-					} else {
-						initialBalance = getXRDBalanceOrZero()
-					}
-				}),
-			)
+		if (!initialBalance || !balanceAfterTransfer) throw Error('No XRD found')
 
-			subs.add(
-				radix
-					.transferTokens({
-						transferInput: {
-							to: accounts[2].address,
-							amount: amountToSend,
-							tokenIdentifier: nativeTokenBalance.token.rri,
-						},
-						userConfirmation: 'skip',
-						pollTXStatusTrigger: interval(500),
-					})
-					.completion.subscribe(txID => {
-						transferDone = true
-						subs.add(
-							radix.ledger
-								.lookupTransaction(txID)
-								.subscribe(tx => {
-									fee = tx.fee
-									getTokenBalanceSubject.next(1)
-								}),
-						)
-					}),
-			)
-		})
+		const tx = await firstValueFrom(radix.ledger.lookupTransaction(txID))
+
+		fee = tx.fee
+
+		expect(
+			initialBalance
+				.sub(balanceAfterTransfer)
+				.eq(amountToSend.add(fee)),
+		).toBe(true)
+		done()
 	})
 
 	// 🟢
-	it('should increment transaction history with a new transaction after transfer', async done => {
-		const pageSize = 100
+	it('should increment transaction history with a new transaction after transfer', async () => {
+		const pageSize = 5
 
-		const fetchTxHistory = (cursor: string) => {
-			return new Promise<[string, number]>((resolve, _) => {
-				const sub = radix
-					.transactionHistory({
-						size: pageSize,
-						cursor,
-					})
-					.subscribe(txHistory => {
-						sub.unsubscribe()
-						resolve([
-							txHistory.cursor,
-							txHistory.transactions.length,
-						])
-					})
-			})
+		const fetchTxHistory = async (cursor?: string): Promise<[string, number]> => {
+			const txHistory = await firstValueFrom(radix.transactionHistory({ limit: pageSize, cursor }))
+			return [
+				txHistory.cursor,
+				txHistory.transactions.length,
+			]
 		}
 
 		const getLastCursor = async () => {
-			return new Promise<string>((resolve, _) => {
-				radix
-					.transactionHistory({
-						size: pageSize,
-					})
-					.subscribe(async txHistory => {
-						let cursor = txHistory.cursor
-						let prevTxCount = 0
-						let txCount = 0
+			const txHistory = await firstValueFrom(radix.transactionHistory({ limit: pageSize }))
+			let cursor = txHistory.cursor
+			let prevTxCount = 0
+			let txCount = 0
 
-						while (txCount >= prevTxCount) {
-							prevTxCount = txCount
-							;[cursor, txCount] = await fetchTxHistory(cursor)
-						}
+			while (txCount >= prevTxCount) {
+				prevTxCount = txCount
+					;[cursor, txCount] = await fetchTxHistory(cursor)
+				if (txCount === 0) break
+			}
 
-						resolve(cursor)
-					})
-			})
+			return cursor
 		}
 
 		const cursor = await getLastCursor()
 
-		subs.add(
-			radix
-				.transactionHistory({
-					size: pageSize,
-					cursor,
-				})
-				.subscribe(txHistory => {
-					const countBeforeTransfer = txHistory.transactions.length
-					subs.add(
-						radix
-							.transferTokens({
-								transferInput: {
-									to: accounts[2].address,
-									amount: 1,
-									tokenIdentifier:
-										nativeTokenBalance.token.rri,
-								},
-								userConfirmation: 'skip',
-								pollTXStatusTrigger: interval(500),
-							})
-							.completion.subscribe(tx => {
-								subs.add(
-									radix
-										.transactionHistory({
-											size: pageSize,
-											cursor,
-										})
-										.subscribe(newTxHistory => {
-											expect(
-												newTxHistory.transactions
-													.length - 1,
-											).toEqual(countBeforeTransfer)
-											done()
-										}),
-								)
-							}),
-					)
-				}),
+		const [__, txCount] = await fetchTxHistory(cursor)
+
+		await firstValueFrom(
+			radix.transferTokens({
+				transferInput: {
+					to: accounts[2].address,
+					amount: 1,
+					tokenIdentifier:
+						nativeTokenBalance.token.rri,
+				},
+				userConfirmation: 'skip',
+				pollTXStatusTrigger: interval(500),
+			}).completion
 		)
+
+		const [_, newTxHistoryCount] = await fetchTxHistory(cursor)
+
+		expect(
+			newTxHistoryCount - 1,
+		).toEqual(txCount)
 	})
 
 	// 🟢
@@ -402,7 +342,7 @@ describe('integration API tests', () => {
 		)
 
 		const txHistory = await firstValueFrom(
-			radix.transactionHistory({ size: 2 }),
+			radix.transactionHistory({ limit: 2 }),
 		)
 
 		expect(txHistory.transactions[0].txID.equals(txID1))
@@ -433,19 +373,16 @@ describe('integration API tests', () => {
 				const txID: TransactionIdentifierT = (event as TransactionStateSuccess<PendingTransaction>)
 					.transactionState.txID
 
-				subs.add(
-					radix
-						.transactionStatus(txID, interval(300))
-						.pipe(
-							map(({ status }) => status),
-							take(expectedValues.length),
-							toArray(),
-						)
-						.subscribe(values => {
-							expect(values).toStrictEqual(expectedValues)
-							done()
-						}),
-				)
+				const values = firstValueFrom(radix
+					.transactionStatus(txID, interval(300))
+					.pipe(
+						map(({ status }) => status),
+						take(expectedValues.length),
+						toArray(),
+					))
+
+				expect(values).toStrictEqual(expectedValues)
+				done()
 			}
 		})
 	})
@@ -618,7 +555,7 @@ describe('integration API tests', () => {
 		)
 	})
 
-	it.skip('can fetch unstake positions', async () => {
+	it('can fetch unstake positions', async () => {
 		const triggerSubject = new Subject<number>()
 
 		radix.withStakingFetchTrigger(triggerSubject)
@@ -681,7 +618,7 @@ describe('integration API tests', () => {
 		)
 	})
 
-	describe('make tx single transfer', () => {
+	describe.skip('make tx single transfer', () => {
 		const tokenTransferInput: TransferTokensInput = {
 			to: accounts[2].address,
 			amount: 1,
@@ -751,7 +688,7 @@ describe('integration API tests', () => {
 		it('automatic confirmation', done => {
 			subs.add(
 				radix.transferTokens(transferTokens()).completion.subscribe({
-					next: _txID => {},
+					next: _txID => { },
 					complete: () => {
 						done()
 					},

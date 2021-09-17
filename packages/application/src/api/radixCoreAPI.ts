@@ -88,7 +88,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 		): Observable<SimpleTransactionHistory> =>
 			toObs(a => a['account.get_transaction_history'], {
 				address: input.address.toString(),
-				size: input.size,
+				limit: input.limit,
 				cursor: input.cursor?.toString(),
 			}),
 
@@ -140,12 +140,18 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 								amount: action.amount.toString(),
 								rri: action.rri.toString(),
 						  }
-						: {
+						: action.type === ActionType.STAKE_TOKENS ? {
 								type: action.type,
 								from: action.from.toString(),
 								validator: action.validator.toString(),
 								amount: action.amount.toString(),
-						  },
+						  }
+						: {
+							type: action.type,
+							to: action.to.toString(),
+							validator: action.validator.toString(),
+							amount: action.amount.toString(),
+						}
 				),
 				feePayer: from.toString(),
 				disableResourceAllocationAndDestroy: true,

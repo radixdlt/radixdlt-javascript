@@ -549,7 +549,7 @@ export const deterministicRandomTxHistoryWithInput = (
 	const tokenAndAmounts = detRandBalanceOfTokenWithInfo(anInt)
 
 	const deterministicRandomExecutedTransactions = (): ExecutedTransaction[] =>
-		Array(input.size)
+		Array(input.limit)
 			.fill(undefined)
 			.map(
 				(_, index): ExecutedTransaction => {
@@ -607,7 +607,7 @@ export const deterministicRandomTxHistoryWithInput = (
 										case ActionType.UNSTAKE_TOKENS:
 											executedAction = {
 												type: ActionType.UNSTAKE_TOKENS,
-												from: address,
+												to: address,
 												amount: Amount.fromUnsafe(
 													anInt(),
 												)._unsafeUnwrap(),
@@ -671,7 +671,7 @@ const deterministicRandomLookupTXUsingHist = (
 		network: Network.MAINNET,
 	})
 	const txs = deterministicRandomTxHistoryWithInput({
-		size: 1,
+		limit: 1,
 		address: addressWithTXIdBytesAsSeed,
 	}).transactions
 	if (txs.length === 0) {

@@ -766,7 +766,7 @@ describe('radix_high_level_api', () => {
 
 				subs.add(
 					radix
-						.transactionHistory({ size: 3 })
+						.transactionHistory({ limit: 3 })
 						.pipe(take(expectedValues.length), toArray())
 						.subscribe(values => {
 							values.forEach((txHist, index: number) => {
@@ -1868,7 +1868,7 @@ describe('radix_high_level_api', () => {
 			}
 
 			subs.add(
-				radix.transactionHistory({ size: 1 }).subscribe(
+				radix.transactionHistory({ limit: 1 }).subscribe(
 					hist => {
 						expect(hist.transactions.length).toBe(1)
 						const txFromhistory = hist.transactions[0]

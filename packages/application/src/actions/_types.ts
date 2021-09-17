@@ -60,14 +60,17 @@ export type TransferTokensProps = Readonly<{
 export type TransferTokensAction = TransferTokensProps &
 	Action<ActionType.TOKEN_TRANSFER>
 
-export type StakeAndUnstakeTokensProps = Readonly<{
+export type StakeTokensProps = Readonly<{
 	from: AccountAddressT
 	validator: ValidatorAddressT
 	amount: AmountT
 }>
 
-export type StakeTokensProps = StakeAndUnstakeTokensProps
-export type UnstakeTokensProps = StakeAndUnstakeTokensProps
+export type UnstakeTokensProps = Readonly<{
+	to: AccountAddressT
+	validator: ValidatorAddressT
+	amount: AmountT
+}>
 
 export type StakeTokensAction = StakeTokensProps &
 	Action<ActionType.STAKE_TOKENS>
@@ -87,7 +90,7 @@ export type IntendedTransferTokensAction = IntendedActionBase<ActionType.TOKEN_T
 export type IntendedStakeTokensAction = IntendedActionBase<ActionType.STAKE_TOKENS> &
 	StakeTokensProps
 
-export type IntendedUnstakeTokensAction = IntendedActionBase<ActionType.UNSTAKE_TOKENS> &
+export type IntendedUnstakeTokensAction = Action<ActionType.UNSTAKE_TOKENS> &
 	UnstakeTokensProps
 
 export type IntendedAction =

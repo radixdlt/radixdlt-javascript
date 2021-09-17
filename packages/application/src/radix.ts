@@ -312,7 +312,7 @@ const create = (): RadixT => {
 					}),
 				),
 			),
-			shareReplay(1),
+			//shareReplay(1), tentatively removing this because new subs will not call the API otherwise
 		)
 
 	const simpleTokenBalances = activeAddressToAPIObservableWithTrigger(

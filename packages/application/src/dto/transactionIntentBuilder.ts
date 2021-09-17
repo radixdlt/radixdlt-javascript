@@ -135,7 +135,7 @@ export const isUnstakeTokensAction = (
 	const inspection = something as UnstakeTokensAction
 	return (
 		inspection.type === ActionType.UNSTAKE_TOKENS &&
-		isAccountAddress(inspection.from) &&
+		isAccountAddress(inspection.to) &&
 		isAccountAddress(inspection.validator) &&
 		isAmount(inspection.amount)
 	)
@@ -170,7 +170,7 @@ export const getUniqueAddresses = (
 	} else if (isUnstakeTokensAction(action)) {
 		const addresses: AccountAddressT[] = []
 		if (includeFrom) {
-			addresses.push(action.from)
+			addresses.push(action.to)
 		}
 		return addresses
 	} else {

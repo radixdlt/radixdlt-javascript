@@ -27,6 +27,8 @@ const networkFromHRP: NetworkFromHRP = hrp =>
 		? ok(Network.MAINNET)
 		: hrp === HRP.STOKENET.validator
 		? ok(Network.STOKENET)
+		: hrp === HRP.LOCALHOST.validator
+		? ok(Network.LOCALHOST)
 		: hrp === HRP.TESTNET3.validator
 		? ok(Network.TESTNET3)
 		: hrp === HRP.TESTNET4.validator

@@ -71,7 +71,7 @@ export namespace TokenBalancesEndpoint {
 export namespace TransactionHistoryEndpoint {
 	export type Input = {
 		address: string
-		size: number // must be > 0
+		limit: number // must be > 0
 		cursor?: string
 	}
 
@@ -196,7 +196,7 @@ export namespace BuildTransactionEndpoint {
 			  }
 			| {
 					type: ActionType.UNSTAKE_TOKENS
-					from: string
+					to: string
 					validator: string
 					amount: string
 			  }

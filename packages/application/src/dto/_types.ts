@@ -134,7 +134,7 @@ export type TransactionTracking = Readonly<{
 }>
 
 export type TransactionHistoryOfKnownAddressRequestInput = Readonly<{
-	size: number
+	limit: number
 	cursor?: string
 }>
 

@@ -301,11 +301,13 @@ export const handleTransactionStatusResponse = (
 					TransactionStatusEndpoint.Response,
 					TransactionStatusEndpoint.DecodedResponse
 				>()(json)
-				.andThen(decoded =>
-					hasRequiredProps('transactionStatus', decoded, [
+				.andThen(decoded => {
+					console.log(decoded)
+					return hasRequiredProps('transactionStatus', decoded, [
 						'txID',
 						'status',
-					]),
+					])
+				}
 				)
 
 export const handleNetworkxThroughputResponse = (
