@@ -287,7 +287,7 @@ describe('integration API tests', () => {
 			while (txCount >= prevTxCount) {
 				prevTxCount = txCount
 					;[cursor, txCount] = await fetchTxHistory(cursor)
-				if (txCount === 0) break
+				if (txCount < pageSize) break
 			}
 
 			return cursor
@@ -366,21 +366,21 @@ describe('integration API tests', () => {
 			pollTXStatusTrigger: interval(200),
 		})
 
-		txTracking.events.subscribe(event => {
+		txTracking.events.subscribe(async event => {
 			if (
 				event.eventUpdateType === TransactionTrackingEventType.SUBMITTED
 			) {
 				const txID: TransactionIdentifierT = (event as TransactionStateSuccess<PendingTransaction>)
 					.transactionState.txID
 
-				const values = firstValueFrom(radix
+				const values = await firstValueFrom(radix
 					.transactionStatus(txID, interval(300))
 					.pipe(
 						map(({ status }) => status),
 						take(expectedValues.length),
 						toArray(),
 					))
-
+					
 				expect(values).toStrictEqual(expectedValues)
 				done()
 			}

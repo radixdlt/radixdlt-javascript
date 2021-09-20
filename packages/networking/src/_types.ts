@@ -1,6 +1,8 @@
+import { Method } from "./open-rpc-client"
+
 export type Transport = {
 	call: (
-		endpoint: string,
+		method: Method,
 		params: unknown[] | Record<string, unknown>,
 	) => Promise<unknown>
 }

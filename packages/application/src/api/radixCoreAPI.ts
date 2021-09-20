@@ -1,4 +1,4 @@
-import { NodeAPI, NodeT, RadixCoreAPI } from './_types'
+import { NodeAPI, NodeT } from './_types'
 import { ResultAsync } from 'neverthrow'
 import { defer, Observable } from 'rxjs'
 import {
@@ -52,26 +52,26 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 		node,
 
 		validators: (input: ValidatorsRequestInput): Observable<Validators> =>
-			toObs(a => a['validators.get_next_epoch_set'], {
+			toObs(a => a['get_next_epoch_set'], {
 				size: input.size,
 				cursor: input.cursor?.toString(),
 			}),
 
 		lookupValidator: (input: ValidatorAddressT): Observable<Validator> =>
-			toObs(a => a['validators.lookup_validator'], {
+			toObs(a => a['lookup_validator'], {
 				validatorAddress: input.toString(),
 			}),
 
 		lookupTransaction: (
 			txID: TransactionIdentifierT,
 		): Observable<SimpleExecutedTransaction> =>
-			toObs(a => a['transactions.lookup_transaction'], {
+			toObs(a => a['lookup_transaction'], {
 				txID: txID.toString(),
 			}),
 
 		networkId: (): Observable<Network> =>
 			toObsMap(
-				a => a['network.get_id'],
+				a => a['get_id'],
 				m => m.networkId,
 				{},
 			),
@@ -79,58 +79,58 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 		tokenBalancesForAddress: (
 			address: AccountAddressT,
 		): Observable<SimpleTokenBalances> =>
-			toObs(a => a['account.get_balances'], {
+			toObs(a => a['get_balances'], {
 				address: address.toString(),
 			}),
 
 		transactionHistory: (
 			input: TransactionHistoryRequestInput,
 		): Observable<SimpleTransactionHistory> =>
-			toObs(a => a['account.get_transaction_history'], {
+			toObs(a => a['get_transaction_history'], {
 				address: input.address.toString(),
 				limit: input.limit,
 				cursor: input.cursor?.toString(),
 			}),
 
 		nativeToken: (): Observable<Token> =>
-			toObs(a => a['tokens.get_native_token'], {}),
+			toObs(a => a['get_native_token'], {}),
 		tokenInfo: (rri: ResourceIdentifierT): Observable<Token> =>
-			toObs(a => a['tokens.get_info'], {
+			toObs(a => a['get_info'], {
 				rri: rri.toString(),
 			}),
 
 		stakesForAddress: (
 			address: AccountAddressT,
 		): Observable<StakePositions> =>
-			toObs(a => a['account.get_stake_positions'], {
+			toObs(a => a['get_stake_positions'], {
 				address: address.toString(),
 			}),
 
 		unstakesForAddress: (
 			address: AccountAddressT,
 		): Observable<UnstakePositions> =>
-			toObs(a => a['account.get_unstake_positions'], {
+			toObs(a => a['get_unstake_positions'], {
 				address: address.toString(),
 			}),
 
 		transactionStatus: (
 			txID: TransactionIdentifierT,
 		): Observable<StatusOfTransaction> =>
-			toObs(a => a['transactions.get_transaction_status'], {
+			toObs(a => a['get_transaction_status'], {
 				txID: txID.toString(),
 			}),
 
 		NetworkTransactionThroughput: (): Observable<NetworkTransactionThroughput> =>
-			toObs(a => a['network.get_throughput'], {}),
+			toObs(a => a['get_throughput'], {}),
 
 		NetworkTransactionDemand: (): Observable<NetworkTransactionDemand> =>
-			toObs(a => a['network.get_demand'], {}),
+			toObs(a => a['get_demand'], {}),
 
 		buildTransaction: (
 			transactionIntent: TransactionIntent,
 			from: AccountAddressT,
 		): Observable<BuiltTransaction> =>
-			toObs(a => a['construction.build_transaction'], {
+			toObs(a => a['build_transaction'], {
 				actions: transactionIntent.actions.map(action =>
 					action.type === ActionType.TOKEN_TRANSFER
 						? {
@@ -163,7 +163,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 		finalizeTransaction: (
 			signedTransaction: SignedTransaction,
 		): Observable<FinalizedTransaction> =>
-			toObs(a => a['construction.finalize_transaction'], {
+			toObs(a => a['finalize_transaction'], {
 				blob: signedTransaction.transaction.blob,
 				signatureDER: signedTransaction.signature.toDER(),
 				publicKeyOfSigner: signedTransaction.publicKeyOfSigner.toString(
@@ -174,7 +174,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 		submitSignedTransaction: (
 			finalizedTx: FinalizedTransaction,
 		): Observable<PendingTransaction> =>
-			toObs(a => a['construction.submit_transaction'], {
+			toObs(a => a['submit_transaction'], {
 				blob: finalizedTx.blob,
 				txID: finalizedTx.txID.toString(),
 			}),

@@ -13,58 +13,61 @@ const validateMethod = validate.bind(null, spec)
 
 const headers = ['X-Radixdlt-Method', 'X-Radixdlt-Correlation-Id']
 
-enum Endpoint {
-	NETWORK_ID = 'network.get_id',
-	TOKEN_BALANCES = 'account.get_balances',
-	TRANSACTION_HISTORY = 'account.get_transaction_history',
-	STAKES = 'account.get_stake_positions',
-	UNSTAKES = 'account.get_unstake_positions',
-	TX_STATUS = 'transactions.get_transaction_status',
-	NETWORK_TX_THROUGHPUT = 'network.get_throughput',
-	NETWORK_TX_DEMAND = 'network.get_demand',
-	VALIDATORS = 'validators.get_next_epoch_set',
-	LOOKUP_TX = 'transactions.lookup_transaction',
-	LOOKUP_VALIDATOR = 'validators.lookup_validator',
-	NATIVE_TOKEN = 'tokens.get_native_token',
-	TOKEN_INFO = 'tokens.get_info',
-	BUILD_TX_FROM_INTENT = 'construction.build_transaction',
-	SUBMIT_TX = 'construction.submit_transaction',
-	FINALIZE_TX = 'construction.finalize_transaction',
+export enum Method {
+	NETWORK_ID = 'get_id',
+	TOKEN_BALANCES = 'get_balances',
+	TRANSACTION_HISTORY = 'get_transaction_history',
+	STAKES = 'get_stake_positions',
+	UNSTAKES = 'get_unstake_positions',
+	TX_STATUS = 'get_transaction_status',
+	NETWORK_TX_THROUGHPUT = 'get_throughput',
+	NETWORK_TX_DEMAND = 'get_demand',
+	VALIDATORS = 'get_next_epoch_set',
+	LOOKUP_TX = 'lookup_transaction',
+	LOOKUP_VALIDATOR = 'lookup_validator',
+	NATIVE_TOKEN = 'get_native_token',
+	TOKEN_INFO = 'get_info',
+	BUILD_TX_FROM_INTENT = 'build_transaction',
+	SUBMIT_TX = 'submit_transaction',
+	FINALIZE_TX = 'finalize_transaction',
 }
 
-enum MethodLocation {
-	ARCHIVE = 'archive',
-	CONSTRUCTION = 'construction',
+enum Category {
+	NETWORK = 'network',
+	ACCOUNT = 'account',
+	VALIDATOR = 'validator',
+	TOKEN = 'token',
+	TRANSACTION = 'transaction',
+	CONSTRUCTION = 'construction'
 }
 
-const MethodEndpoints = {
-	[Endpoint.NETWORK_ID]: MethodLocation.ARCHIVE,
-	[Endpoint.TOKEN_BALANCES]: MethodLocation.ARCHIVE,
-	[Endpoint.TRANSACTION_HISTORY]: MethodLocation.ARCHIVE,
-	[Endpoint.STAKES]: MethodLocation.ARCHIVE,
-	[Endpoint.UNSTAKES]: MethodLocation.ARCHIVE,
-	[Endpoint.TX_STATUS]: MethodLocation.ARCHIVE,
-	[Endpoint.NETWORK_TX_THROUGHPUT]: MethodLocation.ARCHIVE,
-	[Endpoint.NETWORK_TX_DEMAND]: MethodLocation.ARCHIVE,
-	[Endpoint.VALIDATORS]: MethodLocation.ARCHIVE,
-	[Endpoint.LOOKUP_TX]: MethodLocation.ARCHIVE,
-	[Endpoint.LOOKUP_VALIDATOR]: MethodLocation.ARCHIVE,
-	[Endpoint.NATIVE_TOKEN]: MethodLocation.ARCHIVE,
-	[Endpoint.TOKEN_INFO]: MethodLocation.ARCHIVE,
-	[Endpoint.BUILD_TX_FROM_INTENT]: MethodLocation.CONSTRUCTION,
-	[Endpoint.SUBMIT_TX]: MethodLocation.CONSTRUCTION,
-	[Endpoint.FINALIZE_TX]: MethodLocation.CONSTRUCTION,
+export const Endpoint = {
+	[Method.NETWORK_ID]: Category.NETWORK,
+	[Method.TOKEN_BALANCES]: Category.ACCOUNT,
+	[Method.TRANSACTION_HISTORY]: Category.ACCOUNT,
+	[Method.STAKES]: Category.ACCOUNT,
+	[Method.UNSTAKES]: Category.ACCOUNT,
+	[Method.TX_STATUS]: Category.TRANSACTION,
+	[Method.NETWORK_TX_THROUGHPUT]: Category.NETWORK,
+	[Method.NETWORK_TX_DEMAND]: Category.NETWORK,
+	[Method.VALIDATORS]: Category.VALIDATOR,
+	[Method.LOOKUP_TX]: Category.TRANSACTION,
+	[Method.LOOKUP_VALIDATOR]: Category.VALIDATOR,
+	[Method.NATIVE_TOKEN]: Category.TOKEN,
+	[Method.TOKEN_INFO]: Category.TOKEN,
+	[Method.BUILD_TX_FROM_INTENT]: Category.CONSTRUCTION,
+	[Method.SUBMIT_TX]: Category.CONSTRUCTION,
+	[Method.FINALIZE_TX]: Category.CONSTRUCTION,
 }
 
 const correlationID = uuid()
 
 export const RPCClient: Client = (url: URL): Transport => {
 	const call = async (
-		method: string,
+		method: Method,
 		params: unknown[] | Record<string, unknown>,
 	): Promise<unknown> => {
-		// @ts-ignore
-		const endpoint = `${url.toString()}${MethodEndpoints[method]}`
+		const endpoint = `${url.toString()}${Endpoint[method]}`
 
 		const transport = new HTTPTransport(endpoint, {
 			headers: {
@@ -94,7 +97,7 @@ export const RPCClient: Client = (url: URL): Transport => {
 			//	throw err
 		})
 
-		
+		/*
 		console.log(
 			`calling ${method} at ${endpoint} with: ${JSON.stringify(
 				filteredParams,
@@ -102,7 +105,7 @@ export const RPCClient: Client = (url: URL): Transport => {
 				2,
 			)}`,
 		)
-
+*/
 
 		const response:
 			| Record<string, unknown>
@@ -119,7 +122,7 @@ export const RPCClient: Client = (url: URL): Transport => {
 			)}`,
 		)
 
-		console.log(`response for ${method} at ${endpoint}`, JSON.stringify(response, null, 2))
+		// console.log(`response for ${method} at ${endpoint}`, JSON.stringify(response, null, 2))
 		// TODO validate response
 
 		return response

@@ -302,7 +302,6 @@ export const handleTransactionStatusResponse = (
 					TransactionStatusEndpoint.DecodedResponse
 				>()(json)
 				.andThen(decoded => {
-					console.log(decoded)
 					return hasRequiredProps('transactionStatus', decoded, [
 						'txID',
 						'status',
