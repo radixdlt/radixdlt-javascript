@@ -19,7 +19,7 @@ export type AbstractAddressT = Readonly<{
 	addressType: AddressTypeT
 	network: Network
 	publicKey: PublicKeyT
-	toString: () => string
+	toPrimitive: () => string
 	equals: (other: AbstractAddressT) => boolean
 }>
 

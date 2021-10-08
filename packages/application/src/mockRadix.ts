@@ -38,10 +38,9 @@ import {
 	UnstakePositions,
 	Validator,
 	Validators,
-	ValidatorsRequestInput,
 	TransactionIdentifier,
 } from './dto'
-import { RadixCoreAPI } from './api'
+import { RadixAPI } from './api'
 import { shareReplay } from 'rxjs/operators'
 import { PrivateKey, PublicKeyT, sha256 } from '@radixdlt/crypto'
 import { ActionType, ExecutedAction } from './actions'
@@ -708,7 +707,7 @@ export const deterministicRandomStakesForAddr = (
 ): Observable<StakePositions> =>
 	of(deterministicRandomStakesForAddress(address))
 
-export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
+export const makeThrowingRadixCoreAPI = (nodeUrl?: string): any => ({
 	node: { url: new URL(nodeUrl ?? 'https://www.radixdlt.com/') },
 
 	networkId: (): Observable<Network> => {
@@ -727,7 +726,7 @@ export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
 		throw Error('Not implemented')
 	},
 
-	validators: (_input: ValidatorsRequestInput): Observable<Validators> => {
+	validators: (_input: any): Observable<Validators> => {
 		throw Error('Not implemented')
 	},
 
@@ -804,12 +803,11 @@ export const mockRadixCoreAPI = (
 		nodeUrl?: string
 		network?: Network
 	}>,
-): RadixCoreAPI => {
+): any => {
 	txStatusMapCounter = new Map<TransactionIdentifierT, number>()
 	return {
-		node: { url: new URL(input?.nodeUrl ?? 'https://www.radixdlt.com/') },
 
-		networkId: (): Observable<Network> =>
+		networkId: (): any =>
 			of(input?.network ?? Network.MAINNET).pipe(shareReplay(1)),
 		nativeToken: (): Observable<Token> => of(xrd),
 		tokenInfo: (rri: ResourceIdentifierT): Observable<Token> =>
@@ -832,14 +830,14 @@ export const mockRadixCoreAPI = (
 				status, // when TransactionStatus.FAIL ?
 			})
 		},
-		validators: (input: ValidatorsRequestInput): Observable<Validators> =>
+		validators: (input: any): any =>
 			of({
 				cursor: 'cursor',
 				validators: randomValidatorList(input.size),
 			}),
 		lookupValidator: (
-			validatorAddress: ValidatorAddressT,
-		): Observable<Validator> => {
+			validatorAddress: any,
+		): any => {
 			const validatorRnd = randomValidatorList(1, validatorAddress)[0]
 			const validator: Validator = {
 				...validatorRnd,
@@ -851,11 +849,11 @@ export const mockRadixCoreAPI = (
 			transactionIntent: TransactionIntent,
 		): Observable<BuiltTransaction> =>
 			of(randomUnsignedTransaction(transactionIntent)),
-		finalizeTransaction: (
+		finalizeTransaction: (	
 			signedTransaction: SignedTransaction,
 		): Observable<FinalizedTransaction> =>
 			of(detRandomSignedUnconfirmedTransaction(signedTransaction)),
-		submitSignedTransaction: signedUnconfirmedTX => of(signedUnconfirmedTX),
+		submitSignedTransaction: (signedUnconfirmedTX: any) => of(signedUnconfirmedTX),
 		NetworkTransactionDemand: (): Observable<NetworkTransactionDemand> =>
 			of(randomDemand()),
 		NetworkTransactionThroughput: (): Observable<NetworkTransactionThroughput> =>
@@ -867,4 +865,4 @@ export const mockRadixCoreAPI = (
 	}
 }
 
-export const mockedAPI: Observable<RadixCoreAPI> = of(mockRadixCoreAPI())
+export const mockedAPI: Observable<RadixAPI> = of(mockRadixCoreAPI())

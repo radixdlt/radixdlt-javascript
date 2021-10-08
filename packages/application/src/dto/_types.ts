@@ -85,12 +85,6 @@ export type TransactionIntent = Readonly<{
 	message?: Buffer
 }>
 
-export type ValidatorsRequestInput = Readonly<{
-	size: number
-	// AccountAddress of last seen validator in list
-	cursor?: string
-}>
-
 export enum TransactionTrackingEventType {
 	/* A TransactionIntent was successfully created and any message has been encrypted */
 	INITIATED = 'INITIATED',

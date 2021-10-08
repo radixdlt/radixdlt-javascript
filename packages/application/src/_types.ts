@@ -37,8 +37,7 @@ import {
 } from './actions'
 import { Option } from 'prelude-ts'
 import { SigningKeychainT, SigningKeyTypeT } from '@radixdlt/account/src/_types'
-import { Radix } from './radix'
-import { NodeT, RadixAPI, RadixCoreAPI } from './api'
+import { RadixAPI } from './api'
 import { LogLevel } from 'packages/account/node_modules/@radixdlt/util/dist'
 import { ErrorT } from './errors'
 
@@ -160,9 +159,9 @@ export type RadixT = Readonly<{
 	connect: (url: string) => Promise<void>
 
 	// Primiarily useful for testing.
-	__withAPI: (radixCoreAPI$: Observable<RadixCoreAPI>) => RadixT
+	__withAPI: (radixCoreAPI$: Observable<RadixAPI>) => RadixT
 
-	__withNodeConnection: (node$: Observable<NodeT>) => RadixT
+	__withNodeConnection: (node$: Observable<URL>) => RadixT
 	__withWallet: (wallet: WalletT) => RadixT
 	login: (password: string, loadKeystore: () => Promise<KeystoreT>) => RadixT
 
@@ -246,7 +245,7 @@ export type RadixT = Readonly<{
 	errors: Observable<ErrorT<any>>
 
 	__wallet: Observable<WalletT>
-	__node: Observable<NodeT>
+	__node: Observable<URL>
 	__reset: () => void
 
 	__withKeychain: (signingKeychain: SigningKeychainT) => RadixT

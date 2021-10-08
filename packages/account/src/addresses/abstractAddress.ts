@@ -61,7 +61,7 @@ const __create = <A extends AbstractAddressT>(
 			throw new Error(errMsg)
 		})
 		.map(encoded => {
-			const toString = (): string => encoded.toString()
+			const toPrimitive = (): string => encoded.toString()
 
 			const equals = (other: AbstractAddressT): boolean => {
 				if (!isAbstractAddress(other)) {
@@ -78,7 +78,7 @@ const __create = <A extends AbstractAddressT>(
 				addressType,
 				network,
 				publicKey,
-				toString,
+				toPrimitive,
 				equals,
 			}
 
@@ -186,11 +186,11 @@ const fromString = <A extends AbstractAddressT>(
 			(abstractAddress: A): A => {
 				// Soundness check
 				if (
-					abstractAddress.toString().toLowerCase() !==
+					abstractAddress.toPrimitive().toLowerCase() !==
 					bechString.toLowerCase()
 				) {
 					const errMsg = `Incorrect implementation, AbstractAddress mismatch, passed in: ${bechString.toLowerCase()}, created: ${abstractAddress
-						.toString()
+						.toPrimitive()
 						.toLowerCase()}`
 					log.error(errMsg)
 					throw new Error(errMsg)

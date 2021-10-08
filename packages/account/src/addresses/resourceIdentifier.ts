@@ -18,6 +18,8 @@ const networkFromHRPSuffix = (hrp: string): Result<Network, Error> =>
 		? ok(Network.MAINNET)
 		: hrp === HRP.STOKENET.RRI_suffix
 		? ok(Network.STOKENET)
+		: hrp === HRP.LOCALHOST.RRI_suffix
+		? ok(Network.LOCALHOST)
 		: hrp === HRP.TESTNET3.RRI_suffix
 		? ok(Network.TESTNET3)
 		: hrp === HRP.TESTNET4.RRI_suffix

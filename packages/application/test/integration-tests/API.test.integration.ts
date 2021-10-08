@@ -64,7 +64,7 @@ const requestFaucet = async (address: string) => {
 
 let subs: Subscription
 
-let radix: RadixT
+let radix: any
 let accounts: AccountT[]
 let balances: TokenBalances
 let nativeTokenBalance: TokenBalance
@@ -75,10 +75,13 @@ describe('integration API tests', () => {
 		await radix
 			.__withWallet(makeWalletWithFunds(network))
 			.connect(`${NODE_URL}`)
-		accounts = (
+		
+		
+		accounts = ((
 			await firstValueFrom(radix.restoreLocalHDAccountsToIndex(2))
-		).all
+		) as any).all
 
+		/*
 		balances = await firstValueFrom(radix.tokenBalances)
 		const maybeTokenBalance = balances.tokenBalances.find(
 			a => a.token.symbol.toLowerCase() === 'xrd',
@@ -89,6 +92,7 @@ describe('integration API tests', () => {
 		}
 
 		nativeTokenBalance = maybeTokenBalance
+		*/
 	})
 
 	beforeEach(() => {
@@ -97,7 +101,7 @@ describe('integration API tests', () => {
 	afterEach(() => {
 		subs.unsubscribe()
 	})
-
+	/*
 	it('can connect and is chainable', async () => {
 		const radix = Radix.create()
 		await radix.connect(`${NODE_URL}`)
@@ -468,18 +472,18 @@ describe('integration API tests', () => {
 		expect(txID.equals(tx.txID)).toBe(true)
 		expect(tx.actions.length).toEqual(1)
 	})
-
+	*/
 	// 🟢
-	it('can lookup validator', async () => {
-		const validator = (
-			await firstValueFrom(radix.ledger.validators({ size: 1 }))
-		).validators[0]
-		const validatorFromLookup = await firstValueFrom(
-			radix.ledger.lookupValidator(validator.address),
-		)
+	it.only('can lookup validator', async () => {
+		const validator = (await radix.validators({ size: 1 }))._unsafeUnwrap().validators[0]
+
+		const validatorFromLookup = (await radix.lookupValidator({
+			validatorAddress: validator.address
+		}))._unsafeUnwrap()
 
 		expect(validatorFromLookup.address.equals(validator.address)).toBe(true)
 	})
+	/*
 
 	// 🟢
 	it('should get validators', async () => {
@@ -618,7 +622,7 @@ describe('integration API tests', () => {
 		)
 	})
 
-	it.skip('can fetch unstake positions', async () => {
+	it.only('can fetch unstake positions', async () => {
 		const triggerSubject = new Subject<number>()
 
 		radix.withStakingFetchTrigger(triggerSubject)
@@ -656,7 +660,8 @@ describe('integration API tests', () => {
 		triggerSubject.next(0)
 
 		const positions = await firstValueFrom(radix.unstakingPositions)
-
+		console.log(positions[0].amount.toString())
+		console.log(stakeAmount.toString())
 		expect(positions[0].amount.eq(stakeAmount)).toBeTruthy()
 	})
 
@@ -814,5 +819,6 @@ describe('integration API tests', () => {
 				}),
 			)
 		})
-	})
+	})*/
 })
+
