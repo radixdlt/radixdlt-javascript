@@ -6,7 +6,7 @@ export type ResourceIdentifierT = Readonly<{
 	__witness: 'isRRI'
 	network: Network
 	name: string
-	toString: () => string
+	toPrimitive: () => string
 	equals: (other: ResourceIdentifierT) => boolean
 }>
 

@@ -1,6 +1,8 @@
 import { UInt256 } from '@radixdlt/uint256'
 
-export type AmountT = UInt256
+export type AmountT = UInt256 & {
+	toPrimitive: () => string
+}
 
 export enum Network {
 	MAINNET = 'MAINNET',

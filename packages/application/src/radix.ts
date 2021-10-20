@@ -1,11 +1,13 @@
 import {
 	AccountAddressT,
+	AddressOrUnsafeInput,
 	DeriveHWSigningKeyInput,
 	DeriveNextInput,
+	ResourceIdentifierOrUnsafeInput,
 	SigningKeychain,
 	SigningKeychainT,
 } from '@radixdlt/account'
-import { Network } from '@radixdlt/primitives'
+import { AmountOrUnsafeInput, Network } from '@radixdlt/primitives'
 import { nodeAPI, RadixAPI, radixAPI } from './api'
 
 import {
@@ -51,6 +53,7 @@ import {
 	TransferTokensOptions,
 	UnstakeOptions,
 	RadixT,
+	MessageInTransaction,
 } from './_types'
 import {
 	APIError,
@@ -105,9 +108,10 @@ import {
 	TransactionTrackingEventType,
 	TransactionType,
 } from './dto'
-import { ActionType, ExecutedAction, TransferTokensAction } from './actions'
+import { ExecutedAction, TransferTokensAction } from './actions'
 import { Wallet } from './wallet'
 import { pipe } from 'ramda'
+import { buildTransaction, ActionType } from './dto/build-transaction'
 
 const txTypeFromActions = (
 	input: Readonly<{
@@ -719,24 +723,26 @@ api
 		return __makeTransactionFromIntent(intent$, makeTXOptions)
 	}
 
+	*/
 	const transferTokens = (
-		input: TransferTokensOptions,
+		to: AddressOrUnsafeInput,
+		amount: AmountOrUnsafeInput,
+		tokenIdentifier: ResourceIdentifierOrUnsafeInput,
+		message?: MessageInTransaction
 	): TransactionTracking => {
-		radixLog.debug(`transferTokens`)
-		const builder = TransactionIntentBuilder.create().transferTokens(
-			input.transferInput,
-		)
+		const builder = TransactionIntentBuilder.create().transferTokens({ to, amount, tokenIdentifier })
 
-		let encryptMsgIfAny = false
-		if (input.message) {
-			builder.message(input.message)
-			encryptMsgIfAny = input.message.encrypt
-		}
+		if (message) builder.message(message)
+		buildTransaction({
+			type: ActionType.TRANSFER,
+			to
 
-		return __makeTransactionFromBuilder(
+		})
+
+		/*return __makeTransactionFromBuilder(
 			builder,
-			{ ...input },
-			encryptMsgIfAny
+			{ to, amount, tokenIdentifier },
+			message?.encrypt
 				? {
 					encryptMessageIfAnyWithAccount: activeAccount.pipe(
 						take(1), // Important !
@@ -744,7 +750,9 @@ api
 				}
 				: undefined,
 		)
+		*/
 	}
+	/*
 
 	const stakeTokens = (input: StakeOptions) => {
 		radixLog.debug('stake')
@@ -1028,7 +1036,9 @@ api
 		// Methods
 		lookupTransaction,
 		transactionHistory,
+		*/
 		transferTokens,
+		/*
 		stakeTokens,
 		unstakeTokens,
 		*/

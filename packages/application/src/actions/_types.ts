@@ -15,9 +15,9 @@ export enum ActionType {
 	OTHER = 'Other',
 }
 
-export type Action<T extends ActionType = ActionType.OTHER> = Readonly<{
+export type Action<T extends ActionType = ActionType.OTHER> = {
 	type: T
-}>
+}
 
 // ##################################
 // ####                         #####
@@ -50,21 +50,21 @@ export type ActionInput =
 // ####     INTENDED ACTIONS    #####
 // ####                         #####
 // ##################################
-export type TransferTokensProps = Readonly<{
+export type TransferTokensProps = {
 	to: AccountAddressT
 	from: AccountAddressT
 	amount: AmountT
 	rri: ResourceIdentifierT
-}>
+}
 
 export type TransferTokensAction = TransferTokensProps &
 	Action<ActionType.TOKEN_TRANSFER>
 
-export type StakeAndUnstakeTokensProps = Readonly<{
+export type StakeAndUnstakeTokensProps = {
 	from: AccountAddressT
 	validator: ValidatorAddressT
 	amount: AmountT
-}>
+}
 
 export type StakeTokensProps = StakeAndUnstakeTokensProps
 export type UnstakeTokensProps = StakeAndUnstakeTokensProps

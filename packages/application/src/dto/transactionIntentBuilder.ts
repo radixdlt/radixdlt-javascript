@@ -247,7 +247,9 @@ const isTransactionIntentBuilderDoNotEncryptOption = (
 
 const create = (): TransactionIntentBuilderT => {
 	const intermediateActions: IntermediateAction[] = []
+
 	let maybePlaintextMsgToEncrypt: Option<MessageInTransaction> = Option.none()
+	
 	const snapshotState = (): TransactionIntentBuilderState => ({
 		actionInputs: intermediateActions,
 		message: maybePlaintextMsgToEncrypt.getOrUndefined(),

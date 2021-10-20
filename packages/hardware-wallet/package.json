@@ -30,7 +30,7 @@
     "@radixdlt/crypto": "^2.1.4",
     "@radixdlt/primitives": "^3.0.0",
     "@radixdlt/util": "1.0.29",
-    "neverthrow": "4.0.1",
+    "neverthrow": "^4.3.0",
     "prelude-ts": "^1.0.2",
     "rxjs": "7.0.0",
     "uuid": "^8.3.2"

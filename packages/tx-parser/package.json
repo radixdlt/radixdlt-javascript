@@ -34,7 +34,7 @@
     "@radixdlt/uint256": "1.1.0",
     "@radixdlt/util": "1.0.29",
     "long": "^4.0.0",
-    "neverthrow": "^4.0.1"
+    "neverthrow": "^4.3.0"
   },
   "devDependencies": {
     "@types/bn.js": "^4.11.6",

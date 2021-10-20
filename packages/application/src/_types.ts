@@ -50,10 +50,10 @@ export type TransactionConfirmationBeforeFinalization =
 	| 'skip'
 	| ReplaySubject<ManualUserConfirmTX>
 
-export type MessageInTransaction = Readonly<{
+export type MessageInTransaction = {
 	plaintext: string
 	encrypt: boolean
-}>
+}
 
 export type MakeTransactionOptions = Readonly<{
 	userConfirmation: TransactionConfirmationBeforeFinalization

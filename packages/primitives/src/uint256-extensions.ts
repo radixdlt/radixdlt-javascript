@@ -6,6 +6,7 @@ import {
 	SecureRandom,
 	secureRandomGenerator,
 } from '@radixdlt/util'
+import { AmountT } from './_types'
 
 const bnUInt256Max: BN = new BN(2).pow(new BN(256)).sub(new BN(1))
 
@@ -22,7 +23,7 @@ export const fitsInUInt256 = (number: BN | number): boolean => {
  * @param {BN} bn - A big number to be converted into a UInt256.
  * @returns {UInt256} A 256 bit wide unsigned integer.
  */
-export const uint256FromBN = (bn: BN): Result<UInt256, Error> => {
+export const uint256FromBN = (bn: BN): Result<AmountT, Error> => {
 	if (!fitsInUInt256(bn)) {
 		return err(
 			new Error(
@@ -30,7 +31,12 @@ export const uint256FromBN = (bn: BN): Result<UInt256, Error> => {
 			),
 		)
 	}
-	return ok(new UInt256(bn.toString('hex'), 16))
+	const result = new UInt256(bn.toString('hex'), 16)
+
+	// @ts-ignore
+	result.prototype.toPrimitive = result.toString
+
+	return ok(result as AmountT)
 }
 
 export type UInt256InputUnsafe =
@@ -57,7 +63,7 @@ export const isUnsafeInputForUInt256 = (
 
 export const uint256FromUnsafe = (
 	unsafe: UInt256InputUnsafe,
-): Result<UInt256, Error> => {
+): Result<AmountT, Error> => {
 	// eslint-disable-next-line functional/no-try-statement
 	try {
 		const bn = new BN(unsafe)
