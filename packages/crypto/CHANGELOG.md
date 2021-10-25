@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.1.5](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/crypto@2.1.4...@radixdlt/crypto@2.1.5) (2021-10-25)
+
+**Note:** Version bump only for package @radixdlt/crypto
+
+
+
+
+
 ## [2.1.4](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/crypto@2.1.3...@radixdlt/crypto@2.1.4) (2021-08-04)
 
 **Note:** Version bump only for package @radixdlt/crypto
