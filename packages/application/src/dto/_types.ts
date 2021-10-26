@@ -17,6 +17,7 @@ import { PublicKeyT, SignatureT } from '@radixdlt/crypto'
 import { Observable } from 'rxjs'
 import { Result } from 'neverthrow'
 import { AccountT, MessageInTransaction } from '../_types'
+import { Action } from './build-transaction'
 
 export type StakePosition = Readonly<{
 	validator: ValidatorAddressT
@@ -37,7 +38,7 @@ export type UnstakePosition = Readonly<{
 export type TransactionIdentifierT = Readonly<{
 	__witness: 'isTXId'
 	__hex: string
-	toString: () => string
+	toPrimitive: () => string
 	equals: (other: TransactionIdentifierT) => boolean
 }>
 
@@ -81,7 +82,7 @@ export type TransactionIntentBuilderT = Readonly<{
 }>
 
 export type TransactionIntent = Readonly<{
-	actions: IntendedAction[]
+	actions: Action[]
 	message?: Buffer
 }>
 
@@ -226,7 +227,7 @@ export type RawExecutedActionBase<T extends ActionType> = Readonly<{
 
 export type RawOtherExecutedAction = RawExecutedActionBase<ActionType.OTHER>
 
-export type RawTransferAction = RawExecutedActionBase<ActionType.TOKEN_TRANSFER> &
+export type RawTransferAction = RawExecutedActionBase<ActionType.TRANSFER> &
 	Readonly<{
 		from: string
 		to: string
@@ -234,14 +235,14 @@ export type RawTransferAction = RawExecutedActionBase<ActionType.TOKEN_TRANSFER>
 		rri: string
 	}>
 
-export type RawStakesAction = RawExecutedActionBase<ActionType.STAKE_TOKENS> &
+export type RawStakesAction = RawExecutedActionBase<ActionType.STAKE> &
 	Readonly<{
 		from: string
 		validator: string
 		amount: string
 	}>
 
-export type RawUnstakesAction = RawExecutedActionBase<ActionType.UNSTAKE_TOKENS> &
+export type RawUnstakesAction = RawExecutedActionBase<ActionType.UNSTAKE> &
 	Readonly<{
 		from: string
 		validator: string

@@ -40,7 +40,7 @@ const __create = (input: {
 	hash: Buffer
 	name: string
 	network: Network
-	toString: () => string
+	toPrimitive: () => string
 }): ResourceIdentifierT => ({
 	...input,
 	__witness: 'isRRI',
@@ -51,8 +51,8 @@ const __create = (input: {
 			buffersEquals(other.hash, input.hash) &&
 			input.network === other.network
 		if (same) {
-			if (other.toString() !== input.toString()) {
-				const errMsg = `ResourceIdentifiers believed to be equal, but return different values when calling toString, (this)'${input.toString()}' vs other: '${other.toString()}'`
+			if (other.toString() !== input.toPrimitive()) {
+				const errMsg = `ResourceIdentifiers believed to be equal, but return different values when calling toString, (this)'${input.toPrimitive()}' vs other: '${other.toString()}'`
 				console.error(errMsg)
 				throw new Error(errMsg)
 			}
@@ -158,7 +158,7 @@ const fromBech32String = (
 			hash: combinedData,
 			network,
 			name,
-			toString: () => bechString,
+			toPrimitive: () => bechString,
 		}),
 	)
 }
@@ -203,7 +203,7 @@ const withNameRawDataAndVersionByte = (
 					hash,
 					network,
 					name,
-					toString: () => bech32.toString(),
+					toPrimitive: () => bech32.toString(),
 				}),
 			)
 	})

@@ -37,7 +37,7 @@ export const __createIntendedStakeAction = (
 			return {
 				validator,
 				amount,
-				type: ActionType.STAKE_TOKENS,
+				type: ActionType.STAKE,
 				from,
 			}
 		},

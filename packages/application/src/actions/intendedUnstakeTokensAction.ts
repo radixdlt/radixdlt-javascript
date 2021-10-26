@@ -22,7 +22,7 @@ const create = (
 	__createIntendedStakeAction(input, from).map(
 		(a: IntendedStakeTokensAction) => ({
 			...a,
-			type: ActionType.UNSTAKE_TOKENS,
+			type: ActionType.UNSTAKE,
 		}),
 	)
 

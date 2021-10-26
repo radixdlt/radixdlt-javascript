@@ -109,7 +109,7 @@ export const isTransferTokensAction = (
 ): something is TransferTokensAction => {
 	const inspection = something as TransferTokensAction
 	return (
-		inspection.type === ActionType.TOKEN_TRANSFER &&
+		inspection.type === ActionType.TRANSFER &&
 		isAccountAddress(inspection.to) &&
 		isAccountAddress(inspection.from) &&
 		isAmount(inspection.amount) &&
@@ -122,7 +122,7 @@ export const isStakeTokensAction = (
 ): something is StakeTokensAction => {
 	const inspection = something as StakeTokensAction
 	return (
-		inspection.type === ActionType.STAKE_TOKENS &&
+		inspection.type === ActionType.STAKE &&
 		isAccountAddress(inspection.from) &&
 		isAccountAddress(inspection.validator) &&
 		isAmount(inspection.amount)
@@ -134,7 +134,7 @@ export const isUnstakeTokensAction = (
 ): something is UnstakeTokensAction => {
 	const inspection = something as UnstakeTokensAction
 	return (
-		inspection.type === ActionType.UNSTAKE_TOKENS &&
+		inspection.type === ActionType.UNSTAKE &&
 		isAccountAddress(inspection.from) &&
 		isAccountAddress(inspection.validator) &&
 		isAmount(inspection.amount)
@@ -338,7 +338,7 @@ const create = (): TransactionIntentBuilderT => {
 
 	const syncBuildDoNotEncryptMessageIfAny = (
 		from: AccountAddressT,
-	): Result<TransactionIntent, Error> =>
+	): any =>
 		intendedActionsFromIntermediateActions(from).map(
 			({ intendedActions }) => ({
 				actions: intendedActions,
@@ -354,7 +354,7 @@ const create = (): TransactionIntentBuilderT => {
 
 	const build = (
 		options: TransactionIntentBuilderOptions,
-	): Observable<TransactionIntent> => {
+	): any => {
 		if (isTransactionIntentBuilderDoNotEncryptOption(options)) {
 			if (
 				maybePlaintextMsgToEncrypt.map(m => m.encrypt).getOrElse(false)
@@ -393,10 +393,10 @@ const create = (): TransactionIntentBuilderT => {
 			mergeMap(
 				(
 					intendedActionsFrom: IntendedActionsFrom,
-				): Observable<TransactionIntent> => {
+				): any => {
 					const transactionIntentWithoutEncryption = (
 						plaintextMessage?: string,
-					): Observable<TransactionIntent> => {
+					): any => {
 						log.info(
 							`Successfully built transaction. Actions: ${intendedActionsFrom.intendedActions
 								.map(action => action.type)
@@ -454,7 +454,7 @@ const create = (): TransactionIntentBuilderT => {
 										)
 										return {
 											actions:
-												intendedActionsFrom.intendedActions,
+												intendedActionsFrom.intendedActions as any,
 											message: encryptedMessage.combined(),
 										}
 									},

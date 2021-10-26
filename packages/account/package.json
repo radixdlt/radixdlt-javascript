@@ -28,12 +28,12 @@
     "node": ">=15.5.0 <16"
   },
   "dependencies": {
-    "@radixdlt/crypto": "^2.1.4",
-    "@radixdlt/data-formats": "1.0.30",
-    "@radixdlt/hardware-wallet": "^2.1.7",
-    "@radixdlt/primitives": "^3.0.0",
+    "@radixdlt/crypto": "/home/aleworm/radixdlt-javascript/packages/crypto",
+    "@radixdlt/data-formats": "/home/aleworm/radixdlt-javascript/packages/data-formats",
+    "@radixdlt/hardware-wallet": "/home/aleworm/radixdlt-javascript/packages/hardware-wallet",
+    "@radixdlt/primitives": "/home/aleworm/radixdlt-javascript/packages/primitives",
     "@radixdlt/uint256": "1.1.0",
-    "@radixdlt/util": "1.0.29",
+    "@radixdlt/util": "/home/aleworm/radixdlt-javascript/packages/util",
     "bech32": "^2.0.0",
     "bip39": "^3.0.3",
     "hdkey": "^2.0.1",

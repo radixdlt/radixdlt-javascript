@@ -30,19 +30,19 @@
   },
   "dependencies": {
     "@ledgerhq/hw-transport-node-hid": "^6.2.0",
-    "@radixdlt/crypto": "^2.1.4",
-    "@radixdlt/hardware-wallet": "^2.1.7",
-    "@radixdlt/primitives": "^3.0.0",
-    "@radixdlt/tx-parser": "^2.1.9",
-    "@radixdlt/util": "1.0.29",
+    "@radixdlt/crypto": "/home/aleworm/radixdlt-javascript/packages/crypto",
+    "@radixdlt/hardware-wallet": "/home/aleworm/radixdlt-javascript/packages/hardware-wallet",
+    "@radixdlt/primitives": "/home/aleworm/radixdlt-javascript/packages/primitives",
+    "@radixdlt/tx-parser": "/home/aleworm/radixdlt-javascript/packages/tx-parser",
+    "@radixdlt/util": "/home/aleworm/radixdlt-javascript/packages/util",
     "neverthrow": "^4.3.0",
     "prelude-ts": "^1.0.2",
     "rxjs": "7.0.0",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@radixdlt/account": "^3.0.0",
-    "@radixdlt/application": "^3.0.5",
+    "@radixdlt/account": "/home/aleworm/radixdlt-javascript/packages/account",
+    "@radixdlt/application": "/home/aleworm/radixdlt-javascript/packages/application",
     "@types/uuid": "^8.3.0"
   }
 }

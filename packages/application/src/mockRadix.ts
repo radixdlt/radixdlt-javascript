@@ -574,11 +574,11 @@ export const deterministicRandomTxHistoryWithInput = (
 									const v: number = anInt() % 4 // Transfer, Stake, Unstake, Other
 									const actionType: ActionType =
 										v === 0
-											? ActionType.TOKEN_TRANSFER
+											? ActionType.TRANSFER
 											: v === 1
-											? ActionType.STAKE_TOKENS
+											? ActionType.STAKE
 											: v === 2
-											? ActionType.UNSTAKE_TOKENS
+											? ActionType.UNSTAKE
 											: ActionType.OTHER
 
 									let executedAction: ExecutedAction
@@ -593,9 +593,9 @@ export const deterministicRandomTxHistoryWithInput = (
 												type: ActionType.OTHER,
 											}
 											break
-										case ActionType.STAKE_TOKENS:
+										case ActionType.STAKE:
 											executedAction = {
-												type: ActionType.STAKE_TOKENS,
+												type: ActionType.STAKE,
 												from: address,
 												amount: Amount.fromUnsafe(
 													anInt(),
@@ -603,9 +603,9 @@ export const deterministicRandomTxHistoryWithInput = (
 												validator: detRandomValidatorAddress(),
 											}
 											break
-										case ActionType.UNSTAKE_TOKENS:
+										case ActionType.UNSTAKE:
 											executedAction = {
-												type: ActionType.UNSTAKE_TOKENS,
+												type: ActionType.UNSTAKE,
 												from: address,
 												amount: Amount.fromUnsafe(
 													anInt(),
@@ -613,9 +613,9 @@ export const deterministicRandomTxHistoryWithInput = (
 												validator: detRandomValidatorAddress(),
 											}
 											break
-										case ActionType.TOKEN_TRANSFER:
+										case ActionType.TRANSFER:
 											executedAction = {
-												type: ActionType.TOKEN_TRANSFER,
+												type: ActionType.TRANSFER,
 												from: address,
 												to: detRandomAddress(),
 												amount: tokenAndAmount.amount,

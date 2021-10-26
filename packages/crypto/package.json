@@ -35,10 +35,10 @@
     "node": ">=15.5.0 <16"
   },
   "dependencies": {
-    "@radixdlt/data-formats": "1.0.30",
-    "@radixdlt/primitives": "^3.0.0",
+    "@radixdlt/data-formats": "/home/aleworm/radixdlt-javascript/packages/data-formats",
+    "@radixdlt/primitives": "/home/aleworm/radixdlt-javascript/packages/primitives",
     "@radixdlt/uint256": "1.1.0",
-    "@radixdlt/util": "1.0.29",
+    "@radixdlt/util": "/home/aleworm/radixdlt-javascript/packages/util",
     "base-x": "^3.0.8",
     "elliptic": "^6.5.3",
     "neverthrow": "^4.3.0",

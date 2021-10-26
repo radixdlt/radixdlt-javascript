@@ -34,7 +34,7 @@ export const uint256FromBN = (bn: BN): Result<AmountT, Error> => {
 	const result = new UInt256(bn.toString('hex'), 16)
 
 	// @ts-ignore
-	result.prototype.toPrimitive = result.toString
+	result.toPrimitive = result.toString
 
 	return ok(result as AmountT)
 }

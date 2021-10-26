@@ -24,9 +24,9 @@ const create = (
 	return ok({
 		__witness: 'isTXId',
 		__hex: asString,
-		toString: () => asString,
+		toPrimitive: () => asString,
 		equals: (other: TransactionIdentifierT) =>
-			other.toString() === asString,
+			other.toPrimitive() === asString,
 	})
 }
 

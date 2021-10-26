@@ -27,14 +27,13 @@ import {
 import { ActionType } from '../actions'
 import { Network } from '@radixdlt/primitives'
 import { pipe } from 'ramda'
+import { Action } from '../dto/build-transaction'
 
-const convertToPrimitives = <T extends Record<string, any>>() => (object: T): any => {
-	console.log('input:', object)
+const convertToPrimitives = <T extends Record<string, any>>() => (object: T): any => { // TODO Fix return type
 	let newObject: Record<string, any> = {}
 
-	for (let key in object) newObject[key] = object[key].toPrimitive ? object[key].toPrimitive() : object[key]
+	for (let key in object) newObject[key] = object[key] && object[key].toPrimitive ? object[key].toPrimitive() : object[key]
 
-	console.log('output:', newObject)
 	return newObject
 }
 
@@ -49,24 +48,19 @@ export const radixAPI = (api: NodeAPI) => ({
 		api['validators.lookup_validator']
 	),
 	
-	/*
-	lookupTransaction: (
-		txID: TransactionIdentifierT,
-	): Observable<SimpleExecutedTransaction> =>
-		toObs(a => a['transactions.lookup_transaction'], {
-			txID: txID.toString(),
-		}),
-	*/
+	
+	lookupTransaction: pipe(
+		convertToPrimitives<{ txID: TransactionIdentifierT }>(),
+		api['transactions.lookup_transaction']
+	),
 
-	networkId: () => api['network.get_id']({})
-		/*
-	tokenBalancesForAddress: (
-		address: AccountAddressT,
-	): Observable<SimpleTokenBalances> =>
-		toObs(a => a['account.get_balances'], {
-			address: address.toString(),
-		}),
-
+	networkId: () => api['network.get_id']({}),
+		
+	tokenBalancesForAddress: pipe(
+		convertToPrimitives<{ address: AccountAddressT }>(),
+		api['account.get_balances']
+	),
+/*
 	transactionHistory: (
 		input: TransactionHistoryRequestInput,
 	): Observable<SimpleTransactionHistory> =>
@@ -96,66 +90,49 @@ export const radixAPI = (api: NodeAPI) => ({
 		toObs(a => a['account.get_unstake_positions'], {
 			address: address.toString(),
 		}),
-
-	transactionStatus: (
-		txID: TransactionIdentifierT,
-	): Observable<StatusOfTransaction> =>
-		toObs(a => a['transactions.get_transaction_status'], {
-			txID: txID.toString(),
-		}),
-
+*/
+	transactionStatus: pipe(
+		convertToPrimitives<{ txID: TransactionIdentifierT }>(),
+		api['transactions.get_transaction_status']
+	),
+/*
 	NetworkTransactionThroughput: (): Observable<NetworkTransactionThroughput> =>
 		toObs(a => a['network.get_throughput'], {}),
 
 	NetworkTransactionDemand: (): Observable<NetworkTransactionDemand> =>
 		toObs(a => a['network.get_demand'], {}),
-
-	buildTransaction: (
-		transactionIntent: TransactionIntent,
-		from: AccountAddressT,
-	): Observable<BuiltTransaction> =>
-		toObs(a => a['construction.build_transaction'], {
-			actions: transactionIntent.actions.map(action =>
-				action.type === ActionType.TOKEN_TRANSFER
-					? {
-						type: action.type,
-						from: action.from.toString(),
-						to: action.to.toString(),
-						amount: action.amount.toString(),
-						rri: action.rri.toString(),
-					}
-					: {
-						type: action.type,
-						from: action.from.toString(),
-						validator: action.validator.toString(),
-						amount: action.amount.toString(),
-					},
-			),
-			feePayer: from.toString(),
-			disableResourceAllocationAndDestroy: true,
-			message: transactionIntent.message
-				? transactionIntent.message.toString('hex')
-				: undefined,
+*/
+	buildTransaction: pipe(
+		convertToPrimitives<{ from: AccountAddressT } & TransactionIntent>(),
+		args => ({
+			...args,
+			actions: args.actions.map((action: any) => ({
+				from: action.from.toPrimitive(),
+				to: action.to.toPrimitive(),
+				amount: action.amount,
+				rri: action.rri.toPrimitive(),
+				type: action.type
+			})),
+			feePayer: args.from,
+			disableResourceAllocationAndDestroy: true
 		}),
+		api['construction.build_transaction']
+	),
 
-	finalizeTransaction: (
-		signedTransaction: SignedTransaction,
-	): Observable<FinalizedTransaction> =>
-		toObs(a => a['construction.finalize_transaction'], {
+	finalizeTransaction: pipe(
+		(signedTransaction: SignedTransaction) => ({
 			blob: signedTransaction.transaction.blob,
 			signatureDER: signedTransaction.signature.toDER(),
-			publicKeyOfSigner: signedTransaction.publicKeyOfSigner.toString(
-				true,
-			),
+			publicKeyOfSigner: signedTransaction.publicKeyOfSigner.toString(true)
 		}),
+		api['construction.finalize_transaction']
+	),
 
-	submitSignedTransaction: (
-		finalizedTx: FinalizedTransaction,
-	): Observable<PendingTransaction> =>
-		toObs(a => a['construction.submit_transaction'], {
+	submitSignedTransaction: pipe(
+		(finalizedTx: FinalizedTransaction) => ({
 			blob: finalizedTx.blob,
-			txID: finalizedTx.txID.toString(),
+			txID: finalizedTx.txID.toPrimitive(),
 		}),
-
-		*/
+		api['construction.submit_transaction']
+	)
 })

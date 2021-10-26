@@ -6,8 +6,9 @@ import {
 	ResourceIdentifierOrUnsafeInput,
 	SigningKeychain,
 	SigningKeychainT,
+	isPrimitive
 } from '@radixdlt/account'
-import { AmountOrUnsafeInput, Network } from '@radixdlt/primitives'
+import { AmountOrUnsafeInput, AmountT, Network } from '@radixdlt/primitives'
 import { nodeAPI, RadixAPI, radixAPI } from './api'
 
 import {
@@ -29,6 +30,7 @@ import {
 	EMPTY,
 	firstValueFrom,
 	forkJoin,
+	from,
 	interval,
 	lastValueFrom,
 	merge,
@@ -78,7 +80,7 @@ import {
 	validatorsErr,
 	walletError,
 } from './errors'
-import { log, LogLevel, msgFromError, isArray } from '@radixdlt/util'
+import { log, LogLevel, msgFromError, isArray, toObservable, toObservableFromResult } from '@radixdlt/util'
 import {
 	BuiltTransaction,
 	ExecutedTransaction,
@@ -90,7 +92,6 @@ import {
 	SimpleTokenBalance,
 	SimpleTokenBalances,
 	SimpleTransactionHistory,
-	singleRecipientFromActions,
 	Token,
 	TokenBalance,
 	TokenBalances,
@@ -98,7 +99,6 @@ import {
 	TransactionHistoryActiveAccountRequestInput,
 	TransactionIdentifierT,
 	TransactionIntent,
-	TransactionIntentBuilder,
 	TransactionIntentBuilderOptions,
 	TransactionIntentBuilderT,
 	TransactionStateError,
@@ -108,10 +108,12 @@ import {
 	TransactionTrackingEventType,
 	TransactionType,
 } from './dto'
-import { ExecutedAction, TransferTokensAction } from './actions'
+import { ActionType, ExecutedAction, TransferTokensAction } from './actions'
 import { Wallet } from './wallet'
 import { pipe } from 'ramda'
-import { buildTransaction, ActionType } from './dto/build-transaction'
+import { buildTransaction, createTransfer, Action } from './dto/build-transaction'
+import { err, ok, Result, ResultAsync } from 'neverthrow'
+import { ResourceIdentifierT } from 'packages/account/src/addresses'
 
 const txTypeFromActions = (
 	input: Readonly<{
@@ -341,7 +343,7 @@ api
 		mergeMap(wallet => wallet.observeAccounts()),
 		shareReplay(1),
 	)
-	/*
+	
 	const __makeTransactionFromIntent = (
 		transactionIntent$: Observable<TransactionIntent>,
 		options: MakeTransactionOptions,
@@ -367,8 +369,8 @@ api
 						account,
 					]): Observable<SignedTransaction> => {
 						const nonXRDHRPsOfRRIsInTx: string[] = transactionIntent.actions
-							.filter(a => a.type === ActionType.TOKEN_TRANSFER)
-							.map(a => a as TransferTokensAction)
+							.filter(a => a.type === ActionType.TRANSFER)
+							.map(a => a as Action.Transfer)
 							.filter(t => t.rri.name !== 'xrd')
 							.map(t => t.rri.name)
 
@@ -475,7 +477,7 @@ api
 		const builtTransaction$ = transactionIntent$.pipe(
 			withLatestFrom(activeAddress),
 			switchMap(
-				([intent, address]): Observable<BuiltTransaction> => {
+				([intent, address]) => {
 					txLog.debug(
 						'Transaction intent created => requesting 🛰 API to build it now.',
 					)
@@ -483,9 +485,13 @@ api
 						transactionState: intent,
 						eventUpdateType: TransactionTrackingEventType.INITIATED,
 					})
-					return api.buildTransaction(intent, address)
+
+					const builtTx = api().then(api => api.buildTransaction({ ...intent, from: address }))
+					return from(builtTx)
 				},
 			),
+			// @ts-ignore
+			mergeMap((x): Observable<BuiltTransaction> => toObservableFromResult<BuiltTransaction, Error[]>(x)),
 			catchError((e: Error) => {
 				
 				//txLog.error(
@@ -536,7 +542,7 @@ api
 			mergeMap(
 				(
 					signedTx: SignedTransaction,
-				): Observable<FinalizedTransaction> => {
+				) => {
 					txLog.debug(
 						`Finished signing tx => submitting it to 🛰  API.`,
 					)
@@ -544,9 +550,12 @@ api
 						transactionState: signedTx,
 						eventUpdateType: TransactionTrackingEventType.SIGNED,
 					})
-					return api.finalizeTransaction(signedTx)
+					const finalizedTx = api().then(api => api.finalizeTransaction(signedTx))
+					return finalizedTx
 				},
 			),
+			// @ts-ignore
+			mergeMap(x => toObservableFromResult(x)),
 			catchError((e: Error) => {
 				txLog.error(
 					`API failed to submit transaction, error: ${JSON.stringify(
@@ -563,7 +572,7 @@ api
 			}),
 			tap<FinalizedTransaction>(finalizedTx => {
 				txLog.debug(
-					`Received finalized transaction with txID='${finalizedTx.txID.toString()}' from API, calling submit.`,
+					`Received finalized transaction with txID='${finalizedTx.txID.toPrimitive()}' from API, calling submit.`,
 				)
 				track({
 					transactionState: finalizedTx,
@@ -576,29 +585,17 @@ api
 			finalizedTx$
 				.pipe(
 					mergeMap(
-						(finalizedTx): Observable<PendingTransaction> =>
-							api.submitSignedTransaction({
-								...finalizedTx,
-							}),
+						(finalizedTx) => {
+							const pendingTx = api().then(api => api.submitSignedTransaction(finalizedTx))
+							return pendingTx
+						}
 					),
-					catchError((e: Error) => {
-						txLog.error(
-							`API failed to submit transaction, error: ${JSON.stringify(
-								e,
-								null,
-								4,
-							)}`,
-						)
-						trackError({
-							error: e,
-							inStep: TransactionTrackingEventType.SUBMITTED,
-						})
-						return EMPTY
-					}),
+					// @ts-ignore
+					mergeMap(x => toObservableFromResult(x)),
 					tap({
 						next: (pendingTx: PendingTransaction) => {
 							txLog.debug(
-								`Submitted transaction with txID='${pendingTx.txID.toString()}', it is now pending.`,
+								`Submitted transaction with txID='${pendingTx.txID.toPrimitive()}', it is now pending.`,
 							)
 							track({
 								transactionState: pendingTx,
@@ -629,33 +626,33 @@ api
 		]).pipe(
 			mergeMap(([_, pendingTx]) => {
 				txLog.debug(
-					`Asking API for status of transaction with txID: ${pendingTx.txID.toString()}`,
+					`Asking API for status of transaction with txID: ${pendingTx.txID.toPrimitive()}`,
 				)
-				return api.transactionStatus(pendingTx.txID)
+				return api().then(api => api.transactionStatus({ txID: pendingTx.txID }))
 			}),
-			distinctUntilChanged((prev, cur) => prev.status === cur.status),
+			distinctUntilChanged((prev, cur) => prev._unsafeUnwrap().status === cur._unsafeUnwrap().status),
 			share(),
 		)
 
 		const transactionCompletedWithStatusConfirmed$ = transactionStatus$.pipe(
-			skipWhile(({ status }) => status !== TransactionStatus.CONFIRMED),
+			skipWhile(txID => txID._unsafeUnwrap().status !== TransactionStatus.CONFIRMED),
 			take(1),
 		)
 
 		const transactionCompletedWithStatusFailed$ = transactionStatus$.pipe(
-			skipWhile(({ status }) => status !== TransactionStatus.FAILED),
+			skipWhile(txID => txID._unsafeUnwrap().status !== TransactionStatus.FAILED),
 			take(1),
 		)
 
 		txSubs.add(
 			transactionStatus$.subscribe({
 				next: statusOfTransaction => {
-					const { status, txID } = statusOfTransaction
+					const { status, txID } = statusOfTransaction._unsafeUnwrap()
 					txLog.debug(
 						`Status ${status.toString()} of transaction with txID='${txID.toString()}'`,
 					)
 					track({
-						transactionState: statusOfTransaction,
+						transactionState: statusOfTransaction._unsafeUnwrap(),
 						eventUpdateType:
 							TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
 					})
@@ -672,12 +669,12 @@ api
 		txSubs.add(
 			transactionCompletedWithStatusConfirmed$.subscribe({
 				next: statusOfTransaction => {
-					const { txID } = statusOfTransaction
+					const { txID } = statusOfTransaction._unsafeUnwrap()
 					txLog.info(
 						`Transaction with txID='${txID.toString()}' has completed succesfully.`,
 					)
 					track({
-						transactionState: statusOfTransaction,
+						transactionState: statusOfTransaction._unsafeUnwrap(),
 						eventUpdateType: TransactionTrackingEventType.COMPLETED,
 					})
 
@@ -690,7 +687,7 @@ api
 
 		txSubs.add(
 			transactionCompletedWithStatusFailed$.subscribe(status => {
-				const errMsg = `API status of tx with id=${status.txID.toString()} returned 'FAILED'`
+				const errMsg = `API status of tx with id=${status._unsafeUnwrap().txID.toString()} returned 'FAILED'`
 				txLog.error(errMsg)
 				trackError({
 					error: new Error(errMsg),
@@ -706,6 +703,8 @@ api
 			events: trackingSubject.asObservable(),
 		}
 	}
+
+	/*
 
 	const __makeTransactionFromBuilder = (
 		transactionIntentBuilderT: TransactionIntentBuilderT,
@@ -724,33 +723,29 @@ api
 	}
 
 	*/
-	const transferTokens = (
-		to: AddressOrUnsafeInput,
-		amount: AmountOrUnsafeInput,
-		tokenIdentifier: ResourceIdentifierOrUnsafeInput,
-		message?: MessageInTransaction
-	): TransactionTracking => {
-		const builder = TransactionIntentBuilder.create().transferTokens({ to, amount, tokenIdentifier })
+	const transferTokens = async (
+		to: AccountAddressT,
+		amount: AmountT,
+		tokenIdentifier: ResourceIdentifierT,
+		message?: MessageInTransaction,
+		options: MakeTransactionOptions = { userConfirmation: 'skip' }
+	): Promise<Result<TransactionTracking, Error[]>> => {
+		const account = await firstValueFrom(activeAccount)
 
-		if (message) builder.message(message)
-		buildTransaction({
-			type: ActionType.TRANSFER,
-			to
-
+		const transferResult = createTransfer({
+			from: account.address.toPrimitive(),
+			to: to.toPrimitive(),
+			amount: amount.toString(),
+			rri: tokenIdentifier.toPrimitive()
 		})
 
-		/*return __makeTransactionFromBuilder(
-			builder,
-			{ to, amount, tokenIdentifier },
-			message?.encrypt
-				? {
-					encryptMessageIfAnyWithAccount: activeAccount.pipe(
-						take(1), // Important !
-					),
-				}
-				: undefined,
-		)
-		*/
+		if (transferResult.isErr()) return err(transferResult.error)
+
+		const actionsResult = buildTransaction(transferResult.value)(account, message)
+
+		if (actionsResult.isErr()) return err(actionsResult.error)
+
+		return ok(__makeTransactionFromIntent(from(actionsResult.value), options))
 	}
 	/*
 
@@ -877,14 +872,14 @@ api
 		// @ts-ignore
 	>(method: Method) => async (...args: Args) => await (await api())[method](...args)
 
-	const methods: any = {
+	const methods = {
 		api,
 
 		__wallet: wallet$,
 
 		__reset: () => subs.unsubscribe(),
 
-		__withNodeConnection: (url$: Observable<URL>): RadixT => {
+		__withNodeConnection: (url$: Observable<URL>) => {
 			subs.add(
 				url$.subscribe(
 					url => {
@@ -899,7 +894,7 @@ api
 			return methods
 		},
 
-		__withAPI: (RadixAPI$: Observable<RadixAPI>): RadixT => {
+		__withAPI: (RadixAPI$: Observable<RadixAPI>) => {
 			subs.add(RadixAPI$.subscribe(a => radixAPISubject.next(a)))
 			return methods
 		},
@@ -1027,8 +1022,8 @@ api
 		activeAddress,
 		activeAccount,
 		accounts,
-		/*
 		// Active AccountAddress/Account APIs
+		/*
 		tokenBalances,
 		stakingPositions,
 		unstakingPositions,

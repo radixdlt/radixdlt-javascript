@@ -1615,6 +1615,56 @@
     node-ipc "^9.1.1"
     ws "^7.3.1"
 
+"@radixdlt/account@file:packages/account":
+  version "3.0.0"
+  dependencies:
+    "@radixdlt/crypto" "file:packages/crypto"
+    "@radixdlt/data-formats" "file:packages/data-formats"
+    "@radixdlt/hardware-wallet" "file:packages/hardware-wallet"
+    "@radixdlt/primitives" "file:packages/primitives"
+    "@radixdlt/uint256" "1.1.0"
+    "@radixdlt/util" "file:packages/util"
+    bech32 "^2.0.0"
+    bip39 "^3.0.3"
+    hdkey "^2.0.1"
+    long "^4.0.0"
+    neverthrow "^4.3.0"
+    prelude-ts "^1.0.2"
+    rxjs "7.0.0"
+
+"@radixdlt/application@file:packages/application":
+  version "3.0.5"
+  dependencies:
+    "@open-rpc/mock-server" "1.7.2"
+    "@open-rpc/schema-utils-js" "1.14.3"
+    "@radixdlt/account" "file:packages/account"
+    "@radixdlt/crypto" "file:packages/crypto"
+    "@radixdlt/data-formats" "file:packages/data-formats"
+    "@radixdlt/networking" "file:packages/networking"
+    "@radixdlt/open-rpc-spec" "^1.0.19"
+    "@radixdlt/primitives" "file:packages/primitives"
+    "@radixdlt/util" "file:packages/util"
+    jest "^26.6.3"
+    json-schema-faker "^0.5.0-rcv.34"
+    neverthrow "^4.3.0"
+    node-fetch "^2.6.1"
+    ramda "^0.27.1"
+    rxjs "7.0.0"
+
+"@radixdlt/crypto@file:packages/crypto":
+  version "2.1.4"
+  dependencies:
+    "@radixdlt/data-formats" "file:packages/data-formats"
+    "@radixdlt/primitives" "file:packages/primitives"
+    "@radixdlt/uint256" "1.1.0"
+    "@radixdlt/util" "file:packages/util"
+    base-x "^3.0.8"
+    elliptic "^6.5.3"
+    neverthrow "^4.3.0"
+    node-forge "^0.10.0"
+    scrypt-js "^3.0.1"
+    uuid "^8.3.2"
+
 "@radixdlt/data-formats@1.0.30":
   version "1.0.30"
   resolved "https://registry.yarnpkg.com/@radixdlt/data-formats/-/data-formats-1.0.30.tgz#236b61e300be5295847f1519680874222ee1aced"
@@ -1624,10 +1674,61 @@
     neverthrow "^4.0.1"
     ramda "^0.27.1"
 
+"@radixdlt/data-formats@file:packages/data-formats":
+  version "2.1.3"
+  dependencies:
+    "@radixdlt/util" "file:packages/util"
+    neverthrow "^4.3.0"
+    ramda "^0.27.1"
+
+"@radixdlt/hardware-wallet@file:packages/hardware-wallet":
+  version "2.1.7"
+  dependencies:
+    "@radixdlt/crypto" "^2.1.4"
+    "@radixdlt/primitives" "^3.0.0"
+    "@radixdlt/util" "1.0.29"
+    neverthrow "^4.3.0"
+    prelude-ts "^1.0.2"
+    rxjs "7.0.0"
+    uuid "^8.3.2"
+
+"@radixdlt/networking@file:packages/networking":
+  version "2.1.4"
+  dependencies:
+    "@open-rpc/client-js" "1.6.2"
+    "@open-rpc/schema-utils-js" "1.14.3"
+    "@radixdlt/open-rpc-spec" "^1.0.19"
+    "@radixdlt/util" "1.0.29"
+    "@types/uuid" "^8.3.0"
+    neverthrow "^4.3.0"
+    open-rpc-utils "^1.1.1"
+    uuid "^8.3.2"
+
 "@radixdlt/open-rpc-spec@^1.0.19":
   version "1.0.19"
   resolved "https://registry.yarnpkg.com/@radixdlt/open-rpc-spec/-/open-rpc-spec-1.0.19.tgz#7392359e28a11f652c2501c25b3d4048cb68a0f9"
   integrity sha512-pcrUTk66h6jDXpq5Ly6uHpktO/lW5lCzdC7YqwsGfXzdFOLcRC8eCC9Teh9k6zH1gvMRyqid9gLRTE7nP2/L8A==
+
+"@radixdlt/primitives@file:packages/primitives":
+  version "3.0.0"
+  dependencies:
+    "@radixdlt/data-formats" "1.0.30"
+    "@radixdlt/uint256" "1.1.0"
+    "@radixdlt/util" "1.0.29"
+    bn.js "^5.1.3"
+    long "^4.0.0"
+    neverthrow "^4.3.0"
+
+"@radixdlt/tx-parser@file:packages/tx-parser":
+  version "2.1.9"
+  dependencies:
+    "@radixdlt/account" "file:packages/account"
+    "@radixdlt/crypto" "file:packages/crypto"
+    "@radixdlt/primitives" "file:packages/primitives"
+    "@radixdlt/uint256" "1.1.0"
+    "@radixdlt/util" "file:packages/util"
+    long "^4.0.0"
+    neverthrow "^4.3.0"
 
 "@radixdlt/uint256@1.1.0":
   version "1.1.0"
@@ -1642,6 +1743,16 @@
     loglevel "^1.7.1"
     loglevel-plugin-prefix "^0.8.4"
     neverthrow "^4.0.1"
+    ramda "^0.27.1"
+    randombytes "^2.1.0"
+    sodium-native "^3.2.0"
+
+"@radixdlt/util@file:packages/util":
+  version "2.1.3"
+  dependencies:
+    loglevel "^1.7.1"
+    loglevel-plugin-prefix "^0.8.4"
+    neverthrow "^4.3.0"
     ramda "^0.27.1"
     randombytes "^2.1.0"
     sodium-native "^3.2.0"

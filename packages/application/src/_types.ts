@@ -38,8 +38,8 @@ import {
 import { Option } from 'prelude-ts'
 import { SigningKeychainT, SigningKeyTypeT } from '@radixdlt/account/src/_types'
 import { RadixAPI } from './api'
-import { LogLevel } from 'packages/account/node_modules/@radixdlt/util/dist'
 import { ErrorT } from './errors'
+import { LogLevel } from 'packages/util/src'
 
 export type ManualUserConfirmTX = {
 	txToConfirm: BuiltTransaction

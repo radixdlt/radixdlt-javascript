@@ -128,7 +128,7 @@ const fromBuffer = (buffer: Buffer): Result<AccountAddressT, Error> => {
 
 export type AccountAddressUnsafeInput = string | Buffer
 
-const isAccountAddressUnsafeInput = (
+export const isPrimitive = (
 	something: unknown,
 ): something is AccountAddressUnsafeInput =>
 	typeof something === 'string' || Buffer.isBuffer(something)
@@ -138,7 +138,7 @@ export type AddressOrUnsafeInput = AccountAddressUnsafeInput | AccountAddressT
 export const isAccountAddressOrUnsafeInput = (
 	something: unknown,
 ): something is AddressOrUnsafeInput =>
-	isAccountAddress(something) || isAccountAddressUnsafeInput(something)
+	isAccountAddress(something) || isPrimitive(something)
 
 const fromUnsafe = (
 	input: AddressOrUnsafeInput,

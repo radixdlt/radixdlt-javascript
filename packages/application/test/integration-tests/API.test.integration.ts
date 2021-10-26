@@ -4,7 +4,7 @@
 
 /* eslint-disable */
 import { Radix } from '../../src/radix'
-import { ValidatorAddressT } from '@radixdlt/account'
+import { ResourceIdentifierT, ValidatorAddressT } from '@radixdlt/account'
 import {
 	firstValueFrom,
 	interval,
@@ -34,10 +34,13 @@ import { keystoreForTest, makeWalletWithFunds } from '../util'
 
 const fetch = require('node-fetch')
 
-const network = Network.TESTNET7
+const network = Network.LOCALHOST
 
 // local
-const NODE_URL = 'https://sandpitnet.radixdlt.com'
+const NODE_URL = 'http://localhost:8080'
+
+// sandpit
+// const NODE_URL = 'https://sandpitnet.radixdlt.com'
 
 // RCNet
 //const NODE_URL = 'https://54.73.253.49'
@@ -64,10 +67,13 @@ const requestFaucet = async (address: string) => {
 
 let subs: Subscription
 
-let radix: any
+let radix: ReturnType<typeof Radix.create>
 let accounts: AccountT[]
-let balances: TokenBalances
-let nativeTokenBalance: TokenBalance
+let balances: any
+let nativeTokenBalance: {
+	tokenIdentifier: ResourceIdentifierT,
+	amount: AmountT
+}
 
 describe('integration API tests', () => {
 	beforeAll(async () => {
@@ -75,24 +81,22 @@ describe('integration API tests', () => {
 		await radix
 			.__withWallet(makeWalletWithFunds(network))
 			.connect(`${NODE_URL}`)
-		
-		
+
 		accounts = ((
 			await firstValueFrom(radix.restoreLocalHDAccountsToIndex(2))
 		) as any).all
 
-		/*
-		balances = await firstValueFrom(radix.tokenBalances)
-		const maybeTokenBalance = balances.tokenBalances.find(
-			a => a.token.symbol.toLowerCase() === 'xrd',
-		)
+		const account: AccountT = await firstValueFrom(radix.activeAccount)
+		const api = await radix.api()
+		balances = (await api.tokenBalancesForAddress({ address: account.address }))._unsafeUnwrap()
 
-		if (!maybeTokenBalance) {
-			throw Error('no XRD found')
-		}
+		nativeTokenBalance = balances.tokenBalances.find(
+			(a: any) => {
+				return a.tokenIdentifier.name.toLowerCase() === 'xrd'
+			}
+		) as any
 
-		nativeTokenBalance = maybeTokenBalance
-		*/
+		if (!nativeTokenBalance) throw Error('no XRD found')
 	})
 
 	beforeEach(() => {
@@ -453,28 +457,28 @@ describe('integration API tests', () => {
 			}
 		})
 	})
-
+*/
 	// 🟢
-	it('can lookup tx', async () => {
-		const { completion } = radix.transferTokens({
-			transferInput: {
-				to: accounts[2].address,
-				amount: 1,
-				tokenIdentifier: nativeTokenBalance.token.rri,
-			},
-			userConfirmation: 'skip',
-			pollTXStatusTrigger: interval(500),
-		})
+	it.only('can lookup tx', async () => {
+		const result = await radix.transferTokens(
+			accounts[2].address,
+			Amount.fromUnsafe(1)._unsafeUnwrap(),
+			nativeTokenBalance.tokenIdentifier
+		)
+
+		const { completion } = result._unsafeUnwrap()
 
 		const txID = await firstValueFrom(completion)
-		const tx = await firstValueFrom(radix.ledger.lookupTransaction(txID))
+
+		const api = await radix.api()
+		const tx = (await api.lookupTransaction({ txID }))._unsafeUnwrap()
 
 		expect(txID.equals(tx.txID)).toBe(true)
 		expect(tx.actions.length).toEqual(1)
 	})
-	*/
+	/*
 	// 🟢
-	it.only('can lookup validator', async () => {
+	it('can lookup validator', async () => {
 		const validator = (await radix.validators({ size: 1 }))._unsafeUnwrap().validators[0]
 
 		const validatorFromLookup = (await radix.lookupValidator({

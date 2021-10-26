@@ -182,20 +182,20 @@ export namespace BuildTransactionEndpoint {
 	export type Input = {
 		actions: (
 			| {
-					type: ActionType.TOKEN_TRANSFER
+					type: ActionType.TRANSFER
 					from: string
 					to: string
 					amount: string
 					rri: string
 			  }
 			| {
-					type: ActionType.STAKE_TOKENS
+					type: ActionType.STAKE
 					from: string
 					validator: string
 					amount: string
 			  }
 			| {
-					type: ActionType.UNSTAKE_TOKENS
+					type: ActionType.UNSTAKE
 					from: string
 					validator: string
 					amount: string

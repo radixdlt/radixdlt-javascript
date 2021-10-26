@@ -43,7 +43,7 @@ export const create = (
 				to,
 				amount,
 				rri,
-				type: ActionType.TOKEN_TRANSFER,
+				type: ActionType.TRANSFER,
 				from,
 			}
 		},

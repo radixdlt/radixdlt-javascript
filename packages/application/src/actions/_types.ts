@@ -9,9 +9,9 @@ import {
 import { AmountOrUnsafeInput, AmountT } from '@radixdlt/primitives'
 
 export enum ActionType {
-	TOKEN_TRANSFER = 'TokenTransfer',
-	STAKE_TOKENS = 'StakeTokens',
-	UNSTAKE_TOKENS = 'UnstakeTokens',
+	TRANSFER = 'TokenTransfer',
+	STAKE = 'StakeTokens',
+	UNSTAKE = 'UnstakeTokens',
 	OTHER = 'Other',
 }
 
@@ -58,7 +58,7 @@ export type TransferTokensProps = {
 }
 
 export type TransferTokensAction = TransferTokensProps &
-	Action<ActionType.TOKEN_TRANSFER>
+	Action<ActionType.TRANSFER>
 
 export type StakeAndUnstakeTokensProps = {
 	from: AccountAddressT
@@ -70,9 +70,9 @@ export type StakeTokensProps = StakeAndUnstakeTokensProps
 export type UnstakeTokensProps = StakeAndUnstakeTokensProps
 
 export type StakeTokensAction = StakeTokensProps &
-	Action<ActionType.STAKE_TOKENS>
+	Action<ActionType.STAKE>
 export type UnstakeTokensAction = UnstakeTokensProps &
-	Action<ActionType.UNSTAKE_TOKENS>
+	Action<ActionType.UNSTAKE>
 
 // An intended action specified by the user. Not yet accepted by
 // Radix Core API.
@@ -81,13 +81,13 @@ export type IntendedActionBase<T extends ActionType> = Action<T> &
 		from: AccountAddressT
 	}>
 
-export type IntendedTransferTokensAction = IntendedActionBase<ActionType.TOKEN_TRANSFER> &
+export type IntendedTransferTokensAction = IntendedActionBase<ActionType.TRANSFER> &
 	TransferTokensAction
 
-export type IntendedStakeTokensAction = IntendedActionBase<ActionType.STAKE_TOKENS> &
+export type IntendedStakeTokensAction = IntendedActionBase<ActionType.STAKE> &
 	StakeTokensProps
 
-export type IntendedUnstakeTokensAction = IntendedActionBase<ActionType.UNSTAKE_TOKENS> &
+export type IntendedUnstakeTokensAction = IntendedActionBase<ActionType.UNSTAKE> &
 	UnstakeTokensProps
 
 export type IntendedAction =
@@ -105,13 +105,13 @@ export type IntendedAction =
 // of transaction history. Marker type.
 export type ExecutedActionBase<T extends ActionType> = Action<T>
 
-export type ExecutedTransferTokensAction = ExecutedActionBase<ActionType.TOKEN_TRANSFER> &
+export type ExecutedTransferTokensAction = ExecutedActionBase<ActionType.TRANSFER> &
 	TransferTokensAction
 
-export type ExecutedStakeTokensAction = ExecutedActionBase<ActionType.STAKE_TOKENS> &
+export type ExecutedStakeTokensAction = ExecutedActionBase<ActionType.STAKE> &
 	StakeTokensAction
 
-export type ExecutedUnstakeTokensAction = ExecutedActionBase<ActionType.UNSTAKE_TOKENS> &
+export type ExecutedUnstakeTokensAction = ExecutedActionBase<ActionType.UNSTAKE> &
 	UnstakeTokensAction
 
 // OTHER (Only "Executed")

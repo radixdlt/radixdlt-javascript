@@ -1,21 +1,16 @@
 import { err, Result, combineWithAllErrors, ok } from 'neverthrow'
-import { AccountAddress, AccountAddressT, ResourceIdentifier, ResourceIdentifierT, ValidatorAddress, ValidatorAddressT } from 'packages/account'
-import { MessageEncryption } from 'packages/crypto/src/encryption'
-import { Amount, AmountT } from "packages/primitives"
+import { AccountAddress, AccountAddressT, ResourceIdentifier, ResourceIdentifierT, ValidatorAddress, ValidatorAddressT } from '@radixdlt/account'
+import { MessageEncryption } from '@radixdlt/crypto'
+import { Amount, AmountT } from "@radixdlt/primitives"
 import { pipe } from 'ramda'
 import { firstValueFrom } from 'rxjs'
 import { AccountT } from '../_types'
+import { ActionType } from '../actions'
 
 type primitiveFrom<Complex> = {
   [Property in keyof Complex]: Complex[Property] extends { toPrimitive: () => unknown }
   ? ReturnType<Complex[Property]['toPrimitive']>
   : Complex[Property]
-}
-
-export enum ActionType {
-  TRANSFER = 'Transfer',
-  STAKE = 'Stake',
-  UNSTAKE = 'Unstake',
 }
 
 export namespace Action {
@@ -44,47 +39,38 @@ type Message = {
   encrypt: boolean
 }
 
-type PrimitiveTransfer = Omit<primitiveFrom<Action.Transfer>, 'from'>
+type PrimitiveTransfer = Omit<primitiveFrom<Action.Transfer>, 'from' | 'amount'> & { amount: string }
 type PrimitiveStake = primitiveFrom<Action.Stake>
 type PrimitiveUnstake = Action.Action<ActionType.UNSTAKE> & Omit<PrimitiveStake, 'type'>
 
 type PrimitiveAction = PrimitiveTransfer | PrimitiveStake | PrimitiveUnstake
-type Action = Action.Transfer | Action.Stake | Action.Unstake
+export type Action = Action.Transfer | Action.Stake | Action.Unstake
 
-export const buildTransaction = (...primitiveActions: PrimitiveAction[]) => (sender: AccountT, message?: Message) =>
+export const buildTransaction = (...actions: Action[]) => (sender: AccountT, message?: Message) =>
   pipe(
-    () => primitiveActions.map(
-      action =>
-        action.type === ActionType.TRANSFER ? createTransfer({ from: sender.address.toPrimitive(), ...action }) :
-        action.type === ActionType.STAKE ? createStake(action) :
-        action.type === ActionType.UNSTAKE ? createUnstake(action) :
-        err([Error('Unknown action type.')])
-    ),
-    actionResult => combineWithAllErrors(actionResult).andThen(
-      actions => (
-        recipients => recipients.length > 1 ?
-          err([Error('Found more than one recipient in transaction. This is not supported.')]) :
-          ok([actions, recipients[0]])
-      )(
-        getRecipients(actions)
-      )
-    ),
-    recipientResult => recipientResult.map(async ([actions, recipient]) => ({
+    () => {
+      const recipients = getRecipients(actions)
+
+      return recipients.length > 1 ?
+        err([Error('Found more than one recipient in transaction. This is not supported.')]) :
+        ok([actions, recipients[0]] as [Action[], AccountAddressT])
+    },
+    (recipientResult: Result<[Action[], AccountAddressT], Error[]>) => recipientResult.map(async ([actions, recipient]) => ({
       actions,
       message:
         message?.encrypt ?
           (await firstValueFrom(
             sender.encrypt({
               plaintext: message.plaintext,
-              publicKeyOfOtherParty: (recipient as AccountAddressT).publicKey
+              publicKeyOfOtherParty: recipient.publicKey
             }))
           ).combined()
           : message?.plaintext ? MessageEncryption.encodePlaintext(message.plaintext)
-          : undefined
+            : undefined
     }))
   )().mapErr(err => err.flat())
 
-const createTransfer = (input: primitiveFrom<Action.Transfer>): Result<Action.Transfer, Error[]> =>
+export const createTransfer = (input: Omit<primitiveFrom<Action.Transfer>, 'type' | 'amount'> & { amount: string }): Result<Action.Transfer, Error[]> =>
   combineWithAllErrors([
     AccountAddress.fromUnsafe(input.from),
     AccountAddress.fromUnsafe(input.to),
@@ -100,7 +86,7 @@ const createTransfer = (input: primitiveFrom<Action.Transfer>): Result<Action.Tr
     })
   )
 
-const createStake = (input: primitiveFrom<Action.Stake>): Result<Action.Stake, Error[]> =>
+export const createStake = (input: Omit<primitiveFrom<Action.Stake>, 'type'>): Result<Action.Stake, Error[]> =>
   combineWithAllErrors([
     ValidatorAddress.fromUnsafe(input.validator),
     Amount.fromUnsafe(input.amount),
@@ -114,19 +100,19 @@ const createStake = (input: primitiveFrom<Action.Stake>): Result<Action.Stake, E
     })
   )
 
-const createUnstake = (input: primitiveFrom<Action.Unstake>): Result<Action.Unstake, Error[]> =>
-combineWithAllErrors([
-  ValidatorAddress.fromUnsafe(input.validator),
-  Amount.fromUnsafe(input.amount),
-  AccountAddress.fromUnsafe(input.from)
-]).map(
-  (results) => ({
-    validator: results[0] as ValidatorAddressT,
-    amount: results[1] as AmountT,
-    from: results[2] as AccountAddressT,
-    type: ActionType.UNSTAKE,
-  })
-)
+export const createUnstake = (input: Omit<primitiveFrom<Action.Unstake>, 'type'>): Result<Action.Unstake, Error[]> =>
+  combineWithAllErrors([
+    ValidatorAddress.fromUnsafe(input.validator),
+    Amount.fromUnsafe(input.amount),
+    AccountAddress.fromUnsafe(input.from)
+  ]).map(
+    (results) => ({
+      validator: results[0] as ValidatorAddressT,
+      amount: results[1] as AmountT,
+      from: results[2] as AccountAddressT,
+      type: ActionType.UNSTAKE,
+    })
+  )
 
 const getRecipients = (actions: Action[]) => actions.reduce(
   (accounts, action) => action.type === ActionType.TRANSFER ? accounts.concat(accounts, action.to) : accounts,
