@@ -91,13 +91,23 @@ const radix = result.value
 ## Managing accounts
 
 ```
-await radix.activeAccount() // account at index 0
+let activeAccount
+
+activeAccount = await radix.activeAccountPromise() // account at index 0
 await radix.deriveNextAccount()
-await radix.activeAccount() // account at index 1
+activeAccount = await radix.activeAccountPromise() // account at index 1
 
 await radix.switchAccount(0)
 
-await radix.activeAccount() // account at index 0
+activeAccount = await radix.activeAccountPromise() // account at index 0
+```
+
+Subscribing to data stream:
+
+```
+const sub = radix.activeAccount.subscribe(account => console.log(account))
+
+sub.unsubscribe() // stop polling
 ```
 
 
