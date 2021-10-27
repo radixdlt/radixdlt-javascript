@@ -138,7 +138,6 @@ if (result.isErr()) throw result.error
 
 const balances = result.value
 ```
-rv1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4mrz0p
 
 ### Getting a validator
 
