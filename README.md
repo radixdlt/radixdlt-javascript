@@ -57,7 +57,7 @@ const result =
 if (result.isErr()) throw result.error
 
 const radix = result.value
-await radix.connext('http://localhost:8080')
+await radix.connect('http://localhost:8080')
 ```
 
 
@@ -68,7 +68,7 @@ await wallet.saveKeystore('path/to/keystore')
 ```
 
 
-Creating a `Radix` instance from a saved keystore
+Creating a `Radix` instance from a saved keystore:
 
 ```
 import { Radix, Wallet } from 'radixdlt-javascript`
