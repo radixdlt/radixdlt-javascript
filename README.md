@@ -152,24 +152,27 @@ const validator = result.value
 ### Sending tokens
 
 ```
-const result = radix.transferTokens(
+const { events, completion } = radix.transferTokens(
   'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt', // recipient address
   10, // amount
   'xrd_rb1qya85pwq' // token identifier,
   {
     plaintext: 'this is a message!',
     encrypted: false
-  }
-)(
-  txID => console.log(txID),
-  event => console.log(event),
+  },
   confirm => {
     // waiting for confirmation before continuing
     confirm()
   }
 )
 
-if (result.isErr()) throw result.error
+events.subscribe(event => console.log(event))
+
+const result = await completion
+
+if (result.isErr()) // handle error
+
+const txID = result.value
 ```
 
 
