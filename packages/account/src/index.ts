@@ -3,5 +3,5 @@ export * from './addresses'
 
 export * from './_types'
 
-export * from './signingKeychain'
-export * from './signingKey'
+export * from './keychain'
+export * from './keypair'

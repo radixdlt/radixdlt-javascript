@@ -7,7 +7,7 @@ import {
 	Subscription,
 	throwError,
 } from 'rxjs'
-import { SigningKey, isSigningKey } from './signingKey'
+import { SigningKey, isSigningKey } from './keypair'
 import {
 	SigningKeysT,
 	SigningKeyT,

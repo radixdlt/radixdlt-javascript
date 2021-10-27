@@ -28,13 +28,30 @@ For commits to main branch, please follow [Conventional Commits](https://www.con
 # Usage
 **WORK IN PROGRESS**
 
-```
-import { Radix } from 'radixdlt-javascript`
+Creating a new `Radix` instance
 
-const radix = Radix.create()
+```
+import { Radix, Wallet } from 'radixdlt-javascript` 
+
+const wallet = Wallet.new('parrot try blind immune drink stay three cluster ship draw fluid become despair primary curtain')
+
+const radix = Radix.new(wallet)
 await radix.connect('http://localhost:8080')
 ```
 
+Creating a `Radix` instance from a saved keystore
+
+```
+import { Radix, Wallet } from 'radixdlt-javascript`
+import fs from 'fs'
+
+const keystore = fs.readFileSync('path/to/keystore.json')
+const wallet = Wallet.fromKeystore(keystore)
+
+const radix = Radix.new(wallet)
+```
+
+Managing accounts
 
 ```
 radix.

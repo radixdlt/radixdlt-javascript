@@ -26,6 +26,7 @@ import {
 	withLatestFrom,
 } from 'rxjs/operators'
 import {
+	async,
 	combineLatest,
 	EMPTY,
 	firstValueFrom,
@@ -343,7 +344,7 @@ api
 		mergeMap(wallet => wallet.observeAccounts()),
 		shareReplay(1),
 	)
-	
+
 	const __makeTransactionFromIntent = (
 		transactionIntent$: Observable<TransactionIntent>,
 		options: MakeTransactionOptions,
@@ -493,7 +494,7 @@ api
 			// @ts-ignore
 			mergeMap((x): Observable<BuiltTransaction> => toObservableFromResult<BuiltTransaction, Error[]>(x)),
 			catchError((e: Error) => {
-				
+
 				//txLog.error(
 				//	`API failed to build transaction, error: ${e}`,
 				//)
@@ -869,7 +870,7 @@ api
 	const getAPICall = <
 		Method extends keyof ReturnType<typeof radixAPI>,
 		Args extends Parameters<RadixAPI[Method]>
-		// @ts-ignore
+	// @ts-ignore
 	>(method: Method) => async (...args: Args) => await (await api())[method](...args)
 
 	const methods = {
@@ -923,6 +924,25 @@ api
 
 			networkSubject.next(result.value.networkId)
 		},
+
+		withKeystore: async (keystore: KeystoreT, password: string) =>
+			SigningKeychain.byLoadingAndDecryptingKeystore({
+				password,
+				load: async () => keystore
+			}).map(signingKeychain => {
+				walletSubscription?.unsubscribe()
+				
+				walletSubscription = networkSubject.subscribe(
+					network => {
+						const wallet = Wallet.create({
+							signingKeychain,
+							network,
+						})
+						methods.__withWallet(wallet)
+					},
+				)
+			}),
+
 
 		login: (password: string, loadKeystore: () => Promise<KeystoreT>) => {
 			walletSubscription?.unsubscribe()
@@ -990,7 +1010,7 @@ api
 			log.setLevel(level)
 			return methods
 		},
-		
+
 		/*
 		transactionStatus: (
 			txID: TransactionIdentifierT,
