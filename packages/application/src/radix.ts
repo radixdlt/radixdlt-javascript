@@ -380,7 +380,7 @@ api
 						]
 
 						if (uniquenonXRDHRPsOfRRIsInTx.length > 1) {
-							const errMsg = `Error cannot sign transction with multiple non-XRD RRIs. Unsupported by Ledger app.`
+							const errMsg = `Error cannot sign transaction with multiple non-XRD RRIs. Unsupported by Ledger app.`
 							log.error(errMsg)
 							return throwError(new Error(errMsg))
 						}

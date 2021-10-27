@@ -28,16 +28,45 @@ For commits to main branch, please follow [Conventional Commits](https://www.con
 # Usage
 **WORK IN PROGRESS**
 
-Creating a new `Radix` instance
+## Creating a new `Radix` instance
 
 ```
 import { Radix, Wallet } from 'radixdlt-javascript` 
 
-const wallet = Wallet.new('parrot try blind immune drink stay three cluster ship draw fluid become despair primary curtain')
+const walletResult = Wallet.new('parrot try blind immune drink stay three cluster ship draw fluid become despair primary curtain')
+
+if (walletResult.isErr()) throw walletResult.error
+
+const wallet = walletResult.value
 
 const radix = Radix.new(wallet)
 await radix.connect('http://localhost:8080')
 ```
+
+or, in a style that maps the result:
+
+```
+import { Radix, Wallet } from 'radixdlt-javascript` 
+
+const result =
+  Wallet.new('parrot try blind immune drink stay three cluster ship draw fluid become despair primary curtain')
+  .map(
+    wallet => Radix.new(wallet)
+  )
+
+if (result.isErr()) throw result.error
+
+const radix = result.value
+await radix.connext('http://localhost:8080')
+```
+
+
+## Saving a keystore
+
+```
+await wallet.saveKeystore('path/to/keystore')
+```
+
 
 Creating a `Radix` instance from a saved keystore
 
@@ -45,14 +74,95 @@ Creating a `Radix` instance from a saved keystore
 import { Radix, Wallet } from 'radixdlt-javascript`
 import fs from 'fs'
 
-const keystore = fs.readFileSync('path/to/keystore.json')
-const wallet = Wallet.fromKeystore(keystore)
+const keystore = fs.readFileSync('path/to/keystore/keystore.json')
 
-const radix = Radix.new(wallet)
+const result =
+  Wallet.fromKeystore(keystore)
+  .map(
+    wallet => Radix.new(wallet)
+  )
+
+if (result.isErr()) throw result.error
+
+const radix = result.value
 ```
 
-Managing accounts
+
+## Managing accounts
 
 ```
-radix.
+await radix.activeAccount() // account at index 0
+await radix.deriveNextAccount()
+await radix.activeAccount() // account at index 1
+
+await radix.switchAccount(0)
+
+await radix.activeAccount() // account at index 0
 ```
+
+
+## Interacting with the network
+
+### Getting token balances
+
+As a continuous data stream:
+
+```
+const sub = radix.tokenBalances.subscribe(
+   result => { // invoked every second
+      if (result.isErr()) // handle error
+
+      const balances = result.value
+   }
+)
+
+sub.unsubscribe() // stops polling
+```
+
+as a one-off response:
+
+```
+const result = await radix.tokenBalancesPromise()
+
+if (result.isErr()) throw result.error
+
+const balances = result.value
+```
+rv1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4mrz0p
+
+### Getting a validator
+
+```
+const result = await radix.lookupValidator('rv1qvz3anvawgvm7pwvjs7xmjg48dvndczkgnufh475k2tqa2vm5c6cq4mrz0p')
+
+if (result.isErr()) throw result.error
+
+const validator = result.value
+```
+
+### Sending tokens
+
+```
+const result = radix.transferTokens(
+  'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt', // recipient address
+  10, // amount
+  'xrd_rb1qya85pwq' // token identifier,
+  {
+    plaintext: 'this is a message!',
+    encrypted: false
+  }
+)(
+  txID => console.log(txID),
+  event => console.log(event),
+  confirm => {
+    // waiting for confirmation before continuing
+    confirm()
+  }
+)
+
+if (result.isErr()) throw result.error
+```
+
+
+
+
