@@ -1,7 +1,7 @@
 export type Transport = {
 	call: (
 		endpoint: string,
-		params: unknown[] | Record<string, unknown>,
+		params: Record<string, unknown>,
 	) => Promise<unknown>
 }
 

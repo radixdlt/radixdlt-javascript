@@ -61,10 +61,9 @@ const correlationID = uuid()
 export const RPCClient: Client = (url: URL): Transport => {
 	const call = async (
 		method: string,
-		params: unknown[] | Record<string, unknown>,
+		params: Record<string, unknown>,
 	): Promise<unknown> => {
-		// @ts-ignore
-		const endpoint = `${url.toString()}${MethodEndpoints[method]}`
+		const endpoint = `${url.toString()}${MethodEndpoints[method as Endpoint]}`
 
 		const transport = new HTTPTransport(endpoint, {
 			headers: {
