@@ -67,14 +67,12 @@ const validateDataAndExtractPubKeyBytes: ValidateDataAndExtractPubKeyBytes = (
 }
 
 const fromPublicKeyAndNetwork = (
-	input: Readonly<{
-		publicKey: PublicKeyT
+		publicKey: PublicKeyT,
 		network: Network
-	}>,
 ): AccountAddressT =>
 	AbstractAddress.byFormattingPublicKeyDataAndBech32ConvertingIt({
-		...input,
-		network: input.network,
+		publicKey,
+		network: network,
 		hrpFromNetwork,
 		addressType: AddressTypeT.ACCOUNT,
 		typeguard: isAccountAddress,
@@ -103,10 +101,10 @@ const fromString = (bechString: string): Result<AccountAddressT, Error> =>
 const fromBuffer = (buffer: Buffer): Result<AccountAddressT, Error> => {
 	const fromBuf = (buf: Buffer): Result<AccountAddressT, Error> =>
 		PublicKey.fromBuffer(buf).map(publicKey =>
-			fromPublicKeyAndNetwork({
+			fromPublicKeyAndNetwork(
 				publicKey,
-				network: Network.MAINNET, // yikes!
-			}),
+				Network.MAINNET, // yikes!
+			),
 		)
 
 	if (buffer.length === 34 && buffer[0] === 0x04) {

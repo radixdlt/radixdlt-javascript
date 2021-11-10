@@ -17,7 +17,6 @@ import { toObservable } from '@radixdlt/util'
 import {
 	SigningKeyDecryptionInput,
 	SigningKeyEncryptionInput,
-	SigningKeyT,
 	SigningKeyTypeHDT,
 	SigningKeyTypeIdentifier,
 	SigningKeyTypeNonHDT,
@@ -30,15 +29,7 @@ import { Option } from 'prelude-ts'
 import { HardwareSigningKeyT } from '@radixdlt/hardware-wallet'
 import { BuiltTransactionReadyToSign } from '@radixdlt/primitives'
 
-const stringifySigningKey = (signingKey: SigningKeyT): string => `
-		type: ${signingKey.type.typeIdentifier.toString()},
-		publicKey: ${signingKey.publicKey.toString(true)},
-		hdPath?: ${Option.of<HDPathRadixT>(signingKey.hdPath)
-			.map(hdp => hdp.toString())
-			.getOrElse('NONE')},
-		isHDSigningKey: ${signingKey.isHDSigningKey ? 'YES' : 'NO'},
-		isHardwareSigningKey: ${signingKey.isHardwareSigningKey ? 'YES' : 'NO'},
-	`
+export type SigningKeyT = ReturnType<typeof fromPrivateKey>
 
 const makeSigningKeyTypeHD = (
 	input: Readonly<{
@@ -49,9 +40,8 @@ const makeSigningKeyTypeHD = (
 	const { hdPath, hdSigningKeyType } = input
 	const isHardwareSigningKey =
 		hdSigningKeyType === HDSigningKeyTypeIdentifier.HARDWARE_OR_REMOTE
-	const uniqueKey = `${
-		isHardwareSigningKey ? 'Hardware' : 'Local'
-	}_HD_signingKey_at_path_${hdPath.toString()}`
+	const uniqueKey = `${isHardwareSigningKey ? 'Hardware' : 'Local'
+		}_HD_signingKey_at_path_${hdPath.toString()}`
 	return {
 		typeIdentifier: SigningKeyTypeIdentifier.HD_SIGNING_KEY,
 		hdSigningKeyType,
@@ -140,88 +130,34 @@ const makeDecryptHW = (hardwareSigningKey: HardwareSigningKeyT): Decrypt => (
 		map((b: Buffer) => b.toString('utf8')),
 	)
 
-const fromPrivateKeyNamedOrFromHDPath = (
-	input: Readonly<{
-		privateKey: PrivateKeyT
-		pathOrName?: HDPathRadixT | string
-	}>,
-): SigningKeyT => {
-	const { privateKey } = input
-	const publicKey: PublicKeyT = privateKey.publicKey()
-	const sign = (
-		tx: BuiltTransactionReadyToSign,
-		_nonXrdHRP?: string,
-	): Observable<SignatureT> =>
-		toObservable(privateKey.sign(Buffer.from(tx.hashOfBlobToSign, 'hex')))
-
-	const diffieHellman = privateKey.diffieHellman
-
-	const type: SigningKeyTypeT =
-		input.pathOrName === undefined || typeof input.pathOrName === 'string'
-			? makeSigningKeyTypeNonHD({
-					publicKey,
-					name: input.pathOrName,
-			  })
-			: makeSigningKeyTypeHD({
-					hdPath: input.pathOrName,
-					hdSigningKeyType: HDSigningKeyTypeIdentifier.LOCAL,
-			  })
-
-	const newSigningKey = {
-		...type, // forward sugar for boolean signingKey type getters
-		isLocalHDSigningKey: type.isHDSigningKey && !type.isHardwareSigningKey,
-		decrypt: makeDecrypt(diffieHellman),
-		encrypt: makeEncrypt(diffieHellman),
-		sign: sign,
-		signHash: (hashedMessage: Buffer): Observable<SignatureT> =>
-			toObservable(privateKey.sign(hashedMessage)),
-		hdPath:
-			input.pathOrName === undefined ||
-			typeof input.pathOrName === 'string'
-				? undefined
-				: input.pathOrName,
-		publicKey,
-		getPublicKeyDisplayOnlyAddress: (): Observable<PublicKeyT> =>
-			of(publicKey),
-		type,
-		uniqueIdentifier: type.uniqueKey,
-		toString: (): string => {
-			throw new Error('Overriden below')
-		},
-		equals: (other: SigningKeyT): boolean =>
-			publicKey.equals(other.publicKey),
-		__diffieHellman: diffieHellman,
-	}
-
-	return {
-		...newSigningKey,
-		toString: () => stringifySigningKey(newSigningKey),
-	}
-}
+const fromPrivateKey = (
+	privateKey: PrivateKeyT,
+	hdPath: HDPathRadixT
+) => ({
+	decrypt: makeDecrypt(privateKey.diffieHellman),
+	encrypt: makeEncrypt(privateKey.diffieHellman),
+	sign: privateKey.sign,
+	hdPath,
+	publicKey: privateKey.publicKey(),
+	equals: (other: any): boolean =>
+		privateKey.publicKey().equals(other.publicKey),
+	__diffieHellman: privateKey.diffieHellman,
+})
 
 const fromPrivateKeyAtHDPath = (
 	input: Readonly<{
 		privateKey: PrivateKeyT
 		hdPath: HDPathRadixT
 	}>,
-): SigningKeyT =>
-	fromPrivateKeyNamedOrFromHDPath({
-		...input,
-		pathOrName: input.hdPath,
-	})
+) => fromPrivateKey(input.privateKey, input.hdPath)
 
-const fromPrivateKey = (input: PrivateKeyToSigningKeyInput): SigningKeyT =>
-	fromPrivateKeyNamedOrFromHDPath({
-		...input,
-		pathOrName: input.name,
-	})
 
 const fromHDPathWithHWSigningKey = (
 	input: Readonly<{
 		hdPath: HDPathRadixT
 		hardwareSigningKey: HardwareSigningKeyT
 	}>,
-): SigningKeyT => {
+) => {
 	const { hdPath, hardwareSigningKey } = input
 
 	const type: SigningKeyTypeT = makeSigningKeyTypeHD({
@@ -229,7 +165,7 @@ const fromHDPathWithHWSigningKey = (
 		hdSigningKeyType: HDSigningKeyTypeIdentifier.HARDWARE_OR_REMOTE,
 	})
 
-	const newSigningKey: SigningKeyT = {
+	const newSigningKey = {
 		...type, // forward sugar for boolean signingKey type getters
 		isLocalHDSigningKey: false, // hardware is not local
 		publicKey: hardwareSigningKey.publicKey,
@@ -259,8 +195,7 @@ const fromHDPathWithHWSigningKey = (
 	}
 
 	return {
-		...newSigningKey,
-		toString: (): string => stringifySigningKey(newSigningKey),
+		...newSigningKey
 	}
 }
 
@@ -269,7 +204,7 @@ const byDerivingNodeAtPath = (
 		hdPath: HDPathRadixT
 		deriveNodeAtPath: () => HDNodeT
 	}>,
-): SigningKeyT =>
+) =>
 	fromPrivateKeyAtHDPath({
 		...input,
 		privateKey: input.deriveNodeAtPath().privateKey,
@@ -280,7 +215,7 @@ const fromHDPathWithHDMasterNode = (
 		hdPath: HDPathRadixT
 		hdMasterNode: HDNodeT
 	}>,
-): SigningKeyT => {
+) => {
 	const hdNodeAtPath = input.hdMasterNode.derive(input.hdPath)
 	return fromPrivateKeyAtHDPath({
 		...input,
@@ -293,7 +228,7 @@ const fromHDPathWithHDMasterSeed = (
 		hdPath: HDPathRadixT
 		hdMasterSeed: HDMasterSeedT
 	}>,
-): SigningKeyT => {
+) => {
 	const hdMasterNode = input.hdMasterSeed.masterNode()
 	return fromHDPathWithHDMasterNode({ ...input, hdMasterNode })
 }
@@ -305,8 +240,7 @@ export const isSigningKey = (something: unknown): something is SigningKeyT => {
 		isPublicKey(inspection.publicKey) &&
 		inspection.sign !== undefined &&
 		inspection.encrypt !== undefined &&
-		inspection.decrypt !== undefined &&
-		inspection.type !== undefined
+		inspection.decrypt !== undefined
 	)
 }
 

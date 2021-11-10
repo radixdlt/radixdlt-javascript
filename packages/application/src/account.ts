@@ -17,12 +17,9 @@ export const isAccount = (something: unknown): something is AccountT => {
 }
 
 const create = (
-	input: Readonly<{
-		address: AccountAddressT
+		address: AccountAddressT,
 		signingKey: SigningKeyT
-	}>,
 ): AccountT => {
-	const { signingKey, address } = input
 	if (!signingKey.publicKey.equals(address.publicKey)) {
 		const errMsg = `Incorrect implementation, publicKey of address does not match publicKey of signingKey.`
 		console.error(errMsg)

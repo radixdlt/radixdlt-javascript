@@ -43,6 +43,7 @@
     "elliptic": "^6.5.3",
     "neverthrow": "^4.3.0",
     "node-forge": "^0.10.0",
+    "ramda": "^0.27.1",
     "scrypt-js": "^3.0.1",
     "uuid": "^8.3.2"
   },

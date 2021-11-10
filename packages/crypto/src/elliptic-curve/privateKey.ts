@@ -23,27 +23,11 @@ import {
 import { Hasher } from '../_types'
 import { Signature } from './signature'
 
-const __signDataWithPrivateKey = (
-	input: Readonly<{
-		privateKey: UInt256
-		data: Buffer
-	}>,
-): Result<SignatureT, Error> => {
-	// log.info(`Signing ${input.data.toString()} with private key.`)
-	const thirdPartyLibEllipticSecp256k1 = new ec('secp256k1')
-
-	const privateKey = thirdPartyLibEllipticSecp256k1.keyFromPrivate(
-		input.privateKey.toString(16),
-	)
-
-	const ellipticSignature: ec.Signature = privateKey.sign(input.data, {
-		canonical: true,
-	})
-
-	return Signature.fromIndutnyElliptic(ellipticSignature)
-}
+const createKeypair = (number: UInt256) => new ec('secp256k1').keyFromPrivate(number.toString(16))
 
 const __privateKeyFromValidatedScalar = (scalar: UInt256): PrivateKeyT => {
+	const keypair = createKeypair(scalar)
+
 	const sign = (hashedMessage: Buffer): ResultAsync<SignatureT, Error> => {
 		if (hashedMessage.length !== 32) {
 			return errAsync(
@@ -52,14 +36,13 @@ const __privateKeyFromValidatedScalar = (scalar: UInt256): PrivateKeyT => {
 				),
 			)
 		}
-		return resultToAsync(
-			__signDataWithPrivateKey({
-				privateKey: scalar,
-				data: hashedMessage,
-			}),
-		)
-	}
+		const ellipticSignature: ec.Signature = keypair.sign(hashedMessage, { canonical: true })
 
+		const signature = Signature.fromIndutnyElliptic(ellipticSignature)
+
+		return signature.asyncMap(_sig => Promise.resolve(_sig))
+	}
+	
 	const diffieHellman: DiffieHellman = (
 		publicKeyOfOtherParty: PublicKeyT,
 	): ResultAsync<ECPointOnCurveT, Error> =>
@@ -71,7 +54,7 @@ const __privateKeyFromValidatedScalar = (scalar: UInt256): PrivateKeyT => {
 
 	const privateKey = {
 		sign,
-		diffieHellman: diffieHellman,
+		diffieHellman,
 		signUnhashed: (
 			input: Readonly<{
 				msgToHash: Buffer | string

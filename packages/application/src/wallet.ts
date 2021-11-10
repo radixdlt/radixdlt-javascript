@@ -6,6 +6,7 @@ import {
 	DeriveNextInput,
 	AccountAddress,
 	DeriveHWSigningKeyInput,
+	SigningKeychain,
 } from '@radixdlt/account'
 import {
 	WalletT,
@@ -19,17 +20,71 @@ import { Observable, of, throwError } from 'rxjs'
 import { Account, isAccount } from './account'
 import { map, mergeMap } from 'rxjs/operators'
 import { Option } from 'prelude-ts'
-import { PublicKeyT, HDPathRadixT } from '@radixdlt/crypto'
+import { PublicKeyT, HDPathRadixT, Mnemonic } from '@radixdlt/crypto'
 import { Network } from '@radixdlt/primitives'
 import { log } from '@radixdlt/util/dist/logging'
+import { pipe } from 'ramda'
+
+const skToAccount = (signingKey: SigningKeyT, network: Network): AccountT =>
+	Account.create(AccountAddress.fromPublicKeyAndNetwork(signingKey.publicKey, network), signingKey)
+
+const sksToAccounts = (signingKeys: SigningKeysT, network: Network): AccountsT => {
+	const getAccountWithHDSigningKeyByHDPath = (
+		hdPath: HDPathRadixT,
+	): Option<AccountT> =>
+		signingKeys.getHDSigningKeyByHDPath(hdPath).map(key => skToAccount(key, network))
+
+	const getAnyAccountByPublicKey = (
+		publicKey: PublicKeyT,
+	): Option<AccountT> =>
+		signingKeys.getAnySigningKeyByPublicKey(publicKey).map(key => skToAccount(key, network))
+
+	const all = signingKeys.all.map(key => skToAccount(key, network))
+
+	return {
+		all,
+		getAccountWithHDSigningKeyByHDPath,
+		getAnyAccountByPublicKey,
+		size: () => all.length,
+	}
+}
+
+const createR = (
+	mnemonic: string,
+	network: Network
+) => pipe(
+	() => Mnemonic.fromEnglishPhrase(mnemonic),
+
+	result => result.map(
+		mnemonic => SigningKeychain.create({ mnemonic })
+	),
+
+	result => result.map(
+		keychain => ({
+			mnemonic,
+			deriveNextLocalHDAccount: (input: Parameters<SigningKeychainT['deriveNextLocalHDSigningKey']>) => {
+				const signingKey = keychain.deriveNextLocalHDSigningKey(...input)
+				return skToAccount(signingKey, network)
+			},
+			/*
+			deriveHWAccount: (
+				input: DeriveHWSigningKeyInput,
+			): Observable<AccountT> =>
+				keychain.deriveHWSigningKey(input).pipe(map(skToAccount)),
+				*/
+			//displayAddressForActiveHWAccountOnHWDeviceForVerification
+			observeActiveAccount: (): Observable<AccountT> => keychain.observeActiveSigningKey().pipe(map(key => skToAccount(key, network))),
+			observeAccounts: (): Observable<AccountsT> => keychain.observeSigningKeys().pipe(map(keys => sksToAccounts())),
+		})
+	),
+)
 
 const create = (
-	input: Readonly<{
-		signingKeychain: SigningKeychainT
-		network: Network
-	}>,
+	mnemonic: string,
+	network: Network
 ): WalletT => {
-	const { network, signingKeychain } = input
+	const mnenmonicResult = Mnemonic.fromEnglishPhrase(mnemonic)
+
 	const skToAccountAddress = (signingKey: SigningKeyT): AccountAddressT =>
 		AccountAddress.fromPublicKeyAndNetwork({
 			network,
@@ -70,6 +125,10 @@ const create = (
 
 	const observeActiveAccount = (): Observable<AccountT> =>
 		signingKeychain.observeActiveSigningKey().pipe(map(skToAccount))
+
+	const keychain = SigningKeychain.create({
+		mnemonic: Mnemonic.fromEnglishPhrase(mnemonic)
+	})
 
 	return {
 		__unsafeGetAccount: (): AccountT =>

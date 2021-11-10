@@ -1,16 +1,16 @@
 import {
 	BehaviorSubject,
 	combineLatest,
+	firstValueFrom,
 	Observable,
 	of,
 	ReplaySubject,
 	Subscription,
 	throwError,
 } from 'rxjs'
-import { SigningKey, isSigningKey } from './keypair'
+import { SigningKey, isSigningKey, SigningKeyT } from './keypair'
 import {
 	SigningKeysT,
-	SigningKeyT,
 	DeriveNextInput,
 	SwitchSigningKeyInput,
 	SwitchToSigningKey,
@@ -35,26 +35,9 @@ import {
 } from '@radixdlt/crypto'
 import { Option } from 'prelude-ts'
 import { arraysEqual, log, msgFromError } from '@radixdlt/util'
-import { ResultAsync } from 'neverthrow'
+import { err, errAsync, ok, okAsync, Result, ResultAsync } from 'neverthrow'
 import { HardwareSigningKeyT, HardwareWalletT } from '@radixdlt/hardware-wallet'
 import { BuiltTransactionReadyToSign } from '@radixdlt/primitives'
-
-const stringifySigningKeysArray = (signingKeys: SigningKeyT[]): string =>
-	signingKeys.map(a => a.toString()).join(',\n')
-
-const stringifySigningKeys = (signingKeys: SigningKeysT): string => {
-	const allSigningKeysString = stringifySigningKeysArray(signingKeys.all)
-
-	return `
-		size: ${signingKeys.size()},
-		#hdSigningKeys: ${signingKeys.hdSigningKeys().length},
-		#nonHDSigningKeys: ${signingKeys.nonHDSigningKeys().length},
-		#localHDSigningKeys: ${signingKeys.localHDSigningKeys().length},
-		#hardwareHDSigningKeys: ${signingKeys.hardwareHDSigningKeys().length},
-		
-		all: ${allSigningKeysString}
-	`
-}
 
 type MutableSigningKeysT = SigningKeysT &
 	Readonly<{
@@ -68,7 +51,6 @@ const createSigningKeys = (_all: SigningKeyT[]): MutableSigningKeysT => {
 		hdPath: HDPathRadixT,
 	): Option<SigningKeyT> => {
 		const signingKey = all
-			.filter(a => a.isHDSigningKey)
 			.find(a => a.hdPath!.equals(hdPath))
 		return Option.of(signingKey)
 	}
@@ -80,14 +62,9 @@ const createSigningKeys = (_all: SigningKeyT[]): MutableSigningKeysT => {
 		return Option.of(signingKey)
 	}
 
-	const localHDSigningKeys = () => all.filter(a => a.isLocalHDSigningKey)
-	const hardwareHDSigningKeys = () => all.filter(a => a.isHardwareSigningKey)
-	const nonHDSigningKeys = () => all.filter(a => !a.isHDSigningKey)
-	const hdSigningKeys = () => all.filter(a => a.isHDSigningKey)
-
 	const add = (signingKey: SigningKeyT): void => {
 		if (
-			all.find(a => a.type.uniqueKey === signingKey.type.uniqueKey) !==
+			all.find(a => a.equals(signingKey)) !==
 			undefined
 		) {
 			// already there
@@ -101,13 +78,8 @@ const createSigningKeys = (_all: SigningKeyT[]): MutableSigningKeysT => {
 		toString: (): string => {
 			throw new Error('Overriden below')
 		},
-		equals: (other: SigningKeysT): boolean => arraysEqual(other.all, all),
-		add,
-		localHDSigningKeys,
-		hardwareHDSigningKeys,
-		nonHDSigningKeys,
-		hdSigningKeys,
 		all,
+		add,
 		size: () => all.length,
 		getHDSigningKeyByHDPath,
 		getAnySigningKeyByPublicKey,
@@ -115,7 +87,6 @@ const createSigningKeys = (_all: SigningKeyT[]): MutableSigningKeysT => {
 
 	return {
 		...signingKeys,
-		toString: (): string => stringifySigningKeys(signingKeys),
 	}
 }
 
@@ -135,12 +106,10 @@ const create = (
 		mnemonic: MnemomicT
 		startWithInitialSigningKey?: boolean
 	}>,
-): SigningKeychainT => {
-	const subs = new Subscription()
+) => {
 	const { mnemonic } = input
 	const startWithInitialSigningKey = input.startWithInitialSigningKey ?? true
 	const masterSeed = HDMasterSeed.fromMnemonic({ mnemonic })
-	const hdNodeDeriverWithBip32Path = masterSeed.masterNode().derive
 
 	let unsafeActiveSigningKey: SigningKeyT = (undefined as unknown) as SigningKeyT
 	const activeSigningKeySubject = new ReplaySubject<SigningKeyT>()
@@ -157,11 +126,6 @@ const create = (
 
 	const numberOfAllSigningKeys = (): number =>
 		signingKeysSubject.getValue().size()
-	const numberOfLocalHDSigningKeys = (): number =>
-		signingKeysSubject.getValue().localHDSigningKeys().length
-
-	const numberOfHWSigningKeys = (): number =>
-		signingKeysSubject.getValue().hardwareHDSigningKeys().length
 
 	const _addAndMaybeSwitchToNewSigningKey = (
 		newSigningKey: SigningKeyT,
@@ -177,9 +141,13 @@ const create = (
 		return newSigningKey
 	}
 
+	/*
 	const deriveHWSigningKey = (
-		input: DeriveHWSigningKeyInput,
-	): Observable<SigningKeyT> => {
+		keyDerivation: 'next' | HDPathRadixT,
+		hardwareWalletConnection: ResultAsync<HardwareWalletT, Error>,
+		alsoSwitchTo: boolean,
+		verificationPrompt?: boolean,
+	): ResultAsync<SigningKeyT, Error> => {
 		const nextPath = (): HDPathRadixT => {
 			const index = numberOfHWSigningKeys()
 			return HDPathRadix.create({
@@ -187,9 +155,10 @@ const create = (
 			})
 		}
 		const hdPath: HDPathRadixT =
-			input.keyDerivation === 'next' ? nextPath() : input.keyDerivation
+			keyDerivation === 'next' ? nextPath() : keyDerivation
 
-		return input.hardwareWalletConnection.pipe(
+
+		return hardwareWalletConnection.pipe(
 			mergeMap(
 				(
 					hardwareWallet: HardwareWalletT,
@@ -212,25 +181,19 @@ const create = (
 			}),
 		)
 	}
+	*/
 
 	const _deriveLocalHDSigningKeyWithPath = (
-		input: Readonly<{
-			hdPath: HDPathRadixT
-			alsoSwitchTo?: boolean // defaults to false
-		}>,
-	): Observable<SigningKeyT> => {
-		const { hdPath } = input
-
-		const newSigningKey = _addAndMaybeSwitchToNewSigningKey(
+		hdPath: HDPathRadixT,
+		alsoSwitchTo: boolean = false
+	): SigningKeyT =>
+		_addAndMaybeSwitchToNewSigningKey(
 			SigningKey.byDerivingNodeAtPath({
 				hdPath,
-				deriveNodeAtPath: () => hdNodeDeriverWithBip32Path(hdPath),
+				deriveNodeAtPath: () => masterSeed.masterNode().derive(hdPath),
 			}),
-			input.alsoSwitchTo,
+			alsoSwitchTo,
 		)
-
-		return of(newSigningKey)
-	}
 
 	const _deriveNextLocalHDSigningKeyAtIndex = (
 		input: Readonly<{
@@ -240,24 +203,26 @@ const create = (
 			}>
 			alsoSwitchTo?: boolean // defaults to false
 		}>,
-	): Observable<SigningKeyT> =>
-		_deriveLocalHDSigningKeyWithPath({
-			hdPath: HDPathRadix.create({
+	): SigningKeyT =>
+		_deriveLocalHDSigningKeyWithPath(
+			HDPathRadix.create({
 				address: input.addressIndex,
 			}),
-			alsoSwitchTo: input.alsoSwitchTo,
-		})
+			input.alsoSwitchTo
+		)
+	
+	const index = numberOfAllSigningKeys()
 
 	const deriveNextLocalHDSigningKey = (
-		input?: DeriveNextInput,
-	): Observable<SigningKeyT> => {
-		const index = numberOfLocalHDSigningKeys()
+		isHardened: boolean = true,
+		alsoSwitchTo: boolean = false,
+	): SigningKeyT => {
 		return _deriveNextLocalHDSigningKeyAtIndex({
 			addressIndex: {
 				index,
-				isHardened: input?.isHardened ?? true,
+				isHardened,
 			},
-			alsoSwitchTo: input?.alsoSwitchTo,
+			alsoSwitchTo,
 		})
 	}
 
@@ -307,13 +272,7 @@ const create = (
 		}
 	}
 
-	if (startWithInitialSigningKey) {
-		subs.add(
-			deriveNextLocalHDSigningKey({
-				alsoSwitchTo: true,
-			}).subscribe(),
-		)
-	}
+	if (startWithInitialSigningKey) deriveNextLocalHDSigningKey(true, true)
 
 	const activeSigningKey$ = activeSigningKeySubject.asObservable()
 
@@ -321,22 +280,13 @@ const create = (
 
 	const restoreLocalHDSigningKeysUpToIndex = (
 		index: number,
-	): Observable<SigningKeysT> => {
-		if (index < 0) {
-			const errMsg = `targetIndex must not be negative`
-			console.error(errMsg)
-			return throwError(new Error(errMsg))
-		}
+	): ResultAsync<SigningKeysT, Error> => {
+		if (index < 0) return errAsync(Error('targetIndex must not be negative'))
 
-		const localHDSigningKeysSize = numberOfLocalHDSigningKeys()
+		const localHDSigningKeysSize = numberOfAllSigningKeys()
 		const numberOfSigningKeysToCreate = index - localHDSigningKeysSize
-		if (numberOfSigningKeysToCreate < 0) {
-			return signingKeys$
-		}
 
-		const signingKeysObservableList: Observable<SigningKeyT>[] = Array(
-			numberOfSigningKeysToCreate,
-		)
+		Array(numberOfSigningKeysToCreate)
 			.fill(undefined)
 			.map((_, index) =>
 				_deriveNextLocalHDSigningKeyAtIndex({
@@ -344,18 +294,8 @@ const create = (
 				}),
 			)
 
-		return combineLatest(signingKeysObservableList).pipe(
-			mergeMap(_ => signingKeys$),
-			take(1),
-		)
-	}
-
-	const addSigningKeyFromPrivateKey = (
-		input: AddSigningKeyByPrivateKeyInput,
-	): SigningKeyT => {
-		const signingKey = SigningKey.fromPrivateKey(input)
-		_addAndMaybeSwitchToNewSigningKey(signingKey, input.alsoSwitchTo)
-		return signingKey
+		const signingKeys: Promise<SigningKeysT> = firstValueFrom(signingKeys$)
+		return ResultAsync.fromPromise(signingKeys, () => Error())
 	}
 
 	return {
@@ -363,20 +303,19 @@ const create = (
 		// should only be used for testing
 		__unsafeGetSigningKey: (): SigningKeyT => unsafeActiveSigningKey,
 		deriveNextLocalHDSigningKey,
-		deriveHWSigningKey,
+		//deriveHWSigningKey,
 		switchSigningKey,
 		restoreLocalHDSigningKeysUpToIndex,
-		addSigningKeyFromPrivateKey,
 		observeSigningKeys: (): Observable<SigningKeysT> => signingKeys$,
 		observeActiveSigningKey: (): Observable<SigningKeyT> =>
 			activeSigningKey$,
 		sign: (
 			tx: BuiltTransactionReadyToSign,
 			nonXrdHRP?: string,
-		): Observable<SignatureT> =>
-			activeSigningKey$.pipe(mergeMap(a => a.sign(tx, nonXrdHRP))),
-		signHash: (hashedMessage: Buffer): Observable<SignatureT> =>
-			activeSigningKey$.pipe(mergeMap(a => a.signHash(hashedMessage))),
+		): ResultAsync<SignatureT, Error> => 
+			ResultAsync.fromPromise(firstValueFrom(activeSigningKey$), e => e as Error).andThen(
+				activeKey => activeKey.sign(Buffer.from(tx.hashOfBlobToSign, 'hex'))
+			)
 	}
 }
 
@@ -386,7 +325,7 @@ const byLoadingAndDecryptingKeystore = (
 		load: () => Promise<KeystoreT>
 		startWithInitialSigningKey?: boolean
 	}>,
-): ResultAsync<SigningKeychainT, Error> => {
+) => {
 	const loadKeystore = (): ResultAsync<KeystoreT, Error> =>
 		ResultAsync.fromPromise(input.load(), (e: unknown) => {
 			const underlyingError = msgFromError(e)
@@ -408,7 +347,7 @@ const fromKeystore = (
 		password: string
 		startWithInitialSigningKey?: boolean
 	}>,
-): ResultAsync<SigningKeychainT, Error> =>
+) =>
 	Keystore.decrypt(input)
 		.map(entropy => ({ entropy }))
 		.andThen(Mnemonic.fromEntropy)
@@ -425,7 +364,7 @@ const byEncryptingMnemonicAndSavingKeystore = (
 		save: (keystoreToSave: KeystoreT) => Promise<void>
 		startWithInitialSigningKey?: boolean
 	}>,
-): ResultAsync<SigningKeychainT, Error> => {
+) => {
 	const { mnemonic, password, startWithInitialSigningKey } = input
 
 	const save = (keystoreToSave: KeystoreT): ResultAsync<KeystoreT, Error> =>
