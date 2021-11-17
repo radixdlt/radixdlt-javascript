@@ -1,11 +1,17 @@
 import { err, Result, combineWithAllErrors, ok } from 'neverthrow'
 import { AccountAddress, AccountAddressT, ResourceIdentifier, ResourceIdentifierT, ValidatorAddress, ValidatorAddressT } from '@radixdlt/account'
-import { Message, MessageEncryption } from '@radixdlt/crypto'
+import { Message } from '@radixdlt/crypto'
 import { Amount, AmountT } from "@radixdlt/primitives"
 import { pipe } from 'ramda'
 import { firstValueFrom } from 'rxjs'
 import { AccountT } from '../_types'
-import { ActionType } from '../actions'
+
+export enum ActionType {
+	TRANSFER = 'TokenTransfer',
+	STAKE = 'StakeTokens',
+	UNSTAKE = 'UnstakeTokens',
+	OTHER = 'Other',
+}
 
 export type PrimitiveFrom<Complex> = {
   [Property in keyof Complex]: 
@@ -115,7 +121,7 @@ export const createUnstake = (input: Omit<PrimitiveFrom<Action.Unstake>, 'type'>
     })
   )
 
-const getRecipients = (actions: Action[]) => actions.reduce(
+export const getRecipients = (actions: Action[]) => actions.reduce(
   (accounts, action) => 
     action.type === ActionType.TRANSFER && !accounts.some(account => account.equals(action.to))
       ? accounts.concat(accounts, action.to) 
@@ -123,3 +129,66 @@ const getRecipients = (actions: Action[]) => actions.reduce(
   [] as AccountAddressT[]
 )
 
+export const flatMapAddressesOf = (
+	input: Readonly<{
+		actions: Action[]
+		includeFrom?: boolean
+		includeTo?: boolean
+	}>,
+): AccountAddressT[] => {
+	const { actions, includeFrom, includeTo } = input
+	const flatMapped = actions.reduce(
+		(acc: AccountAddressT[], action: Action) => {
+			const uniqueAddressOfAction = getUniqueAddresses({
+				action,
+				includeFrom,
+				includeTo,
+			})
+			return acc.concat(...uniqueAddressOfAction)
+		},
+		[] as AccountAddressT[],
+	)
+  const set = new Set<string>()
+	return flatMapped.filter(a => {
+		const str = a.toString()
+		const hasNt = !set.has(str)
+		set.add(str)
+		return hasNt
+	})
+}
+
+export const getUniqueAddresses = (
+	input: Readonly<{
+		action: Action
+		includeFrom?: boolean
+		includeTo?: boolean
+	}>,
+): AccountAddressT[] => {
+	const action = input.action
+	const includeFrom = input.includeFrom ?? true
+	const includeTo = input.includeTo ?? true
+	if (action.type === ActionType.TRANSFER) {
+		const addresses: AccountAddressT[] = []
+		if (includeTo) {
+			addresses.push(action.to)
+		}
+		if (includeFrom) {
+			addresses.push(action.from)
+		}
+		return addresses
+	} else if (action.type === ActionType.STAKE) {
+		const addresses: AccountAddressT[] = []
+		if (includeFrom) {
+			addresses.push(action.from)
+		}
+		return addresses
+	} else if (action.type === ActionType.UNSTAKE) {
+		const addresses: AccountAddressT[] = []
+		if (includeFrom) {
+			addresses.push(action.from)
+		}
+		return addresses
+	} else {
+		return []
+	}
+}

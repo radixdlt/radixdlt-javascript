@@ -18,6 +18,7 @@ import { Observable } from 'rxjs'
 import { Result } from 'neverthrow'
 import { AccountT, MessageInTransaction } from '../_types'
 import { Action } from './build-transaction'
+import { TransactionIdentifierT } from './transactionIdentifier'
 
 export type StakePosition = Readonly<{
 	validator: ValidatorAddressT
@@ -29,17 +30,6 @@ export type UnstakePosition = Readonly<{
 	amount: AmountT
 	withdrawTxID: TransactionIdentifierT
 	epochsUntil: number
-}>
-
-/**
- * A transaction identifier, 32 bytes hash of signature + hashOfTxBlob.
- * Used to lookup transactions by ID.
- */
-export type TransactionIdentifierT = Readonly<{
-	__witness: 'isTXId'
-	__hex: string
-	toPrimitive: () => string
-	equals: (other: TransactionIdentifierT) => boolean
 }>
 
 export type TransactionIntentBuilderState = Readonly<{
@@ -145,7 +135,7 @@ export type SimpleExecutedTransaction = Readonly<{
 	sentAt: Date
 	fee: AmountT
 	message?: string
-	actions: ExecutedAction[]
+	actions: Action[]
 }>
 
 export enum TransactionType {

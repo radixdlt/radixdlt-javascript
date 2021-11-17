@@ -1,5 +1,11 @@
 import { err, ok, Result } from 'neverthrow'
-import { TransactionIdentifierT } from './_types'
+
+export type TransactionIdentifierT = Readonly<{
+	__witness: 'isTXId'
+	__hex: string
+	toPrimitive: () => string
+	equals: (other: TransactionIdentifierT) => boolean
+}>
 
 const isTransactionIdentifier = (
 	something: unknown,

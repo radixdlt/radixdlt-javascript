@@ -115,10 +115,11 @@ import { andThen, pipe } from 'ramda'
 import { buildTransaction, createTransfer, Action, createStake, createUnstake } from './dto/build-transaction'
 import { err, ok, Result, ResultAsync } from 'neverthrow'
 import { ResourceIdentifierT, ValidatorAddressT } from 'packages/account/src/addresses'
+import { getRecipients } from './dto'
 
 const txTypeFromActions = (
 	input: Readonly<{
-		actions: ExecutedAction[]
+		actions: Action[]
 		activeAddress: AccountAddressT
 	}>,
 ): TransactionType => {
@@ -593,13 +594,9 @@ const create = () => {
 		}
 	}
 
-	/*const decryptTransaction = (
+	const decryptTransaction = (
 		input: SimpleExecutedTransaction,
 	): Observable<string> => {
-		radixLog.debug(
-			`Trying to decrypt transaction with txID=${input.txID.toString()}`,
-		)
-
 		if (!input.message) {
 			const noMsg = `TX contains no message, nothing to decrypt (txID=${input.txID.toString()}).`
 			radixLog.info(noMsg)
@@ -630,29 +627,21 @@ const create = () => {
 				log.debug(
 					`Trying to decrypt message with activeSigningKey with pubKey=${myPublicKey.toString()}`,
 				)
-				const publicKeyOfOtherPartyResult = singleRecipientFromActions(
-					myPublicKey,
-					input.actions,
-				)
-				if (!publicKeyOfOtherPartyResult.isOk()) {
-					return throwError(
-						new Error(
-							msgFromError(publicKeyOfOtherPartyResult.error),
-						),
-					)
-				}
-				log.debug(
-					`Trying to decrypt message with publicKeyOfOtherPartyResult=${publicKeyOfOtherPartyResult.toString()}`,
-				)
+				
+				const recipients = getRecipients(input.actions).filter(recipient => !recipient.equals(account.address))
+				
+				if (recipients.length != 1) return throwError(Error('Failed to decrypt message. Multiple recipients.'))
+
+				const publicKeyOfOtherParty = recipients[0].publicKey
 
 				return account.decrypt({
 					encryptedMessage,
-					publicKeyOfOtherParty: publicKeyOfOtherPartyResult.value,
+					publicKeyOfOtherParty,
 				})
 			}),
 			take(1),
 		)
-	}*/
+	}
 
 	const restoreLocalHDAccountsToIndex = (
 		index: number,
@@ -832,7 +821,7 @@ const create = () => {
 
 		restoreLocalHDAccountsToIndex,
 
-		// decryptTransaction: decryptTransaction,
+		decryptTransaction,
 
 		logLevel: (level: LogLevel) => {
 			log.setLevel(level)

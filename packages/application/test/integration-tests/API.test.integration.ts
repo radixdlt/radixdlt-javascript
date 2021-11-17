@@ -13,7 +13,6 @@ import {
 import { map, take, toArray } from 'rxjs/operators'
 import {
 	PendingTransaction,
-	TransactionIdentifierT,
 	TransactionStateSuccess,
 	TransactionStatus,
 } from '../../src/dto/_types'
@@ -21,6 +20,7 @@ import { Amount, AmountT, Network } from '@radixdlt/primitives'
 import {
 	TransactionTrackingEventType,
 	KeystoreT,
+	TransactionIdentifierT,
 } from '../../src'
 import { AccountT } from '../../src'
 import { keystoreForTest, makeWalletWithFunds } from '../util'
