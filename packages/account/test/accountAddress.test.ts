@@ -62,14 +62,14 @@ describe('account_address_on_bech32_format', () => {
 					publicKey,
 					network: vector.network,
 				})
-				expect(addr.toString()).toBe(vector.expectedAddr)
+				expect(addr.toPrimitive()).toBe(vector.expectedAddr)
 				expect(addr.network).toBe(vector.network)
 
 				const parsedAddress = AccountAddress.fromUnsafe(
 					vector.expectedAddr,
 				)._unsafeUnwrap()
-				expect(parsedAddress.toString()).toBe(vector.expectedAddr)
-				expect(parsedAddress.toString()).toBe(addr.toString())
+				expect(parsedAddress.toPrimitive()).toBe(vector.expectedAddr)
+				expect(parsedAddress.toPrimitive()).toBe(addr.toPrimitive())
 				expect(parsedAddress.publicKey.equals(publicKey)).toBe(true)
 
 				expect(parsedAddress.equals(addr)).toBe(true)
@@ -134,12 +134,12 @@ describe('account_address_on_bech32_format', () => {
 				const address = ValidatorAddress.fromPublicKeyAndNetwork(
 					addressInput,
 				)
-				expect(address.toString()).toBe(expectedBech32)
+				expect(address.toPrimitive()).toBe(expectedBech32)
 			} else {
 				const address = AccountAddress.fromPublicKeyAndNetwork(
 					addressInput,
 				)
-				expect(address.toString()).toBe(expectedBech32)
+				expect(address.toPrimitive()).toBe(expectedBech32)
 			}
 		}
 
@@ -333,7 +333,7 @@ describe('account_address_on_bech32_format', () => {
 			)._unsafeUnwrap(),
 			network: Network.MAINNET,
 		})
-		expect(address.toString()).toBe(
+		expect(address.toPrimitive()).toBe(
 			'rdx1qsplg0a6v4qsx8hjr904h2txwu6562q50ezmgrx7ge3tajgk9smp74gh88as2',
 		)
 	})

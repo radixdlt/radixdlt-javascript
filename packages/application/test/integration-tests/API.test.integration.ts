@@ -4,17 +4,13 @@
 
 /* eslint-disable */
 import { Radix } from '../../src/radix'
-import { ResourceIdentifierT, ValidatorAddressT } from '@radixdlt/account'
+import { ResourceIdentifierT } from '@radixdlt/account'
 import {
 	firstValueFrom,
 	interval,
-	Observable,
-	ReplaySubject,
-	Subject,
 	Subscription,
 } from 'rxjs'
-import { map, take, tap, toArray } from 'rxjs/operators'
-import { ManualUserConfirmTX } from '../../src/_types'
+import { map, take, toArray } from 'rxjs/operators'
 import {
 	PendingTransaction,
 	TransactionIdentifierT,
@@ -23,13 +19,10 @@ import {
 } from '../../src/dto/_types'
 import { Amount, AmountT, Network } from '@radixdlt/primitives'
 import {
-	TransferTokensOptions,
-	TransferTokensInput,
 	TransactionTrackingEventType,
 	KeystoreT,
 } from '../../src'
-import { UInt256 } from '@radixdlt/uint256'
-import { AccountT, RadixT, TokenBalance, TokenBalances } from '../../src'
+import { AccountT } from '../../src'
 import { keystoreForTest, makeWalletWithFunds } from '../util'
 
 const fetch = require('node-fetch')
@@ -228,75 +221,55 @@ describe('integration API tests', () => {
 		radix.deriveNextAccount({ alsoSwitchTo: true })
 	})
 
+	*/
+
 	// 🟢
-	it('should compare token balance before and after transfer', async done => {
-		const getTokenBalanceSubject = new Subject<number>()
-
-		radix.withTokenBalanceFetchTrigger(getTokenBalanceSubject)
-
-		getTokenBalanceSubject.next(1)
-
-		let transferDone = false
+	it.only('should compare token balance before and after transfer', async done => {
 		const amountToSend = Amount.fromUnsafe(
 			`1${'0'.repeat(18)}`,
 		)._unsafeUnwrap()
 
 		let initialBalance: AmountT
 		let balanceAfterTransfer: AmountT
-		let fee: AmountT
 
-		radix.activeAddress.subscribe(async address => {
-			await requestFaucet(address.toString())
+		const api = await radix.api()
 
-			subs.add(
-				radix.tokenBalances.subscribe(balance => {
-					const getXRDBalanceOrZero = (): AmountT => {
-						const maybeTokenBalance = balance.tokenBalances.find(
-							a => a.token.symbol.toLowerCase() === 'xrd',
-						)
-						return maybeTokenBalance !== undefined
-							? maybeTokenBalance.amount
-							: UInt256.valueOf(0)
-					}
+		const address = await firstValueFrom(radix.activeAddress)
+		await requestFaucet(address.toString())
 
-					if (transferDone) {
-						balanceAfterTransfer = getXRDBalanceOrZero()
 
-						expect(
-							initialBalance
-								.sub(balanceAfterTransfer)
-								.eq(amountToSend.add(fee)),
-						).toBe(true)
-						done()
-					} else {
-						initialBalance = getXRDBalanceOrZero()
-					}
-				}),
+		const getXRDBalanceOrZero = async (): Promise<AmountT> => {
+			const balances = (await radix.tokenBalances())._unsafeUnwrap()
+			let xrdBalance = balances.find(
+				(a: any) => {
+					return a.tokenIdentifier.name.toLowerCase() === 'xrd'
+				}
 			)
+			return xrdBalance !== undefined
+				? xrdBalance.amount
+				: Amount.fromUnsafe(0)._unsafeUnwrap()
+		}
 
-			subs.add(
-				radix
-					.transferTokens({
-						transferInput: {
-							to: accounts[2].address,
-							amount: amountToSend,
-							tokenIdentifier: nativeTokenBalance.token.rri,
-						},
-						userConfirmation: 'skip',
-						pollTXStatusTrigger: interval(500),
-					})
-					.completion.subscribe(txID => {
-						transferDone = true
-						subs.add(
-							radix.ledger
-								.lookupTransaction(txID)
-								.subscribe(tx => {
-									fee = tx.fee
-									getTokenBalanceSubject.next(1)
-								}),
-						)
-					}),
-			)
+		initialBalance = await getXRDBalanceOrZero()
+
+		const { completion } = (await radix
+			.transferTokens(
+				accounts[2].address,
+				amountToSend,
+				nativeTokenBalance.tokenIdentifier
+			))._unsafeUnwrap()
+
+		completion.subscribe(async txID => {
+			const tx = (await api.lookupTransaction({ txID }))._unsafeUnwrap()
+
+			balanceAfterTransfer = await getXRDBalanceOrZero()
+
+			expect(
+				initialBalance
+					.sub(balanceAfterTransfer)
+					.eq(amountToSend.add(tx.fee)),
+			).toBe(true)
+			done()
 		})
 	})
 
@@ -304,135 +277,88 @@ describe('integration API tests', () => {
 	it('should increment transaction history with a new transaction after transfer', async done => {
 		const pageSize = 100
 
-		const fetchTxHistory = (cursor: string) => {
-			return new Promise<[string, number]>((resolve, _) => {
-				const sub = radix
-					.transactionHistory({
-						size: pageSize,
-						cursor,
-					})
-					.subscribe(txHistory => {
-						sub.unsubscribe()
-						resolve([
-							txHistory.cursor,
-							txHistory.transactions.length,
-						])
-					})
-			})
+		const fetchTxHistory = async (cursor: string): Promise<[string, number]> => {
+			const txHistory = (await radix.transactionHistory(pageSize, cursor))._unsafeUnwrap()
+
+			return [
+				txHistory.cursor,
+				txHistory.transactions.length,
+			]
 		}
 
 		const getLastCursor = async () => {
-			return new Promise<string>((resolve, _) => {
-				radix
-					.transactionHistory({
-						size: pageSize,
-					})
-					.subscribe(async txHistory => {
-						let cursor = txHistory.cursor
-						let prevTxCount = 0
-						let txCount = 0
+			const txHistory = (await radix.transactionHistory(pageSize))._unsafeUnwrap()
 
-						while (txCount >= prevTxCount) {
-							prevTxCount = txCount
-							;[cursor, txCount] = await fetchTxHistory(cursor)
-						}
+			let cursor = txHistory.cursor
+			let prevTxCount = 0
+			let txCount = 0
 
-						resolve(cursor)
-					})
-			})
+			while (txCount >= prevTxCount) {
+				prevTxCount = txCount;
+				[cursor, txCount] = await fetchTxHistory(cursor)
+			}
+
+			return cursor
 		}
 
 		const cursor = await getLastCursor()
 
-		subs.add(
-			radix
-				.transactionHistory({
-					size: pageSize,
-					cursor,
-				})
-				.subscribe(txHistory => {
-					const countBeforeTransfer = txHistory.transactions.length
-					subs.add(
-						radix
-							.transferTokens({
-								transferInput: {
-									to: accounts[2].address,
-									amount: 1,
-									tokenIdentifier:
-										nativeTokenBalance.token.rri,
-								},
-								userConfirmation: 'skip',
-								pollTXStatusTrigger: interval(500),
-							})
-							.completion.subscribe(tx => {
-								subs.add(
-									radix
-										.transactionHistory({
-											size: pageSize,
-											cursor,
-										})
-										.subscribe(newTxHistory => {
-											expect(
-												newTxHistory.transactions
-													.length - 1,
-											).toEqual(countBeforeTransfer)
-											done()
-										}),
-								)
-							}),
-					)
-				}),
-		)
+		const txHistory = (await radix.transactionHistory(pageSize, cursor))._unsafeUnwrap()
+
+		const countBeforeTransfer = txHistory.transactions.length
+
+		const { completion } = (await radix.transferTokens(
+			accounts[2].address,
+			Amount.fromUnsafe(1)._unsafeUnwrap(),
+			nativeTokenBalance.tokenIdentifier,
+		))._unsafeUnwrap()
+
+		completion.subscribe(async tx => {
+			const newTxHistory = (await radix.transactionHistory(pageSize, cursor))._unsafeUnwrap()
+
+			expect(
+				newTxHistory.transactions
+					.length - 1,
+			).toEqual(countBeforeTransfer)
+			done()
+		})
 	})
 
 	// 🟢
 	it('should be able to get transaction history', async () => {
-		const txID1 = await firstValueFrom(
-			radix.transferTokens({
-				transferInput: {
-					to: accounts[2].address,
-					amount: 1,
-					tokenIdentifier: nativeTokenBalance.token.rri,
-				},
-				userConfirmation: 'skip',
-			}).completion,
-		)
+		const txID1 = await firstValueFrom((await
+			radix.transferTokens(
+				accounts[2].address,
+				Amount.fromUnsafe(1)._unsafeUnwrap(),
+				nativeTokenBalance.tokenIdentifier,
+			))._unsafeUnwrap().completion)
 
-		const txID2 = await firstValueFrom(
-			radix.transferTokens({
-				transferInput: {
-					to: accounts[2].address,
-					amount: 1,
-					tokenIdentifier: nativeTokenBalance.token.rri,
-				},
-				userConfirmation: 'skip',
-			}).completion,
-		)
 
-		const txHistory = await firstValueFrom(
-			radix.transactionHistory({ size: 2 }),
-		)
+		const txID2 = await firstValueFrom((await
+			radix.transferTokens(
+				accounts[2].address,
+				Amount.fromUnsafe(1)._unsafeUnwrap(),
+				nativeTokenBalance.tokenIdentifier,
+			))._unsafeUnwrap().completion)
+
+		const txHistory = (await radix.transactionHistory(2))._unsafeUnwrap()
 
 		expect(txHistory.transactions[0].txID.equals(txID1))
 		expect(txHistory.transactions[1].txID.equals(txID2))
 	})
 
 	// 🟢
-	it('should handle transaction status updates', done => {
+	it('should handle transaction status updates', async done => {
 		const expectedValues: TransactionStatus[] = [
 			TransactionStatus.PENDING,
 			TransactionStatus.CONFIRMED,
 		]
 
-		const txTracking = radix.transferTokens({
-			transferInput: {
-				to: accounts[2].address,
-				amount: 1,
-				tokenIdentifier: nativeTokenBalance.token.rri,
-			},
-			userConfirmation: 'skip',
-			pollTXStatusTrigger: interval(200),
-		})
+		const txTracking = (await radix.transferTokens(
+			accounts[2].address,
+			Amount.fromUnsafe(1)._unsafeUnwrap(),
+			nativeTokenBalance.tokenIdentifier
+		))._unsafeUnwrap()
 
 		txTracking.events.subscribe(event => {
 			if (
@@ -457,9 +383,9 @@ describe('integration API tests', () => {
 			}
 		})
 	})
-*/
+
 	// 🟢
-	it.only('can lookup tx', async () => {
+	it('can lookup tx', async () => {
 		const result = await radix.transferTokens(
 			accounts[2].address,
 			Amount.fromUnsafe(1)._unsafeUnwrap(),
@@ -476,7 +402,7 @@ describe('integration API tests', () => {
 		expect(txID.equals(tx.txID)).toBe(true)
 		expect(tx.actions.length).toEqual(1)
 	})
-	/*
+
 	// 🟢
 	it('can lookup validator', async () => {
 		const validator = (await radix.validators({ size: 1 }))._unsafeUnwrap().validators[0]
@@ -487,26 +413,19 @@ describe('integration API tests', () => {
 
 		expect(validatorFromLookup.address.equals(validator.address)).toBe(true)
 	})
-	/*
+
 
 	// 🟢
 	it('should get validators', async () => {
-		const validators = await firstValueFrom(
-			radix.ledger.validators({ size: 1 }),
-		)
-
+		const validators = (await radix.validators({ size: 1 }))._unsafeUnwrap()
 		expect(validators.validators.length).toEqual(1)
 	})
 
 	// 🟢
 	it('should be able to paginate validators', async () => {
-		const validators = await firstValueFrom(
-			radix.ledger.validators({ size: 2 }),
-		)
+		const validators = (await radix.validators({ size: 2 }))._unsafeUnwrap()
 
-		const firstValidator = await firstValueFrom(
-			radix.ledger.validators({ size: 1 }),
-		)
+		const firstValidator = (await radix.validators({ size: 1 }))._unsafeUnwrap()
 
 		const cursor = firstValidator.cursor
 
@@ -514,9 +433,7 @@ describe('integration API tests', () => {
 			firstValidator.validators[0].address.toString(),
 		)
 
-		const secondValidator = await firstValueFrom(
-			radix.ledger.validators({ size: 1, cursor }),
-		)
+		const secondValidator = (await radix.validators({ size: 1, cursor }))._unsafeUnwrap()
 
 		expect(validators.validators[1].address.toString()).toEqual(
 			secondValidator.validators[0].address.toString(),
@@ -525,161 +442,78 @@ describe('integration API tests', () => {
 
 	// 🟢
 	it('should get network transaction demand response', async () => {
-		const result = await firstValueFrom(
-			radix.ledger.NetworkTransactionDemand(),
-		)
+		const api = await radix.api()
+		const result = (await api.NetworkTransactionDemand())._unsafeUnwrap()
 
 		expect(result.tps).toEqual(0)
 	})
 
 	// 🟢
 	it('should get network transaction throughput response', async () => {
-		const result = await firstValueFrom(
-			radix.ledger.NetworkTransactionThroughput(),
-		)
+		const api = await radix.api()
+		const result = (await api.NetworkTransactionThroughput())._unsafeUnwrap()
 
 		expect(result.tps).toBeGreaterThan(0)
 	})
 
 	// 🟢
 	it('can fetch stake positions', async done => {
-		const triggerSubject = new Subject<number>()
-
-		radix.withStakingFetchTrigger(triggerSubject)
-
 		const stakeAmount = Amount.fromUnsafe(
 			'100000000000000000000',
 		)._unsafeUnwrap()
 
-		let validatorResolve: any
-		const validatorPromise = new Promise<ValidatorAddressT>(
-			(resolve, _) => {
-				validatorResolve = resolve
-			},
-		)
+		const validators = (await radix.validators({ size: 1 }))._unsafeUnwrap()
 
-		let initialAmountResolve: any
-		let initialAmountPromise = new Promise<AmountT>((resolve, _) => {
-			initialAmountResolve = resolve
-		})
+		const positions = (await radix.stakingPositions())._unsafeUnwrap()
 
-		let hasStaked = false
+		const validator = validators.validators[0].address
 
-		subs.add(
-			radix.ledger
-				.validators({
-					size: 1,
-				})
-				.subscribe(({ validators }) => {
-					validatorResolve(validators[0].address)
-				}),
-		)
+		const stake = positions.find(position => position.validator.equals(validator))
 
-		subs.add(
-			radix.stakingPositions.subscribe(async values => {
-				const validator = await validatorPromise
+		const initialAmountStaked = stake ? stake.amount : Amount.fromUnsafe(0)._unsafeUnwrap()
 
-				if (hasStaked) {
-					const initialAmountStaked = await initialAmountPromise
+		const { completion } = (await radix.stakeTokens(validator, stakeAmount))._unsafeUnwrap()
 
-					const amountAfterStaking = values.find(value =>
-						value.validator.equals(validator),
-					)!.amount
+		await firstValueFrom(completion)
 
-					expect(
-						amountAfterStaking.eq(
-							initialAmountStaked.add(stakeAmount),
-						),
-					).toEqual(true)
-					done()
-				} else {
-					const stake = values.find(value =>
-						value.validator.equals(validator),
-					)
-					initialAmountResolve(
-						stake
-							? stake.amount
-							: Amount.fromUnsafe(0)._unsafeUnwrap(),
-					)
-				}
-			}),
-		)
+		const positions2 = (await radix.stakingPositions())._unsafeUnwrap()
 
-		triggerSubject.next(0)
+		const amountAfterStaking = positions2.find(position =>
+			position.validator.equals(validator),
+		)!.amount
 
-		const validator = await validatorPromise
+		console.log(initialAmountStaked.toString())
+		console.log(stakeAmount.toString())
+		console.log(amountAfterStaking.toString())
 
-		const { completion } = radix.stakeTokens({
-			stakeInput: {
-				amount: stakeAmount,
-				validator: validator,
-			},
-			userConfirmation: 'skip',
-			pollTXStatusTrigger: interval(1000),
-		})
-
-		subs.add(
-			completion.subscribe(_ => {
-				hasStaked = true
-				triggerSubject.next(0)
-			}),
-		)
+		expect(
+			amountAfterStaking.eq(
+				initialAmountStaked.add(stakeAmount),
+			),
+		).toEqual(true)
+		done()
 	})
 
-	it.only('can fetch unstake positions', async () => {
-		const triggerSubject = new Subject<number>()
+	it('can fetch unstake positions', async () => {
+		const stakeAmount = Amount.fromUnsafe('100000000000000000000')._unsafeUnwrap()
 
-		radix.withStakingFetchTrigger(triggerSubject)
+		const validator = (await (radix.validators({ size: 1 })))._unsafeUnwrap().validators[0]
 
-		const stakeAmount = Amount.fromUnsafe(
-			'100000000000000000000',
-		)._unsafeUnwrap()
+		await firstValueFrom((await radix.stakeTokens(validator.address, stakeAmount))._unsafeUnwrap().completion)
 
-		const validator = (
-			await firstValueFrom(radix.ledger.validators({ size: 1 }))
-		).validators[0]
+		await firstValueFrom((await radix.unstakeTokens(validator.address, stakeAmount))._unsafeUnwrap().completion)
 
-		await firstValueFrom(
-			radix.stakeTokens({
-				stakeInput: {
-					amount: stakeAmount,
-					validator: validator.address,
-				},
-				userConfirmation: 'skip',
-				pollTXStatusTrigger: interval(1000),
-			}).completion,
-		)
+		const positions = (await radix.unstakingPositions())._unsafeUnwrap()
 
-		await firstValueFrom(
-			radix.unstakeTokens({
-				unstakeInput: {
-					amount: stakeAmount,
-					validator: validator.address,
-				},
-				userConfirmation: 'skip',
-				pollTXStatusTrigger: interval(1000),
-			}).completion,
-		)
-
-		triggerSubject.next(0)
-
-		const positions = await firstValueFrom(radix.unstakingPositions)
-		console.log(positions[0].amount.toString())
-		console.log(stakeAmount.toString())
 		expect(positions[0].amount.eq(stakeAmount)).toBeTruthy()
 	})
 
 	// 🟢
 	it('should be able to paginate validator result', async () => {
-		const twoValidators = await firstValueFrom(
-			radix.ledger.validators({ size: 2 }),
-		)
-		const firstValidator = await firstValueFrom(
-			radix.ledger.validators({ size: 1 }),
-		)
-		const secondValidator = await firstValueFrom(
-			radix.ledger.validators({ size: 1, cursor: firstValidator.cursor }),
-		)
+		const twoValidators = (await radix.validators({ size: 2 }))._unsafeUnwrap()
+
+		const firstValidator = (await radix.validators({ size: 1 }))._unsafeUnwrap()
+		const secondValidator = (await radix.validators({ size: 1, cursor: firstValidator.cursor }))._unsafeUnwrap()
 
 		expect(firstValidator.validators[0].address.toString()).toEqual(
 			twoValidators.validators[0].address.toString(),
@@ -689,7 +523,7 @@ describe('integration API tests', () => {
 			twoValidators.validators[1].address.toString(),
 		)
 	})
-
+/*
 	describe('make tx single transfer', () => {
 		const tokenTransferInput: TransferTokensInput = {
 			to: accounts[2].address,
@@ -760,7 +594,7 @@ describe('integration API tests', () => {
 		it('automatic confirmation', done => {
 			subs.add(
 				radix.transferTokens(transferTokens()).completion.subscribe({
-					next: _txID => {},
+					next: _txID => { },
 					complete: () => {
 						done()
 					},
@@ -823,5 +657,6 @@ describe('integration API tests', () => {
 				}),
 			)
 		})
-	})*/
+	})
+	*/
 })

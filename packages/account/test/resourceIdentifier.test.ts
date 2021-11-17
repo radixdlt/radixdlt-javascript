@@ -12,7 +12,7 @@ describe('rri_on_bech32_format', () => {
 		ResourceIdentifier.fromUnsafe(rriString).match(
 			rri => {
 				expect(rri.name).toBe('xrd')
-				expect(rri.toString()).toBe(rriString)
+				expect(rri.toPrimitive()).toBe(rriString)
 				expect(rri.network).toBe(Network.STOKENET)
 			},
 			e => {
@@ -32,7 +32,7 @@ describe('rri_on_bech32_format', () => {
 		expect(rriMainnet.name).toBe(name)
 		expect(isResourceIdentifier(rriMainnet)).toBe(true)
 		expect(isResourceIdentifier('not_an_rri_just_a_string')).toBe(false)
-		expect(rriMainnet.toString()).toBe('foo_rr1qycfr7ap')
+		expect(rriMainnet.toPrimitive()).toBe('foo_rr1qycfr7ap')
 
 		const rriBetanet = ResourceIdentifier.systemRRIForNetwork({
 			name,
@@ -40,7 +40,7 @@ describe('rri_on_bech32_format', () => {
 		})._unsafeUnwrap()
 
 		expect(rriBetanet.equals(rriMainnet)).toBe(false)
-		expect(rriBetanet.toString()).toBe('foo_tr1qy9gvswx')
+		expect(rriBetanet.toPrimitive()).toBe('foo_tr1qy9gvswx')
 		expect(rriBetanet.network).not.toBe(rriMainnet.network)
 	})
 
@@ -98,7 +98,7 @@ describe('rri_on_bech32_format', () => {
 
 				expect(rri.name).toBe(vector.name)
 				expect(rri.network).toBe(vector.network)
-				expect(rri.toString()).toBe(vector.expectedRRI)
+				expect(rri.toPrimitive()).toBe(vector.expectedRRI)
 			})
 		}
 
@@ -216,7 +216,7 @@ describe('rri_on_bech32_format', () => {
 
 				expect(rri.hash.toString('hex')).toBe(vector.data)
 
-				expect(rri.toString()).toBe(vector.rri)
+				expect(rri.toPrimitive()).toBe(vector.rri)
 				expect(rri.name).toBe(vector.name)
 			})
 		}
@@ -277,7 +277,7 @@ describe('rri_on_bech32_format', () => {
 
 				expect(rri.name).toBe(vector.name)
 				expect(rri.network).toBe(vector.network)
-				expect(rri.toString()).toBe(vector.expectedRRI)
+				expect(rri.toPrimitive()).toBe(vector.expectedRRI)
 			})
 		}
 		privateKeyAndNameToRri.forEach((v, i) => doTest(v, i))

@@ -12,14 +12,14 @@ describe('TransactionIdentifier', () => {
 
 	it('can be converted to string', () => {
 		const txID = TransactionIdentifier.create(buffer0)._unsafeUnwrap()
-		expect(txID.toString()).toBe(deadbeefString)
+		expect(txID.toPrimitive()).toBe(deadbeefString)
 	})
 
 	it('can be created from hex string', () => {
 		const txID = TransactionIdentifier.create(
 			deadbeefString,
 		)._unsafeUnwrap()
-		expect(txID.toString()).toBe(deadbeefString)
+		expect(txID.toPrimitive()).toBe(deadbeefString)
 	})
 
 	const deadbeefString =

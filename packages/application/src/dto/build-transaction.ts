@@ -1,16 +1,17 @@
 import { err, Result, combineWithAllErrors, ok } from 'neverthrow'
 import { AccountAddress, AccountAddressT, ResourceIdentifier, ResourceIdentifierT, ValidatorAddress, ValidatorAddressT } from '@radixdlt/account'
-import { MessageEncryption } from '@radixdlt/crypto'
+import { Message, MessageEncryption } from '@radixdlt/crypto'
 import { Amount, AmountT } from "@radixdlt/primitives"
 import { pipe } from 'ramda'
 import { firstValueFrom } from 'rxjs'
 import { AccountT } from '../_types'
 import { ActionType } from '../actions'
 
-type primitiveFrom<Complex> = {
-  [Property in keyof Complex]: Complex[Property] extends { toPrimitive: () => unknown }
-  ? ReturnType<Complex[Property]['toPrimitive']>
-  : Complex[Property]
+export type PrimitiveFrom<Complex> = {
+  [Property in keyof Complex]: 
+    Complex[Property] extends { toPrimitive: () => unknown }
+    ? ReturnType<Complex[Property]['toPrimitive']>
+    : Complex[Property]
 }
 
 export namespace Action {
@@ -39,8 +40,8 @@ type Message = {
   encrypt: boolean
 }
 
-type PrimitiveTransfer = Omit<primitiveFrom<Action.Transfer>, 'from' | 'amount'> & { amount: string }
-type PrimitiveStake = primitiveFrom<Action.Stake>
+type PrimitiveTransfer = Omit<PrimitiveFrom<Action.Transfer>, 'from' | 'amount'> & { amount: string }
+type PrimitiveStake = PrimitiveFrom<Action.Stake>
 type PrimitiveUnstake = Action.Action<ActionType.UNSTAKE> & Omit<PrimitiveStake, 'type'>
 
 type PrimitiveAction = PrimitiveTransfer | PrimitiveStake | PrimitiveUnstake
@@ -55,7 +56,7 @@ export const buildTransaction = (...actions: Action[]) => (sender: AccountT, mes
         err([Error('Found more than one recipient in transaction. This is not supported.')]) :
         ok([actions, recipients[0]] as [Action[], AccountAddressT])
     },
-    (recipientResult: Result<[Action[], AccountAddressT], Error[]>) => recipientResult.map(async ([actions, recipient]) => ({
+    (recipientResult: Result<[Action[], AccountAddressT], Error[]>) => recipientResult.asyncMap(async ([actions, recipient]) => ({
       actions,
       message:
         message?.encrypt ?
@@ -65,12 +66,12 @@ export const buildTransaction = (...actions: Action[]) => (sender: AccountT, mes
               publicKeyOfOtherParty: recipient.publicKey
             }))
           ).combined()
-          : message?.plaintext ? MessageEncryption.encodePlaintext(message.plaintext)
+          : message?.plaintext ? Message.createPlaintext(message.plaintext).bytes
             : undefined
     }))
   )().mapErr(err => err.flat())
 
-export const createTransfer = (input: Omit<primitiveFrom<Action.Transfer>, 'type' | 'amount'> & { amount: string }): Result<Action.Transfer, Error[]> =>
+export const createTransfer = (input: Omit<PrimitiveFrom<Action.Transfer>, 'type' | 'amount'> & { amount: string }): Result<Action.Transfer, Error[]> =>
   combineWithAllErrors([
     AccountAddress.fromUnsafe(input.from),
     AccountAddress.fromUnsafe(input.to),
@@ -86,7 +87,7 @@ export const createTransfer = (input: Omit<primitiveFrom<Action.Transfer>, 'type
     })
   )
 
-export const createStake = (input: Omit<primitiveFrom<Action.Stake>, 'type'>): Result<Action.Stake, Error[]> =>
+export const createStake = (input: Omit<PrimitiveStake, 'type'>): Result<Action.Stake, Error[]> =>
   combineWithAllErrors([
     ValidatorAddress.fromUnsafe(input.validator),
     Amount.fromUnsafe(input.amount),
@@ -100,7 +101,7 @@ export const createStake = (input: Omit<primitiveFrom<Action.Stake>, 'type'>): R
     })
   )
 
-export const createUnstake = (input: Omit<primitiveFrom<Action.Unstake>, 'type'>): Result<Action.Unstake, Error[]> =>
+export const createUnstake = (input: Omit<PrimitiveFrom<Action.Unstake>, 'type'>): Result<Action.Unstake, Error[]> =>
   combineWithAllErrors([
     ValidatorAddress.fromUnsafe(input.validator),
     Amount.fromUnsafe(input.amount),
@@ -115,7 +116,10 @@ export const createUnstake = (input: Omit<primitiveFrom<Action.Unstake>, 'type'>
   )
 
 const getRecipients = (actions: Action[]) => actions.reduce(
-  (accounts, action) => action.type === ActionType.TRANSFER ? accounts.concat(accounts, action.to) : accounts,
+  (accounts, action) => 
+    action.type === ActionType.TRANSFER && !accounts.some(account => account.equals(action.to))
+      ? accounts.concat(accounts, action.to) 
+      : accounts,
   [] as AccountAddressT[]
 )
 

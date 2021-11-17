@@ -51,7 +51,7 @@ const __create = (input: {
 			buffersEquals(other.hash, input.hash) &&
 			input.network === other.network
 		if (same) {
-			if (other.toString() !== input.toPrimitive()) {
+			if (other.toPrimitive() !== input.toPrimitive()) {
 				const errMsg = `ResourceIdentifiers believed to be equal, but return different values when calling toString, (this)'${input.toPrimitive()}' vs other: '${other.toString()}'`
 				console.error(errMsg)
 				throw new Error(errMsg)

@@ -76,7 +76,7 @@ describe('signingKey_type', () => {
 			publicKey: signingKey.publicKey,
 			network: Network.MAINNET,
 		})
-		expect(accountAddress.toString()).toBe(
+		expect(accountAddress.toPrimitive()).toBe(
 			'rdx1qspa0ypecs52dwp4uym0hdvzayjemu3lses0j2pk0sls66gjw29gg3q0cpfrg',
 		)
 

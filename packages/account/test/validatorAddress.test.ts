@@ -55,14 +55,14 @@ describe('validator_address_on_bech32_format', () => {
 					publicKey,
 					network: vector.network,
 				})
-				expect(addr.toString()).toBe(vector.expectedAddr)
+				expect(addr.toPrimitive()).toBe(vector.expectedAddr)
 				expect(addr.network).toBe(vector.network)
 
 				const parsedAddress = ValidatorAddress.fromUnsafe(
 					vector.expectedAddr,
 				)._unsafeUnwrap()
-				expect(parsedAddress.toString()).toBe(vector.expectedAddr)
-				expect(parsedAddress.toString()).toBe(addr.toString())
+				expect(parsedAddress.toPrimitive()).toBe(vector.expectedAddr)
+				expect(parsedAddress.toPrimitive()).toBe(addr.toPrimitive())
 				expect(parsedAddress.publicKey.equals(publicKey)).toBe(true)
 
 				expect(parsedAddress.equals(addr)).toBe(true)

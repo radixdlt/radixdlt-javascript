@@ -5,6 +5,7 @@ import { UInt256 } from '@radixdlt/uint256'
 import { BufferReaderT, Byte } from '@radixdlt/util'
 import { ResourceIdentifier, AccountAddress } from '@radixdlt/account'
 import BigNumber from 'bignumber.js'
+import { AmountT } from 'packages/primitives/src/_types'
 
 const uint256ByteCount = 32
 
@@ -39,7 +40,7 @@ const fromBufferReader = (
 			reserved: resList[0] as Byte,
 			owner: resList[1] as REAddressT,
 			resource: resList[2] as REAddressT,
-			amount: resList[3] as UInt256,
+			amount: resList[3] as AmountT,
 		}))
 		.map(
 			(partial): TokensT => {

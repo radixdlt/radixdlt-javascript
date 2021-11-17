@@ -1,40 +1,25 @@
 import { NodeAPI } from './_types'
-import { Observable } from 'rxjs'
 import {
 	AccountAddressT,
 	ResourceIdentifierT,
 	ValidatorAddressT,
 } from '@radixdlt/account'
 import {
-	SimpleExecutedTransaction,
-	NetworkTransactionDemand,
-	NetworkTransactionThroughput,
-	PendingTransaction,
 	FinalizedTransaction,
+	PrimitiveFrom,
 	SignedTransaction,
-	StakePositions,
-	StatusOfTransaction,
-	Token,
-	SimpleTransactionHistory,
-	TransactionHistoryRequestInput,
 	TransactionIdentifierT,
 	TransactionIntent,
-	BuiltTransaction,
-	UnstakePositions,
-	SimpleTokenBalances,
-	Validator,
 } from '../dto'
-import { ActionType } from '../actions'
-import { Network } from '@radixdlt/primitives'
 import { pipe } from 'ramda'
-import { Action } from '../dto/build-transaction'
+import { ActionType } from '../actions'
 
-const convertToPrimitives = <T extends Record<string, any>>() => (object: T): any => { // TODO Fix return type
+const convertToPrimitives = <T extends Record<string, any>>() => (object: T): PrimitiveFrom<T> => {
 	let newObject: Record<string, any> = {}
 
 	for (let key in object) newObject[key] = object[key] && object[key].toPrimitive ? object[key].toPrimitive() : object[key]
 
-	return newObject
+	return newObject as PrimitiveFrom<T>
 }
 
 export const radixAPI = (api: NodeAPI) => ({
@@ -60,59 +45,59 @@ export const radixAPI = (api: NodeAPI) => ({
 		convertToPrimitives<{ address: AccountAddressT }>(),
 		api['account.get_balances']
 	),
-/*
-	transactionHistory: (
-		input: TransactionHistoryRequestInput,
-	): Observable<SimpleTransactionHistory> =>
-		toObs(a => a['account.get_transaction_history'], {
-			address: input.address.toString(),
-			size: input.size,
-			cursor: input.cursor?.toString(),
-		}),
 
-	nativeToken: (): Observable<Token> =>
-		toObs(a => a['tokens.get_native_token'], {}),
-	tokenInfo: (rri: ResourceIdentifierT): Observable<Token> =>
-		toObs(a => a['tokens.get_info'], {
-			rri: rri.toString(),
-		}),
+	transactionHistory: pipe(
+		convertToPrimitives<{ address: AccountAddressT, size: number, cursor?: string }>(),
+		api['account.get_transaction_history']
+	),
+	
+	nativeToken: () => api['tokens.get_native_token']({}),
+	
+	tokenInfo: pipe(
+		convertToPrimitives<{ rri: ResourceIdentifierT }>(),
+		api['tokens.get_info']
+	),
+	
+	stakesForAddress: pipe(
+		convertToPrimitives<{ address: AccountAddressT }>(),
+		api['account.get_stake_positions']
+	),
+	
+	unstakesForAddress: pipe(
+		convertToPrimitives<{ address: AccountAddressT }>(),
+		api['account.get_unstake_positions']
+	),
 
-	stakesForAddress: (
-		address: AccountAddressT,
-	): Observable<StakePositions> =>
-		toObs(a => a['account.get_stake_positions'], {
-			address: address.toString(),
-		}),
-
-	unstakesForAddress: (
-		address: AccountAddressT,
-	): Observable<UnstakePositions> =>
-		toObs(a => a['account.get_unstake_positions'], {
-			address: address.toString(),
-		}),
-*/
 	transactionStatus: pipe(
 		convertToPrimitives<{ txID: TransactionIdentifierT }>(),
 		api['transactions.get_transaction_status']
 	),
-/*
-	NetworkTransactionThroughput: (): Observable<NetworkTransactionThroughput> =>
-		toObs(a => a['network.get_throughput'], {}),
 
-	NetworkTransactionDemand: (): Observable<NetworkTransactionDemand> =>
-		toObs(a => a['network.get_demand'], {}),
-*/
+	NetworkTransactionThroughput: () => api['network.get_throughput']({}),
+
+	NetworkTransactionDemand: () => api['network.get_demand']({}),
+
 	buildTransaction: pipe(
 		convertToPrimitives<{ from: AccountAddressT } & TransactionIntent>(),
 		args => ({
 			...args,
-			actions: args.actions.map((action: any) => ({
-				from: action.from.toPrimitive(),
-				to: action.to.toPrimitive(),
-				amount: action.amount,
-				rri: action.rri.toPrimitive(),
-				type: action.type
-			})),
+			actions: args.actions.map(action => 
+					action.type === ActionType.TRANSFER
+					? {
+						from: action.from.toPrimitive(),
+						to: action.to.toPrimitive(),
+						amount: action.amount.toString(),
+						rri: action.rri.toPrimitive(),
+						type: action.type
+					}
+					: {
+						from: action.from.toPrimitive(),
+						validator: action.validator.toPrimitive(),
+						amount: action.amount.toString(),
+						type: action.type
+					}
+			),
+			message: args.message ? args.message.toString() : undefined,
 			feePayer: args.from,
 			disableResourceAllocationAndDestroy: true
 		}),

@@ -111,10 +111,10 @@ import {
 } from './dto'
 import { ActionType, ExecutedAction, TransferTokensAction } from './actions'
 import { Wallet } from './wallet'
-import { pipe } from 'ramda'
-import { buildTransaction, createTransfer, Action } from './dto/build-transaction'
+import { andThen, pipe } from 'ramda'
+import { buildTransaction, createTransfer, Action, createStake, createUnstake } from './dto/build-transaction'
 import { err, ok, Result, ResultAsync } from 'neverthrow'
-import { ResourceIdentifierT } from 'packages/account/src/addresses'
+import { ResourceIdentifierT, ValidatorAddressT } from 'packages/account/src/addresses'
 
 const txTypeFromActions = (
 	input: Readonly<{
@@ -175,8 +175,6 @@ const create = () => {
 	const addAccountByPrivateKeySubject = new Subject<AddAccountByPrivateKeyInput>()
 	const switchAccountSubject = new Subject<SwitchAccountInput>()
 
-	const tokenBalanceFetchSubject = new Subject<number>()
-	const stakingFetchSubject = new Subject<number>()
 	const wallet$ = walletSubject.asObservable()
 
 	const networkSubject = new ReplaySubject<Network>()
@@ -197,142 +195,32 @@ const create = () => {
 		shareReplay(1),
 	)
 
-	/*
-	const lookupTransaction = (
-		txID: TransactionIdentifierT,
-	): Observable<ExecutedTransaction> =>
-		coreAPI$.pipe(
-			map(
-				api => {
-					api.lookupTransaction(txID).pipe(
-						withLatestFrom(activeAddress),
-						map(([simpleTx, aa]) =>
-							decorateSimpleExecutedTransactionWithType(simpleTx, aa),
-						),
-					)
-				}
-			)
-		)
-*/
 	const revealMnemonic = (): Observable<MnemomicT> =>
 		wallet$.pipe(
 			map((wallet: WalletT): MnemomicT => wallet.revealMnemonic()),
 		)
 
-	const activeAddressToAPIObservableWithTrigger = <O>(
-		trigger: Observable<number>,
-		pickFn: (
-			api: RadixAPI,
-		) => (address: AccountAddressT) => Observable<O>,
-		errorFn: (error: APIErrorObject) => APIError,
-	): Observable<O> =>
-		merge(
-			trigger.pipe(
-				withLatestFrom(activeAddress),
-				map(result => result[1]),
+	const transactionHistory = async (
+		size: number,
+		cursor?: string
+	): Promise<Result<TransactionHistory, Error[]>> => {
+		const address = await firstValueFrom(activeAddress)
+		const getTxHistory = await getAPICall('transactionHistory')
+
+		return (await getTxHistory({ address, size, cursor })).map(txHistory => ({
+			...txHistory,
+			transactions: txHistory.transactions.map(
+				(
+					simpleExecutedTX: SimpleExecutedTransaction,
+				): ExecutedTransaction =>
+					decorateSimpleExecutedTransactionWithType(
+						simpleExecutedTX,
+						address,
+					),
 			),
-			activeAddress,
-		).pipe(
-			withLatestFrom(coreAPI$),
-			switchMap(([address, api]) =>
-				pickFn(api)(address).pipe(
-					catchError(error => {
-						console.error(error)
-						errorNotificationSubject.next(errorFn(error))
-						return EMPTY
-					}),
-				),
-			),
-			shareReplay(1),
-		)
-	/*
-const simpleTokenBalances = activeAddressToAPIObservableWithTrigger(
-tokenBalanceFetchSubject,
-a => a.tokenBalancesForAddress,
-tokenBalancesErr,
-)
+		}))
+	}
 
-const decorateSimpleTokenBalanceWithTokenInfo = (
-simpleTokenBalance: SimpleTokenBalance,
-): Observable<TokenBalance> =>
-api.tokenInfo(simpleTokenBalance.tokenIdentifier).pipe(
-map(
-(tokenInfo: Token): TokenBalance => ({
-	amount: simpleTokenBalance.amount,
-	token: tokenInfo,
-}),
-),
-)
-
-const tokenBalances: Observable<TokenBalances> = simpleTokenBalances.pipe(
-mergeMap(
-(
-simpleTokenBalances: SimpleTokenBalances,
-): Observable<TokenBalances> => {
-const balanceOfTokensObservableList: Observable<TokenBalance>[] = simpleTokenBalances.tokenBalances.map(
-	decorateSimpleTokenBalanceWithTokenInfo,
-)
-
-return simpleTokenBalances.tokenBalances.length === 0
-	? of({
-		owner: simpleTokenBalances.owner,
-		tokenBalances: [],
-	})
-	: forkJoin(balanceOfTokensObservableList).pipe(
-		map(
-			(
-				tokenBalances: TokenBalance[],
-			): TokenBalances => ({
-				owner: simpleTokenBalances.owner,
-				tokenBalances,
-			}),
-		),
-	)
-},
-),
-)
-
-const stakingPositions = activeAddressToAPIObservableWithTrigger(
-stakingFetchSubject,
-a => a.stakesForAddress,
-stakesForAddressErr,
-)
-
-const unstakingPositions = activeAddressToAPIObservableWithTrigger(
-stakingFetchSubject,
-a => a.unstakesForAddress,
-unstakesForAddressErr,
-)
-
-const transactionHistory = (
-input: TransactionHistoryActiveAccountRequestInput,
-): Observable<TransactionHistory> =>
-activeAddress.pipe(
-take(1),
-switchMap(activeAddress =>
-api
-	.transactionHistory({ ...input, address: activeAddress })
-	.pipe(
-		map(
-			(
-				simpleTxHistory: SimpleTransactionHistory,
-			): TransactionHistory => ({
-				...simpleTxHistory,
-				transactions: simpleTxHistory.transactions.map(
-					(
-						simpleExecutedTX: SimpleExecutedTransaction,
-					): ExecutedTransaction =>
-						decorateSimpleExecutedTransactionWithType(
-							simpleExecutedTX,
-							activeAddress,
-						),
-				),
-			}),
-		),
-	),
-),
-)
-*/
 
 	const activeAccount: Observable<AccountT> = wallet$.pipe(
 		mergeMap(wallet => wallet.observeActiveAccount()),
@@ -705,68 +593,7 @@ api
 		}
 	}
 
-	/*
-
-	const __makeTransactionFromBuilder = (
-		transactionIntentBuilderT: TransactionIntentBuilderT,
-		makeTXOptions: MakeTransactionOptions,
-		builderOptions?: TransactionIntentBuilderOptions,
-	): TransactionTracking => {
-		radixLog.debug(`make transaction from builder`)
-		const intent$ = transactionIntentBuilderT.build(
-			builderOptions ?? {
-				skipEncryptionOfMessageIfAny: {
-					spendingSender: activeAddress.pipe(take(1)), // IMPORTANT !
-				},
-			},
-		)
-		return __makeTransactionFromIntent(intent$, makeTXOptions)
-	}
-
-	*/
-	const transferTokens = async (
-		to: AccountAddressT,
-		amount: AmountT,
-		tokenIdentifier: ResourceIdentifierT,
-		message?: MessageInTransaction,
-		options: MakeTransactionOptions = { userConfirmation: 'skip' }
-	): Promise<Result<TransactionTracking, Error[]>> => {
-		const account = await firstValueFrom(activeAccount)
-
-		const transferResult = createTransfer({
-			from: account.address.toPrimitive(),
-			to: to.toPrimitive(),
-			amount: amount.toString(),
-			rri: tokenIdentifier.toPrimitive()
-		})
-
-		if (transferResult.isErr()) return err(transferResult.error)
-
-		const actionsResult = buildTransaction(transferResult.value)(account, message)
-
-		if (actionsResult.isErr()) return err(actionsResult.error)
-
-		return ok(__makeTransactionFromIntent(from(actionsResult.value), options))
-	}
-	/*
-
-	const stakeTokens = (input: StakeOptions) => {
-		radixLog.debug('stake')
-		return __makeTransactionFromBuilder(
-			TransactionIntentBuilder.create().stakeTokens(input.stakeInput),
-			{ ...input },
-		)
-	}
-
-	const unstakeTokens = (input: UnstakeOptions) => {
-		radixLog.debug('unstake')
-		return __makeTransactionFromBuilder(
-			TransactionIntentBuilder.create().unstakeTokens(input.unstakeInput),
-			{ ...input },
-		)
-	}
-
-	const decryptTransaction = (
+	/*const decryptTransaction = (
 		input: SimpleExecutedTransaction,
 	): Observable<string> => {
 		radixLog.debug(
@@ -825,8 +652,8 @@ api
 			}),
 			take(1),
 		)
-	}
-*/
+	}*/
+
 	const restoreLocalHDAccountsToIndex = (
 		index: number,
 	): Observable<AccountsT> =>
@@ -870,8 +697,9 @@ api
 	const getAPICall = <
 		Method extends keyof ReturnType<typeof radixAPI>,
 		Args extends Parameters<RadixAPI[Method]>
-	// @ts-ignore
-	>(method: Method) => async (...args: Args) => await (await api())[method](...args)
+	>(method: Method) =>
+		// @ts-ignore
+		async (...args: Args): ReturnType<RadixAPI[Method]> => await (await api())[method](...args)
 
 	const methods = {
 		api,
@@ -931,7 +759,7 @@ api
 				load: async () => keystore
 			}).map(signingKeychain => {
 				walletSubscription?.unsubscribe()
-				
+
 				walletSubscription = networkSubject.subscribe(
 					network => {
 						const wallet = Wallet.create({
@@ -1011,13 +839,14 @@ api
 			return methods
 		},
 
-		/*
 		transactionStatus: (
 			txID: TransactionIdentifierT,
 			trigger: Observable<number>,
 		) =>
 			trigger.pipe(
-				mergeMap(_ => api.transactionStatus(txID)),
+				mergeMap(_ => from(api())),
+				mergeMap(api => api.transactionStatus({ txID })),
+				map(status => status._unsafeUnwrap()),
 				distinctUntilChanged((prev, cur) => prev.status === cur.status),
 				filter(({ txID }) => txID.equals(txID)),
 				tap(({ status }) =>
@@ -1026,37 +855,98 @@ api
 					),
 				),
 			),
-						*/
-		withTokenBalanceFetchTrigger: (trigger: Observable<number>) => {
-			subs.add(trigger.subscribe(tokenBalanceFetchSubject))
-			return methods
-		},
 
-		withStakingFetchTrigger: (trigger: Observable<number>) => {
-			subs.add(trigger.subscribe(stakingFetchSubject))
-			return methods
-		},
-
-		// Wallet APIs
 		revealMnemonic,
 		activeAddress,
 		activeAccount,
 		accounts,
-		// Active AccountAddress/Account APIs
-		/*
-		tokenBalances,
-		stakingPositions,
-		unstakingPositions,
 
-		// Methods
-		lookupTransaction,
+		tokenBalances: pipe(
+			() => firstValueFrom(activeAddress),
+			andThen(address => getAPICall('tokenBalancesForAddress')({ address })),
+			andThen(result => result.map(response => response.tokenBalances))
+		),
+
+		stakingPositions: pipe(
+			() => firstValueFrom(activeAddress),
+			andThen(address => getAPICall('stakesForAddress')({ address }))
+		),
+
+		unstakingPositions: pipe(
+			() => firstValueFrom(activeAddress),
+			andThen(address => getAPICall('unstakesForAddress')({ address }))
+		),
+
+		lookupTransaction: pipe(
+			getAPICall('lookupTransaction'),
+			andThen(result => result.asyncMap(
+				tx => firstValueFrom(activeAddress).then(
+					address => decorateSimpleExecutedTransactionWithType(tx, address))
+			)),
+			promise => ResultAsync.fromPromise(promise, e => e as Error[]).andThen(result => result)
+		),
+
 		transactionHistory,
-		*/
-		transferTokens,
-		/*
-		stakeTokens,
-		unstakeTokens,
-		*/
+
+		transferTokens: async (
+			to: AccountAddressT,
+			amount: AmountT,
+			tokenIdentifier: ResourceIdentifierT,
+			message?: MessageInTransaction,
+			options: MakeTransactionOptions = { userConfirmation: 'skip' }
+		): Promise<Result<TransactionTracking, Error[]>> => {
+			const account = await firstValueFrom(activeAccount)
+	
+			return pipe(
+				() => createTransfer({
+					from: account.address.toPrimitive(),
+					to: to.toPrimitive(),
+					amount: amount.toString(),
+					rri: tokenIdentifier.toPrimitive()
+				}),
+				result => result.asyncAndThen(transfer => buildTransaction(transfer)(account, message)),
+				result => result.map(actions => __makeTransactionFromIntent(of(actions), options))
+			)()
+		},
+
+		stakeTokens: async (
+			validator: ValidatorAddressT,
+			amount: AmountT,
+			options: MakeTransactionOptions = { userConfirmation: 'skip' }
+		) => {
+			const account = await firstValueFrom(activeAccount)
+
+			return pipe(
+				() => createStake({
+					validator: validator.toPrimitive(),
+					amount: amount.toString(),
+					from: account.address.toPrimitive()
+				}),
+				result => result.map(buildTransaction),
+				result => result.asyncAndThen(build => build(account)),
+				result => result.map(actions => __makeTransactionFromIntent(of(actions), options))
+			)()
+		},
+
+		unstakeTokens: async (
+			validator: ValidatorAddressT,
+			amount: AmountT,
+			options: MakeTransactionOptions = { userConfirmation: 'skip' }
+		) => {
+			const account = await firstValueFrom(activeAccount)
+
+			return pipe(
+				() => createUnstake({
+					validator: validator.toPrimitive(),
+					amount: amount.toString(),
+					from: account.address.toPrimitive()
+				}),
+				result => result.map(buildTransaction),
+				result => result.asyncAndThen(build => build(account)),
+				result => result.map(actions => __makeTransactionFromIntent(of(actions), options))
+			)()
+		},
+
 		validators: getAPICall('validators'),
 		lookupValidator: getAPICall('lookupValidator')
 	}

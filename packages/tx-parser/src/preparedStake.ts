@@ -17,6 +17,7 @@ import {
 } from './tokens'
 import { BufferReaderT, Byte } from '@radixdlt/util'
 import { AccountAddress, ValidatorAddress } from '@radixdlt/account'
+import { AmountT } from 'packages/primitives/src/_types'
 
 export const pubKeyFromReadBuffer = (
 	bufferReader: BufferReaderT,
@@ -66,7 +67,7 @@ export const makeBaseStakeSubstateFromBuffer = <SST extends SubStateType>(
 			]).map(
 				(resList): BaseStakingSubstate<SST> => {
 					const owner = resList[0] as REAddressT
-					const amount = resList[1] as UInt256
+					const amount = resList[1] as AmountT
 					const reserved = base.reserved
 					const validator = base.validator
 					return {
