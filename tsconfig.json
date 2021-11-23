@@ -1,15 +1,40 @@
 {
-  "files": [],
-  "references": [
-    { "path": "packages/util" },
-    { "path": "packages/primitives" },
-    { "path": "packages/crypto" },
-    { "path": "packages/data-formats" },
-    { "path": "packages/hardware-wallet" },
-    { "path": "packages/account" },
-    { "path": "packages/networking" },
-    { "path": "packages/application" },
-    { "path": "packages/hardware-ledger" },
-    { "path": "packages/tx-parser" },
-  ]
+  "compilerOptions": {
+    "outDir": "./build",
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "declaration": true,
+    "declarationMap": true,
+    "downlevelIteration": true,
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "preserveConstEnums": true,
+    "importHelpers": true,
+    "lib": ["ESNext", "dom"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    "noUnusedLocals": false,
+    "strict": true,
+    "target": "ES6",
+    "skipLibCheck": true,
+    "types": [
+      "node",
+      "jest"
+    ],
+    "paths": {
+      "@account": ["./src/account"],
+      "@application": ["./src/application"],
+      "@crypto": ["./src/crypto"],
+      "@data-formats": ["./src/data-formats"],
+      "@hardware-ledger": ["./src/hardware-ledger"],
+      "@hardware-wallet": ["./src/hardware-wallet"],
+      "@networking": ["./src/networking"],
+      "@primitives": ["./src/primitives"],
+      "@tx-parser": ["./src/tx-parser"],
+      "@util": ["./src/util"]
+    }
+  }
 }
