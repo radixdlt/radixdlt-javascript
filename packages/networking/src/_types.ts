@@ -1,8 +1,10 @@
-export type Transport = {
-	call: (
-		endpoint: string,
-		params: unknown[] | Record<string, unknown>,
-	) => Promise<unknown>
+type DefaultCall = (
+	endpoint: string,
+	params: unknown[] | Record<string, unknown>,
+) => Promise<unknown>
+
+export type Transport<Call = DefaultCall> = {
+	call: Call
 }
 
-export type Client = (url: URL) => Transport
+export type Client<T = any> = (url: URL) => Transport<T>
