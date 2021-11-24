@@ -15,7 +15,7 @@ type Api = InstanceType<typeof DefaultApi>
 type BaseAPIType = InstanceType<typeof BaseAPI>
 
 type RemoveRawMethods<Methods> = {
-	[Property in keyof Methods as Exclude<Property, `${any}Raw`>]: Methods[Property]
+	[Property in keyof Methods as Exclude<Property, `${string}Raw`>]: Methods[Property]
 }
 
 type Method = RemoveRawMethods<Omit<Api, keyof BaseAPIType>>
