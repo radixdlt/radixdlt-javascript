@@ -1,8 +1,8 @@
 import 'isomorphic-fetch'
 import { log } from '@radixdlt/util'
 import { v4 as uuid } from 'uuid'
-import { DefaultApi } from './generated-open-api-client/apis/DefaultApi'
-import { BaseAPI, Configuration } from './generated-open-api-client/runtime'
+import { DefaultApi } from './open-api-codegen/apis/DefaultApi'
+import { BaseAPI, Configuration } from './open-api-codegen/runtime'
 import { Client } from './_types'
 import { ok, Ok } from 'neverthrow'
 
@@ -16,7 +16,7 @@ type BaseAPIType = InstanceType<typeof BaseAPI>
 
 type Method = Omit<Api, keyof BaseAPIType>
 
-type MethodKey = keyof Omit<Api, keyof BaseAPIType>
+type MethodKey = keyof Method
 
 type OpenApiClientCall = <
 	M extends MethodKey,
@@ -36,17 +36,12 @@ export const openApiClient: OpenApiClient = (url: URL) => {
 
 	const call = async <
 		M extends MethodKey,
-		P extends Parameters<Api[M]>[0],
+		P extends Parameters<Method[M]>[0],
 		R extends ReturnType<Method[M]>,
 	>(
 		method: M,
 		params: P,
 	): Promise<Ok<R, any>> => {
-		const requestHeaders = {
-			[headers[0]]: method,
-			[headers[1]]: correlationID,
-		}
-
 		log.info(
 			`Sending RPC request with method ${method}. ${JSON.stringify(
 				params,
@@ -58,7 +53,10 @@ export const openApiClient: OpenApiClient = (url: URL) => {
 		// @ts-ignore allow dynamic method call
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		const response: R = await client[method](params, {
-			headers: requestHeaders,
+			headers: {
+				[headers[0]]: method,
+				[headers[1]]: correlationID,
+			},
 		})
 
 		return ok(response)
