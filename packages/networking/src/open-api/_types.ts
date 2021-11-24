@@ -1,16 +1,17 @@
 import { BaseAPI } from './codegen/runtime'
 import { DefaultApi } from './codegen/apis/DefaultApi'
 import { Client } from '../_types'
+import { Ok } from 'neverthrow'
 
 export type Api = InstanceType<typeof DefaultApi>
 
-export type BaseAPIType = InstanceType<typeof BaseAPI>
+type BaseAPIType = InstanceType<typeof BaseAPI>
 
 export type Method = Omit<Api, keyof BaseAPIType>
 
 export type MethodKey = keyof Method
 
-type OpenApiClientCall = <
+export type OpenApiClientCall = <
 	M extends MethodKey,
 	P extends Parameters<Api[M]>[0],
 	R extends ReturnType<Method[M]>,
