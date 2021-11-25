@@ -1,7 +1,6 @@
 import { JSONDecoding } from '@radixdlt/data-formats'
 import {
 	addressDecoder,
-	addressObjectDecoder,
 	amountDecoder,
 	networkDecoder,
 	RRIDecoder,
@@ -9,6 +8,7 @@ import {
 	URLDecoder,
 	validatorAddressDecoder,
 	validatorAddressObjectDecoder,
+	addressObjectDecoder
 } from '../decoders'
 import { hasRequiredProps } from '../utils'
 import {
@@ -183,7 +183,7 @@ export const handleValidatorResponse = (
 		)
 
 export const handleValidatorsResponse = (
-	json: Awaited<ReturnType<Method['validatorsPost']>>,
+	json: ReturnOfAPICall<'validatorsPost'>,
 ) =>
 	JSONDecoding.withDecoders(...validatorDecoders)
 		.create<
@@ -198,7 +198,7 @@ export const handleValidatorsResponse = (
 		)
 
 export const handleTransactionRulesResponse = (
-	json: Awaited<ReturnType<Method['transactionRulesPost']>>,
+	json: ReturnOfAPICall<'transactionRulesPost'>,
 ) =>
 	JSONDecoding.withDecoders(amountDecoder('value'), RRIDecoder('rri'))
 		.create<
@@ -213,7 +213,7 @@ export const handleTransactionRulesResponse = (
 		)
 
 export const handleBuildTransactionResponse = (
-	json: Awaited<ReturnType<Method['transactionBuildPost']>>,
+	json: ReturnOfAPICall<'transactionBuildPost'>,
 ) =>
 	JSONDecoding.withDecoders(amountDecoder('value'), RRIDecoder('rri'))
 		.create<
@@ -221,11 +221,11 @@ export const handleBuildTransactionResponse = (
 			BuildTransactionEndpoint.DecodedResponse
 		>()(json)
 		.andThen(decoded =>
-			hasRequiredProps('stakePositions', decoded, ['transaction_rules']),
+			hasRequiredProps('buildTransaction', decoded, ['transaction_rules']),
 		)
 
 export const handleSubmitTransactionResponse = (
-	json: Awaited<ReturnType<Method['transactionSubmitPost']>>,
+	json: ReturnOfAPICall<'transactionSubmitPost'>,
 ) =>
 	JSONDecoding.withDecoders(amountDecoder('value'), RRIDecoder('rri'))
 		.create<

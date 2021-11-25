@@ -4,27 +4,29 @@ import {
 	OpenApiClientCall,
 	ReturnOfAPICall,
 } from '@radixdlt/networking'
-import { handleNetworkResponse } from './responseHandlers'
+import { handleNativeTokenResponse, handleNetworkResponse } from './responseHandlers'
 import { pipe } from 'ramda'
 import { Result } from 'neverthrow'
+import { handleTokenInfoResponse } from '..'
 
-const callApi =
+const callAPIWith =
+	(call: OpenApiClientCall) =>
 	<DecodedResponse, M extends MethodName>(method: M) =>
-		(
-			call: OpenApiClientCall,
-			handleResponse: (
-				response: ReturnOfAPICall<M>,
-			) => Result<DecodedResponse, Error[]>,
-		) =>
-			(params: InputOfAPICall<M>) =>
-				pipe(
-					() => call(method, params),
-					result => result.map(handleResponse),
-				)()
+	(handleResponse: (response: ReturnOfAPICall<M>) => Result<DecodedResponse, Error[]>) =>
+		(params: InputOfAPICall<M>) =>
+			pipe(
+				() => call(method, params),
+				result => result.map(handleResponse),
+			)()
 
-export const getAPI = (call: OpenApiClientCall) => ({
-	getNetwork: callApi('networkPost')(call, handleNetworkResponse)
-})
+export const getAPI = pipe(
+	(call: OpenApiClientCall) => callAPIWith(call),
+	callAPI => ({
+		getNetwork: callAPI('networkPost')(handleNetworkResponse),
+		getTokenInfo: callAPI('tokenPost')(handleTokenInfoResponse),
+		getNativeTokenInfo: callAPI('tokenNativePost')(handleNativeTokenResponse)
+	})
+)
 
 // getAPI(openApiClient(new URL('')).call)
 // 	.networkPost({ body: {} })

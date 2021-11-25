@@ -42,11 +42,6 @@ import {
 import { AmountT, Network } from '@radixdlt/primitives'
 import { TransactionIdentifierT } from '../../dto'
 
-export enum ApiMethod {
-	NETWORK = 'networkPost',
-	TOKEN = 'tokenPost',
-}
-
 namespace Decoded {
 	export type TokenIdentifier = {
 		rri: ResourceIdentifierT
@@ -360,9 +355,7 @@ export namespace TransactionRulesEndpoint {
 export namespace BuildTransactionEndpoint {
 	export type Input = TransactionBuildPostRequest
 	export type Response = TransactionBuildResponse
-	export type DecodedResponse =
-		| Decoded.TransactionBuildResponseSuccess
-		| Decoded.TransactionBuildError
+	export type DecodedResponse = Decoded.TransactionBuildResponseSuccess
 }
 
 export namespace FinalizeTransactionEndpoint {
