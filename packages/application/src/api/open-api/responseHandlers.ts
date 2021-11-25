@@ -3,7 +3,6 @@ import {
 	addressDecoder,
 	addressObjectDecoder,
 	amountDecoder,
-	dateDecoder,
 	networkDecoder,
 	RRIDecoder,
 	transactionIdentifierDecoder,
@@ -27,7 +26,7 @@ import {
 	BuildTransactionEndpoint,
 	SubmitTransactionEndpoint,
 } from './_types'
-import { Method } from '@radixdlt/networking'
+import { ReturnOfAPICall } from '@radixdlt/networking'
 
 const tokenDecoders = [
 	RRIDecoder('rri'),
@@ -45,7 +44,7 @@ const validatorDecoders = [
 ]
 
 export const handleNetworkResponse = (
-	json: Awaited<ReturnType<Method['networkPost']>>,
+	json: ReturnOfAPICall<'networkPost'>,
 ) =>
 	JSONDecoding.withDecoders(networkDecoder('network'))
 		.create<NetworkEndpoint.Response, NetworkEndpoint.DecodedResponse>()(
@@ -56,7 +55,7 @@ export const handleNetworkResponse = (
 		)
 
 export const handleTokenInfoResponse = (
-	json: Awaited<ReturnType<Method['tokenPost']>>,
+	json: ReturnOfAPICall<'tokenPost'>,
 ) =>
 	JSONDecoding.withDecoders(...tokenDecoders)
 		.create<
@@ -68,7 +67,7 @@ export const handleTokenInfoResponse = (
 		)
 
 export const handleNativeTokenResponse = (
-	json: Awaited<ReturnType<Method['tokenNativePost']>>,
+	json: ReturnOfAPICall<'tokenNativePost'>,
 ) =>
 	JSONDecoding.withDecoders(...tokenDecoders)
 		.create<
@@ -83,7 +82,7 @@ export const handleNativeTokenResponse = (
 		)
 
 export const handleDeriveTokenIdentifierResponse = (
-	json: Awaited<ReturnType<Method['tokenDerivePost']>>,
+	json: ReturnOfAPICall<'tokenDerivePost'>,
 ) =>
 	JSONDecoding.withDecoders(RRIDecoder('rri'))
 		.create<
@@ -97,7 +96,7 @@ export const handleDeriveTokenIdentifierResponse = (
 		)
 
 export const handleAccountBalancesResponse = (
-	json: Awaited<ReturnType<Method['accountBalancesPost']>>,
+	json: ReturnOfAPICall<'accountBalancesPost'>,
 ) =>
 	JSONDecoding.withDecoders(RRIDecoder('rri'), amountDecoder('value'))
 		.create<
@@ -112,7 +111,7 @@ export const handleAccountBalancesResponse = (
 		)
 
 export const handleStakePositionsResponse = (
-	json: Awaited<ReturnType<Method['accountStakesPost']>>,
+	json: ReturnOfAPICall<'accountStakesPost'>,
 ) =>
 	JSONDecoding.withDecoders(
 		RRIDecoder('rri'),
@@ -131,7 +130,7 @@ export const handleStakePositionsResponse = (
 		)
 
 export const handleUnstakePositionsResponse = (
-	json: Awaited<ReturnType<Method['accountUnstakesPost']>>,
+	json: ReturnOfAPICall<'accountUnstakesPost'>,
 ) =>
 	JSONDecoding.withDecoders(
 		RRIDecoder('rri'),
@@ -150,7 +149,7 @@ export const handleUnstakePositionsResponse = (
 		)
 
 export const handleAccountTransactionsResponse = (
-	json: Awaited<ReturnType<Method['accountTransactionsPost']>>,
+	json: ReturnOfAPICall<'accountTransactionsPost'>,
 ) =>
 	JSONDecoding.withDecoders(
 		transactionIdentifierDecoder('hash'),
@@ -169,7 +168,7 @@ export const handleAccountTransactionsResponse = (
 		)
 
 export const handleValidatorResponse = (
-	json: Awaited<ReturnType<Method['validatorPost']>>,
+	json: ReturnOfAPICall<'validatorPost'>,
 ) =>
 	JSONDecoding.withDecoders(...validatorDecoders)
 		.create<

@@ -1,29 +1,29 @@
 import {
-	Api,
-	Method,
+	InputOfAPICall,
 	MethodName,
-	openApiClient,
-	Call,
+	OpenApiClientCall,
+	ReturnOfAPICall,
 } from '@radixdlt/networking'
 import { handleNetworkResponse } from './responseHandlers'
-import { andThen, pipe } from 'ramda'
+import { pipe } from 'ramda'
+import { Result } from 'neverthrow'
 
 const callApi =
-	<M extends MethodName, DecodedResponse>(method: M) =>
-	(
-		call: Call<M, Method[M], Parameters<Api[M]>[0]>,
-		handleResponse: (
-			response: Awaited<ReturnType<Method[M]>>,
-		) => DecodedResponse,
-	) =>
-	(params: Parameters<Api[M]>[0]) =>
-		pipe(() => call(method, params), andThen(handleResponse))()
+	<DecodedResponse, M extends MethodName>(method: M) =>
+		(
+			call: OpenApiClientCall,
+			handleResponse: (
+				response: ReturnOfAPICall<M>,
+			) => Result<DecodedResponse, Error[]>,
+		) =>
+			(params: InputOfAPICall<M>) =>
+				pipe(
+					() => call(method, params),
+					result => result.map(handleResponse),
+				)()
 
-export const getAPI = (call: any) => ({
-	getNetwork: callApi<
-		'networkPost',
-		ReturnType<typeof handleNetworkResponse>
-	>('networkPost')(call, handleNetworkResponse),
+export const getAPI = (call: OpenApiClientCall) => ({
+	getNetwork: callApi('networkPost')(call, handleNetworkResponse)
 })
 
 // getAPI(openApiClient(new URL('')).call)

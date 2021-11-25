@@ -1,16 +1,29 @@
 import 'isomorphic-fetch'
 import { log } from '@radixdlt/util'
 import { v4 as uuid } from 'uuid'
-import { DefaultApi, BaseAPI, Configuration } from './open-api'
 import { Client } from './_types'
-import { ResultAsync } from 'neverthrow'
+import { err, errAsync, ok, okAsync, Result, ResultAsync } from 'neverthrow'
 import { pipe } from 'ramda'
+import { BaseAPI, Configuration, DefaultApi, TransactionBuild, TransactionBuildError, TransactionBuildResponse, TransactionBuildResponseError, TransactionBuildResponseSuccess } from './open-api'
+
+const isTransactionBuildResponse = (response: any): response is TransactionBuildResponse => response.type != undefined
+
+const isBuildResponseSuccess = (response: TransactionBuildResponse): response is TransactionBuildResponseSuccess =>
+	response.type === 'TransactionBuildResponseSuccess'
+
+const isBuildResponseError = (response: TransactionBuildResponse): response is TransactionBuildResponseError =>
+	response.type === 'TransactionBuildResponseError'
+
+const handleBuildResponse = (response: TransactionBuildResponse): Result<TransactionBuild, TransactionBuildError | Error> =>
+	isBuildResponseSuccess(response) ? ok(response.transactionBuild) :
+		isBuildResponseError(response) ? err(response.error) :
+			err(Error('Unexpected build transaction response.'))
 
 const headers = ['X-Radixdlt-Method', 'X-Radixdlt-Correlation-Id']
 
 const correlationID = uuid()
 
-export type Api = InstanceType<typeof DefaultApi>
+type Api = InstanceType<typeof DefaultApi>
 type BaseAPIType = InstanceType<typeof BaseAPI>
 
 type RemoveRawMethods<Methods> = {
@@ -20,37 +33,25 @@ type RemoveRawMethods<Methods> = {
 	>]: Methods[Property]
 }
 
+export type ReturnOfAPICall<Name extends MethodName> = Awaited<ReturnType<Method[Name]>>
+export type InputOfAPICall<Name extends MethodName> = Parameters<Method[Name]>[0]
+
 export type Method = RemoveRawMethods<Omit<Api, keyof BaseAPIType>>
 export type MethodName = keyof Method
-export type Response = Awaited<ReturnType<Method[MethodName]>>
+export type Response = ReturnOfAPICall<MethodName>
 
-const call =
-	(client: DefaultApi) =>
-	<M extends MethodName>(
-		method: M,
-		params: Parameters<Method[M]>[0],
-	): ResultAsync<Response, Error> =>
-		pipe(
-			() =>
-				log.info(
-					`Sending RPC request with method ${method}. ${JSON.stringify(
-						params,
-						null,
-						2,
-					)}`,
-				),
-			() =>
-				ResultAsync.fromPromise(
-					// @ts-ignore
-					client[method](params, {
-						headers: {
-							[headers[0]]: method,
-							[headers[1]]: correlationID,
-						},
-					}),
-					(e: Error) => e,
-				),
-		)()
+const call = (client: DefaultApi) => <
+	M extends MethodName
+>(method: M, params: InputOfAPICall<M>): ResultAsync<ReturnOfAPICall<M>, Error> =>
+	// @ts-ignore
+	pipe(
+		() => log.info(`Sending RPC request with method ${method}. ${JSON.stringify(params, null, 2,)}`),
+		() => ResultAsync.fromPromise(
+			// @ts-ignore
+			client[method](params, { headers: { [headers[0]]: method, [headers[1]]: correlationID } }),
+			(e: Error) => e
+		)
+	)()
 
 export type OpenApiClientCall = ReturnType<typeof call>
 
@@ -58,3 +59,5 @@ export const openApiClient: Client<'open-api'> = (url: URL) => ({
 	type: 'open-api',
 	call: call(new DefaultApi(new Configuration({ basePath: url.toString() }))),
 })
+
+
