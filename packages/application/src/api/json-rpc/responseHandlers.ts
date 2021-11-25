@@ -1,15 +1,5 @@
-import { decoder, JSONDecoding } from '@radixdlt/data-formats'
+import { JSONDecoding } from '@radixdlt/data-formats'
 import { err, ok, Result } from 'neverthrow'
-
-import {
-	AccountAddress,
-	ValidatorAddress,
-	ResourceIdentifier,
-} from '@radixdlt/account'
-
-import { Network, Amount, NetworkId } from '@radixdlt/primitives'
-
-import { isString } from '@radixdlt/util'
 import {
 	BuildTransactionEndpoint,
 	SubmitTransactionEndpoint,
@@ -27,74 +17,18 @@ import {
 	ValidatorsEndpoint,
 	LookupValidatorEndpoint,
 } from './_types'
-import { TransactionIdentifier } from '../../dto'
 import { pipe } from 'ramda'
 import { Message } from '@radixdlt/crypto'
-
-const amountDecoder = (...keys: string[]) =>
-	decoder((value, key) =>
-		key !== undefined && keys.includes(key) && isString(value)
-			? Amount.fromUnsafe(value)
-			: undefined,
-	)
-
-const dateDecoder = (...keys: string[]) =>
-	decoder((value, key) =>
-		key !== undefined && keys.includes(key) && isString(value)
-			? ok(new Date(value))
-			: undefined,
-	)
-
-const RRIDecoder = (...keys: string[]) =>
-	decoder((value, key) =>
-		key !== undefined && keys.includes(key) && isString(value)
-			? ResourceIdentifier.fromUnsafe(value)
-			: undefined,
-	)
-
-const URLDecoder = (...keys: string[]) =>
-	decoder((value, key) => {
-		if (key !== undefined && keys.includes(key) && isString(value)) {
-			try {
-				return ok(new URL(value))
-			} catch {
-				return undefined
-			}
-		}
-		return undefined
-	})
-
-const transactionIdentifierDecoder = (...keys: string[]) =>
-	decoder((value, key) =>
-		key !== undefined && keys.includes(key) && isString(value)
-			? TransactionIdentifier.create(value)
-			: undefined,
-	)
-
-const networkDecoder = (...keys: string[]) =>
-	decoder((value, key) =>
-		key !== undefined &&
-		keys.includes(key) &&
-		typeof value === 'number' &&
-		Object.keys(NetworkId).includes(value.toString())
-			? // @ts-ignore
-			  ok(NetworkId[value.toString()])
-			: undefined,
-	)
-
-const addressDecoder = (...keys: string[]) =>
-	decoder((value, key) =>
-		key !== undefined && keys.includes(key) && isString(value)
-			? AccountAddress.fromUnsafe(value)
-			: undefined,
-	)
-
-const validatorAddressDecoder = (...keys: string[]) =>
-	decoder((value, key) =>
-		key !== undefined && keys.includes(key) && isString(value)
-			? ValidatorAddress.fromUnsafe(value)
-			: undefined,
-	)
+import {
+	addressDecoder,
+	amountDecoder,
+	dateDecoder,
+	networkDecoder,
+	RRIDecoder,
+	transactionIdentifierDecoder,
+	URLDecoder,
+	validatorAddressDecoder,
+} from '../decoders'
 
 const executedTXDecoders = JSONDecoding.withDecoders(
 	amountDecoder('amount', 'fee'),
