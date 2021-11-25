@@ -99,18 +99,18 @@ namespace Decoded {
 	}
 
 	export type AccountBalances = {
-		staked_and_unstaking_balance: Decoded.TokenAmount
-		liquid_balances: Decoded.TokenAmount
+		staked_and_unstaking_balance: TokenAmount
+		liquid_balances: TokenAmount
 	}
 
 	export type AccountStakeEntry = {
-		validator_identifier: Decoded.ValidatorIdentifier
-		delegated_stake: Decoded.TokenAmount
+		validator_identifier: ValidatorIdentifier
+		delegated_stake: TokenAmount
 	}
 
 	export type AccountUnstakeEntry = {
-		validator_identifier: Decoded.ValidatorIdentifier
-		unstaking_amount: Decoded.TokenAmount
+		validator_identifier: ValidatorIdentifier
+		unstaking_amount: TokenAmount
 		epochs_until_unlocked: number
 	}
 
@@ -119,10 +119,19 @@ namespace Decoded {
 		uptime: ValidatorUptime
 	}
 
+	export type ValidatorProperties = {
+		url: URL
+		validator_fee: string
+		name: string
+		registered: boolean
+		owner_account_identifier: AccountIdentifier
+	}
+
 	export type Validator = {
-		validator_identifier: Decoded.ValidatorIdentifier
+		validator_identifier: ValidatorAddressT
 		stake: Decoded.TokenAmount
 		info: ValidatorInfo
+		properties: ValidatorProperties
 	}
 
 	export type TransferTokensAction = {
@@ -352,7 +361,7 @@ export namespace BuildTransactionEndpoint {
 	export type Input = TransactionBuildPostRequest
 	export type Response = TransactionBuildResponse
 	export type DecodedResponse =
-		| TransactionBuildResponseSuccess
+		| Decoded.TransactionBuildResponseSuccess
 		| Decoded.TransactionBuildError
 }
 

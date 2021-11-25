@@ -4,9 +4,11 @@ import {
 	AccountAddress,
 	ValidatorAddress,
 	ResourceIdentifier,
+	ValidatorAddressOrUnsafeInput,
+	AddressOrUnsafeInput,
 } from '@radixdlt/account'
 import { Amount, NetworkId } from '@radixdlt/primitives'
-import { isString } from '@radixdlt/util'
+import { isObject, isString } from '@radixdlt/util'
 import { TransactionIdentifier } from '../dto'
 
 export const amountDecoder = (...keys: string[]) =>
@@ -71,5 +73,29 @@ export const validatorAddressDecoder = (...keys: string[]) =>
 	decoder((value, key) =>
 		key !== undefined && keys.includes(key) && isString(value)
 			? ValidatorAddress.fromUnsafe(value)
+			: undefined,
+	)
+
+export const addressObjectDecoder = (...keys: string[]) =>
+	decoder((value, key) =>
+		key !== undefined &&
+		keys.includes(key) &&
+		isObject(value) &&
+		value['address']
+			? AccountAddress.fromUnsafe(
+					value['address'] as AddressOrUnsafeInput,
+			  )
+			: undefined,
+	)
+
+export const validatorAddressObjectDecoder = (...keys: string[]) =>
+	decoder((value, key) =>
+		key !== undefined &&
+		keys.includes(key) &&
+		isObject(value) &&
+		value['address']
+			? ValidatorAddress.fromUnsafe(
+					value['address'] as ValidatorAddressOrUnsafeInput,
+			  )
 			: undefined,
 	)

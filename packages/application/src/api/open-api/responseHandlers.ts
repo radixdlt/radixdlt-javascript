@@ -1,6 +1,7 @@
 import { JSONDecoding } from '@radixdlt/data-formats'
 import {
 	addressDecoder,
+	addressObjectDecoder,
 	amountDecoder,
 	dateDecoder,
 	networkDecoder,
@@ -8,6 +9,7 @@ import {
 	transactionIdentifierDecoder,
 	URLDecoder,
 	validatorAddressDecoder,
+	validatorAddressObjectDecoder,
 } from '../decoders'
 import { hasRequiredProps } from '../utils'
 import {
@@ -20,6 +22,10 @@ import {
 	UnstakePositionsEndpoint,
 	AccountTransactionsEndpoint,
 	ValidatorEndpoint,
+	ValidatorsEndpoint,
+	TransactionRulesEndpoint,
+	BuildTransactionEndpoint,
+	SubmitTransactionEndpoint,
 } from './_types'
 import { Method } from '@radixdlt/networking'
 
@@ -28,6 +34,14 @@ const tokenDecoders = [
 	amountDecoder('value', 'granularity'),
 	URLDecoder('icon_url', 'url'),
 	addressDecoder('address'),
+]
+
+const validatorDecoders = [
+	validatorAddressObjectDecoder('validator_identifier'),
+	addressObjectDecoder('owner_account_identifier'),
+	RRIDecoder('rri'),
+	amountDecoder('value'),
+	URLDecoder('url'),
 ]
 
 export const handleNetworkResponse = (
@@ -157,12 +171,7 @@ export const handleAccountTransactionsResponse = (
 export const handleValidatorResponse = (
 	json: Awaited<ReturnType<Method['validatorPost']>>,
 ) =>
-	JSONDecoding.withDecoders(
-		validatorAddressDecoder('address'),
-		RRIDecoder('rri'),
-		amountDecoder('value'),
-		URLDecoder('url'),
-	)
+	JSONDecoding.withDecoders(...validatorDecoders)
 		.create<
 			ValidatorEndpoint.Response,
 			ValidatorEndpoint.DecodedResponse
@@ -172,4 +181,58 @@ export const handleValidatorResponse = (
 				'ledger_state',
 				'validator',
 			]),
+		)
+
+export const handleValidatorsResponse = (
+	json: Awaited<ReturnType<Method['validatorsPost']>>,
+) =>
+	JSONDecoding.withDecoders(...validatorDecoders)
+		.create<
+			ValidatorsEndpoint.Response,
+			ValidatorsEndpoint.DecodedResponse
+		>()(json)
+		.andThen(decoded =>
+			hasRequiredProps('stakePositions', decoded, [
+				'ledger_state',
+				'validators',
+			]),
+		)
+
+export const handleTransactionRulesResponse = (
+	json: Awaited<ReturnType<Method['transactionRulesPost']>>,
+) =>
+	JSONDecoding.withDecoders(amountDecoder('value'), RRIDecoder('rri'))
+		.create<
+			TransactionRulesEndpoint.Response,
+			TransactionRulesEndpoint.DecodedResponse
+		>()(json)
+		.andThen(decoded =>
+			hasRequiredProps('stakePositions', decoded, [
+				'ledger_state',
+				'transaction_rules',
+			]),
+		)
+
+export const handleBuildTransactionResponse = (
+	json: Awaited<ReturnType<Method['transactionBuildPost']>>,
+) =>
+	JSONDecoding.withDecoders(amountDecoder('value'), RRIDecoder('rri'))
+		.create<
+			BuildTransactionEndpoint.Response,
+			BuildTransactionEndpoint.DecodedResponse
+		>()(json)
+		.andThen(decoded =>
+			hasRequiredProps('stakePositions', decoded, ['transaction_rules']),
+		)
+
+export const handleSubmitTransactionResponse = (
+	json: Awaited<ReturnType<Method['transactionSubmitPost']>>,
+) =>
+	JSONDecoding.withDecoders(amountDecoder('value'), RRIDecoder('rri'))
+		.create<
+			SubmitTransactionEndpoint.Response,
+			SubmitTransactionEndpoint.DecodedResponse
+		>()(json)
+		.andThen(decoded =>
+			hasRequiredProps('stakePositions', decoded, ['transaction_rules']),
 		)
