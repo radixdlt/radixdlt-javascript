@@ -7,6 +7,7 @@ import {
 import {
 	handleNativeTokenResponse,
 	handleNetworkResponse,
+	handleStakePositionsResponse,
 	handleTokenInfoResponse,
 } from './responseHandlers'
 import { pipe } from 'ramda'
@@ -31,8 +32,11 @@ export const getAPI = pipe(
 	callAPI => ({
 		network: callAPI('networkPost')(handleNetworkResponse),
 		tokenInfo: callAPI('tokenPost')(handleTokenInfoResponse),
-		
+
 		nativeTokenInfo: callAPI('tokenNativePost')(handleNativeTokenResponse),
+		stakePositions: callAPI('accountStakesPost')(
+			handleStakePositionsResponse,
+		),
 		/*
 		deriveTokenIdentifier: callAPI('tokenDerivePost')(
 			handleDeriveTokenIdentifierResponse,
