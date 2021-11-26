@@ -4,5 +4,6 @@
     "src",
     "test"
   ],
-  "references": []
+  "references": [],
+  "compilerOptions": {"typeRoots": ["./src/global-fetch.d.ts"]}
 }
