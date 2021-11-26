@@ -49,6 +49,7 @@
   },
   "devDependencies": {
     "@types/bignumber.js": "^5.0.0",
-    "bignumber.js": "^9.0.1"
+    "bignumber.js": "^9.0.1",
+    "fetch-mock-jest": "^1.5.1"
   }
 }

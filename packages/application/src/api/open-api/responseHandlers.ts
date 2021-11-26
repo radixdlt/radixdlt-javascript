@@ -8,6 +8,7 @@ import {
 	URLDecoder,
 	validatorAddressDecoder,
 	addressRegexDecoder,
+	dateDecoder,
 } from '../decoders'
 import { hasRequiredProps } from '../utils'
 import {
@@ -44,7 +45,10 @@ const validatorDecoders = [
 ]
 
 export const handleNetworkResponse = (json: ReturnOfAPICall<'networkPost'>) =>
-	JSONDecoding.withDecoders(networkDecoder('network'))
+	JSONDecoding.withDecoders(
+		networkDecoder('network'),
+		dateDecoder('timestamp'),
+	)
 		.create<NetworkEndpoint.Response, NetworkEndpoint.DecodedResponse>()(
 			json,
 		)
@@ -53,7 +57,7 @@ export const handleNetworkResponse = (json: ReturnOfAPICall<'networkPost'>) =>
 		)
 
 export const handleTokenInfoResponse = (json: ReturnOfAPICall<'tokenPost'>) =>
-	JSONDecoding.withDecoders(...tokenDecoders)
+	JSONDecoding.withDecoders(...tokenDecoders, dateDecoder('timestamp'))
 		.create<
 			TokenInfoEndpoint.Response,
 			TokenInfoEndpoint.DecodedResponse
@@ -65,7 +69,7 @@ export const handleTokenInfoResponse = (json: ReturnOfAPICall<'tokenPost'>) =>
 export const handleNativeTokenResponse = (
 	json: ReturnOfAPICall<'tokenNativePost'>,
 ) =>
-	JSONDecoding.withDecoders(...tokenDecoders)
+	JSONDecoding.withDecoders(...tokenDecoders, dateDecoder('timestamp'))
 		.create<
 			NativeTokenInfoEndpoint.Response,
 			NativeTokenInfoEndpoint.DecodedResponse
@@ -94,7 +98,11 @@ export const handleDeriveTokenIdentifierResponse = (
 export const handleAccountBalancesResponse = (
 	json: ReturnOfAPICall<'accountBalancesPost'>,
 ) =>
-	JSONDecoding.withDecoders(RRIDecoder('rri'), amountDecoder('value'))
+	JSONDecoding.withDecoders(
+		RRIDecoder('rri'),
+		amountDecoder('value'),
+		dateDecoder('timestamp'),
+	)
 		.create<
 			AccountBalancesEndpoint.Response,
 			AccountBalancesEndpoint.DecodedResponse
@@ -113,6 +121,7 @@ export const handleStakePositionsResponse = (
 		RRIDecoder('rri'),
 		amountDecoder('value'),
 		validatorAddressDecoder('address'),
+		dateDecoder('timestamp'),
 	)
 		.create<
 			StakePositionsEndpoint.Response,
@@ -132,6 +141,7 @@ export const handleUnstakePositionsResponse = (
 		RRIDecoder('rri'),
 		amountDecoder('value'),
 		validatorAddressDecoder('address'),
+		dateDecoder('timestamp'),
 	)
 		.create<
 			UnstakePositionsEndpoint.Response,
@@ -149,6 +159,7 @@ export const handleAccountTransactionsResponse = (
 ) =>
 	JSONDecoding.withDecoders(
 		transactionIdentifierDecoder('hash'),
+		dateDecoder('timestamp'),
 		...tokenDecoders,
 	)
 		.create<
@@ -166,7 +177,7 @@ export const handleAccountTransactionsResponse = (
 export const handleValidatorResponse = (
 	json: ReturnOfAPICall<'validatorPost'>,
 ) =>
-	JSONDecoding.withDecoders(...validatorDecoders)
+	JSONDecoding.withDecoders(...validatorDecoders, dateDecoder('timestamp'))
 		.create<
 			ValidatorEndpoint.Response,
 			ValidatorEndpoint.DecodedResponse
@@ -181,7 +192,7 @@ export const handleValidatorResponse = (
 export const handleValidatorsResponse = (
 	json: ReturnOfAPICall<'validatorsPost'>,
 ) =>
-	JSONDecoding.withDecoders(...validatorDecoders)
+	JSONDecoding.withDecoders(...validatorDecoders, dateDecoder('timestamp'))
 		.create<
 			ValidatorsEndpoint.Response,
 			ValidatorsEndpoint.DecodedResponse
@@ -196,7 +207,11 @@ export const handleValidatorsResponse = (
 export const handleTransactionRulesResponse = (
 	json: ReturnOfAPICall<'transactionRulesPost'>,
 ) =>
-	JSONDecoding.withDecoders(amountDecoder('value'), RRIDecoder('rri'))
+	JSONDecoding.withDecoders(
+		amountDecoder('value'),
+		RRIDecoder('rri'),
+		dateDecoder('timestamp'),
+	)
 		.create<
 			TransactionRulesEndpoint.Response,
 			TransactionRulesEndpoint.DecodedResponse
@@ -211,7 +226,11 @@ export const handleTransactionRulesResponse = (
 export const handleBuildTransactionResponse = (
 	json: ReturnOfAPICall<'transactionBuildPost'>,
 ) =>
-	JSONDecoding.withDecoders(amountDecoder('value'), RRIDecoder('rri'))
+	JSONDecoding.withDecoders(
+		amountDecoder('value'),
+		RRIDecoder('rri'),
+		dateDecoder('timestamp'),
+	)
 		.create<
 			BuildTransactionEndpoint.Response,
 			BuildTransactionEndpoint.DecodedResponse
@@ -257,6 +276,7 @@ export const handleTransactionResponse = (
 		RRIDecoder('rri'),
 		amountDecoder('value', 'granularity'),
 		URLDecoder('url'),
+		dateDecoder('timestamp'),
 	)
 		.create<
 			TransactionEndpoint.Response,
