@@ -130,6 +130,25 @@ export const handleStakePositionsResponse = (
 		),
 	).mapErr(e => [e])
 
+export const handleUnstakePositionsResponse = (
+	json: ReturnOfAPICall<'accountUnstakesPost'>,
+) =>
+	combine(
+		json.unstakes.map(unstake =>
+			combine([
+				ValidatorAddress.fromUnsafe(
+					unstake.validatorIdentifier.address,
+				),
+				Amount.fromUnsafe(unstake.unstakingAmount.value),
+				ok<number, Error>(unstake.epochsUntilUnlocked),
+			]).map(value => ({
+				validator: value[0] as ValidatorAddressT,
+				amount: value[1] as AmountT,
+				epochsUntil: value[2] as number,
+			})),
+		),
+	).mapErr(e => [e])
+
 /*
 export const handleDeriveTokenIdentifierResponse = (
 	json: ReturnOfAPICall<'tokenDerivePost'>,
@@ -164,25 +183,6 @@ export const handleAccountBalancesResponse = (
 			]),
 		)
 
-export const handleStakePositionsResponse = (
-	json: ReturnOfAPICall<'accountStakesPost'>,
-) =>
-	JSONDecoding.withDecoders(
-		RRIDecoder('rri'),
-		amountDecoder('value'),
-		validatorAddressDecoder('address'),
-		dateDecoder('timestamp'),
-	)
-		.create<
-			StakePositionsEndpoint.Response,
-			StakePositionsEndpoint.DecodedResponse
-		>()(json)
-		.andThen(decoded =>
-			hasRequiredProps('stakePositions', decoded, [
-				'ledger_state',
-				'stakes',
-			]),
-		)
 
 export const handleUnstakePositionsResponse = (
 	json: ReturnOfAPICall<'accountUnstakesPost'>,

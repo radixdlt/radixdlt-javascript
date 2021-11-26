@@ -9,6 +9,7 @@ import {
 	handleNetworkResponse,
 	handleStakePositionsResponse,
 	handleTokenInfoResponse,
+	handleUnstakePositionsResponse,
 } from './responseHandlers'
 import { pipe } from 'ramda'
 import { Result, ResultAsync } from 'neverthrow'
@@ -37,18 +38,15 @@ export const getAPI = pipe(
 		stakePositions: callAPI('accountStakesPost')(
 			handleStakePositionsResponse,
 		),
+		unstakePositions: callAPI('accountUnstakesPost')(
+			handleUnstakePositionsResponse,
+		),
 		/*
 		deriveTokenIdentifier: callAPI('tokenDerivePost')(
 			handleDeriveTokenIdentifierResponse,
 		),
 		accountBalances: callAPI('accountBalancesPost')(
 			handleAccountBalancesResponse,
-		),
-		stakePositions: callAPI('accountStakesPost')(
-			handleStakePositionsResponse,
-		),
-		unstakePositions: callAPI('accountUnstakesPost')(
-			handleUnstakePositionsResponse,
 		),
 		accountTransactions: callAPI('accountTransactionsPost')(
 			handleAccountTransactionsResponse,
