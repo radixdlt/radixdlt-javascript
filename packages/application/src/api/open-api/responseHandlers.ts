@@ -52,7 +52,7 @@ const validatorDecoders = [
 export const handleNetworkResponse = (json: ReturnOfAPICall<'networkPost'>) => ok(({
 	// @ts-ignore
 	network: NetworkName[json.network] as Network
-}))
+})).mapErr(e => [e] as Error[])
 
 export const handleTokenInfoResponse = (json: ReturnOfAPICall<'tokenPost'>): Result<Token, Error[]> => combine([
 	ResourceIdentifier.fromUnsafe(json.token[0].tokenIdentifier.rri),
