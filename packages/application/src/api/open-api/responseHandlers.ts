@@ -31,7 +31,12 @@ import {
 import { ReturnOfAPICall } from '@radixdlt/networking'
 import { Result } from 'neverthrow'
 import { ResourceIdentifier, ResourceIdentifierT } from '@radixdlt/account'
-import { Amount, AmountT, NetworkName } from '../../../../primitives'
+import {
+	Amount,
+	AmountOrUnsafeInput,
+	AmountT,
+	NetworkName,
+} from '../../../../primitives'
 import { Token } from '../..'
 import { ok, combine } from 'neverthrow'
 
@@ -49,41 +54,78 @@ const validatorDecoders = [
 	URLDecoder('url'),
 ]
 
-export const handleNetworkResponse = (json: ReturnOfAPICall<'networkPost'>) => ok(({
-	// @ts-ignore
-	network: NetworkName[json.network] as Network
-})).mapErr(e => [e] as Error[])
+export const handleNetworkResponse = (json: ReturnOfAPICall<'networkPost'>) =>
+	ok({
+		// @ts-ignore
+		network: NetworkName[json.network] as Network,
+	}).mapErr(e => [e] as Error[])
 
-export const handleTokenInfoResponse = (json: ReturnOfAPICall<'tokenPost'>): Result<Token, Error[]> => combine([
-	ResourceIdentifier.fromUnsafe(json.token[0].tokenIdentifier.rri),
-	Amount.fromUnsafe(json.token[0].tokenProperties.granularity),
-	Amount.fromUnsafe(json.token[0].tokenSupply.value),
-]).map(values => ({
-	name: json.token[0].tokenProperties.name ?? '',
-	rri: values[0] as ResourceIdentifierT,
-	symbol: json.token[0].tokenProperties.symbol,
-	description: json.token[0].tokenProperties.description,
-	granularity: values[1] as AmountT,
-	isSupplyMutable: json.token[0].tokenProperties.isSupplyMutable,
-	currentSupply: values[2] as AmountT,
-	tokenInfoURL: json.token[0].tokenProperties.url ? new URL(json.token[0].tokenProperties.url) : undefined,
-	iconURL: json.token[0].tokenProperties.iconUrl ? new URL(json.token[0].tokenProperties.iconUrl) : undefined
-})).mapErr(e => [e])
-/*
+export const handleTokenInfoResponse = (
+	json: ReturnOfAPICall<'tokenPost'>,
+): Result<Token, Error[]> =>
+	combine([
+		ResourceIdentifier.fromUnsafe(json.token[0].tokenIdentifier.rri),
+		Amount.fromUnsafe(json.token[0].tokenProperties.granularity),
+		Amount.fromUnsafe(json.token[0].tokenSupply.value),
+	])
+		.map(values => ({
+			name: json.token[0].tokenProperties.name ?? '',
+			rri: values[0] as ResourceIdentifierT,
+			symbol: json.token[0].tokenProperties.symbol,
+			description: json.token[0].tokenProperties.description,
+			granularity: values[1] as AmountT,
+			isSupplyMutable: json.token[0].tokenProperties.isSupplyMutable,
+			currentSupply: values[2] as AmountT,
+			tokenInfoURL: json.token[0].tokenProperties.url
+				? new URL(json.token[0].tokenProperties.url)
+				: undefined,
+			iconURL: json.token[0].tokenProperties.iconUrl
+				? new URL(json.token[0].tokenProperties.iconUrl)
+				: undefined,
+		}))
+		.mapErr(e => [e])
+
 export const handleNativeTokenResponse = (
 	json: ReturnOfAPICall<'tokenNativePost'>,
-) =>
-	JSONDecoding.withDecoders(...tokenDecoders, dateDecoder('timestamp'))
-		.create<
-			NativeTokenInfoEndpoint.Response,
-			NativeTokenInfoEndpoint.DecodedResponse
-		>()(json)
-		.andThen(decoded =>
-			hasRequiredProps('nativeTokenInfo', decoded, [
-				'ledger_state',
-				'token',
-			]),
-		)
+): Result<Token, Error[]> =>
+	combine([
+		ResourceIdentifier.fromUnsafe(json.token[0].tokenIdentifier.rri),
+		Amount.fromUnsafe(json.token[0].tokenProperties.granularity),
+		Amount.fromUnsafe(json.token[0].tokenSupply.value),
+	])
+		.map(values => ({
+			name: json.token[0].tokenProperties.name ?? '',
+			rri: values[0] as ResourceIdentifierT,
+			symbol: json.token[0].tokenProperties.symbol,
+			description: json.token[0].tokenProperties.description,
+			granularity: values[1] as AmountT,
+			isSupplyMutable: json.token[0].tokenProperties.isSupplyMutable,
+			currentSupply: values[2] as AmountT,
+			tokenInfoURL: json.token[0].tokenProperties.url
+				? new URL(json.token[0].tokenProperties.url)
+				: undefined,
+			iconURL: json.token[0].tokenProperties.iconUrl
+				? new URL(json.token[0].tokenProperties.iconUrl)
+				: undefined,
+		}))
+		.mapErr(e => [e])
+
+// export const handleDeriveTokenIdentifierResponse = (
+// 	json: ReturnOfAPICall<'tokenDerivePost'>,
+// ) =>
+// 	JSONDecoding.withDecoders(RRIDecoder('rri'))
+// 		.create<
+// 			DeriveTokenIdentifierEndpoint.Response,
+// 			DeriveTokenIdentifierEndpoint.DecodedResponse
+// 		>()(json)
+// 		.andThen(decoded =>
+// 			hasRequiredProps('deriveTokenIdentifier', decoded, [
+// 				'token_identifier',
+// 			]),
+// 		)
+
+/*
+
 
 export const handleDeriveTokenIdentifierResponse = (
 	json: ReturnOfAPICall<'tokenDerivePost'>,

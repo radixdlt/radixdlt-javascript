@@ -7,6 +7,7 @@ import {
 import {
 	handleNetworkResponse,
 	handleTokenInfoResponse,
+	handleNativeTokenResponse,
 } from './responseHandlers'
 import { pipe } from 'ramda'
 import { Result, ResultAsync } from 'neverthrow'
@@ -30,8 +31,8 @@ export const getAPI = pipe(
 	callAPI => ({
 		network: callAPI('networkPost')(handleNetworkResponse),
 		tokenInfo: callAPI('tokenPost')(handleTokenInfoResponse),
-		/*
 		nativeTokenInfo: callAPI('tokenNativePost')(handleNativeTokenResponse),
+		/*
 		deriveTokenIdentifier: callAPI('tokenDerivePost')(
 			handleDeriveTokenIdentifierResponse,
 		),
