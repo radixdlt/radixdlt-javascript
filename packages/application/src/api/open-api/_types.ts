@@ -349,6 +349,9 @@ export namespace TransactionRulesEndpoint {
 export namespace BuildTransactionEndpoint {
 	export type Input = TransactionBuildPostRequest
 	export type Response = TransactionBuildResponse
+	export type DecodedResponse =
+		| Decoded.TransactionBuild
+		| Decoded.TransactionBuildError
 }
 
 export namespace FinalizeTransactionEndpoint {
