@@ -123,7 +123,7 @@ namespace Decoded {
 	}
 
 	export type Validator = {
-		validator_identifier: ValidatorAddressT
+		validator_identifier: ValidatorIdentifier
 		stake: Decoded.TokenAmount
 		info: ValidatorInfo
 		properties: ValidatorProperties

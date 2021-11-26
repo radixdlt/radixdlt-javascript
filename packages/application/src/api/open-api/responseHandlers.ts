@@ -7,8 +7,7 @@ import {
 	transactionIdentifierDecoder,
 	URLDecoder,
 	validatorAddressDecoder,
-	validatorAddressObjectDecoder,
-	addressObjectDecoder
+	addressRegexDecoder,
 } from '../decoders'
 import { hasRequiredProps } from '../utils'
 import {
@@ -25,6 +24,8 @@ import {
 	TransactionRulesEndpoint,
 	BuildTransactionEndpoint,
 	SubmitTransactionEndpoint,
+	FinalizeTransactionEndpoint,
+	TransactionEndpoint,
 } from './_types'
 import { ReturnOfAPICall } from '@radixdlt/networking'
 
@@ -36,16 +37,13 @@ const tokenDecoders = [
 ]
 
 const validatorDecoders = [
-	validatorAddressObjectDecoder('validator_identifier'),
-	addressObjectDecoder('owner_account_identifier'),
+	addressRegexDecoder('address'),
 	RRIDecoder('rri'),
 	amountDecoder('value'),
 	URLDecoder('url'),
 ]
 
-export const handleNetworkResponse = (
-	json: ReturnOfAPICall<'networkPost'>,
-) =>
+export const handleNetworkResponse = (json: ReturnOfAPICall<'networkPost'>) =>
 	JSONDecoding.withDecoders(networkDecoder('network'))
 		.create<NetworkEndpoint.Response, NetworkEndpoint.DecodedResponse>()(
 			json,
@@ -54,9 +52,7 @@ export const handleNetworkResponse = (
 			hasRequiredProps('network', decoded, ['network', 'ledger_state']),
 		)
 
-export const handleTokenInfoResponse = (
-	json: ReturnOfAPICall<'tokenPost'>,
-) =>
+export const handleTokenInfoResponse = (json: ReturnOfAPICall<'tokenPost'>) =>
 	JSONDecoding.withDecoders(...tokenDecoders)
 		.create<
 			TokenInfoEndpoint.Response,
@@ -142,7 +138,7 @@ export const handleUnstakePositionsResponse = (
 			UnstakePositionsEndpoint.DecodedResponse
 		>()(json)
 		.andThen(decoded =>
-			hasRequiredProps('stakePositions', decoded, [
+			hasRequiredProps('unstakePositions', decoded, [
 				'ledger_state',
 				'unstakes',
 			]),
@@ -160,7 +156,7 @@ export const handleAccountTransactionsResponse = (
 			AccountTransactionsEndpoint.DecodedResponse
 		>()(json)
 		.andThen(decoded =>
-			hasRequiredProps('stakePositions', decoded, [
+			hasRequiredProps('accountTransactions', decoded, [
 				'ledger_state',
 				'total_count',
 				'transactions',
@@ -176,7 +172,7 @@ export const handleValidatorResponse = (
 			ValidatorEndpoint.DecodedResponse
 		>()(json)
 		.andThen(decoded =>
-			hasRequiredProps('stakePositions', decoded, [
+			hasRequiredProps('validator', decoded, [
 				'ledger_state',
 				'validator',
 			]),
@@ -191,7 +187,7 @@ export const handleValidatorsResponse = (
 			ValidatorsEndpoint.DecodedResponse
 		>()(json)
 		.andThen(decoded =>
-			hasRequiredProps('stakePositions', decoded, [
+			hasRequiredProps('validators', decoded, [
 				'ledger_state',
 				'validators',
 			]),
@@ -206,7 +202,7 @@ export const handleTransactionRulesResponse = (
 			TransactionRulesEndpoint.DecodedResponse
 		>()(json)
 		.andThen(decoded =>
-			hasRequiredProps('stakePositions', decoded, [
+			hasRequiredProps('transactionRules', decoded, [
 				'ledger_state',
 				'transaction_rules',
 			]),
@@ -221,17 +217,54 @@ export const handleBuildTransactionResponse = (
 			BuildTransactionEndpoint.DecodedResponse
 		>()(json)
 		.andThen(decoded =>
-			hasRequiredProps('buildTransaction', decoded, ['transaction_rules']),
+			hasRequiredProps('buildTransaction', decoded, ['type']),
+		)
+
+export const handleFinalizeTransactionResponse = (
+	json: ReturnOfAPICall<'transactionFinalizePost'>,
+) =>
+	JSONDecoding.withDecoders()
+		.create<
+			FinalizeTransactionEndpoint.Response,
+			FinalizeTransactionEndpoint.DecodedResponse
+		>()(json)
+		.andThen(decoded =>
+			hasRequiredProps('finalizeTransaction', decoded, [
+				'signed_transaction',
+			]),
 		)
 
 export const handleSubmitTransactionResponse = (
 	json: ReturnOfAPICall<'transactionSubmitPost'>,
 ) =>
-	JSONDecoding.withDecoders(amountDecoder('value'), RRIDecoder('rri'))
+	JSONDecoding.withDecoders(transactionIdentifierDecoder('hash'))
 		.create<
 			SubmitTransactionEndpoint.Response,
 			SubmitTransactionEndpoint.DecodedResponse
 		>()(json)
 		.andThen(decoded =>
-			hasRequiredProps('stakePositions', decoded, ['transaction_rules']),
+			hasRequiredProps('submitTransaction', decoded, [
+				'transaction_identifier',
+			]),
+		)
+
+export const handleTransactionResponse = (
+	json: ReturnOfAPICall<'transactionStatusPost'>,
+) =>
+	JSONDecoding.withDecoders(
+		transactionIdentifierDecoder('hash'),
+		addressRegexDecoder('address'),
+		RRIDecoder('rri'),
+		amountDecoder('value', 'granularity'),
+		URLDecoder('url'),
+	)
+		.create<
+			TransactionEndpoint.Response,
+			TransactionEndpoint.DecodedResponse
+		>()(json)
+		.andThen(decoded =>
+			hasRequiredProps('transaction', decoded, [
+				'ledger_state',
+				'transaction',
+			]),
 		)
