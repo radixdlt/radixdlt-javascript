@@ -307,7 +307,6 @@ export type Validator = Readonly<{
 }>
 
 export type Validators = Readonly<{
-	cursor: string
 	validators: Validator[]
 }>
 
