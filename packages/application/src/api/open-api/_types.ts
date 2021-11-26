@@ -29,7 +29,6 @@ import {
 	ValidatorsPostRequest,
 	TransactionRulesResponse,
 	TransactionBuildResponse,
-	TransactionBuildResponseSuccess,
 	TransactionFinalizePostRequest,
 	TransactionFinalizeResponse,
 	TransactionSubmitPostRequest,
@@ -199,11 +198,6 @@ namespace Decoded {
 		payload_to_sign: string
 	}
 
-	export type TransactionBuildResponseSuccess = {
-		type: 'TransactionBuildResponseSuccess'
-		transaction_build: Decoded.TransactionBuild
-	}
-
 	export type NotEnoughResourcesError = {
 		type: 'NotEnoughResourcesError'
 		requested_amount: AmountT
@@ -218,8 +212,8 @@ namespace Decoded {
 
 	export type NotValidatorOwnerError = {
 		type: 'NotValidatorOwnerError'
-		owner: AccountIdentifier
-		user: AccountIdentifier
+		owner: Decoded.AccountIdentifier
+		user: Decoded.AccountIdentifier
 	}
 
 	export type MessageTooLongError = {
@@ -355,7 +349,6 @@ export namespace TransactionRulesEndpoint {
 export namespace BuildTransactionEndpoint {
 	export type Input = TransactionBuildPostRequest
 	export type Response = TransactionBuildResponse
-	export type DecodedResponse = Decoded.TransactionBuildResponseSuccess
 }
 
 export namespace FinalizeTransactionEndpoint {
