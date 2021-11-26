@@ -272,10 +272,7 @@ export namespace NativeTokenInfoEndpoint {
 
 	export type Response = TokenNativeResponse
 
-	export type DecodedResponse = {
-		ledger_state: Decoded.LedgerState
-		token: Decoded.Token[]
-	}
+	export type DecodedResponse = Token
 }
 
 export namespace DeriveTokenIdentifierEndpoint {

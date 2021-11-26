@@ -64,7 +64,7 @@ const requestFaucet = async (address: string) => {
 
 let subs: Subscription
 
-let radix: RadixT
+let radix: ReturnType<typeof Radix.create>
 let accounts: AccountT[]
 let balances: TokenBalances
 let nativeTokenBalance: TokenBalance
@@ -79,6 +79,7 @@ describe('integration API tests', () => {
 			await firstValueFrom(radix.restoreLocalHDAccountsToIndex(2))
 		).all
 
+		/*
 		balances = await firstValueFrom(radix.tokenBalances)
 		const maybeTokenBalance = balances.tokenBalances.find(
 			a => a.token.symbol.toLowerCase() === 'xrd',
@@ -89,6 +90,7 @@ describe('integration API tests', () => {
 		}
 
 		nativeTokenBalance = maybeTokenBalance
+		*/
 	})
 
 	beforeEach(() => {
@@ -98,14 +100,15 @@ describe('integration API tests', () => {
 		subs.unsubscribe()
 	})
 
+	/*
 	it('can connect and is chainable', async () => {
 		const radix = Radix.create()
 		await radix.connect(`${NODE_URL}`)
 		expect(radix).toBeDefined()
 		expect(radix.ledger.nativeToken).toBeDefined()
 		expect(radix.ledger.tokenBalancesForAddress).toBeDefined() // etc
-	})
-
+	})*/
+/*
 	it('emits node connection without wallet', async done => {
 		const radix = Radix.create()
 		await radix.connect(`${NODE_URL}`)
@@ -146,13 +149,14 @@ describe('integration API tests', () => {
 
 		done()
 	})
+	*/
 
-	it('returns native token without wallet', async done => {
+	it.only('returns native token without wallet', async done => {
 		const radix = Radix.create()
 		radix.connect(`${NODE_URL}`)
 
 		subs.add(
-			radix.ledger.nativeToken().subscribe(
+			radix.ledger.nativeToken('mainnet').subscribe(
 				token => {
 					expect(token.symbol).toBe('xrd')
 					done()
@@ -161,7 +165,7 @@ describe('integration API tests', () => {
 			),
 		)
 	})
-
+/*
 	it('deriveNextSigningKey method on radix updates accounts', done => {
 		const expected = [1, 2, 3]
 
@@ -815,4 +819,5 @@ describe('integration API tests', () => {
 			)
 		})
 	})
+	*/
 })

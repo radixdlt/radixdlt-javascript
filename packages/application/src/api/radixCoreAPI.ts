@@ -109,7 +109,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 							cursor: input.cursor?.toString(),
 						},
 					}),
-		
+		*/
 				nativeToken: (
 					network: string,
 				): Observable<NativeTokenInfoEndpoint.DecodedResponse> =>
@@ -118,7 +118,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 							network,
 						},
 					}),
-		*/
+		
 		tokenInfo: (
 			rri: ResourceIdentifierT,
 		): Observable<TokenInfoEndpoint.DecodedResponse> =>

@@ -196,7 +196,7 @@ const create = () => {
 				}),
 			)
 
-	const api: RadixAPI = {
+	const api = {
 		networkId: fwdAPICall(
 			a => a.networkId,
 			m => networkIdErr(m),
@@ -210,11 +210,12 @@ const create = () => {
 			a => a.transactionHistory,
 			m => transactionHistoryErr(m),
 		),
+		*/
 		nativeToken: fwdAPICall(
 			a => a.nativeToken,
 			m => nativeTokenErr(m),
 		),
-		*/
+		/*
 		tokenInfo: fwdAPICall(
 			a => a.tokenInfo,
 			m => tokenInfoErr(m),

@@ -51,7 +51,10 @@ const call = (client: DefaultApi) => <
 			client[method](params, { headers: { [headers[0]]: method, [headers[1]]: correlationID } }),
 			(e: Error) => e
 		)
-	)()
+	)().mapErr(e => {
+		console.error(e)
+		return e
+	})
 
 export type OpenApiClientCall = ReturnType<typeof call>
 
