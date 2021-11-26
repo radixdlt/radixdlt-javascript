@@ -42,7 +42,7 @@ import {
 	AmountT,
 	NetworkName,
 } from '../../../../primitives'
-import { Token } from '../..'
+import { Token, TransactionIdentifier, TransactionIdentifierT } from '../..'
 import { ok, combine } from 'neverthrow'
 
 const tokenDecoders = [
@@ -148,6 +148,56 @@ export const handleUnstakePositionsResponse = (
 			})),
 		),
 	).mapErr(e => [e])
+
+export const handleAccountTransactionsResponse = (
+	json: ReturnOfAPICall<'accountTransactionsPost'>,
+) =>
+	combine(
+		json.transactions.map(transaction =>
+			combine([
+				TransactionIdentifier.create(
+					transaction.transactionIdentifier.hash,
+				),
+				ok<Date | null, Error>(
+					transaction.transactionStatus.confirmedTime
+						? new Date(transaction.transactionStatus.confirmedTime)
+						: null,
+				),
+				Amount.fromUnsafe(transaction.feePaid.value),
+				ok<string | null, Error>(transaction.metadata.message ?? null),
+				...transaction.actions.map(action =>
+					combine([]).map(actionValue => ({})),
+				),
+			]).map(value => ({
+				txID: value[0] as TransactionIdentifierT,
+				sentAt: value[1] as Date,
+				fee: value[2] as AmountT,
+				message: value[3] as string,
+			})),
+		),
+	)
+		.map(transactions => ({ cursor: json.nextCursor, transactions }))
+		.mapErr(e => [e])
+
+// export const handleAccountTransactionsResponse = (
+// 	json: ReturnOfAPICall<'accountTransactionsPost'>,
+// ) =>
+// 	JSONDecoding.withDecoders(
+// 		transactionIdentifierDecoder('hash'),
+// 		dateDecoder('timestamp'),
+// 		...tokenDecoders,
+// 	)
+// 		.create<
+// 			AccountTransactionsEndpoint.Response,
+// 			AccountTransactionsEndpoint.DecodedResponse
+// 		>()(json)
+// 		.andThen(decoded =>
+// 			hasRequiredProps('accountTransactions', decoded, [
+// 				'ledger_state',
+// 				'total_count',
+// 				'transactions',
+// 			]),
+// 		)
 
 /*
 export const handleDeriveTokenIdentifierResponse = (
