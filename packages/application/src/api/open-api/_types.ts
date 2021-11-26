@@ -38,6 +38,20 @@ import {
 	TransactionStatusResponse,
 	TransactionRulesPostRequest,
 	TransactionBuildPostRequest,
+	ValidatorsRequest,
+	AccountTransactionsRequest,
+	ValidatorInfoRequest,
+	TokenRequest,
+	TokenNativeRequest,
+	TokenDeriveRequest,
+	AccountBalancesRequest,
+	AccountStakesRequest,
+	AccountUnstakesRequest,
+	TransactionRulesRequest,
+	TransactionBuildRequest,
+	TransactionFinalizeRequest,
+	TransactionSubmitRequest,
+	TransactionStatusRequest,
 } from '@radixdlt/networking'
 import { AmountT, Network } from '@radixdlt/primitives'
 import { TransactionIdentifierT } from '../../dto'
@@ -242,7 +256,7 @@ namespace Decoded {
 }
 
 export namespace NetworkEndpoint {
-	export type Input = NetworkPostRequest
+	export type Input = {}
 
 	export type Response = NetworkResponse
 
@@ -253,7 +267,7 @@ export namespace NetworkEndpoint {
 }
 
 export namespace TokenInfoEndpoint {
-	export type Input = TokenPostRequest
+	export type Input = TokenRequest
 
 	export type Response = TokenResponse
 
@@ -264,7 +278,7 @@ export namespace TokenInfoEndpoint {
 }
 
 export namespace NativeTokenInfoEndpoint {
-	export type Input = TokenNativePostRequest
+	export type Input = TokenNativeRequest
 
 	export type Response = TokenNativeResponse
 
@@ -275,7 +289,7 @@ export namespace NativeTokenInfoEndpoint {
 }
 
 export namespace DeriveTokenIdentifierEndpoint {
-	export type Input = TokenDerivePostRequest
+	export type Input = TokenDeriveRequest
 
 	export type Response = TokenDeriveResponse
 
@@ -287,7 +301,7 @@ export namespace DeriveTokenIdentifierEndpoint {
 }
 
 export namespace AccountBalancesEndpoint {
-	export type Input = AccountBalancesPostRequest
+	export type Input = AccountBalancesRequest
 
 	export type Response = AccountBalancesResponse
 
@@ -298,7 +312,7 @@ export namespace AccountBalancesEndpoint {
 }
 
 export namespace StakePositionsEndpoint {
-	export type Input = AccountStakesPostRequest
+	export type Input = AccountStakesRequest
 	export type Response = AccountStakesResponse
 	export type DecodedResponse = {
 		ledger_state: Decoded.LedgerState
@@ -307,7 +321,7 @@ export namespace StakePositionsEndpoint {
 }
 
 export namespace UnstakePositionsEndpoint {
-	export type Input = AccountUnstakesPostRequest
+	export type Input = AccountUnstakesRequest
 	export type Response = AccountUnstakesResponse
 	export type DecodedResponse = {
 		ledger_state: Decoded.LedgerState
@@ -316,7 +330,7 @@ export namespace UnstakePositionsEndpoint {
 }
 
 export namespace AccountTransactionsEndpoint {
-	export type Input = AccountTransactionsPostRequest
+	export type Input = AccountTransactionsRequest
 	export type Response = AccountTransactionsResponse
 	export type DecodedResponse = {
 		ledger_state: Decoded.LedgerState
@@ -327,7 +341,7 @@ export namespace AccountTransactionsEndpoint {
 }
 
 export namespace ValidatorEndpoint {
-	export type Input = ValidatorPostRequest
+	export type Input = ValidatorInfoRequest
 	export type Response = ValidatorInfoResponse
 	export type DecodedResponse = {
 		ledger_state: Decoded.LedgerState
@@ -336,7 +350,7 @@ export namespace ValidatorEndpoint {
 }
 
 export namespace ValidatorsEndpoint {
-	export type Input = ValidatorsPostRequest
+	export type Input = ValidatorsRequest
 	export type Response = ValidatorsResponse
 	export type DecodedResponse = {
 		ledger_state: Decoded.LedgerState
@@ -345,7 +359,7 @@ export namespace ValidatorsEndpoint {
 }
 
 export namespace TransactionRulesEndpoint {
-	export type Input = TransactionRulesPostRequest
+	export type Input = TransactionRulesRequest
 	export type Response = TransactionRulesResponse
 	export type DecodedResponse = {
 		ledger_state: Decoded.LedgerState
@@ -353,13 +367,13 @@ export namespace TransactionRulesEndpoint {
 	}
 }
 export namespace BuildTransactionEndpoint {
-	export type Input = TransactionBuildPostRequest
+	export type Input = TransactionBuildRequest
 	export type Response = TransactionBuildResponse
 	export type DecodedResponse = Decoded.TransactionBuildResponseSuccess
 }
 
 export namespace FinalizeTransactionEndpoint {
-	export type Input = TransactionFinalizePostRequest
+	export type Input = TransactionFinalizeRequest
 	export type Response = TransactionFinalizeResponse
 	export type DecodedResponse = {
 		signed_transaction: string
@@ -367,7 +381,7 @@ export namespace FinalizeTransactionEndpoint {
 }
 
 export namespace SubmitTransactionEndpoint {
-	export type Input = TransactionSubmitPostRequest
+	export type Input = TransactionSubmitRequest
 	export type Response = TransactionSubmitResponse
 	export type DecodedResponse = {
 		transaction_identifier: Decoded.TransactionIdentifier
@@ -375,7 +389,7 @@ export namespace SubmitTransactionEndpoint {
 }
 
 export namespace TransactionEndpoint {
-	export type Input = TransactionStatusPostRequest
+	export type Input = TransactionStatusRequest
 	export type Response = TransactionStatusResponse
 	export type DecodedResponse = {
 		ledger_state: Decoded.LedgerState
