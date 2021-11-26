@@ -38,7 +38,7 @@
     "bip39": "^3.0.3",
     "hdkey": "^2.0.1",
     "long": "^4.0.0",
-    "neverthrow": "^4.0.1",
+    "neverthrow": "^4.3.1",
     "prelude-ts": "^1.0.2",
     "rxjs": "7.0.0"
   },

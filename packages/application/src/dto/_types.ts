@@ -185,8 +185,8 @@ export type Token = Readonly<{
 	granularity: AmountT
 	isSupplyMutable: boolean
 	currentSupply: AmountT
-	tokenInfoURL: URL
-	iconURL: URL
+	tokenInfoURL?: URL
+	iconURL?: URL
 }>
 
 export type StatusOfTransaction = Readonly<{

@@ -53,9 +53,9 @@ import {
 	TransactionStatusRequest,
 } from '@radixdlt/networking'
 import { AmountT, Network } from '@radixdlt/primitives'
-import { TransactionIdentifierT } from '../../dto'
+import { TransactionIdentifierT, Token } from '../../dto'
 
-namespace Decoded {
+export namespace Decoded {
 	export type TokenIdentifier = {
 		rri: ResourceIdentifierT
 	}
@@ -255,8 +255,7 @@ export namespace NetworkEndpoint {
 	export type Response = NetworkResponse
 
 	export type DecodedResponse = {
-		ledger_state: Decoded.LedgerState
-		network: Network
+		networkId: Network
 	}
 }
 
@@ -265,10 +264,7 @@ export namespace TokenInfoEndpoint {
 
 	export type Response = TokenResponse
 
-	export type DecodedResponse = {
-		ledger_state: Decoded.LedgerState
-		token: Decoded.Token[]
-	}
+	export type DecodedResponse = Token
 }
 
 export namespace NativeTokenInfoEndpoint {

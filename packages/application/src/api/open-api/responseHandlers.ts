@@ -29,6 +29,10 @@ import {
 	TransactionEndpoint,
 } from './_types'
 import { ReturnOfAPICall } from '@radixdlt/networking'
+import { Result, combineWithAllErrors } from 'neverthrow'
+import { ResourceIdentifier, ResourceIdentifierT } from '@radixdlt/account'
+import { Amount, AmountT } from '@radixdlt/primitives'
+import { Token } from '../..'
 
 const tokenDecoders = [
 	RRIDecoder('rri'),
@@ -56,15 +60,21 @@ export const handleNetworkResponse = (json: ReturnOfAPICall<'networkPost'>) =>
 			hasRequiredProps('network', decoded, ['network', 'ledger_state']),
 		)
 
-export const handleTokenInfoResponse = (json: ReturnOfAPICall<'tokenPost'>) =>
-	JSONDecoding.withDecoders(...tokenDecoders, dateDecoder('timestamp'))
-		.create<
-			TokenInfoEndpoint.Response,
-			TokenInfoEndpoint.DecodedResponse
-		>()(json)
-		.andThen(decoded =>
-			hasRequiredProps('tokenInfo', decoded, ['ledger_state', 'token']),
-		)
+export const handleTokenInfoResponse = (json: ReturnOfAPICall<'tokenPost'>): Result<Token, Error[]> => combineWithAllErrors([
+	ResourceIdentifier.fromUnsafe(json.token[0].tokenIdentifier.rri),
+	Amount.fromUnsafe(json.token[0].tokenProperties.granularity),
+	Amount.fromUnsafe(json.token[0].tokenSupply.value),
+]).map(values => ({
+	name: json.token[0].tokenProperties.name ?? '',
+	rri: values[0] as ResourceIdentifierT,
+	symbol: json.token[0].tokenProperties.symbol,
+	description: json.token[0].tokenProperties.description,
+	granularity: values[1] as AmountT,
+	isSupplyMutable: json.token[0].tokenProperties.isSupplyMutable,
+	currentSupply: values[2] as AmountT,
+	tokenInfoURL: json.token[0].tokenProperties.url ? new URL(json.token[0].tokenProperties.url) : undefined,
+	iconURL: json.token[0].tokenProperties.iconUrl ? new URL(json.token[0].tokenProperties.iconUrl) : undefined
+}))
 
 export const handleNativeTokenResponse = (
 	json: ReturnOfAPICall<'tokenNativePost'>,
