@@ -22,6 +22,10 @@ export const NetworkId = {
 	7: Network.TESTNET7,
 }
 
+export const NetworkName = {
+	mainnet: Network.MAINNET
+}
+
 export const hrpFullSuffixLength = 3
 
 export const HRP = {

@@ -43,13 +43,13 @@ export function UnexpectedErrorFromJSONTyped(json: any, ignoreDiscriminator: boo
     }
     if (!ignoreDiscriminator) {
         if (json['message'] === 'INTERNAL_SERVER_ERROR') {
-            return InternalServerErrorFromJSONTyped(json, true);
+            return InternalServerErrorFromJSONTyped(json, true) as any
         }
         if (json['message'] === 'INVALID_JSON') {
-            return InvalidJsonErrorFromJSONTyped(json, true);
+            return InvalidJsonErrorFromJSONTyped(json, true) as any
         }
         if (json['message'] === 'INVALID_REQUEST') {
-            return InvalidRequestErrorFromJSONTyped(json, true);
+            return InvalidRequestErrorFromJSONTyped(json, true) as any
         }
     }
     return {

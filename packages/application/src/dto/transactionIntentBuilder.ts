@@ -23,7 +23,7 @@ import {
 	AccountAddressT,
 	isAccountAddress,
 	isResourceIdentifier,
-} from '@radixdlt/account'
+} from '../../../account'
 import { isObservable, Observable, of, throwError } from 'rxjs'
 import { map, mergeMap } from 'rxjs/operators'
 import {
@@ -40,10 +40,10 @@ import {
 	Message,
 	MessageEncryption,
 	PublicKeyT,
-} from '@radixdlt/crypto'
+} from '../../../crypto'
 import { Option } from 'prelude-ts'
-import { isAmount } from '@radixdlt/primitives'
-import { log, toObservableFromResult } from '@radixdlt/util'
+import { isAmount } from '../../../primitives'
+import { log, toObservableFromResult } from '../../../util'
 import { AccountT, MessageInTransaction } from '../_types'
 
 type IntendedActionsFrom = Readonly<{

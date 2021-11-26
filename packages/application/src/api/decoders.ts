@@ -1,4 +1,4 @@
-import { decoder } from '@radixdlt/data-formats'
+import { decoder } from '../../../data-formats'
 import { ok } from 'neverthrow'
 import {
 	AccountAddress,
@@ -7,8 +7,8 @@ import {
 	ValidatorAddressOrUnsafeInput,
 	AddressOrUnsafeInput,
 } from '@radixdlt/account'
-import { Amount, NetworkId } from '@radixdlt/primitives'
-import { isObject, isString } from '@radixdlt/util'
+import { Amount, NetworkId } from '../../../primitives'
+import { isObject, isString } from '../../../util'
 import { TransactionIdentifier } from '../dto'
 
 export const amountDecoder = (...keys: string[]) =>

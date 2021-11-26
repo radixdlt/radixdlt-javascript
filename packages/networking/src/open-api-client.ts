@@ -1,5 +1,5 @@
 import 'isomorphic-fetch'
-import { log } from '@radixdlt/util'
+import { log } from '../../util'
 import { v4 as uuid } from 'uuid'
 import { Client } from './_types'
 import { err, errAsync, ok, okAsync, Result, ResultAsync } from 'neverthrow'

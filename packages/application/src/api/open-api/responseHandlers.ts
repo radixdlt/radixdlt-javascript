@@ -29,10 +29,11 @@ import {
 	TransactionEndpoint,
 } from './_types'
 import { ReturnOfAPICall } from '@radixdlt/networking'
-import { Result, combineWithAllErrors } from 'neverthrow'
+import { Result } from 'neverthrow'
 import { ResourceIdentifier, ResourceIdentifierT } from '@radixdlt/account'
-import { Amount, AmountT } from '@radixdlt/primitives'
+import { Amount, AmountT, NetworkName } from '../../../../primitives'
 import { Token } from '../..'
+import { ok, combine } from 'neverthrow'
 
 const tokenDecoders = [
 	RRIDecoder('rri'),
@@ -48,19 +49,12 @@ const validatorDecoders = [
 	URLDecoder('url'),
 ]
 
-export const handleNetworkResponse = (json: ReturnOfAPICall<'networkPost'>) =>
-	JSONDecoding.withDecoders(
-		networkDecoder('network'),
-		dateDecoder('timestamp'),
-	)
-		.create<NetworkEndpoint.Response, NetworkEndpoint.DecodedResponse>()(
-			json,
-		)
-		.andThen(decoded =>
-			hasRequiredProps('network', decoded, ['network', 'ledger_state']),
-		)
+export const handleNetworkResponse = (json: ReturnOfAPICall<'networkPost'>) => ok(({
+	// @ts-ignore
+	network: NetworkName[json.network] as Network
+}))
 
-export const handleTokenInfoResponse = (json: ReturnOfAPICall<'tokenPost'>): Result<Token, Error[]> => combineWithAllErrors([
+export const handleTokenInfoResponse = (json: ReturnOfAPICall<'tokenPost'>): Result<Token, Error[]> => combine([
 	ResourceIdentifier.fromUnsafe(json.token[0].tokenIdentifier.rri),
 	Amount.fromUnsafe(json.token[0].tokenProperties.granularity),
 	Amount.fromUnsafe(json.token[0].tokenSupply.value),
@@ -74,8 +68,8 @@ export const handleTokenInfoResponse = (json: ReturnOfAPICall<'tokenPost'>): Res
 	currentSupply: values[2] as AmountT,
 	tokenInfoURL: json.token[0].tokenProperties.url ? new URL(json.token[0].tokenProperties.url) : undefined,
 	iconURL: json.token[0].tokenProperties.iconUrl ? new URL(json.token[0].tokenProperties.iconUrl) : undefined
-}))
-
+})).mapErr(e => [e])
+/*
 export const handleNativeTokenResponse = (
 	json: ReturnOfAPICall<'tokenNativePost'>,
 ) =>
@@ -298,3 +292,4 @@ export const handleTransactionResponse = (
 				'transaction',
 			]),
 		)
+*/

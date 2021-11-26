@@ -5,21 +5,8 @@ import {
 	ReturnOfAPICall,
 } from '@radixdlt/networking'
 import {
-	handleAccountBalancesResponse,
-	handleAccountTransactionsResponse,
-	handleBuildTransactionResponse,
-	handleDeriveTokenIdentifierResponse,
-	handleNativeTokenResponse,
 	handleNetworkResponse,
-	handleStakePositionsResponse,
-	handleSubmitTransactionResponse,
 	handleTokenInfoResponse,
-	handleTransactionRulesResponse,
-	handleUnstakePositionsResponse,
-	handleValidatorResponse,
-	handleValidatorsResponse,
-	handleFinalizeTransactionResponse,
-	handleTransactionResponse,
 } from './responseHandlers'
 import { pipe } from 'ramda'
 import { Result, ResultAsync } from 'neverthrow'
@@ -43,6 +30,7 @@ export const getAPI = pipe(
 	callAPI => ({
 		network: callAPI('networkPost')(handleNetworkResponse),
 		tokenInfo: callAPI('tokenPost')(handleTokenInfoResponse),
+		/*
 		nativeTokenInfo: callAPI('tokenNativePost')(handleNativeTokenResponse),
 		deriveTokenIdentifier: callAPI('tokenDerivePost')(
 			handleDeriveTokenIdentifierResponse,
@@ -76,5 +64,6 @@ export const getAPI = pipe(
 		transactionStatus: callAPI('transactionStatusPost')(
 			handleTransactionResponse,
 		),
+		*/
 	}),
 )
