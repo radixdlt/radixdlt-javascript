@@ -48,7 +48,10 @@ const call = (client: DefaultApi) => <
 		() => log.info(`Sending RPC request with method ${method}. ${JSON.stringify(params, null, 2,)}`),
 		() => ResultAsync.fromPromise(
 			// @ts-ignore
-			client[method](params, { headers: { [headers[0]]: method, [headers[1]]: correlationID } }),
+			client[method](params, { headers: { [headers[0]]: method, [headers[1]]: correlationID } }).catch(e => {
+				console.error(e)
+				throw JSON.stringify(e)
+			}),
 			(e: Error) => e
 		)
 	)().mapErr(e => {
@@ -60,7 +63,7 @@ export type OpenApiClientCall = ReturnType<typeof call>
 
 export const openApiClient: Client<'open-api'> = (url: URL) => ({
 	type: 'open-api',
-	call: call(new DefaultApi(new Configuration({ basePath: url.toString() }))),
+	call: call(new DefaultApi(new Configuration({ basePath: url.toString().slice(0, -1) }))),
 })
 
 

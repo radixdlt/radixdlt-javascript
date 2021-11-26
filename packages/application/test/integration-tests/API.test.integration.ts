@@ -34,10 +34,10 @@ import { keystoreForTest, makeWalletWithFunds } from '../util'
 
 const fetch = require('node-fetch')
 
-const network = Network.TESTNET7
+const network = Network.LOCALHOST
 
 // local
-const NODE_URL = 'https://sandpitnet.radixdlt.com'
+const NODE_URL = 'http://localhost:8080'
 
 // RCNet
 //const NODE_URL = 'https://54.73.253.49'

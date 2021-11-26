@@ -5,6 +5,7 @@ export type AmountT = UInt256
 export enum Network {
 	MAINNET = 'MAINNET',
 	STOKENET = 'STOKENET',
+	LOCALHOST = 'LOCALHOST',
 	TESTNET3 = 'TESTNET3',
 	TESTNET4 = 'TESTNET4',
 	TESTNET5 = 'TESTNET5',
@@ -20,6 +21,7 @@ export const NetworkId = {
 	5: Network.TESTNET5,
 	6: Network.TESTNET6,
 	7: Network.TESTNET7,
+	99: Network.LOCALHOST
 }
 
 export const NetworkName = {
@@ -38,6 +40,11 @@ export const HRP = {
 		account: 'tdx',
 		validator: 'tv',
 		RRI_suffix: '_tr',
+	},
+	[Network.LOCALHOST]: {
+		account: 'ddx',
+		validator: 'dv',
+		RRI_suffix: '_dr',
 	},
 	[Network.TESTNET3]: {
 		account: 'tdx3',
