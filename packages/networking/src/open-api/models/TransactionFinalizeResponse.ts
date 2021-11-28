@@ -13,6 +13,13 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import {
+    TransactionIdentifier,
+    TransactionIdentifierFromJSON,
+    TransactionIdentifierFromJSONTyped,
+    TransactionIdentifierToJSON,
+} from './';
+
 /**
  * 
  * @export
@@ -25,6 +32,12 @@ export interface TransactionFinalizeResponse {
      * @memberof TransactionFinalizeResponse
      */
     signedTransaction: string;
+    /**
+     * 
+     * @type {TransactionIdentifier}
+     * @memberof TransactionFinalizeResponse
+     */
+    transactionIdentifier: TransactionIdentifier;
 }
 
 export function TransactionFinalizeResponseFromJSON(json: any): TransactionFinalizeResponse {
@@ -38,6 +51,7 @@ export function TransactionFinalizeResponseFromJSONTyped(json: any, ignoreDiscri
     return {
         
         'signedTransaction': json['signed_transaction'],
+        'transactionIdentifier': TransactionIdentifierFromJSON(json['transaction_identifier']),
     };
 }
 
@@ -51,6 +65,7 @@ export function TransactionFinalizeResponseToJSON(value?: TransactionFinalizeRes
     return {
         
         'signed_transaction': value.signedTransaction,
+        'transaction_identifier': TransactionIdentifierToJSON(value.transactionIdentifier),
     };
 }
 

@@ -400,7 +400,7 @@ const randomUnsignedTransaction = (
 
 const randomPendingTransaction = (
 	signedTx: SignedTransaction,
-): FinalizedTransaction => ({
+) => ({
 	txID: TransactionIdentifier.create(
 		sha256(Buffer.from(signedTx.transaction.blob)),
 	)._unsafeUnwrap(),

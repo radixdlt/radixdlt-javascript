@@ -38,12 +38,6 @@ export interface AccountTransactionsResponse {
     ledgerState: LedgerState;
     /**
      * 
-     * @type {number}
-     * @memberof AccountTransactionsResponse
-     */
-    totalCount: number;
-    /**
-     * 
      * @type {string}
      * @memberof AccountTransactionsResponse
      */
@@ -67,7 +61,6 @@ export function AccountTransactionsResponseFromJSONTyped(json: any, ignoreDiscri
     return {
         
         'ledgerState': LedgerStateFromJSON(json['ledger_state']),
-        'totalCount': json['total_count'],
         'nextCursor': !exists(json, 'next_cursor') ? undefined : json['next_cursor'],
         'transactions': ((json['transactions'] as Array<any>).map(AccountTransactionFromJSON)),
     };
@@ -83,7 +76,6 @@ export function AccountTransactionsResponseToJSON(value?: AccountTransactionsRes
     return {
         
         'ledger_state': LedgerStateToJSON(value.ledgerState),
-        'total_count': value.totalCount,
         'next_cursor': value.nextCursor,
         'transactions': ((value.transactions as Array<any>).map(AccountTransactionToJSON)),
     };

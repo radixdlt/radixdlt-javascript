@@ -14,6 +14,10 @@
 
 import { exists, mapValues } from '../runtime';
 import {
+    AccountIdentifier,
+    AccountIdentifierFromJSON,
+    AccountIdentifierFromJSONTyped,
+    AccountIdentifierToJSON,
     Action,
     ActionFromJSON,
     ActionFromJSONTyped,
@@ -26,10 +30,6 @@ import {
     TokenAmountFromJSON,
     TokenAmountFromJSONTyped,
     TokenAmountToJSON,
-    ValidatorIdentifier,
-    ValidatorIdentifierFromJSON,
-    ValidatorIdentifierFromJSONTyped,
-    ValidatorIdentifierToJSON,
 } from './';
 
 /**
@@ -40,10 +40,10 @@ import {
 export interface BurnTokens extends Action {
     /**
      * 
-     * @type {ValidatorIdentifier}
+     * @type {AccountIdentifier}
      * @memberof BurnTokens
      */
-    from: ValidatorIdentifier;
+    from: AccountIdentifier;
     /**
      * 
      * @type {TokenAmount}
@@ -62,7 +62,7 @@ export function BurnTokensFromJSONTyped(json: any, ignoreDiscriminator: boolean)
     }
     return {
         ...ActionFromJSONTyped(json, ignoreDiscriminator),
-        'from': ValidatorIdentifierFromJSON(json['from']),
+        'from': AccountIdentifierFromJSON(json['from']),
         'amount': TokenAmountFromJSON(json['amount']),
     };
 }
@@ -76,7 +76,7 @@ export function BurnTokensToJSON(value?: BurnTokens | null): any {
     }
     return {
         ...ActionToJSON(value),
-        'from': ValidatorIdentifierToJSON(value.from),
+        'from': AccountIdentifierToJSON(value.from),
         'amount': TokenAmountToJSON(value.amount),
     };
 }

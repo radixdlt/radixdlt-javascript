@@ -39,19 +39,19 @@ export interface StakeTokensAllOf {
      * @type {AccountIdentifier}
      * @memberof StakeTokensAllOf
      */
-    from?: AccountIdentifier;
+    from: AccountIdentifier;
     /**
      * 
      * @type {ValidatorIdentifier}
      * @memberof StakeTokensAllOf
      */
-    to?: ValidatorIdentifier;
+    to: ValidatorIdentifier;
     /**
      * 
      * @type {TokenAmount}
      * @memberof StakeTokensAllOf
      */
-    amount?: TokenAmount;
+    amount: TokenAmount;
 }
 
 export function StakeTokensAllOfFromJSON(json: any): StakeTokensAllOf {
@@ -64,9 +64,9 @@ export function StakeTokensAllOfFromJSONTyped(json: any, ignoreDiscriminator: bo
     }
     return {
         
-        'from': !exists(json, 'from') ? undefined : AccountIdentifierFromJSON(json['from']),
-        'to': !exists(json, 'to') ? undefined : ValidatorIdentifierFromJSON(json['to']),
-        'amount': !exists(json, 'amount') ? undefined : TokenAmountFromJSON(json['amount']),
+        'from': AccountIdentifierFromJSON(json['from']),
+        'to': ValidatorIdentifierFromJSON(json['to']),
+        'amount': TokenAmountFromJSON(json['amount']),
     };
 }
 

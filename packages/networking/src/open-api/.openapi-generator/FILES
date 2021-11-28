@@ -42,6 +42,7 @@ models/NotValidatorOwnerError.ts
 models/NotValidatorOwnerErrorAllOf.ts
 models/StakeTokens.ts
 models/StakeTokensAllOf.ts
+models/TargetLedgerState.ts
 models/Token.ts
 models/TokenAmount.ts
 models/TokenDeriveRequest.ts

@@ -38,7 +38,7 @@ export interface AccountTransactionStatus {
 * @enum {string}
 */
 export enum AccountTransactionStatusStatusEnum {
-    Mempool = 'MEMPOOL',
+    Pending = 'PENDING',
     Confirmed = 'CONFIRMED',
     Failed = 'FAILED'
 }

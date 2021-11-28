@@ -14,6 +14,10 @@
 
 import { exists, mapValues } from '../runtime';
 import {
+    AccountIdentifier,
+    AccountIdentifierFromJSON,
+    AccountIdentifierFromJSONTyped,
+    AccountIdentifierToJSON,
     Action,
     ActionFromJSON,
     ActionFromJSONTyped,
@@ -26,10 +30,6 @@ import {
     TokenAmountFromJSON,
     TokenAmountFromJSONTyped,
     TokenAmountToJSON,
-    ValidatorIdentifier,
-    ValidatorIdentifierFromJSON,
-    ValidatorIdentifierFromJSONTyped,
-    ValidatorIdentifierToJSON,
 } from './';
 
 /**
@@ -40,10 +40,10 @@ import {
 export interface MintTokens extends Action {
     /**
      * 
-     * @type {ValidatorIdentifier}
+     * @type {AccountIdentifier}
      * @memberof MintTokens
      */
-    to: ValidatorIdentifier;
+    to: AccountIdentifier;
     /**
      * 
      * @type {TokenAmount}
@@ -62,7 +62,7 @@ export function MintTokensFromJSONTyped(json: any, ignoreDiscriminator: boolean)
     }
     return {
         ...ActionFromJSONTyped(json, ignoreDiscriminator),
-        'to': ValidatorIdentifierFromJSON(json['to']),
+        'to': AccountIdentifierFromJSON(json['to']),
         'amount': TokenAmountFromJSON(json['amount']),
     };
 }
@@ -76,7 +76,7 @@ export function MintTokensToJSON(value?: MintTokens | null): any {
     }
     return {
         ...ActionToJSON(value),
-        'to': ValidatorIdentifierToJSON(value.to),
+        'to': AccountIdentifierToJSON(value.to),
         'amount': TokenAmountToJSON(value.amount),
     };
 }

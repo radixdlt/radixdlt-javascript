@@ -33,7 +33,11 @@ type RemoveRawMethods<Methods> = {
 	>]: Methods[Property]
 }
 
-export type ReturnOfAPICall<Name extends MethodName> = Awaited<ReturnType<Method[Name]>>
+export type ReturnOfAPICall<Name extends MethodName> = 
+	Name extends 'transactionBuildPost'
+		? TransactionBuildResponseSuccess
+		: Awaited<ReturnType<Method[Name]>>
+
 export type InputOfAPICall<Name extends MethodName> = Parameters<Method[Name]>[0]
 
 export type Method = RemoveRawMethods<Omit<Api, keyof BaseAPIType>>
@@ -52,7 +56,7 @@ const call = (client: DefaultApi) => <
 				console.error(e)
 				throw JSON.stringify(e)
 			}),
-			(e: Error) => e
+			(e) => e
 		)
 	)().mapErr(e => {
 		console.error(e)

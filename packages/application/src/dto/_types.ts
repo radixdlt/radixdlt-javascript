@@ -207,7 +207,7 @@ export type SignedTransaction = Readonly<{
 
 export type FinalizedTransaction = Readonly<{
 	blob: string
-	txID: TransactionIdentifierT
+	// txID: TransactionIdentifierT
 }>
 
 export type PendingTransaction = Readonly<{

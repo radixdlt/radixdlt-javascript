@@ -40,6 +40,7 @@ export * from './NotValidatorOwnerError';
 export * from './NotValidatorOwnerErrorAllOf';
 export * from './StakeTokens';
 export * from './StakeTokensAllOf';
+export * from './TargetLedgerState';
 export * from './Token';
 export * from './TokenAmount';
 export * from './TokenDeriveRequest';

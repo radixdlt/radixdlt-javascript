@@ -18,6 +18,10 @@ import {
     LedgerStateFromJSON,
     LedgerStateFromJSONTyped,
     LedgerStateToJSON,
+    TargetLedgerState,
+    TargetLedgerStateFromJSON,
+    TargetLedgerStateFromJSONTyped,
+    TargetLedgerStateToJSON,
 } from './';
 
 /**
@@ -38,6 +42,12 @@ export interface NetworkResponse {
      * @memberof NetworkResponse
      */
     ledgerState: LedgerState;
+    /**
+     * 
+     * @type {TargetLedgerState}
+     * @memberof NetworkResponse
+     */
+    targetLedgerState?: TargetLedgerState;
 }
 
 export function NetworkResponseFromJSON(json: any): NetworkResponse {
@@ -52,6 +62,7 @@ export function NetworkResponseFromJSONTyped(json: any, ignoreDiscriminator: boo
         
         'network': json['network'],
         'ledgerState': LedgerStateFromJSON(json['ledger_state']),
+        'targetLedgerState': !exists(json, 'target_ledger_state') ? undefined : TargetLedgerStateFromJSON(json['target_ledger_state']),
     };
 }
 
@@ -66,6 +77,7 @@ export function NetworkResponseToJSON(value?: NetworkResponse | null): any {
         
         'network': value.network,
         'ledger_state': LedgerStateToJSON(value.ledgerState),
+        'target_ledger_state': TargetLedgerStateToJSON(value.targetLedgerState),
     };
 }
 

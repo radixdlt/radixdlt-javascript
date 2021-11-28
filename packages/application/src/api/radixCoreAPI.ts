@@ -38,7 +38,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 		pickFn: (api: NodeAPI) => (input: I) => ResultAsync<O, E | E[]>,
 		input: I,
 	): Observable<O> =>
-	// @ts-ignore
+		// @ts-ignore
 		defer(() => {
 			const fn = pickFn(api)
 			// @ts-ignore
@@ -75,7 +75,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 				},
 			}),
 */
-		networkId: (): Observable<Network> =>
+		networkId: () =>
 			toObsMap(
 				a => a['network'],
 				m => m.network,
@@ -83,42 +83,43 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 					body: {},
 				},
 			),
+
+		tokenBalancesForAddress: (
+			address: AccountAddressT,
+		) =>
+			toObs(a => a['accountBalances'], {
+				accountBalancesRequest: {
+					network: address.network,
+					accountIdentifier: {
+						address: address.toString(),
+					},
+				},
+			}),
+
 		/*
-				tokenBalancesForAddress: (
-					address: AccountAddressT,
-				): Observable<AccountBalancesEndpoint.DecodedResponse> =>
-					toObs(a => a['accountBalances'], {
-						accountBalancesRequest: {
-							network: address.network,
-							accountIdentifier: {
-								address: address.toString(),
-							},
-						},
-					}),
-		
-				transactionHistory: (
-					input: TransactionHistoryRequestInput,
-				): Observable<AccountTransactionsEndpoint.DecodedResponse> =>
-					toObs(a => a['accountTransactions'], {
-						accountTransactionsRequest: {
-							accountIdentifier: {
-								address: input.address.toString(),
-							},
-							network: input.address.network,
-							limit: input.size,
-							cursor: input.cursor?.toString(),
-						},
-					}),
-		*/
-				nativeToken: (
-					network: string,
-				): Observable<NativeTokenInfoEndpoint.DecodedResponse> =>
-					toObs(a => a['nativeTokenInfo'], {
-						tokenNativeRequest: {
-							network,
-						},
-					}),
-		
+	transactionHistory: (
+		input: TransactionHistoryRequestInput,
+	): Observable<AccountTransactionsEndpoint.DecodedResponse> =>
+		toObs(a => a['accountTransactions'], {
+			accountTransactionsRequest: {
+				accountIdentifier: {
+					address: input.address.toString(),
+				},
+				network: input.address.network,
+				limit: input.size,
+				cursor: input.cursor?.toString(),
+			},
+		}),
+*/
+		nativeToken: (
+			network: string,
+		): Observable<NativeTokenInfoEndpoint.DecodedResponse> =>
+			toObs(a => a['nativeTokenInfo'], {
+				tokenNativeRequest: {
+					network,
+				},
+			}),
+
 		tokenInfo: (
 			rri: ResourceIdentifierT,
 		): Observable<TokenInfoEndpoint.DecodedResponse> =>
@@ -154,12 +155,13 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 							},
 						},
 					}),
+					*/
 		
 				transactionStatus: (
 					txID: TransactionIdentifierT,
 					network: string
 				): Observable<TransactionEndpoint.DecodedResponse> =>
-					toObs(a => a['transactionStatus'], {
+					toObs(a => a['getTransaction'], {
 						transactionStatusRequest: {
 							network,
 							transactionIdentifier: {
@@ -168,64 +170,62 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 						}
 					}),
 		
-		
-				buildTransaction: (
-					transactionIntent: TransactionIntent,
-					from: AccountAddressT,
-				): Observable<BuildTransactionEndpoint.DecodedResponse> =>
-					toObs(a => a['buildTransaction'], {
-						transactionBuildRequest: {
-							network: from.network,
-							actions: transactionIntent.actions.map(action =>
-								action.type === ActionType.TOKEN_TRANSFER
-									? {
-											type: action.type,
-											from: action.from.toString(),
-											to: action.to.toString(),
-											amount: action.amount.toString(),
-											rri: action.rri.toString(),
-										}
-									: {
-											type: action.type,
-											from: action.from.toString(),
-											validator: action.validator.toString(),
-											amount: action.amount.toString(),
-										},
-							),
-							feePayer: {
-								address: from.toString(),
+
+		buildTransaction: (
+			transactionIntent: TransactionIntent,
+			from: AccountAddressT,
+		): Observable<BuildTransactionEndpoint.DecodedResponse> =>
+			toObs(a => a['buildTransaction'], {
+				transactionBuildRequest: {
+					network: from.network,
+					actions: transactionIntent.actions.map(action =>
+						action.type === ActionType.TOKEN_TRANSFER
+							? {
+								type: action.type,
+								from: action.from.toString(),
+								to: action.to.toString(),
+								amount: action.amount.toString(),
+								rri: action.rri.toString(),
+							}
+							: {
+								type: action.type,
+								from: action.from.toString(),
+								validator: action.validator.toString(),
+								amount: action.amount.toString(),
 							},
-							message: transactionIntent.message
-								? transactionIntent.message.toString('hex')
-								: undefined,
-							disableTokenMintAndBurn: true,
-						},
-					}),
-		
-				finalizeTransaction: (
-					network: string,
-					signedTransaction: SignedTransaction,
-				): Observable<FinalizeTransactionEndpoint.DecodedResponse> =>
-					toObs(a => a['finalizeTransaction'], {
-						transactionFinalizeRequest: {
-							network,
-							unsignedTransaction:
-								signedTransaction.transaction.hashOfBlobToSign,
-							signature: { bytes: signedTransaction.signature.toDER() },
-						},
-					}),
-		
-				submitSignedTransaction: (
-					network: string,
-					finalizedTx: FinalizedTransaction,
-				): Observable<SubmitTransactionEndpoint.DecodedResponse> =>
-					toObs(a => a['submitTransaction'], {
-						transactionSubmitRequest: {
-							network,
-							signedTransaction: finalizedTx.blob,
-						},
-					}),
-			}
-			*/
+					),
+					feePayer: {
+						address: from.toString(),
+					},
+					message: transactionIntent.message
+						? transactionIntent.message.toString('hex')
+						: undefined,
+					disableTokenMintAndBurn: true,
+				},
+			}),
+
+		finalizeTransaction: (
+			network: string,
+			signedTransaction: SignedTransaction,
+		): Observable<FinalizeTransactionEndpoint.DecodedResponse> =>
+			toObs(a => a['finalizeTransaction'], {
+				transactionFinalizeRequest: {
+					network,
+					unsignedTransaction:
+						signedTransaction.transaction.hashOfBlobToSign,
+					signature: { bytes: signedTransaction.signature.toDER() },
+				},
+			}),
+
+		submitSignedTransaction: (
+			network: string,
+			finalizedTx: FinalizedTransaction,
+		): Observable<SubmitTransactionEndpoint.DecodedResponse> =>
+			toObs(a => a['submitTransaction'], {
+				transactionSubmitRequest: {
+					network,
+					signedTransaction: finalizedTx.blob,
+				},
+			}),
 	}
 }

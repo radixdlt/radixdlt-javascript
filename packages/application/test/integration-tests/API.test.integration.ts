@@ -31,6 +31,7 @@ import {
 import { UInt256 } from '@radixdlt/uint256'
 import { AccountT, RadixT, TokenBalance, TokenBalances } from '../../src'
 import { keystoreForTest, makeWalletWithFunds } from '../util'
+import { AccountBalancesEndpoint, Decoded } from '../../src/api/open-api/_types'
 
 const fetch = require('node-fetch')
 
@@ -66,8 +67,8 @@ let subs: Subscription
 
 let radix: ReturnType<typeof Radix.create>
 let accounts: AccountT[]
-let balances: TokenBalances
-let nativeTokenBalance: TokenBalance
+let balances: AccountBalancesEndpoint.DecodedResponse
+let nativeTokenBalance: Decoded.TokenAmount
 
 describe('integration API tests', () => {
 	beforeAll(async () => {
@@ -75,14 +76,16 @@ describe('integration API tests', () => {
 		await radix
 			.__withWallet(makeWalletWithFunds(network))
 			.connect(`${NODE_URL}`)
+
 		accounts = (
 			await firstValueFrom(radix.restoreLocalHDAccountsToIndex(2))
 		).all
 
-		/*
 		balances = await firstValueFrom(radix.tokenBalances)
-		const maybeTokenBalance = balances.tokenBalances.find(
-			a => a.token.symbol.toLowerCase() === 'xrd',
+
+
+		const maybeTokenBalance = balances.account_balances.liquid_balances.find(
+			a => a.token_identifier.rri.name.toLowerCase() === 'xrd',
 		)
 
 		if (!maybeTokenBalance) {
@@ -90,7 +93,7 @@ describe('integration API tests', () => {
 		}
 
 		nativeTokenBalance = maybeTokenBalance
-		*/
+		
 	})
 
 	beforeEach(() => {
@@ -151,7 +154,7 @@ describe('integration API tests', () => {
 	})
 	*/
 
-	it.only('returns native token without wallet', async done => {
+	it('returns native token without wallet', async done => {
 		const radix = Radix.create()
 		radix.connect(`${NODE_URL}`)
 
@@ -223,9 +226,9 @@ describe('integration API tests', () => {
 		radix.deriveNextAccount({ alsoSwitchTo: false })
 		radix.deriveNextAccount({ alsoSwitchTo: true })
 	})
-
+*/
 	// 🟢
-	it('should compare token balance before and after transfer', async done => {
+	it.only('should compare token balance before and after transfer', async done => {
 		const getTokenBalanceSubject = new Subject<number>()
 
 		radix.withTokenBalanceFetchTrigger(getTokenBalanceSubject)
@@ -247,11 +250,11 @@ describe('integration API tests', () => {
 			subs.add(
 				radix.tokenBalances.subscribe(balance => {
 					const getXRDBalanceOrZero = (): AmountT => {
-						const maybeTokenBalance = balance.tokenBalances.find(
-							a => a.token.symbol.toLowerCase() === 'xrd',
+						const maybeTokenBalance = balance.account_balances.liquid_balances.find(
+							a => a.token_identifier.rri.name.toLowerCase() === 'xrd',
 						)
 						return maybeTokenBalance !== undefined
-							? maybeTokenBalance.amount
+							? maybeTokenBalance.value
 							: UInt256.valueOf(0)
 					}
 
@@ -276,7 +279,7 @@ describe('integration API tests', () => {
 						transferInput: {
 							to: accounts[2].address,
 							amount: amountToSend,
-							tokenIdentifier: nativeTokenBalance.token.rri,
+							tokenIdentifier: nativeTokenBalance.token_identifier.rri,
 						},
 						userConfirmation: 'skip',
 						pollTXStatusTrigger: interval(500),
@@ -285,7 +288,7 @@ describe('integration API tests', () => {
 						transferDone = true
 						subs.add(
 							radix.ledger
-								.lookupTransaction(txID)
+								.transactionStatus(txID, 'mainnet')
 								.subscribe(tx => {
 									fee = tx.fee
 									getTokenBalanceSubject.next(1)
@@ -295,7 +298,7 @@ describe('integration API tests', () => {
 			)
 		})
 	})
-
+/*
 	// 🟢
 	it('should increment transaction history with a new transaction after transfer', async done => {
 		const pageSize = 100

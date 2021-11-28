@@ -38,10 +38,10 @@ export interface TokenNativeResponse {
     ledgerState: LedgerState;
     /**
      * 
-     * @type {Array<Token>}
+     * @type {Token}
      * @memberof TokenNativeResponse
      */
-    token: Array<Token>;
+    token: Token;
 }
 
 export function TokenNativeResponseFromJSON(json: any): TokenNativeResponse {
@@ -55,7 +55,7 @@ export function TokenNativeResponseFromJSONTyped(json: any, ignoreDiscriminator:
     return {
         
         'ledgerState': LedgerStateFromJSON(json['ledger_state']),
-        'token': ((json['token'] as Array<any>).map(TokenFromJSON)),
+        'token': TokenFromJSON(json['token']),
     };
 }
 
@@ -69,7 +69,7 @@ export function TokenNativeResponseToJSON(value?: TokenNativeResponse | null): a
     return {
         
         'ledger_state': LedgerStateToJSON(value.ledgerState),
-        'token': ((value.token as Array<any>).map(TokenToJSON)),
+        'token': TokenToJSON(value.token),
     };
 }
 

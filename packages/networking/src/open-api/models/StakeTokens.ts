@@ -47,19 +47,19 @@ export interface StakeTokens extends Action {
      * @type {AccountIdentifier}
      * @memberof StakeTokens
      */
-    from?: AccountIdentifier;
+    from: AccountIdentifier;
     /**
      * 
      * @type {ValidatorIdentifier}
      * @memberof StakeTokens
      */
-    to?: ValidatorIdentifier;
+    to: ValidatorIdentifier;
     /**
      * 
      * @type {TokenAmount}
      * @memberof StakeTokens
      */
-    amount?: TokenAmount;
+    amount: TokenAmount;
 }
 
 export function StakeTokensFromJSON(json: any): StakeTokens {
@@ -72,9 +72,9 @@ export function StakeTokensFromJSONTyped(json: any, ignoreDiscriminator: boolean
     }
     return {
         ...ActionFromJSONTyped(json, ignoreDiscriminator),
-        'from': !exists(json, 'from') ? undefined : AccountIdentifierFromJSON(json['from']),
-        'to': !exists(json, 'to') ? undefined : ValidatorIdentifierFromJSON(json['to']),
-        'amount': !exists(json, 'amount') ? undefined : TokenAmountFromJSON(json['amount']),
+        'from': AccountIdentifierFromJSON(json['from']),
+        'to': ValidatorIdentifierFromJSON(json['to']),
+        'amount': TokenAmountFromJSON(json['amount']),
     };
 }
 

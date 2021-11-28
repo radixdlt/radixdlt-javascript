@@ -27,9 +27,10 @@ import {
 	SubmitTransactionEndpoint,
 	FinalizeTransactionEndpoint,
 	TransactionEndpoint,
+	Decoded,
 } from './_types'
-import { ReturnOfAPICall } from '@radixdlt/networking'
-import { Result } from 'neverthrow'
+import { Action, ReturnOfAPICall, TransferTokens } from '@radixdlt/networking'
+import { err, Result } from 'neverthrow'
 import {
 	ResourceIdentifier,
 	ResourceIdentifierT,
@@ -67,7 +68,7 @@ export const handleNetworkResponse = (json: ReturnOfAPICall<'networkPost'>) =>
 
 export const handleTokenInfoResponse = (
 	json: ReturnOfAPICall<'tokenPost'>,
-): Result<Token, Error[]> =>
+): Result<TokenInfoEndpoint.DecodedResponse, Error[]> =>
 	combine([
 		ResourceIdentifier.fromUnsafe(json.token[0].tokenIdentifier.rri),
 		Amount.fromUnsafe(json.token[0].tokenProperties.granularity),
@@ -92,28 +93,29 @@ export const handleTokenInfoResponse = (
 
 export const handleNativeTokenResponse = (
 	json: ReturnOfAPICall<'tokenNativePost'>,
-) =>
-	combine([
-		ResourceIdentifier.fromUnsafe(json.token[0].tokenIdentifier.rri),
-		Amount.fromUnsafe(json.token[0].tokenProperties.granularity),
-		Amount.fromUnsafe(json.token[0].tokenSupply.value),
+): Result<NativeTokenInfoEndpoint.DecodedResponse, Error[]> => {
+	return combine([
+		ResourceIdentifier.fromUnsafe(json.token.tokenIdentifier.rri),
+		Amount.fromUnsafe(json.token.tokenProperties.granularity),
+		Amount.fromUnsafe(json.token.tokenSupply.value),
 	])
 		.map(values => ({
-			name: json.token[0].tokenProperties.name ?? '',
+			name: json.token.tokenProperties.name ?? '',
 			rri: values[0] as ResourceIdentifierT,
-			symbol: json.token[0].tokenProperties.symbol,
-			description: json.token[0].tokenProperties.description,
+			symbol: json.token.tokenProperties.symbol,
+			description: json.token.tokenProperties.description,
 			granularity: values[1] as AmountT,
-			isSupplyMutable: json.token[0].tokenProperties.isSupplyMutable,
+			isSupplyMutable: json.token.tokenProperties.isSupplyMutable,
 			currentSupply: values[2] as AmountT,
-			tokenInfoURL: json.token[0].tokenProperties.url
-				? new URL(json.token[0].tokenProperties.url)
+			tokenInfoURL: json.token.tokenProperties.url
+				? new URL(json.token.tokenProperties.url)
 				: undefined,
-			iconURL: json.token[0].tokenProperties.iconUrl
-				? new URL(json.token[0].tokenProperties.iconUrl)
+			iconURL: json.token.tokenProperties.iconUrl
+				? new URL(json.token.tokenProperties.iconUrl)
 				: undefined,
 		}))
 		.mapErr(e => [e])
+}
 
 export const handleStakePositionsResponse = (
 	json: ReturnOfAPICall<'accountStakesPost'>,
@@ -213,179 +215,186 @@ export const handleDeriveTokenIdentifierResponse = (
 				'token_identifier',
 			]),
 		)
+*/
 
 export const handleAccountBalancesResponse = (
 	json: ReturnOfAPICall<'accountBalancesPost'>,
-) =>
-	JSONDecoding.withDecoders(
-		RRIDecoder('rri'),
-		amountDecoder('value'),
-		dateDecoder('timestamp'),
-	)
-		.create<
-			AccountBalancesEndpoint.Response,
-			AccountBalancesEndpoint.DecodedResponse
-		>()(json)
-		.andThen(decoded =>
-			hasRequiredProps('accountBalances', decoded, [
-				'ledger_state',
-				'account_balances',
-			]),
-		)
+): Result<AccountBalancesEndpoint.DecodedResponse, Error[]> => {
+	const liquidBalancesResults = combine(json.accountBalances.liquidBalances.map(balance => combine([
+		Amount.fromUnsafe(balance.value),
+		ResourceIdentifier.fromUnsafe(balance.tokenIdentifier.rri)
+	]).map(values => ({
+		value: values[0] as AmountT,
+		token_identifier: {
+			rri: values[1] as ResourceIdentifierT
+		}
+	}))))
+
+	const stakingAndUnstakingBalancesResult = combine([
+		ResourceIdentifier.fromUnsafe(json.accountBalances.stakedAndUnstakingBalance.tokenIdentifier.rri),
+		Amount.fromUnsafe(json.accountBalances.stakedAndUnstakingBalance.value)
+	])
+
+	return combine([
+		liquidBalancesResults.map(balances => ({ balances })),
+		stakingAndUnstakingBalancesResult
+	]).map(values => ({
+		ledger_state: {
+			...json.ledgerState,
+			timestamp: new Date(json.ledgerState.timestamp)
+		},
+		account_balances: {
+			// @ts-ignore
+			liquid_balances: values[0].balances as Decoded.TokenAmount[],
+			staked_and_unstaking_balance: {
+				token_identifier: {
+					rri: values[1] as unknown as ResourceIdentifierT,
+				},
+				value: values[2] as unknown as AmountT
+			}
+		}
+	})).mapErr(e => [e])
+}
 
 
-export const handleUnstakePositionsResponse = (
-	json: ReturnOfAPICall<'accountUnstakesPost'>,
-) =>
-	JSONDecoding.withDecoders(
-		RRIDecoder('rri'),
-		amountDecoder('value'),
-		validatorAddressDecoder('address'),
-		dateDecoder('timestamp'),
-	)
-		.create<
-			UnstakePositionsEndpoint.Response,
-			UnstakePositionsEndpoint.DecodedResponse
-		>()(json)
-		.andThen(decoded =>
-			hasRequiredProps('unstakePositions', decoded, [
-				'ledger_state',
-				'unstakes',
-			]),
-		)
+/*
 
-export const handleAccountTransactionsResponse = (
-	json: ReturnOfAPICall<'accountTransactionsPost'>,
-) =>
-	JSONDecoding.withDecoders(
-		transactionIdentifierDecoder('hash'),
-		dateDecoder('timestamp'),
-		...tokenDecoders,
-	)
-		.create<
-			AccountTransactionsEndpoint.Response,
-			AccountTransactionsEndpoint.DecodedResponse
-		>()(json)
-		.andThen(decoded =>
-			hasRequiredProps('accountTransactions', decoded, [
-				'ledger_state',
-				'total_count',
-				'transactions',
-			]),
-		)
+export const handleStakePositionsResponse = (
+	json: ReturnOfAPICall<'accountStakesPost'>,
+) => combine([
 
-export const handleValidatorResponse = (
-	json: ReturnOfAPICall<'validatorPost'>,
-) =>
-	JSONDecoding.withDecoders(...validatorDecoders, dateDecoder('timestamp'))
-		.create<
-			ValidatorEndpoint.Response,
-			ValidatorEndpoint.DecodedResponse
-		>()(json)
-		.andThen(decoded =>
-			hasRequiredProps('validator', decoded, [
-				'ledger_state',
-				'validator',
-			]),
-		)
+]).mapErr(e => [e])
 
-export const handleValidatorsResponse = (
-	json: ReturnOfAPICall<'validatorsPost'>,
-) =>
-	JSONDecoding.withDecoders(...validatorDecoders, dateDecoder('timestamp'))
-		.create<
-			ValidatorsEndpoint.Response,
-			ValidatorsEndpoint.DecodedResponse
-		>()(json)
-		.andThen(decoded =>
-			hasRequiredProps('validators', decoded, [
-				'ledger_state',
-				'validators',
-			]),
-		)
+json.stakes.map(stake => combine([
+	ValidatorAddress.fromUnsafe(stake.validatorIdentifier.address),
+	Amount.fromUnsafe(stake.delegatedStake.value)
+]).map(values => ({
+	validator: values[0] as ValidatorAddressT,
+	amount: values[1] as AmountT
+})
 
-export const handleTransactionRulesResponse = (
-	json: ReturnOfAPICall<'transactionRulesPost'>,
-) =>
-	JSONDecoding.withDecoders(
-		amountDecoder('value'),
-		RRIDecoder('rri'),
-		dateDecoder('timestamp'),
-	)
-		.create<
-			TransactionRulesEndpoint.Response,
-			TransactionRulesEndpoint.DecodedResponse
-		>()(json)
-		.andThen(decoded =>
-			hasRequiredProps('transactionRules', decoded, [
-				'ledger_state',
-				'transaction_rules',
-			]),
+	export const handleUnstakePositionsResponse = (
+		json: ReturnOfAPICall<'accountUnstakesPost'>,
+	) =>
+		JSONDecoding.withDecoders(
+			RRIDecoder('rri'),
+			amountDecoder('value'),
+			validatorAddressDecoder('address'),
+			dateDecoder('timestamp'),
 		)
+			.create<
+				UnstakePositionsEndpoint.Response,
+				UnstakePositionsEndpoint.DecodedResponse
+			>()(json)
+			.andThen(decoded =>
+				hasRequiredProps('unstakePositions', decoded, [
+					'ledger_state',
+					'unstakes',
+				]),
+			)
 
-export const handleBuildTransactionResponse = (
-	json: ReturnOfAPICall<'transactionBuildPost'>,
-) =>
-	JSONDecoding.withDecoders(
-		amountDecoder('value'),
-		RRIDecoder('rri'),
-		dateDecoder('timestamp'),
-	)
-		.create<
-			BuildTransactionEndpoint.Response,
-			BuildTransactionEndpoint.DecodedResponse
-		>()(json)
-		.andThen(decoded =>
-			hasRequiredProps('buildTransaction', decoded, ['type']),
+	export const handleAccountTransactionsResponse = (
+		json: ReturnOfAPICall<'accountTransactionsPost'>,
+	) =>
+		JSONDecoding.withDecoders(
+			transactionIdentifierDecoder('hash'),
+			dateDecoder('timestamp'),
+			...tokenDecoders,
 		)
+			.create<
+				AccountTransactionsEndpoint.Response,
+				AccountTransactionsEndpoint.DecodedResponse
+			>()(json)
+			.andThen(decoded =>
+				hasRequiredProps('accountTransactions', decoded, [
+					'ledger_state',
+					'total_count',
+					'transactions',
+				]),
+			)
 
-export const handleFinalizeTransactionResponse = (
-	json: ReturnOfAPICall<'transactionFinalizePost'>,
-) =>
-	JSONDecoding.withDecoders()
-		.create<
-			FinalizeTransactionEndpoint.Response,
-			FinalizeTransactionEndpoint.DecodedResponse
-		>()(json)
-		.andThen(decoded =>
-			hasRequiredProps('finalizeTransaction', decoded, [
-				'signed_transaction',
-			]),
-		)
+	export const handleValidatorResponse = (
+		json: ReturnOfAPICall<'validatorPost'>,
+	) =>
+		JSONDecoding.withDecoders(...validatorDecoders, dateDecoder('timestamp'))
+			.create<
+				ValidatorEndpoint.Response,
+				ValidatorEndpoint.DecodedResponse
+			>()(json)
+			.andThen(decoded =>
+				hasRequiredProps('validator', decoded, [
+					'ledger_state',
+					'validator',
+				]),
+			)
 
-export const handleSubmitTransactionResponse = (
-	json: ReturnOfAPICall<'transactionSubmitPost'>,
-) =>
-	JSONDecoding.withDecoders(transactionIdentifierDecoder('hash'))
-		.create<
-			SubmitTransactionEndpoint.Response,
-			SubmitTransactionEndpoint.DecodedResponse
-		>()(json)
-		.andThen(decoded =>
-			hasRequiredProps('submitTransaction', decoded, [
-				'transaction_identifier',
-			]),
-		)
+	export const handleValidatorsResponse = (
+		json: ReturnOfAPICall<'validatorsPost'>,
+	) =>
+		JSONDecoding.withDecoders(...validatorDecoders, dateDecoder('timestamp'))
+			.create<
+				ValidatorsEndpoint.Response,
+				ValidatorsEndpoint.DecodedResponse
+			>()(json)
+			.andThen(decoded =>
+				hasRequiredProps('validators', decoded, [
+					'ledger_state',
+					'validators',
+				]),
+			)
 
-export const handleTransactionResponse = (
-	json: ReturnOfAPICall<'transactionStatusPost'>,
-) =>
-	JSONDecoding.withDecoders(
-		transactionIdentifierDecoder('hash'),
-		addressRegexDecoder('address'),
-		RRIDecoder('rri'),
-		amountDecoder('value', 'granularity'),
-		URLDecoder('url'),
-		dateDecoder('timestamp'),
-	)
-		.create<
-			TransactionEndpoint.Response,
-			TransactionEndpoint.DecodedResponse
-		>()(json)
-		.andThen(decoded =>
-			hasRequiredProps('transaction', decoded, [
-				'ledger_state',
-				'transaction',
-			]),
+	export const handleTransactionRulesResponse = (
+		json: ReturnOfAPICall<'transactionRulesPost'>,
+	) =>
+		JSONDecoding.withDecoders(
+			amountDecoder('value'),
+			RRIDecoder('rri'),
+			dateDecoder('timestamp'),
 		)
+			.create<
+				TransactionRulesEndpoint.Response,
+				TransactionRulesEndpoint.DecodedResponse
+			>()(json)
+			.andThen(decoded =>
+				hasRequiredProps('transactionRules', decoded, [
+					'ledger_state',
+					'transaction_rules',
+				]),
+			)
 */
+	export const handleBuildTransactionResponse = (
+		json: ReturnOfAPICall<'transactionBuildPost'>,
+	): Result<BuildTransactionEndpoint.DecodedResponse, Error[]> => Amount.fromUnsafe(json.transactionBuild.fee.value).map(amount => ({
+		transaction: {
+			blob: json.transactionBuild.unsignedTransaction,
+			hashOfBlobToSign: json.transactionBuild.payloadToSign
+		},
+		fee: amount
+	})).mapErr(e => [e])
+	
+
+	export const handleFinalizeTransactionResponse = (
+		json: ReturnOfAPICall<'transactionFinalizePost'>,
+	): Result<FinalizeTransactionEndpoint.DecodedResponse, Error[]> => ok({
+		blob: json.signedTransaction
+	}).mapErr(e => [e] as Error[])
+
+	export const handleSubmitTransactionResponse = (
+		json: ReturnOfAPICall<'transactionSubmitPost'>,
+	) => TransactionIdentifier.create(json.transactionIdentifier.hash).map(txID => ({
+		txID
+	})).mapErr(e => [e])
+
+		
+	export const handleTransactionResponse = (
+		json: ReturnOfAPICall<'transactionStatusPost'>,
+	): Result<TransactionEndpoint.DecodedResponse, Error[]> => json.transaction.length === 0
+		? err([Error('Transaction not found.')])
+		: combine([
+			TransactionIdentifier.create(json.transaction[0].transactionIdentifier.hash),
+			Amount.fromUnsafe(json.transaction[0].feePaid.value)
+		]).map(values => ({
+			txID: values[0] as TransactionIdentifierT,
+			status: json.transaction[0].transactionStatus.status,
+			fee: values[1] as AmountT
+		})).mapErr(e => [e])

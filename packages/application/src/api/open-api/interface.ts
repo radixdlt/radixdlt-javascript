@@ -5,11 +5,16 @@ import {
 	ReturnOfAPICall,
 } from '@radixdlt/networking'
 import {
+	handleAccountBalancesResponse,
 	handleNativeTokenResponse,
 	handleNetworkResponse,
 	handleStakePositionsResponse,
 	handleTokenInfoResponse,
 	handleUnstakePositionsResponse,
+	handleBuildTransactionResponse,
+	handleFinalizeTransactionResponse,
+	handleSubmitTransactionResponse,
+	handleTransactionResponse
 } from './responseHandlers'
 import { pipe } from 'ramda'
 import { Result, ResultAsync } from 'neverthrow'
@@ -30,23 +35,25 @@ const callAPIWith =
 
 export const getAPI = pipe(
 	(call: OpenApiClientCall) => callAPIWith(call),
+
 	callAPI => ({
 		network: callAPI('networkPost')(handleNetworkResponse),
 		tokenInfo: callAPI('tokenPost')(handleTokenInfoResponse),
-
 		nativeTokenInfo: callAPI('tokenNativePost')(handleNativeTokenResponse),
+		stakePositions: callAPI('accountStakesPost')(handleStakePositionsResponse),
+		unstakePositions: callAPI('accountUnstakesPost')(handleUnstakePositionsResponse),
+		/*
+		deriveTokenIdentifier: callAPI('tokenDerivePost')(
+			handleDeriveTokenIdentifierResponse,
+		),
+		*/
+		accountBalances: callAPI('accountBalancesPost')(handleAccountBalancesResponse),
+		/*
 		stakePositions: callAPI('accountStakesPost')(
 			handleStakePositionsResponse,
 		),
 		unstakePositions: callAPI('accountUnstakesPost')(
 			handleUnstakePositionsResponse,
-		),
-		/*
-		deriveTokenIdentifier: callAPI('tokenDerivePost')(
-			handleDeriveTokenIdentifierResponse,
-		),
-		accountBalances: callAPI('accountBalancesPost')(
-			handleAccountBalancesResponse,
 		),
 		accountTransactions: callAPI('accountTransactionsPost')(
 			handleAccountTransactionsResponse,
@@ -56,18 +63,10 @@ export const getAPI = pipe(
 		transactionRules: callAPI('transactionRulesPost')(
 			handleTransactionRulesResponse,
 		),
-		buildTransaction: callAPI('transactionBuildPost')(
-			handleBuildTransactionResponse,
-		),
-		finalizeTransaction: callAPI('transactionFinalizePost')(
-			handleFinalizeTransactionResponse,
-		),
-		submitTransaction: callAPI('transactionSubmitPost')(
-			handleSubmitTransactionResponse,
-		),
-		transactionStatus: callAPI('transactionStatusPost')(
-			handleTransactionResponse,
-		),
 		*/
+		buildTransaction: callAPI('transactionBuildPost')(handleBuildTransactionResponse),
+		finalizeTransaction: callAPI('transactionFinalizePost')(handleFinalizeTransactionResponse),
+		submitTransaction: callAPI('transactionSubmitPost')(handleSubmitTransactionResponse),
+		getTransaction: callAPI('transactionStatusPost')(handleTransactionResponse)
 	}),
 )

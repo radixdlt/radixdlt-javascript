@@ -31,25 +31,25 @@ export interface TokenProperties {
      * @type {string}
      * @memberof TokenProperties
      */
-    name?: string;
+    name: string;
     /**
      * 
      * @type {string}
      * @memberof TokenProperties
      */
-    description?: string;
+    description: string;
     /**
      * 
      * @type {string}
      * @memberof TokenProperties
      */
-    iconUrl?: string;
+    iconUrl: string;
     /**
      * 
      * @type {string}
      * @memberof TokenProperties
      */
-    url?: string;
+    url: string;
     /**
      * 
      * @type {string}
@@ -86,10 +86,10 @@ export function TokenPropertiesFromJSONTyped(json: any, ignoreDiscriminator: boo
     }
     return {
         
-        'name': !exists(json, 'name') ? undefined : json['name'],
-        'description': !exists(json, 'description') ? undefined : json['description'],
-        'iconUrl': !exists(json, 'icon_url') ? undefined : json['icon_url'],
-        'url': !exists(json, 'url') ? undefined : json['url'],
+        'name': json['name'],
+        'description': json['description'],
+        'iconUrl': json['icon_url'],
+        'url': json['url'],
         'symbol': json['symbol'],
         'isSupplyMutable': json['is_supply_mutable'],
         'granularity': json['granularity'],

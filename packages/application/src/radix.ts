@@ -107,6 +107,7 @@ import {
 } from './dto'
 import { ActionType, ExecutedAction, TransferTokensAction } from './actions'
 import { Wallet } from './wallet'
+import { AccountTransactionStatusStatusEnum } from '@radixdlt/networking'
 
 const txTypeFromActions = (
 	input: Readonly<{
@@ -201,11 +202,12 @@ const create = () => {
 			a => a.networkId,
 			m => networkIdErr(m),
 		),
-		/*
+
 		tokenBalancesForAddress: fwdAPICall(
 			a => a.tokenBalancesForAddress,
 			m => tokenBalancesErr(m),
 		),
+		/*
 		transactionHistory: fwdAPICall(
 			a => a.transactionHistory,
 			m => transactionHistoryErr(m),
@@ -220,7 +222,7 @@ const create = () => {
 			a => a.tokenInfo,
 			m => tokenInfoErr(m),
 		),
-		/*
+		
 		stakesForAddress: fwdAPICall(
 			a => a.stakesForAddress,
 			m => stakesForAddressErr(m),
@@ -239,17 +241,17 @@ const create = () => {
 			a => a.lookupValidator,
 			m => lookupValidatorErr(m),
 		),
+		*/
 
 		transactionStatus: fwdAPICall(
 			a => a.transactionStatus,
 			m => lookupTxErr(m),
 		),
-
 		buildTransaction: fwdAPICall(
 			a => a.buildTransaction,
 			m => buildTxFromIntentErr(m),
 		),
-		/*
+
 		finalizeTransaction: fwdAPICall(
 			a => a.finalizeTransaction,
 			m => finalizeTxErr(m),
@@ -257,8 +259,7 @@ const create = () => {
 		submitSignedTransaction: fwdAPICall(
 			a => a.submitSignedTransaction,
 			m => submitSignedTxErr(m),
-			),
-		*/
+		)
 	}
 
 	const activeAddress = wallet$.pipe(
@@ -298,95 +299,68 @@ const create = () => {
 			),
 			shareReplay(1),
 		)
-/*
-	const simpleTokenBalances = activeAddressToAPIObservableWithTrigger(
+
+	const tokenBalances = activeAddressToAPIObservableWithTrigger(
 		tokenBalanceFetchSubject,
 		a => a.tokenBalancesForAddress,
 		tokenBalancesErr,
 	)
 
-	const decorateSimpleTokenBalanceWithTokenInfo = (
-		simpleTokenBalance: SimpleTokenBalance,
-	): Observable<TokenBalance> =>
-		api.tokenInfo(simpleTokenBalance.tokenIdentifier).pipe(
-			map(
-				(tokenInfo: Token): TokenBalance => ({
-					amount: simpleTokenBalance.amount,
-					token: tokenInfo,
-				}),
-			),
-		)
-/*
-	const tokenBalances: Observable<TokenBalances> = simpleTokenBalances.pipe(
-		mergeMap(
-			(
-				simpleTokenBalances: SimpleTokenBalances,
-			): Observable<TokenBalances> => {
-				const balanceOfTokensObservableList: Observable<TokenBalance>[] = simpleTokenBalances.tokenBalances.map(
-					decorateSimpleTokenBalanceWithTokenInfo,
-				)
-
-				return simpleTokenBalances.tokenBalances.length === 0
-					? of({
-						owner: simpleTokenBalances.owner,
-						tokenBalances: [],
-					})
-					: forkJoin(balanceOfTokensObservableList).pipe(
-						map(
-							(
-								tokenBalances: TokenBalance[],
-							): TokenBalances => ({
-								owner: simpleTokenBalances.owner,
-								tokenBalances,
-							}),
-						),
-					)
-			},
-		),
-	)
+	/*
+		const decorateSimpleTokenBalanceWithTokenInfo = (
+			simpleTokenBalance: SimpleTokenBalance,
+		): Observable<TokenBalance> =>
+			api.tokenInfo(simpleTokenBalance.tokenIdentifier).pipe(
+				map(
+					(tokenInfo: Token): TokenBalance => ({
+						amount: simpleTokenBalance.amount,
+						token: tokenInfo,
+					}),
+				),
+			)
 	*/
-/*
-	const stakingPositions = activeAddressToAPIObservableWithTrigger(
-		stakingFetchSubject,
-		a => a.stakesForAddress,
-		stakesForAddressErr,
-	)
-
-	const unstakingPositions = activeAddressToAPIObservableWithTrigger(
-		stakingFetchSubject,
-		a => a.unstakesForAddress,
-		unstakesForAddressErr,
-	)
-
-	const transactionHistory = (
-		input: TransactionHistoryActiveAccountRequestInput,
-	): Observable<TransactionHistory> =>
-		activeAddress.pipe(
-			take(1),
-			switchMap(activeAddress =>
-				api
-					.transactionHistory({ ...input, address: activeAddress })
-					.pipe(
-						map(
-							(
-								simpleTxHistory: SimpleTransactionHistory,
-							): TransactionHistory => ({
-								...simpleTxHistory,
-								transactions: simpleTxHistory.transactions.map(
-									(
-										simpleExecutedTX: SimpleExecutedTransaction,
-									): ExecutedTransaction =>
-										decorateSimpleExecutedTransactionWithType(
-											simpleExecutedTX,
-											activeAddress,
-										),
-								),
-							}),
-						),
-					),
-			),
+	/*
+		const stakingPositions = activeAddressToAPIObservableWithTrigger(
+			stakingFetchSubject,
+			a => a.stakesForAddress,
+			stakesForAddressErr,
 		)
-*/
+	
+		const unstakingPositions = activeAddressToAPIObservableWithTrigger(
+			stakingFetchSubject,
+			a => a.unstakesForAddress,
+			unstakesForAddressErr,
+		)
+	
+		const transactionHistory = (
+			input: TransactionHistoryActiveAccountRequestInput,
+		): Observable<TransactionHistory> =>
+			activeAddress.pipe(
+				take(1),
+				switchMap(activeAddress =>
+					api
+						.transactionHistory({ ...input, address: activeAddress })
+						.pipe(
+							map(
+								(
+									simpleTxHistory: SimpleTransactionHistory,
+								): TransactionHistory => ({
+									...simpleTxHistory,
+									transactions: simpleTxHistory.transactions.map(
+										(
+											simpleExecutedTX: SimpleExecutedTransaction,
+										): ExecutedTransaction =>
+											decorateSimpleExecutedTransactionWithType(
+												simpleExecutedTX,
+												activeAddress,
+											),
+									),
+								}),
+							),
+						),
+				),
+			)
+	*/
 	const node$ = merge(
 		nodeSubject.asObservable(),
 		coreAPISubject.asObservable().pipe(map(api => api.node)),
@@ -402,7 +376,7 @@ const create = () => {
 		mergeMap(wallet => wallet.observeAccounts()),
 		shareReplay(1),
 	)
-/*
+
 	const __makeTransactionFromIntent = (
 		transactionIntent$: Observable<TransactionIntent>,
 		options: MakeTransactionOptions,
@@ -548,7 +522,7 @@ const create = () => {
 				},
 			),
 			catchError((e: Error) => {
-				
+
 				txLog.error(
 					`API failed to build transaction, error: ${e}`,
 				)
@@ -605,7 +579,9 @@ const create = () => {
 						transactionState: signedTx,
 						eventUpdateType: TransactionTrackingEventType.SIGNED,
 					})
-					return api.finalizeTransaction(signedTx)
+					return networkSubject.pipe(
+						mergeMap(network => api.finalizeTransaction(network, signedTx))
+					)
 				},
 			),
 			catchError((e: Error) => {
@@ -623,9 +599,6 @@ const create = () => {
 				return EMPTY
 			}),
 			tap<FinalizedTransaction>(finalizedTx => {
-				txLog.debug(
-					`Received finalized transaction with txID='${finalizedTx.txID.toString()}' from API, calling submit.`,
-				)
 				track({
 					transactionState: finalizedTx,
 					eventUpdateType: TransactionTrackingEventType.FINALIZED,
@@ -638,9 +611,11 @@ const create = () => {
 				.pipe(
 					mergeMap(
 						(finalizedTx): Observable<PendingTransaction> =>
-							api.submitSignedTransaction({
-								...finalizedTx,
-							}),
+							networkSubject.pipe(
+								mergeMap(network => api.submitSignedTransaction(network, {
+									blob: finalizedTx.blob,
+								}))
+							)
 					),
 					catchError((e: Error) => {
 						txLog.error(
@@ -692,19 +667,21 @@ const create = () => {
 				txLog.debug(
 					`Asking API for status of transaction with txID: ${pendingTx.txID.toString()}`,
 				)
-				return api.transactionStatus(pendingTx.txID)
+				return networkSubject.pipe(
+					mergeMap(network => api.transactionStatus(pendingTx.txID, network))
+				)
 			}),
 			distinctUntilChanged((prev, cur) => prev.status === cur.status),
 			share(),
 		)
 
 		const transactionCompletedWithStatusConfirmed$ = transactionStatus$.pipe(
-			skipWhile(({ status }) => status !== TransactionStatus.CONFIRMED),
+			skipWhile(({ status }) => status !== AccountTransactionStatusStatusEnum.Confirmed),
 			take(1),
 		)
 
 		const transactionCompletedWithStatusFailed$ = transactionStatus$.pipe(
-			skipWhile(({ status }) => status !== TransactionStatus.FAILED),
+			skipWhile(({ status }) => status !== AccountTransactionStatusStatusEnum.Failed),
 			take(1),
 		)
 
@@ -767,8 +744,7 @@ const create = () => {
 			events: trackingSubject.asObservable(),
 		}
 	}
-	*/
-/*
+
 	const __makeTransactionFromBuilder = (
 		transactionIntentBuilderT: TransactionIntentBuilderT,
 		makeTXOptions: MakeTransactionOptions,
@@ -811,24 +787,23 @@ const create = () => {
 				: undefined,
 		)
 	}
-*/
-/*
-	const stakeTokens = (input: StakeOptions) => {
-		radixLog.debug('stake')
-		return __makeTransactionFromBuilder(
-			TransactionIntentBuilder.create().stakeTokens(input.stakeInput),
-			{ ...input },
-		)
-	}
-
-	const unstakeTokens = (input: UnstakeOptions) => {
-		radixLog.debug('unstake')
-		return __makeTransactionFromBuilder(
-			TransactionIntentBuilder.create().unstakeTokens(input.unstakeInput),
-			{ ...input },
-		)
-	}
-*/
+	/*
+		const stakeTokens = (input: StakeOptions) => {
+			radixLog.debug('stake')
+			return __makeTransactionFromBuilder(
+				TransactionIntentBuilder.create().stakeTokens(input.stakeInput),
+				{ ...input },
+			)
+		}
+	
+		const unstakeTokens = (input: UnstakeOptions) => {
+			radixLog.debug('unstake')
+			return __makeTransactionFromBuilder(
+				TransactionIntentBuilder.create().unstakeTokens(input.unstakeInput),
+				{ ...input },
+			)
+		}
+	*/
 	const decryptTransaction = (
 		input: SimpleExecutedTransaction,
 	): Observable<string> => {
@@ -1048,22 +1023,22 @@ const create = () => {
 			log.setLevel(level)
 			return methods
 		},
-/*
-		transactionStatus: (
-			txID: TransactionIdentifierT,
-			trigger: Observable<number>,
-		) =>
-			trigger.pipe(
-				mergeMap(_ => api.transactionStatus(txID)),
-				distinctUntilChanged((prev, cur) => prev.status === cur.status),
-				filter(({ txID }) => txID.equals(txID)),
-				tap(({ status }) =>
-					radixLog.info(
-						`Got transaction status ${status.toString()} for txID: ${txID.toString()}`,
+		/*
+				transactionStatus: (
+					txID: TransactionIdentifierT,
+					trigger: Observable<number>,
+				) =>
+					trigger.pipe(
+						mergeMap(_ => api.transactionStatus(txID)),
+						distinctUntilChanged((prev, cur) => prev.status === cur.status),
+						filter(({ txID }) => txID.equals(txID)),
+						tap(({ status }) =>
+							radixLog.info(
+								`Got transaction status ${status.toString()} for txID: ${txID.toString()}`,
+							),
+						),
 					),
-				),
-			),
-*/
+		*/
 		withTokenBalanceFetchTrigger: (trigger: Observable<number>) => {
 			subs.add(trigger.subscribe(tokenBalanceFetchSubject))
 			return methods
@@ -1081,7 +1056,7 @@ const create = () => {
 		accounts,
 
 		// Active AccountAddress/Account APIs
-		//tokenBalances,
+		tokenBalances,
 		//stakingPositions,
 		//unstakingPositions,
 
@@ -1100,9 +1075,9 @@ const create = () => {
 			),
 */
 		//transactionHistory,
-	//	transferTokens,
-	//	stakeTokens,
-	//	unstakeTokens,
+		transferTokens,
+		//	stakeTokens,
+		//	unstakeTokens,
 	}
 
 	return methods

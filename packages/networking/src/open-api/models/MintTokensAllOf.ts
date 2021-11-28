@@ -14,14 +14,14 @@
 
 import { exists, mapValues } from '../runtime';
 import {
+    AccountIdentifier,
+    AccountIdentifierFromJSON,
+    AccountIdentifierFromJSONTyped,
+    AccountIdentifierToJSON,
     TokenAmount,
     TokenAmountFromJSON,
     TokenAmountFromJSONTyped,
     TokenAmountToJSON,
-    ValidatorIdentifier,
-    ValidatorIdentifierFromJSON,
-    ValidatorIdentifierFromJSONTyped,
-    ValidatorIdentifierToJSON,
 } from './';
 
 /**
@@ -32,10 +32,10 @@ import {
 export interface MintTokensAllOf {
     /**
      * 
-     * @type {ValidatorIdentifier}
+     * @type {AccountIdentifier}
      * @memberof MintTokensAllOf
      */
-    to: ValidatorIdentifier;
+    to: AccountIdentifier;
     /**
      * 
      * @type {TokenAmount}
@@ -54,7 +54,7 @@ export function MintTokensAllOfFromJSONTyped(json: any, ignoreDiscriminator: boo
     }
     return {
         
-        'to': ValidatorIdentifierFromJSON(json['to']),
+        'to': AccountIdentifierFromJSON(json['to']),
         'amount': TokenAmountFromJSON(json['amount']),
     };
 }
@@ -68,7 +68,7 @@ export function MintTokensAllOfToJSON(value?: MintTokensAllOf | null): any {
     }
     return {
         
-        'to': ValidatorIdentifierToJSON(value.to),
+        'to': AccountIdentifierToJSON(value.to),
         'amount': TokenAmountToJSON(value.amount),
     };
 }

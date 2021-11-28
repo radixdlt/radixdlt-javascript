@@ -53,7 +53,7 @@ import {
 	TransactionStatusRequest,
 } from '@radixdlt/networking'
 import { AmountT, Network } from '@radixdlt/primitives'
-import { TransactionIdentifierT, Token } from '../../dto'
+import { TransactionIdentifierT, Token, BuiltTransaction,	FinalizedTransaction, PendingTransaction, StatusOfTransaction} from '../../dto'
 
 export namespace Decoded {
 	export type TokenIdentifier = {
@@ -91,7 +91,7 @@ export namespace Decoded {
 		token_properties: TokenProperties
 	}
 
-	export type LedgerState = LedgerStateRaw & { timestamp: Date }
+	export type LedgerState = Omit<LedgerStateRaw, 'timestamp'> & { timestamp: Date }
 
 	export type ValidatorIdentifier = {
 		address: ValidatorAddressT
@@ -107,8 +107,8 @@ export namespace Decoded {
 	}
 
 	export type AccountBalances = {
+		liquid_balances: TokenAmount[]
 		staked_and_unstaking_balance: TokenAmount
-		liquid_balances: TokenAmount
 	}
 
 	export type AccountStakeEntry = {
@@ -356,32 +356,27 @@ export namespace TransactionRulesEndpoint {
 export namespace BuildTransactionEndpoint {
 	export type Input = TransactionBuildRequest
 	export type Response = TransactionBuildResponse
-	export type DecodedResponse =
-		| Decoded.TransactionBuild
-		| Decoded.TransactionBuildError
+	export type DecodedResponse = BuiltTransaction
 }
 
 export namespace FinalizeTransactionEndpoint {
 	export type Input = TransactionFinalizeRequest
 	export type Response = TransactionFinalizeResponse
-	export type DecodedResponse = {
-		signed_transaction: string
-	}
+	export type DecodedResponse = FinalizedTransaction
 }
 
 export namespace SubmitTransactionEndpoint {
 	export type Input = TransactionSubmitRequest
 	export type Response = TransactionSubmitResponse
-	export type DecodedResponse = {
-		transaction_identifier: Decoded.TransactionIdentifier
-	}
+	export type DecodedResponse = PendingTransaction
 }
 
 export namespace TransactionEndpoint {
 	export type Input = TransactionStatusRequest
 	export type Response = TransactionStatusResponse
 	export type DecodedResponse = {
-		ledger_state: Decoded.LedgerState
-		transaction: Decoded.AccountTransaction[]
+		txID: TransactionIdentifierT
+		status: AccountTransactionStatusStatusEnum,
+		fee: AmountT
 	}
 }
