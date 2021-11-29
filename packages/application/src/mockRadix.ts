@@ -602,7 +602,7 @@ export const deterministicRandomTxHistoryWithInput = (
 													anInt(),
 												)._unsafeUnwrap(),
 												validator: detRandomValidatorAddress(),
-											}
+											} as any
 											break
 										case ActionType.UNSTAKE_TOKENS:
 											executedAction = {
@@ -612,7 +612,7 @@ export const deterministicRandomTxHistoryWithInput = (
 													anInt(),
 												)._unsafeUnwrap(),
 												validator: detRandomValidatorAddress(),
-											}
+											} as any
 											break
 										case ActionType.TOKEN_TRANSFER:
 											executedAction = {

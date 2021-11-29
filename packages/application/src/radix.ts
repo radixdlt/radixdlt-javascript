@@ -796,7 +796,7 @@ const create = () => {
 				: undefined,
 		)
 	}
-	/*
+	
 		const stakeTokens = (input: StakeOptions) => {
 			radixLog.debug('stake')
 			return __makeTransactionFromBuilder(
@@ -812,7 +812,7 @@ const create = () => {
 				{ ...input },
 			)
 		}
-	*/
+	
 	const decryptTransaction = (
 		input: SimpleExecutedTransaction,
 	): Observable<string> => {
@@ -963,6 +963,7 @@ const create = () => {
 		connect: async (url: string) => {
 			methods.__withNodeConnection(of({ url: new URL(url) }))
 			const networkId = await firstValueFrom(api.networkId())
+			console.log('NETWORK ID ', networkId)
 			networkSubject.next(networkId)
 		},
 
@@ -1086,8 +1087,8 @@ const create = () => {
 */
 		//transactionHistory,
 		transferTokens,
-		//	stakeTokens,
-		//	unstakeTokens,
+		stakeTokens,
+		unstakeTokens,
 	}
 
 	return methods

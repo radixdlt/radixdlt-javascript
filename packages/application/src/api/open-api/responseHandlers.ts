@@ -29,7 +29,7 @@ import {
 	AccountAddress,
 	AccountAddressT,
 } from '@radixdlt/account'
-import { Amount, AmountT, NetworkName } from '@radixdlt/primitives'
+import { Amount, AmountT, Network } from '@radixdlt/primitives'
 import {
 	ActionType,
 	ExecutedAction,
@@ -62,8 +62,7 @@ const transformMessage = (message?: string) => {
 
 export const handleNetworkResponse = (json: ReturnOfAPICall<'networkPost'>) =>
 	ok({
-		// @ts-ignore
-		network: NetworkName[json.network] as Network,
+		network: json.data.network as Network,
 	}).mapErr(e => [e] as Error[])
 
 export const handleTokenInfoResponse = (
@@ -177,20 +176,21 @@ export const handleAccountTransactionsResponse = (
 			type: ActionType,
 			action: Action,
 		) => {
-			const transferTokenAction = action as StakeTokens
+			const stakeAction = action as StakeTokens
 
 			return combine([
-				...transformTokenAmount(transferTokenAction.amount),
-				ValidatorAddress.fromUnsafe(transferTokenAction.to.address),
-				AccountAddress.fromUnsafe(transferTokenAction.from.address),
+				...transformTokenAmount(stakeAction.amount),
+				ValidatorAddress.fromUnsafe(stakeAction.to.address),
+				AccountAddress.fromUnsafe(stakeAction.from.address)
 			]).map(
 				(
 					actionValue,
 				): StakeAndUnstakeTokensProps & { type: ActionType } => ({
 					type,
 					amount: actionValue[0] as AmountT,
+					rri: actionValue[1] as ResourceIdentifierT,
 					validator: actionValue[2] as ValidatorAddressT,
-					from: actionValue[3] as AccountAddressT,
+					from: actionValue[3] as AccountAddressT
 				}),
 			)
 		}
@@ -222,8 +222,8 @@ export const handleAccountTransactionsResponse = (
 				ok<Date | null, Error>(
 					transaction.transaction_status.confirmed_time
 						? new Date(
-								transaction.transaction_status.confirmed_time,
-						  )
+							transaction.transaction_status.confirmed_time,
+						)
 						: null,
 				),
 				Amount.fromUnsafe(transaction.fee_paid.value),
@@ -488,11 +488,11 @@ json.stakes.map(stake => combine([
 export const handleBuildTransactionResponse = (
 	json: ReturnOfAPICall<'transactionBuildPost'>,
 ): Result<BuildTransactionEndpoint.DecodedResponse, Error[]> =>
-	Amount.fromUnsafe(json.transaction_build.fee.value)
+	Amount.fromUnsafe(json.data.transaction_build.fee.value)
 		.map(amount => ({
 			transaction: {
-				blob: json.transaction_build.unsigned_transaction,
-				hashOfBlobToSign: json.transaction_build.payload_to_sign,
+				blob: json.data.transaction_build.unsigned_transaction,
+				hashOfBlobToSign: json.data.transaction_build.payload_to_sign,
 			},
 			fee: amount,
 		}))
@@ -520,14 +520,14 @@ export const handleTransactionResponse = (
 	json.data.transaction.length === 0
 		? err([Error('Transaction not found.')])
 		: combine([
-				TransactionIdentifier.create(
-					json.data.transaction[0].transaction_identifier.hash,
-				),
-				Amount.fromUnsafe(json.data.transaction[0].fee_paid.value),
-		  ])
-				.map(values => ({
-					txID: values[0] as TransactionIdentifierT,
-					status: json.data.transaction[0].transaction_status.status,
-					fee: values[1] as AmountT,
-				}))
-				.mapErr(e => [e])
+			TransactionIdentifier.create(
+				json.data.transaction[0].transaction_identifier.hash,
+			),
+			Amount.fromUnsafe(json.data.transaction[0].fee_paid.value),
+		])
+			.map(values => ({
+				txID: values[0] as TransactionIdentifierT,
+				status: json.data.transaction[0].transaction_status.status,
+				fee: values[1] as AmountT,
+			}))
+			.mapErr(e => [e])

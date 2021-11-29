@@ -23,21 +23,21 @@ const encoding = Encoding.BECH32
 const hrpFromNetwork = (network: Network) => HRP[network].validator
 
 const networkFromHRP: NetworkFromHRP = hrp =>
-	hrp === HRP.MAINNET.validator
+	hrp === HRP.mainnet.validator
 		? ok(Network.MAINNET)
-		: hrp === HRP.STOKENET.validator
+		: hrp === HRP.stokenet.validator
 		? ok(Network.STOKENET)
-		: hrp === HRP.LOCALHOST.validator
-		? ok(Network.LOCALHOST)
-		: hrp === HRP.TESTNET3.validator
+		: hrp === HRP.localnet.validator
+		? ok(Network.LOCALNET)
+		: hrp === HRP.testnet3.validator
 		? ok(Network.TESTNET3)
-		: hrp === HRP.TESTNET4.validator
+		: hrp === HRP.testnet4.validator
 		? ok(Network.TESTNET4)
-		: hrp === HRP.TESTNET5.validator
+		: hrp === HRP.testnet5.validator
 		? ok(Network.TESTNET5)
-		: hrp === HRP.TESTNET6.validator
+		: hrp === HRP.testnet6.validator
 		? ok(Network.TESTNET6)
-		: hrp === HRP.TESTNET7.validator
+		: hrp === HRP.testnet7.validator
 		? ok(Network.TESTNET7)
 		: err(
 				Error(

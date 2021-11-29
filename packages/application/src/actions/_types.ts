@@ -35,6 +35,7 @@ export type TransferTokensInput = Readonly<{
 export type StakeAndUnstakeTokensInput = Readonly<{
 	validator: ValidatorAddressOrUnsafeInput
 	amount: AmountOrUnsafeInput
+	tokenIdentifier: ResourceIdentifierOrUnsafeInput
 }>
 
 export type StakeTokensInput = StakeAndUnstakeTokensInput
@@ -64,6 +65,7 @@ export type StakeAndUnstakeTokensProps = Readonly<{
 	from: AccountAddressT
 	validator: ValidatorAddressT
 	amount: AmountT
+	rri: ResourceIdentifierT
 }>
 
 export type StakeTokensProps = StakeAndUnstakeTokensProps

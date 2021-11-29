@@ -14,21 +14,21 @@ const versionByteNonNativeToken = 0x03
 const hrpSuffixFromNetwork = (network: Network) => HRP[network].RRI_suffix
 
 const networkFromHRPSuffix = (hrp: string): Result<Network, Error> =>
-	hrp === HRP.MAINNET.RRI_suffix
+	hrp === HRP.mainnet.RRI_suffix
 		? ok(Network.MAINNET)
-		: hrp === HRP.STOKENET.RRI_suffix
+		: hrp === HRP.stokenet.RRI_suffix
 		? ok(Network.STOKENET)
-		: hrp === HRP.LOCALHOST.RRI_suffix
-		? ok(Network.LOCALHOST)
-		: hrp === HRP.TESTNET3.RRI_suffix
+		: hrp === HRP.localnet.RRI_suffix
+		? ok(Network.LOCALNET)
+		: hrp === HRP.testnet3.RRI_suffix
 		? ok(Network.TESTNET3)
-		: hrp === HRP.TESTNET4.RRI_suffix
+		: hrp === HRP.testnet4.RRI_suffix
 		? ok(Network.TESTNET4)
-		: hrp === HRP.TESTNET5.RRI_suffix
+		: hrp === HRP.testnet5.RRI_suffix
 		? ok(Network.TESTNET5)
-		: hrp === HRP.TESTNET6.RRI_suffix
+		: hrp === HRP.testnet6.RRI_suffix
 		? ok(Network.TESTNET6)
-		: hrp === HRP.TESTNET7.RRI_suffix
+		: hrp === HRP.testnet7.RRI_suffix
 		? ok(Network.TESTNET7)
 		: err(
 				new Error(

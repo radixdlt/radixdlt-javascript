@@ -27,21 +27,21 @@ const encoding = Encoding.BECH32
 const hrpFromNetwork = (network: Network) => HRP[network].account
 
 const networkFromHRP: NetworkFromHRP = hrp =>
-	hrp === HRP.MAINNET.account
+	hrp === HRP.mainnet.account
 		? ok(Network.MAINNET)
-		: hrp === HRP.STOKENET.account
+		: hrp === HRP.stokenet.account
 		? ok(Network.STOKENET)
-		: hrp === HRP.LOCALHOST.account
-		? ok(Network.LOCALHOST)
-		: hrp === HRP.TESTNET3.account
+		: hrp === HRP.localnet.account
+		? ok(Network.LOCALNET)
+		: hrp === HRP.testnet3.account
 		? ok(Network.TESTNET3)
-		: hrp === HRP.TESTNET4.account
+		: hrp === HRP.testnet4.account
 		? ok(Network.TESTNET4)
-		: hrp === HRP.TESTNET5.account
+		: hrp === HRP.testnet5.account
 		? ok(Network.TESTNET5)
-		: hrp === HRP.TESTNET6.account
+		: hrp === HRP.testnet6.account
 		? ok(Network.TESTNET6)
-		: hrp === HRP.TESTNET7.account
+		: hrp === HRP.testnet7.account
 		? ok(Network.TESTNET7)
 		: err(
 				Error(

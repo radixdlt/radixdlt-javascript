@@ -16,7 +16,6 @@ import {
 	AccountTransactionStatusStatusEnum,
 	ValidatorsResponse,
 	ValidatorUptime,
-	ValidatorInfoResponse,
 	TransactionRulesResponse,
 	TransactionBuildResponse,
 	TransactionFinalizeResponse,
@@ -36,6 +35,7 @@ import {
 	TransactionFinalizeRequest,
 	TransactionSubmitRequest,
 	TransactionStatusRequest,
+	ValidatorInfoResponse,
 } from '@radixdlt/networking'
 import { AmountT, Network } from '@radixdlt/primitives'
 import {
@@ -140,41 +140,48 @@ export namespace Decoded {
 		properties: ValidatorProperties
 	}
 
-	export type TransferTokensAction = {
-		type: 'TransferTokens'
+	export enum ActionType {
+		Transfer = 'TransferTokens',
+		Stake = 'StakeTokens',
+		Unstake = 'UnstakeTokens',
+		Mint = 'MintTokens',
+		Burn = 'BurnTokens',
+		CreateTokenDefinition = 'CreateTokenDefinition'
+	}
+
+	type BaseAction<T extends ActionType> = {
+		type: T
+	}
+
+	export type TransferTokensAction = BaseAction<ActionType.Transfer> & {
 		from: AccountIdentifier
 		to: AccountIdentifier
 		amount: TokenAmount
 	}
 
-	export type StakeTokensAction = {
-		type: 'StakeTokens'
+	export type StakeTokensAction = BaseAction<ActionType.Stake> & {
 		from?: AccountIdentifier
 		to?: AccountIdentifier
 		amount?: TokenAmount
 	}
 
-	export type UnstakeTokensAction = {
-		type: 'UnstakeTokens'
+	export type UnstakeTokensAction = BaseAction<ActionType.Unstake> & {
 		from: ValidatorIdentifier
 		to: AccountIdentifier
 		amount: TokenAmount
 	}
 
-	export type MintTokensAction = {
-		type: 'MintTokens'
+	export type MintTokensAction = BaseAction<ActionType.Mint> & {
 		to: ValidatorIdentifier
 		amount: TokenAmount
 	}
 
-	export type BurnTokensAction = {
-		type: 'BurnTokens'
+	export type BurnTokensAction = BaseAction<ActionType.Burn> & {
 		from: ValidatorIdentifier
 		amount: TokenAmount
 	}
 
-	export type CreateTokenDefinitionAction = {
-		type: 'CreateTokenDefinition'
+	export type CreateTokenDefinitionAction = BaseAction<ActionType.CreateTokenDefinition> & {
 		token_properties: TokenProperties
 		token_supply: TokenAmount
 		to?: AccountIdentifier

@@ -713,6 +713,12 @@ export interface NetworkResponse {
      * @memberof NetworkResponse
      */
     'ledger_state': LedgerState;
+    /**
+     * 
+     * @type {TargetLedgerState}
+     * @memberof NetworkResponse
+     */
+    'target_ledger_state'?: TargetLedgerState;
 }
 /**
  * 
@@ -839,6 +845,19 @@ export interface StakeTokensAllOf {
      * @memberof StakeTokensAllOf
      */
     'amount': TokenAmount;
+}
+/**
+ * 
+ * @export
+ * @interface TargetLedgerState
+ */
+export interface TargetLedgerState {
+    /**
+     * 
+     * @type {number}
+     * @memberof TargetLedgerState
+     */
+    'version': number;
 }
 /**
  * 
@@ -1267,7 +1286,7 @@ export interface TransactionFinalizeRequestSignature {
      * @type {string}
      * @memberof TransactionFinalizeRequestSignature
      */
-    'publicKey'?: string;
+    'public_key': string;
     /**
      * 
      * @type {string}

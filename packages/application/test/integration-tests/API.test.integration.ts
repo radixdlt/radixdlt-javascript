@@ -35,7 +35,7 @@ import { AccountBalancesEndpoint, Decoded } from '../../src/api/open-api/_types'
 
 const fetch = require('node-fetch')
 
-const network = Network.LOCALHOST
+const network = Network.LOCALNET
 
 // local
 const NODE_URL = 'http://localhost:8080'
@@ -97,7 +97,7 @@ describe('integration API tests', () => {
 		subs.unsubscribe()
 	})
 
-	it.only('can connect and is chainable', async () => {
+	it('can connect and is chainable', async () => {
 		const radix = Radix.create()
 		await radix.connect(`${NODE_URL}`)
 
@@ -223,7 +223,7 @@ describe('integration API tests', () => {
 	})
 */
 	// 🟢
-	it.skip('should compare token balance before and after transfer', async done => {
+	it.only('should compare token balance before and after transfer', async done => {
 		const getTokenBalanceSubject = new Subject<number>()
 
 		radix.withTokenBalanceFetchTrigger(getTokenBalanceSubject)

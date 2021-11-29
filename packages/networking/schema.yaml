@@ -845,7 +845,7 @@ components:
             - public_key
             - bytes
           properties:
-            publicKey:
+            public_key:
               type: string
             bytes:
               type: string
