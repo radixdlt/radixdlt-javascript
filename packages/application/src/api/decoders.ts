@@ -106,6 +106,13 @@ const validatorAddressPattern =
 const accountAddressPattern =
 	/^(r|t|d)dx[0-9]?1[023456789ACDEFGHJKLMNPQRSTUVWXYZacdefghjklmnpqrstuvwxyz]{6,69}$/
 
+export const addressFromUnsafe = (address: string) =>
+	validatorAddressPattern.test(address)
+		? ValidatorAddress.fromUnsafe(address)
+		: accountAddressPattern.test(address)
+		? AccountAddress.fromUnsafe(address)
+		: undefined
+
 export const addressRegexDecoder = (...keys: string[]) =>
 	// @ts-ignore
 	decoder((value, key) => {
@@ -116,9 +123,5 @@ export const addressRegexDecoder = (...keys: string[]) =>
 			return undefined
 		}
 
-		return validatorAddressPattern.test(value)
-			? ValidatorAddress.fromUnsafe(value)
-			: accountAddressPattern.test(value)
-			? AccountAddress.fromUnsafe(value)
-			: undefined
+		return addressFromUnsafe(value)
 	})

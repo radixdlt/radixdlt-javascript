@@ -29,13 +29,21 @@ import {
 	TransactionEndpoint,
 	Decoded,
 } from './_types'
-import { Action, ReturnOfAPICall, TransferTokens } from '@radixdlt/networking'
+import {
+	Action,
+	ReturnOfAPICall,
+	StakeTokens,
+	TokenAmount,
+	TransferTokens,
+} from '@radixdlt/networking'
 import { err, Result } from 'neverthrow'
 import {
 	ResourceIdentifier,
 	ResourceIdentifierT,
 	ValidatorAddress,
 	ValidatorAddressT,
+	AccountAddress,
+	AccountAddressT,
 } from '@radixdlt/account'
 import {
 	Amount,
@@ -43,7 +51,17 @@ import {
 	AmountT,
 	NetworkName,
 } from '../../../../primitives'
-import { Token, TransactionIdentifier, TransactionIdentifierT } from '../..'
+import {
+	ActionType,
+	ExecutedAction,
+	ExecutedTransferTokensAction,
+	SimpleExecutedTransaction,
+	SimpleTransactionHistory,
+	StakeAndUnstakeTokensProps,
+	Token,
+	TransactionIdentifier,
+	TransactionIdentifierT,
+} from '../..'
 import { ok, combine } from 'neverthrow'
 
 const tokenDecoders = [
@@ -58,6 +76,11 @@ const validatorDecoders = [
 	RRIDecoder('rri'),
 	amountDecoder('value'),
 	URLDecoder('url'),
+]
+
+const transformTokenAmount = (amount: TokenAmount) => [
+	Amount.fromUnsafe(amount.value),
+	ResourceIdentifier.fromUnsafe(amount.tokenIdentifier.rri),
 ]
 
 export const handleNetworkResponse = (json: ReturnOfAPICall<'networkPost'>) =>
@@ -93,8 +116,8 @@ export const handleTokenInfoResponse = (
 
 export const handleNativeTokenResponse = (
 	json: ReturnOfAPICall<'tokenNativePost'>,
-): Result<NativeTokenInfoEndpoint.DecodedResponse, Error[]> => {
-	return combine([
+): Result<NativeTokenInfoEndpoint.DecodedResponse, Error[]> =>
+	combine([
 		ResourceIdentifier.fromUnsafe(json.token.tokenIdentifier.rri),
 		Amount.fromUnsafe(json.token.tokenProperties.granularity),
 		Amount.fromUnsafe(json.token.tokenSupply.value),
@@ -115,7 +138,6 @@ export const handleNativeTokenResponse = (
 				: undefined,
 		}))
 		.mapErr(e => [e])
-}
 
 export const handleStakePositionsResponse = (
 	json: ReturnOfAPICall<'accountStakesPost'>,
@@ -153,8 +175,67 @@ export const handleUnstakePositionsResponse = (
 
 export const handleAccountTransactionsResponse = (
 	json: ReturnOfAPICall<'accountTransactionsPost'>,
-) =>
-	combine(
+) => {
+	const transformAction = (action: Action) => {
+		const transformTransferTokenAction = (action: Action) => {
+			const transferTokenAction = action as TransferTokens
+
+			return combine([
+				...transformTokenAmount(transferTokenAction.amount),
+				AccountAddress.fromUnsafe(transferTokenAction.to.address),
+				AccountAddress.fromUnsafe(transferTokenAction.from.address),
+			]).map(
+				(actionValue): ExecutedTransferTokensAction => ({
+					type: ActionType.TOKEN_TRANSFER,
+					amount: actionValue[0] as AmountT,
+					rri: actionValue[1] as ResourceIdentifierT,
+					to: actionValue[2] as AccountAddressT,
+					from: actionValue[3] as AccountAddressT,
+				}),
+			)
+		}
+
+		const transformStakeAndUnstakeTokenAction = (
+			type: ActionType,
+			action: Action,
+		) => {
+			const transferTokenAction = action as StakeTokens
+
+			return combine([
+				...transformTokenAmount(transferTokenAction.amount),
+				ValidatorAddress.fromUnsafe(transferTokenAction.to.address),
+				AccountAddress.fromUnsafe(transferTokenAction.from.address),
+			]).map(
+				(
+					actionValue,
+				): StakeAndUnstakeTokensProps & { type: ActionType } => ({
+					type,
+					amount: actionValue[0] as AmountT,
+					validator: actionValue[2] as ValidatorAddressT,
+					from: actionValue[3] as AccountAddressT,
+				}),
+			)
+		}
+
+		switch (action.type) {
+			case 'TransferTokens':
+				return transformTransferTokenAction(action)
+			case 'StakeTokens':
+				return transformStakeAndUnstakeTokenAction(
+					ActionType.STAKE_TOKENS,
+					action,
+				)
+			case 'UnstakeTokens':
+				return transformStakeAndUnstakeTokenAction(
+					ActionType.UNSTAKE_TOKENS,
+					action,
+				)
+
+			default:
+				return ok({ ...action, type: ActionType.OTHER })
+		}
+	}
+	return combine(
 		json.transactions.map(transaction =>
 			combine([
 				TransactionIdentifier.create(
@@ -167,19 +248,26 @@ export const handleAccountTransactionsResponse = (
 				),
 				Amount.fromUnsafe(transaction.feePaid.value),
 				ok<string | null, Error>(transaction.metadata.message ?? null),
-				...transaction.actions.map(action =>
-					combine([]).map(actionValue => ({})),
-				),
-			]).map(value => ({
-				txID: value[0] as TransactionIdentifierT,
-				sentAt: value[1] as Date,
-				fee: value[2] as AmountT,
-				message: value[3] as string,
-			})),
+				...transaction.actions.map(transformAction),
+			]).map(
+				(value): SimpleExecutedTransaction => ({
+					txID: value[0] as TransactionIdentifierT,
+					sentAt: value[1] as Date,
+					fee: value[2] as AmountT,
+					message: value[3] as string,
+					actions: value[4] as unknown as ExecutedAction[],
+				}),
+			),
 		),
 	)
-		.map(transactions => ({ cursor: json.nextCursor, transactions }))
-		.mapErr(e => [e])
+		.map(
+			(transactions): SimpleTransactionHistory => ({
+				cursor: json.nextCursor as string,
+				transactions,
+			}),
+		)
+		.mapErr(e => [e as Error])
+}
 
 // export const handleAccountTransactionsResponse = (
 // 	json: ReturnOfAPICall<'accountTransactionsPost'>,
@@ -220,42 +308,49 @@ export const handleDeriveTokenIdentifierResponse = (
 export const handleAccountBalancesResponse = (
 	json: ReturnOfAPICall<'accountBalancesPost'>,
 ): Result<AccountBalancesEndpoint.DecodedResponse, Error[]> => {
-	const liquidBalancesResults = combine(json.accountBalances.liquidBalances.map(balance => combine([
-		Amount.fromUnsafe(balance.value),
-		ResourceIdentifier.fromUnsafe(balance.tokenIdentifier.rri)
-	]).map(values => ({
-		value: values[0] as AmountT,
-		token_identifier: {
-			rri: values[1] as ResourceIdentifierT
-		}
-	}))))
+	const liquidBalancesResults = combine(
+		json.accountBalances.liquidBalances.map(balance =>
+			combine([
+				Amount.fromUnsafe(balance.value),
+				ResourceIdentifier.fromUnsafe(balance.tokenIdentifier.rri),
+			]).map(values => ({
+				value: values[0] as AmountT,
+				token_identifier: {
+					rri: values[1] as ResourceIdentifierT,
+				},
+			})),
+		),
+	)
 
 	const stakingAndUnstakingBalancesResult = combine([
-		ResourceIdentifier.fromUnsafe(json.accountBalances.stakedAndUnstakingBalance.tokenIdentifier.rri),
-		Amount.fromUnsafe(json.accountBalances.stakedAndUnstakingBalance.value)
+		ResourceIdentifier.fromUnsafe(
+			json.accountBalances.stakedAndUnstakingBalance.tokenIdentifier.rri,
+		),
+		Amount.fromUnsafe(json.accountBalances.stakedAndUnstakingBalance.value),
 	])
 
 	return combine([
 		liquidBalancesResults.map(balances => ({ balances })),
-		stakingAndUnstakingBalancesResult
-	]).map(values => ({
-		ledger_state: {
-			...json.ledgerState,
-			timestamp: new Date(json.ledgerState.timestamp)
-		},
-		account_balances: {
-			// @ts-ignore
-			liquid_balances: values[0].balances as Decoded.TokenAmount[],
-			staked_and_unstaking_balance: {
-				token_identifier: {
-					rri: values[1] as unknown as ResourceIdentifierT,
+		stakingAndUnstakingBalancesResult,
+	])
+		.map(values => ({
+			ledger_state: {
+				...json.ledgerState,
+				timestamp: new Date(json.ledgerState.timestamp),
+			},
+			account_balances: {
+				// @ts-ignore
+				liquid_balances: values[0].balances as Decoded.TokenAmount[],
+				staked_and_unstaking_balance: {
+					token_identifier: {
+						rri: values[1] as unknown as ResourceIdentifierT,
+					},
+					value: values[2] as unknown as AmountT,
 				},
-				value: values[2] as unknown as AmountT
-			}
-		}
-	})).mapErr(e => [e])
+			},
+		}))
+		.mapErr(e => [e])
 }
-
 
 /*
 
@@ -362,39 +457,49 @@ json.stakes.map(stake => combine([
 				]),
 			)
 */
-	export const handleBuildTransactionResponse = (
-		json: ReturnOfAPICall<'transactionBuildPost'>,
-	): Result<BuildTransactionEndpoint.DecodedResponse, Error[]> => Amount.fromUnsafe(json.transactionBuild.fee.value).map(amount => ({
-		transaction: {
-			blob: json.transactionBuild.unsignedTransaction,
-			hashOfBlobToSign: json.transactionBuild.payloadToSign
-		},
-		fee: amount
-	})).mapErr(e => [e])
-	
+export const handleBuildTransactionResponse = (
+	json: ReturnOfAPICall<'transactionBuildPost'>,
+): Result<BuildTransactionEndpoint.DecodedResponse, Error[]> =>
+	Amount.fromUnsafe(json.transactionBuild.fee.value)
+		.map(amount => ({
+			transaction: {
+				blob: json.transactionBuild.unsignedTransaction,
+				hashOfBlobToSign: json.transactionBuild.payloadToSign,
+			},
+			fee: amount,
+		}))
+		.mapErr(e => [e])
 
-	export const handleFinalizeTransactionResponse = (
-		json: ReturnOfAPICall<'transactionFinalizePost'>,
-	): Result<FinalizeTransactionEndpoint.DecodedResponse, Error[]> => ok({
-		blob: json.signedTransaction
+export const handleFinalizeTransactionResponse = (
+	json: ReturnOfAPICall<'transactionFinalizePost'>,
+): Result<FinalizeTransactionEndpoint.DecodedResponse, Error[]> =>
+	ok({
+		blob: json.signedTransaction,
 	}).mapErr(e => [e] as Error[])
 
-	export const handleSubmitTransactionResponse = (
-		json: ReturnOfAPICall<'transactionSubmitPost'>,
-	) => TransactionIdentifier.create(json.transactionIdentifier.hash).map(txID => ({
-		txID
-	})).mapErr(e => [e])
+export const handleSubmitTransactionResponse = (
+	json: ReturnOfAPICall<'transactionSubmitPost'>,
+) =>
+	TransactionIdentifier.create(json.transactionIdentifier.hash)
+		.map(txID => ({
+			txID,
+		}))
+		.mapErr(e => [e])
 
-		
-	export const handleTransactionResponse = (
-		json: ReturnOfAPICall<'transactionStatusPost'>,
-	): Result<TransactionEndpoint.DecodedResponse, Error[]> => json.transaction.length === 0
+export const handleTransactionResponse = (
+	json: ReturnOfAPICall<'transactionStatusPost'>,
+): Result<TransactionEndpoint.DecodedResponse, Error[]> =>
+	json.transaction.length === 0
 		? err([Error('Transaction not found.')])
 		: combine([
-			TransactionIdentifier.create(json.transaction[0].transactionIdentifier.hash),
-			Amount.fromUnsafe(json.transaction[0].feePaid.value)
-		]).map(values => ({
-			txID: values[0] as TransactionIdentifierT,
-			status: json.transaction[0].transactionStatus.status,
-			fee: values[1] as AmountT
-		})).mapErr(e => [e])
+				TransactionIdentifier.create(
+					json.transaction[0].transactionIdentifier.hash,
+				),
+				Amount.fromUnsafe(json.transaction[0].feePaid.value),
+		  ])
+				.map(values => ({
+					txID: values[0] as TransactionIdentifierT,
+					status: json.transaction[0].transactionStatus.status,
+					fee: values[1] as AmountT,
+				}))
+				.mapErr(e => [e])
