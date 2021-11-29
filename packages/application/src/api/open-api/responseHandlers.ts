@@ -1,30 +1,15 @@
-import { JSONDecoding } from '@radixdlt/data-formats'
 import {
 	addressDecoder,
 	amountDecoder,
-	networkDecoder,
 	RRIDecoder,
-	transactionIdentifierDecoder,
 	URLDecoder,
-	validatorAddressDecoder,
 	addressRegexDecoder,
-	dateDecoder,
 } from '../decoders'
-import { hasRequiredProps } from '../utils'
 import {
-	NetworkEndpoint,
 	TokenInfoEndpoint,
 	NativeTokenInfoEndpoint,
-	DeriveTokenIdentifierEndpoint,
 	AccountBalancesEndpoint,
-	StakePositionsEndpoint,
-	UnstakePositionsEndpoint,
-	AccountTransactionsEndpoint,
-	ValidatorEndpoint,
-	ValidatorsEndpoint,
-	TransactionRulesEndpoint,
 	BuildTransactionEndpoint,
-	SubmitTransactionEndpoint,
 	FinalizeTransactionEndpoint,
 	TransactionEndpoint,
 	Decoded,
@@ -35,6 +20,7 @@ import {
 	StakeTokens,
 	TokenAmount,
 	TransferTokens,
+	Validator,
 } from '@radixdlt/networking'
 import { err, Result } from 'neverthrow'
 import {
@@ -45,12 +31,7 @@ import {
 	AccountAddress,
 	AccountAddressT,
 } from '@radixdlt/account'
-import {
-	Amount,
-	AmountOrUnsafeInput,
-	AmountT,
-	NetworkName,
-} from '../../../../primitives'
+import { Amount, AmountT, NetworkName } from '../../../../primitives'
 import {
 	ActionType,
 	ExecutedAction,
@@ -58,25 +39,10 @@ import {
 	SimpleExecutedTransaction,
 	SimpleTransactionHistory,
 	StakeAndUnstakeTokensProps,
-	Token,
 	TransactionIdentifier,
 	TransactionIdentifierT,
 } from '../..'
 import { ok, combine } from 'neverthrow'
-
-const tokenDecoders = [
-	RRIDecoder('rri'),
-	amountDecoder('value', 'granularity'),
-	URLDecoder('icon_url', 'url'),
-	addressDecoder('address'),
-]
-
-const validatorDecoders = [
-	addressRegexDecoder('address'),
-	RRIDecoder('rri'),
-	amountDecoder('value'),
-	URLDecoder('url'),
-]
 
 const transformTokenAmount = (amount: TokenAmount) => [
 	Amount.fromUnsafe(amount.value),
@@ -305,6 +271,28 @@ export const handleDeriveTokenIdentifierResponse = (
 		)
 */
 
+const transformValidator = (validator: Validator) =>
+	combine([
+		ValidatorAddress.fromUnsafe(validator.validatorIdentifier.address),
+		AccountAddress.fromUnsafe(
+			validator.properties.ownerAccountIdentifier.address,
+		),
+		Amount.fromUnsafe(validator.stake.value),
+		Amount.fromUnsafe(validator.info.ownerStake.value),
+	]).map(values => ({
+		address: values[0],
+		ownerAddress: values[1],
+		url: new URL(validator.properties.url),
+		totalDelegatedStake: values[2],
+		ownerDelegation: values[3],
+		validatorFee: validator.properties.validatorFee,
+		registered: validator.properties.registered,
+		isExternalStakeAccepted: validator.properties.externalStakeAccepted,
+		uptimePercentage: validator.info.uptime.uptimePercentage,
+		proposalsMissed: validator.info.uptime.proposalsMissed,
+		proposalsCompleted: validator.info.uptime.proposalsCompleted,
+	}))
+
 export const handleAccountBalancesResponse = (
 	json: ReturnOfAPICall<'accountBalancesPost'>,
 ): Result<AccountBalancesEndpoint.DecodedResponse, Error[]> => {
@@ -351,6 +339,17 @@ export const handleAccountBalancesResponse = (
 		}))
 		.mapErr(e => [e])
 }
+
+export const handleValidatorResponse = (
+	json: ReturnOfAPICall<'validatorPost'>,
+) => transformValidator(json.validator).mapErr(e => [e])
+
+export const handleValidatorsResponse = (
+	json: ReturnOfAPICall<'validatorsPost'>,
+) =>
+	combine(json.validators.map(transformValidator))
+		.map(validators => ({ validators }))
+		.mapErr(e => [e])
 
 /*
 

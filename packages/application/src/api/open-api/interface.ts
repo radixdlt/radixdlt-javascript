@@ -16,6 +16,8 @@ import {
 	handleSubmitTransactionResponse,
 	handleTransactionResponse,
 	handleAccountTransactionsResponse,
+	handleValidatorResponse,
+	handleValidatorsResponse,
 } from './responseHandlers'
 import { pipe } from 'ramda'
 import { Result, ResultAsync } from 'neverthrow'
@@ -55,20 +57,12 @@ export const getAPI = pipe(
 		accountBalances: callAPI('accountBalancesPost')(
 			handleAccountBalancesResponse,
 		),
-		/*
-		stakePositions: callAPI('accountStakesPost')(
-			handleStakePositionsResponse,
-		),
-		unstakePositions: callAPI('accountUnstakesPost')(
-			handleUnstakePositionsResponse,
-		),
-		*/
 		accountTransactions: callAPI('accountTransactionsPost')(
 			handleAccountTransactionsResponse,
 		),
-		/*
 		validator: callAPI('validatorPost')(handleValidatorResponse),
 		validators: callAPI('validatorsPost')(handleValidatorsResponse),
+		/*
 		transactionRules: callAPI('transactionRulesPost')(
 			handleTransactionRulesResponse,
 		),
