@@ -53,7 +53,19 @@ import {
 	TransactionStatusRequest,
 } from '@radixdlt/networking'
 import { AmountT, Network } from '@radixdlt/primitives'
-import { TransactionIdentifierT, Token, BuiltTransaction,	FinalizedTransaction, PendingTransaction, StatusOfTransaction} from '../../dto'
+import {
+	TransactionIdentifierT,
+	Token,
+	BuiltTransaction,
+	FinalizedTransaction,
+	PendingTransaction,
+	StatusOfTransaction,
+	Validator,
+	StakePositions,
+	UnstakePositions,
+	UnstakePosition,
+	SimpleTransactionHistory,
+} from '../../dto'
 
 export namespace Decoded {
 	export type TokenIdentifier = {
@@ -91,7 +103,9 @@ export namespace Decoded {
 		token_properties: TokenProperties
 	}
 
-	export type LedgerState = Omit<LedgerStateRaw, 'timestamp'> & { timestamp: Date }
+	export type LedgerState = Omit<LedgerStateRaw, 'timestamp'> & {
+		timestamp: Date
+	}
 
 	export type ValidatorIdentifier = {
 		address: ValidatorAddressT
@@ -301,48 +315,31 @@ export namespace AccountBalancesEndpoint {
 export namespace StakePositionsEndpoint {
 	export type Input = AccountStakesRequest
 	export type Response = AccountStakesResponse
-	export type DecodedResponse = {
-		ledger_state: Decoded.LedgerState
-		stakes: Decoded.AccountStakeEntry[]
-	}
+	export type DecodedResponse = StakePositions
 }
 
 export namespace UnstakePositionsEndpoint {
 	export type Input = AccountUnstakesRequest
 	export type Response = AccountUnstakesResponse
-	export type DecodedResponse = {
-		ledger_state: Decoded.LedgerState
-		unstakes: Decoded.AccountUnstakeEntry[]
-	}
+	export type DecodedResponse = Omit<UnstakePosition, 'withdrawTxID'>[]
 }
 
 export namespace AccountTransactionsEndpoint {
 	export type Input = AccountTransactionsRequest
 	export type Response = AccountTransactionsResponse
-	export type DecodedResponse = {
-		ledger_state: Decoded.LedgerState
-		total_count: number
-		next_cursor: string
-		transactions: Decoded.AccountTransaction[]
-	}
+	export type DecodedResponse = SimpleTransactionHistory
 }
 
 export namespace ValidatorEndpoint {
 	export type Input = ValidatorInfoRequest
 	export type Response = ValidatorInfoResponse
-	export type DecodedResponse = {
-		ledger_state: Decoded.LedgerState
-		validator: Decoded.Validator
-	}
+	export type DecodedResponse = Validator
 }
 
 export namespace ValidatorsEndpoint {
 	export type Input = ValidatorsRequest
 	export type Response = ValidatorsResponse
-	export type DecodedResponse = {
-		ledger_state: Decoded.LedgerState
-		validators: Decoded.Validator[]
-	}
+	export type DecodedResponse = { validators: Validator[] }
 }
 
 export namespace TransactionRulesEndpoint {
@@ -376,7 +373,7 @@ export namespace TransactionEndpoint {
 	export type Response = TransactionStatusResponse
 	export type DecodedResponse = {
 		txID: TransactionIdentifierT
-		status: AccountTransactionStatusStatusEnum,
+		status: AccountTransactionStatusStatusEnum
 		fee: AmountT
 	}
 }
