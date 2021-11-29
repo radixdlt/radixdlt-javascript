@@ -12,5 +12,5 @@ fi
 
 npx @openapitools/openapi-generator-cli generate \
   -i $SCHEMA_PATH \
-  -g typescript-fetch \
+  -g typescript-node \
   -o src/open-api
