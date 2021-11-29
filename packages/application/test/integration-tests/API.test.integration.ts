@@ -76,22 +76,17 @@ describe('integration API tests', () => {
 		await radix
 			.__withWallet(makeWalletWithFunds(network))
 			.connect(`${NODE_URL}`)
-
 		accounts = (
 			await firstValueFrom(radix.restoreLocalHDAccountsToIndex(2))
 		).all
-
 		balances = await firstValueFrom(radix.tokenBalances)
-
 		const maybeTokenBalance =
 			balances.account_balances.liquid_balances.find(
 				a => a.token_identifier.rri.name.toLowerCase() === 'xrd',
 			)
-
 		if (!maybeTokenBalance) {
 			throw Error('no XRD found')
 		}
-
 		nativeTokenBalance = maybeTokenBalance
 	})
 
@@ -102,9 +97,10 @@ describe('integration API tests', () => {
 		subs.unsubscribe()
 	})
 
-	it('can connect and is chainable', async () => {
+	it.only('can connect and is chainable', async () => {
 		const radix = Radix.create()
 		await radix.connect(`${NODE_URL}`)
+
 		expect(radix).toBeDefined()
 		expect(radix.ledger.nativeToken).toBeDefined()
 		expect(radix.ledger.tokenBalancesForAddress).toBeDefined() // etc

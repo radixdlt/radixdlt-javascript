@@ -84,12 +84,7 @@ const call =
 			() =>
 				ResultAsync.fromPromise(
 					// @ts-ignore
-					client[method](params, {
-						headers: {
-							[headers[0]]: method,
-							[headers[1]]: correlationID,
-						},
-					}).catch(e => {
+					client[method](params).catch(e => {
 						console.error(e)
 						throw JSON.stringify(e)
 					}),
