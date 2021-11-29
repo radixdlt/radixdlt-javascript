@@ -12,5 +12,5 @@ fi
 
 npx @openapitools/openapi-generator-cli generate \
   -i $SCHEMA_PATH \
-  -g typescript-node \
+  -g typescript-axios \
   -o src/open-api
