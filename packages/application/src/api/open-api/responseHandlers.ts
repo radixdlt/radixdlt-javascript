@@ -282,6 +282,14 @@ export const handleDeriveTokenIdentifierResponse = (
 		)
 */
 
+const transformUrl = (url: string) => {
+	try {
+		return new URL(url)
+	} catch (error) {
+		return undefined
+	}
+}
+
 const transformValidator = (validator: ValidatorRaw) =>
 	combine([
 		ValidatorAddress.fromUnsafe(validator.validatorIdentifier.address),
@@ -290,22 +298,20 @@ const transformValidator = (validator: ValidatorRaw) =>
 		),
 		Amount.fromUnsafe(validator.stake.value),
 		Amount.fromUnsafe(validator.info.ownerStake.value),
-	]).map(
-		(values): Validator => ({
-			address: values[0] as ValidatorAddressT,
-			ownerAddress: values[1] as AccountAddressT,
-			name: validator.properties.name,
-			infoURL: new URL(validator.properties.url),
-			totalDelegatedStake: values[2] as AmountT,
-			ownerDelegation: values[3] as AmountT,
-			validatorFee: validator.properties.validatorFee,
-			registered: validator.properties.registered,
-			isExternalStakeAccepted: validator.properties.externalStakeAccepted,
-			uptimePercentage: validator.info.uptime.uptimePercentage,
-			proposalsMissed: validator.info.uptime.proposalsMissed,
-			proposalsCompleted: validator.info.uptime.proposalsCompleted,
-		}),
-	)
+	]).map((values): Omit<Validator, 'infoURL'> & { infoURL?: URL } => ({
+		address: values[0] as ValidatorAddressT,
+		ownerAddress: values[1] as AccountAddressT,
+		name: validator.properties.name,
+		infoURL: transformUrl(validator.properties.url),
+		totalDelegatedStake: values[2] as AmountT,
+		ownerDelegation: values[3] as AmountT,
+		validatorFee: validator.properties.validatorFee,
+		registered: validator.properties.registered,
+		isExternalStakeAccepted: validator.properties.externalStakeAccepted,
+		uptimePercentage: validator.info.uptime.uptimePercentage,
+		proposalsMissed: validator.info.uptime.proposalsMissed,
+		proposalsCompleted: validator.info.uptime.proposalsCompleted,
+	}))
 
 export const handleAccountBalancesResponse = (
 	json: ReturnOfAPICall<'accountBalancesPost'>,

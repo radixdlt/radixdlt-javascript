@@ -12,7 +12,7 @@ import {
 	SignedTransaction,
 	TransactionHistoryRequestInput,
 	TransactionIntent,
-	TransactionIdentifierT
+	TransactionIdentifierT,
 } from '../dto'
 import { ActionType } from '../actions'
 import { toObservable } from '../../../util'
@@ -53,7 +53,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 
 	return {
 		node,
-		/*
+
 		validators: (
 			input: ValidatorsEndpoint.Input,
 		): Observable<ValidatorsEndpoint.DecodedResponse> =>
@@ -74,7 +74,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 					},
 				},
 			}),
-*/
+
 		networkId: () =>
 			toObsMap(
 				a => a['network'],
@@ -84,9 +84,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 				},
 			),
 
-		tokenBalancesForAddress: (
-			address: AccountAddressT,
-		) =>
+		tokenBalancesForAddress: (address: AccountAddressT) =>
 			toObs(a => a['accountBalances'], {
 				accountBalancesRequest: {
 					network: address.network,
@@ -156,20 +154,19 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 						},
 					}),
 					*/
-		
-				transactionStatus: (
-					txID: TransactionIdentifierT,
-					network: string
-				): Observable<TransactionEndpoint.DecodedResponse> =>
-					toObs(a => a['getTransaction'], {
-						transactionStatusRequest: {
-							network,
-							transactionIdentifier: {
-								hash: txID.toString(),
-							}
-						}
-					}),
-		
+
+		transactionStatus: (
+			txID: TransactionIdentifierT,
+			network: string,
+		): Observable<TransactionEndpoint.DecodedResponse> =>
+			toObs(a => a['getTransaction'], {
+				transactionStatusRequest: {
+					network,
+					transactionIdentifier: {
+						hash: txID.toString(),
+					},
+				},
+			}),
 
 		buildTransaction: (
 			transactionIntent: TransactionIntent,
@@ -181,18 +178,18 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 					actions: transactionIntent.actions.map(action =>
 						action.type === ActionType.TOKEN_TRANSFER
 							? {
-								type: action.type,
-								from: action.from.toString(),
-								to: action.to.toString(),
-								amount: action.amount.toString(),
-								rri: action.rri.toString(),
-							}
+									type: action.type,
+									from: action.from.toString(),
+									to: action.to.toString(),
+									amount: action.amount.toString(),
+									rri: action.rri.toString(),
+							  }
 							: {
-								type: action.type,
-								from: action.from.toString(),
-								validator: action.validator.toString(),
-								amount: action.amount.toString(),
-							},
+									type: action.type,
+									from: action.from.toString(),
+									validator: action.validator.toString(),
+									amount: action.amount.toString(),
+							  },
 					),
 					feePayer: {
 						address: from.toString(),

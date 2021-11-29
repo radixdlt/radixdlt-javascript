@@ -60,7 +60,6 @@ import {
 	FinalizedTransaction,
 	PendingTransaction,
 	StatusOfTransaction,
-	Validator,
 	StakePositions,
 	UnstakePositions,
 	UnstakePosition,
@@ -330,6 +329,16 @@ export namespace AccountTransactionsEndpoint {
 	export type DecodedResponse = SimpleTransactionHistory
 }
 
+type Validator = {
+	address: ValidatorAddressT
+	ownerAddress: AccountAddressT
+	name: string
+	infoURL?: URL
+	totalDelegatedStake: AmountT
+	ownerDelegation: AmountT
+	validatorFee: string
+	registered: boolean
+}
 export namespace ValidatorEndpoint {
 	export type Input = ValidatorInfoRequest
 	export type Response = ValidatorInfoResponse
