@@ -236,7 +236,7 @@ export const handleAccountTransactionsResponse = (
 				sentAt: value[1] as Date,
 				fee: value[2] as AmountT,
 				message: value[3] as string,
-				actions: value[4] as ExecutedAction[],
+				actions: value[4] as unknown as ExecutedAction[],
 			})),
 		),
 	)
@@ -319,6 +319,8 @@ const transformValidator = (validator: ValidatorRaw) =>
 export const handleAccountBalancesResponse = (
 	json: ReturnOfAPICall<'accountBalancesPost'>,
 ): Result<AccountBalancesEndpoint.DecodedResponse, Error[]> => {
+	const a = json.data.account_balances
+
 	const liquidBalancesResults = combine(
 		json.data.account_balances.liquid_balances.map(balance =>
 			combine([
@@ -500,13 +502,13 @@ export const handleFinalizeTransactionResponse = (
 	json: ReturnOfAPICall<'transactionFinalizePost'>,
 ): Result<FinalizeTransactionEndpoint.DecodedResponse, Error[]> =>
 	ok({
-		blob: json.signedTransaction,
+		blob: json.data.signed_transaction,
 	}).mapErr(e => [e] as Error[])
 
 export const handleSubmitTransactionResponse = (
 	json: ReturnOfAPICall<'transactionSubmitPost'>,
 ) =>
-	TransactionIdentifier.create(json.transactionIdentifier.hash)
+	TransactionIdentifier.create(json.data.transaction_identifier.hash)
 		.map(txID => ({
 			txID,
 		}))
