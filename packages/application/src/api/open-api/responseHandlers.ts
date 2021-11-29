@@ -45,7 +45,7 @@ import { Message } from '@radixdlt/crypto'
 
 const transformTokenAmount = (amount: TokenAmount) => [
 	Amount.fromUnsafe(amount.value),
-	ResourceIdentifier.fromUnsafe(amount.tokenIdentifier.rri),
+	ResourceIdentifier.fromUnsafe(amount.token_identifier.rri),
 ]
 
 const transformMessage = (message?: string) => {
@@ -70,23 +70,24 @@ export const handleTokenInfoResponse = (
 	json: ReturnOfAPICall<'tokenPost'>,
 ): Result<TokenInfoEndpoint.DecodedResponse, Error[]> =>
 	combine([
-		ResourceIdentifier.fromUnsafe(json.token[0].tokenIdentifier.rri),
-		Amount.fromUnsafe(json.token[0].tokenProperties.granularity),
-		Amount.fromUnsafe(json.token[0].tokenSupply.value),
+		ResourceIdentifier.fromUnsafe(json.data.token[0].token_identifier.rri),
+		Amount.fromUnsafe(json.data.token[0].token_properties.granularity),
+		Amount.fromUnsafe(json.data.token[0].token_supply.value),
 	])
 		.map(values => ({
-			name: json.token[0].tokenProperties.name ?? '',
+			name: json.data.token[0].token_properties.name ?? '',
 			rri: values[0] as ResourceIdentifierT,
-			symbol: json.token[0].tokenProperties.symbol,
-			description: json.token[0].tokenProperties.description,
+			symbol: json.data.token[0].token_properties.symbol,
+			description: json.data.token[0].token_properties.description,
 			granularity: values[1] as AmountT,
-			isSupplyMutable: json.token[0].tokenProperties.isSupplyMutable,
+			isSupplyMutable:
+				json.data.token[0].token_properties.is_supply_mutable,
 			currentSupply: values[2] as AmountT,
-			tokenInfoURL: json.token[0].tokenProperties.url
-				? new URL(json.token[0].tokenProperties.url)
+			tokenInfoURL: json.data.token[0].token_properties.url
+				? new URL(json.data.token[0].token_properties.url)
 				: undefined,
-			iconURL: json.token[0].tokenProperties.iconUrl
-				? new URL(json.token[0].tokenProperties.iconUrl)
+			iconURL: json.data.token[0].token_properties.icon_url
+				? new URL(json.data.token[0].token_properties.icon_url)
 				: undefined,
 		}))
 		.mapErr(e => [e])
@@ -95,23 +96,23 @@ export const handleNativeTokenResponse = (
 	json: ReturnOfAPICall<'tokenNativePost'>,
 ): Result<NativeTokenInfoEndpoint.DecodedResponse, Error[]> =>
 	combine([
-		ResourceIdentifier.fromUnsafe(json.token.tokenIdentifier.rri),
-		Amount.fromUnsafe(json.token.tokenProperties.granularity),
-		Amount.fromUnsafe(json.token.tokenSupply.value),
+		ResourceIdentifier.fromUnsafe(json.data.token.token_identifier.rri),
+		Amount.fromUnsafe(json.data.token.token_properties.granularity),
+		Amount.fromUnsafe(json.data.token.token_supply.value),
 	])
 		.map(values => ({
-			name: json.token.tokenProperties.name ?? '',
+			name: json.data.token.token_properties.name ?? '',
 			rri: values[0] as ResourceIdentifierT,
-			symbol: json.token.tokenProperties.symbol,
-			description: json.token.tokenProperties.description,
+			symbol: json.data.token.token_properties.symbol,
+			description: json.data.token.token_properties.description,
 			granularity: values[1] as AmountT,
-			isSupplyMutable: json.token.tokenProperties.isSupplyMutable,
+			isSupplyMutable: json.data.token.token_properties.is_supply_mutable,
 			currentSupply: values[2] as AmountT,
-			tokenInfoURL: json.token.tokenProperties.url
-				? new URL(json.token.tokenProperties.url)
+			tokenInfoURL: json.data.token.token_properties.url
+				? new URL(json.data.token.token_properties.url)
 				: undefined,
-			iconURL: json.token.tokenProperties.iconUrl
-				? new URL(json.token.tokenProperties.iconUrl)
+			iconURL: json.data.token.token_properties.icon_url
+				? new URL(json.data.token.token_properties.icon_url)
 				: undefined,
 		}))
 		.mapErr(e => [e])
@@ -120,10 +121,10 @@ export const handleStakePositionsResponse = (
 	json: ReturnOfAPICall<'accountStakesPost'>,
 ): Result<StakePositionsEndpoint.DecodedResponse, Error[]> =>
 	combine(
-		json.stakes.map(stake =>
+		json.data.stakes.map(stake =>
 			combine([
-				ValidatorAddress.fromUnsafe(stake.validatorIdentifier.address),
-				Amount.fromUnsafe(stake.delegatedStake.value),
+				ValidatorAddress.fromUnsafe(stake.validator_identifier.address),
+				Amount.fromUnsafe(stake.delegated_stake.value),
 			]).map(value => ({
 				validator: value[0] as ValidatorAddressT,
 				amount: value[1] as AmountT,
@@ -135,13 +136,13 @@ export const handleUnstakePositionsResponse = (
 	json: ReturnOfAPICall<'accountUnstakesPost'>,
 ): Result<UnstakePositionsEndpoint.DecodedResponse, Error[]> =>
 	combine(
-		json.unstakes.map(unstake =>
+		json.data.unstakes.map(unstake =>
 			combine([
 				ValidatorAddress.fromUnsafe(
-					unstake.validatorIdentifier.address,
+					unstake.validator_identifier.address,
 				),
-				Amount.fromUnsafe(unstake.unstakingAmount.value),
-				ok<number, Error>(unstake.epochsUntilUnlocked),
+				Amount.fromUnsafe(unstake.unstaking_amount.value),
+				ok<number, Error>(unstake.epochs_until_unlocked),
 			]).map(value => ({
 				validator: value[0] as ValidatorAddressT,
 				amount: value[1] as AmountT,
@@ -213,17 +214,19 @@ export const handleAccountTransactionsResponse = (
 		}
 	}
 	return combine(
-		json.transactions.map(transaction =>
+		json.data.transactions.map(transaction =>
 			combine([
 				TransactionIdentifier.create(
-					transaction.transactionIdentifier.hash,
+					transaction.transaction_identifier.hash,
 				),
 				ok<Date | null, Error>(
-					transaction.transactionStatus.confirmedTime
-						? new Date(transaction.transactionStatus.confirmedTime)
+					transaction.transaction_status.confirmed_time
+						? new Date(
+								transaction.transaction_status.confirmed_time,
+						  )
 						: null,
 				),
-				Amount.fromUnsafe(transaction.feePaid.value),
+				Amount.fromUnsafe(transaction.fee_paid.value),
 				ok<string, Error>(
 					transformMessage(transaction.metadata.message) ?? '',
 				),
@@ -233,13 +236,13 @@ export const handleAccountTransactionsResponse = (
 				sentAt: value[1] as Date,
 				fee: value[2] as AmountT,
 				message: value[3] as string,
-				actions: value[4] as unknown as ExecutedAction[],
+				actions: value[4] as ExecutedAction[],
 			})),
 		),
 	)
 		.map(
 			(transactions): SimpleTransactionHistory => ({
-				cursor: json.nextCursor as string,
+				cursor: json.data.next_cursor as string,
 				transactions,
 			}),
 		)
@@ -267,7 +270,7 @@ export const handleAccountTransactionsResponse = (
 // 		)
 
 /*
-export const handleDeriveTokenIdentifierResponse = (
+export const handleDerivetoken_identifierResponse = (
 	json: ReturnOfAPICall<'tokenDerivePost'>,
 ) =>
 	JSONDecoding.withDecoders(RRIDecoder('rri'))
@@ -292,12 +295,12 @@ const transformUrl = (url: string) => {
 
 const transformValidator = (validator: ValidatorRaw) =>
 	combine([
-		ValidatorAddress.fromUnsafe(validator.validatorIdentifier.address),
+		ValidatorAddress.fromUnsafe(validator.validator_identifier.address),
 		AccountAddress.fromUnsafe(
-			validator.properties.ownerAccountIdentifier.address,
+			validator.properties.owner_account_identifier.address,
 		),
 		Amount.fromUnsafe(validator.stake.value),
-		Amount.fromUnsafe(validator.info.ownerStake.value),
+		Amount.fromUnsafe(validator.info.owner_stake.value),
 	]).map((values): Omit<Validator, 'infoURL'> & { infoURL?: URL } => ({
 		address: values[0] as ValidatorAddressT,
 		ownerAddress: values[1] as AccountAddressT,
@@ -305,22 +308,22 @@ const transformValidator = (validator: ValidatorRaw) =>
 		infoURL: transformUrl(validator.properties.url),
 		totalDelegatedStake: values[2] as AmountT,
 		ownerDelegation: values[3] as AmountT,
-		validatorFee: validator.properties.validatorFee,
+		validatorFee: validator.properties.validator_fee,
 		registered: validator.properties.registered,
-		isExternalStakeAccepted: validator.properties.externalStakeAccepted,
-		uptimePercentage: validator.info.uptime.uptimePercentage,
-		proposalsMissed: validator.info.uptime.proposalsMissed,
-		proposalsCompleted: validator.info.uptime.proposalsCompleted,
+		isExternalStakeAccepted: validator.properties.external_stake_accepted,
+		uptimePercentage: validator.info.uptime.uptime_percentage,
+		proposalsMissed: validator.info.uptime.proposals_missed,
+		proposalsCompleted: validator.info.uptime.proposals_completed,
 	}))
 
 export const handleAccountBalancesResponse = (
 	json: ReturnOfAPICall<'accountBalancesPost'>,
 ): Result<AccountBalancesEndpoint.DecodedResponse, Error[]> => {
 	const liquidBalancesResults = combine(
-		json.accountBalances.liquidBalances.map(balance =>
+		json.data.account_balances.liquid_balances.map(balance =>
 			combine([
 				Amount.fromUnsafe(balance.value),
-				ResourceIdentifier.fromUnsafe(balance.tokenIdentifier.rri),
+				ResourceIdentifier.fromUnsafe(balance.token_identifier.rri),
 			]).map(values => ({
 				value: values[0] as AmountT,
 				token_identifier: {
@@ -332,9 +335,12 @@ export const handleAccountBalancesResponse = (
 
 	const stakingAndUnstakingBalancesResult = combine([
 		ResourceIdentifier.fromUnsafe(
-			json.accountBalances.stakedAndUnstakingBalance.tokenIdentifier.rri,
+			json.data.account_balances.staked_and_unstaking_balance
+				.token_identifier.rri,
 		),
-		Amount.fromUnsafe(json.accountBalances.stakedAndUnstakingBalance.value),
+		Amount.fromUnsafe(
+			json.data.account_balances.staked_and_unstaking_balance.value,
+		),
 	])
 
 	return combine([
@@ -343,8 +349,8 @@ export const handleAccountBalancesResponse = (
 	])
 		.map(values => ({
 			ledger_state: {
-				...json.ledgerState,
-				timestamp: new Date(json.ledgerState.timestamp),
+				...json.data.ledger_state,
+				timestamp: new Date(json.data.ledger_state.timestamp),
 			},
 			account_balances: {
 				// @ts-ignore
@@ -363,12 +369,12 @@ export const handleAccountBalancesResponse = (
 export const handleValidatorResponse = (
 	json: ReturnOfAPICall<'validatorPost'>,
 ): Result<ValidatorEndpoint.DecodedResponse, Error[]> =>
-	transformValidator(json.validator).mapErr(e => [e])
+	transformValidator(json.data.validator).mapErr(e => [e])
 
 export const handleValidatorsResponse = (
 	json: ReturnOfAPICall<'validatorsPost'>,
 ): Result<ValidatorsEndpoint.DecodedResponse, Error[]> =>
-	combine(json.validators.map(transformValidator))
+	combine(json.data.validators.map(transformValidator))
 		.map(validators => ({ validators }))
 		.mapErr(e => [e])
 
@@ -480,11 +486,11 @@ json.stakes.map(stake => combine([
 export const handleBuildTransactionResponse = (
 	json: ReturnOfAPICall<'transactionBuildPost'>,
 ): Result<BuildTransactionEndpoint.DecodedResponse, Error[]> =>
-	Amount.fromUnsafe(json.transactionBuild.fee.value)
+	Amount.fromUnsafe(json.transaction_build.fee.value)
 		.map(amount => ({
 			transaction: {
-				blob: json.transactionBuild.unsignedTransaction,
-				hashOfBlobToSign: json.transactionBuild.payloadToSign,
+				blob: json.transaction_build.unsigned_transaction,
+				hashOfBlobToSign: json.transaction_build.payload_to_sign,
 			},
 			fee: amount,
 		}))
@@ -509,17 +515,17 @@ export const handleSubmitTransactionResponse = (
 export const handleTransactionResponse = (
 	json: ReturnOfAPICall<'transactionStatusPost'>,
 ): Result<TransactionEndpoint.DecodedResponse, Error[]> =>
-	json.transaction.length === 0
+	json.data.transaction.length === 0
 		? err([Error('Transaction not found.')])
 		: combine([
 				TransactionIdentifier.create(
-					json.transaction[0].transactionIdentifier.hash,
+					json.data.transaction[0].transaction_identifier.hash,
 				),
-				Amount.fromUnsafe(json.transaction[0].feePaid.value),
+				Amount.fromUnsafe(json.data.transaction[0].fee_paid.value),
 		  ])
 				.map(values => ({
 					txID: values[0] as TransactionIdentifierT,
-					status: json.transaction[0].transactionStatus.status,
+					status: json.data.transaction[0].transaction_status.status,
 					fee: values[1] as AmountT,
 				}))
 				.mapErr(e => [e])

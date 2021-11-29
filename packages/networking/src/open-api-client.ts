@@ -29,14 +29,14 @@ const isBuildResponseError = (
 ): response is TransactionBuildResponseError =>
 	response.type === 'TransactionBuildResponseError'
 
-const handleBuildResponse = (
-	response: TransactionBuildResponse,
-): Result<TransactionBuild, TransactionBuildError | Error> =>
-	isBuildResponseSuccess(response)
-		? ok(response.transactionBuild)
-		: isBuildResponseError(response)
-		? err(response.error)
-		: err(Error('Unexpected build transaction response.'))
+// const handleBuildResponse = (
+// 	response: TransactionBuildResponse,
+// ): Result<TransactionBuild, TransactionBuildError | Error> =>
+// 	isBuildResponseSuccess(response)
+// 		? ok(response.transactionBuild)
+// 		: isBuildResponseError(response)
+// 		? err(response.error)
+// 		: err(Error('Unexpected build transaction response.'))
 
 const headers = ['X-Radixdlt-Method', 'X-Radixdlt-Correlation-Id']
 
