@@ -126,7 +126,6 @@ export const COLLECTION_FORMATS = {
     pipes: "|",
 };
 
-// @ts-ignore
 export type FetchAPI = GlobalFetch['fetch'];
 
 export interface ConfigurationParameters {
