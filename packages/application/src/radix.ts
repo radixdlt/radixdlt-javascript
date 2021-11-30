@@ -210,12 +210,12 @@ const create = () => {
 			a => a.tokenBalancesForAddress,
 			m => tokenBalancesErr(m),
 		),
-		/*
+
 		transactionHistory: fwdAPICall(
 			a => a.transactionHistory,
 			m => transactionHistoryErr(m),
 		),
-		*/
+
 		nativeToken: fwdAPICall(
 			a => a.nativeToken,
 			m => nativeTokenErr(m),
@@ -335,36 +335,38 @@ const create = () => {
 			a => a.unstakesForAddress,
 			unstakesForAddressErr,
 		)
-	
-		const transactionHistory = (
-			input: TransactionHistoryActiveAccountRequestInput,
-		): Observable<TransactionHistory> =>
-			activeAddress.pipe(
-				take(1),
-				switchMap(activeAddress =>
-					api
-						.transactionHistory({ ...input, address: activeAddress })
-						.pipe(
-							map(
-								(
-									simpleTxHistory: SimpleTransactionHistory,
-								): TransactionHistory => ({
-									...simpleTxHistory,
-									transactions: simpleTxHistory.transactions.map(
-										(
-											simpleExecutedTX: SimpleExecutedTransaction,
-										): ExecutedTransaction =>
-											decorateSimpleExecutedTransactionWithType(
-												simpleExecutedTX,
-												activeAddress,
-											),
-									),
-								}),
-							),
+
+		*/
+
+	const transactionHistory = (
+		input: TransactionHistoryActiveAccountRequestInput,
+	): Observable<TransactionHistory> =>
+		activeAddress.pipe(
+			take(1),
+			switchMap(activeAddress =>
+				api
+					.transactionHistory({ ...input, address: activeAddress })
+					.pipe(
+						map(
+							(
+								simpleTxHistory: SimpleTransactionHistory,
+							): TransactionHistory => ({
+								...simpleTxHistory,
+								transactions: simpleTxHistory.transactions.map(
+									(
+										simpleExecutedTX: SimpleExecutedTransaction,
+									): ExecutedTransaction =>
+										decorateSimpleExecutedTransactionWithType(
+											simpleExecutedTX,
+											activeAddress,
+										),
+								),
+							}),
 						),
-				),
-			)
-	*/
+					),
+			),
+		)
+
 	const node$ = merge(
 		nodeSubject.asObservable(),
 		coreAPISubject.asObservable().pipe(map(api => api.node)),
@@ -796,23 +798,23 @@ const create = () => {
 				: undefined,
 		)
 	}
-	
-		const stakeTokens = (input: StakeOptions) => {
-			radixLog.debug('stake')
-			return __makeTransactionFromBuilder(
-				TransactionIntentBuilder.create().stakeTokens(input.stakeInput),
-				{ ...input },
-			)
-		}
-	
-		const unstakeTokens = (input: UnstakeOptions) => {
-			radixLog.debug('unstake')
-			return __makeTransactionFromBuilder(
-				TransactionIntentBuilder.create().unstakeTokens(input.unstakeInput),
-				{ ...input },
-			)
-		}
-	
+
+	const stakeTokens = (input: StakeOptions) => {
+		radixLog.debug('stake')
+		return __makeTransactionFromBuilder(
+			TransactionIntentBuilder.create().stakeTokens(input.stakeInput),
+			{ ...input },
+		)
+	}
+
+	const unstakeTokens = (input: UnstakeOptions) => {
+		radixLog.debug('unstake')
+		return __makeTransactionFromBuilder(
+			TransactionIntentBuilder.create().unstakeTokens(input.unstakeInput),
+			{ ...input },
+		)
+	}
+
 	const decryptTransaction = (
 		input: SimpleExecutedTransaction,
 	): Observable<string> => {
@@ -1085,7 +1087,7 @@ const create = () => {
 				)),
 			),
 */
-		//transactionHistory,
+		transactionHistory,
 		transferTokens,
 		stakeTokens,
 		unstakeTokens,

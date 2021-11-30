@@ -106,7 +106,6 @@ describe('integration API tests', () => {
 		expect(radix.ledger.tokenBalancesForAddress).toBeDefined() // etc
 	})
 
-	/*
 	it('emits node connection without wallet', async done => {
 		const radix = Radix.create()
 		await radix.connect(`${NODE_URL}`)
@@ -147,7 +146,6 @@ describe('integration API tests', () => {
 
 		done()
 	})
-	*/
 
 	it('returns native token without wallet', async done => {
 		const radix = Radix.create()
@@ -163,8 +161,10 @@ describe('integration API tests', () => {
 			),
 		)
 	})
+
 	/*
-	it.only('deriveNextSigningKey method on radix updates accounts', done => {
+
+		it.only('deriveNextSigningKey method on radix updates accounts', done => {
 		const expected = [1, 2, 3]
 
 		subs.add(
@@ -183,6 +183,7 @@ describe('integration API tests', () => {
 		radix.deriveNextAccount({ alsoSwitchTo: true })
 		radix.deriveNextAccount({ alsoSwitchTo: false })
 	})
+
 	
 	it('deriveNextSigningKey alsoSwitchTo method on radix updates activeSigningKey', done => {
 		const expected = [0, 1, 3]
@@ -223,7 +224,7 @@ describe('integration API tests', () => {
 	})
 */
 	// 🟢
-	it.only('should compare token balance before and after transfer', async done => {
+	it('should compare token balance before and after transfer', async done => {
 		const getTokenBalanceSubject = new Subject<number>()
 
 		radix.withTokenBalanceFetchTrigger(getTokenBalanceSubject)
@@ -297,7 +298,7 @@ describe('integration API tests', () => {
 			)
 		})
 	})
-	/*
+
 	// 🟢
 	it('should increment transaction history with a new transaction after transfer', async done => {
 		const pageSize = 100
@@ -330,7 +331,7 @@ describe('integration API tests', () => {
 						let prevTxCount = 0
 						let txCount = 0
 
-						while (txCount >= prevTxCount) {
+						while (cursor) {
 							prevTxCount = txCount
 							;[cursor, txCount] = await fetchTxHistory(cursor)
 						}
@@ -357,7 +358,7 @@ describe('integration API tests', () => {
 									to: accounts[2].address,
 									amount: 1,
 									tokenIdentifier:
-										nativeTokenBalance.token.rri,
+										nativeTokenBalance.token_identifier.rri,
 								},
 								userConfirmation: 'skip',
 								pollTXStatusTrigger: interval(500),
@@ -382,38 +383,40 @@ describe('integration API tests', () => {
 				}),
 		)
 	})
-	
+
 	// 🟢
-	it.only('should be able to get transaction history', async () => {
-		const txID1 = await firstValueFrom(
-			radix.transferTokens({
-				transferInput: {
-					to: accounts[2].address,
-					amount: 1,
-					tokenIdentifier: nativeTokenBalance.token_identifier.rri,
-				},
-				userConfirmation: 'skip',
-			}).completion,
-		)
+	// it.only('should be able to get transaction history', async () => {
+	// 	const txID1 = await firstValueFrom(
+	// 		radix.transferTokens({
+	// 			transferInput: {
+	// 				to: accounts[2].address,
+	// 				amount: 1,
+	// 				tokenIdentifier: nativeTokenBalance.token_identifier.rri,
+	// 			},
+	// 			userConfirmation: 'skip',
+	// 		}).completion,
+	// 	)
 
-		const txID2 = await firstValueFrom(
-			radix.transferTokens({
-				transferInput: {
-					to: accounts[2].address,
-					amount: 1,
-					tokenIdentifier: nativeTokenBalance.token_identifier.rri,
-				},
-				userConfirmation: 'skip',
-			}).completion,
-		)
+	// 	const txID2 = await firstValueFrom(
+	// 		radix.transferTokens({
+	// 			transferInput: {
+	// 				to: accounts[2].address,
+	// 				amount: 1,
+	// 				tokenIdentifier: nativeTokenBalance.token_identifier.rri,
+	// 			},
+	// 			userConfirmation: 'skip',
+	// 		}).completion,
+	// 	)
 
-		const txHistory = await firstValueFrom(
-			radix.transactionHistory({ size: 2 }),
-		)
+	// 	const txHistory = await firstValueFrom(
+	// 		radix.transactionHistory({ size: 2 }),
+	// 	)
 
-		expect(txHistory.transactions[0].txID.equals(txID1))
-		expect(txHistory.transactions[1].txID.equals(txID2))
-	})
+	// 	expect(txHistory.transactions[0].txID.equals(txID1))
+	// 	expect(txHistory.transactions[1].txID.equals(txID2))
+	// })
+
+	/*
 	
 	// 🟢
 	it('should handle transaction status updates', done => {

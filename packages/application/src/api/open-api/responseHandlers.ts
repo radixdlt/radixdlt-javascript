@@ -181,7 +181,7 @@ export const handleAccountTransactionsResponse = (
 			return combine([
 				...transformTokenAmount(stakeAction.amount),
 				ValidatorAddress.fromUnsafe(stakeAction.to.address),
-				AccountAddress.fromUnsafe(stakeAction.from.address)
+				AccountAddress.fromUnsafe(stakeAction.from.address),
 			]).map(
 				(
 					actionValue,
@@ -190,7 +190,7 @@ export const handleAccountTransactionsResponse = (
 					amount: actionValue[0] as AmountT,
 					rri: actionValue[1] as ResourceIdentifierT,
 					validator: actionValue[2] as ValidatorAddressT,
-					from: actionValue[3] as AccountAddressT
+					from: actionValue[3] as AccountAddressT,
 				}),
 			)
 		}
@@ -213,40 +213,45 @@ export const handleAccountTransactionsResponse = (
 				return ok({ ...action, type: ActionType.OTHER })
 		}
 	}
+
 	return combine(
-		json.data.transactions.map(transaction =>
-			combine([
+		json.data.transactions.map(transaction => {
+			const actions = transaction.actions.map(transformAction)
+			return combine([
 				TransactionIdentifier.create(
 					transaction.transaction_identifier.hash,
 				),
 				ok<Date | null, Error>(
 					transaction.transaction_status.confirmed_time
 						? new Date(
-							transaction.transaction_status.confirmed_time,
-						)
+								transaction.transaction_status.confirmed_time,
+						  )
 						: null,
 				),
 				Amount.fromUnsafe(transaction.fee_paid.value),
 				ok<string, Error>(
 					transformMessage(transaction.metadata.message) ?? '',
 				),
-				...transaction.actions.map(transformAction),
-			]).map(value => ({
-				txID: value[0] as TransactionIdentifierT,
-				sentAt: value[1] as Date,
-				fee: value[2] as AmountT,
-				message: value[3] as string,
-				actions: value[4] as unknown as ExecutedAction[],
-			})),
-		),
+			]).andThen(value =>
+				// @ts-ignore
+				combine(actions).map(actions => ({
+					txID: value[0] as TransactionIdentifierT,
+					sentAt: value[1] as Date,
+					fee: value[2] as AmountT,
+					message: value[3] as string,
+					actions,
+				})),
+			)
+		}),
 	)
 		.map(
 			(transactions): SimpleTransactionHistory => ({
 				cursor: json.data.next_cursor as string,
+				// @ts-ignore
 				transactions,
 			}),
 		)
-		.mapErr(e => [e as Error])
+		.mapErr(e => [e])
 }
 
 // export const handleAccountTransactionsResponse = (
@@ -520,14 +525,14 @@ export const handleTransactionResponse = (
 	json.data.transaction.length === 0
 		? err([Error('Transaction not found.')])
 		: combine([
-			TransactionIdentifier.create(
-				json.data.transaction[0].transaction_identifier.hash,
-			),
-			Amount.fromUnsafe(json.data.transaction[0].fee_paid.value),
-		])
-			.map(values => ({
-				txID: values[0] as TransactionIdentifierT,
-				status: json.data.transaction[0].transaction_status.status,
-				fee: values[1] as AmountT,
-			}))
-			.mapErr(e => [e])
+				TransactionIdentifier.create(
+					json.data.transaction[0].transaction_identifier.hash,
+				),
+				Amount.fromUnsafe(json.data.transaction[0].fee_paid.value),
+		  ])
+				.map(values => ({
+					txID: values[0] as TransactionIdentifierT,
+					status: json.data.transaction[0].transaction_status.status,
+					fee: values[1] as AmountT,
+				}))
+				.mapErr(e => [e])
