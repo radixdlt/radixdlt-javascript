@@ -13,7 +13,7 @@ import {
 	Subject,
 	Subscription,
 } from 'rxjs'
-import { map, take, tap, toArray } from 'rxjs/operators'
+import { delay, map, take, tap, toArray } from 'rxjs/operators'
 import { ManualUserConfirmTX } from '../../src/_types'
 import {
 	PendingTransaction,
@@ -385,43 +385,40 @@ describe('integration API tests', () => {
 	})
 
 	// 🟢
-	// it.only('should be able to get transaction history', async () => {
-	// 	const txID1 = await firstValueFrom(
-	// 		radix.transferTokens({
-	// 			transferInput: {
-	// 				to: accounts[2].address,
-	// 				amount: 1,
-	// 				tokenIdentifier: nativeTokenBalance.token_identifier.rri,
-	// 			},
-	// 			userConfirmation: 'skip',
-	// 		}).completion,
-	// 	)
+	it('should be able to get transaction history', async () => {
+		const txID1 = await firstValueFrom(
+			radix.transferTokens({
+				transferInput: {
+					to: accounts[2].address,
+					amount: 1,
+					tokenIdentifier: nativeTokenBalance.token_identifier.rri,
+				},
+				userConfirmation: 'skip',
+			}).completion,
+		)
 
-	// 	const txID2 = await firstValueFrom(
-	// 		radix.transferTokens({
-	// 			transferInput: {
-	// 				to: accounts[2].address,
-	// 				amount: 1,
-	// 				tokenIdentifier: nativeTokenBalance.token_identifier.rri,
-	// 			},
-	// 			userConfirmation: 'skip',
-	// 		}).completion,
-	// 	)
+		const txID2 = await firstValueFrom(
+			radix.transferTokens({
+				transferInput: {
+					to: accounts[2].address,
+					amount: 1,
+					tokenIdentifier: nativeTokenBalance.token_identifier.rri,
+				},
+				userConfirmation: 'skip',
+			}).completion,
+		)
 
-	// 	const txHistory = await firstValueFrom(
-	// 		radix.transactionHistory({ size: 2 }),
-	// 	)
+		const txHistory = await firstValueFrom(
+			radix.transactionHistory({ size: 2 }),
+		)
 
-	// 	expect(txHistory.transactions[0].txID.equals(txID1))
-	// 	expect(txHistory.transactions[1].txID.equals(txID2))
-	// })
+		expect(txHistory.transactions[0].txID.equals(txID1))
+		expect(txHistory.transactions[1].txID.equals(txID2))
+	})
 
-	/*
-	
 	// 🟢
 	it('should handle transaction status updates', done => {
 		const expectedValues: TransactionStatus[] = [
-			TransactionStatus.PENDING,
 			TransactionStatus.CONFIRMED,
 		]
 
@@ -429,24 +426,25 @@ describe('integration API tests', () => {
 			transferInput: {
 				to: accounts[2].address,
 				amount: 1,
-				tokenIdentifier: nativeTokenBalance.token.rri,
+				tokenIdentifier: nativeTokenBalance.token_identifier.rri,
 			},
 			userConfirmation: 'skip',
 			pollTXStatusTrigger: interval(200),
 		})
 
-		txTracking.events.subscribe(event => {
+		txTracking.events.pipe(delay(0)).subscribe(event => {
 			if (
 				event.eventUpdateType === TransactionTrackingEventType.SUBMITTED
 			) {
-				const txID: TransactionIdentifierT = (event as TransactionStateSuccess<PendingTransaction>)
-					.transactionState.txID
+				const txID: TransactionIdentifierT = (
+					event as TransactionStateSuccess<PendingTransaction>
+				).transactionState.txID
 
 				subs.add(
 					radix
 						.transactionStatus(txID, interval(300))
 						.pipe(
-							map(({ status }) => status),
+							map(response => response.status),
 							take(expectedValues.length),
 							toArray(),
 						)
@@ -458,6 +456,10 @@ describe('integration API tests', () => {
 			}
 		})
 	})
+
+	/*
+	
+
 
 	// 🟢
 	it('can lookup tx', async () => {

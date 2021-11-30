@@ -1036,22 +1036,23 @@ const create = () => {
 			log.setLevel(level)
 			return methods
 		},
-		/*
-				transactionStatus: (
-					txID: TransactionIdentifierT,
-					trigger: Observable<number>,
-				) =>
-					trigger.pipe(
-						mergeMap(_ => api.transactionStatus(txID)),
-						distinctUntilChanged((prev, cur) => prev.status === cur.status),
-						filter(({ txID }) => txID.equals(txID)),
-						tap(({ status }) =>
-							radixLog.info(
-								`Got transaction status ${status.toString()} for txID: ${txID.toString()}`,
-							),
-						),
+		transactionStatus: (
+			txID: TransactionIdentifierT,
+			trigger: Observable<number>,
+		) =>
+			trigger.pipe(
+				withLatestFrom(networkSubject),
+				mergeMap(([_, network]) =>
+					api.transactionStatus(txID, network),
+				),
+				distinctUntilChanged((prev, cur) => prev.status === cur.status),
+				filter(({ txID }) => txID.equals(txID)),
+				tap(({ status }) =>
+					radixLog.info(
+						`Got transaction status ${status.toString()} for txID: ${txID.toString()}`,
 					),
-		*/
+				),
+			),
 		withTokenBalanceFetchTrigger: (trigger: Observable<number>) => {
 			subs.add(trigger.subscribe(tokenBalanceFetchSubject))
 			return methods
