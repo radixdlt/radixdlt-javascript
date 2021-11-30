@@ -641,24 +641,26 @@ describe('integration API tests', () => {
 		)
 	})
 
+	*/
+
 	describe('make tx single transfer', () => {
-		const tokenTransferInput: TransferTokensInput = {
-			to: accounts[2].address,
-			amount: 1,
-			tokenIdentifier: nativeTokenBalance.token.rri,
-		}
-
+		let transferTokens: () => TransferTokensOptions
 		let pollTXStatusTrigger: Observable<unknown>
-
-		const transferTokens = (): TransferTokensOptions => ({
-			transferInput: tokenTransferInput,
-			userConfirmation: 'skip',
-			pollTXStatusTrigger: pollTXStatusTrigger,
-		})
 
 		let subs: Subscription
 
 		beforeEach(() => {
+			const tokenTransferInput: TransferTokensInput = {
+				to: accounts[2].address,
+				amount: 1,
+				tokenIdentifier: nativeTokenBalance.token_identifier.rri,
+			}
+
+			transferTokens = (): TransferTokensOptions => ({
+				transferInput: tokenTransferInput,
+				userConfirmation: 'skip',
+				pollTXStatusTrigger: pollTXStatusTrigger,
+			})
 			subs = new Subscription()
 			pollTXStatusTrigger = interval(500)
 		})
@@ -667,7 +669,7 @@ describe('integration API tests', () => {
 			subs.unsubscribe()
 		})
 
-		it.skip('events emits expected values', done => {
+		it('events emits expected values', done => {
 			// can't see pending state because quick confirmation
 
 			const expectedValues = [
@@ -678,7 +680,6 @@ describe('integration API tests', () => {
 				TransactionTrackingEventType.SIGNED,
 				TransactionTrackingEventType.FINALIZED,
 				TransactionTrackingEventType.SUBMITTED,
-				TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
 				TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
 				TransactionTrackingEventType.COMPLETED,
 			]
@@ -775,5 +776,4 @@ describe('integration API tests', () => {
 			)
 		})
 	})
-	*/
 })
