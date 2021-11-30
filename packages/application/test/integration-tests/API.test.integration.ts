@@ -480,10 +480,13 @@ describe('integration API tests', () => {
 		expect(tx.actions.length).toEqual(1)
 	})
 
+
+	*/
+
 	// 🟢
-	it('can lookup validator', async () => {
+	it.only('can lookup validator', async () => {
 		const validator = (
-			await firstValueFrom(radix.ledger.validators({ size: 1 }))
+			await firstValueFrom(radix.ledger.validators({ network }))
 		).validators[0]
 		const validatorFromLookup = await firstValueFrom(
 			radix.ledger.lookupValidator(validator.address),
@@ -491,8 +494,6 @@ describe('integration API tests', () => {
 
 		expect(validatorFromLookup.address.equals(validator.address)).toBe(true)
 	})
-
-	*/
 
 	// 🟢
 	it('should get validators', async () => {
