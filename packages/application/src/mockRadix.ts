@@ -648,7 +648,7 @@ export const deterministicRandomTxHistoryWithInput = (
 						// 	encryptionScheme: string
 						// }
 						actions: detMakeActionForTx(),
-					}
+					} as any
 				},
 			)
 

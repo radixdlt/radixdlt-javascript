@@ -100,14 +100,15 @@ import {
 	TransactionIntentBuilderT,
 	TransactionStateError,
 	TransactionStateUpdate,
-	TransactionStatus,
 	TransactionTracking,
 	TransactionTrackingEventType,
 	TransactionType,
+	TransactionStatus
 } from './dto'
 import { ActionType, ExecutedAction, TransferTokensAction } from './actions'
 import { Wallet } from './wallet'
-import { AccountTransactionStatusStatusEnum } from '@radixdlt/networking'
+import { AccountTransactionStatusStatusEnum, TransactionIdentifier } from '@radixdlt/networking'
+import { pipe } from 'ramda'
 
 const txTypeFromActions = (
 	input: Readonly<{
@@ -247,7 +248,7 @@ const create = () => {
 			m => lookupValidatorErr(m),
 		),
 
-		transactionStatus: fwdAPICall(
+		getTransaction: fwdAPICall(
 			a => a.transactionStatus,
 			m => lookupTxErr(m),
 		),
@@ -672,7 +673,7 @@ const create = () => {
 				)
 				return networkSubject.pipe(
 					mergeMap(network =>
-						api.transactionStatus(pendingTx.txID, network),
+						api.getTransaction(pendingTx.txID, network),
 					),
 				)
 			}),
@@ -684,7 +685,7 @@ const create = () => {
 			transactionStatus$.pipe(
 				skipWhile(
 					({ status }) =>
-						status !== AccountTransactionStatusStatusEnum.Confirmed,
+						status !== TransactionStatus.CONFIRMED,
 				),
 				take(1),
 			)
@@ -692,7 +693,7 @@ const create = () => {
 		const transactionCompletedWithStatusFailed$ = transactionStatus$.pipe(
 			skipWhile(
 				({ status }) =>
-					status !== AccountTransactionStatusStatusEnum.Failed,
+					status !== TransactionStatus.FAILED
 			),
 			take(1),
 		)
@@ -1036,6 +1037,7 @@ const create = () => {
 			log.setLevel(level)
 			return methods
 		},
+		
 		transactionStatus: (
 			txID: TransactionIdentifierT,
 			trigger: Observable<number>,
@@ -1043,7 +1045,7 @@ const create = () => {
 			trigger.pipe(
 				withLatestFrom(networkSubject),
 				mergeMap(([_, network]) =>
-					api.transactionStatus(txID, network),
+					api.getTransaction(txID, network),
 				),
 				distinctUntilChanged((prev, cur) => prev.status === cur.status),
 				filter(({ txID }) => txID.equals(txID)),
@@ -1053,6 +1055,7 @@ const create = () => {
 					),
 				),
 			),
+
 		withTokenBalanceFetchTrigger: (trigger: Observable<number>) => {
 			subs.add(trigger.subscribe(tokenBalanceFetchSubject))
 			return methods
@@ -1075,23 +1078,28 @@ const create = () => {
 		//unstakingPositions,
 
 		// Methods
-		/*
+		
 		lookupTransaction: (
 			txID: TransactionIdentifierT,
 		): Observable<ExecutedTransaction> =>
 			networkSubject.pipe(
-				mergeMap(network => api.transactionStatus(txID, network).pipe(
+				mergeMap(network => api.getTransaction(txID, network).pipe(
 					withLatestFrom(activeAddress),
 					map(([simpleTx, aa]) =>
 						decorateSimpleExecutedTransactionWithType(simpleTx, aa),
 					)
 				)),
 			),
-*/
+
 		transactionHistory,
 		transferTokens,
 		stakeTokens,
 		unstakeTokens,
+		
+		getTransaction: (txID: TransactionIdentifierT) => 
+			networkSubject.pipe(
+				mergeMap(network => api.getTransaction(txID, network))
+			)
 	}
 
 	return methods

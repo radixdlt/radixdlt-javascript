@@ -49,6 +49,7 @@ import {
 	UnstakePositions,
 	UnstakePosition,
 	SimpleTransactionHistory,
+	SimpleExecutedTransaction
 } from '../../dto'
 
 export namespace Decoded {
@@ -372,9 +373,5 @@ export namespace SubmitTransactionEndpoint {
 export namespace TransactionEndpoint {
 	export type Input = TransactionStatusRequest
 	export type Response = TransactionStatusResponse
-	export type DecodedResponse = {
-		txID: TransactionIdentifierT
-		status: AccountTransactionStatusStatusEnum
-		fee: AmountT
-	}
+	export type DecodedResponse = SimpleExecutedTransaction
 }

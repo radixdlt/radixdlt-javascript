@@ -288,7 +288,7 @@ describe('integration API tests', () => {
 						transferDone = true
 						subs.add(
 							radix.ledger
-								.transactionStatus(txID, 'mainnet')
+								.getTransaction(txID, 'mainnet')
 								.subscribe(tx => {
 									fee = tx.fee
 									getTokenBalanceSubject.next(1)
@@ -384,7 +384,6 @@ describe('integration API tests', () => {
 		)
 	})
 
-	// 🟢
 	it('should be able to get transaction history', async () => {
 		const txID1 = await firstValueFrom(
 			radix.transferTokens({
@@ -457,33 +456,24 @@ describe('integration API tests', () => {
 		})
 	})
 
-	/*
-	
-
-
-	// 🟢
-	it('can lookup tx', async () => {
+	it.only('can lookup tx', async () => {
 		const { completion } = radix.transferTokens({
 			transferInput: {
 				to: accounts[2].address,
 				amount: 1,
-				tokenIdentifier: nativeTokenBalance.token.rri,
+				tokenIdentifier: nativeTokenBalance.token_identifier.rri,
 			},
 			userConfirmation: 'skip',
 			pollTXStatusTrigger: interval(500),
 		})
 
 		const txID = await firstValueFrom(completion)
-		const tx = await firstValueFrom(radix.ledger.lookupTransaction(txID))
+		const tx = await firstValueFrom(radix.getTransaction(txID))
 
 		expect(txID.equals(tx.txID)).toBe(true)
 		expect(tx.actions.length).toEqual(1)
 	})
 
-
-	*/
-
-	// 🟢
 	it.only('can lookup validator', async () => {
 		const validator = (
 			await firstValueFrom(radix.ledger.validators({ network }))
