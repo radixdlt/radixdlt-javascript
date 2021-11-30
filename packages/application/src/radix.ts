@@ -105,7 +105,7 @@ import {
 	TransactionType,
 	TransactionStatus,
 } from './dto'
-import { ActionType, ExecutedAction, TransferTokensAction } from './actions'
+import { ActionType, ExecutedAction, TransferTokensAction, StakeTokensInput, UnstakeTokensInput } from './actions'
 import { Wallet } from './wallet'
 import {
 	AccountTransactionStatusStatusEnum,
@@ -178,6 +178,7 @@ const create = () => {
 	const wallet$ = walletSubject.asObservable()
 
 	const networkSubject = new ReplaySubject<Network>()
+	const nativeTokenSubject = new ReplaySubject<Token>()
 
 	let walletSubscription: Subscription
 
@@ -194,15 +195,15 @@ const create = () => {
 			pickFn: (api: RadixCoreAPI) => (...input: I) => Observable<O>,
 			errorFn: (error: APIErrorObject) => APIError,
 		) =>
-		(...input: I) =>
-			coreAPI$.pipe(
-				mergeMap(a => pickFn(a)(...input)),
-				take(1), // Important!
-				catchError((error: unknown) => {
-					// console.error(error)
-					throw errorFn(isArray(error) ? (error as any)[0] : error)
-				}),
-			)
+			(...input: I) =>
+				coreAPI$.pipe(
+					mergeMap(a => pickFn(a)(...input)),
+					take(1), // Important!
+					catchError((error: unknown) => {
+						// console.error(error)
+						throw errorFn(isArray(error) ? (error as any)[0] : error)
+					}),
+				)
 
 	const api = {
 		networkId: fwdAPICall(
@@ -234,12 +235,11 @@ const create = () => {
 			a => a.stakesForAddress,
 			m => stakesForAddressErr(m),
 		),
-		/*
+
 		unstakesForAddress: fwdAPICall(
 			a => a.unstakesForAddress,
 			m => unstakesForAddressErr(m),
 		),
-		*/
 
 		validators: fwdAPICall(
 			a => a.validators,
@@ -332,14 +332,12 @@ const create = () => {
 		a => a.stakesForAddress,
 		stakesForAddressErr,
 	)
-	/*
-		const unstakingPositions = activeAddressToAPIObservableWithTrigger(
-			stakingFetchSubject,
-			a => a.unstakesForAddress,
-			unstakesForAddressErr,
-		)
 
-		*/
+	const unstakingPositions = activeAddressToAPIObservableWithTrigger(
+		stakingFetchSubject,
+		a => a.unstakesForAddress,
+		unstakesForAddressErr
+	)
 
 	const transactionHistory = (
 		input: TransactionHistoryActiveAccountRequestInput,
@@ -790,26 +788,34 @@ const create = () => {
 			{ ...input },
 			encryptMsgIfAny
 				? {
-						encryptMessageIfAnyWithAccount: activeAccount.pipe(
-							take(1), // Important !
-						),
-				  }
+					encryptMessageIfAnyWithAccount: activeAccount.pipe(
+						take(1), // Important !
+					),
+				}
 				: undefined,
 		)
 	}
 
-	const stakeTokens = (input: StakeOptions) => {
+	const stakeTokens = async (input: MakeTransactionOptions & { stakeInput: Omit<StakeTokensInput, 'tokenIdentifier'> }) => {
 		radixLog.debug('stake')
+		const nativeToken = await firstValueFrom(nativeTokenSubject)
 		return __makeTransactionFromBuilder(
-			TransactionIntentBuilder.create().stakeTokens(input.stakeInput),
+			TransactionIntentBuilder.create().stakeTokens({
+				...input.stakeInput,
+				tokenIdentifier: nativeToken.rri
+			}),
 			{ ...input },
 		)
 	}
 
-	const unstakeTokens = (input: UnstakeOptions) => {
+	const unstakeTokens = async (input: MakeTransactionOptions & { unstakeInput: Omit<UnstakeTokensInput, 'tokenIdentifier'> }) => {
 		radixLog.debug('unstake')
+		const nativeToken = await firstValueFrom(nativeTokenSubject)
 		return __makeTransactionFromBuilder(
-			TransactionIntentBuilder.create().unstakeTokens(input.unstakeInput),
+			TransactionIntentBuilder.create().unstakeTokens({
+				...input.unstakeInput,
+				tokenIdentifier: nativeToken.rri
+			}),
 			{ ...input },
 		)
 	}
@@ -964,8 +970,9 @@ const create = () => {
 		connect: async (url: string) => {
 			methods.__withNodeConnection(of({ url: new URL(url) }))
 			const networkId = await firstValueFrom(api.networkId())
-			console.log('NETWORK ID ', networkId)
+			const nativeToken = await firstValueFrom(api.nativeToken(networkId))
 			networkSubject.next(networkId)
+			nativeTokenSubject.next(nativeToken)
 		},
 
 		login: (password: string, loadKeystore: () => Promise<KeystoreT>) => {
@@ -1071,7 +1078,7 @@ const create = () => {
 		// Active AccountAddress/Account APIs
 		tokenBalances,
 		stakingPositions,
-		//unstakingPositions,
+		unstakingPositions,
 
 		lookupTransaction: (
 			txID: TransactionIdentifierT,

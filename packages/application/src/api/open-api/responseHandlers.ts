@@ -444,49 +444,68 @@ export const handleTransactionResponse = (
 const handleTx = (transaction: AccountTransaction) => {
 	const transformAction = (action: Action): Result<ExecutedAction, Error> => {
 		const transformTransferTokenAction = (action: TransferTokens) => combine([
-				...transformTokenAmount(action.amount),
-				AccountAddress.fromUnsafe(action.to.address),
-				AccountAddress.fromUnsafe(action.from.address),
-			]).map(
-				(actionValue): ExecutedTransferTokensAction => ({
-					type: ActionType.TOKEN_TRANSFER,
-					amount: actionValue[0] as AmountT,
-					rri: actionValue[1] as ResourceIdentifierT,
-					to: actionValue[2] as AccountAddressT,
-					from: actionValue[3] as AccountAddressT,
-				}),
-			)
+			...transformTokenAmount(action.amount),
+			AccountAddress.fromUnsafe(action.to.address),
+			AccountAddress.fromUnsafe(action.from.address),
+		]).map(
+			(actionValue): ExecutedTransferTokensAction => ({
+				type: ActionType.TOKEN_TRANSFER,
+				amount: actionValue[0] as AmountT,
+				rri: actionValue[1] as ResourceIdentifierT,
+				to: actionValue[2] as AccountAddressT,
+				from: actionValue[3] as AccountAddressT,
+			}),
+		)
 
-		const transformStakeAndUnstakeTokenAction = (
-			type: ActionType.STAKE_TOKENS | ActionType.UNSTAKE_TOKENS,
-			action: StakeTokens | UnstakeTokens,
+		const transformStakeTokenAction = (
+			type: ActionType.STAKE_TOKENS,
+			action: StakeTokens,
 		) => combine([
-				...transformTokenAmount(action.amount),
-				ValidatorAddress.fromUnsafe(action.to.address),
-				AccountAddress.fromUnsafe(action.from.address)
-			]).map(
-				(
-					actionValue,
-				): ExecutedStakeTokensAction | ExecutedUnstakeTokensAction => ({
-					type,
-					amount: actionValue[0] as AmountT,
-					rri: actionValue[1] as ResourceIdentifierT,
-					validator: actionValue[2] as ValidatorAddressT,
-					from: actionValue[3] as AccountAddressT
-				}),
-			)
-		
+			...transformTokenAmount(action.amount),
+			ValidatorAddress.fromUnsafe(action.to.address),
+			AccountAddress.fromUnsafe(action.from.address)
+		]).map(
+			(
+				actionValue,
+			): ExecutedStakeTokensAction | ExecutedUnstakeTokensAction => ({
+				type,
+				amount: actionValue[0] as AmountT,
+				rri: actionValue[1] as ResourceIdentifierT,
+				validator: actionValue[2] as ValidatorAddressT,
+				from: actionValue[3] as AccountAddressT
+			}),
+		)
+
+		const transformUnstakeTokenAction = (
+			type: ActionType.UNSTAKE_TOKENS,
+			action: UnstakeTokens,
+		) => combine([
+			...transformTokenAmount(action.amount),
+			ValidatorAddress.fromUnsafe(action.from.address),
+			AccountAddress.fromUnsafe(action.to.address)
+		]).map(
+			(
+				actionValue,
+			): ExecutedStakeTokensAction | ExecutedUnstakeTokensAction => ({
+				type,
+				amount: actionValue[0] as AmountT,
+				rri: actionValue[1] as ResourceIdentifierT,
+				validator: actionValue[2] as ValidatorAddressT,
+				from: actionValue[3] as AccountAddressT
+			}),
+		)
+
 
 		switch (action.type) {
 			case 'TransferTokens':
 				return transformTransferTokenAction(action as TransferTokens)
 			case 'StakeTokens':
-				return transformStakeAndUnstakeTokenAction(
+				return transformStakeTokenAction(
 					ActionType.STAKE_TOKENS,
 					action as StakeTokens,
 				)
 			case 'UnstakeTokens':
-				return transformStakeAndUnstakeTokenAction(
+				return transformUnstakeTokenAction(
 					ActionType.UNSTAKE_TOKENS,
 					action as UnstakeTokens,
 				)

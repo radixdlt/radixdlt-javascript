@@ -57,6 +57,8 @@ export type ClientInterface = ReturnType<typeof DefaultApiFactory>
 export type MethodName = keyof ClientInterface
 export type Response = ReturnOfAPICall<MethodName>
 
+const isError = (data: any): data is { error: Record<string, unknown> } => data.error ? true : false
+
 const call = (client: ClientInterface) => <
 	M extends MethodName
 >(method: M, params: InputOfAPICall<M>): ResultAsync<ReturnOfAPICall<M>, Error> =>
@@ -66,9 +68,9 @@ const call = (client: ClientInterface) => <
 		() => ResultAsync.fromPromise(
 			// @ts-ignore
 			// { headers: { [headers[0]]: method, [headers[1]]: correlationID } }
-			client[method](params).then(x => {
-				console.log('RESPONSE FROM API', method,JSON.stringify(x.data, null, 2))
-				return x
+			client[method](params).then(response => {
+				if (isError(response.data)) throw Error(JSON.stringify(response.data.error))
+				return response
 			}),
 			// @ts-ignore
 			(e: Error) => e
