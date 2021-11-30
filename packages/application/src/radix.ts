@@ -103,11 +103,14 @@ import {
 	TransactionTracking,
 	TransactionTrackingEventType,
 	TransactionType,
-	TransactionStatus
+	TransactionStatus,
 } from './dto'
 import { ActionType, ExecutedAction, TransferTokensAction } from './actions'
 import { Wallet } from './wallet'
-import { AccountTransactionStatusStatusEnum, TransactionIdentifier } from '@radixdlt/networking'
+import {
+	AccountTransactionStatusStatusEnum,
+	TransactionIdentifier,
+} from '@radixdlt/networking'
 import { pipe } from 'ramda'
 
 const txTypeFromActions = (
@@ -226,16 +229,16 @@ const create = () => {
 			a => a.tokenInfo,
 			m => tokenInfoErr(m),
 		),
-		
+		*/
 		stakesForAddress: fwdAPICall(
 			a => a.stakesForAddress,
 			m => stakesForAddressErr(m),
 		),
+		/*
 		unstakesForAddress: fwdAPICall(
 			a => a.unstakesForAddress,
 			m => unstakesForAddressErr(m),
 		),
-
 		*/
 
 		validators: fwdAPICall(
@@ -324,13 +327,12 @@ const create = () => {
 				),
 			)
 	*/
+	const stakingPositions = activeAddressToAPIObservableWithTrigger(
+		stakingFetchSubject,
+		a => a.stakesForAddress,
+		stakesForAddressErr,
+	)
 	/*
-		const stakingPositions = activeAddressToAPIObservableWithTrigger(
-			stakingFetchSubject,
-			a => a.stakesForAddress,
-			stakesForAddressErr,
-		)
-	
 		const unstakingPositions = activeAddressToAPIObservableWithTrigger(
 			stakingFetchSubject,
 			a => a.unstakesForAddress,
@@ -684,17 +686,13 @@ const create = () => {
 		const transactionCompletedWithStatusConfirmed$ =
 			transactionStatus$.pipe(
 				skipWhile(
-					({ status }) =>
-						status !== TransactionStatus.CONFIRMED,
+					({ status }) => status !== TransactionStatus.CONFIRMED,
 				),
 				take(1),
 			)
 
 		const transactionCompletedWithStatusFailed$ = transactionStatus$.pipe(
-			skipWhile(
-				({ status }) =>
-					status !== TransactionStatus.FAILED
-			),
+			skipWhile(({ status }) => status !== TransactionStatus.FAILED),
 			take(1),
 		)
 
@@ -1044,9 +1042,7 @@ const create = () => {
 		) =>
 			trigger.pipe(
 				withLatestFrom(networkSubject),
-				mergeMap(([_, network]) =>
-					api.getTransaction(txID, network),
-				),
+				mergeMap(([_, network]) => api.getTransaction(txID, network)),
 				distinctUntilChanged((prev, cur) => prev.status === cur.status),
 				filter(({ txID }) => txID.equals(txID)),
 				tap(({ status }) =>
@@ -1074,34 +1070,40 @@ const create = () => {
 
 		// Active AccountAddress/Account APIs
 		tokenBalances,
-		//stakingPositions,
+		stakingPositions,
 		//unstakingPositions,
 
 		lookupTransaction: (
 			txID: TransactionIdentifierT,
 		): Observable<ExecutedTransaction> =>
 			networkSubject.pipe(
-				mergeMap(network => api.getTransaction(txID, network).pipe(
-					withLatestFrom(activeAddress),
-					map(([simpleTx, aa]) =>
-						decorateSimpleExecutedTransactionWithType(simpleTx, aa),
-					)
-				)),
+				mergeMap(network =>
+					api.getTransaction(txID, network).pipe(
+						withLatestFrom(activeAddress),
+						map(([simpleTx, aa]) =>
+							decorateSimpleExecutedTransactionWithType(
+								simpleTx,
+								aa,
+							),
+						),
+					),
+				),
 			),
 
 		transactionHistory,
 		transferTokens,
 		stakeTokens,
 		unstakeTokens,
-		
-		getTransaction: (txID: TransactionIdentifierT) => 
+
+		getTransaction: (txID: TransactionIdentifierT) =>
 			networkSubject.pipe(
-				mergeMap(network => api.getTransaction(txID, network))
+				mergeMap(network => api.getTransaction(txID, network)),
 			),
-		
-		validators: () => networkSubject.pipe(
-			mergeMap(network => api.validators({ network }))
-		)
+
+		validators: () =>
+			networkSubject.pipe(
+				mergeMap(network => api.validators({ network })),
+			),
 	}
 
 	return methods

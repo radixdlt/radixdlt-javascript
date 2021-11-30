@@ -117,19 +117,17 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 					rri: rri.toString(),
 				},
 			}),
+
+		stakesForAddress: (
+			address: AccountAddressT,
+		): Observable<StakePositionsEndpoint.DecodedResponse> =>
+			toObs(a => a['stakePositions'], {
+				network: address.network,
+				account_identifier: {
+					address: address.toString(),
+				},
+			}),
 		/*
-				stakesForAddress: (
-					address: AccountAddressT,
-				): Observable<StakePositionsEndpoint.DecodedResponse> =>
-					toObs(a => a['stakePositions'], {
-						accountStakesRequest: {
-							network: address.network,
-							accountIdentifier: {
-								address: address.toString(),
-							},
-						},
-					}),
-		
 				unstakesForAddress: (
 					address: AccountAddressT,
 				): Observable<UnstakePositionsEndpoint.DecodedResponse> =>

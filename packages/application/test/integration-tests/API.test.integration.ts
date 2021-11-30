@@ -493,7 +493,6 @@ describe('integration API tests', () => {
 		expect(validators.validators.length).toEqual(1)
 	})
 
-/*
 	it('can fetch stake positions', async done => {
 		const triggerSubject = new Subject<number>()
 
@@ -520,7 +519,7 @@ describe('integration API tests', () => {
 		subs.add(
 			radix.ledger
 				.validators({
-					size: 1,
+					network,
 				})
 				.subscribe(({ validators }) => {
 					validatorResolve(validators[0].address)
@@ -565,6 +564,7 @@ describe('integration API tests', () => {
 			stakeInput: {
 				amount: stakeAmount,
 				validator: validator,
+				tokenIdentifier: nativeTokenBalance.token_identifier.rri,
 			},
 			userConfirmation: 'skip',
 			pollTXStatusTrigger: interval(1000),
@@ -577,7 +577,7 @@ describe('integration API tests', () => {
 			}),
 		)
 	})
-/*
+	/*
 	it.skip('can fetch unstake positions', async () => {
 		const triggerSubject = new Subject<number>()
 
