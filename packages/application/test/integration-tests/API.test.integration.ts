@@ -456,7 +456,7 @@ describe('integration API tests', () => {
 		})
 	})
 
-	it.only('can lookup tx', async () => {
+	it('can lookup tx', async () => {
 		const { completion } = radix.transferTokens({
 			transferInput: {
 				to: accounts[2].address,
@@ -474,7 +474,7 @@ describe('integration API tests', () => {
 		expect(tx.actions.length).toEqual(1)
 	})
 
-	it.only('can lookup validator', async () => {
+	it('can lookup validator', async () => {
 		const validator = (
 			await firstValueFrom(radix.ledger.validators({ network }))
 		).validators[0]
@@ -485,7 +485,6 @@ describe('integration API tests', () => {
 		expect(validatorFromLookup.address.equals(validator.address)).toBe(true)
 	})
 
-	// 🟢
 	it('should get validators', async () => {
 		const validators = await firstValueFrom(
 			radix.ledger.validators({ network }),
@@ -494,52 +493,7 @@ describe('integration API tests', () => {
 		expect(validators.validators.length).toEqual(1)
 	})
 
-	/*
-
-	// 🟢
-	it('should be able to paginate validators', async () => {
-		const validators = await firstValueFrom(
-			radix.ledger.validators({ size: 2 }),
-		)
-
-		const firstValidator = await firstValueFrom(
-			radix.ledger.validators({ size: 1 }),
-		)
-
-		const cursor = firstValidator.cursor
-
-		expect(validators.validators[0].address.toString()).toEqual(
-			firstValidator.validators[0].address.toString(),
-		)
-
-		const secondValidator = await firstValueFrom(
-			radix.ledger.validators({ size: 1, cursor }),
-		)
-
-		expect(validators.validators[1].address.toString()).toEqual(
-			secondValidator.validators[0].address.toString(),
-		)
-	})
-
-	// 🟢
-	it('should get network transaction demand response', async () => {
-		const result = await firstValueFrom(
-			radix.ledger.NetworkTransactionDemand(),
-		)
-
-		expect(result.tps).toEqual(0)
-	})
-
-	// 🟢
-	it('should get network transaction throughput response', async () => {
-		const result = await firstValueFrom(
-			radix.ledger.NetworkTransactionThroughput(),
-		)
-
-		expect(result.tps).toBeGreaterThan(0)
-	})
-
-	// 🟢
+/*
 	it('can fetch stake positions', async done => {
 		const triggerSubject = new Subject<number>()
 
@@ -623,7 +577,7 @@ describe('integration API tests', () => {
 			}),
 		)
 	})
-
+/*
 	it.skip('can fetch unstake positions', async () => {
 		const triggerSubject = new Subject<number>()
 

@@ -1037,7 +1037,7 @@ const create = () => {
 			log.setLevel(level)
 			return methods
 		},
-		
+
 		transactionStatus: (
 			txID: TransactionIdentifierT,
 			trigger: Observable<number>,
@@ -1077,8 +1077,6 @@ const create = () => {
 		//stakingPositions,
 		//unstakingPositions,
 
-		// Methods
-		
 		lookupTransaction: (
 			txID: TransactionIdentifierT,
 		): Observable<ExecutedTransaction> =>
@@ -1099,7 +1097,11 @@ const create = () => {
 		getTransaction: (txID: TransactionIdentifierT) => 
 			networkSubject.pipe(
 				mergeMap(network => api.getTransaction(txID, network))
-			)
+			),
+		
+		validators: () => networkSubject.pipe(
+			mergeMap(network => api.validators({ network }))
+		)
 	}
 
 	return methods
