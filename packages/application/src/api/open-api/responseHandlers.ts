@@ -66,7 +66,7 @@ const transformMessage = (message?: string) => {
 		: message
 }
 
-export const handleNetworkResponse = (json: ReturnOfAPICall<'networkPost'>) =>
+export const handleGatewayResponse = (json: ReturnOfAPICall<'gatewayPost'>) =>
 	ok({
 		network: json.data.network as Network,
 	}).mapErr(e => [e] as Error[])
@@ -75,24 +75,23 @@ export const handleTokenInfoResponse = (
 	json: ReturnOfAPICall<'tokenPost'>,
 ): Result<TokenInfoEndpoint.DecodedResponse, Error[]> =>
 	combine([
-		ResourceIdentifier.fromUnsafe(json.data.token[0].token_identifier.rri),
-		Amount.fromUnsafe(json.data.token[0].token_properties.granularity),
-		Amount.fromUnsafe(json.data.token[0].token_supply.value),
+		ResourceIdentifier.fromUnsafe(json.data.token.token_identifier.rri),
+		Amount.fromUnsafe(json.data.token.token_properties.granularity),
+		Amount.fromUnsafe(json.data.token.token_supply.value),
 	])
 		.map(values => ({
-			name: json.data.token[0].token_properties.name ?? '',
+			name: json.data.token.token_properties.name ?? '',
 			rri: values[0] as ResourceIdentifierT,
-			symbol: json.data.token[0].token_properties.symbol,
-			description: json.data.token[0].token_properties.description,
+			symbol: json.data.token.token_properties.symbol,
+			description: json.data.token.token_properties.description,
 			granularity: values[1] as AmountT,
-			isSupplyMutable:
-				json.data.token[0].token_properties.is_supply_mutable,
+			isSupplyMutable: json.data.token.token_properties.is_supply_mutable,
 			currentSupply: values[2] as AmountT,
-			tokenInfoURL: json.data.token[0].token_properties.url
-				? new URL(json.data.token[0].token_properties.url)
+			tokenInfoURL: json.data.token.token_properties.url
+				? new URL(json.data.token.token_properties.url)
 				: undefined,
-			iconURL: json.data.token[0].token_properties.icon_url
-				? new URL(json.data.token[0].token_properties.icon_url)
+			iconURL: json.data.token.token_properties.icon_url
+				? new URL(json.data.token.token_properties.icon_url)
 				: undefined,
 		}))
 		.mapErr(e => [e])
@@ -159,14 +158,13 @@ export const handleUnstakePositionsResponse = (
 export const handleAccountTransactionsResponse = (
 	json: ReturnOfAPICall<'accountTransactionsPost'>,
 ): Result<AccountTransactionsEndpoint.DecodedResponse, Error[]> =>
-	combine(json.data.transactions.map(handleTx))
-		.map(
-			(transactions): SimpleTransactionHistory => ({
-				cursor: json.data.next_cursor as string,
-				// @ts-ignore
-				transactions,
-			}),
-		)
+	combine(json.data.transactions.map(handleTx)).map(
+		(transactions): SimpleTransactionHistory => ({
+			cursor: json.data.next_cursor as string,
+			// @ts-ignore
+			transactions,
+		}),
+	)
 
 // export const handleAccountTransactionsResponse = (
 // 	json: ReturnOfAPICall<'accountTransactionsPost'>,
@@ -436,65 +434,64 @@ export const handleSubmitTransactionResponse = (
 export const handleTransactionResponse = (
 	json: ReturnOfAPICall<'transactionStatusPost'>,
 ): Result<TransactionEndpoint.DecodedResponse, Error[]> =>
-	json.data.transaction.length === 0
-		? err([Error('Transaction not found.')])
-		: handleTx(json.data.transaction[0])
-
+	handleTx(json.data.transaction)
 
 const handleTx = (transaction: AccountTransaction) => {
 	const transformAction = (action: Action): Result<ExecutedAction, Error> => {
-		const transformTransferTokenAction = (action: TransferTokens) => combine([
-			...transformTokenAmount(action.amount),
-			AccountAddress.fromUnsafe(action.to.address),
-			AccountAddress.fromUnsafe(action.from.address),
-		]).map(
-			(actionValue): ExecutedTransferTokensAction => ({
-				type: ActionType.TOKEN_TRANSFER,
-				amount: actionValue[0] as AmountT,
-				rri: actionValue[1] as ResourceIdentifierT,
-				to: actionValue[2] as AccountAddressT,
-				from: actionValue[3] as AccountAddressT,
-			}),
-		)
+		const transformTransferTokenAction = (action: TransferTokens) =>
+			combine([
+				...transformTokenAmount(action.amount),
+				AccountAddress.fromUnsafe(action.to_account.address),
+				AccountAddress.fromUnsafe(action.from_account.address),
+			]).map(
+				(actionValue): ExecutedTransferTokensAction => ({
+					type: ActionType.TOKEN_TRANSFER,
+					amount: actionValue[0] as AmountT,
+					rri: actionValue[1] as ResourceIdentifierT,
+					to: actionValue[2] as AccountAddressT,
+					from: actionValue[3] as AccountAddressT,
+				}),
+			)
 
 		const transformStakeTokenAction = (
 			type: ActionType.STAKE_TOKENS,
 			action: StakeTokens,
-		) => combine([
-			...transformTokenAmount(action.amount),
-			ValidatorAddress.fromUnsafe(action.to.address),
-			AccountAddress.fromUnsafe(action.from.address)
-		]).map(
-			(
-				actionValue,
-			): ExecutedStakeTokensAction | ExecutedUnstakeTokensAction => ({
-				type,
-				amount: actionValue[0] as AmountT,
-				rri: actionValue[1] as ResourceIdentifierT,
-				validator: actionValue[2] as ValidatorAddressT,
-				from: actionValue[3] as AccountAddressT
-			}),
-		)
+		) =>
+			combine([
+				...transformTokenAmount(action.amount),
+				ValidatorAddress.fromUnsafe(action.to_validator.address),
+				AccountAddress.fromUnsafe(action.from_account.address),
+			]).map(
+				(
+					actionValue,
+				): ExecutedStakeTokensAction | ExecutedUnstakeTokensAction => ({
+					type,
+					amount: actionValue[0] as AmountT,
+					rri: actionValue[1] as ResourceIdentifierT,
+					validator: actionValue[2] as ValidatorAddressT,
+					from: actionValue[3] as AccountAddressT,
+				}),
+			)
 
 		const transformUnstakeTokenAction = (
 			type: ActionType.UNSTAKE_TOKENS,
 			action: UnstakeTokens,
-		) => combine([
-			...transformTokenAmount(action.amount),
-			ValidatorAddress.fromUnsafe(action.from.address),
-			AccountAddress.fromUnsafe(action.to.address)
-		]).map(
-			(
-				actionValue,
-			): ExecutedStakeTokensAction | ExecutedUnstakeTokensAction => ({
-				type,
-				amount: actionValue[0] as AmountT,
-				rri: actionValue[1] as ResourceIdentifierT,
-				validator: actionValue[2] as ValidatorAddressT,
-				from: actionValue[3] as AccountAddressT
-			}),
-		)
-
+		) =>
+			combine([
+				...transformTokenAmount(action.amount),
+				ValidatorAddress.fromUnsafe(action.from_validator.address),
+				AccountAddress.fromUnsafe(action.to_account.address),
+			]).map(
+				(
+					actionValue,
+				): ExecutedStakeTokensAction | ExecutedUnstakeTokensAction => ({
+					type,
+					amount: actionValue[0] as AmountT,
+					rri: actionValue[1] as ResourceIdentifierT,
+					validator: actionValue[2] as ValidatorAddressT,
+					from: actionValue[3] as AccountAddressT,
+				}),
+			)
 
 		switch (action.type) {
 			case 'TransferTokens':
@@ -516,18 +513,26 @@ const handleTx = (transaction: AccountTransaction) => {
 
 	return combine([
 		TransactionIdentifier.create(transaction.transaction_identifier.hash),
-		ok(transaction.transaction_status.confirmed_time ? new Date(transaction.transaction_status.confirmed_time) : null),
+		ok(
+			transaction.transaction_status.confirmed_time
+				? new Date(transaction.transaction_status.confirmed_time)
+				: null,
+		),
 		Amount.fromUnsafe(transaction.fee_paid.value),
 		ok(transformMessage(transaction.metadata.message) ?? ''),
-		combine(transaction.actions.map(transformAction)).map(actions => ({ actions })),
-		ok(transaction.transaction_status.status)
-	]).map(value => ({
-		txID: value[0] as TransactionIdentifierT,
-		sentAt: value[1] as Date,
-		fee: value[2] as AmountT,
-		message: value[3] as string,
-		// @ts-ignore
-		actions: value[4].actions as ExecutedAction[],
-		status: value[5] as TransactionStatus
-	})).mapErr(e => [e] as Error[])
+		combine(transaction.actions.map(transformAction)).map(actions => ({
+			actions,
+		})),
+		ok(transaction.transaction_status.status),
+	])
+		.map(value => ({
+			txID: value[0] as TransactionIdentifierT,
+			sentAt: value[1] as Date,
+			fee: value[2] as AmountT,
+			message: value[3] as string,
+			// @ts-ignore
+			actions: value[4].actions as ExecutedAction[],
+			status: value[5] as TransactionStatus,
+		}))
+		.mapErr(e => [e] as Error[])
 }

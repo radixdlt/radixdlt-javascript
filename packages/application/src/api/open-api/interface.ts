@@ -7,7 +7,7 @@ import {
 import {
 	handleAccountBalancesResponse,
 	handleNativeTokenResponse,
-	handleNetworkResponse,
+	handleGatewayResponse,
 	handleStakePositionsResponse,
 	handleTokenInfoResponse,
 	handleUnstakePositionsResponse,
@@ -40,7 +40,7 @@ export const getAPI = pipe(
 	(call: OpenApiClientCall) => callAPIWith(call),
 
 	callAPI => ({
-		network: callAPI('networkPost')(handleNetworkResponse),
+		gateway: callAPI('gatewayPost')(handleGatewayResponse),
 		tokenInfo: callAPI('tokenPost')(handleTokenInfoResponse),
 		nativeTokenInfo: callAPI('tokenNativePost')(handleNativeTokenResponse),
 		stakePositions: callAPI('accountStakesPost')(

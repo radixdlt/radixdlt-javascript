@@ -74,7 +74,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 
 		networkId: () =>
 			toObsMap(
-				a => a['network'],
+				a => a['gateway'],
 				m => m.network,
 				{
 					body: {},
@@ -138,7 +138,6 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 				},
 			}),
 
-
 		transactionStatus: (
 			txID: TransactionIdentifierT,
 			network: string,
@@ -159,49 +158,51 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 				actions: transactionIntent.actions.map(action =>
 					action.type === ActionType.TOKEN_TRANSFER
 						? {
-							type: 'TransferTokens',
-							from: {
-								address: action.from.toString(),
-							},
-							to: {
-								address: action.to.toString(),
-							},
-							amount: {
-								value: action.amount.toString(),
-								token_identifier: {
-									rri: action.rri.toString(),
+								type: 'TransferTokens',
+								from: {
+									address: action.from.toString(),
 								},
-							},
-						}
-						: action.type === ActionType.STAKE_TOKENS ? {
-							type: 'StakeTokens',
-							from: {
-								address: action.from.toString(),
-							},
-							to: {
-								address: action.validator.toString(),
-							},
-							amount: {
-								value: action.amount.toString(),
-								token_identifier: {
-									rri: action.rri.toString(),
+								to: {
+									address: action.to.toString(),
 								},
-							},
-						} : {
-							type: 'UnstakeTokens',
-							from: {
-								address: action.validator.toString(),
-							},
-							to: {
-								address: action.from.toString(),
-							},
-							amount: {
-								value: action.amount.toString(),
-								token_identifier: {
-									rri: action.rri.toString(),
+								amount: {
+									value: action.amount.toString(),
+									token_identifier: {
+										rri: action.rri.toString(),
+									},
 								},
-							},
-						}
+						  }
+						: action.type === ActionType.STAKE_TOKENS
+						? {
+								type: 'StakeTokens',
+								from: {
+									address: action.from.toString(),
+								},
+								to: {
+									address: action.validator.toString(),
+								},
+								amount: {
+									value: action.amount.toString(),
+									token_identifier: {
+										rri: action.rri.toString(),
+									},
+								},
+						  }
+						: {
+								type: 'UnstakeTokens',
+								from: {
+									address: action.validator.toString(),
+								},
+								to: {
+									address: action.from.toString(),
+								},
+								amount: {
+									value: action.amount.toString(),
+									token_identifier: {
+										rri: action.rri.toString(),
+									},
+								},
+						  },
 				),
 				fee_payer: {
 					address: from.toString(),
@@ -228,9 +229,10 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 		submitSignedTransaction: (
 			network: string,
 			finalizedTx: FinalizedTransaction,
-		): Observable<SubmitTransactionEndpoint.DecodedResponse> => toObs(a => a['submitTransaction'], {
-			network,
-			signed_transaction: finalizedTx.blob,
-		})
+		): Observable<SubmitTransactionEndpoint.DecodedResponse> =>
+			toObs(a => a['submitTransaction'], {
+				network,
+				signed_transaction: finalizedTx.blob,
+			}),
 	}
 }

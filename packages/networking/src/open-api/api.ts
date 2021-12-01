@@ -415,7 +415,7 @@ export interface BurnTokens extends Action {
      * @type {AccountIdentifier}
      * @memberof BurnTokens
      */
-    'from': AccountIdentifier;
+    'from_account': AccountIdentifier;
     /**
      * 
      * @type {TokenAmount}
@@ -434,7 +434,7 @@ export interface BurnTokensAllOf {
      * @type {AccountIdentifier}
      * @memberof BurnTokensAllOf
      */
-    'from': AccountIdentifier;
+    'from_account': AccountIdentifier;
     /**
      * 
      * @type {TokenAmount}
@@ -491,7 +491,7 @@ export interface CreateTokenDefinition extends Action {
      * @type {AccountIdentifier}
      * @memberof CreateTokenDefinition
      */
-    'to'?: AccountIdentifier;
+    'to_account'?: AccountIdentifier;
 }
 /**
  * 
@@ -516,7 +516,7 @@ export interface CreateTokenDefinitionAllOf {
      * @type {AccountIdentifier}
      * @memberof CreateTokenDefinitionAllOf
      */
-    'to'?: AccountIdentifier;
+    'to_account'?: AccountIdentifier;
 }
 /**
  * 
@@ -540,53 +540,27 @@ export interface EpochRange {
 /**
  * 
  * @export
- * @interface InternalServerError
+ * @interface GatewayResponse
  */
-export interface InternalServerError {
+export interface GatewayResponse {
     /**
      * 
      * @type {string}
-     * @memberof InternalServerError
+     * @memberof GatewayResponse
      */
-    'exception'?: string;
+    'network': string;
     /**
      * 
-     * @type {string}
-     * @memberof InternalServerError
+     * @type {LedgerState}
+     * @memberof GatewayResponse
      */
-    'cause'?: string;
-}
-/**
- * 
- * @export
- * @interface InvalidJsonError
- */
-export interface InvalidJsonError {
+    'ledger_state': LedgerState;
     /**
      * 
-     * @type {string}
-     * @memberof InvalidJsonError
+     * @type {TargetLedgerState}
+     * @memberof GatewayResponse
      */
-    'cause'?: string;
-}
-/**
- * 
- * @export
- * @interface InvalidRequestError
- */
-export interface InvalidRequestError {
-    /**
-     * 
-     * @type {string}
-     * @memberof InvalidRequestError
-     */
-    'pointer'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof InvalidRequestError
-     */
-    'cause'?: string;
+    'target_ledger_state'?: TargetLedgerState;
 }
 /**
  * 
@@ -668,7 +642,7 @@ export interface MintTokens extends Action {
      * @type {AccountIdentifier}
      * @memberof MintTokens
      */
-    'to': AccountIdentifier;
+    'to_account': AccountIdentifier;
     /**
      * 
      * @type {TokenAmount}
@@ -687,38 +661,13 @@ export interface MintTokensAllOf {
      * @type {AccountIdentifier}
      * @memberof MintTokensAllOf
      */
-    'to': AccountIdentifier;
+    'to_account': AccountIdentifier;
     /**
      * 
      * @type {TokenAmount}
      * @memberof MintTokensAllOf
      */
     'amount': TokenAmount;
-}
-/**
- * 
- * @export
- * @interface NetworkResponse
- */
-export interface NetworkResponse {
-    /**
-     * 
-     * @type {string}
-     * @memberof NetworkResponse
-     */
-    'network': string;
-    /**
-     * 
-     * @type {LedgerState}
-     * @memberof NetworkResponse
-     */
-    'ledger_state': LedgerState;
-    /**
-     * 
-     * @type {TargetLedgerState}
-     * @memberof NetworkResponse
-     */
-    'target_ledger_state'?: TargetLedgerState;
 }
 /**
  * 
@@ -807,13 +756,13 @@ export interface StakeTokens extends Action {
      * @type {AccountIdentifier}
      * @memberof StakeTokens
      */
-    'from': AccountIdentifier;
+    'from_account': AccountIdentifier;
     /**
      * 
      * @type {ValidatorIdentifier}
      * @memberof StakeTokens
      */
-    'to': ValidatorIdentifier;
+    'to_validator': ValidatorIdentifier;
     /**
      * 
      * @type {TokenAmount}
@@ -832,13 +781,13 @@ export interface StakeTokensAllOf {
      * @type {AccountIdentifier}
      * @memberof StakeTokensAllOf
      */
-    'from': AccountIdentifier;
+    'from_account': AccountIdentifier;
     /**
      * 
      * @type {ValidatorIdentifier}
      * @memberof StakeTokensAllOf
      */
-    'to': ValidatorIdentifier;
+    'to_validator': ValidatorIdentifier;
     /**
      * 
      * @type {TokenAmount}
@@ -1099,10 +1048,10 @@ export interface TokenResponse {
     'ledger_state': LedgerState;
     /**
      * 
-     * @type {Array<Token>}
+     * @type {Token}
      * @memberof TokenResponse
      */
-    'token': Array<Token>;
+    'token': Token;
 }
 /**
  * 
@@ -1410,10 +1359,10 @@ export interface TransactionStatusResponse {
     'ledger_state': LedgerState;
     /**
      * 
-     * @type {Array<AccountTransaction>}
+     * @type {AccountTransaction}
      * @memberof TransactionStatusResponse
      */
-    'transaction': Array<AccountTransaction>;
+    'transaction': AccountTransaction;
 }
 /**
  * 
@@ -1458,13 +1407,13 @@ export interface TransferTokens extends Action {
      * @type {AccountIdentifier}
      * @memberof TransferTokens
      */
-    'from': AccountIdentifier;
+    'from_account': AccountIdentifier;
     /**
      * 
      * @type {AccountIdentifier}
      * @memberof TransferTokens
      */
-    'to': AccountIdentifier;
+    'to_account': AccountIdentifier;
     /**
      * 
      * @type {TokenAmount}
@@ -1483,13 +1432,13 @@ export interface TransferTokensAllOf {
      * @type {AccountIdentifier}
      * @memberof TransferTokensAllOf
      */
-    'from': AccountIdentifier;
+    'from_account': AccountIdentifier;
     /**
      * 
      * @type {AccountIdentifier}
      * @memberof TransferTokensAllOf
      */
-    'to': AccountIdentifier;
+    'to_account': AccountIdentifier;
     /**
      * 
      * @type {TokenAmount}
@@ -1505,10 +1454,22 @@ export interface TransferTokensAllOf {
 export interface UnexpectedError {
     /**
      * 
+     * @type {number}
+     * @memberof UnexpectedError
+     */
+    'code': number;
+    /**
+     * 
      * @type {string}
      * @memberof UnexpectedError
      */
     'message': string;
+    /**
+     * 
+     * @type {object}
+     * @memberof UnexpectedError
+     */
+    'details'?: object;
 }
 /**
  * 
@@ -1521,13 +1482,13 @@ export interface UnstakeTokens extends Action {
      * @type {ValidatorIdentifier}
      * @memberof UnstakeTokens
      */
-    'from': ValidatorIdentifier;
+    'from_validator': ValidatorIdentifier;
     /**
      * 
      * @type {AccountIdentifier}
      * @memberof UnstakeTokens
      */
-    'to': AccountIdentifier;
+    'to_account': AccountIdentifier;
     /**
      * 
      * @type {TokenAmount}
@@ -1546,13 +1507,13 @@ export interface UnstakeTokensAllOf {
      * @type {ValidatorIdentifier}
      * @memberof UnstakeTokensAllOf
      */
-    'from': ValidatorIdentifier;
+    'from_validator': ValidatorIdentifier;
     /**
      * 
      * @type {AccountIdentifier}
      * @memberof UnstakeTokensAllOf
      */
-    'to': AccountIdentifier;
+    'to_account': AccountIdentifier;
     /**
      * 
      * @type {TokenAmount}
@@ -1920,15 +1881,15 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
         },
         /**
          * 
-         * @summary Get Network
+         * @summary Get Gateway Info
          * @param {object} body 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        networkPost: async (body: object, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        gatewayPost: async (body: object, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'body' is not null or undefined
-            assertParamExists('networkPost', 'body', body)
-            const localVarPath = `/network`;
+            assertParamExists('gatewayPost', 'body', body)
+            const localVarPath = `/gateway`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -2370,13 +2331,13 @@ export const DefaultApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
-         * @summary Get Network
+         * @summary Get Gateway Info
          * @param {object} body 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async networkPost(body: object, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<NetworkResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.networkPost(body, options);
+        async gatewayPost(body: object, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<GatewayResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.gatewayPost(body, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -2541,13 +2502,13 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
         },
         /**
          * 
-         * @summary Get Network
+         * @summary Get Gateway Info
          * @param {object} body 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        networkPost(body: object, options?: any): AxiosPromise<NetworkResponse> {
-            return localVarFp.networkPost(body, options).then((request) => request(axios, basePath));
+        gatewayPost(body: object, options?: any): AxiosPromise<GatewayResponse> {
+            return localVarFp.gatewayPost(body, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -2709,14 +2670,14 @@ export class DefaultApi extends BaseAPI {
 
     /**
      * 
-     * @summary Get Network
+     * @summary Get Gateway Info
      * @param {object} body 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DefaultApi
      */
-    public networkPost(body: object, options?: AxiosRequestConfig) {
-        return DefaultApiFp(this.configuration).networkPost(body, options).then((request) => request(this.axios, this.basePath));
+    public gatewayPost(body: object, options?: AxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).gatewayPost(body, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

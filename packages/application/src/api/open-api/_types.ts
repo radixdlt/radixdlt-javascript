@@ -5,7 +5,7 @@ import {
 } from '@radixdlt/account'
 import {
 	LedgerState as LedgerStateRaw,
-	NetworkResponse,
+	GatewayResponse,
 	TokenResponse,
 	TokenNativeResponse,
 	TokenDeriveResponse,
@@ -49,7 +49,7 @@ import {
 	UnstakePositions,
 	UnstakePosition,
 	SimpleTransactionHistory,
-	SimpleExecutedTransaction
+	SimpleExecutedTransaction,
 } from '../../dto'
 
 export namespace Decoded {
@@ -147,7 +147,7 @@ export namespace Decoded {
 		Unstake = 'UnstakeTokens',
 		Mint = 'MintTokens',
 		Burn = 'BurnTokens',
-		CreateTokenDefinition = 'CreateTokenDefinition'
+		CreateTokenDefinition = 'CreateTokenDefinition',
 	}
 
 	type BaseAction<T extends ActionType> = {
@@ -182,11 +182,12 @@ export namespace Decoded {
 		amount: TokenAmount
 	}
 
-	export type CreateTokenDefinitionAction = BaseAction<ActionType.CreateTokenDefinition> & {
-		token_properties: TokenProperties
-		token_supply: TokenAmount
-		to?: AccountIdentifier
-	}
+	export type CreateTokenDefinitionAction =
+		BaseAction<ActionType.CreateTokenDefinition> & {
+			token_properties: TokenProperties
+			token_supply: TokenAmount
+			to?: AccountIdentifier
+		}
 
 	export type Action =
 		| TransferTokensAction
@@ -255,10 +256,10 @@ export namespace Decoded {
 		| CouldNotConstructFeesError
 }
 
-export namespace NetworkEndpoint {
+export namespace GatewayEndpoint {
 	export type Input = {}
 
-	export type Response = NetworkResponse
+	export type Response = GatewayResponse
 
 	export type DecodedResponse = {
 		networkId: Network
