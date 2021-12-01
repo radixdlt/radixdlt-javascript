@@ -154,7 +154,7 @@ const create = () => {
 	const nodeSubject = new ReplaySubject<NodeT>()
 	const coreAPISubject = new ReplaySubject<RadixCoreAPI>()
 	const walletSubject = new ReplaySubject<WalletT>()
-	const errorNotificationSubject = new Subject<ErrorT<any>>()
+	const errorNotificationSubject = new Subject<APIError>()
 
 	const deriveNextLocalHDAccountSubject = new Subject<DeriveNextInput>()
 	const addAccountByPrivateKeySubject =
@@ -935,7 +935,7 @@ const create = () => {
 						nodeSubject.next(n)
 					},
 					(error: Error) => {
-						errorNotificationSubject.next(nodeError(error))
+						errorNotificationSubject.next(nodeError(error) as any)
 					},
 				),
 			)
@@ -991,7 +991,7 @@ const create = () => {
 						)
 					},
 					error => {
-						errorNotificationSubject.next(walletError(error))
+						errorNotificationSubject.next(walletError(error) as any)
 					},
 				)
 			})

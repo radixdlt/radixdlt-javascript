@@ -117,19 +117,16 @@ describe('integration API tests', () => {
 
 		const address1 = await firstValueFrom(radix.activeAddress)
 		expect(address1.network).toBeDefined()
-		console.log(address1.toString())
 
 		await radix.connect('https://mainnet.radixdlt.com')
 
 		const address2 = await firstValueFrom(radix.activeAddress)
 		expect(address2.network).toBeDefined()
-		console.log(address2.toString())
 
 		await radix.connect('https://stokenet.radixdlt.com')
 
 		const address3 = await firstValueFrom(radix.activeAddress)
 		expect(address3.network).toBeDefined()
-		console.log(address3.toString())
 
 		done()
 	})
