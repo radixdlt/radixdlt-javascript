@@ -52,5 +52,5 @@
     "@types/scrypt-js": "^2.0.4",
     "@types/uuid": "^8.3.0"
   },
-  "gitHead": "ee833a68768aa7fba2636e413a03fc1801ca0817"
+  "gitHead": "f8026eb0c310402ba395025e6a544f7c6baffd66"
 }

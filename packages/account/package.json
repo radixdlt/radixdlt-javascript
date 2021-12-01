@@ -47,5 +47,5 @@
     "@types/long": "^4.0.1",
     "ethereum-public-key-to-address": "^0.0.5"
   },
-  "gitHead": "ee833a68768aa7fba2636e413a03fc1801ca0817"
+  "gitHead": "f8026eb0c310402ba395025e6a544f7c6baffd66"
 }

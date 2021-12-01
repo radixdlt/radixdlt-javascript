@@ -39,5 +39,6 @@
   },
   "devDependencies": {
     "@types/isomorphic-fetch": "^0.0.35"
-  }
+  },
+  "gitHead": "f8026eb0c310402ba395025e6a544f7c6baffd66"
 }
