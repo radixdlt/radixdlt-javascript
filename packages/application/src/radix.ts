@@ -6,7 +6,7 @@ import {
 	SigningKeychainT,
 } from '@radixdlt/account'
 import { Network } from '@radixdlt/primitives'
-import { nodeAPI, NodeT, RadixAPI, radixCoreAPI, RadixCoreAPI } from './api'
+import { nodeAPI, NodeT, radixCoreAPI, RadixCoreAPI } from './api'
 
 import {
 	catchError,
@@ -26,9 +26,7 @@ import {
 	combineLatest,
 	EMPTY,
 	firstValueFrom,
-	forkJoin,
 	interval,
-	lastValueFrom,
 	merge,
 	Observable,
 	of,
@@ -45,12 +43,9 @@ import {
 	AccountT,
 	MakeTransactionOptions,
 	ManualUserConfirmTX,
-	StakeOptions,
 	SwitchAccountInput,
 	TransactionConfirmationBeforeFinalization,
 	TransferTokensOptions,
-	UnstakeOptions,
-	RadixT,
 } from './_types'
 import {
 	APIError,
@@ -62,15 +57,11 @@ import {
 	lookupValidatorErr,
 	nativeTokenErr,
 	networkIdErr,
-	NetworkTxDemandErr,
-	NetworkTxThroughputErr,
 	nodeError,
 	stakesForAddressErr,
 	submitSignedTxErr,
 	tokenBalancesErr,
-	tokenInfoErr,
 	transactionHistoryErr,
-	txStatusErr,
 	unstakesForAddressErr,
 	validatorsErr,
 	walletError,
@@ -84,13 +75,9 @@ import {
 	PendingTransaction,
 	SignedTransaction,
 	SimpleExecutedTransaction,
-	SimpleTokenBalance,
-	SimpleTokenBalances,
 	SimpleTransactionHistory,
 	singleRecipientFromActions,
 	Token,
-	TokenBalance,
-	TokenBalances,
 	TransactionHistory,
 	TransactionHistoryActiveAccountRequestInput,
 	TransactionIdentifierT,
@@ -100,12 +87,18 @@ import {
 	TransactionIntentBuilderT,
 	TransactionStateError,
 	TransactionStateUpdate,
-	TransactionStatus,
 	TransactionTracking,
 	TransactionTrackingEventType,
 	TransactionType,
+	TransactionStatus,
 } from './dto'
-import { ActionType, ExecutedAction, TransferTokensAction } from './actions'
+import {
+	ActionType,
+	ExecutedAction,
+	TransferTokensAction,
+	StakeTokensInput,
+	UnstakeTokensInput,
+} from './actions'
 import { Wallet } from './wallet'
 
 const txTypeFromActions = (
@@ -154,14 +147,14 @@ const shouldConfirmTransactionAutomatically = (
 	confirmationScheme: TransactionConfirmationBeforeFinalization,
 ): confirmationScheme is 'skip' => confirmationScheme === 'skip'
 
-const create = (): RadixT => {
+const create = () => {
 	const subs = new Subscription()
 	const radixLog = log // TODO configure child loggers
 
 	const nodeSubject = new ReplaySubject<NodeT>()
 	const coreAPISubject = new ReplaySubject<RadixCoreAPI>()
 	const walletSubject = new ReplaySubject<WalletT>()
-	const errorNotificationSubject = new Subject<ErrorT<any>>()
+	const errorNotificationSubject = new Subject<APIError>()
 
 	const deriveNextLocalHDAccountSubject = new Subject<DeriveNextInput>()
 	const addAccountByPrivateKeySubject = new Subject<AddAccountByPrivateKeyInput>()
@@ -172,6 +165,7 @@ const create = (): RadixT => {
 	const wallet$ = walletSubject.asObservable()
 
 	const networkSubject = new ReplaySubject<Network>()
+	const nativeTokenSubject = new ReplaySubject<Token>()
 
 	let walletSubscription: Subscription
 
@@ -196,31 +190,37 @@ const create = (): RadixT => {
 			}),
 		)
 
-	const api: RadixAPI = {
+	const api = {
 		networkId: fwdAPICall(
 			a => a.networkId,
 			m => networkIdErr(m),
 		),
+
 		tokenBalancesForAddress: fwdAPICall(
 			a => a.tokenBalancesForAddress,
 			m => tokenBalancesErr(m),
 		),
+
 		transactionHistory: fwdAPICall(
 			a => a.transactionHistory,
 			m => transactionHistoryErr(m),
 		),
+
 		nativeToken: fwdAPICall(
 			a => a.nativeToken,
 			m => nativeTokenErr(m),
 		),
+		/*
 		tokenInfo: fwdAPICall(
 			a => a.tokenInfo,
 			m => tokenInfoErr(m),
 		),
+		*/
 		stakesForAddress: fwdAPICall(
 			a => a.stakesForAddress,
 			m => stakesForAddressErr(m),
 		),
+
 		unstakesForAddress: fwdAPICall(
 			a => a.unstakesForAddress,
 			m => unstakesForAddressErr(m),
@@ -236,27 +236,15 @@ const create = (): RadixT => {
 			m => lookupValidatorErr(m),
 		),
 
-		lookupTransaction: fwdAPICall(
-			a => a.lookupTransaction,
-			m => lookupTxErr(m),
-		),
-
-		transactionStatus: fwdAPICall(
+		getTransaction: fwdAPICall(
 			a => a.transactionStatus,
-			m => txStatusErr(m),
-		),
-		NetworkTransactionThroughput: fwdAPICall(
-			a => a.NetworkTransactionThroughput,
-			m => NetworkTxThroughputErr(m),
-		),
-		NetworkTransactionDemand: fwdAPICall(
-			a => a.NetworkTransactionDemand,
-			m => NetworkTxDemandErr(m),
+			m => lookupTxErr(m),
 		),
 		buildTransaction: fwdAPICall(
 			a => a.buildTransaction,
 			m => buildTxFromIntentErr(m),
 		),
+
 		finalizeTransaction: fwdAPICall(
 			a => a.finalizeTransaction,
 			m => finalizeTxErr(m),
@@ -272,16 +260,6 @@ const create = (): RadixT => {
 		map(a => a.address),
 		shareReplay(1),
 	)
-
-	const lookupTransaction = (
-		txID: TransactionIdentifierT,
-	): Observable<ExecutedTransaction> =>
-		api.lookupTransaction(txID).pipe(
-			withLatestFrom(activeAddress),
-			map(([simpleTx, aa]) =>
-				decorateSimpleExecutedTransactionWithType(simpleTx, aa),
-			),
-		)
 
 	const revealMnemonic = (): Observable<MnemomicT> =>
 		wallet$.pipe(
@@ -315,52 +293,25 @@ const create = (): RadixT => {
 			shareReplay(1),
 		)
 
-	const simpleTokenBalances = activeAddressToAPIObservableWithTrigger(
+	const tokenBalances = activeAddressToAPIObservableWithTrigger(
 		tokenBalanceFetchSubject,
 		a => a.tokenBalancesForAddress,
 		tokenBalancesErr,
 	)
 
-	const decorateSimpleTokenBalanceWithTokenInfo = (
-		simpleTokenBalance: SimpleTokenBalance,
-	): Observable<TokenBalance> =>
-		api.tokenInfo(simpleTokenBalance.tokenIdentifier).pipe(
-			map(
-				(tokenInfo: Token): TokenBalance => ({
-					amount: simpleTokenBalance.amount,
-					token: tokenInfo,
-				}),
-			),
-		)
-
-	const tokenBalances: Observable<TokenBalances> = simpleTokenBalances.pipe(
-		mergeMap(
-			(
-				simpleTokenBalances: SimpleTokenBalances,
-			): Observable<TokenBalances> => {
-				const balanceOfTokensObservableList: Observable<TokenBalance>[] = simpleTokenBalances.tokenBalances.map(
-					decorateSimpleTokenBalanceWithTokenInfo,
-				)
-
-				return simpleTokenBalances.tokenBalances.length === 0
-					? of({
-							owner: simpleTokenBalances.owner,
-							tokenBalances: [],
-					  })
-					: forkJoin(balanceOfTokensObservableList).pipe(
-							map(
-								(
-									tokenBalances: TokenBalance[],
-								): TokenBalances => ({
-									owner: simpleTokenBalances.owner,
-									tokenBalances,
-								}),
-							),
-					  )
-			},
-		),
-	)
-
+	/*
+		const decorateSimpleTokenBalanceWithTokenInfo = (
+			simpleTokenBalance: SimpleTokenBalance,
+		): Observable<TokenBalance> =>
+			api.tokenInfo(simpleTokenBalance.tokenIdentifier).pipe(
+				map(
+					(tokenInfo: Token): TokenBalance => ({
+						amount: simpleTokenBalance.amount,
+						token: tokenInfo,
+					}),
+				),
+			)
+	*/
 	const stakingPositions = activeAddressToAPIObservableWithTrigger(
 		stakingFetchSubject,
 		a => a.stakesForAddress,
@@ -563,10 +514,7 @@ const create = (): RadixT => {
 				},
 			),
 			catchError((e: Error) => {
-				/*
-				txLog.error(
-					`API failed to build transaction, error: ${e}`,
-				)*/
+				txLog.error(`API failed to build transaction, error: ${e}`)
 				trackError({
 					error: e,
 					inStep: TransactionTrackingEventType.BUILT_FROM_INTENT,
@@ -620,7 +568,11 @@ const create = (): RadixT => {
 						transactionState: signedTx,
 						eventUpdateType: TransactionTrackingEventType.SIGNED,
 					})
-					return api.finalizeTransaction(signedTx)
+					return networkSubject.pipe(
+						mergeMap(network =>
+							api.finalizeTransaction(network, signedTx),
+						),
+					)
 				},
 			),
 			catchError((e: Error) => {
@@ -638,9 +590,6 @@ const create = (): RadixT => {
 				return EMPTY
 			}),
 			tap<FinalizedTransaction>(finalizedTx => {
-				txLog.debug(
-					`Received finalized transaction with txID='${finalizedTx.txID.toString()}' from API, calling submit.`,
-				)
 				track({
 					transactionState: finalizedTx,
 					eventUpdateType: TransactionTrackingEventType.FINALIZED,
@@ -653,9 +602,13 @@ const create = (): RadixT => {
 				.pipe(
 					mergeMap(
 						(finalizedTx): Observable<PendingTransaction> =>
-							api.submitSignedTransaction({
-								...finalizedTx,
-							}),
+							networkSubject.pipe(
+								mergeMap(network =>
+									api.submitSignedTransaction(network, {
+										blob: finalizedTx.blob,
+									}),
+								),
+							),
 					),
 					catchError((e: Error) => {
 						txLog.error(
@@ -707,7 +660,11 @@ const create = (): RadixT => {
 				txLog.debug(
 					`Asking API for status of transaction with txID: ${pendingTx.txID.toString()}`,
 				)
-				return api.transactionStatus(pendingTx.txID)
+				return networkSubject.pipe(
+					mergeMap(network =>
+						api.getTransaction(pendingTx.txID, network),
+					),
+				)
 			}),
 			distinctUntilChanged((prev, cur) => prev.status === cur.status),
 			share(),
@@ -800,7 +757,7 @@ const create = (): RadixT => {
 	}
 
 	const transferTokens = (
-		input: TransferTokensOptions,
+		input: Omit<TransferTokensOptions, 'from_account'>,
 	): TransactionTracking => {
 		radixLog.debug(`transferTokens`)
 		const builder = TransactionIntentBuilder.create().transferTokens(
@@ -826,18 +783,34 @@ const create = (): RadixT => {
 		)
 	}
 
-	const stakeTokens = (input: StakeOptions) => {
+	const stakeTokens = async (
+		input: MakeTransactionOptions & {
+			stakeInput: Omit<StakeTokensInput, 'tokenIdentifier'>
+		},
+	) => {
 		radixLog.debug('stake')
+		const nativeToken = await firstValueFrom(nativeTokenSubject)
 		return __makeTransactionFromBuilder(
-			TransactionIntentBuilder.create().stakeTokens(input.stakeInput),
+			TransactionIntentBuilder.create().stakeTokens({
+				...input.stakeInput,
+				tokenIdentifier: nativeToken.rri,
+			}),
 			{ ...input },
 		)
 	}
 
-	const unstakeTokens = (input: UnstakeOptions) => {
+	const unstakeTokens = async (
+		input: MakeTransactionOptions & {
+			unstakeInput: Omit<UnstakeTokensInput, 'tokenIdentifier'>
+		},
+	) => {
 		radixLog.debug('unstake')
+		const nativeToken = await firstValueFrom(nativeTokenSubject)
 		return __makeTransactionFromBuilder(
-			TransactionIntentBuilder.create().unstakeTokens(input.unstakeInput),
+			TransactionIntentBuilder.create().unstakeTokens({
+				...input.unstakeInput,
+				tokenIdentifier: nativeToken.rri,
+			}),
 			{ ...input },
 		)
 	}
@@ -941,7 +914,7 @@ const create = (): RadixT => {
 			.subscribe(),
 	)
 
-	const methods: RadixT = {
+	const methods = {
 		// we forward the full `RadixAPI`, but we also provide some convenience methods based on active account/address.
 		ledger: {
 			...api,
@@ -953,7 +926,7 @@ const create = (): RadixT => {
 		__reset: () => subs.unsubscribe(),
 
 		// Primarily useful for testing
-		__withNodeConnection: (node$: Observable<NodeT>): RadixT => {
+		__withNodeConnection: (node$: Observable<NodeT>) => {
 			subs.add(
 				node$.subscribe(
 					n => {
@@ -961,14 +934,14 @@ const create = (): RadixT => {
 						nodeSubject.next(n)
 					},
 					(error: Error) => {
-						errorNotificationSubject.next(nodeError(error))
+						errorNotificationSubject.next(nodeError(error) as any)
 					},
 				),
 			)
 			return methods
 		},
 
-		__withAPI: (radixCoreAPI$: Observable<RadixCoreAPI>): RadixT => {
+		__withAPI: (radixCoreAPI$: Observable<RadixCoreAPI>) => {
 			subs.add(radixCoreAPI$.subscribe(a => coreAPISubject.next(a)))
 			return methods
 		},
@@ -992,7 +965,9 @@ const create = (): RadixT => {
 		connect: async (url: string) => {
 			methods.__withNodeConnection(of({ url: new URL(url) }))
 			const networkId = await firstValueFrom(api.networkId())
+			const nativeToken = await firstValueFrom(api.nativeToken(networkId))
 			networkSubject.next(networkId)
+			nativeTokenSubject.next(nativeToken)
 		},
 
 		login: (password: string, loadKeystore: () => Promise<KeystoreT>) => {
@@ -1015,7 +990,7 @@ const create = (): RadixT => {
 						)
 					},
 					error => {
-						errorNotificationSubject.next(walletError(error))
+						errorNotificationSubject.next(walletError(error) as any)
 					},
 				)
 			})
@@ -1067,7 +1042,8 @@ const create = (): RadixT => {
 			trigger: Observable<number>,
 		) =>
 			trigger.pipe(
-				mergeMap(_ => api.transactionStatus(txID)),
+				withLatestFrom(networkSubject),
+				mergeMap(([_, network]) => api.getTransaction(txID, network)),
 				distinctUntilChanged((prev, cur) => prev.status === cur.status),
 				filter(({ txID }) => txID.equals(txID)),
 				tap(({ status }) =>
@@ -1098,12 +1074,37 @@ const create = (): RadixT => {
 		stakingPositions,
 		unstakingPositions,
 
-		// Methods
-		lookupTransaction,
+		lookupTransaction: (
+			txID: TransactionIdentifierT,
+		): Observable<ExecutedTransaction> =>
+			networkSubject.pipe(
+				mergeMap(network =>
+					api.getTransaction(txID, network).pipe(
+						withLatestFrom(activeAddress),
+						map(([simpleTx, aa]) =>
+							decorateSimpleExecutedTransactionWithType(
+								simpleTx,
+								aa,
+							),
+						),
+					),
+				),
+			),
+
 		transactionHistory,
 		transferTokens,
 		stakeTokens,
 		unstakeTokens,
+
+		getTransaction: (txID: TransactionIdentifierT) =>
+			networkSubject.pipe(
+				mergeMap(network => api.getTransaction(txID, network)),
+			),
+
+		validators: () =>
+			networkSubject.pipe(
+				mergeMap(network => api.validators({ network })),
+			),
 	}
 
 	return methods

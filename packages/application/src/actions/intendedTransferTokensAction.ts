@@ -19,32 +19,32 @@ export const isTransferTokensInput = (
 ): something is TransferTokensInput => {
 	const inspection = something as TransferTokensInput
 	return (
-		isAccountAddressOrUnsafeInput(inspection.to) &&
+		isAccountAddressOrUnsafeInput(inspection.to_account) &&
 		isAmountOrUnsafeInput(inspection.amount) &&
 		isResourceIdentifierOrUnsafeInput(inspection.tokenIdentifier)
 	)
 }
 
-export const create = (
+const create = (
 	input: TransferTokensInput,
-	from: AccountAddressT,
+	from_account: AccountAddressT,
 ): Result<IntendedTransferTokensAction, Error> =>
 	combine([
-		AccountAddress.fromUnsafe(input.to),
+		AccountAddress.fromUnsafe(input.to_account),
 		Amount.fromUnsafe(input.amount),
 		ResourceIdentifier.fromUnsafe(input.tokenIdentifier),
 	]).map(
 		(resultList): IntendedTransferTokensAction => {
-			const to = resultList[0] as AccountAddressT
+			const to_account = resultList[0] as AccountAddressT
 			const amount = resultList[1] as AmountT
 			const rri = resultList[2] as ResourceIdentifierT
 
 			return {
-				to,
+				to_account,
 				amount,
 				rri,
 				type: ActionType.TOKEN_TRANSFER,
-				from,
+				from_account,
 			}
 		},
 	)

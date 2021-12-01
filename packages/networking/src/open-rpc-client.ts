@@ -58,7 +58,12 @@ const MethodEndpoints = {
 
 const correlationID = uuid()
 
-export const RPCClient: Client = (url: URL): Transport => {
+export type OpenRPCClientCall = (
+	endpoint: string,
+	params: unknown[] | Record<string, unknown>,
+) => Promise<unknown>
+
+export const RPCClient: Client<'json-rpc'> = (url: URL) => {
 	const call = async (
 		method: string,
 		params: unknown[] | Record<string, unknown>,
@@ -125,6 +130,7 @@ export const RPCClient: Client = (url: URL): Transport => {
 	}
 
 	return {
+		type: 'json-rpc',
 		call,
 	}
 }

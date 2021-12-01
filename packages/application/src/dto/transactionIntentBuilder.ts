@@ -23,7 +23,7 @@ import {
 	AccountAddressT,
 	isAccountAddress,
 	isResourceIdentifier,
-} from '@radixdlt/account'
+} from '../../../account'
 import { isObservable, Observable, of, throwError } from 'rxjs'
 import { map, mergeMap } from 'rxjs/operators'
 import {
@@ -40,10 +40,10 @@ import {
 	Message,
 	MessageEncryption,
 	PublicKeyT,
-} from '@radixdlt/crypto'
+} from '../../../crypto'
 import { Option } from 'prelude-ts'
-import { isAmount } from '@radixdlt/primitives'
-import { log, toObservableFromResult } from '@radixdlt/util'
+import { isAmount } from '../../../primitives'
+import { log, toObservableFromResult } from '../../../util'
 import { AccountT, MessageInTransaction } from '../_types'
 
 type IntendedActionsFrom = Readonly<{
@@ -110,8 +110,8 @@ export const isTransferTokensAction = (
 	const inspection = something as TransferTokensAction
 	return (
 		inspection.type === ActionType.TOKEN_TRANSFER &&
-		isAccountAddress(inspection.to) &&
-		isAccountAddress(inspection.from) &&
+		isAccountAddress(inspection.to_account) &&
+		isAccountAddress(inspection.from_account) &&
 		isAmount(inspection.amount) &&
 		isResourceIdentifier(inspection.rri)
 	)
@@ -123,8 +123,8 @@ export const isStakeTokensAction = (
 	const inspection = something as StakeTokensAction
 	return (
 		inspection.type === ActionType.STAKE_TOKENS &&
-		isAccountAddress(inspection.from) &&
-		isAccountAddress(inspection.validator) &&
+		isAccountAddress(inspection.from_account) &&
+		isAccountAddress(inspection.to_validator) &&
 		isAmount(inspection.amount)
 	)
 }
@@ -135,8 +135,8 @@ export const isUnstakeTokensAction = (
 	const inspection = something as UnstakeTokensAction
 	return (
 		inspection.type === ActionType.UNSTAKE_TOKENS &&
-		isAccountAddress(inspection.from) &&
-		isAccountAddress(inspection.validator) &&
+		isAccountAddress(inspection.from_validator) &&
+		isAccountAddress(inspection.to_account) &&
 		isAmount(inspection.amount)
 	)
 }
@@ -155,22 +155,22 @@ export const getUniqueAddresses = (
 	if (isTransferTokensAction(action)) {
 		const addresses: AccountAddressT[] = []
 		if (includeTo) {
-			addresses.push(action.to)
+			addresses.push(action.to_account)
 		}
 		if (includeFrom) {
-			addresses.push(action.from)
+			addresses.push(action.from_account)
 		}
 		return addresses
 	} else if (isStakeTokensAction(action)) {
 		const addresses: AccountAddressT[] = []
 		if (includeFrom) {
-			addresses.push(action.from)
+			addresses.push(action.from_account)
 		}
 		return addresses
 	} else if (isUnstakeTokensAction(action)) {
 		const addresses: AccountAddressT[] = []
 		if (includeFrom) {
-			addresses.push(action.from)
+			addresses.push(action.to_account)
 		}
 		return addresses
 	} else {

@@ -148,6 +148,7 @@ export type TransactionHistoryRequestInput = TransactionHistoryOfKnownAddressReq
 export type SimpleExecutedTransaction = Readonly<{
 	txID: TransactionIdentifierT
 	sentAt: Date
+	status: TransactionStatus
 	fee: AmountT
 	message?: string
 	actions: ExecutedAction[]
@@ -185,8 +186,8 @@ export type Token = Readonly<{
 	granularity: AmountT
 	isSupplyMutable: boolean
 	currentSupply: AmountT
-	tokenInfoURL: URL
-	iconURL: URL
+	tokenInfoURL?: URL
+	iconURL?: URL
 }>
 
 export type StatusOfTransaction = Readonly<{
@@ -207,7 +208,7 @@ export type SignedTransaction = Readonly<{
 
 export type FinalizedTransaction = Readonly<{
 	blob: string
-	txID: TransactionIdentifierT
+	// txID: TransactionIdentifierT
 }>
 
 export type PendingTransaction = Readonly<{
@@ -307,7 +308,6 @@ export type Validator = Readonly<{
 }>
 
 export type Validators = Readonly<{
-	cursor: string
 	validators: Validator[]
 }>
 

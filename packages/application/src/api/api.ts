@@ -1,7 +1,6 @@
-import { RPCClient } from '@radixdlt/networking'
-import { getAPI } from './json-rpc/interface'
-import { NodeAPI } from './_types'
+import { openApiClient } from '../../../networking'
+import { getAPI } from './open-api/interface'
 
-export const nodeAPI = (url: URL): NodeAPI => ({
-	...getAPI(RPCClient(url).call),
+export const nodeAPI = (url: URL) => ({
+	...getAPI(openApiClient(url).call),
 })

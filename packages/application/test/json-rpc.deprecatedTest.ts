@@ -1,7 +1,7 @@
 /**
  * @jest-environment ./packages/application/test/_load-rpc.ts
  */
-import {
+/*import {
 	nodeAPI,
 	TransactionIdentifier,
 	RawExecutedAction,
@@ -485,3 +485,4 @@ describe.skip('json-rpc spec', () => {
 		)
 		.forEach((method, i) => testRpcMethod(method, i))
 })
+*/

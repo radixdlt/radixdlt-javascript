@@ -1,3 +1,4 @@
+import { nodeAPI } from '.'
 import { getAPI } from './json-rpc'
 import { radixCoreAPI } from './radixCoreAPI'
 
@@ -7,7 +8,7 @@ type JsonRpcAPI = {
 	>[Property]
 }
 
-export type NodeAPI = JsonRpcAPI // && RestAPI
+export type NodeAPI = ReturnType<typeof nodeAPI>
 
 export type NodeT = Readonly<{
 	url: URL

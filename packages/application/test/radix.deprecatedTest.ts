@@ -1,3 +1,4 @@
+/*
 import {
 	AccountAddress,
 	AccountAddressT,
@@ -1919,3 +1920,4 @@ describe('radix_high_level_api', () => {
 		})
 	})
 })
+*/

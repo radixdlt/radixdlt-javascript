@@ -1,4 +1,4 @@
-import { ResourceIdentifier } from '@radixdlt/account'
+/*import { ResourceIdentifier } from '@radixdlt/account'
 import { Amount, Network } from '@radixdlt/primitives'
 import { IntendedTransferTokens, TransferTokensInput, alice, bob } from '../src'
 
@@ -52,3 +52,5 @@ describe('TransferTokensActions', () => {
 		expect(tokenTransfer.amount.eq(zero)).toBe(true)
 	})
 })
+
+*/

@@ -3,13 +3,14 @@ import { UInt256 } from '@radixdlt/uint256'
 export type AmountT = UInt256
 
 export enum Network {
-	MAINNET = 'MAINNET',
-	STOKENET = 'STOKENET',
-	TESTNET3 = 'TESTNET3',
-	TESTNET4 = 'TESTNET4',
-	TESTNET5 = 'TESTNET5',
-	TESTNET6 = 'TESTNET6',
-	TESTNET7 = 'TESTNET7',
+	MAINNET = 'mainnet',
+	STOKENET = 'stokenet',
+	LOCALNET = 'localnet',
+	TESTNET3 = 'testnet3',
+	TESTNET4 = 'testnet4',
+	TESTNET5 = 'testnet5',
+	TESTNET6 = 'testnet6',
+	TESTNET7 = 'testnet7',
 }
 
 export const NetworkId = {
@@ -20,6 +21,7 @@ export const NetworkId = {
 	5: Network.TESTNET5,
 	6: Network.TESTNET6,
 	7: Network.TESTNET7,
+	99: Network.LOCALNET,
 }
 
 export const hrpFullSuffixLength = 3
@@ -34,6 +36,11 @@ export const HRP = {
 		account: 'tdx',
 		validator: 'tv',
 		RRI_suffix: '_tr',
+	},
+	[Network.LOCALNET]: {
+		account: 'ddx',
+		validator: 'dv',
+		RRI_suffix: '_dr',
 	},
 	[Network.TESTNET3]: {
 		account: 'tdx3',

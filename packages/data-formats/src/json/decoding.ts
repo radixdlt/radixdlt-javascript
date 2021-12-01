@@ -8,7 +8,7 @@ import {
 	isBoolean,
 	isNumber,
 	isResult,
-} from '@radixdlt/util'
+} from '../../../util'
 import { Decoder } from './_types'
 
 /**

@@ -398,9 +398,7 @@ const randomUnsignedTransaction = (
 	}
 }
 
-const randomPendingTransaction = (
-	signedTx: SignedTransaction,
-): FinalizedTransaction => ({
+const randomPendingTransaction = (signedTx: SignedTransaction) => ({
 	txID: TransactionIdentifier.create(
 		sha256(Buffer.from(signedTx.transaction.blob)),
 	)._unsafeUnwrap(),
@@ -602,7 +600,7 @@ export const deterministicRandomTxHistoryWithInput = (
 													anInt(),
 												)._unsafeUnwrap(),
 												validator: detRandomValidatorAddress(),
-											}
+											} as any
 											break
 										case ActionType.UNSTAKE_TOKENS:
 											executedAction = {
@@ -612,13 +610,13 @@ export const deterministicRandomTxHistoryWithInput = (
 													anInt(),
 												)._unsafeUnwrap(),
 												validator: detRandomValidatorAddress(),
-											}
+											} as any
 											break
 										case ActionType.TOKEN_TRANSFER:
 											executedAction = {
 												type: ActionType.TOKEN_TRANSFER,
-												from: address,
-												to: detRandomAddress(),
+												from_account: address,
+												to_account: detRandomAddress(),
 												amount: tokenAndAmount.amount,
 												rri: tokenAndAmount.token.rri,
 											}
@@ -648,7 +646,7 @@ export const deterministicRandomTxHistoryWithInput = (
 						// 	encryptionScheme: string
 						// }
 						actions: detMakeActionForTx(),
-					}
+					} as any
 				},
 			)
 
@@ -708,56 +706,48 @@ export const deterministicRandomStakesForAddr = (
 ): Observable<StakePositions> =>
 	of(deterministicRandomStakesForAddress(address))
 
-export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
+export const makeThrowingRadixCoreAPI = (nodeUrl?: string): any => ({
 	node: { url: new URL(nodeUrl ?? 'https://www.radixdlt.com/') },
 
 	networkId: (): Observable<Network> => {
 		throw Error('Not implemented')
 	},
 
-	tokenBalancesForAddress: (
-		_address: AccountAddressT,
-	): Observable<SimpleTokenBalances> => {
+	tokenBalancesForAddress: (_address: AccountAddressT): Observable<any> => {
 		throw Error('Not implemented')
 	},
 
-	lookupTransaction: (
-		_txID: TransactionIdentifierT,
-	): Observable<SimpleExecutedTransaction> => {
+	lookupTransaction: (_txID: any): Observable<any> => {
 		throw Error('Not implemented')
 	},
 
-	validators: (_input: ValidatorsRequestInput): Observable<Validators> => {
+	validators: (_input: any): Observable<any> => {
 		throw Error('Not implemented')
 	},
 
-	lookupValidator: (_input: ValidatorAddressT): Observable<Validator> => {
+	lookupValidator: (_input: ValidatorAddressT): Observable<any> => {
 		throw Error('Not implemented')
 	},
 
 	transactionHistory: (
 		_input: TransactionHistoryRequestInput,
-	): Observable<TransactionHistory> => {
+	): Observable<any> => {
 		throw Error('Not implemented')
 	},
 
-	nativeToken: (): Observable<Token> => {
+	nativeToken: (): Observable<any> => {
 		throw Error('Not implemented')
 	},
 
-	tokenInfo: (_rri: ResourceIdentifierT): Observable<Token> => {
+	tokenInfo: (_rri: ResourceIdentifierT): Observable<any> => {
 		throw Error('Not implemented')
 	},
 
-	stakesForAddress: (
-		_address: AccountAddressT,
-	): Observable<StakePositions> => {
+	stakesForAddress: (_address: AccountAddressT): Observable<any> => {
 		throw Error('Not implemented')
 	},
 
-	unstakesForAddress: (
-		_address: AccountAddressT,
-	): Observable<UnstakePositions> => {
+	unstakesForAddress: (_address: AccountAddressT): Observable<any> => {
 		throw Error('Not implemented')
 	},
 
@@ -777,13 +767,11 @@ export const makeThrowingRadixCoreAPI = (nodeUrl?: string): RadixCoreAPI => ({
 
 	buildTransaction: (
 		_transactionIntent: TransactionIntent,
-	): Observable<BuiltTransaction> => {
+	): Observable<any> => {
 		throw Error('Not implemented')
 	},
 
-	submitSignedTransaction: (
-		_signedTransaction: FinalizedTransaction,
-	): Observable<FinalizedTransaction> => {
+	submitSignedTransaction: (_signedTransaction: any): Observable<any> => {
 		throw Error('Not implemented')
 	},
 
@@ -804,7 +792,7 @@ export const mockRadixCoreAPI = (
 		nodeUrl?: string
 		network?: Network
 	}>,
-): RadixCoreAPI => {
+): any => {
 	txStatusMapCounter = new Map<TransactionIdentifierT, number>()
 	return {
 		node: { url: new URL(input?.nodeUrl ?? 'https://www.radixdlt.com/') },
@@ -855,7 +843,8 @@ export const mockRadixCoreAPI = (
 			signedTransaction: SignedTransaction,
 		): Observable<FinalizedTransaction> =>
 			of(detRandomSignedUnconfirmedTransaction(signedTransaction)),
-		submitSignedTransaction: signedUnconfirmedTX => of(signedUnconfirmedTX),
+		submitSignedTransaction: (signedUnconfirmedTX: any) =>
+			of(signedUnconfirmedTX),
 		NetworkTransactionDemand: (): Observable<NetworkTransactionDemand> =>
 			of(randomDemand()),
 		NetworkTransactionThroughput: (): Observable<NetworkTransactionThroughput> =>
@@ -867,4 +856,4 @@ export const mockRadixCoreAPI = (
 	}
 }
 
-export const mockedAPI: Observable<RadixCoreAPI> = of(mockRadixCoreAPI())
+export const mockedAPI: Observable<any> = of(mockRadixCoreAPI())
