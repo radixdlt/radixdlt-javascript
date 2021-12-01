@@ -14,7 +14,6 @@ import {
 } from './_types'
 import {
 	AccountTransaction,
-	AccountTransactionStatusStatusEnum,
 	Action,
 	ReturnOfAPICall,
 	StakeTokens,
@@ -23,7 +22,7 @@ import {
 	UnstakeTokens,
 	Validator as ValidatorRaw,
 } from '@radixdlt/networking'
-import { err, Result } from 'neverthrow'
+import { Result } from 'neverthrow'
 import {
 	ResourceIdentifier,
 	ResourceIdentifierT,
@@ -40,7 +39,6 @@ import {
 	ExecutedTransferTokensAction,
 	ExecutedUnstakeTokensAction,
 	SimpleTransactionHistory,
-	StakeAndUnstakeTokensProps,
 	TransactionIdentifier,
 	TransactionIdentifierT,
 	TransactionStatus,
@@ -448,8 +446,8 @@ const handleTx = (transaction: AccountTransaction) => {
 					type: ActionType.TOKEN_TRANSFER,
 					amount: actionValue[0] as AmountT,
 					rri: actionValue[1] as ResourceIdentifierT,
-					to: actionValue[2] as AccountAddressT,
-					from: actionValue[3] as AccountAddressT,
+					to_account: actionValue[2] as AccountAddressT,
+					from_account: actionValue[3] as AccountAddressT,
 				}),
 			)
 
@@ -468,8 +466,8 @@ const handleTx = (transaction: AccountTransaction) => {
 					type,
 					amount: actionValue[0] as AmountT,
 					rri: actionValue[1] as ResourceIdentifierT,
-					validator: actionValue[2] as ValidatorAddressT,
-					from: actionValue[3] as AccountAddressT,
+					to_validator: actionValue[2] as ValidatorAddressT,
+					from_account: actionValue[3] as AccountAddressT,
 				}),
 			)
 
@@ -488,8 +486,8 @@ const handleTx = (transaction: AccountTransaction) => {
 					type,
 					amount: actionValue[0] as AmountT,
 					rri: actionValue[1] as ResourceIdentifierT,
-					validator: actionValue[2] as ValidatorAddressT,
-					from: actionValue[3] as AccountAddressT,
+					from_validator: actionValue[2] as ValidatorAddressT,
+					to_account: actionValue[3] as AccountAddressT,
 				}),
 			)
 

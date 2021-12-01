@@ -16,9 +16,7 @@ import {
 } from '../dto'
 import { ActionType } from '../actions'
 import { toObservable } from '../../../util'
-import { Network } from '../../../primitives'
 import {
-	AccountBalancesEndpoint,
 	AccountTransactionsEndpoint,
 	BuildTransactionEndpoint,
 	NativeTokenInfoEndpoint,
@@ -31,8 +29,6 @@ import {
 	FinalizeTransactionEndpoint,
 	TransactionEndpoint,
 } from './open-api/_types'
-import { nodeAPI } from '.'
-import { TransactionBuildRequest } from '../../../networking'
 
 export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 	const toObs = <I, E, O>(
@@ -159,11 +155,11 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 					action.type === ActionType.TOKEN_TRANSFER
 						? {
 								type: 'TransferTokens',
-								from: {
-									address: action.from.toString(),
+								from_account: {
+									address: action.from_account.toString(),
 								},
-								to: {
-									address: action.to.toString(),
+								to_account: {
+									address: action.to_account.toString(),
 								},
 								amount: {
 									value: action.amount.toString(),
@@ -175,11 +171,11 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 						: action.type === ActionType.STAKE_TOKENS
 						? {
 								type: 'StakeTokens',
-								from: {
-									address: action.from.toString(),
+								from_account: {
+									address: action.from_account.toString(),
 								},
-								to: {
-									address: action.validator.toString(),
+								to_validator: {
+									address: action.to_validator.toString(),
 								},
 								amount: {
 									value: action.amount.toString(),
@@ -190,11 +186,11 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 						  }
 						: {
 								type: 'UnstakeTokens',
-								from: {
-									address: action.validator.toString(),
+								from_validator: {
+									address: action.from_validator.toString(),
 								},
-								to: {
-									address: action.from.toString(),
+								to_account: {
+									address: action.to_account.toString(),
 								},
 								amount: {
 									value: action.amount.toString(),

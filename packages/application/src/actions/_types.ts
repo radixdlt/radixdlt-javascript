@@ -26,20 +26,23 @@ export type Action<T extends ActionType = ActionType.OTHER> = Readonly<{
 // ##################################
 
 export type TransferTokensInput = Readonly<{
-	to: AddressOrUnsafeInput
+	to_account: AddressOrUnsafeInput
 	amount: AmountOrUnsafeInput
 	tokenIdentifier: ResourceIdentifierOrUnsafeInput
 }>
 
 // Same input for stake/unstake for now
-export type StakeAndUnstakeTokensInput = Readonly<{
-	validator: ValidatorAddressOrUnsafeInput
+export type StakeTokensInput = Readonly<{
+	to_validator: ValidatorAddressOrUnsafeInput
 	amount: AmountOrUnsafeInput
 	tokenIdentifier: ResourceIdentifierOrUnsafeInput
 }>
 
-export type StakeTokensInput = StakeAndUnstakeTokensInput
-export type UnstakeTokensInput = StakeAndUnstakeTokensInput
+export type UnstakeTokensInput = Readonly<{
+	from_validator: ValidatorAddressOrUnsafeInput
+	amount: AmountOrUnsafeInput
+	tokenIdentifier: ResourceIdentifierOrUnsafeInput
+}>
 
 export type ActionInput =
 	| TransferTokensInput
@@ -52,8 +55,8 @@ export type ActionInput =
 // ####                         #####
 // ##################################
 export type TransferTokensProps = Readonly<{
-	to: AccountAddressT
-	from: AccountAddressT
+	to_account: AccountAddressT
+	from_account: AccountAddressT
 	amount: AmountT
 	rri: ResourceIdentifierT
 }>
@@ -61,15 +64,19 @@ export type TransferTokensProps = Readonly<{
 export type TransferTokensAction = TransferTokensProps &
 	Action<ActionType.TOKEN_TRANSFER>
 
-export type StakeAndUnstakeTokensProps = Readonly<{
-	from: AccountAddressT
-	validator: ValidatorAddressT
+export type StakeTokensProps = Readonly<{
+	from_account: AccountAddressT
+	to_validator: ValidatorAddressT
 	amount: AmountT
 	rri: ResourceIdentifierT
 }>
 
-export type StakeTokensProps = StakeAndUnstakeTokensProps
-export type UnstakeTokensProps = StakeAndUnstakeTokensProps
+export type UnstakeTokensProps = Readonly<{
+	to_account: AccountAddressT
+	from_validator: ValidatorAddressT
+	amount: AmountT
+	rri: ResourceIdentifierT
+}>
 
 export type StakeTokensAction = StakeTokensProps &
 	Action<ActionType.STAKE_TOKENS>
@@ -78,19 +85,16 @@ export type UnstakeTokensAction = UnstakeTokensProps &
 
 // An intended action specified by the user. Not yet accepted by
 // Radix Core API.
-export type IntendedActionBase<T extends ActionType> = Action<T> &
-	Readonly<{
-		from: AccountAddressT
-	}>
+export type IntendedActionBase<T extends ActionType> = Action<T>
 
-export type IntendedTransferTokensAction = IntendedActionBase<ActionType.TOKEN_TRANSFER> &
-	TransferTokensAction
+export type IntendedTransferTokensAction =
+	IntendedActionBase<ActionType.TOKEN_TRANSFER> & TransferTokensAction
 
-export type IntendedStakeTokensAction = IntendedActionBase<ActionType.STAKE_TOKENS> &
-	StakeTokensProps
+export type IntendedStakeTokensAction =
+	IntendedActionBase<ActionType.STAKE_TOKENS> & StakeTokensProps
 
-export type IntendedUnstakeTokensAction = IntendedActionBase<ActionType.UNSTAKE_TOKENS> &
-	UnstakeTokensProps
+export type IntendedUnstakeTokensAction =
+	IntendedActionBase<ActionType.UNSTAKE_TOKENS> & UnstakeTokensProps
 
 export type IntendedAction =
 	| IntendedTransferTokensAction
@@ -107,14 +111,14 @@ export type IntendedAction =
 // of transaction history. Marker type.
 export type ExecutedActionBase<T extends ActionType> = Action<T>
 
-export type ExecutedTransferTokensAction = ExecutedActionBase<ActionType.TOKEN_TRANSFER> &
-	TransferTokensAction
+export type ExecutedTransferTokensAction =
+	ExecutedActionBase<ActionType.TOKEN_TRANSFER> & TransferTokensAction
 
-export type ExecutedStakeTokensAction = ExecutedActionBase<ActionType.STAKE_TOKENS> &
-	StakeTokensAction
+export type ExecutedStakeTokensAction =
+	ExecutedActionBase<ActionType.STAKE_TOKENS> & StakeTokensAction
 
-export type ExecutedUnstakeTokensAction = ExecutedActionBase<ActionType.UNSTAKE_TOKENS> &
-	UnstakeTokensAction
+export type ExecutedUnstakeTokensAction =
+	ExecutedActionBase<ActionType.UNSTAKE_TOKENS> & UnstakeTokensAction
 
 // OTHER (Only "Executed")
 export type ExecutedOtherAction = ExecutedActionBase<ActionType.OTHER>

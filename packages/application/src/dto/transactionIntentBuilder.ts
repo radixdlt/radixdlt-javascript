@@ -110,8 +110,8 @@ export const isTransferTokensAction = (
 	const inspection = something as TransferTokensAction
 	return (
 		inspection.type === ActionType.TOKEN_TRANSFER &&
-		isAccountAddress(inspection.to) &&
-		isAccountAddress(inspection.from) &&
+		isAccountAddress(inspection.to_account) &&
+		isAccountAddress(inspection.from_account) &&
 		isAmount(inspection.amount) &&
 		isResourceIdentifier(inspection.rri)
 	)
@@ -123,8 +123,8 @@ export const isStakeTokensAction = (
 	const inspection = something as StakeTokensAction
 	return (
 		inspection.type === ActionType.STAKE_TOKENS &&
-		isAccountAddress(inspection.from) &&
-		isAccountAddress(inspection.validator) &&
+		isAccountAddress(inspection.from_account) &&
+		isAccountAddress(inspection.to_validator) &&
 		isAmount(inspection.amount)
 	)
 }
@@ -135,8 +135,8 @@ export const isUnstakeTokensAction = (
 	const inspection = something as UnstakeTokensAction
 	return (
 		inspection.type === ActionType.UNSTAKE_TOKENS &&
-		isAccountAddress(inspection.from) &&
-		isAccountAddress(inspection.validator) &&
+		isAccountAddress(inspection.from_validator) &&
+		isAccountAddress(inspection.to_account) &&
 		isAmount(inspection.amount)
 	)
 }
@@ -155,22 +155,22 @@ export const getUniqueAddresses = (
 	if (isTransferTokensAction(action)) {
 		const addresses: AccountAddressT[] = []
 		if (includeTo) {
-			addresses.push(action.to)
+			addresses.push(action.to_account)
 		}
 		if (includeFrom) {
-			addresses.push(action.from)
+			addresses.push(action.from_account)
 		}
 		return addresses
 	} else if (isStakeTokensAction(action)) {
 		const addresses: AccountAddressT[] = []
 		if (includeFrom) {
-			addresses.push(action.from)
+			addresses.push(action.from_account)
 		}
 		return addresses
 	} else if (isUnstakeTokensAction(action)) {
 		const addresses: AccountAddressT[] = []
 		if (includeFrom) {
-			addresses.push(action.from)
+			addresses.push(action.to_account)
 		}
 		return addresses
 	} else {
@@ -301,36 +301,34 @@ const create = (): TransactionIntentBuilderT => {
 			return err(mustHaveAtLeastOneAction)
 
 		return combine(
-			intermediateActions.map(
-				(i): Result<IntendedAction, Error> => {
-					const intermediateActionType = i.type
-					if (intermediateActionType === 'transfer') {
-						if (isTransferTokensInput(i)) {
-							return IntendedTransferTokens.create(i, from)
-						} else {
-							throw new Error('Not transfer tokens input')
-						}
-					} else if (intermediateActionType === 'stake') {
-						if (isStakeTokensInput(i)) {
-							return IntendedStakeTokens.create(i, from)
-						} else {
-							throw new Error('Not stake tokens input')
-						}
-					} else if (intermediateActionType === 'unstake') {
-						if (isUnstakeTokensInput(i)) {
-							return IntendedUnstakeTokens.create(i, from)
-						} else {
-							throw new Error('Not unstake tokens input')
-						}
+			intermediateActions.map((i): Result<IntendedAction, Error> => {
+				const intermediateActionType = i.type
+				if (intermediateActionType === 'transfer') {
+					if (isTransferTokensInput(i)) {
+						return IntendedTransferTokens.create(i, from)
 					} else {
-						return err(
-							new Error(
-								'Incorrect implementation, forgot something...',
-							),
-						)
+						throw new Error('Not transfer tokens input')
 					}
-				},
-			),
+				} else if (intermediateActionType === 'stake') {
+					if (isStakeTokensInput(i)) {
+						return IntendedStakeTokens.create(i, from)
+					} else {
+						throw new Error('Not stake tokens input')
+					}
+				} else if (intermediateActionType === 'unstake') {
+					if (isUnstakeTokensInput(i)) {
+						return IntendedUnstakeTokens.create(i, from)
+					} else {
+						throw new Error('Not unstake tokens input')
+					}
+				} else {
+					return err(
+						new Error(
+							'Incorrect implementation, forgot something...',
+						),
+					)
+				}
+			}),
 		).map(intendedActions => ({ intendedActions, from }))
 	}
 
@@ -453,7 +451,8 @@ const create = (): TransactionIntentBuilderT => {
 										return {
 											actions:
 												intendedActionsFrom.intendedActions,
-											message: encryptedMessage.combined(),
+											message:
+												encryptedMessage.combined(),
 										}
 									},
 								),

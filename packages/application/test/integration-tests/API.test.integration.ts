@@ -5,16 +5,8 @@
 /* eslint-disable */
 import { Radix } from '../../src/radix'
 import { ValidatorAddressT } from '@radixdlt/account'
-import {
-	firstValueFrom,
-	interval,
-	Observable,
-	ReplaySubject,
-	Subject,
-	Subscription,
-} from 'rxjs'
-import { delay, map, take, tap, toArray } from 'rxjs/operators'
-import { ManualUserConfirmTX } from '../../src/_types'
+import { firstValueFrom, interval, Subject, Subscription } from 'rxjs'
+import { delay, map, take, toArray } from 'rxjs/operators'
 import {
 	PendingTransaction,
 	TransactionIdentifierT,
@@ -22,14 +14,9 @@ import {
 	TransactionStatus,
 } from '../../src/dto/_types'
 import { Amount, AmountT, Network } from '@radixdlt/primitives'
-import {
-	TransferTokensOptions,
-	TransferTokensInput,
-	TransactionTrackingEventType,
-	KeystoreT,
-} from '../../src'
+import { TransactionTrackingEventType, KeystoreT } from '../../src'
 import { UInt256 } from '@radixdlt/uint256'
-import { AccountT, RadixT, TokenBalance, TokenBalances } from '../../src'
+import { AccountT } from '../../src'
 import { keystoreForTest, makeWalletWithFunds } from '../util'
 import { AccountBalancesEndpoint, Decoded } from '../../src/api/open-api/_types'
 
@@ -242,7 +229,6 @@ describe('integration API tests', () => {
 
 		radix.activeAddress.subscribe(async address => {
 			await requestFaucet(address.toString())
-
 			subs.add(
 				radix.tokenBalances.subscribe(balance => {
 					const getXRDBalanceOrZero = (): AmountT => {
@@ -276,7 +262,7 @@ describe('integration API tests', () => {
 				radix
 					.transferTokens({
 						transferInput: {
-							to: accounts[2].address,
+							to_account: accounts[2].address,
 							amount: amountToSend,
 							tokenIdentifier:
 								nativeTokenBalance.token_identifier.rri,
@@ -333,7 +319,7 @@ describe('integration API tests', () => {
 
 						while (cursor) {
 							prevTxCount = txCount
-								;[cursor, txCount] = await fetchTxHistory(cursor)
+							;[cursor, txCount] = await fetchTxHistory(cursor)
 						}
 
 						resolve(cursor)
@@ -355,7 +341,7 @@ describe('integration API tests', () => {
 						radix
 							.transferTokens({
 								transferInput: {
-									to: accounts[2].address,
+									to_account: accounts[2].address,
 									amount: 1,
 									tokenIdentifier:
 										nativeTokenBalance.token_identifier.rri,
@@ -388,7 +374,7 @@ describe('integration API tests', () => {
 		const txID1 = await firstValueFrom(
 			radix.transferTokens({
 				transferInput: {
-					to: accounts[2].address,
+					to_account: accounts[2].address,
 					amount: 1,
 					tokenIdentifier: nativeTokenBalance.token_identifier.rri,
 				},
@@ -399,7 +385,7 @@ describe('integration API tests', () => {
 		const txID2 = await firstValueFrom(
 			radix.transferTokens({
 				transferInput: {
-					to: accounts[2].address,
+					to_account: accounts[2].address,
 					amount: 1,
 					tokenIdentifier: nativeTokenBalance.token_identifier.rri,
 				},
@@ -423,7 +409,7 @@ describe('integration API tests', () => {
 
 		const txTracking = radix.transferTokens({
 			transferInput: {
-				to: accounts[2].address,
+				to_account: accounts[2].address,
 				amount: 1,
 				tokenIdentifier: nativeTokenBalance.token_identifier.rri,
 			},
@@ -459,7 +445,7 @@ describe('integration API tests', () => {
 	it('can lookup tx', async () => {
 		const { completion } = radix.transferTokens({
 			transferInput: {
-				to: accounts[2].address,
+				to_account: accounts[2].address,
 				amount: 1,
 				tokenIdentifier: nativeTokenBalance.token_identifier.rri,
 			},
@@ -563,7 +549,7 @@ describe('integration API tests', () => {
 		const { completion } = await radix.stakeTokens({
 			stakeInput: {
 				amount: stakeAmount,
-				validator: validator,
+				to_validator: validator,
 			},
 			userConfirmation: 'skip',
 			pollTXStatusTrigger: interval(1000),
@@ -586,15 +572,15 @@ describe('integration API tests', () => {
 			'100000000000000000000',
 		)._unsafeUnwrap()
 
-		const unstakeAmount = Amount.fromUnsafe(
-			'100000000000000000',
-		)._unsafeUnwrap()
-		const validator = (await firstValueFrom(radix.validators())).validators[0]
+		const unstakeAmount =
+			Amount.fromUnsafe('100000000000000000')._unsafeUnwrap()
+		const validator = (await firstValueFrom(radix.validators()))
+			.validators[0]
 
 		const stake = await radix.stakeTokens({
 			stakeInput: {
 				amount: stakeAmount,
-				validator: validator.address,
+				to_validator: validator.address,
 			},
 			userConfirmation: 'skip',
 			pollTXStatusTrigger: interval(1000),
@@ -605,7 +591,7 @@ describe('integration API tests', () => {
 		const unstake = await radix.unstakeTokens({
 			unstakeInput: {
 				amount: unstakeAmount,
-				validator: validator.address,
+				from_validator: validator.address,
 			},
 			userConfirmation: 'skip',
 			pollTXStatusTrigger: interval(1000),

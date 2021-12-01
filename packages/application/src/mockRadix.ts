@@ -172,13 +172,11 @@ const differentTokens: Token[] = [
 
 // PLEASE KEEP - used as Cast of characters: https://en.wikipedia.org/wiki/Alice_and_Bob#Cast_of_characters
 
-export const tokenByRRIMap: Map<
-	ResourceIdentifierT,
-	Token
-> = differentTokens.reduce(
-	(a: Map<ResourceIdentifierT, Token>, b: Token) => a.set(b.rri, b),
-	new Map<ResourceIdentifierT, Token>(),
-)
+export const tokenByRRIMap: Map<ResourceIdentifierT, Token> =
+	differentTokens.reduce(
+		(a: Map<ResourceIdentifierT, Token>, b: Token) => a.set(b.rri, b),
+		new Map<ResourceIdentifierT, Token>(),
+	)
 
 const detPRNGWithBuffer = (buffer: Buffer): (() => number) => {
 	const bufCopy = Buffer.from(buffer)
@@ -323,15 +321,15 @@ const makeListOfValidatorAddresses = (): ValidatorAddressT[] => {
 	)
 }
 
-const listOfValidatorAddresses: ValidatorAddressT[] = makeListOfValidatorAddresses()
+const listOfValidatorAddresses: ValidatorAddressT[] =
+	makeListOfValidatorAddresses()
 
-const detRandomValidatorAddressWithPRNG = (
-	anInt: () => number,
-) => (): ValidatorAddressT => {
-	const randomInt = anInt()
-	const index = randomInt % (listOfValidatorAddresses.length - 1)
-	return listOfValidatorAddresses[index]
-}
+const detRandomValidatorAddressWithPRNG =
+	(anInt: () => number) => (): ValidatorAddressT => {
+		const randomInt = anInt()
+		const index = randomInt % (listOfValidatorAddresses.length - 1)
+		return listOfValidatorAddresses[index]
+	}
 
 const randomValidatorList = (
 	size: number,
@@ -398,9 +396,7 @@ const randomUnsignedTransaction = (
 	}
 }
 
-const randomPendingTransaction = (
-	signedTx: SignedTransaction,
-) => ({
+const randomPendingTransaction = (signedTx: SignedTransaction) => ({
 	txID: TransactionIdentifier.create(
 		sha256(Buffer.from(signedTx.transaction.blob)),
 	)._unsafeUnwrap(),
@@ -452,23 +448,21 @@ const detRandBalanceOfTokenWithInfo = (
 
 	return Array(size)
 		.fill(undefined)
-		.map(
-			(_): BalanceOfTokenWithInfo => {
-				const token = deterministicRandomToken()
-				const amtOrZero = anInt() % 10_000
-				const amtFactor = Amount.fromUnsafe(
-					Math.max(10, amtOrZero),
-				)._unsafeUnwrap()
+		.map((_): BalanceOfTokenWithInfo => {
+			const token = deterministicRandomToken()
+			const amtOrZero = anInt() % 10_000
+			const amtFactor = Amount.fromUnsafe(
+				Math.max(10, amtOrZero),
+			)._unsafeUnwrap()
 
-				const amount = Amount.fromUnsafe(
-					token.granularity.mul(amtFactor),
-				)._unsafeUnwrap()
-				return {
-					token,
-					amount,
-				}
-			},
-		)
+			const amount = Amount.fromUnsafe(
+				token.granularity.mul(amtFactor),
+			)._unsafeUnwrap()
+			return {
+				token,
+				amount,
+			}
+		})
 }
 
 export const deterministicRandomBalancesForAddress = (
@@ -493,37 +487,33 @@ export const deterministicRandomUnstakesForAddress = (
 	const size = anInt() % 7
 	return Array(size)
 		.fill(undefined)
-		.map(
-			(_, index): UnstakePosition => {
-				const detRandomValidatorAddress = detRandomValidatorAddressWithPRNG(
-					anInt,
-				)
+		.map((_, index): UnstakePosition => {
+			const detRandomValidatorAddress =
+				detRandomValidatorAddressWithPRNG(anInt)
 
-				const validator: ValidatorAddressT = detRandomValidatorAddress()
-				const amount = Amount.fromUnsafe(anInt())._unsafeUnwrap()
+			const validator: ValidatorAddressT = detRandomValidatorAddress()
+			const amount = Amount.fromUnsafe(anInt())._unsafeUnwrap()
 
-				const bytesFromIndex = Buffer.allocUnsafe(2)
-				bytesFromIndex.writeUInt16BE(index)
-				const txIDBuffer = sha256(
-					Buffer.concat([
-						address.publicKey.asData({ compressed: true }),
-						bytesFromIndex,
-					]),
-				)
+			const bytesFromIndex = Buffer.allocUnsafe(2)
+			bytesFromIndex.writeUInt16BE(index)
+			const txIDBuffer = sha256(
+				Buffer.concat([
+					address.publicKey.asData({ compressed: true }),
+					bytesFromIndex,
+				]),
+			)
 
-				const withdrawTxID = TransactionIdentifier.create(
-					txIDBuffer,
-				)._unsafeUnwrap()
+			const withdrawTxID =
+				TransactionIdentifier.create(txIDBuffer)._unsafeUnwrap()
 
-				const epochsUntil = anInt() % 5
-				return {
-					amount,
-					validator,
-					epochsUntil: epochsUntil > 60 ? 0 : epochsUntil,
-					withdrawTxID,
-				}
-			},
-		)
+			const epochsUntil = anInt() % 5
+			return {
+				amount,
+				validator,
+				epochsUntil: epochsUntil > 60 ? 0 : epochsUntil,
+				withdrawTxID,
+			}
+		})
 }
 
 export const deterministicRandomStakesForAddress = (
@@ -551,106 +541,102 @@ export const deterministicRandomTxHistoryWithInput = (
 	const deterministicRandomExecutedTransactions = (): ExecutedTransaction[] =>
 		Array(input.size)
 			.fill(undefined)
-			.map(
-				(_, index): ExecutedTransaction => {
-					const bytesFromIndex = Buffer.allocUnsafe(2)
-					bytesFromIndex.writeUInt16BE(index)
-					const txIDBuffer = sha256(
-						Buffer.concat([pubKeyBytes, bytesFromIndex]),
-					)
-					const date = new Date('2020-03-14T15:32:05')
-					date.setMonth(index % 12)
+			.map((_, index): ExecutedTransaction => {
+				const bytesFromIndex = Buffer.allocUnsafe(2)
+				bytesFromIndex.writeUInt16BE(index)
+				const txIDBuffer = sha256(
+					Buffer.concat([pubKeyBytes, bytesFromIndex]),
+				)
+				const date = new Date('2020-03-14T15:32:05')
+				date.setMonth(index % 12)
 
-					const txID = TransactionIdentifier.create(
-						txIDBuffer,
-					)._unsafeUnwrap()
+				const txID =
+					TransactionIdentifier.create(txIDBuffer)._unsafeUnwrap()
 
-					const detMakeActionForTx = (): ExecutedAction[] => {
-						// mock max 5 actions per tx in history, min 1.
-						const actionCount = Math.max(anInt() % 5, 1)
-						return Array(actionCount)
-							.fill(undefined)
-							.map(
-								(_, actionIndex): ExecutedAction => {
-									const v: number = anInt() % 4 // Transfer, Stake, Unstake, Other
-									const actionType: ActionType =
-										v === 0
-											? ActionType.TOKEN_TRANSFER
-											: v === 1
-											? ActionType.STAKE_TOKENS
-											: v === 2
-											? ActionType.UNSTAKE_TOKENS
-											: ActionType.OTHER
+				const detMakeActionForTx = (): ExecutedAction[] => {
+					// mock max 5 actions per tx in history, min 1.
+					const actionCount = Math.max(anInt() % 5, 1)
+					return Array(actionCount)
+						.fill(undefined)
+						.map((_, actionIndex): ExecutedAction => {
+							const v: number = anInt() % 4 // Transfer, Stake, Unstake, Other
+							const actionType: ActionType =
+								v === 0
+									? ActionType.TOKEN_TRANSFER
+									: v === 1
+									? ActionType.STAKE_TOKENS
+									: v === 2
+									? ActionType.UNSTAKE_TOKENS
+									: ActionType.OTHER
 
-									let executedAction: ExecutedAction
+							let executedAction: ExecutedAction
 
-									const tokenAndAmount = tokenAndAmounts[
-										actionIndex % tokenAndAmounts.length
-									]!
+							const tokenAndAmount =
+								tokenAndAmounts[
+									actionIndex % tokenAndAmounts.length
+								]!
 
-									switch (actionType) {
-										case ActionType.OTHER:
-											executedAction = {
-												type: ActionType.OTHER,
-											}
-											break
-										case ActionType.STAKE_TOKENS:
-											executedAction = {
-												type: ActionType.STAKE_TOKENS,
-												from: address,
-												amount: Amount.fromUnsafe(
-													anInt(),
-												)._unsafeUnwrap(),
-												validator: detRandomValidatorAddress(),
-											} as any
-											break
-										case ActionType.UNSTAKE_TOKENS:
-											executedAction = {
-												type: ActionType.UNSTAKE_TOKENS,
-												from: address,
-												amount: Amount.fromUnsafe(
-													anInt(),
-												)._unsafeUnwrap(),
-												validator: detRandomValidatorAddress(),
-											} as any
-											break
-										case ActionType.TOKEN_TRANSFER:
-											executedAction = {
-												type: ActionType.TOKEN_TRANSFER,
-												from: address,
-												to: detRandomAddress(),
-												amount: tokenAndAmount.amount,
-												rri: tokenAndAmount.token.rri,
-											}
-											break
+							switch (actionType) {
+								case ActionType.OTHER:
+									executedAction = {
+										type: ActionType.OTHER,
 									}
+									break
+								case ActionType.STAKE_TOKENS:
+									executedAction = {
+										type: ActionType.STAKE_TOKENS,
+										from: address,
+										amount: Amount.fromUnsafe(
+											anInt(),
+										)._unsafeUnwrap(),
+										validator: detRandomValidatorAddress(),
+									} as any
+									break
+								case ActionType.UNSTAKE_TOKENS:
+									executedAction = {
+										type: ActionType.UNSTAKE_TOKENS,
+										from: address,
+										amount: Amount.fromUnsafe(
+											anInt(),
+										)._unsafeUnwrap(),
+										validator: detRandomValidatorAddress(),
+									} as any
+									break
+								case ActionType.TOKEN_TRANSFER:
+									executedAction = {
+										type: ActionType.TOKEN_TRANSFER,
+										from_account: address,
+										to_account: detRandomAddress(),
+										amount: tokenAndAmount.amount,
+										rri: tokenAndAmount.token.rri,
+									}
+									break
+							}
 
-									return executedAction
-								},
-							)
-					}
+							return executedAction
+						})
+				}
 
-					const rndTxTypeInt = anInt() % 3
-					const transactionType =
-						rndTxTypeInt === 0
-							? TransactionType.INCOMING
-							: rndTxTypeInt === 1
-							? TransactionType.FROM_ME_TO_ME
-							: TransactionType.OUTGOING
+				const rndTxTypeInt = anInt() % 3
+				const transactionType =
+					rndTxTypeInt === 0
+						? TransactionType.INCOMING
+						: rndTxTypeInt === 1
+						? TransactionType.FROM_ME_TO_ME
+						: TransactionType.OUTGOING
 
-					return {
-						txID,
-						sentAt: date,
-						transactionType,
-						fee: Amount.fromUnsafe(anInt())._unsafeUnwrap(),
-						// message?: {
-						// 	msg: string
-						// 	encryptionScheme: string
-						// }
-						actions: detMakeActionForTx(),
-					} as any
-				},
-			)
+				return {
+					txID,
+					sentAt: date,
+					transactionType,
+					fee: Amount.fromUnsafe(anInt())._unsafeUnwrap(),
+					// message?: {
+					// 	msg: string
+					// 	encryptionScheme: string
+					// }
+					actions: detMakeActionForTx(),
+				} as any
+			})
 
 	const updatedCursor = sha256(
 		input.cursor !== undefined ? Buffer.from(input.cursor) : pubKeyBytes,
@@ -715,15 +701,11 @@ export const makeThrowingRadixCoreAPI = (nodeUrl?: string): any => ({
 		throw Error('Not implemented')
 	},
 
-	tokenBalancesForAddress: (
-		_address: AccountAddressT,
-	): Observable<any> => {
+	tokenBalancesForAddress: (_address: AccountAddressT): Observable<any> => {
 		throw Error('Not implemented')
 	},
 
-	lookupTransaction: (
-		_txID: any,
-	): Observable<any> => {
+	lookupTransaction: (_txID: any): Observable<any> => {
 		throw Error('Not implemented')
 	},
 
@@ -749,15 +731,11 @@ export const makeThrowingRadixCoreAPI = (nodeUrl?: string): any => ({
 		throw Error('Not implemented')
 	},
 
-	stakesForAddress: (
-		_address: AccountAddressT,
-	): Observable<any> => {
+	stakesForAddress: (_address: AccountAddressT): Observable<any> => {
 		throw Error('Not implemented')
 	},
 
-	unstakesForAddress: (
-		_address: AccountAddressT,
-	): Observable<any> => {
+	unstakesForAddress: (_address: AccountAddressT): Observable<any> => {
 		throw Error('Not implemented')
 	},
 
@@ -767,9 +745,10 @@ export const makeThrowingRadixCoreAPI = (nodeUrl?: string): any => ({
 		throw Error('Not implemented')
 	},
 
-	NetworkTransactionThroughput: (): Observable<NetworkTransactionThroughput> => {
-		throw Error('Not implemented')
-	},
+	NetworkTransactionThroughput:
+		(): Observable<NetworkTransactionThroughput> => {
+			throw Error('Not implemented')
+		},
 
 	NetworkTransactionDemand: (): Observable<NetworkTransactionDemand> => {
 		throw Error('Not implemented')
@@ -781,9 +760,7 @@ export const makeThrowingRadixCoreAPI = (nodeUrl?: string): any => ({
 		throw Error('Not implemented')
 	},
 
-	submitSignedTransaction: (
-		_signedTransaction: any,
-	): Observable<any> => {
+	submitSignedTransaction: (_signedTransaction: any): Observable<any> => {
 		throw Error('Not implemented')
 	},
 
@@ -794,10 +771,8 @@ export const makeThrowingRadixCoreAPI = (nodeUrl?: string): any => ({
 	},
 })
 
-let txStatusMapCounter: Map<
-	TransactionIdentifierT,
-	number
-> = (undefined as unknown) as Map<TransactionIdentifierT, number>
+let txStatusMapCounter: Map<TransactionIdentifierT, number> =
+	undefined as unknown as Map<TransactionIdentifierT, number>
 
 export const mockRadixCoreAPI = (
 	input?: Readonly<{
@@ -855,11 +830,13 @@ export const mockRadixCoreAPI = (
 			signedTransaction: SignedTransaction,
 		): Observable<FinalizedTransaction> =>
 			of(detRandomSignedUnconfirmedTransaction(signedTransaction)),
-		submitSignedTransaction: (signedUnconfirmedTX: any) => of(signedUnconfirmedTX),
+		submitSignedTransaction: (signedUnconfirmedTX: any) =>
+			of(signedUnconfirmedTX),
 		NetworkTransactionDemand: (): Observable<NetworkTransactionDemand> =>
 			of(randomDemand()),
-		NetworkTransactionThroughput: (): Observable<NetworkTransactionThroughput> =>
-			of(randomThroughput()),
+		NetworkTransactionThroughput:
+			(): Observable<NetworkTransactionThroughput> =>
+				of(randomThroughput()),
 		transactionHistory: deterministicRandomTXHistory,
 		lookupTransaction: deterministicRandomLookupTX,
 		unstakesForAddress: deterministicRandomUnstakesForAddr,

@@ -6,7 +6,7 @@ import {
 	SigningKeychainT,
 } from '@radixdlt/account'
 import { Network } from '@radixdlt/primitives'
-import { nodeAPI, NodeT, RadixAPI, radixCoreAPI, RadixCoreAPI } from './api'
+import { nodeAPI, NodeT, radixCoreAPI, RadixCoreAPI } from './api'
 
 import {
 	catchError,
@@ -26,9 +26,7 @@ import {
 	combineLatest,
 	EMPTY,
 	firstValueFrom,
-	forkJoin,
 	interval,
-	lastValueFrom,
 	merge,
 	Observable,
 	of,
@@ -45,12 +43,9 @@ import {
 	AccountT,
 	MakeTransactionOptions,
 	ManualUserConfirmTX,
-	StakeOptions,
 	SwitchAccountInput,
 	TransactionConfirmationBeforeFinalization,
 	TransferTokensOptions,
-	UnstakeOptions,
-	RadixT,
 } from './_types'
 import {
 	APIError,
@@ -62,15 +57,11 @@ import {
 	lookupValidatorErr,
 	nativeTokenErr,
 	networkIdErr,
-	NetworkTxDemandErr,
-	NetworkTxThroughputErr,
 	nodeError,
 	stakesForAddressErr,
 	submitSignedTxErr,
 	tokenBalancesErr,
-	tokenInfoErr,
 	transactionHistoryErr,
-	txStatusErr,
 	unstakesForAddressErr,
 	validatorsErr,
 	walletError,
@@ -84,13 +75,9 @@ import {
 	PendingTransaction,
 	SignedTransaction,
 	SimpleExecutedTransaction,
-	SimpleTokenBalance,
-	SimpleTokenBalances,
 	SimpleTransactionHistory,
 	singleRecipientFromActions,
 	Token,
-	TokenBalance,
-	TokenBalances,
 	TransactionHistory,
 	TransactionHistoryActiveAccountRequestInput,
 	TransactionIdentifierT,
@@ -105,13 +92,14 @@ import {
 	TransactionType,
 	TransactionStatus,
 } from './dto'
-import { ActionType, ExecutedAction, TransferTokensAction, StakeTokensInput, UnstakeTokensInput } from './actions'
-import { Wallet } from './wallet'
 import {
-	AccountTransactionStatusStatusEnum,
-	TransactionIdentifier,
-} from '@radixdlt/networking'
-import { pipe } from 'ramda'
+	ActionType,
+	ExecutedAction,
+	TransferTokensAction,
+	StakeTokensInput,
+	UnstakeTokensInput,
+} from './actions'
+import { Wallet } from './wallet'
 
 const txTypeFromActions = (
 	input: Readonly<{
@@ -195,15 +183,15 @@ const create = () => {
 			pickFn: (api: RadixCoreAPI) => (...input: I) => Observable<O>,
 			errorFn: (error: APIErrorObject) => APIError,
 		) =>
-			(...input: I) =>
-				coreAPI$.pipe(
-					mergeMap(a => pickFn(a)(...input)),
-					take(1), // Important!
-					catchError((error: unknown) => {
-						// console.error(error)
-						throw errorFn(isArray(error) ? (error as any)[0] : error)
-					}),
-				)
+		(...input: I) =>
+			coreAPI$.pipe(
+				mergeMap(a => pickFn(a)(...input)),
+				take(1), // Important!
+				catchError((error: unknown) => {
+					// console.error(error)
+					throw errorFn(isArray(error) ? (error as any)[0] : error)
+				}),
+			)
 
 	const api = {
 		networkId: fwdAPICall(
@@ -336,7 +324,7 @@ const create = () => {
 	const unstakingPositions = activeAddressToAPIObservableWithTrigger(
 		stakingFetchSubject,
 		a => a.unstakesForAddress,
-		unstakesForAddressErr
+		unstakesForAddressErr,
 	)
 
 	const transactionHistory = (
@@ -770,7 +758,7 @@ const create = () => {
 	}
 
 	const transferTokens = (
-		input: TransferTokensOptions,
+		input: Omit<TransferTokensOptions, 'from_account'>,
 	): TransactionTracking => {
 		radixLog.debug(`transferTokens`)
 		const builder = TransactionIntentBuilder.create().transferTokens(
@@ -788,33 +776,41 @@ const create = () => {
 			{ ...input },
 			encryptMsgIfAny
 				? {
-					encryptMessageIfAnyWithAccount: activeAccount.pipe(
-						take(1), // Important !
-					),
-				}
+						encryptMessageIfAnyWithAccount: activeAccount.pipe(
+							take(1), // Important !
+						),
+				  }
 				: undefined,
 		)
 	}
 
-	const stakeTokens = async (input: MakeTransactionOptions & { stakeInput: Omit<StakeTokensInput, 'tokenIdentifier'> }) => {
+	const stakeTokens = async (
+		input: MakeTransactionOptions & {
+			stakeInput: Omit<StakeTokensInput, 'tokenIdentifier'>
+		},
+	) => {
 		radixLog.debug('stake')
 		const nativeToken = await firstValueFrom(nativeTokenSubject)
 		return __makeTransactionFromBuilder(
 			TransactionIntentBuilder.create().stakeTokens({
 				...input.stakeInput,
-				tokenIdentifier: nativeToken.rri
+				tokenIdentifier: nativeToken.rri,
 			}),
 			{ ...input },
 		)
 	}
 
-	const unstakeTokens = async (input: MakeTransactionOptions & { unstakeInput: Omit<UnstakeTokensInput, 'tokenIdentifier'> }) => {
+	const unstakeTokens = async (
+		input: MakeTransactionOptions & {
+			unstakeInput: Omit<UnstakeTokensInput, 'tokenIdentifier'>
+		},
+	) => {
 		radixLog.debug('unstake')
 		const nativeToken = await firstValueFrom(nativeTokenSubject)
 		return __makeTransactionFromBuilder(
 			TransactionIntentBuilder.create().unstakeTokens({
 				...input.unstakeInput,
-				tokenIdentifier: nativeToken.rri
+				tokenIdentifier: nativeToken.rri,
 			}),
 			{ ...input },
 		)
