@@ -21,7 +21,7 @@ describe.skip('open api', () => {
 			},
 		})
 		expect(
-			await api.network({
+			await api.gateway({
 				body: {},
 			}),
 		).toEqual({})
