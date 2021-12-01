@@ -57,28 +57,45 @@ export type ClientInterface = ReturnType<typeof DefaultApiFactory>
 export type MethodName = keyof ClientInterface
 export type Response = ReturnOfAPICall<MethodName>
 
-const isError = (data: any): data is { error: Record<string, unknown> } => data.error ? true : false
+const isError = (data: any): data is { error: Record<string, unknown> } =>
+	data.error ? true : false
 
-const call = (client: ClientInterface) => <
-	M extends MethodName
->(method: M, params: InputOfAPICall<M>): ResultAsync<ReturnOfAPICall<M>, Error> =>
-// @ts-ignore
-	pipe(
-		() => console.log(`Sending api request with method ${method}. ${JSON.stringify(params, null, 2,)}`),
-		() => ResultAsync.fromPromise(
-			// @ts-ignore
-			// { headers: { [headers[0]]: method, [headers[1]]: correlationID } }
-			client[method](params).then(response => {
-				if (isError(response.data)) throw Error(JSON.stringify(response.data.error))
-				return response
-			}),
-			// @ts-ignore
-			(e: Error) => e
-		)
-	)().mapErr(e => {
-		console.error(e)
-		return e
-	})
+const call =
+	(client: ClientInterface) =>
+	<M extends MethodName>(
+		method: M,
+		params: InputOfAPICall<M>,
+	): ResultAsync<ReturnOfAPICall<M>, Error> =>
+		// @ts-ignore
+		pipe(
+			() =>
+				console.log(
+					`Sending api request with method ${method}. ${JSON.stringify(
+						params,
+						null,
+						2,
+					)}`,
+				),
+			() =>
+				ResultAsync.fromPromise(
+					// @ts-ignore
+					client[method](params, {
+						Headers: {
+							[headers[0]]: method,
+							[headers[1]]: correlationID,
+						},
+					}).then(response => {
+						if (isError(response.data))
+							throw Error(JSON.stringify(response.data.error))
+						return response
+					}),
+					// @ts-ignore
+					(e: Error) => e,
+				),
+		)().mapErr(e => {
+			console.error(e)
+			return e
+		})
 
 export type OpenApiClientCall = ReturnType<typeof call>
 
@@ -90,7 +107,7 @@ export const openApiClient: Client<'open-api'> = (url: URL) => ({
 			undefined,
 			axios.create({
 				baseURL: url.toString(),
-			})
-		)
+			}),
+		),
 	),
 })
