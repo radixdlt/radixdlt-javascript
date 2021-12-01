@@ -274,9 +274,9 @@ export const handleAccountBalancesResponse = (
 				liquid_balances: values[0].balances as Decoded.TokenAmount[],
 				staked_and_unstaking_balance: {
 					token_identifier: {
-						rri: values[1] as unknown as ResourceIdentifierT,
+						rri: (values[1] as unknown) as ResourceIdentifierT,
 					},
-					value: values[2] as unknown as AmountT,
+					value: (values[2] as unknown) as AmountT,
 				},
 			},
 		}))
@@ -459,17 +459,15 @@ const handleTx = (transaction: AccountTransaction) => {
 				...transformTokenAmount(action.amount),
 				ValidatorAddress.fromUnsafe(action.to_validator.address),
 				AccountAddress.fromUnsafe(action.from_account.address),
-			]).map(
-				(
-					actionValue,
-				): ExecutedStakeTokensAction | ExecutedUnstakeTokensAction => ({
-					type,
-					amount: actionValue[0] as AmountT,
-					rri: actionValue[1] as ResourceIdentifierT,
-					to_validator: actionValue[2] as ValidatorAddressT,
-					from_account: actionValue[3] as AccountAddressT,
-				}),
-			)
+			]).map((actionValue):
+				| ExecutedStakeTokensAction
+				| ExecutedUnstakeTokensAction => ({
+				type,
+				amount: actionValue[0] as AmountT,
+				rri: actionValue[1] as ResourceIdentifierT,
+				to_validator: actionValue[2] as ValidatorAddressT,
+				from_account: actionValue[3] as AccountAddressT,
+			}))
 
 		const transformUnstakeTokenAction = (
 			type: ActionType.UNSTAKE_TOKENS,
@@ -479,17 +477,15 @@ const handleTx = (transaction: AccountTransaction) => {
 				...transformTokenAmount(action.amount),
 				ValidatorAddress.fromUnsafe(action.from_validator.address),
 				AccountAddress.fromUnsafe(action.to_account.address),
-			]).map(
-				(
-					actionValue,
-				): ExecutedStakeTokensAction | ExecutedUnstakeTokensAction => ({
-					type,
-					amount: actionValue[0] as AmountT,
-					rri: actionValue[1] as ResourceIdentifierT,
-					from_validator: actionValue[2] as ValidatorAddressT,
-					to_account: actionValue[3] as AccountAddressT,
-				}),
-			)
+			]).map((actionValue):
+				| ExecutedStakeTokensAction
+				| ExecutedUnstakeTokensAction => ({
+				type,
+				amount: actionValue[0] as AmountT,
+				rri: actionValue[1] as ResourceIdentifierT,
+				from_validator: actionValue[2] as ValidatorAddressT,
+				to_account: actionValue[3] as AccountAddressT,
+			}))
 
 		switch (action.type) {
 			case 'TransferTokens':

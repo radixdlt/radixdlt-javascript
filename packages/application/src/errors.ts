@@ -1,4 +1,4 @@
-import { TransactionBuildError } from "@radixdlt/networking"
+import { TransactionBuildError } from '@radixdlt/networking'
 
 export type APIError = TransactionBuildError
 
@@ -59,11 +59,9 @@ export enum APIErrorCause {
 	NETWORK_ID_FAILED = 'NETWORK_ID_FAILED',
 }
 
-const APIError = (cause: APIErrorCause) => (
-	error: any,
-): APIError => ({
+const APIError = (cause: APIErrorCause) => (error: any): APIError => ({
 	cause,
-	...error
+	...error,
 })
 
 export const nodeError = (error: Error): ErrorT<'node'> => ({

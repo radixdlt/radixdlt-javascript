@@ -301,34 +301,36 @@ const create = (): TransactionIntentBuilderT => {
 			return err(mustHaveAtLeastOneAction)
 
 		return combine(
-			intermediateActions.map((i): Result<IntendedAction, Error> => {
-				const intermediateActionType = i.type
-				if (intermediateActionType === 'transfer') {
-					if (isTransferTokensInput(i)) {
-						return IntendedTransferTokens.create(i, from)
+			intermediateActions.map(
+				(i): Result<IntendedAction, Error> => {
+					const intermediateActionType = i.type
+					if (intermediateActionType === 'transfer') {
+						if (isTransferTokensInput(i)) {
+							return IntendedTransferTokens.create(i, from)
+						} else {
+							throw new Error('Not transfer tokens input')
+						}
+					} else if (intermediateActionType === 'stake') {
+						if (isStakeTokensInput(i)) {
+							return IntendedStakeTokens.create(i, from)
+						} else {
+							throw new Error('Not stake tokens input')
+						}
+					} else if (intermediateActionType === 'unstake') {
+						if (isUnstakeTokensInput(i)) {
+							return IntendedUnstakeTokens.create(i, from)
+						} else {
+							throw new Error('Not unstake tokens input')
+						}
 					} else {
-						throw new Error('Not transfer tokens input')
+						return err(
+							new Error(
+								'Incorrect implementation, forgot something...',
+							),
+						)
 					}
-				} else if (intermediateActionType === 'stake') {
-					if (isStakeTokensInput(i)) {
-						return IntendedStakeTokens.create(i, from)
-					} else {
-						throw new Error('Not stake tokens input')
-					}
-				} else if (intermediateActionType === 'unstake') {
-					if (isUnstakeTokensInput(i)) {
-						return IntendedUnstakeTokens.create(i, from)
-					} else {
-						throw new Error('Not unstake tokens input')
-					}
-				} else {
-					return err(
-						new Error(
-							'Incorrect implementation, forgot something...',
-						),
-					)
-				}
-			}),
+				},
+			),
 		).map(intendedActions => ({ intendedActions, from }))
 	}
 
@@ -451,8 +453,7 @@ const create = (): TransactionIntentBuilderT => {
 										return {
 											actions:
 												intendedActionsFrom.intendedActions,
-											message:
-												encryptedMessage.combined(),
+											message: encryptedMessage.combined(),
 										}
 									},
 								),

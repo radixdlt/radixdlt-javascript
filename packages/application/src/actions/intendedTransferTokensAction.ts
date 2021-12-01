@@ -33,19 +33,21 @@ const create = (
 		AccountAddress.fromUnsafe(input.to_account),
 		Amount.fromUnsafe(input.amount),
 		ResourceIdentifier.fromUnsafe(input.tokenIdentifier),
-	]).map((resultList): IntendedTransferTokensAction => {
-		const to_account = resultList[0] as AccountAddressT
-		const amount = resultList[1] as AmountT
-		const rri = resultList[2] as ResourceIdentifierT
+	]).map(
+		(resultList): IntendedTransferTokensAction => {
+			const to_account = resultList[0] as AccountAddressT
+			const amount = resultList[1] as AmountT
+			const rri = resultList[2] as ResourceIdentifierT
 
-		return {
-			to_account,
-			amount,
-			rri,
-			type: ActionType.TOKEN_TRANSFER,
-			from_account,
-		}
-	})
+			return {
+				to_account,
+				amount,
+				rri,
+				type: ActionType.TOKEN_TRANSFER,
+				from_account,
+			}
+		},
+	)
 
 export const IntendedTransferTokens = {
 	create,

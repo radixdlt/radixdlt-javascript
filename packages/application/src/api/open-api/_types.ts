@@ -182,12 +182,11 @@ export namespace Decoded {
 		amount: TokenAmount
 	}
 
-	export type CreateTokenDefinitionAction =
-		BaseAction<ActionType.CreateTokenDefinition> & {
-			token_properties: TokenProperties
-			token_supply: TokenAmount
-			to?: AccountIdentifier
-		}
+	export type CreateTokenDefinitionAction = BaseAction<ActionType.CreateTokenDefinition> & {
+		token_properties: TokenProperties
+		token_supply: TokenAmount
+		to?: AccountIdentifier
+	}
 
 	export type Action =
 		| TransferTokensAction

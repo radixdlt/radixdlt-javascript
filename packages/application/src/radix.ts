@@ -157,8 +157,7 @@ const create = () => {
 	const errorNotificationSubject = new Subject<APIError>()
 
 	const deriveNextLocalHDAccountSubject = new Subject<DeriveNextInput>()
-	const addAccountByPrivateKeySubject =
-		new Subject<AddAccountByPrivateKeyInput>()
+	const addAccountByPrivateKeySubject = new Subject<AddAccountByPrivateKeyInput>()
 	const switchAccountSubject = new Subject<SwitchAccountInput>()
 
 	const tokenBalanceFetchSubject = new Subject<number>()
@@ -178,20 +177,18 @@ const create = () => {
 		shareReplay(1),
 	)
 	// Forwards calls to RadixCoreAPI, return type is a function: `(input?: I) => Observable<O>`
-	const fwdAPICall =
-		<I extends unknown[], O>(
-			pickFn: (api: RadixCoreAPI) => (...input: I) => Observable<O>,
-			errorFn: (error: APIErrorObject) => APIError,
-		) =>
-		(...input: I) =>
-			coreAPI$.pipe(
-				mergeMap(a => pickFn(a)(...input)),
-				take(1), // Important!
-				catchError((error: unknown) => {
-					// console.error(error)
-					throw errorFn(isArray(error) ? (error as any)[0] : error)
-				}),
-			)
+	const fwdAPICall = <I extends unknown[], O>(
+		pickFn: (api: RadixCoreAPI) => (...input: I) => Observable<O>,
+		errorFn: (error: APIErrorObject) => APIError,
+	) => (...input: I) =>
+		coreAPI$.pipe(
+			mergeMap(a => pickFn(a)(...input)),
+			take(1), // Important!
+			catchError((error: unknown) => {
+				// console.error(error)
+				throw errorFn(isArray(error) ? (error as any)[0] : error)
+			}),
+		)
 
 	const api = {
 		networkId: fwdAPICall(
@@ -396,14 +393,11 @@ const create = () => {
 						transactionIntent,
 						account,
 					]): Observable<SignedTransaction> => {
-						const nonXRDHRPsOfRRIsInTx: string[] =
-							transactionIntent.actions
-								.filter(
-									a => a.type === ActionType.TOKEN_TRANSFER,
-								)
-								.map(a => a as TransferTokensAction)
-								.filter(t => t.rri.name !== 'xrd')
-								.map(t => t.rri.name)
+						const nonXRDHRPsOfRRIsInTx: string[] = transactionIntent.actions
+							.filter(a => a.type === ActionType.TOKEN_TRANSFER)
+							.map(a => a as TransferTokensAction)
+							.filter(t => t.rri.name !== 'xrd')
+							.map(t => t.rri.name)
 
 						const uniquenonXRDHRPsOfRRIsInTx = [
 							...new Set(nonXRDHRPsOfRRIsInTx),
@@ -423,15 +417,20 @@ const create = () => {
 						return account
 							.sign(unsignedTx.transaction, nonXRDHrp)
 							.pipe(
-								map((signature): SignedTransaction => {
-									const publicKeyOfSigner = account.publicKey
-									txLog.debug(`Finished signing transaction`)
-									return {
-										transaction: unsignedTx.transaction,
-										signature,
-										publicKeyOfSigner,
-									}
-								}),
+								map(
+									(signature): SignedTransaction => {
+										const publicKeyOfSigner =
+											account.publicKey
+										txLog.debug(
+											`Finished signing transaction`,
+										)
+										return {
+											transaction: unsignedTx.transaction,
+											signature,
+											publicKeyOfSigner,
+										}
+									},
+								),
 							)
 					},
 				),
@@ -502,16 +501,18 @@ const create = () => {
 
 		const builtTransaction$ = transactionIntent$.pipe(
 			withLatestFrom(activeAddress),
-			switchMap(([intent, address]): Observable<BuiltTransaction> => {
-				txLog.debug(
-					'Transaction intent created => requesting 🛰 API to build it now.',
-				)
-				track({
-					transactionState: intent,
-					eventUpdateType: TransactionTrackingEventType.INITIATED,
-				})
-				return api.buildTransaction(intent, address)
-			}),
+			switchMap(
+				([intent, address]): Observable<BuiltTransaction> => {
+					txLog.debug(
+						'Transaction intent created => requesting 🛰 API to build it now.',
+					)
+					track({
+						transactionState: intent,
+						eventUpdateType: TransactionTrackingEventType.INITIATED,
+					})
+					return api.buildTransaction(intent, address)
+				},
+			),
 			catchError((e: Error) => {
 				txLog.error(`API failed to build transaction, error: ${e}`)
 				trackError({
@@ -669,13 +670,10 @@ const create = () => {
 			share(),
 		)
 
-		const transactionCompletedWithStatusConfirmed$ =
-			transactionStatus$.pipe(
-				skipWhile(
-					({ status }) => status !== TransactionStatus.CONFIRMED,
-				),
-				take(1),
-			)
+		const transactionCompletedWithStatusConfirmed$ = transactionStatus$.pipe(
+			skipWhile(({ status }) => status !== TransactionStatus.CONFIRMED),
+			take(1),
+		)
 
 		const transactionCompletedWithStatusFailed$ = transactionStatus$.pipe(
 			skipWhile(({ status }) => status !== TransactionStatus.FAILED),
@@ -729,7 +727,8 @@ const create = () => {
 				txLog.error(errMsg)
 				trackError({
 					error: new Error(errMsg),
-					inStep: TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
+					inStep:
+						TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
 				})
 				txSubs.unsubscribe()
 			}),
@@ -1012,13 +1011,12 @@ const create = () => {
 		): Observable<AccountT> =>
 			wallet$.pipe(mergeMap(wallet => wallet.deriveHWAccount(input))),
 
-		displayAddressForActiveHWAccountOnHWDeviceForVerification:
-			(): Observable<void> =>
-				wallet$.pipe(
-					mergeMap(wallet =>
-						wallet.displayAddressForActiveHWAccountOnHWDeviceForVerification(),
-					),
+		displayAddressForActiveHWAccountOnHWDeviceForVerification: (): Observable<void> =>
+			wallet$.pipe(
+				mergeMap(wallet =>
+					wallet.displayAddressForActiveHWAccountOnHWDeviceForVerification(),
 				),
+			),
 
 		addAccountFromPrivateKey: (input: AddAccountByPrivateKeyInput) => {
 			addAccountByPrivateKeySubject.next(input)

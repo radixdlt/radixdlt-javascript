@@ -77,7 +77,7 @@
     "test:ledger:app": "yarn test:ledger ./packages/hardware-ledger/test/physical-devices/radix.test.integration.ts",
     "release": "yarn build && yarn bootstrap && lerna publish --conventional-commits",
     "format": "prettier --write '**/*.{ts,tsx,js}' --config .prettierrc",
-    "sanity": "yarn format && yarn lint && yarn build && yarn test"
+    "sanity": "yarn format && yarn build && yarn test"
   },
   "workspaces": [
     "packages/*"

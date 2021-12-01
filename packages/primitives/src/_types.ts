@@ -21,7 +21,7 @@ export const NetworkId = {
 	5: Network.TESTNET5,
 	6: Network.TESTNET6,
 	7: Network.TESTNET7,
-	99: Network.LOCALNET
+	99: Network.LOCALNET,
 }
 
 export const hrpFullSuffixLength = 3

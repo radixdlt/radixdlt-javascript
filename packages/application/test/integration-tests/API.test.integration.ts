@@ -67,10 +67,9 @@ describe('integration API tests', () => {
 			await firstValueFrom(radix.restoreLocalHDAccountsToIndex(2))
 		).all
 		balances = await firstValueFrom(radix.tokenBalances)
-		const maybeTokenBalance =
-			balances.account_balances.liquid_balances.find(
-				a => a.token_identifier.rri.name.toLowerCase() === 'xrd',
-			)
+		const maybeTokenBalance = balances.account_balances.liquid_balances.find(
+			a => a.token_identifier.rri.name.toLowerCase() === 'xrd',
+		)
 		if (!maybeTokenBalance) {
 			throw Error('no XRD found')
 		}
@@ -229,12 +228,11 @@ describe('integration API tests', () => {
 			subs.add(
 				radix.tokenBalances.subscribe(balance => {
 					const getXRDBalanceOrZero = (): AmountT => {
-						const maybeTokenBalance =
-							balance.account_balances.liquid_balances.find(
-								a =>
-									a.token_identifier.rri.name.toLowerCase() ===
-									'xrd',
-							)
+						const maybeTokenBalance = balance.account_balances.liquid_balances.find(
+							a =>
+								a.token_identifier.rri.name.toLowerCase() ===
+								'xrd',
+						)
 						return maybeTokenBalance !== undefined
 							? maybeTokenBalance.value
 							: UInt256.valueOf(0)
@@ -418,9 +416,8 @@ describe('integration API tests', () => {
 			if (
 				event.eventUpdateType === TransactionTrackingEventType.SUBMITTED
 			) {
-				const txID: TransactionIdentifierT = (
-					event as TransactionStateSuccess<PendingTransaction>
-				).transactionState.txID
+				const txID: TransactionIdentifierT = (event as TransactionStateSuccess<PendingTransaction>)
+					.transactionState.txID
 
 				subs.add(
 					radix
@@ -569,8 +566,9 @@ describe('integration API tests', () => {
 			'100000000000000000000',
 		)._unsafeUnwrap()
 
-		const unstakeAmount =
-			Amount.fromUnsafe('100000000000000000')._unsafeUnwrap()
+		const unstakeAmount = Amount.fromUnsafe(
+			'100000000000000000',
+		)._unsafeUnwrap()
 		const validator = (await firstValueFrom(radix.validators()))
 			.validators[0]
 

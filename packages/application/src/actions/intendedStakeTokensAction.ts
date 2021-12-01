@@ -34,19 +34,21 @@ const create = (
 		ValidatorAddress.fromUnsafe(input.to_validator),
 		Amount.fromUnsafe(input.amount),
 		ResourceIdentifier.fromUnsafe(input.tokenIdentifier),
-	]).map((resultList): IntendedStakeTokensAction => {
-		const to_validator = resultList[0] as ValidatorAddressT
-		const amount = resultList[1] as AmountT
-		const rri = resultList[2] as ResourceIdentifierT
+	]).map(
+		(resultList): IntendedStakeTokensAction => {
+			const to_validator = resultList[0] as ValidatorAddressT
+			const amount = resultList[1] as AmountT
+			const rri = resultList[2] as ResourceIdentifierT
 
-		return {
-			to_validator,
-			amount,
-			type: ActionType.STAKE_TOKENS,
-			from_account,
-			rri,
-		}
-	})
+			return {
+				to_validator,
+				amount,
+				type: ActionType.STAKE_TOKENS,
+				from_account,
+				rri,
+			}
+		},
+	)
 
 export const IntendedStakeTokens = {
 	create,

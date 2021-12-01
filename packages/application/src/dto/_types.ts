@@ -147,7 +147,7 @@ export type TransactionHistoryRequestInput = TransactionHistoryOfKnownAddressReq
 
 export type SimpleExecutedTransaction = Readonly<{
 	txID: TransactionIdentifierT
-	sentAt: Date,
+	sentAt: Date
 	status: TransactionStatus
 	fee: AmountT
 	message?: string

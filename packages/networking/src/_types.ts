@@ -1,5 +1,5 @@
-import { ResultAsync } from "neverthrow"
-import { OpenApiClientCall } from "./open-api-client"
+import { ResultAsync } from 'neverthrow'
+import { OpenApiClientCall } from './open-api-client'
 import { OpenRPCClientCall } from './open-rpc-client'
 
 type TransportType = 'json-rpc' | 'open-api'
@@ -10,7 +10,7 @@ export type Call<Methods, Params, Return> = <Methods, Params, Return>(
 ) => ResultAsync<Return, Error>
 
 export type Transport<T extends TransportType> = {
-	type: T,
+	type: T
 	call: T extends 'open-api' ? OpenApiClientCall : OpenRPCClientCall
 }
 

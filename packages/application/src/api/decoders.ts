@@ -100,11 +100,9 @@ export const validatorAddressObjectDecoder = (...keys: string[]) =>
 			: undefined,
 	)
 
-const validatorAddressPattern =
-	/^(r|t|d)v[0-9]?1[023456789ACDEFGHJKLMNPQRSTUVWXYZacdefghjklmnpqrstuvwxyz]{6,69}$/
+const validatorAddressPattern = /^(r|t|d)v[0-9]?1[023456789ACDEFGHJKLMNPQRSTUVWXYZacdefghjklmnpqrstuvwxyz]{6,69}$/
 
-const accountAddressPattern =
-	/^(r|t|d)dx[0-9]?1[023456789ACDEFGHJKLMNPQRSTUVWXYZacdefghjklmnpqrstuvwxyz]{6,69}$/
+const accountAddressPattern = /^(r|t|d)dx[0-9]?1[023456789ACDEFGHJKLMNPQRSTUVWXYZacdefghjklmnpqrstuvwxyz]{6,69}$/
 
 export const addressFromUnsafe = (address: string) =>
 	validatorAddressPattern.test(address)

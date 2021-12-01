@@ -87,14 +87,14 @@ export type UnstakeTokensAction = UnstakeTokensProps &
 // Radix Core API.
 export type IntendedActionBase<T extends ActionType> = Action<T>
 
-export type IntendedTransferTokensAction =
-	IntendedActionBase<ActionType.TOKEN_TRANSFER> & TransferTokensAction
+export type IntendedTransferTokensAction = IntendedActionBase<ActionType.TOKEN_TRANSFER> &
+	TransferTokensAction
 
-export type IntendedStakeTokensAction =
-	IntendedActionBase<ActionType.STAKE_TOKENS> & StakeTokensProps
+export type IntendedStakeTokensAction = IntendedActionBase<ActionType.STAKE_TOKENS> &
+	StakeTokensProps
 
-export type IntendedUnstakeTokensAction =
-	IntendedActionBase<ActionType.UNSTAKE_TOKENS> & UnstakeTokensProps
+export type IntendedUnstakeTokensAction = IntendedActionBase<ActionType.UNSTAKE_TOKENS> &
+	UnstakeTokensProps
 
 export type IntendedAction =
 	| IntendedTransferTokensAction
@@ -111,14 +111,14 @@ export type IntendedAction =
 // of transaction history. Marker type.
 export type ExecutedActionBase<T extends ActionType> = Action<T>
 
-export type ExecutedTransferTokensAction =
-	ExecutedActionBase<ActionType.TOKEN_TRANSFER> & TransferTokensAction
+export type ExecutedTransferTokensAction = ExecutedActionBase<ActionType.TOKEN_TRANSFER> &
+	TransferTokensAction
 
-export type ExecutedStakeTokensAction =
-	ExecutedActionBase<ActionType.STAKE_TOKENS> & StakeTokensAction
+export type ExecutedStakeTokensAction = ExecutedActionBase<ActionType.STAKE_TOKENS> &
+	StakeTokensAction
 
-export type ExecutedUnstakeTokensAction =
-	ExecutedActionBase<ActionType.UNSTAKE_TOKENS> & UnstakeTokensAction
+export type ExecutedUnstakeTokensAction = ExecutedActionBase<ActionType.UNSTAKE_TOKENS> &
+	UnstakeTokensAction
 
 // OTHER (Only "Executed")
 export type ExecutedOtherAction = ExecutedActionBase<ActionType.OTHER>
