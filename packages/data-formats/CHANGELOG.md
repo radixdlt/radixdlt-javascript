@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.1.4](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/data-formats@2.1.3...@radixdlt/data-formats@2.1.4) (2021-12-01)
+
+**Note:** Version bump only for package @radixdlt/data-formats
+
+
+
+
+
 ## [2.1.3](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/data-formats@2.1.1...@radixdlt/data-formats@2.1.3) (2021-07-21)
 
 **Note:** Version bump only for package @radixdlt/data-formats
