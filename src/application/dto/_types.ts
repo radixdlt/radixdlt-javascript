@@ -91,7 +91,7 @@ export enum TransactionTrackingEventType {
 }
 
 export type TransactionStateSuccess<
-	T extends TransactionState = TransactionState
+	T extends TransactionState = TransactionState,
 > = Readonly<{
 	eventUpdateType: TransactionTrackingEventType
 	transactionState: T
@@ -103,7 +103,7 @@ export type TransactionStateError = Readonly<{
 }>
 
 export type TransactionStateUpdate<
-	T extends TransactionState = TransactionState
+	T extends TransactionState = TransactionState,
 > = TransactionStateSuccess<T> | TransactionStateError
 
 export type TransactionState =
@@ -123,12 +123,14 @@ export type TransactionHistoryOfKnownAddressRequestInput = Readonly<{
 	cursor?: string
 }>
 
-export type TransactionHistoryActiveAccountRequestInput = TransactionHistoryOfKnownAddressRequestInput
+export type TransactionHistoryActiveAccountRequestInput =
+	TransactionHistoryOfKnownAddressRequestInput
 
-export type TransactionHistoryRequestInput = TransactionHistoryOfKnownAddressRequestInput &
-	Readonly<{
-		address: AccountAddressT
-	}>
+export type TransactionHistoryRequestInput =
+	TransactionHistoryOfKnownAddressRequestInput &
+		Readonly<{
+			address: AccountAddressT
+		}>
 
 export type SimpleExecutedTransaction = Readonly<{
 	txID: TransactionIdentifierT
@@ -170,8 +172,8 @@ export type Token = Readonly<{
 	granularity: AmountT
 	isSupplyMutable: boolean
 	currentSupply: AmountT
-	tokenInfoURL: URL
-	iconURL: URL
+	tokenInfoURL?: URL
+	iconURL?: URL
 }>
 
 export type StatusOfTransaction = Readonly<{
@@ -192,7 +194,6 @@ export type SignedTransaction = Readonly<{
 
 export type FinalizedTransaction = Readonly<{
 	blob: string
-	txID: TransactionIdentifierT
 }>
 
 export type PendingTransaction = Readonly<{

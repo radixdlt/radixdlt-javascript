@@ -9,12 +9,7 @@ import {
 	AddSigningKeyByPrivateKeyInput,
 	DeriveHWSigningKeyInput,
 } from '@account'
-import {
-	PublicKeyT,
-	HDPathRadixT,
-	MnemomicT,
-	KeystoreT,
-} from '@crypto'
+import { PublicKeyT, HDPathRadixT, MnemomicT, KeystoreT } from '@crypto'
 import { Network } from '@primitives'
 import { ErrorNotification, Observable, ReplaySubject } from 'rxjs'
 import {
@@ -37,7 +32,7 @@ import {
 } from './actions'
 import { Option } from 'prelude-ts'
 import { SigningKeychainT, SigningKeyTypeT } from '@account'
-import { RadixAPI } from './api'
+import { NodeT, RadixAPI, RadixCoreAPI } from './api'
 import { ErrorT } from './errors'
 import { LogLevel } from '@util'
 
@@ -50,10 +45,10 @@ export type TransactionConfirmationBeforeFinalization =
 	| 'skip'
 	| ReplaySubject<ManualUserConfirmTX>
 
-export type MessageInTransaction = {
+export type MessageInTransaction = Readonly<{
 	plaintext: string
 	encrypt: boolean
-}
+}>
 
 export type MakeTransactionOptions = Readonly<{
 	userConfirmation: TransactionConfirmationBeforeFinalization
@@ -159,9 +154,9 @@ export type RadixT = Readonly<{
 	connect: (url: string) => Promise<void>
 
 	// Primiarily useful for testing.
-	__withAPI: (radixCoreAPI$: Observable<RadixAPI>) => RadixT
+	__withAPI: (radixCoreAPI$: Observable<RadixCoreAPI>) => RadixT
 
-	__withNodeConnection: (node$: Observable<URL>) => RadixT
+	__withNodeConnection: (node$: Observable<NodeT>) => RadixT
 	__withWallet: (wallet: WalletT) => RadixT
 	login: (password: string, loadKeystore: () => Promise<KeystoreT>) => RadixT
 
@@ -245,8 +240,16 @@ export type RadixT = Readonly<{
 	errors: Observable<ErrorT<any>>
 
 	__wallet: Observable<WalletT>
-	__node: Observable<URL>
+	__node: Observable<NodeT>
 	__reset: () => void
 
 	__withKeychain: (signingKeychain: SigningKeychainT) => RadixT
 }>
+
+export type PrimitiveFrom<Complex> = {
+	[Property in keyof Complex]: Complex[Property] extends {
+		toPrimitive: () => unknown
+	}
+		? ReturnType<Complex[Property]['toPrimitive']>
+		: Complex[Property]
+}
