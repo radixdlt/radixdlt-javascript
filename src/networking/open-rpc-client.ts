@@ -58,7 +58,12 @@ const MethodEndpoints = {
 
 const correlationID = uuid()
 
-export const RPCClient: Client = (url: URL): Transport => {
+export type OpenRPCClientCall = (
+	endpoint: string,
+	params: unknown[] | Record<string, unknown>,
+) => Promise<unknown>
+
+export const RPCClient: Client<'json-rpc'> = (url: URL) => {
 	const call = async (
 		method: string,
 		params: unknown[] | Record<string, unknown>,
@@ -95,7 +100,6 @@ export const RPCClient: Client = (url: URL): Transport => {
 			//	throw err
 		})
 
-		
 		console.log(
 			`calling ${method} at ${endpoint} with: ${JSON.stringify(
 				filteredParams,
@@ -104,12 +108,11 @@ export const RPCClient: Client = (url: URL): Transport => {
 			)}`,
 		)
 
-		const response:
-			| Record<string, unknown>
-			| unknown[] = await client.request({
-			method: method,
-			params: filteredParams,
-		})
+		const response: Record<string, unknown> | unknown[] =
+			await client.request({
+				method: method,
+				params: filteredParams,
+			})
 
 		log.info(
 			`Response from ${method} call: ${JSON.stringify(
@@ -119,13 +122,17 @@ export const RPCClient: Client = (url: URL): Transport => {
 			)}`,
 		)
 
-		console.log(`response for ${method} at ${endpoint}`, JSON.stringify(response, null, 2))
+		console.log(
+			`response for ${method} at ${endpoint}`,
+			JSON.stringify(response, null, 2),
+		)
 		// TODO validate response
 
 		return response
 	}
 
 	return {
+		type: 'json-rpc',
 		call,
 	}
 }
