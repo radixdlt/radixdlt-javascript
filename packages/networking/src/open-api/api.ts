@@ -48,10 +48,10 @@ export interface AccountBalances {
 export interface AccountBalancesRequest {
     /**
      * 
-     * @type {NetworkIdentifier}
+     * @type {string}
      * @memberof AccountBalancesRequest
      */
-    'network_identifier': NetworkIdentifier;
+    'network': string;
     /**
      * 
      * @type {AccountIdentifier}
@@ -77,38 +77,6 @@ export interface AccountBalancesResponse {
      * @memberof AccountBalancesResponse
      */
     'account_balances': AccountBalances;
-}
-/**
- * 
- * @export
- * @interface AccountDeriveRequest
- */
-export interface AccountDeriveRequest {
-    /**
-     * 
-     * @type {NetworkIdentifier}
-     * @memberof AccountDeriveRequest
-     */
-    'network_identifier': NetworkIdentifier;
-    /**
-     * 
-     * @type {PublicKey}
-     * @memberof AccountDeriveRequest
-     */
-    'public_key': PublicKey;
-}
-/**
- * 
- * @export
- * @interface AccountDeriveResponse
- */
-export interface AccountDeriveResponse {
-    /**
-     * 
-     * @type {AccountIdentifier}
-     * @memberof AccountDeriveResponse
-     */
-    'account_identifier': AccountIdentifier;
 }
 /**
  * 
@@ -150,10 +118,10 @@ export interface AccountStakeEntry {
 export interface AccountStakesRequest {
     /**
      * 
-     * @type {NetworkIdentifier}
+     * @type {string}
      * @memberof AccountStakesRequest
      */
-    'network_identifier': NetworkIdentifier;
+    'network': string;
     /**
      * 
      * @type {AccountIdentifier}
@@ -173,12 +141,6 @@ export interface AccountStakesResponse {
      * @memberof AccountStakesResponse
      */
     'ledger_state': LedgerState;
-    /**
-     * 
-     * @type {Array<AccountStakeEntry>}
-     * @memberof AccountStakesResponse
-     */
-    'pending_stakes': Array<AccountStakeEntry>;
     /**
      * 
      * @type {Array<AccountStakeEntry>}
@@ -280,10 +242,10 @@ export enum AccountTransactionStatusStatusEnum {
 export interface AccountTransactionsRequest {
     /**
      * 
-     * @type {NetworkIdentifier}
+     * @type {string}
      * @memberof AccountTransactionsRequest
      */
-    'network_identifier': NetworkIdentifier;
+    'network': string;
     /**
      * 
      * @type {AccountIdentifier}
@@ -315,12 +277,6 @@ export interface AccountTransactionsResponse {
      * @memberof AccountTransactionsResponse
      */
     'ledger_state': LedgerState;
-    /**
-     * 
-     * @type {number}
-     * @memberof AccountTransactionsResponse
-     */
-    'total_count'?: number;
     /**
      * 
      * @type {string}
@@ -367,10 +323,10 @@ export interface AccountUnstakeEntry {
 export interface AccountUnstakesRequest {
     /**
      * 
-     * @type {NetworkIdentifier}
+     * @type {string}
      * @memberof AccountUnstakesRequest
      */
-    'network_identifier': NetworkIdentifier;
+    'network': string;
     /**
      * 
      * @type {AccountIdentifier}
@@ -390,12 +346,6 @@ export interface AccountUnstakesResponse {
      * @memberof AccountUnstakesResponse
      */
     'ledger_state': LedgerState;
-    /**
-     * 
-     * @type {Array<AccountUnstakeEntry>}
-     * @memberof AccountUnstakesResponse
-     */
-    'pending_unstakes': Array<AccountUnstakeEntry>;
     /**
      * 
      * @type {Array<AccountUnstakeEntry>}
@@ -421,19 +371,19 @@ export interface Action {
  * @export
  * @interface BelowMinimumStakeError
  */
-export interface BelowMinimumStakeError extends GatewayError {
+export interface BelowMinimumStakeError extends TransactionBuildError {
     /**
      * 
-     * @type {TokenAmount}
+     * @type {string}
      * @memberof BelowMinimumStakeError
      */
-    'requested_amount': TokenAmount;
+    'requested_amount': string;
     /**
      * 
-     * @type {TokenAmount}
+     * @type {string}
      * @memberof BelowMinimumStakeError
      */
-    'minimum_amount': TokenAmount;
+    'minimum_amount': string;
 }
 /**
  * 
@@ -443,16 +393,16 @@ export interface BelowMinimumStakeError extends GatewayError {
 export interface BelowMinimumStakeErrorAllOf {
     /**
      * 
-     * @type {TokenAmount}
+     * @type {string}
      * @memberof BelowMinimumStakeErrorAllOf
      */
-    'requested_amount': TokenAmount;
+    'requested_amount': string;
     /**
      * 
-     * @type {TokenAmount}
+     * @type {string}
      * @memberof BelowMinimumStakeErrorAllOf
      */
-    'minimum_amount': TokenAmount;
+    'minimum_amount': string;
 }
 /**
  * 
@@ -495,47 +445,9 @@ export interface BurnTokensAllOf {
 /**
  * 
  * @export
- * @interface CannotStakeError
- */
-export interface CannotStakeError extends GatewayError {
-    /**
-     * 
-     * @type {AccountIdentifier}
-     * @memberof CannotStakeError
-     */
-    'owner': AccountIdentifier;
-    /**
-     * 
-     * @type {AccountIdentifier}
-     * @memberof CannotStakeError
-     */
-    'user': AccountIdentifier;
-}
-/**
- * 
- * @export
- * @interface CannotStakeErrorAllOf
- */
-export interface CannotStakeErrorAllOf {
-    /**
-     * 
-     * @type {AccountIdentifier}
-     * @memberof CannotStakeErrorAllOf
-     */
-    'owner': AccountIdentifier;
-    /**
-     * 
-     * @type {AccountIdentifier}
-     * @memberof CannotStakeErrorAllOf
-     */
-    'user': AccountIdentifier;
-}
-/**
- * 
- * @export
  * @interface CouldNotConstructFeesError
  */
-export interface CouldNotConstructFeesError extends GatewayError {
+export interface CouldNotConstructFeesError extends TransactionBuildError {
     /**
      * 
      * @type {number}
@@ -628,53 +540,15 @@ export interface EpochRange {
 /**
  * 
  * @export
- * @interface ErrorResponse
- */
-export interface ErrorResponse {
-    /**
-     * 
-     * @type {number}
-     * @memberof ErrorResponse
-     */
-    'code': number;
-    /**
-     * 
-     * @type {string}
-     * @memberof ErrorResponse
-     */
-    'message': string;
-    /**
-     * 
-     * @type {GatewayError}
-     * @memberof ErrorResponse
-     */
-    'details'?: GatewayError;
-}
-/**
- * 
- * @export
- * @interface GatewayError
- */
-export interface GatewayError {
-    /**
-     * 
-     * @type {string}
-     * @memberof GatewayError
-     */
-    'type': string;
-}
-/**
- * 
- * @export
  * @interface GatewayResponse
  */
 export interface GatewayResponse {
     /**
      * 
-     * @type {NetworkIdentifier}
+     * @type {string}
      * @memberof GatewayResponse
      */
-    'network_identifier': NetworkIdentifier;
+    'network': string;
     /**
      * 
      * @type {LedgerState}
@@ -687,283 +561,6 @@ export interface GatewayResponse {
      * @memberof GatewayResponse
      */
     'target_ledger_state'?: TargetLedgerState;
-}
-/**
- * 
- * @export
- * @interface InternalServerError
- */
-export interface InternalServerError extends GatewayError {
-    /**
-     * 
-     * @type {string}
-     * @memberof InternalServerError
-     */
-    'exception': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof InternalServerError
-     */
-    'cause': string;
-}
-/**
- * 
- * @export
- * @interface InternalServerErrorAllOf
- */
-export interface InternalServerErrorAllOf {
-    /**
-     * 
-     * @type {string}
-     * @memberof InternalServerErrorAllOf
-     */
-    'exception': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof InternalServerErrorAllOf
-     */
-    'cause': string;
-}
-/**
- * 
- * @export
- * @interface InvalidAccountAddressError
- */
-export interface InvalidAccountAddressError extends GatewayError {
-    /**
-     * 
-     * @type {string}
-     * @memberof InvalidAccountAddressError
-     */
-    'invalid_account_address': string;
-}
-/**
- * 
- * @export
- * @interface InvalidAccountAddressErrorAllOf
- */
-export interface InvalidAccountAddressErrorAllOf {
-    /**
-     * 
-     * @type {string}
-     * @memberof InvalidAccountAddressErrorAllOf
-     */
-    'invalid_account_address': string;
-}
-/**
- * 
- * @export
- * @interface InvalidActionError
- */
-export interface InvalidActionError extends GatewayError {
-    /**
-     * 
-     * @type {Action}
-     * @memberof InvalidActionError
-     */
-    'invalid_action': Action;
-}
-/**
- * 
- * @export
- * @interface InvalidActionErrorAllOf
- */
-export interface InvalidActionErrorAllOf {
-    /**
-     * 
-     * @type {Action}
-     * @memberof InvalidActionErrorAllOf
-     */
-    'invalid_action': Action;
-}
-/**
- * 
- * @export
- * @interface InvalidPublicKeyError
- */
-export interface InvalidPublicKeyError extends GatewayError {
-    /**
-     * 
-     * @type {string}
-     * @memberof InvalidPublicKeyError
-     */
-    'invalid_public_key': string;
-}
-/**
- * 
- * @export
- * @interface InvalidPublicKeyErrorAllOf
- */
-export interface InvalidPublicKeyErrorAllOf {
-    /**
-     * 
-     * @type {string}
-     * @memberof InvalidPublicKeyErrorAllOf
-     */
-    'invalid_public_key': string;
-}
-/**
- * 
- * @export
- * @interface InvalidRequestError
- */
-export interface InvalidRequestError extends GatewayError {
-    /**
-     * 
-     * @type {string}
-     * @memberof InvalidRequestError
-     */
-    'exception': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof InvalidRequestError
-     */
-    'cause': string;
-}
-/**
- * 
- * @export
- * @interface InvalidSignatureError
- */
-export interface InvalidSignatureError extends GatewayError {
-    /**
-     * 
-     * @type {Signature}
-     * @memberof InvalidSignatureError
-     */
-    'invalid_signature': Signature;
-}
-/**
- * 
- * @export
- * @interface InvalidSignatureErrorAllOf
- */
-export interface InvalidSignatureErrorAllOf {
-    /**
-     * 
-     * @type {Signature}
-     * @memberof InvalidSignatureErrorAllOf
-     */
-    'invalid_signature': Signature;
-}
-/**
- * 
- * @export
- * @interface InvalidTokenRRIError
- */
-export interface InvalidTokenRRIError extends GatewayError {
-    /**
-     * 
-     * @type {string}
-     * @memberof InvalidTokenRRIError
-     */
-    'invalid_rri': string;
-}
-/**
- * 
- * @export
- * @interface InvalidTokenRRIErrorAllOf
- */
-export interface InvalidTokenRRIErrorAllOf {
-    /**
-     * 
-     * @type {string}
-     * @memberof InvalidTokenRRIErrorAllOf
-     */
-    'invalid_rri': string;
-}
-/**
- * 
- * @export
- * @interface InvalidTokenSymbolError
- */
-export interface InvalidTokenSymbolError extends GatewayError {
-    /**
-     * 
-     * @type {string}
-     * @memberof InvalidTokenSymbolError
-     */
-    'invalid_token_symbol': string;
-}
-/**
- * 
- * @export
- * @interface InvalidTokenSymbolErrorAllOf
- */
-export interface InvalidTokenSymbolErrorAllOf {
-    /**
-     * 
-     * @type {string}
-     * @memberof InvalidTokenSymbolErrorAllOf
-     */
-    'invalid_token_symbol': string;
-}
-/**
- * 
- * @export
- * @interface InvalidTransactionError
- */
-export interface InvalidTransactionError extends GatewayError {
-    /**
-     * 
-     * @type {string}
-     * @memberof InvalidTransactionError
-     */
-    'invalid_transaction': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof InvalidTransactionError
-     */
-    'message': string;
-}
-/**
- * 
- * @export
- * @interface InvalidTransactionErrorAllOf
- */
-export interface InvalidTransactionErrorAllOf {
-    /**
-     * 
-     * @type {string}
-     * @memberof InvalidTransactionErrorAllOf
-     */
-    'invalid_transaction': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof InvalidTransactionErrorAllOf
-     */
-    'message': string;
-}
-/**
- * 
- * @export
- * @interface InvalidValidatorAddressError
- */
-export interface InvalidValidatorAddressError extends GatewayError {
-    /**
-     * 
-     * @type {string}
-     * @memberof InvalidValidatorAddressError
-     */
-    'invalid_account_address'?: string;
-}
-/**
- * 
- * @export
- * @interface InvalidValidatorAddressErrorAllOf
- */
-export interface InvalidValidatorAddressErrorAllOf {
-    /**
-     * 
-     * @type {string}
-     * @memberof InvalidValidatorAddressErrorAllOf
-     */
-    'invalid_account_address'?: string;
 }
 /**
  * 
@@ -1001,7 +598,7 @@ export interface LedgerState {
  * @export
  * @interface MessageTooLongError
  */
-export interface MessageTooLongError extends GatewayError {
+export interface MessageTooLongError extends TransactionBuildError {
     /**
      * 
      * @type {number}
@@ -1075,218 +672,78 @@ export interface MintTokensAllOf {
 /**
  * 
  * @export
- * @interface NetworkIdentifier
+ * @interface NotEnoughResourcesError
  */
-export interface NetworkIdentifier {
+export interface NotEnoughResourcesError extends TransactionBuildError {
     /**
      * 
      * @type {string}
-     * @memberof NetworkIdentifier
+     * @memberof NotEnoughResourcesError
      */
-    'network': string;
-}
-/**
- * 
- * @export
- * @interface NetworkNotSupportedError
- */
-export interface NetworkNotSupportedError extends GatewayError {
-    /**
-     * 
-     * @type {Array<string>}
-     * @memberof NetworkNotSupportedError
-     */
-    'networks_supported': Array<string>;
-}
-/**
- * 
- * @export
- * @interface NetworkNotSupportedErrorAllOf
- */
-export interface NetworkNotSupportedErrorAllOf {
-    /**
-     * 
-     * @type {Array<string>}
-     * @memberof NetworkNotSupportedErrorAllOf
-     */
-    'networks_supported': Array<string>;
-}
-/**
- * 
- * @export
- * @interface NotEnoughNativeTokensForFeesError
- */
-export interface NotEnoughNativeTokensForFeesError extends GatewayError {
-    /**
-     * 
-     * @type {TokenAmount}
-     * @memberof NotEnoughNativeTokensForFeesError
-     */
-    'required_amount': TokenAmount;
-    /**
-     * 
-     * @type {TokenAmount}
-     * @memberof NotEnoughNativeTokensForFeesError
-     */
-    'available_amount': TokenAmount;
-}
-/**
- * 
- * @export
- * @interface NotEnoughNativeTokensForFeesErrorAllOf
- */
-export interface NotEnoughNativeTokensForFeesErrorAllOf {
-    /**
-     * 
-     * @type {TokenAmount}
-     * @memberof NotEnoughNativeTokensForFeesErrorAllOf
-     */
-    'required_amount': TokenAmount;
-    /**
-     * 
-     * @type {TokenAmount}
-     * @memberof NotEnoughNativeTokensForFeesErrorAllOf
-     */
-    'available_amount': TokenAmount;
-}
-/**
- * 
- * @export
- * @interface NotEnoughTokensForStakeError
- */
-export interface NotEnoughTokensForStakeError extends GatewayError {
-    /**
-     * 
-     * @type {TokenAmount}
-     * @memberof NotEnoughTokensForStakeError
-     */
-    'requested_amount': TokenAmount;
-    /**
-     * 
-     * @type {TokenAmount}
-     * @memberof NotEnoughTokensForStakeError
-     */
-    'available_amount': TokenAmount;
-}
-/**
- * 
- * @export
- * @interface NotEnoughTokensForTransferError
- */
-export interface NotEnoughTokensForTransferError extends GatewayError {
-    /**
-     * 
-     * @type {TokenAmount}
-     * @memberof NotEnoughTokensForTransferError
-     */
-    'requested_amount': TokenAmount;
-    /**
-     * 
-     * @type {TokenAmount}
-     * @memberof NotEnoughTokensForTransferError
-     */
-    'available_amount': TokenAmount;
-}
-/**
- * 
- * @export
- * @interface NotEnoughTokensForTransferErrorAllOf
- */
-export interface NotEnoughTokensForTransferErrorAllOf {
-    /**
-     * 
-     * @type {TokenAmount}
-     * @memberof NotEnoughTokensForTransferErrorAllOf
-     */
-    'requested_amount': TokenAmount;
-    /**
-     * 
-     * @type {TokenAmount}
-     * @memberof NotEnoughTokensForTransferErrorAllOf
-     */
-    'available_amount': TokenAmount;
-}
-/**
- * 
- * @export
- * @interface NotEnoughTokensForUnstakeError
- */
-export interface NotEnoughTokensForUnstakeError extends GatewayError {
-    /**
-     * 
-     * @type {TokenAmount}
-     * @memberof NotEnoughTokensForUnstakeError
-     */
-    'requested_amount': TokenAmount;
-    /**
-     * 
-     * @type {AccountStakeEntry}
-     * @memberof NotEnoughTokensForUnstakeError
-     */
-    'stake': AccountStakeEntry;
-    /**
-     * 
-     * @type {AccountStakeEntry}
-     * @memberof NotEnoughTokensForUnstakeError
-     */
-    'pending_stake': AccountStakeEntry;
-}
-/**
- * 
- * @export
- * @interface NotEnoughTokensForUnstakeErrorAllOf
- */
-export interface NotEnoughTokensForUnstakeErrorAllOf {
-    /**
-     * 
-     * @type {TokenAmount}
-     * @memberof NotEnoughTokensForUnstakeErrorAllOf
-     */
-    'requested_amount': TokenAmount;
-    /**
-     * 
-     * @type {AccountStakeEntry}
-     * @memberof NotEnoughTokensForUnstakeErrorAllOf
-     */
-    'stake': AccountStakeEntry;
-    /**
-     * 
-     * @type {AccountStakeEntry}
-     * @memberof NotEnoughTokensForUnstakeErrorAllOf
-     */
-    'pending_stake': AccountStakeEntry;
-}
-/**
- * 
- * @export
- * @interface PublicKey
- */
-export interface PublicKey {
+    'requested_amount': string;
     /**
      * 
      * @type {string}
-     * @memberof PublicKey
+     * @memberof NotEnoughResourcesError
      */
-    'hex': string;
+    'available_amount': string;
 }
 /**
  * 
  * @export
- * @interface Signature
+ * @interface NotEnoughResourcesErrorAllOf
  */
-export interface Signature {
-    /**
-     * 
-     * @type {PublicKey}
-     * @memberof Signature
-     */
-    'public_key': PublicKey;
+export interface NotEnoughResourcesErrorAllOf {
     /**
      * 
      * @type {string}
-     * @memberof Signature
+     * @memberof NotEnoughResourcesErrorAllOf
      */
-    'bytes': string;
+    'requested_amount': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof NotEnoughResourcesErrorAllOf
+     */
+    'available_amount': string;
+}
+/**
+ * 
+ * @export
+ * @interface NotValidatorOwnerError
+ */
+export interface NotValidatorOwnerError extends TransactionBuildError {
+    /**
+     * 
+     * @type {AccountIdentifier}
+     * @memberof NotValidatorOwnerError
+     */
+    'owner': AccountIdentifier;
+    /**
+     * 
+     * @type {AccountIdentifier}
+     * @memberof NotValidatorOwnerError
+     */
+    'user': AccountIdentifier;
+}
+/**
+ * 
+ * @export
+ * @interface NotValidatorOwnerErrorAllOf
+ */
+export interface NotValidatorOwnerErrorAllOf {
+    /**
+     * 
+     * @type {AccountIdentifier}
+     * @memberof NotValidatorOwnerErrorAllOf
+     */
+    'owner': AccountIdentifier;
+    /**
+     * 
+     * @type {AccountIdentifier}
+     * @memberof NotValidatorOwnerErrorAllOf
+     */
+    'user': AccountIdentifier;
 }
 /**
  * 
@@ -1409,16 +866,16 @@ export interface TokenAmount {
 export interface TokenDeriveRequest {
     /**
      * 
-     * @type {NetworkIdentifier}
+     * @type {string}
      * @memberof TokenDeriveRequest
      */
-    'network_identifier': NetworkIdentifier;
+    'network': string;
     /**
      * 
-     * @type {PublicKey}
+     * @type {AccountIdentifier}
      * @memberof TokenDeriveRequest
      */
-    'public_key': PublicKey;
+    'creator_account_identifier': AccountIdentifier;
     /**
      * 
      * @type {string}
@@ -1482,7 +939,7 @@ export interface TokenNativeRequest {
      * @type {string}
      * @memberof TokenNativeRequest
      */
-    'network_identifier': string;
+    'network': string;
 }
 /**
  * 
@@ -1502,32 +959,6 @@ export interface TokenNativeResponse {
      * @memberof TokenNativeResponse
      */
     'token': Token;
-}
-/**
- * 
- * @export
- * @interface TokenNotFoundError
- */
-export interface TokenNotFoundError extends GatewayError {
-    /**
-     * 
-     * @type {TokenIdentifier}
-     * @memberof TokenNotFoundError
-     */
-    'token_not_found': TokenIdentifier;
-}
-/**
- * 
- * @export
- * @interface TokenNotFoundErrorAllOf
- */
-export interface TokenNotFoundErrorAllOf {
-    /**
-     * 
-     * @type {TokenIdentifier}
-     * @memberof TokenNotFoundErrorAllOf
-     */
-    'token_not_found': TokenIdentifier;
 }
 /**
  * 
@@ -1592,10 +1023,10 @@ export interface TokenProperties {
 export interface TokenRequest {
     /**
      * 
-     * @type {NetworkIdentifier}
+     * @type {string}
      * @memberof TokenRequest
      */
-    'network_identifier': NetworkIdentifier;
+    'network': string;
     /**
      * 
      * @type {TokenIdentifier}
@@ -1650,15 +1081,28 @@ export interface TransactionBuild {
 /**
  * 
  * @export
+ * @interface TransactionBuildError
+ */
+export interface TransactionBuildError {
+    /**
+     * 
+     * @type {string}
+     * @memberof TransactionBuildError
+     */
+    'type': string;
+}
+/**
+ * 
+ * @export
  * @interface TransactionBuildRequest
  */
 export interface TransactionBuildRequest {
     /**
      * 
-     * @type {NetworkIdentifier}
+     * @type {string}
      * @memberof TransactionBuildRequest
      */
-    'network_identifier': NetworkIdentifier;
+    'network': string;
     /**
      * 
      * @type {Array<Action>}
@@ -1692,8 +1136,60 @@ export interface TransactionBuildRequest {
 export interface TransactionBuildResponse {
     /**
      * 
-     * @type {TransactionBuild}
+     * @type {string}
      * @memberof TransactionBuildResponse
+     */
+    'type': string;
+}
+/**
+ * 
+ * @export
+ * @interface TransactionBuildResponseError
+ */
+export interface TransactionBuildResponseError extends TransactionBuildResponse {
+    /**
+     * 
+     * @type {TransactionBuildError}
+     * @memberof TransactionBuildResponseError
+     */
+    'error': TransactionBuildError;
+}
+/**
+ * 
+ * @export
+ * @interface TransactionBuildResponseErrorAllOf
+ */
+export interface TransactionBuildResponseErrorAllOf {
+    /**
+     * 
+     * @type {TransactionBuildError}
+     * @memberof TransactionBuildResponseErrorAllOf
+     */
+    'error': TransactionBuildError;
+}
+/**
+ * 
+ * @export
+ * @interface TransactionBuildResponseSuccess
+ */
+export interface TransactionBuildResponseSuccess extends TransactionBuildResponse {
+    /**
+     * 
+     * @type {TransactionBuild}
+     * @memberof TransactionBuildResponseSuccess
+     */
+    'transaction_build': TransactionBuild;
+}
+/**
+ * 
+ * @export
+ * @interface TransactionBuildResponseSuccessAllOf
+ */
+export interface TransactionBuildResponseSuccessAllOf {
+    /**
+     * 
+     * @type {TransactionBuild}
+     * @memberof TransactionBuildResponseSuccessAllOf
      */
     'transaction_build': TransactionBuild;
 }
@@ -1717,16 +1213,35 @@ export interface TransactionFinalizeRequest {
     'unsigned_transaction': string;
     /**
      * 
-     * @type {Signature}
+     * @type {TransactionFinalizeRequestSignature}
      * @memberof TransactionFinalizeRequest
      */
-    'signature': Signature;
+    'signature': TransactionFinalizeRequestSignature;
     /**
      * 
      * @type {boolean}
      * @memberof TransactionFinalizeRequest
      */
     'submit'?: boolean;
+}
+/**
+ * 
+ * @export
+ * @interface TransactionFinalizeRequestSignature
+ */
+export interface TransactionFinalizeRequestSignature {
+    /**
+     * 
+     * @type {string}
+     * @memberof TransactionFinalizeRequestSignature
+     */
+    'public_key': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof TransactionFinalizeRequestSignature
+     */
+    'bytes': string;
 }
 /**
  * 
@@ -1763,32 +1278,6 @@ export interface TransactionIdentifier {
 /**
  * 
  * @export
- * @interface TransactionNotFoundError
- */
-export interface TransactionNotFoundError extends GatewayError {
-    /**
-     * 
-     * @type {TransactionIdentifier}
-     * @memberof TransactionNotFoundError
-     */
-    'transaction_not_found': TransactionIdentifier;
-}
-/**
- * 
- * @export
- * @interface TransactionNotFoundErrorAllOf
- */
-export interface TransactionNotFoundErrorAllOf {
-    /**
-     * 
-     * @type {TransactionIdentifier}
-     * @memberof TransactionNotFoundErrorAllOf
-     */
-    'transaction_not_found': TransactionIdentifier;
-}
-/**
- * 
- * @export
  * @interface TransactionRules
  */
 export interface TransactionRules {
@@ -1813,10 +1302,10 @@ export interface TransactionRules {
 export interface TransactionRulesRequest {
     /**
      * 
-     * @type {NetworkIdentifier}
+     * @type {string}
      * @memberof TransactionRulesRequest
      */
-    'network_identifier': NetworkIdentifier;
+    'network': string;
 }
 /**
  * 
@@ -1845,10 +1334,10 @@ export interface TransactionRulesResponse {
 export interface TransactionStatusRequest {
     /**
      * 
-     * @type {NetworkIdentifier}
+     * @type {string}
      * @memberof TransactionStatusRequest
      */
-    'network_identifier': NetworkIdentifier;
+    'network': string;
     /**
      * 
      * @type {TransactionIdentifier}
@@ -1883,10 +1372,10 @@ export interface TransactionStatusResponse {
 export interface TransactionSubmitRequest {
     /**
      * 
-     * @type {NetworkIdentifier}
+     * @type {string}
      * @memberof TransactionSubmitRequest
      */
-    'network_identifier': NetworkIdentifier;
+    'network': string;
     /**
      * 
      * @type {string}
@@ -1956,6 +1445,31 @@ export interface TransferTokensAllOf {
      * @memberof TransferTokensAllOf
      */
     'amount': TokenAmount;
+}
+/**
+ * 
+ * @export
+ * @interface UnexpectedError
+ */
+export interface UnexpectedError {
+    /**
+     * 
+     * @type {number}
+     * @memberof UnexpectedError
+     */
+    'code': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof UnexpectedError
+     */
+    'message': string;
+    /**
+     * 
+     * @type {object}
+     * @memberof UnexpectedError
+     */
+    'details'?: object;
 }
 /**
  * 
@@ -2041,38 +1555,6 @@ export interface Validator {
 /**
  * 
  * @export
- * @interface ValidatorDeriveRequest
- */
-export interface ValidatorDeriveRequest {
-    /**
-     * 
-     * @type {NetworkIdentifier}
-     * @memberof ValidatorDeriveRequest
-     */
-    'network_identifier': NetworkIdentifier;
-    /**
-     * 
-     * @type {PublicKey}
-     * @memberof ValidatorDeriveRequest
-     */
-    'public_key': PublicKey;
-}
-/**
- * 
- * @export
- * @interface ValidatorDeriveResponse
- */
-export interface ValidatorDeriveResponse {
-    /**
-     * 
-     * @type {ValidatorIdentifier}
-     * @memberof ValidatorDeriveResponse
-     */
-    'account_identifier': ValidatorIdentifier;
-}
-/**
- * 
- * @export
  * @interface ValidatorIdentifier
  */
 export interface ValidatorIdentifier {
@@ -2105,6 +1587,44 @@ export interface ValidatorInfo {
 /**
  * 
  * @export
+ * @interface ValidatorInfoRequest
+ */
+export interface ValidatorInfoRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof ValidatorInfoRequest
+     */
+    'network': string;
+    /**
+     * 
+     * @type {ValidatorIdentifier}
+     * @memberof ValidatorInfoRequest
+     */
+    'validator_identifier': ValidatorIdentifier;
+}
+/**
+ * 
+ * @export
+ * @interface ValidatorInfoResponse
+ */
+export interface ValidatorInfoResponse {
+    /**
+     * 
+     * @type {LedgerState}
+     * @memberof ValidatorInfoResponse
+     */
+    'ledger_state': LedgerState;
+    /**
+     * 
+     * @type {Validator}
+     * @memberof ValidatorInfoResponse
+     */
+    'validator': Validator;
+}
+/**
+ * 
+ * @export
  * @interface ValidatorProperties
  */
 export interface ValidatorProperties {
@@ -2116,10 +1636,10 @@ export interface ValidatorProperties {
     'url': string;
     /**
      * 
-     * @type {number}
+     * @type {string}
      * @memberof ValidatorProperties
      */
-    'validator_fee': number;
+    'validator_fee': string;
     /**
      * 
      * @type {string}
@@ -2148,44 +1668,6 @@ export interface ValidatorProperties {
 /**
  * 
  * @export
- * @interface ValidatorRequest
- */
-export interface ValidatorRequest {
-    /**
-     * 
-     * @type {NetworkIdentifier}
-     * @memberof ValidatorRequest
-     */
-    'network_identifier': NetworkIdentifier;
-    /**
-     * 
-     * @type {ValidatorIdentifier}
-     * @memberof ValidatorRequest
-     */
-    'validator_identifier': ValidatorIdentifier;
-}
-/**
- * 
- * @export
- * @interface ValidatorResponse
- */
-export interface ValidatorResponse {
-    /**
-     * 
-     * @type {LedgerState}
-     * @memberof ValidatorResponse
-     */
-    'ledger_state': LedgerState;
-    /**
-     * 
-     * @type {Validator}
-     * @memberof ValidatorResponse
-     */
-    'validator': Validator;
-}
-/**
- * 
- * @export
  * @interface ValidatorUptime
  */
 export interface ValidatorUptime {
@@ -2197,10 +1679,10 @@ export interface ValidatorUptime {
     'epoch_range': EpochRange;
     /**
      * 
-     * @type {number}
+     * @type {string}
      * @memberof ValidatorUptime
      */
-    'uptime_percentage': number;
+    'uptime_percentage': string;
     /**
      * 
      * @type {number}
@@ -2222,10 +1704,10 @@ export interface ValidatorUptime {
 export interface ValidatorsRequest {
     /**
      * 
-     * @type {NetworkIdentifier}
+     * @type {string}
      * @memberof ValidatorsRequest
      */
-    'network_identifier': NetworkIdentifier;
+    'network': string;
 }
 /**
  * 
@@ -2283,42 +1765,6 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(accountBalancesRequest, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @summary Derive Account Identifier
-         * @param {AccountDeriveRequest} accountDeriveRequest 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        accountDerivePost: async (accountDeriveRequest: AccountDeriveRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'accountDeriveRequest' is not null or undefined
-            assertParamExists('accountDerivePost', 'accountDeriveRequest', accountDeriveRequest)
-            const localVarPath = `/account/derive`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(accountDeriveRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -2759,50 +2205,14 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
         },
         /**
          * 
-         * @summary Get Validator Identifier
-         * @param {ValidatorDeriveRequest} validatorDeriveRequest 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        validatorDerivePost: async (validatorDeriveRequest: ValidatorDeriveRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'validatorDeriveRequest' is not null or undefined
-            assertParamExists('validatorDerivePost', 'validatorDeriveRequest', validatorDeriveRequest)
-            const localVarPath = `/validator/derive`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(validatorDeriveRequest, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
          * @summary Get Validator
-         * @param {ValidatorRequest} validatorRequest 
+         * @param {ValidatorInfoRequest} validatorInfoRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        validatorPost: async (validatorRequest: ValidatorRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'validatorRequest' is not null or undefined
-            assertParamExists('validatorPost', 'validatorRequest', validatorRequest)
+        validatorPost: async (validatorInfoRequest: ValidatorInfoRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'validatorInfoRequest' is not null or undefined
+            assertParamExists('validatorPost', 'validatorInfoRequest', validatorInfoRequest)
             const localVarPath = `/validator`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -2822,7 +2232,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(validatorRequest, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(validatorInfoRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -2884,17 +2294,6 @@ export const DefaultApiFp = function(configuration?: Configuration) {
          */
         async accountBalancesPost(accountBalancesRequest: AccountBalancesRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccountBalancesResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.accountBalancesPost(accountBalancesRequest, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
-         * 
-         * @summary Derive Account Identifier
-         * @param {AccountDeriveRequest} accountDeriveRequest 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async accountDerivePost(accountDeriveRequest: AccountDeriveRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccountDeriveResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.accountDerivePost(accountDeriveRequest, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -3031,24 +2430,13 @@ export const DefaultApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
-         * @summary Get Validator Identifier
-         * @param {ValidatorDeriveRequest} validatorDeriveRequest 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async validatorDerivePost(validatorDeriveRequest: ValidatorDeriveRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ValidatorDeriveResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.validatorDerivePost(validatorDeriveRequest, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
-         * 
          * @summary Get Validator
-         * @param {ValidatorRequest} validatorRequest 
+         * @param {ValidatorInfoRequest} validatorInfoRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async validatorPost(validatorRequest: ValidatorRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ValidatorResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.validatorPost(validatorRequest, options);
+        async validatorPost(validatorInfoRequest: ValidatorInfoRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ValidatorInfoResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.validatorPost(validatorInfoRequest, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -3081,16 +2469,6 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
          */
         accountBalancesPost(accountBalancesRequest: AccountBalancesRequest, options?: any): AxiosPromise<AccountBalancesResponse> {
             return localVarFp.accountBalancesPost(accountBalancesRequest, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @summary Derive Account Identifier
-         * @param {AccountDeriveRequest} accountDeriveRequest 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        accountDerivePost(accountDeriveRequest: AccountDeriveRequest, options?: any): AxiosPromise<AccountDeriveResponse> {
-            return localVarFp.accountDerivePost(accountDeriveRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -3214,23 +2592,13 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
         },
         /**
          * 
-         * @summary Get Validator Identifier
-         * @param {ValidatorDeriveRequest} validatorDeriveRequest 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        validatorDerivePost(validatorDeriveRequest: ValidatorDeriveRequest, options?: any): AxiosPromise<ValidatorDeriveResponse> {
-            return localVarFp.validatorDerivePost(validatorDeriveRequest, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
          * @summary Get Validator
-         * @param {ValidatorRequest} validatorRequest 
+         * @param {ValidatorInfoRequest} validatorInfoRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        validatorPost(validatorRequest: ValidatorRequest, options?: any): AxiosPromise<ValidatorResponse> {
-            return localVarFp.validatorPost(validatorRequest, options).then((request) => request(axios, basePath));
+        validatorPost(validatorInfoRequest: ValidatorInfoRequest, options?: any): AxiosPromise<ValidatorInfoResponse> {
+            return localVarFp.validatorPost(validatorInfoRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -3262,18 +2630,6 @@ export class DefaultApi extends BaseAPI {
      */
     public accountBalancesPost(accountBalancesRequest: AccountBalancesRequest, options?: AxiosRequestConfig) {
         return DefaultApiFp(this.configuration).accountBalancesPost(accountBalancesRequest, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * 
-     * @summary Derive Account Identifier
-     * @param {AccountDeriveRequest} accountDeriveRequest 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof DefaultApi
-     */
-    public accountDerivePost(accountDeriveRequest: AccountDeriveRequest, options?: AxiosRequestConfig) {
-        return DefaultApiFp(this.configuration).accountDerivePost(accountDeriveRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -3422,26 +2778,14 @@ export class DefaultApi extends BaseAPI {
 
     /**
      * 
-     * @summary Get Validator Identifier
-     * @param {ValidatorDeriveRequest} validatorDeriveRequest 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof DefaultApi
-     */
-    public validatorDerivePost(validatorDeriveRequest: ValidatorDeriveRequest, options?: AxiosRequestConfig) {
-        return DefaultApiFp(this.configuration).validatorDerivePost(validatorDeriveRequest, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * 
      * @summary Get Validator
-     * @param {ValidatorRequest} validatorRequest 
+     * @param {ValidatorInfoRequest} validatorInfoRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DefaultApi
      */
-    public validatorPost(validatorRequest: ValidatorRequest, options?: AxiosRequestConfig) {
-        return DefaultApiFp(this.configuration).validatorPost(validatorRequest, options).then((request) => request(this.axios, this.basePath));
+    public validatorPost(validatorInfoRequest: ValidatorInfoRequest, options?: AxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).validatorPost(validatorInfoRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
