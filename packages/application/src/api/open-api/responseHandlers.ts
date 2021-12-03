@@ -19,6 +19,8 @@ import {
 	ReturnOfAPICall,
 	StakeTokens,
 	TokenAmount,
+	TransactionBuildResponseError,
+	TransactionBuildResponseSuccess,
 	TransferTokens,
 	UnstakeTokens,
 	Validator as ValidatorRaw,
@@ -46,6 +48,7 @@ import {
 } from '../..'
 import { ok, combine } from 'neverthrow'
 import { Message } from '@radixdlt/crypto'
+import { AxiosResponse } from 'axios'
 
 const transformTokenAmount = (amount: TokenAmount) => [
 	Amount.fromUnsafe(amount.value),
@@ -68,7 +71,7 @@ export const handleGatewayResponse = (
 	json: ReturnOfAPICall<'gatewayPost'>,
 ): Result<GatewayEndpoint.DecodedResponse, Error[]> =>
 	ok({
-		network: json.data.network_identifier.network as Network,
+		network: json.data.network as Network,
 	}).mapErr(e => [e] as Error[])
 
 export const handleTokenInfoResponse = (
@@ -404,7 +407,10 @@ json.stakes.map(stake => combine([
 			)
 */
 export const handleBuildTransactionResponse = (
-	json: ReturnOfAPICall<'transactionBuildPost'>,
+	json: AxiosResponse<
+		TransactionBuildResponseSuccess,
+		TransactionBuildResponseError
+	>,
 ): Result<BuildTransactionEndpoint.DecodedResponse, Error[]> =>
 	Amount.fromUnsafe(json.data.transaction_build.fee.value)
 		.map(amount => ({

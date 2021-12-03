@@ -33,7 +33,7 @@ import {
 	TransactionFinalizeRequest,
 	TransactionSubmitRequest,
 	TransactionStatusRequest,
-	ValidatorResponse,
+	ValidatorInfoResponse,
 	TransactionFinalizeResponse,
 	TokenResponse,
 } from '@radixdlt/networking'
@@ -330,16 +330,16 @@ type Validator = {
 	infoURL?: URL
 	totalDelegatedStake: AmountT
 	ownerDelegation: AmountT
-	validatorFee: number
+	validatorFee: string
 	registered: boolean
 	isExternalStakeAccepted: boolean
-	uptimePercentage: number
+	uptimePercentage: string
 	proposalsMissed: number
 	proposalsCompleted: number
 }
 export namespace ValidatorEndpoint {
 	export type Input = ValidatorInfo
-	export type Response = ValidatorResponse
+	export type Response = ValidatorInfoResponse
 	export type DecodedResponse = Validator
 }
 

@@ -7,6 +7,7 @@ import { pipe } from 'ramda'
 import { TransactionBuildResponse } from './open-api/api'
 import { DefaultApiFactory } from '.'
 import { AxiosResponse } from 'axios'
+import { Configuration } from './open-api'
 
 const headers = ['X-Radixdlt-Method', 'X-Radixdlt-Correlation-Id']
 
@@ -72,5 +73,9 @@ export type OpenApiClientCall = ReturnType<typeof call>
 
 export const openApiClient: Client<'open-api'> = (url: URL) => ({
 	type: 'open-api',
-	call: call(DefaultApiFactory(undefined, url.toString().slice(0, -1))),
+	call: call(
+		DefaultApiFactory(
+			new Configuration({ basePath: url.toString().slice(0, -1) }),
+		),
+	),
 })

@@ -3,6 +3,8 @@ import {
 	MethodName,
 	OpenApiClientCall,
 	ReturnOfAPICall,
+	TransactionBuildResponseError,
+	TransactionBuildResponseSuccess,
 } from '@radixdlt/networking'
 import {
 	handleAccountBalancesResponse,
@@ -21,6 +23,7 @@ import {
 } from './responseHandlers'
 import { pipe } from 'ramda'
 import { Result, ResultAsync } from 'neverthrow'
+import { AxiosResponse } from 'axios'
 
 const callAPIWith =
 	(call: OpenApiClientCall) =>
@@ -67,8 +70,13 @@ export const getAPI = pipe(
 			handleTransactionRulesResponse,
 		),
 		*/
-		buildTransaction: callAPI('transactionBuildPost')(
-			handleBuildTransactionResponse,
+		buildTransaction: callAPI('transactionBuildPost')(response =>
+			handleBuildTransactionResponse(
+				response as AxiosResponse<
+					TransactionBuildResponseSuccess,
+					TransactionBuildResponseError
+				>,
+			),
 		),
 		finalizeTransaction: callAPI('transactionFinalizePost')(
 			handleFinalizeTransactionResponse,

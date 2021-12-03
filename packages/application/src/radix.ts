@@ -1107,7 +1107,7 @@ const create = () => {
 		validators: () =>
 			networkSubject.pipe(
 				mergeMap(network =>
-					api.validators({ network_identifier: { network } }),
+					api.validators({ network }),
 				),
 			),
 	}
