@@ -11,6 +11,7 @@ import {
 	AccountTransactionsEndpoint,
 	ValidatorEndpoint,
 	ValidatorsEndpoint,
+	GatewayEndpoint,
 } from './_types'
 import {
 	AccountTransaction,
@@ -42,7 +43,6 @@ import {
 	TransactionIdentifier,
 	TransactionIdentifierT,
 	TransactionStatus,
-	Validator,
 } from '../..'
 import { ok, combine } from 'neverthrow'
 import { Message } from '@radixdlt/crypto'
@@ -65,7 +65,9 @@ const transformMessage = (message?: string) => {
 		: message
 }
 
-export const handleGatewayResponse = (json: ReturnOfAPICall<'gatewayPost'>) =>
+export const handleGatewayResponse = (
+	json: ReturnOfAPICall<'gatewayPost'>,
+): Result<GatewayEndpoint.DecodedResponse, Error[]> =>
 	ok({
 		network: json.data.network_identifier.network as Network,
 	}).mapErr(e => [e] as Error[])

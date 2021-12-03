@@ -262,7 +262,7 @@ export namespace GatewayEndpoint {
 	export type Response = GatewayResponse
 
 	export type DecodedResponse = {
-		networkId: Network
+		network: Network
 	}
 }
 

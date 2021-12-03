@@ -67,9 +67,10 @@ describe('integration API tests', () => {
 			await firstValueFrom(radix.restoreLocalHDAccountsToIndex(2))
 		).all
 		balances = await firstValueFrom(radix.tokenBalances)
-		const maybeTokenBalance = balances.account_balances.liquid_balances.find(
-			a => a.token_identifier.rri.name.toLowerCase() === 'xrd',
-		)
+		const maybeTokenBalance =
+			balances.account_balances.liquid_balances.find(
+				a => a.token_identifier.rri.name.toLowerCase() === 'xrd',
+			)
 		if (!maybeTokenBalance) {
 			throw Error('no XRD found')
 		}
@@ -228,11 +229,12 @@ describe('integration API tests', () => {
 			subs.add(
 				radix.tokenBalances.subscribe(balance => {
 					const getXRDBalanceOrZero = (): AmountT => {
-						const maybeTokenBalance = balance.account_balances.liquid_balances.find(
-							a =>
-								a.token_identifier.rri.name.toLowerCase() ===
-								'xrd',
-						)
+						const maybeTokenBalance =
+							balance.account_balances.liquid_balances.find(
+								a =>
+									a.token_identifier.rri.name.toLowerCase() ===
+									'xrd',
+							)
 						return maybeTokenBalance !== undefined
 							? maybeTokenBalance.value
 							: UInt256.valueOf(0)
@@ -416,8 +418,9 @@ describe('integration API tests', () => {
 			if (
 				event.eventUpdateType === TransactionTrackingEventType.SUBMITTED
 			) {
-				const txID: TransactionIdentifierT = (event as TransactionStateSuccess<PendingTransaction>)
-					.transactionState.txID
+				const txID: TransactionIdentifierT = (
+					event as TransactionStateSuccess<PendingTransaction>
+				).transactionState.txID
 
 				subs.add(
 					radix
@@ -456,7 +459,9 @@ describe('integration API tests', () => {
 
 	it('can lookup validator', async () => {
 		const validator = (
-			await firstValueFrom(radix.ledger.validators({ network }))
+			await firstValueFrom(
+				radix.ledger.validators({ network_identifier: { network } }),
+			)
 		).validators[0]
 		const validatorFromLookup = await firstValueFrom(
 			radix.ledger.lookupValidator(validator.address),
@@ -467,7 +472,7 @@ describe('integration API tests', () => {
 
 	it('should get validators', async () => {
 		const validators = await firstValueFrom(
-			radix.ledger.validators({ network }),
+			radix.ledger.validators({ network_identifier: { network } }),
 		)
 
 		expect(validators.validators.length).toBeGreaterThan(0)
@@ -499,7 +504,7 @@ describe('integration API tests', () => {
 		subs.add(
 			radix.ledger
 				.validators({
-					network,
+					network_identifier: { network },
 				})
 				.subscribe(({ validators }) => {
 					validatorResolve(validators[0].address)
@@ -566,9 +571,8 @@ describe('integration API tests', () => {
 			'100000000000000000000',
 		)._unsafeUnwrap()
 
-		const unstakeAmount = Amount.fromUnsafe(
-			'100000000000000000',
-		)._unsafeUnwrap()
+		const unstakeAmount =
+			Amount.fromUnsafe('100000000000000000')._unsafeUnwrap()
 		const validator = (await firstValueFrom(radix.validators()))
 			.validators[0]
 
