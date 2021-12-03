@@ -18,6 +18,7 @@ module.exports = {
 		'plugin:functional/external-recommended', // https://github.com/jonaskello/eslint-plugin-functional
 		'plugin:functional/recommended', // https://github.com/jonaskello/eslint-plugin-functional
 		'prettier/@typescript-eslint', // Uses eslint-config-prettier to disable ESLint rules from @typescript-eslint/eslint-plugin that would conflict with prettier
+		'plugin:prettier/recommended',
 	],
 	env: {
 		node: true,
