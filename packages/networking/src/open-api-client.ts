@@ -2,11 +2,11 @@ import 'isomorphic-fetch'
 import { log } from '../../util'
 import { v4 as uuid } from 'uuid'
 import { Client } from './_types'
-import { ResultAsync } from 'neverthrow'
+import { err, errAsync, ResultAsync } from 'neverthrow'
 import { pipe } from 'ramda'
 import { TransactionBuildResponse } from './open-api/api'
 import { DefaultApiFactory } from '.'
-import { AxiosResponse } from 'axios'
+import { AxiosResponse, AxiosError } from 'axios'
 import { Configuration } from './open-api'
 
 const headers = ['X-Radixdlt-Method', 'X-Radixdlt-Correlation-Id']
@@ -53,14 +53,27 @@ const call =
 							[headers[0]]: method,
 							[headers[1]]: correlationID,
 						},
-					}).then(response => {
-						log.info(
-							`Response from api with method ${method}`,
-							JSON.stringify(response, null, 2),
-						)
-						if (isError(response.data)) throw response.data.error
-						return response
-					}),
+					})
+						.then(response => {
+							log.info(
+								`Response from api with method ${method}`,
+								JSON.stringify(response, null, 2),
+							)
+
+							if (isError(response.data))
+								throw response.data.error
+							return response
+						})
+						.catch((error: AxiosError) => {
+							if (
+								error.isAxiosError &&
+								error.response?.status !== 500
+							) {
+								return errAsync(error)
+							} else {
+								throw error
+							}
+						}),
 					// @ts-ignore
 					(e: Error) => e,
 				),

@@ -15,9 +15,20 @@ describe.skip('handle error responses', () => {
 		mock.reset()
 	})
 
-	it.only('should handle 500 error', async () => {
+	it('should throw if 500 error', async () => {
 		mock.onPost(`${BASE_URL}/gateway`).reply(500, {})
+		try {
+			await api.gateway({})
+			expect(true).toBe(false)
+		} catch (error) {
+			expect(error).toBeDefined()
+		}
+	})
 
-		expect(await api.gateway({})).toEqual({})
+	it.only('should handle 400 error', async done => {
+		mock.onPost(`${BASE_URL}/gateway`).reply(400, {})
+		api.gateway({}).map(res => {
+			console.log(res)
+		})
 	})
 })

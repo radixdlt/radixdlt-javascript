@@ -36,7 +36,10 @@ const callAPIWith =
 	(params: InputOfAPICall<M>): ResultAsync<DecodedResponse, Error[]> =>
 		pipe(
 			() => call(method, params),
-			result => result.mapErr(e => [e]).andThen(handleResponse),
+			result =>
+				result
+					.mapErr(e => [e])
+					.andThen(response => handleResponse(response)),
 		)()
 
 export const getAPI = pipe(
