@@ -4,7 +4,7 @@ import { v4 as uuid } from 'uuid'
 import { Client } from './_types'
 import { ResultAsync } from 'neverthrow'
 import { pipe } from 'ramda'
-import { TransactionBuildResponseSuccess } from './open-api/api'
+import { DefaultApiFp, TransactionBuildResponse } from './open-api/api'
 import { DefaultApiFactory } from '.'
 import axios, { AxiosResponse } from 'axios'
 
@@ -12,11 +12,10 @@ const headers = ['X-Radixdlt-Method', 'X-Radixdlt-Correlation-Id']
 
 const correlationID = uuid()
 
-export type ReturnOfAPICall<
-	Name extends MethodName
-> = Name extends 'transactionBuildPost'
-	? AxiosResponse<TransactionBuildResponseSuccess>
-	: Awaited<ReturnType<ClientInterface[Name]>>
+export type ReturnOfAPICall<Name extends MethodName> =
+	Name extends 'transactionBuildPost'
+		? AxiosResponse<TransactionBuildResponse>
+		: Awaited<ReturnType<ClientInterface[Name]>>
 
 export type InputOfAPICall<Name extends MethodName> = Parameters<
 	ClientInterface[Name]
@@ -26,46 +25,50 @@ export type ClientInterface = ReturnType<typeof DefaultApiFactory>
 export type MethodName = keyof ClientInterface
 export type Response = ReturnOfAPICall<MethodName>
 
+type API = ReturnType<typeof DefaultApiFp>
+
 const isError = (data: any): data is { error: Record<string, unknown> } =>
 	data.error ? true : false
 
-const call = (client: ClientInterface) => <M extends MethodName>(
-	method: M,
-	params: InputOfAPICall<M>,
-): ResultAsync<ReturnOfAPICall<M>, Error> =>
-	// @ts-ignore
-	pipe(
-		() =>
-			log.info(
-				`Sending api request with method ${method}. ${JSON.stringify(
-					params,
-					null,
-					2,
-				)}`,
-			),
-		() =>
-			ResultAsync.fromPromise(
-				// @ts-ignore
-				client[method](params, {
-					Headers: {
-						[headers[0]]: method,
-						[headers[1]]: correlationID,
-					},
-				}).then(response => {
-					log.info(
-						`Response from api with method ${method}`,
-						JSON.stringify(response, null, 2),
-					)
-					if (isError(response.data)) throw response.data.error
-					return response
-				}),
-				// @ts-ignore
-				(e: Error) => e,
-			),
-	)().mapErr(e => {
-		console.error(e)
-		return e
-	})
+const call =
+	(client: ClientInterface) =>
+	<M extends MethodName>(
+		method: M,
+		params: InputOfAPICall<M>,
+	): ResultAsync<ReturnOfAPICall<M>, Error> =>
+		// @ts-ignore
+		pipe(
+			() =>
+				log.info(
+					`Sending api request with method ${method}. ${JSON.stringify(
+						params,
+						null,
+						2,
+					)}`,
+				),
+			() =>
+				ResultAsync.fromPromise(
+					// @ts-ignore
+					client[method](params, {
+						Headers: {
+							[headers[0]]: method,
+							[headers[1]]: correlationID,
+						},
+					}).then(response => {
+						log.info(
+							`Response from api with method ${method}`,
+							JSON.stringify(response, null, 2),
+						)
+						if (isError(response.data)) throw response.data.error
+						return response
+					}),
+					// @ts-ignore
+					(e: Error) => e,
+				),
+		)().mapErr(e => {
+			console.error(e)
+			return e
+		})
 
 export type OpenApiClientCall = ReturnType<typeof call>
 

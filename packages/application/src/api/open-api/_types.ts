@@ -6,7 +6,6 @@ import {
 import {
 	LedgerState as LedgerStateRaw,
 	GatewayResponse,
-	TokenResponse,
 	TokenNativeResponse,
 	TokenDeriveResponse,
 	AccountBalancesResponse,
@@ -18,12 +17,11 @@ import {
 	ValidatorUptime,
 	TransactionRulesResponse,
 	TransactionBuildResponse,
-	TransactionFinalizeResponse,
 	TransactionSubmitResponse,
 	TransactionStatusResponse,
 	ValidatorsRequest,
 	AccountTransactionsRequest,
-	ValidatorInfoRequest,
+	ValidatorInfo,
 	TokenRequest,
 	TokenNativeRequest,
 	TokenDeriveRequest,
@@ -35,7 +33,9 @@ import {
 	TransactionFinalizeRequest,
 	TransactionSubmitRequest,
 	TransactionStatusRequest,
-	ValidatorInfoResponse,
+	ValidatorResponse,
+	TransactionFinalizeResponse,
+	TokenResponse,
 } from '@radixdlt/networking'
 import { AmountT, Network } from '@radixdlt/primitives'
 import {
@@ -182,11 +182,12 @@ export namespace Decoded {
 		amount: TokenAmount
 	}
 
-	export type CreateTokenDefinitionAction = BaseAction<ActionType.CreateTokenDefinition> & {
-		token_properties: TokenProperties
-		token_supply: TokenAmount
-		to?: AccountIdentifier
-	}
+	export type CreateTokenDefinitionAction =
+		BaseAction<ActionType.CreateTokenDefinition> & {
+			token_properties: TokenProperties
+			token_supply: TokenAmount
+			to?: AccountIdentifier
+		}
 
 	export type Action =
 		| TransferTokensAction
@@ -329,12 +330,16 @@ type Validator = {
 	infoURL?: URL
 	totalDelegatedStake: AmountT
 	ownerDelegation: AmountT
-	validatorFee: string
+	validatorFee: number
 	registered: boolean
+	isExternalStakeAccepted: boolean
+	uptimePercentage: number
+	proposalsMissed: number
+	proposalsCompleted: number
 }
 export namespace ValidatorEndpoint {
-	export type Input = ValidatorInfoRequest
-	export type Response = ValidatorInfoResponse
+	export type Input = ValidatorInfo
+	export type Response = ValidatorResponse
 	export type DecodedResponse = Validator
 }
 
