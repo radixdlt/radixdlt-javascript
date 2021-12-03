@@ -46,7 +46,6 @@ import {
 } from '../..'
 import { ok, combine } from 'neverthrow'
 import { Message } from '@radixdlt/crypto'
-import { AxiosResponse } from 'axios'
 
 const transformTokenAmount = (amount: TokenAmount) => [
 	Amount.fromUnsafe(amount.value),

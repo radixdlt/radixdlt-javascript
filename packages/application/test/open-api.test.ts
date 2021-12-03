@@ -1,29 +1,23 @@
-import { openApiClient } from '@radixdlt/networking'
-import { NetworkId } from '@radixdlt/primitives'
-import fetchMock from 'fetch-mock-jest'
+import axios from 'axios'
+import MockAdapter from 'axios-mock-adapter'
+
+import { openApiClient } from '@radixdlt/networking/src'
 import { getAPI } from '../src/api/open-api/interface'
 
-const api = getAPI(openApiClient(new URL('https://radixnode.com')).call)
+const BASE_URL = 'https://localhost:9000'
 
-describe.skip('open api', () => {
-	beforeEach(() => {
-		fetchMock.mockReset()
+const api = getAPI(openApiClient(new URL(BASE_URL)).call)
+
+const mock = new MockAdapter(axios)
+
+describe.skip('handle error responses', () => {
+	afterEach(() => {
+		mock.reset()
 	})
 
-	it('accountBalancesPost', async () => {
-		fetchMock.post('https://radixnode.com//network', {
-			network: 'mainnet',
-			ledger_state: {
-				epoch: 1,
-				round: 1,
-				version: 1,
-				timestamp: '2021-08-29T01:19:00.524Z',
-			},
-		})
-		expect(
-			await api.gateway({
-				body: {},
-			}),
-		).toEqual({})
+	it.only('should handle 500 error', async () => {
+		mock.onPost(`${BASE_URL}/gateway`).reply(500, {})
+
+		expect(await api.gateway({})).toEqual({})
 	})
 })

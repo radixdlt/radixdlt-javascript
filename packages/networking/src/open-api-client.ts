@@ -4,9 +4,9 @@ import { v4 as uuid } from 'uuid'
 import { Client } from './_types'
 import { ResultAsync } from 'neverthrow'
 import { pipe } from 'ramda'
-import { DefaultApiFp, TransactionBuildResponse } from './open-api/api'
+import { TransactionBuildResponse } from './open-api/api'
 import { DefaultApiFactory } from '.'
-import axios, { AxiosResponse } from 'axios'
+import { AxiosResponse } from 'axios'
 
 const headers = ['X-Radixdlt-Method', 'X-Radixdlt-Correlation-Id']
 
@@ -24,8 +24,6 @@ export type InputOfAPICall<Name extends MethodName> = Parameters<
 export type ClientInterface = ReturnType<typeof DefaultApiFactory>
 export type MethodName = keyof ClientInterface
 export type Response = ReturnOfAPICall<MethodName>
-
-type API = ReturnType<typeof DefaultApiFp>
 
 const isError = (data: any): data is { error: Record<string, unknown> } =>
 	data.error ? true : false
@@ -74,13 +72,5 @@ export type OpenApiClientCall = ReturnType<typeof call>
 
 export const openApiClient: Client<'open-api'> = (url: URL) => ({
 	type: 'open-api',
-	call: call(
-		DefaultApiFactory(
-			undefined,
-			undefined,
-			axios.create({
-				baseURL: url.toString(),
-			}),
-		),
-	),
+	call: call(DefaultApiFactory(undefined, url.toString().slice(0, -1))),
 })
