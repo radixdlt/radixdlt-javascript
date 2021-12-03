@@ -10,7 +10,7 @@ const api = getAPI(openApiClient(new URL(BASE_URL)).call)
 
 const mock = new MockAdapter(axios)
 
-describe.skip('handle error responses', () => {
+describe('handle error responses', () => {
 	afterEach(() => {
 		mock.reset()
 	})
@@ -25,10 +25,26 @@ describe.skip('handle error responses', () => {
 		}
 	})
 
-	it.only('should handle 400 error', async done => {
-		mock.onPost(`${BASE_URL}/gateway`).reply(400, {})
-		api.gateway({}).map(res => {
-			console.log(res)
+	it('should handle 400 error', async done => {
+		mock.onPost(`${BASE_URL}/gateway`).reply(400, {
+			code: 400,
+			message: 'The network selected is not valid.',
+			details: {},
 		})
+
+		api.gateway({})
+			.map(() => {
+				expect(true).toBe(false)
+			})
+			.mapErr(err => {
+				expect(err).toEqual([
+					{
+						code: 400,
+						message: 'The network selected is not valid.',
+						details: {},
+					},
+				])
+				done()
+			})
 	})
 })

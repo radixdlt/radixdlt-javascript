@@ -2,7 +2,7 @@ import 'isomorphic-fetch'
 import { log } from '../../util'
 import { v4 as uuid } from 'uuid'
 import { Client } from './_types'
-import { err, errAsync, ResultAsync } from 'neverthrow'
+import { err, ok, ResultAsync } from 'neverthrow'
 import { pipe } from 'ramda'
 import { TransactionBuildResponse } from './open-api/api'
 import { DefaultApiFactory } from '.'
@@ -69,14 +69,25 @@ const call =
 								error.isAxiosError &&
 								error.response?.status !== 500
 							) {
-								return errAsync(error)
+								return error
 							} else {
 								throw error
 							}
 						}),
+
 					// @ts-ignore
 					(e: Error) => e,
-				),
+				).andThen(res => {
+					const error = res as AxiosError
+					if (error.isAxiosError) {
+						return err(
+							error.response?.data ?? {
+								code: error.response?.status,
+							},
+						)
+					}
+					return ok(res)
+				}),
 		)().mapErr(e => {
 			console.error(e)
 			return e

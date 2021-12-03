@@ -108,7 +108,7 @@ describe('integration API tests', () => {
 		)
 	})
 
-	// CORS errors connecting to network from localhost
+	// CORS error connecting to network from localhost
 	it.skip('can switch networks', async done => {
 		const radix = Radix.create()
 
