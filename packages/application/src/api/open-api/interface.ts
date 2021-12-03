@@ -41,16 +41,12 @@ export const getAPI = pipe(
 
 	callAPI => ({
 		gateway: callAPI('gatewayPost')(handleGatewayResponse),
-		// @ts-ignore: TODO
 		tokenInfo: callAPI('tokenPost')(handleTokenInfoResponse),
-		// @ts-ignore: TODO
 		nativeTokenInfo: callAPI('tokenNativePost')(handleNativeTokenResponse),
 		stakePositions: callAPI('accountStakesPost')(
-			// @ts-ignore: TODO
 			handleStakePositionsResponse,
 		),
 		unstakePositions: callAPI('accountUnstakesPost')(
-			// @ts-ignore: TODO
 			handleUnstakePositionsResponse,
 		),
 		/*
@@ -59,16 +55,12 @@ export const getAPI = pipe(
 		),
 		*/
 		accountBalances: callAPI('accountBalancesPost')(
-			// @ts-ignore: TODO
 			handleAccountBalancesResponse,
 		),
 		accountTransactions: callAPI('accountTransactionsPost')(
-			// @ts-ignore: TODO
 			handleAccountTransactionsResponse,
 		),
-		// @ts-ignore: TODO
 		validator: callAPI('validatorPost')(handleValidatorResponse),
-		// @ts-ignore: TODO
 		validators: callAPI('validatorsPost')(handleValidatorsResponse),
 		/*
 		transactionRules: callAPI('transactionRulesPost')(
@@ -76,19 +68,15 @@ export const getAPI = pipe(
 		),
 		*/
 		buildTransaction: callAPI('transactionBuildPost')(
-			// @ts-ignore: TODO
 			handleBuildTransactionResponse,
 		),
 		finalizeTransaction: callAPI('transactionFinalizePost')(
-			// @ts-ignore: TODO
 			handleFinalizeTransactionResponse,
 		),
 		submitTransaction: callAPI('transactionSubmitPost')(
-			// @ts-ignore: TODO
 			handleSubmitTransactionResponse,
 		),
 		getTransaction: callAPI('transactionStatusPost')(
-			// @ts-ignore: TODO
 			handleTransactionResponse,
 		),
 	}),
