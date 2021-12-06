@@ -26,6 +26,20 @@ export type ClientInterface = ReturnType<typeof DefaultApiFactory>
 export type MethodName = keyof ClientInterface
 export type Response = ReturnOfAPICall<MethodName>
 
+const handleError = (error: AxiosError) => {
+	log.debug(error)
+	if (error.isAxiosError && error.response?.data) {
+		return err({
+			code: error.response.data.code ?? error.response.status,
+			...(typeof error.response.data === 'object'
+				? error.response.data
+				: { message: error.response.data }),
+		})
+	} else {
+		throw error
+	}
+}
+
 const call =
 	(client: ClientInterface) =>
 	<M extends MethodName>(
@@ -50,42 +64,18 @@ const call =
 							[headers[0]]: method,
 							[headers[1]]: correlationID,
 						},
-					})
-						.then(response => {
-							log.info(
-								`Response from api with method ${method}`,
-								JSON.stringify(response.data, null, 2),
-							)
+					}).then(response => {
+						log.info(
+							`Response from api with method ${method}`,
+							JSON.stringify(response.data, null, 2),
+						)
 
-							return response
-						})
-						.catch((error: AxiosError) => {
-							log.debug(error)
-							// handled exception
-							if (error.isAxiosError && error.response?.data) {
-								return {
-									error: {
-										code:
-											error.response.data.code ??
-											error.response.status,
-										...(typeof error.response.data ===
-										'object'
-											? error.response.data
-											: { message: error.response.data }),
-									},
-								}
-							} else {
-								throw { error }
-							}
-						}),
-
+						return response
+					}),
 					// @ts-ignore
-					(e: Error) => e,
-				).andThen(res => {
-					const { error } = res as any
-					return error ? err(error) : ok(res)
-				}),
-		)().mapErr(error => error)
+					handleError,
+				),
+		)()
 
 export type OpenApiClientCall = ReturnType<typeof call>
 
