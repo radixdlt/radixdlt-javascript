@@ -85,11 +85,7 @@ const call =
 					const { error } = res as any
 					return error ? err(error) : ok(res)
 				}),
-		)().mapErr(
-			error =>
-				// log.error(error)
-				error,
-		)
+		)().mapErr(error => error)
 
 export type OpenApiClientCall = ReturnType<typeof call>
 
