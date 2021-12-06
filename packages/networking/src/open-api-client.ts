@@ -75,7 +75,7 @@ const call =
 									},
 								}
 							} else {
-								throw { error: 'error' }
+								throw { error }
 							}
 						}),
 
