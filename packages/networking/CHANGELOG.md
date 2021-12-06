@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.1.8](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/networking@2.1.7...@radixdlt/networking@2.1.8) (2021-12-06)
+
+
+### Bug Fixes
+
+* wrong base url in open api client ([d295599](https://github.com/radixdlt/radixdlt-javascript/commit/d2955991c62ede9bcd2689d1f2d668386e808411))
+
+
+
+
+
 ## [2.1.7](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/networking@2.1.6...@radixdlt/networking@2.1.7) (2021-12-01)
 
 **Note:** Version bump only for package @radixdlt/networking
