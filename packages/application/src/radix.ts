@@ -513,7 +513,7 @@ const create = () => {
 				return api.buildTransaction(intent, address)
 			}),
 			catchError((e: Error) => {
-				txLog.error(`API failed to build transaction, error: ${e}`)
+				txLog.error(`API failed to build transaction`)
 				trackError({
 					error: e,
 					inStep: TransactionTrackingEventType.BUILT_FROM_INTENT,
@@ -1106,9 +1106,7 @@ const create = () => {
 
 		validators: () =>
 			networkSubject.pipe(
-				mergeMap(network =>
-					api.validators({ network }),
-				),
+				mergeMap(network => api.validators({ network })),
 			),
 	}
 

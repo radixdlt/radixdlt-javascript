@@ -3,6 +3,8 @@
  */
 
 /* eslint-disable */
+import axios from 'axios'
+axios.defaults.adapter = require('axios/lib/adapters/http')
 import { Radix } from '../../src/radix'
 import { ValidatorAddressT } from '@radixdlt/account'
 import { firstValueFrom, interval, Subject, Subscription } from 'rxjs'
@@ -14,7 +16,12 @@ import {
 	TransactionStatus,
 } from '../../src/dto/_types'
 import { Amount, AmountT, Network } from '@radixdlt/primitives'
-import { TransactionTrackingEventType, KeystoreT } from '../../src'
+import {
+	TransactionTrackingEventType,
+	KeystoreT,
+	log,
+	restoreDefaultLogLevel,
+} from '../../src'
 import { UInt256 } from '@radixdlt/uint256'
 import { AccountT } from '../../src'
 import { keystoreForTest, makeWalletWithFunds } from '../util'
@@ -22,16 +29,18 @@ import { AccountBalancesEndpoint, Decoded } from '../../src/api/open-api/_types'
 
 const fetch = require('node-fetch')
 
-const network = Network.LOCALNET
+const network = Network.MILESTONENET
 
 // local
-const NODE_URL = 'http://localhost:8080'
+// const NODE_URL = 'http://localhost:8080'
 
 // RCNet
 //const NODE_URL = 'https://54.73.253.49'
 
 // release net
 //const NODE_URL = 'https://18.168.73.103'
+
+const NODE_URL = 'https://milestonenet-gateway.radixdlt.com'
 
 const loadKeystore = (): Promise<KeystoreT> =>
 	Promise.resolve(keystoreForTest.keystore)
@@ -59,6 +68,7 @@ let nativeTokenBalance: Decoded.TokenAmount
 
 describe('integration API tests', () => {
 	beforeAll(async () => {
+		log.setLevel('ERROR')
 		radix = Radix.create()
 		await radix
 			.__withWallet(makeWalletWithFunds(network))
@@ -82,6 +92,9 @@ describe('integration API tests', () => {
 	})
 	afterEach(() => {
 		subs.unsubscribe()
+	})
+	afterAll(() => {
+		restoreDefaultLogLevel()
 	})
 
 	it('can connect and is chainable', async () => {
@@ -108,7 +121,6 @@ describe('integration API tests', () => {
 		)
 	})
 
-	// CORS error connecting to network from localhost
 	it.skip('can switch networks', async done => {
 		const radix = Radix.create()
 
@@ -137,7 +149,7 @@ describe('integration API tests', () => {
 		radix.connect(`${NODE_URL}`)
 
 		subs.add(
-			radix.ledger.nativeToken('mainnet').subscribe(
+			radix.ledger.nativeToken(network).subscribe(
 				token => {
 					expect(token.symbol).toBe('xrd')
 					done()
@@ -149,7 +161,7 @@ describe('integration API tests', () => {
 
 	/*
 
-		it.only('deriveNextSigningKey method on radix updates accounts', done => {
+		it('deriveNextSigningKey method on radix updates accounts', done => {
 		const expected = [1, 2, 3]
 
 		subs.add(

@@ -6,9 +6,9 @@ export enum Network {
 	MAINNET = 'mainnet',
 	STOKENET = 'stokenet',
 	LOCALNET = 'localnet',
+	MILESTONENET = 'milestonenet',
 	TESTNET3 = 'testnet3',
 	TESTNET4 = 'testnet4',
-	TESTNET5 = 'testnet5',
 	TESTNET6 = 'testnet6',
 	TESTNET7 = 'testnet7',
 }
@@ -18,7 +18,7 @@ export const NetworkId = {
 	2: Network.STOKENET,
 	3: Network.TESTNET3,
 	4: Network.TESTNET4,
-	5: Network.TESTNET5,
+	5: Network.MILESTONENET,
 	6: Network.TESTNET6,
 	7: Network.TESTNET7,
 	99: Network.LOCALNET,
@@ -52,7 +52,7 @@ export const HRP = {
 		validator: 'tv4',
 		RRI_suffix: '_tr4',
 	},
-	[Network.TESTNET5]: {
+	[Network.MILESTONENET]: {
 		account: 'tdx5',
 		validator: 'tv5',
 		RRI_suffix: '_tr5',

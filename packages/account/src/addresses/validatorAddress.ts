@@ -33,8 +33,8 @@ const networkFromHRP: NetworkFromHRP = hrp =>
 		? ok(Network.TESTNET3)
 		: hrp === HRP.testnet4.validator
 		? ok(Network.TESTNET4)
-		: hrp === HRP.testnet5.validator
-		? ok(Network.TESTNET5)
+		: hrp === HRP.milestonenet.validator
+		? ok(Network.MILESTONENET)
 		: hrp === HRP.testnet6.validator
 		? ok(Network.TESTNET6)
 		: hrp === HRP.testnet7.validator
