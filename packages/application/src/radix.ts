@@ -100,6 +100,7 @@ import {
 	UnstakeTokensInput,
 } from './actions'
 import { Wallet } from './wallet'
+import { tokenInfoErr } from '.'
 
 const txTypeFromActions = (
 	input: Readonly<{
@@ -210,12 +211,12 @@ const create = () => {
 			a => a.nativeToken,
 			m => nativeTokenErr(m),
 		),
-		/*
+		
 		tokenInfo: fwdAPICall(
 			a => a.tokenInfo,
 			m => tokenInfoErr(m),
 		),
-		*/
+		
 		stakesForAddress: fwdAPICall(
 			a => a.stakesForAddress,
 			m => stakesForAddressErr(m),
