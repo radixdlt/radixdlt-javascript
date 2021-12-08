@@ -3,6 +3,33 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.0.7](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@4.0.6...@radixdlt/application@4.0.7) (2021-12-07)
+
+**Note:** Version bump only for package @radixdlt/application
+
+
+
+
+
+## [4.0.6](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@4.0.2...@radixdlt/application@4.0.6) (2021-12-06)
+
+**Note:** Version bump only for package @radixdlt/application
+
+
+
+
+
+## [4.0.2](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@4.0.1...@radixdlt/application@4.0.2) (2021-12-06)
+
+
+### Bug Fixes
+
+* Relative Import of API crashes wallet ([37be08c](https://github.com/radixdlt/radixdlt-javascript/commit/37be08c2f65114dbb9d0d1ea74582bd694d0815e))
+
+
+
+
+
 ## [4.0.1](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@3.0.7...@radixdlt/application@4.0.1) (2021-12-01)
 
 **Note:** Version bump only for package @radixdlt/application

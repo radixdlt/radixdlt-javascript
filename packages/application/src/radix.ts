@@ -14,6 +14,7 @@ import {
 	filter,
 	map,
 	mergeMap,
+	retryWhen,
 	share,
 	shareReplay,
 	skipWhile,
@@ -51,7 +52,6 @@ import {
 	APIError,
 	APIErrorObject,
 	buildTxFromIntentErr,
-	ErrorT,
 	finalizeTxErr,
 	lookupTxErr,
 	lookupValidatorErr,
@@ -100,6 +100,8 @@ import {
 	UnstakeTokensInput,
 } from './actions'
 import { Wallet } from './wallet'
+import { tokenInfoErr } from '.'
+import { retryOnErrorCode } from './api/utils'
 
 const txTypeFromActions = (
 	input: Readonly<{
@@ -188,7 +190,6 @@ const create = () => {
 				mergeMap(a => pickFn(a)(...input)),
 				take(1), // Important!
 				catchError((error: unknown) => {
-					// console.error(error)
 					throw errorFn(isArray(error) ? (error as any)[0] : error)
 				}),
 			)
@@ -213,12 +214,12 @@ const create = () => {
 			a => a.nativeToken,
 			m => nativeTokenErr(m),
 		),
-		/*
+
 		tokenInfo: fwdAPICall(
 			a => a.tokenInfo,
 			m => tokenInfoErr(m),
 		),
-		*/
+
 		stakesForAddress: fwdAPICall(
 			a => a.stakesForAddress,
 			m => stakesForAddressErr(m),
@@ -662,7 +663,14 @@ const create = () => {
 				)
 				return networkSubject.pipe(
 					mergeMap(network =>
-						api.getTransaction(pendingTx.txID, network),
+						api.getTransaction(pendingTx.txID, network).pipe(
+							retryWhen(
+								retryOnErrorCode({
+									maxRetryAttempts: 3,
+									errorCodes: [404],
+								}),
+							),
+						),
 					),
 				)
 			}),
@@ -699,7 +707,8 @@ const create = () => {
 				error: (transactionStatusError: Error) => {
 					// TODO hmm how to get txID here?
 					txLog.error(
-						`Failed to get status of transaction, error: ${transactionStatusError.message}`,
+						`Failed to get status of transaction`,
+						transactionStatusError,
 					)
 				},
 			}),
@@ -1105,9 +1114,7 @@ const create = () => {
 			),
 
 		validators: () =>
-			networkSubject.pipe(
-				mergeMap(network => api.validators({ network })),
-			),
+			networkSubject.pipe(mergeMap(network => api.validators(network))),
 	}
 
 	return methods

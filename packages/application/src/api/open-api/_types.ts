@@ -12,7 +12,7 @@ import {
 	AccountStakesResponse,
 	AccountUnstakesResponse,
 	AccountTransactionsResponse,
-	AccountTransactionStatusStatusEnum,
+	TransactionStatusStatusEnum,
 	ValidatorsResponse,
 	ValidatorUptime,
 	TransactionRulesResponse,
@@ -33,7 +33,7 @@ import {
 	TransactionFinalizeRequest,
 	TransactionSubmitRequest,
 	TransactionStatusRequest,
-	ValidatorInfoResponse,
+	ValidatorResponse,
 	TransactionFinalizeResponse,
 	TokenResponse,
 } from '@radixdlt/networking'
@@ -44,9 +44,7 @@ import {
 	BuiltTransaction,
 	FinalizedTransaction,
 	PendingTransaction,
-	StatusOfTransaction,
 	StakePositions,
-	UnstakePositions,
 	UnstakePosition,
 	SimpleTransactionHistory,
 	SimpleExecutedTransaction,
@@ -97,7 +95,7 @@ export namespace Decoded {
 	}
 
 	export type AccountTransactionStatus = {
-		status: AccountTransactionStatusStatusEnum
+		status: TransactionStatusStatusEnum
 		confirmed_time?: Date
 	}
 
@@ -308,7 +306,10 @@ export namespace AccountBalancesEndpoint {
 export namespace StakePositionsEndpoint {
 	export type Input = AccountStakesRequest
 	export type Response = AccountStakesResponse
-	export type DecodedResponse = StakePositions
+	export type DecodedResponse = {
+		stakes: StakePositions
+		pendingStakes: StakePositions
+	}
 }
 
 export namespace UnstakePositionsEndpoint {
@@ -330,16 +331,16 @@ type Validator = {
 	infoURL?: URL
 	totalDelegatedStake: AmountT
 	ownerDelegation: AmountT
-	validatorFee: string
+	validatorFee: number
 	registered: boolean
 	isExternalStakeAccepted: boolean
-	uptimePercentage: string
+	uptimePercentage: number
 	proposalsMissed: number
 	proposalsCompleted: number
 }
 export namespace ValidatorEndpoint {
 	export type Input = ValidatorInfo
-	export type Response = ValidatorInfoResponse
+	export type Response = ValidatorResponse
 	export type DecodedResponse = Validator
 }
 

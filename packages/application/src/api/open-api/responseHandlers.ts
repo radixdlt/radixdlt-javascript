@@ -14,7 +14,7 @@ import {
 	GatewayEndpoint,
 } from './_types'
 import {
-	AccountTransaction,
+	AccountStakeEntry,
 	Action,
 	ReturnOfAPICall,
 	StakeTokens,
@@ -44,7 +44,7 @@ import {
 	SimpleTransactionHistory,
 	TransactionIdentifier,
 	TransactionIdentifierT,
-	TransactionStatus,
+	TransactionStatus as TransactionStatusEnum,
 } from '../..'
 import { ok, combine } from 'neverthrow'
 import { Message } from '@radixdlt/crypto'
@@ -71,7 +71,8 @@ export const handleGatewayResponse = (
 	json: ReturnOfAPICall<'gatewayPost'>,
 ): Result<GatewayEndpoint.DecodedResponse, Error[]> =>
 	ok({
-		network: json.data.network as Network,
+		// @ts-ignore
+		network: json.data.network_identifier.network as Network,
 	}).mapErr(e => [e] as Error[])
 
 export const handleTokenInfoResponse = (
@@ -124,20 +125,25 @@ export const handleNativeTokenResponse = (
 		}))
 		.mapErr(e => [e])
 
+const transformStakeEntry = (stake: AccountStakeEntry) =>
+	combine([
+		ValidatorAddress.fromUnsafe(stake.validator_identifier.address),
+		Amount.fromUnsafe(stake.delegated_stake.value),
+	]).map(value => ({
+		validator: value[0] as ValidatorAddressT,
+		amount: value[1] as AmountT,
+	}))
+
 export const handleStakePositionsResponse = (
 	json: ReturnOfAPICall<'accountStakesPost'>,
 ): Result<StakePositionsEndpoint.DecodedResponse, Error[]> =>
-	combine(
-		json.data.stakes.map(stake =>
-			combine([
-				ValidatorAddress.fromUnsafe(stake.validator_identifier.address),
-				Amount.fromUnsafe(stake.delegated_stake.value),
-			]).map(value => ({
-				validator: value[0] as ValidatorAddressT,
-				amount: value[1] as AmountT,
-			})),
-		),
-	).mapErr(e => [e])
+	combine(json.data.stakes.map(transformStakeEntry))
+		.andThen(stakes =>
+			combine(json.data.pending_stakes.map(transformStakeEntry)).map(
+				pendingStakes => ({ stakes, pendingStakes }),
+			),
+		)
+		.mapErr(e => [e])
 
 export const handleUnstakePositionsResponse = (
 	json: ReturnOfAPICall<'accountUnstakesPost'>,
@@ -229,7 +235,7 @@ const transformValidator = (validator: ValidatorRaw) =>
 			infoURL: transformUrl(validator.properties.url),
 			totalDelegatedStake: values[2] as AmountT,
 			ownerDelegation: values[3] as AmountT,
-			validatorFee: validator.properties.validator_fee,
+			validatorFee: validator.properties.validator_fee_percentage,
 			registered: validator.properties.registered,
 			isExternalStakeAccepted:
 				validator.properties.external_stake_accepted,
@@ -446,20 +452,22 @@ export const handleTransactionResponse = (
 ): Result<TransactionEndpoint.DecodedResponse, Error[]> =>
 	handleTx(json.data.transaction)
 
-const handleTx = (transaction: AccountTransaction) => {
+const handleTx = (
+	transaction: ReturnOfAPICall<'transactionStatusPost'>['data']['transaction'],
+) => {
 	const transformAction = (action: Action): Result<ExecutedAction, Error> => {
 		const transformTransferTokenAction = (action: TransferTokens) =>
 			combine([
-				...transformTokenAmount(action.amount),
 				AccountAddress.fromUnsafe(action.to_account.address),
 				AccountAddress.fromUnsafe(action.from_account.address),
+				...(action.amount ? transformTokenAmount(action.amount) : []),
 			]).map(
 				(actionValue): ExecutedTransferTokensAction => ({
 					type: ActionType.TOKEN_TRANSFER,
-					amount: actionValue[0] as AmountT,
-					rri: actionValue[1] as ResourceIdentifierT,
-					to_account: actionValue[2] as AccountAddressT,
-					from_account: actionValue[3] as AccountAddressT,
+					to_account: actionValue[0] as AccountAddressT,
+					from_account: actionValue[1] as AccountAddressT,
+					amount: actionValue[2] as AmountT,
+					rri: actionValue[3] as ResourceIdentifierT,
 				}),
 			)
 
@@ -488,18 +496,18 @@ const handleTx = (transaction: AccountTransaction) => {
 			action: UnstakeTokens,
 		) =>
 			combine([
-				...transformTokenAmount(action.amount),
 				ValidatorAddress.fromUnsafe(action.from_validator.address),
 				AccountAddress.fromUnsafe(action.to_account.address),
+				...(action.amount ? transformTokenAmount(action.amount) : []),
 			]).map(
 				(
 					actionValue,
 				): ExecutedStakeTokensAction | ExecutedUnstakeTokensAction => ({
 					type,
-					amount: actionValue[0] as AmountT,
-					rri: actionValue[1] as ResourceIdentifierT,
-					from_validator: actionValue[2] as ValidatorAddressT,
-					to_account: actionValue[3] as AccountAddressT,
+					from_validator: actionValue[0] as ValidatorAddressT,
+					to_account: actionValue[1] as AccountAddressT,
+					amount: actionValue[2] as AmountT,
+					rri: actionValue[3] as ResourceIdentifierT,
 				}),
 			)
 
@@ -520,6 +528,8 @@ const handleTx = (transaction: AccountTransaction) => {
 				return ok({ ...action, type: ActionType.OTHER })
 		}
 	}
+
+	transaction.transaction_identifier.hash
 
 	return combine([
 		TransactionIdentifier.create(transaction.transaction_identifier.hash),
@@ -542,7 +552,7 @@ const handleTx = (transaction: AccountTransaction) => {
 			message: value[3] as string,
 			// @ts-ignore
 			actions: value[4].actions as ExecutedAction[],
-			status: value[5] as TransactionStatus,
+			status: value[5] as TransactionStatusEnum,
 		}))
 		.mapErr(e => [e] as Error[])
 }

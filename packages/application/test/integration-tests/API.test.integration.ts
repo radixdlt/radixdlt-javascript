@@ -8,7 +8,16 @@ axios.defaults.adapter = require('axios/lib/adapters/http')
 import { Radix } from '../../src/radix'
 import { ValidatorAddressT } from '@radixdlt/account'
 import { firstValueFrom, interval, Subject, Subscription } from 'rxjs'
-import { delay, map, take, toArray } from 'rxjs/operators'
+import {
+	delay,
+	map,
+	mergeMap,
+	retry,
+	retryWhen,
+	take,
+	tap,
+	toArray,
+} from 'rxjs/operators'
 import {
 	PendingTransaction,
 	TransactionIdentifierT,
@@ -25,11 +34,16 @@ import {
 import { UInt256 } from '@radixdlt/uint256'
 import { AccountT } from '../../src'
 import { keystoreForTest, makeWalletWithFunds } from '../util'
-import { AccountBalancesEndpoint, Decoded } from '../../src/api/open-api/_types'
+import {
+	AccountBalancesEndpoint,
+	Decoded,
+	StakePositionsEndpoint,
+} from '../../src/api/open-api/_types'
+import { retryOnErrorCode } from '../../src/api/utils'
 
 const fetch = require('node-fetch')
 
-const network = Network.MILESTONENET
+const network = Network.SANDPITNET
 
 // local
 // const NODE_URL = 'http://localhost:8080'
@@ -40,7 +54,9 @@ const network = Network.MILESTONENET
 // release net
 //const NODE_URL = 'https://18.168.73.103'
 
-const NODE_URL = 'https://milestonenet-gateway.radixdlt.com'
+const NODE_URL = 'https://sandpitnet-gateway.radixdlt.com'
+
+// const NODE_URL = 'https://milestonenet-gateway.radixdlt.com'
 
 const loadKeystore = (): Promise<KeystoreT> =>
 	Promise.resolve(keystoreForTest.keystore)
@@ -85,6 +101,7 @@ describe('integration API tests', () => {
 			throw Error('no XRD found')
 		}
 		nativeTokenBalance = maybeTokenBalance
+		log.setLevel('SILENT')
 	})
 
 	beforeEach(() => {
@@ -284,7 +301,7 @@ describe('integration API tests', () => {
 						transferDone = true
 						subs.add(
 							radix.ledger
-								.getTransaction(txID, 'mainnet')
+								.getTransaction(txID, network)
 								.subscribe(tx => {
 									fee = tx.fee
 									getTokenBalanceSubject.next(1)
@@ -295,9 +312,9 @@ describe('integration API tests', () => {
 		})
 	})
 
-	// 🟢
-	it('should increment transaction history with a new transaction after transfer', async done => {
-		const pageSize = 100
+	// 🟢 can only test this on localnet
+	it.skip('should increment transaction history with a new transaction after transfer', async done => {
+		const pageSize = 15
 
 		const fetchTxHistory = (cursor: string) => {
 			return new Promise<[string, number]>((resolve, _) => {
@@ -413,10 +430,6 @@ describe('integration API tests', () => {
 
 	// 🟢
 	it('should handle transaction status updates', done => {
-		const expectedValues: TransactionStatus[] = [
-			TransactionStatus.CONFIRMED,
-		]
-
 		const txTracking = radix.transferTokens({
 			transferInput: {
 				to_account: accounts[2].address,
@@ -424,10 +437,10 @@ describe('integration API tests', () => {
 				tokenIdentifier: nativeTokenBalance.token_identifier.rri,
 			},
 			userConfirmation: 'skip',
-			pollTXStatusTrigger: interval(200),
+			pollTXStatusTrigger: interval(1000),
 		})
 
-		txTracking.events.pipe(delay(0)).subscribe(event => {
+		txTracking.events.subscribe(event => {
 			if (
 				event.eventUpdateType === TransactionTrackingEventType.SUBMITTED
 			) {
@@ -437,14 +450,13 @@ describe('integration API tests', () => {
 
 				subs.add(
 					radix
-						.transactionStatus(txID, interval(300))
+						.transactionStatus(txID, interval(1000))
 						.pipe(
-							map(response => response.status),
-							take(expectedValues.length),
-							toArray(),
+							// after a transaction is submitted there is a delay until it appears in transaction status
+							retryWhen(retryOnErrorCode({ errorCodes: [404] })),
 						)
-						.subscribe(values => {
-							expect(values).toStrictEqual(expectedValues)
+						.subscribe(({ status }) => {
+							expect(status).toEqual(TransactionStatus.CONFIRMED)
 							done()
 						}),
 				)
@@ -460,19 +472,19 @@ describe('integration API tests', () => {
 				tokenIdentifier: nativeTokenBalance.token_identifier.rri,
 			},
 			userConfirmation: 'skip',
-			pollTXStatusTrigger: interval(500),
+			pollTXStatusTrigger: interval(3000),
 		})
 
 		const txID = await firstValueFrom(completion)
 		const tx = await firstValueFrom(radix.getTransaction(txID))
 
 		expect(txID.equals(tx.txID)).toBe(true)
-		expect(tx.actions.length).toEqual(1)
+		expect(tx.actions.length).toEqual(2)
 	})
 
 	it('can lookup validator', async () => {
 		const validator = (
-			await firstValueFrom(radix.ledger.validators({ network }))
+			await firstValueFrom(radix.ledger.validators(network))
 		).validators[0]
 		const validatorFromLookup = await firstValueFrom(
 			radix.ledger.lookupValidator(validator.address),
@@ -483,11 +495,36 @@ describe('integration API tests', () => {
 
 	it('should get validators', async () => {
 		const validators = await firstValueFrom(
-			radix.ledger.validators({ network }),
+			radix.ledger.validators(network),
 		)
 
 		expect(validators.validators.length).toBeGreaterThan(0)
 	})
+
+	const getValidators = async () =>
+		(await firstValueFrom(radix.ledger.validators(network))).validators
+
+	const getValidatorStakeAmountForAddress = (
+		{ stakes, pendingStakes }: StakePositionsEndpoint.DecodedResponse,
+		validatorAddress: ValidatorAddressT,
+	) => {
+		const validatorStake = stakes.find(values =>
+			values.validator.equals(validatorAddress),
+		)
+		const validatorPendingStake = pendingStakes.find(values =>
+			values.validator.equals(validatorAddress),
+		)
+
+		const stakeAmount = validatorStake
+			? validatorStake.amount
+			: Amount.fromUnsafe(0)._unsafeUnwrap()
+
+		const pendingStakeAmount = validatorPendingStake
+			? validatorPendingStake.amount
+			: Amount.fromUnsafe(0)._unsafeUnwrap()
+
+		return stakeAmount.add(pendingStakeAmount)
+	}
 
 	it('can fetch stake positions', async done => {
 		const triggerSubject = new Subject<number>()
@@ -498,78 +535,60 @@ describe('integration API tests', () => {
 			'100000000000000000000',
 		)._unsafeUnwrap()
 
-		let validatorResolve: any
-		const validatorPromise = new Promise<ValidatorAddressT>(
-			(resolve, _) => {
-				validatorResolve = resolve
-			},
+		const [validator] = await getValidators()
+
+		const initialStake = await firstValueFrom(
+			radix.stakingPositions.pipe(
+				map(res =>
+					getValidatorStakeAmountForAddress(res, validator.address),
+				),
+			),
 		)
 
-		let initialAmountResolve: any
-		let initialAmountPromise = new Promise<AmountT>((resolve, _) => {
-			initialAmountResolve = resolve
-		})
-
-		let hasStaked = false
+		const expectedStake = initialStake.add(stakeAmount).toString()
 
 		subs.add(
-			radix.ledger
-				.validators({
-					network,
+			(
+				await radix.stakeTokens({
+					stakeInput: {
+						amount: stakeAmount,
+						to_validator: validator.address,
+					},
+					userConfirmation: 'skip',
+					pollTXStatusTrigger: interval(1000),
 				})
-				.subscribe(({ validators }) => {
-					validatorResolve(validators[0].address)
-				}),
-		)
-
-		subs.add(
-			radix.stakingPositions.subscribe(async values => {
-				const validator = await validatorPromise
-
-				if (hasStaked) {
-					const initialAmountStaked = await initialAmountPromise
-
-					const amountAfterStaking = values.find(value =>
-						value.validator.equals(validator),
-					)!.amount
-
-					expect(
-						amountAfterStaking.eq(
-							initialAmountStaked.add(stakeAmount),
+			).completion
+				.pipe(
+					tap(() => {
+						triggerSubject.next(0)
+					}),
+					delay(1000),
+					mergeMap(_ =>
+						radix.stakingPositions.pipe(
+							map(res =>
+								getValidatorStakeAmountForAddress(
+									res,
+									validator.address,
+								),
+							),
+							map(actualStake => {
+								if (actualStake.eq(initialStake)) {
+									log.info(
+										'radix.stakingPositions is not done fetching lets retry 🔄',
+									)
+									throw { error: { code: 999 } }
+								} else {
+									return actualStake.toString()
+								}
+							}),
+							retryWhen(retryOnErrorCode({ errorCodes: [999] })),
 						),
-					).toEqual(true)
+					),
+				)
+				.subscribe(actualStake => {
+					expect(actualStake).toEqual(expectedStake)
 					done()
-				} else {
-					const stake = values.find(value =>
-						value.validator.equals(validator),
-					)
-					initialAmountResolve(
-						stake
-							? stake.amount
-							: Amount.fromUnsafe(0)._unsafeUnwrap(),
-					)
-				}
-			}),
-		)
-
-		triggerSubject.next(0)
-
-		const validator = await validatorPromise
-
-		const { completion } = await radix.stakeTokens({
-			stakeInput: {
-				amount: stakeAmount,
-				to_validator: validator,
-			},
-			userConfirmation: 'skip',
-			pollTXStatusTrigger: interval(1000),
-		})
-
-		subs.add(
-			completion.subscribe(_ => {
-				hasStaked = true
-				triggerSubject.next(0)
-			}),
+				}),
 		)
 	})
 
