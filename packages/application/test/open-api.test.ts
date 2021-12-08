@@ -1,29 +1,50 @@
-import { openApiClient } from '@radixdlt/networking'
-import { NetworkId } from '@radixdlt/primitives'
-import fetchMock from 'fetch-mock-jest'
+import axios from 'axios'
+import MockAdapter from 'axios-mock-adapter'
+
+import { openApiClient } from '@radixdlt/networking/src'
 import { getAPI } from '../src/api/open-api/interface'
 
-const api = getAPI(openApiClient(new URL('https://radixnode.com')).call)
+const BASE_URL = 'https://localhost:9000'
 
-describe.skip('open api', () => {
-	beforeEach(() => {
-		fetchMock.mockReset()
+const api = getAPI(openApiClient(new URL(BASE_URL)).call)
+
+const mock = new MockAdapter(axios)
+
+describe('handle error responses', () => {
+	afterEach(() => {
+		mock.reset()
 	})
 
-	it('accountBalancesPost', async () => {
-		fetchMock.post('https://radixnode.com//network', {
-			network: 'mainnet',
-			ledger_state: {
-				epoch: 1,
-				round: 1,
-				version: 1,
-				timestamp: '2021-08-29T01:19:00.524Z',
-			},
+	it('should throw if 500 error', async () => {
+		mock.onPost(`${BASE_URL}/gateway`).reply(500, {})
+		try {
+			await api.gateway({})
+			expect(true).toBe(false)
+		} catch (error) {
+			expect(error).toBeDefined()
+		}
+	})
+
+	it('should handle 400 error', async done => {
+		mock.onPost(`${BASE_URL}/gateway`).reply(400, {
+			code: 400,
+			message: 'The network selected is not valid.',
+			details: {},
 		})
-		expect(
-			await api.gateway({
-				body: {},
-			}),
-		).toEqual({})
+
+		api.gateway({})
+			.map(() => {
+				expect(true).toBe(false)
+			})
+			.mapErr(err => {
+				expect(err).toEqual([
+					{
+						code: 400,
+						message: 'The network selected is not valid.',
+						details: {},
+					},
+				])
+				done()
+			})
 	})
 })

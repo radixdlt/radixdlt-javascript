@@ -28,8 +28,8 @@ const networkFromHRPSuffix = (hrp: string): Result<Network, Error> =>
 		? ok(Network.MILESTONENET)
 		: hrp === HRP.testnet6.RRI_suffix
 		? ok(Network.TESTNET6)
-		: hrp === HRP.testnet7.RRI_suffix
-		? ok(Network.TESTNET7)
+		: hrp === HRP.sandpitnet.RRI_suffix
+		? ok(Network.SANDPITNET)
 		: err(
 				new Error(
 					`Failed to parse network from HRP ${hrp} for ValidatorAddress.`,

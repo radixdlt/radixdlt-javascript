@@ -41,8 +41,8 @@ const networkFromHRP: NetworkFromHRP = hrp =>
 		? ok(Network.MILESTONENET)
 		: hrp === HRP.testnet6.account
 		? ok(Network.TESTNET6)
-		: hrp === HRP.testnet7.account
-		? ok(Network.TESTNET7)
+		: hrp === HRP.sandpitnet.account
+		? ok(Network.SANDPITNET)
 		: err(
 				Error(
 					`Failed to parse network from HRP ${hrp} for AccountAddress.`,

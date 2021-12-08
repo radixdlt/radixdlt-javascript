@@ -6,24 +6,22 @@ import {
 import {
 	LedgerState as LedgerStateRaw,
 	GatewayResponse,
-	TokenResponse,
 	TokenNativeResponse,
 	TokenDeriveResponse,
 	AccountBalancesResponse,
 	AccountStakesResponse,
 	AccountUnstakesResponse,
 	AccountTransactionsResponse,
-	AccountTransactionStatusStatusEnum,
+	TransactionStatusStatusEnum,
 	ValidatorsResponse,
 	ValidatorUptime,
 	TransactionRulesResponse,
 	TransactionBuildResponse,
-	TransactionFinalizeResponse,
 	TransactionSubmitResponse,
 	TransactionStatusResponse,
 	ValidatorsRequest,
 	AccountTransactionsRequest,
-	ValidatorInfoRequest,
+	ValidatorInfo,
 	TokenRequest,
 	TokenNativeRequest,
 	TokenDeriveRequest,
@@ -35,7 +33,9 @@ import {
 	TransactionFinalizeRequest,
 	TransactionSubmitRequest,
 	TransactionStatusRequest,
-	ValidatorInfoResponse,
+	ValidatorResponse,
+	TransactionFinalizeResponse,
+	TokenResponse,
 } from '@radixdlt/networking'
 import { AmountT, Network } from '@radixdlt/primitives'
 import {
@@ -44,9 +44,7 @@ import {
 	BuiltTransaction,
 	FinalizedTransaction,
 	PendingTransaction,
-	StatusOfTransaction,
 	StakePositions,
-	UnstakePositions,
 	UnstakePosition,
 	SimpleTransactionHistory,
 	SimpleExecutedTransaction,
@@ -97,7 +95,7 @@ export namespace Decoded {
 	}
 
 	export type AccountTransactionStatus = {
-		status: AccountTransactionStatusStatusEnum
+		status: TransactionStatusStatusEnum
 		confirmed_time?: Date
 	}
 
@@ -182,11 +180,12 @@ export namespace Decoded {
 		amount: TokenAmount
 	}
 
-	export type CreateTokenDefinitionAction = BaseAction<ActionType.CreateTokenDefinition> & {
-		token_properties: TokenProperties
-		token_supply: TokenAmount
-		to?: AccountIdentifier
-	}
+	export type CreateTokenDefinitionAction =
+		BaseAction<ActionType.CreateTokenDefinition> & {
+			token_properties: TokenProperties
+			token_supply: TokenAmount
+			to?: AccountIdentifier
+		}
 
 	export type Action =
 		| TransferTokensAction
@@ -261,7 +260,7 @@ export namespace GatewayEndpoint {
 	export type Response = GatewayResponse
 
 	export type DecodedResponse = {
-		networkId: Network
+		network: Network
 	}
 }
 
@@ -307,7 +306,10 @@ export namespace AccountBalancesEndpoint {
 export namespace StakePositionsEndpoint {
 	export type Input = AccountStakesRequest
 	export type Response = AccountStakesResponse
-	export type DecodedResponse = StakePositions
+	export type DecodedResponse = {
+		stakes: StakePositions
+		pendingStakes: StakePositions
+	}
 }
 
 export namespace UnstakePositionsEndpoint {
@@ -329,12 +331,16 @@ type Validator = {
 	infoURL?: URL
 	totalDelegatedStake: AmountT
 	ownerDelegation: AmountT
-	validatorFee: string
+	validatorFee: number
 	registered: boolean
+	isExternalStakeAccepted: boolean
+	uptimePercentage: number
+	proposalsMissed: number
+	proposalsCompleted: number
 }
 export namespace ValidatorEndpoint {
-	export type Input = ValidatorInfoRequest
-	export type Response = ValidatorInfoResponse
+	export type Input = ValidatorInfo
+	export type Response = ValidatorResponse
 	export type DecodedResponse = Validator
 }
 

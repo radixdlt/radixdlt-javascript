@@ -37,8 +37,8 @@ const networkFromHRP: NetworkFromHRP = hrp =>
 		? ok(Network.MILESTONENET)
 		: hrp === HRP.testnet6.validator
 		? ok(Network.TESTNET6)
-		: hrp === HRP.testnet7.validator
-		? ok(Network.TESTNET7)
+		: hrp === HRP.sandpitnet.validator
+		? ok(Network.SANDPITNET)
 		: err(
 				Error(
 					`Failed to parse network from HRP ${hrp} for ValidatorAddress.`,

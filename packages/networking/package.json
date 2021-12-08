@@ -38,7 +38,8 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@types/isomorphic-fetch": "^0.0.35"
+    "@types/isomorphic-fetch": "^0.0.35",
+    "axios-mock-adapter": "^1.20.0"
   },
   "gitHead": "f8026eb0c310402ba395025e6a544f7c6baffd66"
 }
