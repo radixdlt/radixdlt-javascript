@@ -39,9 +39,11 @@ describe('handle error responses', () => {
 			.mapErr(err => {
 				expect(err).toEqual([
 					{
-						code: 400,
-						message: 'The network selected is not valid.',
-						details: {},
+						error: {
+							code: 400,
+							message: 'The network selected is not valid.',
+							details: {},
+						},
 					},
 				])
 				done()
