@@ -19,8 +19,6 @@ import {
 	ReturnOfAPICall,
 	StakeTokens,
 	TokenAmount,
-	TransactionBuildResponseError,
-	TransactionBuildResponseSuccess,
 	TransferTokens,
 	UnstakeTokens,
 	Validator as ValidatorRaw,
@@ -413,10 +411,7 @@ json.stakes.map(stake => combine([
 			)
 */
 export const handleBuildTransactionResponse = (
-	json: AxiosResponse<
-		TransactionBuildResponseSuccess,
-		TransactionBuildResponseError
-	>,
+	json: ReturnOfAPICall<'transactionBuildPost'>,
 ): Result<BuildTransactionEndpoint.DecodedResponse, Error[]> =>
 	Amount.fromUnsafe(json.data.transaction_build.fee.value)
 		.map(amount => ({

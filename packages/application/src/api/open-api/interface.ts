@@ -3,8 +3,6 @@ import {
 	MethodName,
 	OpenApiClientCall,
 	ReturnOfAPICall,
-	TransactionBuildResponseError,
-	TransactionBuildResponseSuccess,
 } from '@radixdlt/networking'
 import {
 	handleAccountBalancesResponse,
@@ -70,14 +68,7 @@ export const getAPI = pipe(
 			handleTransactionRulesResponse,
 		),
 		*/
-		buildTransaction: callAPI('transactionBuildPost')(response =>
-			handleBuildTransactionResponse(
-				response as AxiosResponse<
-					TransactionBuildResponseSuccess,
-					TransactionBuildResponseError
-				>,
-			),
-		),
+		buildTransaction: callAPI('transactionBuildPost')(handleBuildTransactionResponse),
 		finalizeTransaction: callAPI('transactionFinalizePost')(
 			handleFinalizeTransactionResponse,
 		),
