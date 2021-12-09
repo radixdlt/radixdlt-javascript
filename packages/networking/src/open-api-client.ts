@@ -2,11 +2,12 @@ import 'isomorphic-fetch'
 import { log } from '../../util'
 import { v4 as uuid } from 'uuid'
 import { Client } from './_types'
-import { ResultAsync } from 'neverthrow'
+import { err, ok, ResultAsync } from 'neverthrow'
 import { pipe } from 'ramda'
-import { TransactionBuildResponseSuccess, Configuration } from './open-api'
+import { TransactionBuildResponse } from './open-api/api'
 import { DefaultApiFactory } from '.'
-import { AxiosResponse } from 'axios'
+import { AxiosResponse, AxiosError } from 'axios'
+import { Configuration } from './open-api'
 
 const headers = ['X-Radixdlt-Method', 'X-Radixdlt-Correlation-Id']
 
@@ -14,7 +15,7 @@ const correlationID = uuid()
 
 export type ReturnOfAPICall<Name extends MethodName> =
 	Name extends 'transactionBuildPost'
-		? AxiosResponse<TransactionBuildResponseSuccess>
+		? AxiosResponse<TransactionBuildResponse>
 		: Awaited<ReturnType<ClientInterface[Name]>>
 
 export type InputOfAPICall<Name extends MethodName> = Parameters<
@@ -25,8 +26,19 @@ export type ClientInterface = ReturnType<typeof DefaultApiFactory>
 export type MethodName = keyof ClientInterface
 export type Response = ReturnOfAPICall<MethodName>
 
-const isError = (data: any): data is { error: Record<string, unknown> } =>
-	data.error ? true : false
+const handleError = (error: AxiosError) => {
+	log.debug(error)
+	if (error.isAxiosError && error.response?.data) {
+		return err({
+			code: error.response.data.code ?? error.response.status,
+			...(typeof error.response.data === 'object'
+				? error.response.data
+				: { message: error.response.data }),
+		})
+	} else {
+		throw error
+	}
+}
 
 const call =
 	(client: ClientInterface) =>
@@ -55,18 +67,15 @@ const call =
 					}).then(response => {
 						log.info(
 							`Response from api with method ${method}`,
-							JSON.stringify(response, null, 2),
+							JSON.stringify(response.data, null, 2),
 						)
-						if (isError(response.data)) throw response.data.error
+
 						return response
 					}),
 					// @ts-ignore
-					(e: Error) => e,
+					handleError,
 				),
-		)().mapErr(e => {
-			console.error(e)
-			return e
-		})
+		)()
 
 export type OpenApiClientCall = ReturnType<typeof call>
 

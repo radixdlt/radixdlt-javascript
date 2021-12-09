@@ -14,6 +14,7 @@ import {
 	filter,
 	map,
 	mergeMap,
+	retryWhen,
 	share,
 	shareReplay,
 	skipWhile,
@@ -51,7 +52,6 @@ import {
 	APIError,
 	APIErrorObject,
 	buildTxFromIntentErr,
-	ErrorT,
 	finalizeTxErr,
 	lookupTxErr,
 	lookupValidatorErr,
@@ -101,6 +101,7 @@ import {
 } from './actions'
 import { Wallet } from './wallet'
 import { tokenInfoErr } from '.'
+import { retryOnErrorCode } from './api/utils'
 
 const txTypeFromActions = (
 	input: Readonly<{
@@ -158,7 +159,8 @@ const create = () => {
 	const errorNotificationSubject = new Subject<APIError>()
 
 	const deriveNextLocalHDAccountSubject = new Subject<DeriveNextInput>()
-	const addAccountByPrivateKeySubject = new Subject<AddAccountByPrivateKeyInput>()
+	const addAccountByPrivateKeySubject =
+		new Subject<AddAccountByPrivateKeyInput>()
 	const switchAccountSubject = new Subject<SwitchAccountInput>()
 
 	const tokenBalanceFetchSubject = new Subject<number>()
@@ -178,18 +180,19 @@ const create = () => {
 		shareReplay(1),
 	)
 	// Forwards calls to RadixCoreAPI, return type is a function: `(input?: I) => Observable<O>`
-	const fwdAPICall = <I extends unknown[], O>(
-		pickFn: (api: RadixCoreAPI) => (...input: I) => Observable<O>,
-		errorFn: (error: APIErrorObject) => APIError,
-	) => (...input: I) =>
-		coreAPI$.pipe(
-			mergeMap(a => pickFn(a)(...input)),
-			take(1), // Important!
-			catchError((error: unknown) => {
-				// console.error(error)
-				throw errorFn(isArray(error) ? (error as any)[0] : error)
-			}),
-		)
+	const fwdAPICall =
+		<I extends unknown[], O>(
+			pickFn: (api: RadixCoreAPI) => (...input: I) => Observable<O>,
+			errorFn: (error: APIErrorObject) => APIError,
+		) =>
+		(...input: I) =>
+			coreAPI$.pipe(
+				mergeMap(a => pickFn(a)(...input)),
+				take(1), // Important!
+				catchError((error: unknown) => {
+					throw errorFn(isArray(error) ? (error as any)[0] : error)
+				}),
+			)
 
 	const api = {
 		networkId: fwdAPICall(
@@ -211,12 +214,12 @@ const create = () => {
 			a => a.nativeToken,
 			m => nativeTokenErr(m),
 		),
-		
+
 		tokenInfo: fwdAPICall(
 			a => a.tokenInfo,
 			m => tokenInfoErr(m),
 		),
-		
+
 		stakesForAddress: fwdAPICall(
 			a => a.stakesForAddress,
 			m => stakesForAddressErr(m),
@@ -394,11 +397,14 @@ const create = () => {
 						transactionIntent,
 						account,
 					]): Observable<SignedTransaction> => {
-						const nonXRDHRPsOfRRIsInTx: string[] = transactionIntent.actions
-							.filter(a => a.type === ActionType.TOKEN_TRANSFER)
-							.map(a => a as TransferTokensAction)
-							.filter(t => t.rri.name !== 'xrd')
-							.map(t => t.rri.name)
+						const nonXRDHRPsOfRRIsInTx: string[] =
+							transactionIntent.actions
+								.filter(
+									a => a.type === ActionType.TOKEN_TRANSFER,
+								)
+								.map(a => a as TransferTokensAction)
+								.filter(t => t.rri.name !== 'xrd')
+								.map(t => t.rri.name)
 
 						const uniquenonXRDHRPsOfRRIsInTx = [
 							...new Set(nonXRDHRPsOfRRIsInTx),
@@ -418,20 +424,15 @@ const create = () => {
 						return account
 							.sign(unsignedTx.transaction, nonXRDHrp)
 							.pipe(
-								map(
-									(signature): SignedTransaction => {
-										const publicKeyOfSigner =
-											account.publicKey
-										txLog.debug(
-											`Finished signing transaction`,
-										)
-										return {
-											transaction: unsignedTx.transaction,
-											signature,
-											publicKeyOfSigner,
-										}
-									},
-								),
+								map((signature): SignedTransaction => {
+									const publicKeyOfSigner = account.publicKey
+									txLog.debug(`Finished signing transaction`)
+									return {
+										transaction: unsignedTx.transaction,
+										signature,
+										publicKeyOfSigner,
+									}
+								}),
 							)
 					},
 				),
@@ -502,20 +503,18 @@ const create = () => {
 
 		const builtTransaction$ = transactionIntent$.pipe(
 			withLatestFrom(activeAddress),
-			switchMap(
-				([intent, address]): Observable<BuiltTransaction> => {
-					txLog.debug(
-						'Transaction intent created => requesting 🛰 API to build it now.',
-					)
-					track({
-						transactionState: intent,
-						eventUpdateType: TransactionTrackingEventType.INITIATED,
-					})
-					return api.buildTransaction(intent, address)
-				},
-			),
+			switchMap(([intent, address]): Observable<BuiltTransaction> => {
+				txLog.debug(
+					'Transaction intent created => requesting 🛰 API to build it now.',
+				)
+				track({
+					transactionState: intent,
+					eventUpdateType: TransactionTrackingEventType.INITIATED,
+				})
+				return api.buildTransaction(intent, address)
+			}),
 			catchError((e: Error) => {
-				txLog.error(`API failed to build transaction, error: ${e}`)
+				txLog.error(`API failed to build transaction`)
 				trackError({
 					error: e,
 					inStep: TransactionTrackingEventType.BUILT_FROM_INTENT,
@@ -607,6 +606,7 @@ const create = () => {
 								mergeMap(network =>
 									api.submitSignedTransaction(network, {
 										blob: finalizedTx.blob,
+										txID: finalizedTx.txID,
 									}),
 								),
 							),
@@ -663,7 +663,14 @@ const create = () => {
 				)
 				return networkSubject.pipe(
 					mergeMap(network =>
-						api.getTransaction(pendingTx.txID, network),
+						api.getTransaction(pendingTx.txID, network).pipe(
+							retryWhen(
+								retryOnErrorCode({
+									maxRetryAttempts: 3,
+									errorCodes: [404],
+								}),
+							),
+						),
 					),
 				)
 			}),
@@ -671,10 +678,13 @@ const create = () => {
 			share(),
 		)
 
-		const transactionCompletedWithStatusConfirmed$ = transactionStatus$.pipe(
-			skipWhile(({ status }) => status !== TransactionStatus.CONFIRMED),
-			take(1),
-		)
+		const transactionCompletedWithStatusConfirmed$ =
+			transactionStatus$.pipe(
+				skipWhile(
+					({ status }) => status !== TransactionStatus.CONFIRMED,
+				),
+				take(1),
+			)
 
 		const transactionCompletedWithStatusFailed$ = transactionStatus$.pipe(
 			skipWhile(({ status }) => status !== TransactionStatus.FAILED),
@@ -697,7 +707,8 @@ const create = () => {
 				error: (transactionStatusError: Error) => {
 					// TODO hmm how to get txID here?
 					txLog.error(
-						`Failed to get status of transaction, error: ${transactionStatusError.message}`,
+						`Failed to get status of transaction`,
+						transactionStatusError,
 					)
 				},
 			}),
@@ -728,8 +739,7 @@ const create = () => {
 				txLog.error(errMsg)
 				trackError({
 					error: new Error(errMsg),
-					inStep:
-						TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
+					inStep: TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
 				})
 				txSubs.unsubscribe()
 			}),
@@ -1012,12 +1022,13 @@ const create = () => {
 		): Observable<AccountT> =>
 			wallet$.pipe(mergeMap(wallet => wallet.deriveHWAccount(input))),
 
-		displayAddressForActiveHWAccountOnHWDeviceForVerification: (): Observable<void> =>
-			wallet$.pipe(
-				mergeMap(wallet =>
-					wallet.displayAddressForActiveHWAccountOnHWDeviceForVerification(),
+		displayAddressForActiveHWAccountOnHWDeviceForVerification:
+			(): Observable<void> =>
+				wallet$.pipe(
+					mergeMap(wallet =>
+						wallet.displayAddressForActiveHWAccountOnHWDeviceForVerification(),
+					),
 				),
-			),
 
 		addAccountFromPrivateKey: (input: AddAccountByPrivateKeyInput) => {
 			addAccountByPrivateKeySubject.next(input)
@@ -1103,9 +1114,7 @@ const create = () => {
 			),
 
 		validators: () =>
-			networkSubject.pipe(
-				mergeMap(network => api.validators({ network })),
-			),
+			networkSubject.pipe(mergeMap(network => api.validators(network))),
 	}
 
 	return methods

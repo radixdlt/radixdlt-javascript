@@ -52,17 +52,17 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 		node,
 
 		validators: (
-			input: ValidatorsEndpoint.Input,
+			input: string,
 		): Observable<ValidatorsEndpoint.DecodedResponse> =>
 			toObs(a => a['validators'], {
-				network: input.network,
+				network_identifier: { network: input },
 			}),
 
 		lookupValidator: (
 			input: ValidatorAddressT,
 		): Observable<ValidatorEndpoint.DecodedResponse> =>
 			toObs(a => a['validator'], {
-				network: input.network,
+				network_identifier: { network: input.network },
 				validator_identifier: {
 					address: input.toString(),
 				},
@@ -79,7 +79,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 
 		tokenBalancesForAddress: (address: AccountAddressT) =>
 			toObs(a => a['accountBalances'], {
-				network: address.network,
+				network_identifier: { network: address.network },
 				account_identifier: {
 					address: address.toString(),
 				},
@@ -92,7 +92,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 				account_identifier: {
 					address: input.address.toString(),
 				},
-				network: input.address.network,
+				network_identifier: { network: input.address.network },
 				limit: input.size,
 				cursor: input.cursor?.toString(),
 			}),
@@ -101,14 +101,14 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 			network: string,
 		): Observable<NativeTokenInfoEndpoint.DecodedResponse> =>
 			toObs(a => a['nativeTokenInfo'], {
-				network,
+				network_identifier: { network },
 			}),
 
 		tokenInfo: (
 			rri: ResourceIdentifierT,
 		): Observable<TokenInfoEndpoint.DecodedResponse> =>
 			toObs(a => a['tokenInfo'], {
-				network: rri.network,
+				network_identifier: { network: rri.network },
 				token_identifier: {
 					rri: rri.toString(),
 				},
@@ -118,7 +118,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 			address: AccountAddressT,
 		): Observable<StakePositionsEndpoint.DecodedResponse> =>
 			toObs(a => a['stakePositions'], {
-				network: address.network,
+				network_identifier: { network: address.network },
 				account_identifier: {
 					address: address.toString(),
 				},
@@ -128,7 +128,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 			address: AccountAddressT,
 		): Observable<UnstakePositionsEndpoint.DecodedResponse> =>
 			toObs(a => a['unstakePositions'], {
-				network: address.network,
+				network_identifier: { network: address.network },
 				account_identifier: {
 					address: address.toString(),
 				},
@@ -139,7 +139,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 			network: string,
 		): Observable<TransactionEndpoint.DecodedResponse> =>
 			toObs(a => a['getTransaction'], {
-				network,
+				network_identifier: { network },
 				transaction_identifier: {
 					hash: txID.toString(),
 				},
@@ -150,7 +150,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 			from: AccountAddressT,
 		): Observable<BuildTransactionEndpoint.DecodedResponse> =>
 			toObs(a => a['buildTransaction'], {
-				network: from.network,
+				network_identifier: { network: from.network },
 				actions: transactionIntent.actions.map(action =>
 					action.type === ActionType.TOKEN_TRANSFER
 						? {
@@ -214,11 +214,13 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 			signedTransaction: SignedTransaction,
 		): Observable<FinalizeTransactionEndpoint.DecodedResponse> =>
 			toObs(a => a['finalizeTransaction'], {
-				network,
+				network_identifier: { network },
 				unsigned_transaction: signedTransaction.transaction.blob,
 				signature: {
 					bytes: signedTransaction.signature.toDER(),
-					public_key: signedTransaction.publicKeyOfSigner.toString(),
+					public_key: {
+						hex: signedTransaction.publicKeyOfSigner.toString(),
+					},
 				},
 			}),
 
@@ -227,7 +229,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 			finalizedTx: FinalizedTransaction,
 		): Observable<SubmitTransactionEndpoint.DecodedResponse> =>
 			toObs(a => a['submitTransaction'], {
-				network,
+				network_identifier: { network },
 				signed_transaction: finalizedTx.blob,
 			}),
 	}
