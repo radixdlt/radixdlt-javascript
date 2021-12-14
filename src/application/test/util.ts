@@ -2,7 +2,7 @@ import { Wallet, WalletT } from '../'
 import { Network } from '@primitives'
 import { SigningKeychain } from '@account'
 import { KeystoreT, Mnemonic } from '@crypto'
-import { makeSigningKeyChainWithFunds } from 'src/account/test/utils'
+import { makeSigningKeyChainWithFunds } from '../../account/test/utils'
 
 export const createWallet = (
 	input?: Readonly<{
@@ -61,8 +61,7 @@ export const keystoreForTest: KeystoreForTest = {
 				blockSize: 8,
 				parallelizationParameter: 1,
 				lengthOfDerivedKey: 32,
-				salt:
-					'cb2227c6782493df3e822c9f6cd1131dea14e135751215d66f48227383b80acd',
+				salt: 'cb2227c6782493df3e822c9f6cd1131dea14e135751215d66f48227383b80acd',
 			},
 			mac: '68bc72c6a6a89c7fe4eb5fda4f4163e0',
 		},

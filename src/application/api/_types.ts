@@ -1,5 +1,6 @@
-import { nodeAPI, radixAPI } from '.'
+import { gatewayAPI } from './gatewayAPI'
 import { getAPI } from './json-rpc'
+import { radixAPI } from './radixAPI'
 
 type JsonRpcAPI = {
 	[Property in keyof ReturnType<typeof getAPI>]: ReturnType<
@@ -7,7 +8,7 @@ type JsonRpcAPI = {
 	>[Property]
 }
 
-export type NodeAPI = ReturnType<typeof nodeAPI>
+export type GatewayAPI = ReturnType<typeof gatewayAPI>
 
 export type NodeT = Readonly<{
 	url: URL

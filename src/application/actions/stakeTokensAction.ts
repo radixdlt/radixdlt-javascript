@@ -1,32 +1,24 @@
-import { Action, ActionType, Stake, StakeTokensInput } from './_types'
+import { ActionType, ExecutedStakeTokensAction } from './_types'
 import {
 	AccountAddressT,
-	isValidatorAddressOrUnsafeInput,
 	ValidatorAddress,
 	ValidatorAddressT,
 	ResourceIdentifier,
 	ResourceIdentifierT,
-	isResourceIdentifierOrUnsafeInput,
 	AccountAddress,
 } from '@account'
-import { Amount, AmountT, isAmountOrUnsafeInput } from '@primitives'
+import { Amount, AmountT } from '@primitives'
 import { combineWithAllErrors, Result } from 'neverthrow'
 import { PrimitiveFrom } from '../_types'
+import { StakeTokens } from '@networking'
+import { pipe } from 'ramda'
+import { IntendedStakeTokensAction } from '.'
 
-export const isStakeTokensInput = (
-	something: unknown,
-): something is StakeTokensInput => {
-	const inspection = something as StakeTokensInput
-	return (
-		isValidatorAddressOrUnsafeInput(inspection.to_validator) &&
-		isAmountOrUnsafeInput(inspection.amount) &&
-		isResourceIdentifierOrUnsafeInput(inspection.tokenIdentifier)
-	)
-}
+type PrimitiveStake = PrimitiveFrom<IntendedStakeTokensAction>
 
-type PrimitiveStake = PrimitiveFrom<Stake>
-
-const create = (input: Omit<PrimitiveStake, 'type'>): Result<Stake, Error[]> =>
+const create = (
+	input: Omit<PrimitiveStake, 'type'>,
+): Result<IntendedStakeTokensAction, Error[]> =>
 	combineWithAllErrors([
 		ValidatorAddress.fromUnsafe(input.to_validator),
 		Amount.fromUnsafe(input.amount),
@@ -40,7 +32,14 @@ const create = (input: Omit<PrimitiveStake, 'type'>): Result<Stake, Error[]> =>
 		type: ActionType.STAKE,
 	}))
 
-const toPrimitive = (action: Stake) => ({
+const transformResponse = (input: StakeTokens) => ({
+	to_validator: input.to_validator.address,
+	amount: input.amount.value,
+	from_account: input.from_account.address,
+	rri: input.amount.token_identifier.rri,
+})
+
+const toPrimitive = (action: IntendedStakeTokensAction) => ({
 	type: ActionType.STAKE,
 	from_account: {
 		address: action.from_account.toPrimitive(),
@@ -56,7 +55,8 @@ const toPrimitive = (action: Stake) => ({
 	},
 })
 
-export const IntendedStakeTokens = {
+export const stakeTokensAction = {
 	create,
 	toPrimitive,
+	toComplex: pipe(transformResponse, create),
 }

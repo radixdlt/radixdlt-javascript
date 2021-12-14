@@ -1,4 +1,4 @@
-import { NodeAPI } from './_types'
+import { GatewayAPI } from './_types'
 import {
 	AccountAddressT,
 	ResourceIdentifierT,
@@ -27,30 +27,30 @@ import {
 	SubmitTransactionEndpoint,
 } from '../api/open-api/_types'
 import { ResultAsync } from 'neverthrow'
-import { actionToPrimitive } from '../actions/actionToPrimitive'
+import { transformAction } from '../actions'
 
-export const radixAPI = (nodeAPI: NodeAPI) => ({
+export const radixAPI = (api: GatewayAPI) => ({
 	validators: (
 		network: string,
 	): ResultAsync<ValidatorsEndpoint.DecodedResponse, Error[]> =>
-		nodeAPI['validators']({ network }),
+		api['validators']({ network_identifier: { network } }),
 
 	lookupValidator: (
 		input: ValidatorAddressT,
 	): ResultAsync<ValidatorEndpoint.DecodedResponse, Error[]> =>
-		nodeAPI['validator']({
-			network: input.network,
+		api['validator']({
+			network_identifier: { network: input.network },
 			validator_identifier: { address: input.toPrimitive() },
 		}),
 
 	networkId: (): ResultAsync<GatewayEndpoint.DecodedResponse, Error[]> =>
-		nodeAPI['gateway']({}),
+		api['gateway']({}),
 
 	tokenBalancesForAddress: (
 		address: AccountAddressT,
 	): ResultAsync<AccountBalancesEndpoint.DecodedResponse, Error[]> =>
-		nodeAPI['accountBalances']({
-			network: address.network,
+		api['accountBalances']({
+			network_identifier: { network: address.network },
 			account_identifier: {
 				address: address.toPrimitive(),
 			},
@@ -64,11 +64,11 @@ export const radixAPI = (nodeAPI: NodeAPI) => ({
 		AccountTransactionsEndpoint.DecodedResponse,
 		Error[]
 	> =>
-		nodeAPI['accountTransactions']({
+		api['accountTransactions']({
 			account_identifier: {
 				address: address.toPrimitive(),
 			},
-			network: address.network,
+			network_identifier: { network: address.network },
 			limit,
 			cursor,
 		}),
@@ -76,13 +76,13 @@ export const radixAPI = (nodeAPI: NodeAPI) => ({
 	nativeToken: (
 		input: NativeTokenInfoEndpoint.Input,
 	): ResultAsync<NativeTokenInfoEndpoint.DecodedResponse, Error[]> =>
-		nodeAPI['nativeTokenInfo'](input),
+		api['nativeTokenInfo'](input),
 
 	tokenInfo: (
 		rri: ResourceIdentifierT,
 	): ResultAsync<TokenInfoEndpoint.DecodedResponse, Error[]> =>
-		nodeAPI['tokenInfo']({
-			network: rri.network,
+		api['tokenInfo']({
+			network_identifier: { network: rri.network },
 			token_identifier: {
 				rri: rri.toPrimitive(),
 			},
@@ -91,8 +91,8 @@ export const radixAPI = (nodeAPI: NodeAPI) => ({
 	stakesForAddress: (
 		address: AccountAddressT,
 	): ResultAsync<StakePositionsEndpoint.DecodedResponse, Error[]> =>
-		nodeAPI['stakePositions']({
-			network: address.network,
+		api['stakePositions']({
+			network_identifier: { network: address.network },
 			account_identifier: {
 				address: address.toPrimitive(),
 			},
@@ -101,8 +101,8 @@ export const radixAPI = (nodeAPI: NodeAPI) => ({
 	unstakesForAddress: (
 		address: AccountAddressT,
 	): ResultAsync<UnstakePositionsEndpoint.DecodedResponse, Error[]> =>
-		nodeAPI['unstakePositions']({
-			network: address.network,
+		api['unstakePositions']({
+			network_identifier: { network: address.network },
 			account_identifier: {
 				address: address.toPrimitive(),
 			},
@@ -112,8 +112,8 @@ export const radixAPI = (nodeAPI: NodeAPI) => ({
 		txID: TransactionIdentifierT,
 		network: string,
 	): ResultAsync<TransactionEndpoint.DecodedResponse, Error[]> =>
-		nodeAPI['getTransaction']({
-			network,
+		api['getTransaction']({
+			network_identifier: { network },
 			transaction_identifier: {
 				hash: txID.toPrimitive(),
 			},
@@ -122,8 +122,10 @@ export const radixAPI = (nodeAPI: NodeAPI) => ({
 	buildTransaction: (from: AccountAddressT) =>
 		pipe(
 			(transactionIntent: TransactionIntent) => ({
-				network: from.network,
-				actions: transactionIntent.actions.map(actionToPrimitive),
+				network_identifier: { network: from.network },
+				actions: transactionIntent.actions.map(
+					transformAction.toPrimitive,
+				),
 				fee_payer: {
 					address: from.toPrimitive(),
 				},
@@ -132,19 +134,21 @@ export const radixAPI = (nodeAPI: NodeAPI) => ({
 					: undefined,
 				disable_token_mint_and_burn: true,
 			}),
-			nodeAPI['buildTransaction'],
+			api['buildTransaction'],
 		),
 
 	finalizeTransaction: (
 		network: string,
 		signedTransaction: SignedTransaction,
 	): ResultAsync<FinalizeTransactionEndpoint.DecodedResponse, Error[]> =>
-		nodeAPI['finalizeTransaction']({
-			network,
+		api['finalizeTransaction']({
+			network_identifier: { network },
 			unsigned_transaction: signedTransaction.transaction.blob,
 			signature: {
 				bytes: signedTransaction.signature.toDER(),
-				public_key: signedTransaction.publicKeyOfSigner.toString(),
+				public_key: {
+					hex: signedTransaction.publicKeyOfSigner.toString(),
+				},
 			},
 		}),
 
@@ -152,8 +156,8 @@ export const radixAPI = (nodeAPI: NodeAPI) => ({
 		network: string,
 		finalizedTx: FinalizedTransaction,
 	): ResultAsync<SubmitTransactionEndpoint.DecodedResponse, Error[]> =>
-		nodeAPI['submitTransaction']({
-			network,
+		api['submitTransaction']({
+			network_identifier: { network },
 			signed_transaction: finalizedTx.blob,
 		}),
 })

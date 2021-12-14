@@ -1,4 +1,4 @@
 export * from './_types'
-export * from './nodeAPI'
+export * from './gatewayAPI'
 export * from './json-rpc'
 export * from './radixAPI'

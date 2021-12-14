@@ -1,38 +1,24 @@
-import {
-	Action,
-	ActionType,
-	IntendedTransferTokensAction,
-	Transfer,
-	TransferTokensInput,
-} from './_types'
+import { ActionType, IntendedTransferTokensAction } from './_types'
+import { TransferTokens } from '@networking'
 import {
 	AccountAddress,
 	AccountAddressT,
-	isAccountAddressOrUnsafeInput,
 	ResourceIdentifierT,
 	ResourceIdentifier,
-	isResourceIdentifierOrUnsafeInput,
 } from '@account'
-import { Amount, AmountT, isAmountOrUnsafeInput } from '@primitives'
+import { Amount, AmountT } from '@primitives'
 import { combineWithAllErrors, Result } from 'neverthrow'
 import { PrimitiveFrom } from '../_types'
-
-export const isTransferTokensInput = (
-	something: unknown,
-): something is TransferTokensInput => {
-	const inspection = something as TransferTokensInput
-	return (
-		isAccountAddressOrUnsafeInput(inspection.to_account) &&
-		isAmountOrUnsafeInput(inspection.amount) &&
-		isResourceIdentifierOrUnsafeInput(inspection.tokenIdentifier)
-	)
-}
+import { pipe } from 'ramda'
 
 const create = (
-	input: Omit<PrimitiveFrom<Transfer>, 'type' | 'amount'> & {
+	input: Omit<
+		PrimitiveFrom<IntendedTransferTokensAction>,
+		'type' | 'amount'
+	> & {
 		amount: string
 	},
-): Result<Transfer, Error[]> =>
+): Result<IntendedTransferTokensAction, Error[]> =>
 	combineWithAllErrors([
 		AccountAddress.fromUnsafe(input.from_account),
 		AccountAddress.fromUnsafe(input.to_account),
@@ -46,7 +32,14 @@ const create = (
 		type: ActionType.TRANSFER,
 	}))
 
-const toPrimitive = (action: Transfer) => ({
+const transformResponse = (input: TransferTokens) => ({
+	to_account: input.to_account.address,
+	amount: input.amount.value,
+	from_account: input.from_account.address,
+	rri: input.amount.token_identifier.rri,
+})
+
+const toPrimitive = (action: IntendedTransferTokensAction) => ({
 	type: ActionType.TRANSFER,
 	from_account: {
 		address: action.from_account.toPrimitive(),
@@ -62,7 +55,8 @@ const toPrimitive = (action: Transfer) => ({
 	},
 })
 
-export const IntendedTransferTokens = {
+export const transferTokensAction = {
 	create,
 	toPrimitive,
+	toComplex: pipe(transformResponse, create),
 }

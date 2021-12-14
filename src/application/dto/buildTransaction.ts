@@ -1,4 +1,4 @@
-import { err, Result, combineWithAllErrors, ok } from 'neverthrow'
+import { err, Result, ok } from 'neverthrow'
 import { AccountAddressT } from '@account'
 import { Message } from '@crypto'
 import { pipe } from 'ramda'
@@ -6,11 +6,13 @@ import { firstValueFrom } from 'rxjs'
 import { AccountT } from '../_types'
 import {
 	ActionType,
-	ActionTypes,
-	IntendedStakeTokens,
-	IntendedTransferTokens,
-	IntendedUnstakeTokens,
+	ExecutedAction,
+	IntendedAction,
+	stakeTokensAction,
+	transferTokensAction,
+	unstakeTokensAction,
 } from '../actions'
+import { ExecutedTransaction } from '.'
 
 type Message = {
 	plaintext: string
@@ -18,13 +20,13 @@ type Message = {
 }
 
 export const buildTransaction =
-	(...actions: ActionTypes[]) =>
+	(...actions: IntendedAction[]) =>
 	(sender: AccountT, message?: Message) =>
 		pipe(
 			() => checkNumberOfRecipients(actions),
 			(
 				recipientResult: Result<
-					[ActionTypes[], AccountAddressT],
+					[IntendedAction[], AccountAddressT],
 					Error[]
 				>,
 			) =>
@@ -46,15 +48,15 @@ export const buildTransaction =
 				})),
 		)().mapErr(err => err.flat())
 
-export const createTransfer = IntendedTransferTokens.create
+export const createTransfer = transferTokensAction.create
 
-export const createStake = IntendedStakeTokens.create
+export const createStake = stakeTokensAction.create
 
-export const createUnstake = IntendedUnstakeTokens.create
+export const createUnstake = unstakeTokensAction.create
 
 export const checkNumberOfRecipients = (
-	actions: ActionTypes[],
-): Result<[ActionTypes[], AccountAddressT], Error[]> => {
+	actions: IntendedAction[],
+): Result<[IntendedAction[], AccountAddressT], Error[]> => {
 	const recipients = getRecipients(actions)
 
 	return recipients.length > 1
@@ -66,7 +68,7 @@ export const checkNumberOfRecipients = (
 		: ok([actions, recipients[0]])
 }
 
-export const getRecipients = (actions: ActionTypes[]) =>
+export const getRecipients = (actions: (IntendedAction | ExecutedAction)[]) =>
 	actions.reduce(
 		(accounts, action) =>
 			action.type === ActionType.TRANSFER &&
@@ -78,23 +80,20 @@ export const getRecipients = (actions: ActionTypes[]) =>
 
 export const flatMapAddressesOf = (
 	input: Readonly<{
-		actions: ActionTypes[]
+		actions: (IntendedAction | ExecutedAction)[]
 		includeFrom?: boolean
 		includeTo?: boolean
 	}>,
 ): AccountAddressT[] => {
 	const { actions, includeFrom, includeTo } = input
-	const flatMapped = actions.reduce(
-		(acc: AccountAddressT[], action: ActionTypes) => {
-			const uniqueAddressOfAction = getUniqueAddresses({
-				action,
-				includeFrom,
-				includeTo,
-			})
-			return acc.concat(...uniqueAddressOfAction)
-		},
-		[] as AccountAddressT[],
-	)
+	const flatMapped = actions.reduce((acc: AccountAddressT[], action) => {
+		const uniqueAddressOfAction = getUniqueAddresses({
+			action,
+			includeFrom,
+			includeTo,
+		})
+		return acc.concat(...uniqueAddressOfAction)
+	}, [] as AccountAddressT[])
 	const set = new Set<string>()
 	return flatMapped.filter(a => {
 		const str = a.toString()
@@ -104,13 +103,11 @@ export const flatMapAddressesOf = (
 	})
 }
 
-export const getUniqueAddresses = (
-	input: Readonly<{
-		action: ActionTypes
-		includeFrom?: boolean
-		includeTo?: boolean
-	}>,
-): AccountAddressT[] => {
+export const getUniqueAddresses = (input: {
+	action: IntendedAction | ExecutedAction
+	includeFrom?: boolean
+	includeTo?: boolean
+}): AccountAddressT[] => {
 	const action = input.action
 	const includeFrom = input.includeFrom ?? true
 	const includeTo = input.includeTo ?? true

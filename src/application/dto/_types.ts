@@ -17,43 +17,42 @@ import { PublicKeyT, SignatureT } from '@crypto'
 import { Observable } from 'rxjs'
 import { Result } from 'neverthrow'
 import { AccountT, MessageInTransaction } from '../_types'
-import { Action } from './build-transaction'
 import { TransactionIdentifierT } from './transactionIdentifier'
 
-export type StakePosition = Readonly<{
+export type StakePosition = {
 	validator: ValidatorAddressT
 	amount: AmountT
-}>
+}
 
-export type UnstakePosition = Readonly<{
+export type UnstakePosition = {
 	validator: ValidatorAddressT
 	amount: AmountT
 	withdrawTxID: TransactionIdentifierT
 	epochsUntil: number
-}>
+}
 
-export type TransactionIntentBuilderState = Readonly<{
+export type TransactionIntentBuilderState = {
 	actionInputs: ActionInput[]
 	message?: MessageInTransaction
-}>
+}
 
-export type TransactionIntentBuilderEncryptOption = Readonly<{
+export type TransactionIntentBuilderEncryptOption = {
 	encryptMessageIfAnyWithAccount: Observable<AccountT>
 	spendingSender?: Observable<AccountAddressT>
-}>
+}
 
-export type TransactionIntentBuilderDoNotEncryptInput = Readonly<{
+export type TransactionIntentBuilderDoNotEncryptInput = {
 	spendingSender: Observable<AccountAddressT>
-}>
+}
 
-export type TransactionIntentBuilderDoNotEncryptOption = Readonly<{
+export type TransactionIntentBuilderDoNotEncryptOption = {
 	skipEncryptionOfMessageIfAny: TransactionIntentBuilderDoNotEncryptInput
-}>
+}
 export type TransactionIntentBuilderOptions =
 	| TransactionIntentBuilderDoNotEncryptOption
 	| TransactionIntentBuilderEncryptOption
 
-export type TransactionIntentBuilderT = Readonly<{
+export type TransactionIntentBuilderT = {
 	__state: TransactionIntentBuilderState
 
 	transferTokens: (input: TransferTokensInput) => TransactionIntentBuilderT
@@ -69,12 +68,12 @@ export type TransactionIntentBuilderT = Readonly<{
 	build: (
 		options: TransactionIntentBuilderOptions,
 	) => Observable<TransactionIntent>
-}>
+}
 
-export type TransactionIntent = Readonly<{
-	actions: Action[]
+export type TransactionIntent = {
+	actions: IntendedAction[]
 	message?: Buffer
-}>
+}
 
 export enum TransactionTrackingEventType {
 	/* A TransactionIntent was successfully created and any message has been encrypted */
@@ -92,15 +91,15 @@ export enum TransactionTrackingEventType {
 
 export type TransactionStateSuccess<
 	T extends TransactionState = TransactionState,
-> = Readonly<{
+> = {
 	eventUpdateType: TransactionTrackingEventType
 	transactionState: T
-}>
+}
 
-export type TransactionStateError = Readonly<{
+export type TransactionStateError = {
 	eventUpdateType: TransactionTrackingEventType
 	error: Error
-}>
+}
 
 export type TransactionStateUpdate<
 	T extends TransactionState = TransactionState,
@@ -113,32 +112,32 @@ export type TransactionState =
 	| FinalizedTransaction
 	| PendingTransaction
 
-export type TransactionTracking = Readonly<{
+export type TransactionTracking = {
 	events: Observable<TransactionStateUpdate>
 	completion: Observable<TransactionIdentifierT>
-}>
+}
 
-export type TransactionHistoryOfKnownAddressRequestInput = Readonly<{
+export type TransactionHistoryOfKnownAddressRequestInput = {
 	size: number
 	cursor?: string
-}>
+}
 
 export type TransactionHistoryActiveAccountRequestInput =
 	TransactionHistoryOfKnownAddressRequestInput
 
 export type TransactionHistoryRequestInput =
-	TransactionHistoryOfKnownAddressRequestInput &
-		Readonly<{
-			address: AccountAddressT
-		}>
+	TransactionHistoryOfKnownAddressRequestInput & {
+		address: AccountAddressT
+	}
 
-export type SimpleExecutedTransaction = Readonly<{
+export type SimpleExecutedTransaction = {
 	txID: TransactionIdentifierT
 	sentAt: Date
+	status: TransactionStatus
 	fee: AmountT
 	message?: string
-	actions: Action[]
-}>
+	actions: ExecutedAction[]
+}
 
 export enum TransactionType {
 	FROM_ME_TO_ME = 'FROM_ME_TO_ME',
@@ -147,24 +146,23 @@ export enum TransactionType {
 	UNRELATED = 'UNRELATED',
 }
 
-export type ExecutedTransaction = SimpleExecutedTransaction &
-	Readonly<{
-		transactionType: TransactionType
-	}>
+export type ExecutedTransaction = SimpleExecutedTransaction & {
+	transactionType: TransactionType
+}
 
-export type TokenAmount = Readonly<{
+export type TokenAmount = {
 	tokenIdentifier: ResourceIdentifierT
 	amount: AmountT
-}>
+}
 
 export type SimpleTokenBalance = TokenAmount
 
-export type TokenBalance = Readonly<{
+export type TokenBalance = {
 	token: Token
 	amount: AmountT
-}>
+}
 
-export type Token = Readonly<{
+export type Token = {
 	name: string
 	rri: ResourceIdentifierT
 	symbol: string
@@ -174,33 +172,33 @@ export type Token = Readonly<{
 	currentSupply: AmountT
 	tokenInfoURL?: URL
 	iconURL?: URL
-}>
+}
 
-export type StatusOfTransaction = Readonly<{
+export type StatusOfTransaction = {
 	txID: TransactionIdentifierT
 	status: TransactionStatus
-}>
+}
 
-export type BuiltTransaction = Readonly<{
+export type BuiltTransaction = {
 	transaction: BuiltTransactionReadyToSign
 	fee: AmountT
-}>
+}
 
-export type SignedTransaction = Readonly<{
+export type SignedTransaction = {
 	transaction: BuiltTransactionReadyToSign
 	publicKeyOfSigner: PublicKeyT
 	signature: SignatureT
-}>
+}
 
-export type FinalizedTransaction = Readonly<{
+export type FinalizedTransaction = {
 	blob: string
-}>
+}
 
-export type PendingTransaction = Readonly<{
+export type PendingTransaction = {
 	txID: TransactionIdentifierT
-}>
+}
 
-export type RawToken = Readonly<{
+export type RawToken = {
 	name: string
 	rri: string
 	symbol: string
@@ -210,39 +208,36 @@ export type RawToken = Readonly<{
 	currentSupply: string
 	tokenInfoURL: string
 	iconURL: string
-}>
+}
 
-export type RawExecutedActionBase<T extends ActionType> = Readonly<{
+export type RawExecutedActionBase<T extends ActionType> = {
 	type: T
-}>
+}
 
 export type RawOtherExecutedAction = RawExecutedActionBase<ActionType.OTHER>
 
-export type RawTransferAction = RawExecutedActionBase<ActionType.TRANSFER> &
-	Readonly<{
-		from: string
-		to: string
-		amount: string
-		rri: string
-	}>
+export type RawTransferAction = RawExecutedActionBase<ActionType.TRANSFER> & {
+	from: string
+	to: string
+	amount: string
+	rri: string
+}
 
-export type RawStakesAction = RawExecutedActionBase<ActionType.STAKE> &
-	Readonly<{
-		from: string
-		validator: string
-		amount: string
-	}>
+export type RawStakesAction = RawExecutedActionBase<ActionType.STAKE> & {
+	from: string
+	validator: string
+	amount: string
+}
 
-export type RawUnstakesAction = RawExecutedActionBase<ActionType.UNSTAKE> &
-	Readonly<{
-		from: string
-		validator: string
-		amount: string
-	}>
+export type RawUnstakesAction = RawExecutedActionBase<ActionType.UNSTAKE> & {
+	from: string
+	validator: string
+	amount: string
+}
 
-export type NetworkTransactionThroughput = Readonly<{
+export type NetworkTransactionThroughput = {
 	tps: number
-}>
+}
 export type NetworkTransactionDemand = NetworkTransactionThroughput
 
 export enum TransactionStatus {
@@ -257,27 +252,26 @@ export type RawExecutedAction =
 	| RawUnstakesAction
 	| RawOtherExecutedAction
 
-export type SimpleTokenBalances = Readonly<{
+export type SimpleTokenBalances = {
 	owner: AccountAddressT
 	tokenBalances: SimpleTokenBalance[]
-}>
+}
 
-export type TokenBalances = Readonly<{
+export type TokenBalances = {
 	owner: AccountAddressT
 	tokenBalances: TokenBalance[]
-}>
+}
 
-export type SimpleTransactionHistory = Readonly<{
+export type SimpleTransactionHistory = {
 	cursor: string
 	transactions: SimpleExecutedTransaction[]
-}>
+}
 
-export type TransactionHistory = SimpleTransactionHistory &
-	Readonly<{
-		transactions: ExecutedTransaction[]
-	}>
+export type TransactionHistory = SimpleTransactionHistory & {
+	transactions: ExecutedTransaction[]
+}
 
-export type Validator = Readonly<{
+export type Validator = {
 	address: ValidatorAddressT
 	ownerAddress: AccountAddressT
 	name: string
@@ -290,22 +284,22 @@ export type Validator = Readonly<{
 	uptimePercentage: string
 	proposalsMissed: number
 	proposalsCompleted: number
-}>
+}
 
-export type Validators = Readonly<{
+export type Validators = {
 	cursor: string
 	validators: Validator[]
-}>
+}
 
-export type RawExecutedTransaction = Readonly<{
+export type RawExecutedTransaction = {
 	txID: string
 	sentAt: string
 	fee: string
 	message?: string
 	actions: RawExecutedAction[]
-}>
+}
 
-export type RawValidatorResponse = Readonly<{
+export type RawValidatorResponse = {
 	address: string
 	ownerAddress: string
 	name: string
@@ -318,7 +312,7 @@ export type RawValidatorResponse = Readonly<{
 	uptimePercentage: string
 	proposalsMissed: number
 	proposalsCompleted: number
-}>
+}
 
 export type StakePositions = StakePosition[]
 

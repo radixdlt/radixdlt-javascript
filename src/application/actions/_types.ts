@@ -9,7 +9,7 @@ import {
 import { AmountOrUnsafeInput, AmountT } from '@primitives'
 
 export enum ActionType {
-	TRANSFER = 'TokenTransfer',
+	TRANSFER = 'TransferTokens',
 	STAKE = 'StakeTokens',
 	UNSTAKE = 'UnstakeTokens',
 	OTHER = 'Other',
@@ -73,8 +73,9 @@ export type StakeTokensProps = Readonly<{
 export type UnstakeTokensProps = Readonly<{
 	to_account: AccountAddressT
 	from_validator: ValidatorAddressT
-	amount: AmountT
-	rri: ResourceIdentifierT
+	amount?: AmountT
+	rri?: ResourceIdentifierT
+	unstake_percentage?: number
 }>
 
 export type StakeTokensAction = StakeTokensProps & Action<ActionType.STAKE>
@@ -126,28 +127,3 @@ export type ExecutedAction =
 	| ExecutedStakeTokensAction
 	| ExecutedUnstakeTokensAction
 	| ExecutedOtherAction
-
-export type Stake = Action<ActionType.STAKE> & {
-	to_validator: ValidatorAddressT
-	amount: AmountT
-	from_account: AccountAddressT
-	rri: ResourceIdentifierT
-}
-
-export type Transfer = Action<ActionType.TRANSFER> & {
-	from_account: AccountAddressT
-	to_account: AccountAddressT
-	amount: AmountT
-	rri: ResourceIdentifierT
-}
-
-export type Unstake = Action<ActionType.UNSTAKE> & {
-	to_account: AccountAddressT
-	from_validator: ValidatorAddressT
-	amount: AmountT
-	rri: ResourceIdentifierT
-}
-
-export type Other = Action<ActionType.OTHER>
-
-export type ActionTypes = Transfer | Stake | Unstake | Other

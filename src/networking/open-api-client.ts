@@ -6,7 +6,8 @@ import { ResultAsync, err } from 'neverthrow'
 import { pipe } from 'ramda'
 import { TransactionBuildResponse } from './open-api/api'
 import { DefaultApiFactory } from '.'
-import axios, { AxiosResponse, AxiosError } from 'axios'
+import { AxiosResponse, AxiosError } from 'axios'
+import { Configuration } from './open-api'
 
 const headers = ['X-Radixdlt-Method', 'X-Radixdlt-Correlation-Id']
 
@@ -82,11 +83,7 @@ export const openApiClient: Client<'open-api'> = (url: URL) => ({
 	type: 'open-api',
 	call: call(
 		DefaultApiFactory(
-			undefined,
-			undefined,
-			axios.create({
-				baseURL: url.toString(),
-			}),
+			new Configuration({ basePath: url.toString().slice(0, -1) }),
 		),
 	),
 })

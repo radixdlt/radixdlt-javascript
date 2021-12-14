@@ -4,7 +4,7 @@ export type AmountT = UInt256 & { toPrimitive: () => string }
 
 export enum Network {
 	MAINNET = 'MAINNET',
-	STOKENET = 'STOKENET',
+	STOKENET = 'stokenet',
 	LOCALHOST = 'LOCALHOST',
 	TESTNET3 = 'TESTNET3',
 	TESTNET4 = 'TESTNET4',
@@ -21,7 +21,7 @@ export const NetworkId = {
 	5: Network.TESTNET5,
 	6: Network.TESTNET6,
 	7: Network.TESTNET7,
-	99: Network.LOCALHOST
+	99: Network.LOCALHOST,
 }
 
 export const hrpFullSuffixLength = 3

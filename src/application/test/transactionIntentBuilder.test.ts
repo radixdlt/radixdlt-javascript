@@ -2,7 +2,6 @@ import { Amount, uint256Max } from '@primitives'
 import {
 	AccountT,
 	Message,
-	Action,
 	createTransfer,
 	buildTransaction,
 	createStake,
@@ -17,7 +16,13 @@ import {
 import { firstValueFrom, Subscription } from 'rxjs'
 import { restoreDefaultLogLevel, log } from '@util'
 import { createWallet } from './util'
-import { ActionType } from '../actions'
+import {
+	ActionType,
+	IntendedAction,
+	IntendedStakeTokensAction,
+	IntendedTransferTokensAction,
+	TransferTokensAction,
+} from '../actions'
 
 const xrd = {
 	name: 'Rad',
@@ -32,7 +37,7 @@ const xrd = {
 }
 
 const carol = AccountAddress.fromUnsafe(
-	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt'
+	'rdx1qsps28kdn4epn0c9ej2rcmwfz5a4jdhq2ez03x7h6jefvr4fnwnrtqqjaj7dt',
 )._unsafeUnwrap({ withStackTrace: true })
 
 describe('tx_intent_builder', () => {
@@ -81,45 +86,39 @@ describe('tx_intent_builder', () => {
 
 	type SimpleTransf = { amount: number; to: AccountAddressT }
 	const transfT = (input: SimpleTransf) => ({
-		to: input.to.toPrimitive(),
+		to_account: input.to.toPrimitive(),
 		amount: Amount.fromUnsafe(input.amount)._unsafeUnwrap().toPrimitive(),
 		rri: xrdRRI.toPrimitive(),
-		from: alice.toPrimitive()
+		from_account: alice.toPrimitive(),
 	})
 
-	const transfS = (
-		amount: number,
-		to: AccountAddressT,
-	) => transfT({ amount, to })
+	const transfS = (amount: number, to: AccountAddressT) =>
+		transfT({ amount, to })
 
-	const stakeS = (
-		amount: number,
-		validatorAddress: ValidatorAddressT,
-	) => ({
+	const stakeS = (amount: number, validatorAddress: ValidatorAddressT) => ({
 		validator: validatorAddress.toPrimitive(),
 		amount: Amount.fromUnsafe(amount)._unsafeUnwrap().toPrimitive(),
-		from: alice.toPrimitive()
+		from: alice.toPrimitive(),
 	})
 
-	const unstakeS = (
-		amount: number,
-		validatorAddress: ValidatorAddressT,
-	) => ({
+	const unstakeS = (amount: number, validatorAddress: ValidatorAddressT) => ({
 		validator: validatorAddress.toPrimitive(),
 		amount: Amount.fromUnsafe(amount)._unsafeUnwrap().toPrimitive(),
-		from: alice.toPrimitive()
+		from: alice.toPrimitive(),
 	})
 
-	const validateOneToBob = async (...actions: Action[]) => {
-		const tx = (await buildTransaction(...actions)(aliceAccount))._unsafeUnwrap()
+	const validateOneToBob = async (...actions: IntendedAction[]) => {
+		const tx = (
+			await buildTransaction(...actions)(aliceAccount)
+		)._unsafeUnwrap()
 
 		expect(tx.actions.length).toBe(1)
-		const action0 = tx.actions[0] as Action.Transfer
+		const action0 = tx.actions[0] as TransferTokensAction
 		expect(action0.type).toEqual(ActionType.TRANSFER)
 		const transfer0 = action0
 		expect(transfer0.amount.eq(one)).toBe(true)
-		expect(transfer0.from.equals(alice)).toBe(true)
-		expect(transfer0.to.equals(bob)).toBe(true)
+		expect(transfer0.from_account.equals(alice)).toBe(true)
+		expect(transfer0.to_account.equals(bob)).toBe(true)
 		expect(transfer0.rri.equals(xrdRRI)).toBe(true)
 	}
 
@@ -132,9 +131,9 @@ describe('tx_intent_builder', () => {
 	it('can add single transfer from unsafe inputs', async () => {
 		const transfer = createTransfer({
 			amount: '1',
-			to: bob.toPrimitive(),
+			to_account: bob.toPrimitive(),
 			rri: 'xrd_tr1qyf0x76s',
-			from: alice.toPrimitive()
+			from_account: alice.toPrimitive(),
 		})._unsafeUnwrap()
 
 		await validateOneToBob(transfer)
@@ -142,18 +141,21 @@ describe('tx_intent_builder', () => {
 
 	it('can stake from unsafe inputs', async () => {
 		const transfer = createStake({
-			validator:
+			to_validator:
 				'tv1qdqft0u899axwce955fkh9rundr5s2sgvhpp8wzfe3ty0rn0rgqj2x6y86p',
 			amount: '1234567890',
-			from: alice.toPrimitive()
+			from_account: alice.toPrimitive(),
+			rri: 'xrd_tr1qyf0x76s',
 		})._unsafeUnwrap()
 
-		const tx = (await buildTransaction(transfer)(aliceAccount))._unsafeUnwrap()
+		const tx = (
+			await buildTransaction(transfer)(aliceAccount)
+		)._unsafeUnwrap()
 
 		expect(tx.actions.length).toBe(1)
 		const action0 = tx.actions[0]
 		expect(action0.type).toBe(ActionType.STAKE)
-		const stakeAction = action0 as Action.Stake
+		const stakeAction = action0 as IntendedStakeTokensAction
 		expect(stakeAction.amount.toString()).toBe('1234567890')
 	})
 
@@ -166,22 +168,26 @@ describe('tx_intent_builder', () => {
 
 		const transfInputs = expected.map(transfT)
 
-		const transfers = transfInputs.map(input => createTransfer(input)).map(result => result._unsafeUnwrap())
+		const transfers = transfInputs
+			.map(input => createTransfer(input))
+			.map(result => result._unsafeUnwrap())
 
-		const tx = (await buildTransaction(...transfers)(aliceAccount))._unsafeUnwrap()
+		const tx = (
+			await buildTransaction(...transfers)(aliceAccount)
+		)._unsafeUnwrap()
 
 		tx.actions.forEach(t => {
-			expect(t.from.equals(alice)).toBe(true)
+			expect(
+				(t as IntendedTransferTokensAction).from_account.equals(alice),
+			).toBe(true)
 		})
 
 		const transfers2 = tx.actions
-			.map(a => a as Action.Transfer)
-			.map(
-				(t: Action.Transfer) => ({
-					amount: parseInt(t.amount.toString()),
-					to: t.to,
-				}),
-			)
+			.map(a => a as IntendedTransferTokensAction)
+			.map((t: IntendedTransferTokensAction) => ({
+				amount: parseInt(t.amount.toString()),
+				to: t.to_account,
+			}))
 
 		transfers2.forEach((t, i) => {
 			expect(t.amount).toBe(expected[i].amount)
@@ -191,24 +197,28 @@ describe('tx_intent_builder', () => {
 
 	const testWithMessage = async (
 		tx: {
-			actions: Action[],
+			actions: IntendedAction[]
 			message?: Buffer
 		},
 		expectedPlaintext: string,
 	) => {
 		const encryptedMessage = tx.message!
 
-		const aliceDecrypted = await firstValueFrom(aliceAccount.decrypt({
-			encryptedMessage,
-			publicKeyOfOtherParty: bob.publicKey,
-		}))
+		const aliceDecrypted = await firstValueFrom(
+			aliceAccount.decrypt({
+				encryptedMessage,
+				publicKeyOfOtherParty: bob.publicKey,
+			}),
+		)
 
-		const bobDecrypted = await firstValueFrom(bobAccount.decrypt({
-			encryptedMessage,
-			publicKeyOfOtherParty: alice.publicKey,
-		}));
+		const bobDecrypted = await firstValueFrom(
+			bobAccount.decrypt({
+				encryptedMessage,
+				publicKeyOfOtherParty: alice.publicKey,
+			}),
+		)
 
-		[aliceDecrypted, bobDecrypted].forEach(pt => {
+		;[aliceDecrypted, bobDecrypted].forEach(pt => {
 			expect(pt).toBe(expectedPlaintext)
 		})
 	}
@@ -217,24 +227,25 @@ describe('tx_intent_builder', () => {
 		const transfer = createTransfer(transfS(3, bob))._unsafeUnwrap()
 
 		await testWithMessage(
-			(await buildTransaction(transfer)(aliceAccount, {
-				plaintext,
-				encrypt: true
-			}))._unsafeUnwrap(),
-			plaintext
+			(
+				await buildTransaction(transfer)(aliceAccount, {
+					plaintext,
+					encrypt: true,
+				})
+			)._unsafeUnwrap(),
+			plaintext,
 		)
 	})
 
 	it('can have transfer and attach message and skip encryption', async () => {
-		const tx = (await buildTransaction(
-			createTransfer(transfS(3, bob))._unsafeUnwrap()
-		)(
-			aliceAccount,
-			{
+		const tx = (
+			await buildTransaction(
+				createTransfer(transfS(3, bob))._unsafeUnwrap(),
+			)(aliceAccount, {
 				plaintext,
-				encrypt: false
-			}
-		))._unsafeUnwrap()
+				encrypt: false,
+			})
+		)._unsafeUnwrap()
 
 		expect(tx.actions.length).toBe(1)
 		expect(Message.plaintextToString(tx.message!)).toBe(plaintext)
@@ -243,7 +254,7 @@ describe('tx_intent_builder', () => {
 	describe('failing scenarios', () => {
 		beforeAll(() => {
 			log.setLevel('silent')
-			jest.spyOn(console, 'error').mockImplementation(() => { })
+			jest.spyOn(console, 'error').mockImplementation(() => {})
 		})
 
 		afterAll(() => {
@@ -252,38 +263,36 @@ describe('tx_intent_builder', () => {
 		})
 
 		it('an error is thrown when trying to encrypt message of a transaction with multiple recipients', async () => {
-			const txResult = (await buildTransaction(
+			const txResult = await buildTransaction(
 				createTransfer(transfS(1, bob))._unsafeUnwrap(),
-				createTransfer(transfS(1, carol))._unsafeUnwrap()
-			)(
-				aliceAccount,
-				{
-					plaintext: 'No one will be able to see this because we will get a crash',
-					encrypt: true
-				}
-			))
+				createTransfer(transfS(1, carol))._unsafeUnwrap(),
+			)(aliceAccount, {
+				plaintext:
+					'No one will be able to see this because we will get a crash',
+				encrypt: true,
+			})
 
 			expect(txResult.isErr()).toBe(true)
 		})
 
 		it('can encrypt message of a transaction with oneself as recipient', async () => {
-
 			const plaintext = 'Hey Alice, it is me, Alice!'
 
-			const tx = (await buildTransaction(
-				createTransfer(transfS(1, alice))._unsafeUnwrap()
-			)(
-				aliceAccount,
-				{
+			const tx = (
+				await buildTransaction(
+					createTransfer(transfS(1, alice))._unsafeUnwrap(),
+				)(aliceAccount, {
 					plaintext,
-					encrypt: true
-				}
-			))._unsafeUnwrap()
+					encrypt: true,
+				})
+			)._unsafeUnwrap()
 
-			const decryptedMessage = await firstValueFrom(aliceAccount.decrypt({
-				encryptedMessage: tx.message!,
-				publicKeyOfOtherParty: alice.publicKey,
-			}))
+			const decryptedMessage = await firstValueFrom(
+				aliceAccount.decrypt({
+					encryptedMessage: tx.message!,
+					publicKeyOfOtherParty: alice.publicKey,
+				}),
+			)
 
 			expect(decryptedMessage).toBe(plaintext)
 		})

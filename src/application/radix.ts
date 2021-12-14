@@ -68,7 +68,12 @@ import {
 	TransactionTrackingEventType,
 	TransactionType,
 } from './dto'
-import { Action, ActionType, Transfer } from './actions'
+import {
+	IntendedAction,
+	ActionType,
+	TransferTokensAction,
+	ExecutedAction,
+} from './actions'
 import { Wallet } from './wallet'
 import { andThen, pipe } from 'ramda'
 import {
@@ -76,14 +81,14 @@ import {
 	createTransfer,
 	createStake,
 	createUnstake,
-} from './dto/build-transaction'
+} from './dto/buildTransaction'
 import { Result, ResultAsync } from 'neverthrow'
 import { ResourceIdentifierT, ValidatorAddressT } from '@account'
 import { getRecipients } from './dto'
 
 const txTypeFromActions = (
 	input: Readonly<{
-		actions: Action[]
+		actions: ExecutedAction[]
 		activeAddress: AccountAddressT
 	}>,
 ): TransactionType => {
@@ -149,7 +154,7 @@ const create = () => {
 
 	const radixAPIViaNode$ = nodeURLSubject
 		.asObservable()
-		.pipe(map(url => fromApi.radixAPI(fromApi.nodeAPI(url))))
+		.pipe(map(url => fromApi.radixAPI(fromApi.gatewayAPI(url))))
 
 	const radixAPI$ = merge(
 		radixAPIViaNode$,
@@ -225,7 +230,7 @@ const create = () => {
 						const nonXRDHRPsOfRRIsInTx: string[] =
 							transactionIntent.actions
 								.filter(a => a.type === ActionType.TRANSFER)
-								.map(a => a as Transfer)
+								.map(a => a as TransferTokensAction)
 								.filter(t => t.rri.name !== 'xrd')
 								.map(t => t.rri.name)
 
@@ -399,11 +404,10 @@ const create = () => {
 					eventUpdateType: TransactionTrackingEventType.SIGNED,
 				})
 				const finalizedTx = radixAPI().then(api =>
-					api.finalizeTransaction(signedTx),
+					api.finalizeTransaction(network, signedTx),
 				)
 				return finalizedTx
 			}),
-			// @ts-ignore
 			mergeMap(x => toObservableFromResult(x)),
 			catchError((e: Error) => {
 				txLog.error(
@@ -421,7 +425,7 @@ const create = () => {
 			}),
 			tap<FinalizedTransaction>(finalizedTx => {
 				txLog.debug(
-					`Received finalized transaction with txID='${finalizedTx.txID.toPrimitive()}' from API, calling submit.`,
+					`Received finalized transaction' from API, calling submit.`,
 				)
 				track({
 					transactionState: finalizedTx,
@@ -433,9 +437,10 @@ const create = () => {
 		txSubs.add(
 			finalizedTx$
 				.pipe(
-					mergeMap(finalizedTx => {
-						const pendingTx = api().then(api =>
-							api.submitSignedTransaction(finalizedTx),
+					withLatestFrom(networkSubject),
+					mergeMap(([finalizedTx, network]) => {
+						const pendingTx = radixAPI().then(api =>
+							api.submitSignedTransaction(network, finalizedTx),
 						)
 						return pendingTx
 					}),
@@ -473,12 +478,13 @@ const create = () => {
 			pollTxStatusTrigger,
 			pendingTXSubject,
 		]).pipe(
-			mergeMap(([_, pendingTx]) => {
+			withLatestFrom(networkSubject),
+			mergeMap(([[_, pendingTx], network]) => {
 				txLog.debug(
 					`Asking API for status of transaction with txID: ${pendingTx.txID.toPrimitive()}`,
 				)
-				return api().then(api =>
-					api.transactionStatus({ txID: pendingTx.txID }),
+				return radixAPI().then(api =>
+					api.transactionStatus(pendingTx.txID, network),
 				)
 			}),
 			distinctUntilChanged(
@@ -606,7 +612,7 @@ const create = () => {
 				)
 
 				if (recipients.length != 1)
-					return throwError(
+					return throwError(() =>
 						Error(
 							'Failed to decrypt message. Multiple recipients.',
 						),
@@ -663,16 +669,16 @@ const create = () => {
 
 	const radixAPI = async () => firstValueFrom(radixAPI$)
 
-	// const getAPICall =
-	// 	<
-	// 		Method extends keyof ReturnType<typeof fromApi.radixAPI>,
-	// 		Args extends Parameters<fromApi.RadixAPI[Method]>,
-	// 	>(
-	// 		method: Method,
-	// 	) =>
-	// 	// @ts-ignore
-	// 	async (...args: Args): ReturnType<RadixAPI[Method]> =>
-	// 		await (await radixAPI())[method](...args)
+	const getAPICall =
+		<
+			Method extends keyof ReturnType<typeof fromApi.radixAPI>,
+			Args extends Parameters<fromApi.RadixAPI[Method]>,
+		>(
+			method: Method,
+		) =>
+		async (...args: Args): Promise<ReturnType<fromApi.RadixAPI[Method]>> =>
+			// @ts-ignore
+			(await radixAPI())[method](...args)
 
 	const methods = {
 		api: radixAPI,
@@ -719,11 +725,11 @@ const create = () => {
 
 		connect: async (url: string) => {
 			methods.__withNodeConnection(of(new URL(url)))
-			const result = await (await api()).networkId()
+			const result = await (await radixAPI()).networkId()
 
 			if (result.isErr()) throw result.error
 
-			networkSubject.next(result.value.networkId)
+			networkSubject.next(result.value.network)
 		},
 
 		withKeystore: async (keystore: KeystoreT, password: string) =>
@@ -815,8 +821,11 @@ const create = () => {
 			trigger: Observable<number>,
 		) =>
 			trigger.pipe(
-				mergeMap(_ => from(api())),
-				mergeMap(api => api.transactionStatus({ txID })),
+				mergeMap(_ => from(radixAPI())),
+				withLatestFrom(networkSubject),
+				mergeMap(([api, network]) =>
+					api.transactionStatus(txID, network),
+				),
 				map(status => status._unsafeUnwrap()),
 				distinctUntilChanged((prev, cur) => prev.status === cur.status),
 				filter(({ txID }) => txID.equals(txID)),
@@ -834,26 +843,27 @@ const create = () => {
 
 		tokenBalances: pipe(
 			() => firstValueFrom(activeAddress),
-			andThen(address =>
-				getAPICall('tokenBalancesForAddress')({ address }),
+			andThen(address => getAPICall('tokenBalancesForAddress')(address)),
+			andThen(result =>
+				result.map(response => response.account_balances),
 			),
-			andThen(result => result.map(response => response.tokenBalances)),
 		),
 
 		stakingPositions: pipe(
 			() => firstValueFrom(activeAddress),
-			andThen(address => getAPICall('stakesForAddress')({ address })),
+			andThen(address => getAPICall('stakesForAddress')(address)),
 		),
 
 		unstakingPositions: pipe(
 			() => firstValueFrom(activeAddress),
-			andThen(address => getAPICall('unstakesForAddress')({ address })),
+			andThen(address => getAPICall('unstakesForAddress')(address)),
 		),
 
 		lookupTransaction: pipe(
-			getAPICall('lookupTransaction'),
+			(txID: TransactionIdentifierT, network: Network) =>
+				getAPICall('transactionStatus')(txID, network),
 			andThen(result =>
-				result.asyncMap(tx =>
+				result.map(tx =>
 					firstValueFrom(activeAddress).then(address =>
 						decorateSimpleExecutedTransactionWithType(tx, address),
 					),
@@ -879,8 +889,8 @@ const create = () => {
 			return pipe(
 				() =>
 					createTransfer({
-						from: account.address.toPrimitive(),
-						to: to.toPrimitive(),
+						from_account: account.address.toPrimitive(),
+						to_account: to.toPrimitive(),
 						amount: amount.toString(),
 						rri: tokenIdentifier.toPrimitive(),
 					}),
@@ -898,6 +908,7 @@ const create = () => {
 		stakeTokens: async (
 			validator: ValidatorAddressT,
 			amount: AmountT,
+			rri: ResourceIdentifierT,
 			options: MakeTransactionOptions = { userConfirmation: 'skip' },
 		) => {
 			const account = await firstValueFrom(activeAccount)
@@ -905,9 +916,10 @@ const create = () => {
 			return pipe(
 				() =>
 					createStake({
-						validator: validator.toPrimitive(),
+						to_validator: validator.toPrimitive(),
 						amount: amount.toString(),
-						from: account.address.toPrimitive(),
+						rri: rri.toPrimitive(),
+						from_account: account.address.toPrimitive(),
 					}),
 				result => result.map(buildTransaction),
 				result => result.asyncAndThen(build => build(account)),
@@ -930,7 +942,7 @@ const create = () => {
 					createUnstake({
 						from_validator: validator.toPrimitive(),
 						amount: amount.toString(),
-						from: account.address.toPrimitive(),
+						to_account: account.address.toPrimitive(),
 					}),
 				result => result.map(buildTransaction),
 				result => result.asyncAndThen(build => build(account)),

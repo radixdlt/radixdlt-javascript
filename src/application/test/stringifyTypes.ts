@@ -1,13 +1,12 @@
 import BigNumber from 'bignumber.js'
 import {
-	ActionType,
 	SimpleExecutedTransaction,
 	SimpleTokenBalance,
 	SimpleTokenBalances,
 	SimpleTransactionHistory,
 } from '..'
 import { AmountT } from '@primitives'
-import { ExecutedAction } from '../actions'
+import { ExecutedAction, ActionType } from '../actions'
 
 export const stringifyAmount = (amount: AmountT) => {
 	const factor = new BigNumber('1e18')
@@ -23,18 +22,24 @@ export const stringifyAction = (action: ExecutedAction): string => {
 		Other
 		`
 		case ActionType.STAKE:
+			return `
+			type: ${action.type.toString()},
+			from_account: ${action.from_account.toString()}
+			to_validator: ${action.to_validator.toString()}
+			amount: ${stringifyAmount(action.amount)}
+			`
 		case ActionType.UNSTAKE:
 			return `
 		type: ${action.type.toString()},
-		from: ${action.from.toString()}
-		validator: ${action.validator.toString()}
-		amount: ${stringifyAmount(action.amount)}
+		from_validator: ${action.from_validator.toString()}
+		to_account: ${action.to_account.toString()}
+		amount: ${action.amount && stringifyAmount(action.amount)}
 		`
 		case ActionType.TRANSFER:
 			return `
 		type: ${action.type.toString()},
-		from: ${action.from.toString()}
-		to: ${action.to.toString()}
+		from_account: ${action.from_account.toString()}
+		to_account: ${action.to_account.toString()}
 		amount: ${stringifyAmount(action.amount)}
 		rri: ${action.rri.toString()}
 		`
