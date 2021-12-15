@@ -66,7 +66,7 @@
     "bundle": "ts-node -P scripts/tsconfig.json scripts/bundle.ts umd,esm",
     "baseTest": "jest --rootDir=.",
     "test": "yarn baseTest -c jest.config.js --testTimeout=10000",
-    "test:baseIntegration": "yarn baseTest --runInBand --testTimeout=20000 --verbose true",
+    "test:baseIntegration": "yarn baseTest --runInBand --testTimeout=30000 --verbose true",
     "test:integration": "NODE_TLS_REJECT_UNAUTHORIZED=0 yarn test:baseIntegration -c jest.config.integration.js",
     "test:ledger": "yarn test:baseIntegration --coverage=false -c ./packages/hardware-ledger/jest.config.ledger.js",
     "test:ledger:hw": "yarn test:ledger ./packages/hardware-ledger/test/physical-devices/ledgerNano.test.integration.ts",

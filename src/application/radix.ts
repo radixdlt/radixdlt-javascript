@@ -140,13 +140,14 @@ const create = () => {
 	const nodeURLSubject = new ReplaySubject<URL>()
 	const radixAPISubject = new ReplaySubject<fromApi.RadixAPI>()
 	const walletSubject = new ReplaySubject<WalletT>()
-
+	const xrdRRISubject = new ReplaySubject<ResourceIdentifierT>()
 	const deriveNextLocalHDAccountSubject = new Subject<DeriveNextInput>()
 	const addAccountByPrivateKeySubject =
 		new Subject<AddAccountByPrivateKeyInput>()
 	const switchAccountSubject = new Subject<SwitchAccountInput>()
 
 	const wallet$ = walletSubject.asObservable()
+	const xrdRRI$ = xrdRRISubject.asObservable()
 
 	const networkSubject = new ReplaySubject<Network>()
 	let walletSubscription: Subscription
@@ -240,7 +241,7 @@ const create = () => {
 						if (uniquenonXRDHRPsOfRRIsInTx.length > 1) {
 							const errMsg = `Error cannot sign transaction with multiple non-XRD RRIs. Unsupported by Ledger app.`
 							log.error(errMsg)
-							return throwError(new Error(errMsg))
+							return throwError(() => new Error(errMsg))
 						}
 
 						const nonXRDHrp =
@@ -443,28 +444,30 @@ const create = () => {
 						)
 						return pendingTx
 					}),
-					// @ts-ignore
-					mergeMap(x => toObservableFromResult(x)),
-					tap({
-						next: (pendingTx: PendingTransaction) => {
-							txLog.debug(
-								`Submitted transaction with txID='${pendingTx.txID.toPrimitive()}', it is now pending.`,
-							)
-							track({
-								transactionState: pendingTx,
-								eventUpdateType:
-									TransactionTrackingEventType.SUBMITTED,
-							})
-							pendingTXSubject.next(pendingTx)
-						},
-						error: (submitTXError: Error) => {
-							// TODO would be great to have access to txID here, hopefully API includes it in error msg?
-							txLog.error(
-								`Submission of signed transaction to API failed with error: ${submitTXError.message}`,
-							)
-							pendingTXSubject.error(submitTXError)
-						},
-					}),
+					mergeMap(tx =>
+						toObservableFromResult(tx).pipe(
+							tap({
+								next: (pendingTx: PendingTransaction) => {
+									txLog.debug(
+										`Submitted transaction with txID='${pendingTx.txID.toPrimitive()}', it is now pending.`,
+									)
+									track({
+										transactionState: pendingTx,
+										eventUpdateType:
+											TransactionTrackingEventType.SUBMITTED,
+									})
+									pendingTXSubject.next(pendingTx)
+								},
+								error: (submitTXError: Error) => {
+									const txID = tx.unwrapOr(null)
+									txLog.error(
+										`Submission of signed transaction with txID=´${txID?.txID}´ to API failed with error: ${submitTXError.message}`,
+									)
+									pendingTXSubject.error(submitTXError)
+								},
+							}),
+						),
+					),
 				)
 				.subscribe(),
 		)
@@ -667,6 +670,27 @@ const create = () => {
 			.subscribe(),
 	)
 
+	subs.add(
+		networkSubject
+			.pipe(
+				mergeMap(network => {
+					log.debug(`fetching native token for network: ${network}`)
+					return radixAPI$.pipe(
+						map(api =>
+							api
+								.nativeToken({
+									network_identifier: { network },
+								})
+								.map(token => {
+									xrdRRISubject.next(token.rri)
+								}),
+						),
+					)
+				}),
+			)
+			.subscribe(),
+	)
+
 	const radixAPI = async () => firstValueFrom(radixAPI$)
 
 	const getAPICall =
@@ -693,7 +717,7 @@ const create = () => {
 					next: url => {
 						radixLog.debug(`Using node ${url.toString()}`)
 						nodeURLSubject.next(url)
-					}
+					},
 				}),
 			)
 			return methods
@@ -763,7 +787,7 @@ const create = () => {
 								methods.__withWallet(wallet)
 							},
 						)
-					}
+					},
 				)
 			})
 
@@ -852,19 +876,20 @@ const create = () => {
 		),
 
 		lookupTransaction: pipe(
-			(txID: TransactionIdentifierT, network: Network) =>
-				getAPICall('transactionStatus')(txID, network),
+			(txID: TransactionIdentifierT) =>
+				firstValueFrom(networkSubject).then(network =>
+					getAPICall('transactionStatus')(txID, network),
+				),
 			andThen(result =>
-				result.map(tx =>
-					firstValueFrom(activeAddress).then(address =>
+				result.andThen(tx =>
+					ResultAsync.fromPromise(
+						firstValueFrom(activeAddress),
+						e => e as Error[],
+					).map(address =>
 						decorateSimpleExecutedTransactionWithType(tx, address),
 					),
 				),
 			),
-			promise =>
-				ResultAsync.fromPromise(promise, e => e as Error[]).andThen(
-					result => result,
-				),
 		),
 
 		transactionHistory,
@@ -900,11 +925,10 @@ const create = () => {
 		stakeTokens: async (
 			validator: ValidatorAddressT,
 			amount: AmountT,
-			rri: ResourceIdentifierT,
 			options: MakeTransactionOptions = { userConfirmation: 'skip' },
 		) => {
 			const account = await firstValueFrom(activeAccount)
-
+			const rri = await firstValueFrom(xrdRRI$)
 			return pipe(
 				() =>
 					createStake({
@@ -928,6 +952,7 @@ const create = () => {
 			options: MakeTransactionOptions = { userConfirmation: 'skip' },
 		) => {
 			const account = await firstValueFrom(activeAccount)
+			const rri = await firstValueFrom(xrdRRI$)
 
 			return pipe(
 				() =>
@@ -935,6 +960,7 @@ const create = () => {
 						from_validator: validator.toPrimitive(),
 						amount: amount.toString(),
 						to_account: account.address.toPrimitive(),
+						rri: rri.toPrimitive(),
 					}),
 				result => result.map(buildTransaction),
 				result => result.asyncAndThen(build => build(account)),
@@ -945,7 +971,10 @@ const create = () => {
 			)()
 		},
 
-		validators: getAPICall('validators'),
+		validators: async () => {
+			const network = await firstValueFrom(networkSubject)
+			return getAPICall('validators')(network)
+		},
 		lookupValidator: getAPICall('lookupValidator'),
 	}
 

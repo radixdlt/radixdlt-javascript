@@ -22,6 +22,7 @@ import {
 	TransferTokens,
 	UnstakeTokens,
 	Validator as ValidatorRaw,
+	AccountUnstakeEntry,
 } from '@networking'
 import { Result } from 'neverthrow'
 import {
@@ -41,7 +42,13 @@ import {
 } from '../..'
 import { ok, combine } from 'neverthrow'
 import { Message } from '@crypto'
-import { ActionType, ExecutedAction, ExecutedStakeTokensAction, ExecutedTransferTokensAction, ExecutedUnstakeTokensAction } from '@application'
+import {
+	ActionType,
+	ExecutedAction,
+	ExecutedStakeTokensAction,
+	ExecutedTransferTokensAction,
+	ExecutedUnstakeTokensAction,
+} from '@application'
 
 const transformTokenAmount = (amount: TokenAmount) => [
 	Amount.fromUnsafe(amount.value),
@@ -138,24 +145,32 @@ export const handleStakePositionsResponse = (
 		)
 		.mapErr(e => [e])
 
+const transformUnstakeEntry = (item: AccountUnstakeEntry) =>
+	combine([
+		ValidatorAddress.fromUnsafe(item.validator_identifier.address),
+		Amount.fromUnsafe(item.unstaking_amount.value),
+		ok<number, Error>(item.epochs_until_unlocked),
+	]).map(value => ({
+		validator: value[0] as ValidatorAddressT,
+		amount: value[1] as AmountT,
+		epochsUntil: value[2] as number,
+	}))
+
 export const handleUnstakePositionsResponse = (
 	json: ReturnOfAPICall<'accountUnstakesPost'>,
-): Result<UnstakePositionsEndpoint.DecodedResponse, Error[]> =>
-	combine(
-		json.data.unstakes.map(unstake =>
-			combine([
-				ValidatorAddress.fromUnsafe(
-					unstake.validator_identifier.address,
-				),
-				Amount.fromUnsafe(unstake.unstaking_amount.value),
-				ok<number, Error>(unstake.epochs_until_unlocked),
-			]).map(value => ({
-				validator: value[0] as ValidatorAddressT,
-				amount: value[1] as AmountT,
-				epochsUntil: value[2] as number,
-			})),
-		),
-	).mapErr(e => [e])
+): Result<UnstakePositionsEndpoint.DecodedResponse, Error[]> => {
+	return combine(json.data.pending_unstakes.map(transformUnstakeEntry))
+		.map(pendingUnstakes =>
+			combine(json.data.unstakes.map(transformUnstakeEntry)).map(
+				unstakes => ({
+					pendingUnstakes,
+					unstakes,
+				}),
+			),
+		)
+		.andThen(res => res)
+		.mapErr(e => [e])
+}
 
 export const handleAccountTransactionsResponse = (
 	json: ReturnOfAPICall<'accountTransactionsPost'>,

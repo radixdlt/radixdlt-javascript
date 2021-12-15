@@ -192,6 +192,7 @@ export type SignedTransaction = {
 
 export type FinalizedTransaction = {
 	blob: string
+	txID: TransactionIdentifierT
 }
 
 export type PendingTransaction = {
