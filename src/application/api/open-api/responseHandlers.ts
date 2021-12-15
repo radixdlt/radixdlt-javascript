@@ -42,13 +42,6 @@ import {
 } from '../..'
 import { ok, combine } from 'neverthrow'
 import { Message } from '@crypto'
-import {
-	ActionType,
-	ExecutedAction,
-	ExecutedStakeTokensAction,
-	ExecutedTransferTokensAction,
-	ExecutedUnstakeTokensAction,
-} from '@application'
 
 const transformTokenAmount = (amount: TokenAmount) => [
 	Amount.fromUnsafe(amount.value),
@@ -457,107 +450,105 @@ export const handleTransactionResponse = (
 ): Result<TransactionEndpoint.DecodedResponse, Error[]> =>
 	handleTx(json.data.transaction)
 
-const handleTx = (
-	transaction: ReturnOfAPICall<'transactionStatusPost'>['data']['transaction'],
-) => {
-	const transformAction = (action: Action): Result<ExecutedAction, Error> => {
-		const transformTransferTokenAction = (action: TransferTokens) =>
-			combine([
-				AccountAddress.fromUnsafe(action.to_account.address),
-				AccountAddress.fromUnsafe(action.from_account.address),
-				...(action.amount ? transformTokenAmount(action.amount) : []),
-			]).map(
-				(actionValue): ExecutedTransferTokensAction => ({
-					type: ActionType.TRANSFER,
-					to_account: actionValue[0] as AccountAddressT,
-					from_account: actionValue[1] as AccountAddressT,
-					amount: actionValue[2] as AmountT,
-					rri: actionValue[3] as ResourceIdentifierT,
-				}),
-			)
+// const handleTx = (
+// 	transaction: ReturnOfAPICall<'transactionStatusPost'>['data']['transaction'],
+// ) => {
+// 	const transformAction = (action: Action): Result<ExecutedAction, Error> => {
+// 		const transformTransferTokenAction = (action: TransferTokens) =>
+// 			combine([
+// 				AccountAddress.fromUnsafe(action.to_account.address),
+// 				AccountAddress.fromUnsafe(action.from_account.address),
+// 				...(action.amount ? transformTokenAmount(action.amount) : []),
+// 			]).map(
+// 				(actionValue): ExecutedTransferTokensAction => ({
+// 					type: ActionType.TRANSFER,
+// 					to_account: actionValue[0] as AccountAddressT,
+// 					from_account: actionValue[1] as AccountAddressT,
+// 					amount: actionValue[2] as AmountT,
+// 					rri: actionValue[3] as ResourceIdentifierT,
+// 				}),
+// 			)
 
-		const transformStakeTokenAction = (
-			type: ActionType.STAKE,
-			action: StakeTokens,
-		) =>
-			combine([
-				...transformTokenAmount(action.amount),
-				ValidatorAddress.fromUnsafe(action.to_validator.address),
-				AccountAddress.fromUnsafe(action.from_account.address),
-			]).map(
-				(
-					actionValue,
-				): ExecutedStakeTokensAction | ExecutedUnstakeTokensAction => ({
-					type,
-					amount: actionValue[0] as AmountT,
-					rri: actionValue[1] as ResourceIdentifierT,
-					to_validator: actionValue[2] as ValidatorAddressT,
-					from_account: actionValue[3] as AccountAddressT,
-				}),
-			)
+// 		const transformStakeTokenAction = (
+// 			type: ActionType.STAKE,
+// 			action: StakeTokens,
+// 		) =>
+// 			combine([
+// 				...transformTokenAmount(action.amount),
+// 				ValidatorAddress.fromUnsafe(action.to_validator.address),
+// 				AccountAddress.fromUnsafe(action.from_account.address),
+// 			]).map(
+// 				(
+// 					actionValue,
+// 				): ExecutedStakeTokensAction | ExecutedUnstakeTokensAction => ({
+// 					type,
+// 					amount: actionValue[0] as AmountT,
+// 					rri: actionValue[1] as ResourceIdentifierT,
+// 					to_validator: actionValue[2] as ValidatorAddressT,
+// 					from_account: actionValue[3] as AccountAddressT,
+// 				}),
+// 			)
 
-		const transformUnstakeTokenAction = (
-			type: ActionType.UNSTAKE,
-			action: UnstakeTokens,
-		) =>
-			combine([
-				ValidatorAddress.fromUnsafe(action.from_validator.address),
-				AccountAddress.fromUnsafe(action.to_account.address),
-				...(action.amount ? transformTokenAmount(action.amount) : []),
-			]).map(
-				(
-					actionValue,
-				): ExecutedStakeTokensAction | ExecutedUnstakeTokensAction => ({
-					type,
-					from_validator: actionValue[0] as ValidatorAddressT,
-					to_account: actionValue[1] as AccountAddressT,
-					amount: actionValue[2] as AmountT,
-					rri: actionValue[3] as ResourceIdentifierT,
-				}),
-			)
+// 		const transformUnstakeTokenAction = (
+// 			type: ActionType.UNSTAKE,
+// 			action: UnstakeTokens,
+// 		) =>
+// 			combine([
+// 				ValidatorAddress.fromUnsafe(action.from_validator.address),
+// 				AccountAddress.fromUnsafe(action.to_account.address),
+// 				...(action.amount ? transformTokenAmount(action.amount) : []),
+// 			]).map(
+// 				(
+// 					actionValue,
+// 				): ExecutedStakeTokensAction | ExecutedUnstakeTokensAction => ({
+// 					type,
+// 					from_validator: actionValue[0] as ValidatorAddressT,
+// 					to_account: actionValue[1] as AccountAddressT,
+// 					amount: actionValue[2] as AmountT,
+// 					rri: actionValue[3] as ResourceIdentifierT,
+// 				}),
+// 			)
 
-		switch (action.type) {
-			case 'TransferTokens':
-				return transformTransferTokenAction(action as TransferTokens)
-			case 'StakeTokens':
-				return transformStakeTokenAction(
-					ActionType.STAKE,
-					action as StakeTokens,
-				)
-			case 'UnstakeTokens':
-				return transformUnstakeTokenAction(
-					ActionType.UNSTAKE,
-					action as UnstakeTokens,
-				)
-			default:
-				return ok({ ...action, type: ActionType.OTHER })
-		}
-	}
+// 		switch (action.type) {
+// 			case 'TransferTokens':
+// 				return transformTransferTokenAction(action as TransferTokens)
+// 			case 'StakeTokens':
+// 				return transformStakeTokenAction(
+// 					ActionType.STAKE,
+// 					action as StakeTokens,
+// 				)
+// 			case 'UnstakeTokens':
+// 				return transformUnstakeTokenAction(
+// 					ActionType.UNSTAKE,
+// 					action as UnstakeTokens,
+// 				)
+// 			default:
+// 				return ok({ ...action, type: ActionType.OTHER })
+// 		}
+// 	}
 
-	transaction.transaction_identifier.hash
-
-	return combine([
-		TransactionIdentifier.create(transaction.transaction_identifier.hash),
-		ok(
-			transaction.transaction_status.confirmed_time
-				? new Date(transaction.transaction_status.confirmed_time)
-				: null,
-		),
-		Amount.fromUnsafe(transaction.fee_paid.value),
-		ok(transformMessage(transaction.metadata.message) ?? ''),
-		combine(transaction.actions.map(transformAction)).map(actions => ({
-			actions,
-		})),
-		ok(transaction.transaction_status.status),
-	])
-		.map(value => ({
-			txID: value[0] as TransactionIdentifierT,
-			sentAt: value[1] as Date,
-			fee: value[2] as AmountT,
-			message: value[3] as string,
-			// @ts-ignore
-			actions: value[4].actions as ExecutedAction[],
-			status: value[5] as TransactionStatusEnum,
-		}))
-		.mapErr(e => [e] as Error[])
-}
+// 	return combine([
+// 		TransactionIdentifier.create(transaction.transaction_identifier.hash),
+// 		ok(
+// 			transaction.transaction_status.confirmed_time
+// 				? new Date(transaction.transaction_status.confirmed_time)
+// 				: null,
+// 		),
+// 		Amount.fromUnsafe(transaction.fee_paid.value),
+// 		ok(transformMessage(transaction.metadata.message) ?? ''),
+// 		combine(transaction.actions.map(transformAction)).map(actions => ({
+// 			actions,
+// 		})),
+// 		ok(transaction.transaction_status.status),
+// 	])
+// 		.map(value => ({
+// 			txID: value[0] as TransactionIdentifierT,
+// 			sentAt: value[1] as Date,
+// 			fee: value[2] as AmountT,
+// 			message: value[3] as string,
+// 			// @ts-ignore
+// 			actions: value[4].actions as ExecutedAction[],
+// 			status: value[5] as TransactionStatusEnum,
+// 		}))
+// 		.mapErr(e => [e] as Error[])
+// }
