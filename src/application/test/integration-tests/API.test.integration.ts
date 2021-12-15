@@ -140,7 +140,7 @@ describe('integration API tests', () => {
 		// )
 	})
 
-	it.only('can switch networks', async () => {
+	it('can switch networks', async () => {
 		const radix = Radix.create()
 
 		await radix
