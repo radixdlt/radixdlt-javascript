@@ -27,9 +27,9 @@ import {
 	ValidatorsEndpoint,
 	LookupValidatorEndpoint,
 } from './_types'
-import { TransactionIdentifier } from '../../dto'
 import { pipe } from 'ramda'
 import { Message } from '@crypto'
+import { TransactionIdentifier } from '@application'
 
 const amountDecoder = (...keys: string[]) =>
 	decoder((value, key) =>

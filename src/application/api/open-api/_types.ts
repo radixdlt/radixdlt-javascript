@@ -6,7 +6,6 @@ import {
 import {
 	LedgerState as LedgerStateRaw,
 	GatewayResponse,
-	TokenResponse,
 	TokenNativeResponse,
 	TokenDeriveResponse,
 	AccountBalancesResponse,
@@ -18,7 +17,6 @@ import {
 	ValidatorUptime,
 	TransactionRulesResponse,
 	TransactionBuildResponse,
-	TransactionFinalizeResponse,
 	TransactionSubmitResponse,
 	TransactionStatusResponse,
 	ValidatorsRequest,
@@ -36,6 +34,8 @@ import {
 	TransactionSubmitRequest,
 	TransactionStatusRequest,
 	ValidatorResponse,
+	TransactionFinalizeResponse,
+	TokenResponse,
 } from '@networking'
 import { AmountT, Network } from '@primitives'
 import {
@@ -49,6 +49,7 @@ import {
 	SimpleTransactionHistory,
 	SimpleExecutedTransaction,
 } from '../../dto'
+
 export namespace Decoded {
 	export type TokenIdentifier = {
 		rri: ResourceIdentifierT

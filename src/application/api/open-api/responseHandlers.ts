@@ -13,24 +13,58 @@ import {
 	ValidatorsEndpoint,
 	GatewayEndpoint,
 } from './_types'
-import { ReturnOfAPICall } from '@networking'
+import {
+	AccountStakeEntry,
+	Action,
+	ReturnOfAPICall,
+	StakeTokens,
+	TokenAmount,
+	TransferTokens,
+	UnstakeTokens,
+	Validator as ValidatorRaw,
+} from '@networking'
 import { Result } from 'neverthrow'
 import {
 	ResourceIdentifier,
 	ResourceIdentifierT,
 	ValidatorAddress,
 	ValidatorAddressT,
+	AccountAddress,
+	AccountAddressT,
 } from '@account'
 import { Amount, AmountT, Network } from '@primitives'
-import { SimpleTransactionHistory, TransactionIdentifier } from '../..'
+import {
+	SimpleTransactionHistory,
+	TransactionIdentifier,
+	TransactionIdentifierT,
+	TransactionStatus as TransactionStatusEnum,
+} from '../..'
 import { ok, combine } from 'neverthrow'
-import { responseHelper } from './responseHelpers'
-import { transformAction } from 'src/application/actions'
+import { Message } from '@crypto'
+import { ActionType, ExecutedAction, ExecutedStakeTokensAction, ExecutedTransferTokensAction, ExecutedUnstakeTokensAction } from '@application'
+
+const transformTokenAmount = (amount: TokenAmount) => [
+	Amount.fromUnsafe(amount.value),
+	ResourceIdentifier.fromUnsafe(amount.token_identifier.rri),
+]
+
+const transformMessage = (message?: string) => {
+	if (!message) return undefined
+
+	// Check format
+	if (!/^(00|01)[0-9a-fA-F]+$/.test(message))
+		return '<Failed to interpret message>'
+
+	return Message.isPlaintext(message)
+		? Message.plaintextToString(Buffer.from(message, 'hex'))
+		: message
+}
 
 export const handleGatewayResponse = (
 	json: ReturnOfAPICall<'gatewayPost'>,
 ): Result<GatewayEndpoint.DecodedResponse, Error[]> =>
 	ok({
+		// @ts-ignore
 		network: json.data.network_identifier.network as Network,
 	}).mapErr(e => [e] as Error[])
 
@@ -84,16 +118,23 @@ export const handleNativeTokenResponse = (
 		}))
 		.mapErr(e => [e])
 
+const transformStakeEntry = (stake: AccountStakeEntry) =>
+	combine([
+		ValidatorAddress.fromUnsafe(stake.validator_identifier.address),
+		Amount.fromUnsafe(stake.delegated_stake.value),
+	]).map(value => ({
+		validator: value[0] as ValidatorAddressT,
+		amount: value[1] as AmountT,
+	}))
+
 export const handleStakePositionsResponse = (
 	json: ReturnOfAPICall<'accountStakesPost'>,
 ): Result<StakePositionsEndpoint.DecodedResponse, Error[]> =>
-	combine(json.data.stakes.map(responseHelper.transformStakeEntry))
+	combine(json.data.stakes.map(transformStakeEntry))
 		.andThen(stakes =>
-			combine(
-				json.data.pending_stakes.map(
-					responseHelper.transformStakeEntry,
-				),
-			).map(pendingStakes => ({ stakes, pendingStakes })),
+			combine(json.data.pending_stakes.map(transformStakeEntry)).map(
+				pendingStakes => ({ stakes, pendingStakes }),
+			),
 		)
 		.mapErr(e => [e])
 
@@ -119,41 +160,114 @@ export const handleUnstakePositionsResponse = (
 export const handleAccountTransactionsResponse = (
 	json: ReturnOfAPICall<'accountTransactionsPost'>,
 ): Result<AccountTransactionsEndpoint.DecodedResponse, Error[]> =>
-	combine(
-		json.data.transactions.map(responseHelper.transformTransaction),
-	).map(
+	combine(json.data.transactions.map(handleTx)).map(
 		(transactions): SimpleTransactionHistory => ({
-			cursor: json.data.next_cursor || '',
+			cursor: json.data.next_cursor as string,
+			// @ts-ignore
 			transactions,
+		}),
+	)
+
+// export const handleAccountTransactionsResponse = (
+// 	json: ReturnOfAPICall<'accountTransactionsPost'>,
+// ) =>
+// 	JSONDecoding.withDecoders(
+// 		transactionIdentifierDecoder('hash'),
+// 		dateDecoder('timestamp'),
+// 		...tokenDecoders,
+// 	)
+// 		.create<
+// 			AccountTransactionsEndpoint.Response,
+// 			AccountTransactionsEndpoint.DecodedResponse
+// 		>()(json)
+// 		.andThen(decoded =>
+// 			hasRequiredProps('accountTransactions', decoded, [
+// 				'ledger_state',
+// 				'total_count',
+// 				'transactions',
+// 			]),
+// 		)
+
+/*
+export const handleDerivetoken_identifierResponse = (
+	json: ReturnOfAPICall<'tokenDerivePost'>,
+) =>
+	JSONDecoding.withDecoders(RRIDecoder('rri'))
+		.create<
+			DeriveTokenIdentifierEndpoint.Response,
+			DeriveTokenIdentifierEndpoint.DecodedResponse
+		>()(json)
+		.andThen(decoded =>
+			hasRequiredProps('deriveTokenIdentifier', decoded, [
+				'token_identifier',
+			]),
+		)
+*/
+
+const transformUrl = (url: string) => {
+	try {
+		return new URL(url)
+	} catch (error) {
+		return undefined
+	}
+}
+
+const transformValidator = (validator: ValidatorRaw) =>
+	combine([
+		ValidatorAddress.fromUnsafe(validator.validator_identifier.address),
+		AccountAddress.fromUnsafe(
+			validator.properties.owner_account_identifier.address,
+		),
+		Amount.fromUnsafe(validator.stake.value),
+		Amount.fromUnsafe(validator.info.owner_stake.value),
+	]).map(
+		(values): ValidatorEndpoint.DecodedResponse => ({
+			address: values[0] as ValidatorAddressT,
+			ownerAddress: values[1] as AccountAddressT,
+			name: validator.properties.name,
+			infoURL: transformUrl(validator.properties.url),
+			totalDelegatedStake: values[2] as AmountT,
+			ownerDelegation: values[3] as AmountT,
+			validatorFee: validator.properties.validator_fee_percentage,
+			registered: validator.properties.registered,
+			isExternalStakeAccepted:
+				validator.properties.external_stake_accepted,
+			uptimePercentage: validator.info.uptime.uptime_percentage,
+			proposalsMissed: validator.info.uptime.proposals_missed,
+			proposalsCompleted: validator.info.uptime.proposals_completed,
 		}),
 	)
 
 export const handleAccountBalancesResponse = (
 	json: ReturnOfAPICall<'accountBalancesPost'>,
-): Result<AccountBalancesEndpoint.DecodedResponse, Error[]> =>
-	combine([
-		combine(
-			json.data.account_balances.liquid_balances.map(balance =>
-				combine([
-					Amount.fromUnsafe(balance.value),
-					ResourceIdentifier.fromUnsafe(balance.token_identifier.rri),
-				]).map(values => ({
-					value: values[0] as AmountT,
-					token_identifier: {
-						rri: values[1] as ResourceIdentifierT,
-					},
-				})),
-			),
-		).map(balances => ({ balances })),
-		combine([
-			ResourceIdentifier.fromUnsafe(
-				json.data.account_balances.staked_and_unstaking_balance
-					.token_identifier.rri,
-			),
-			Amount.fromUnsafe(
-				json.data.account_balances.staked_and_unstaking_balance.value,
-			),
-		]),
+): Result<AccountBalancesEndpoint.DecodedResponse, Error[]> => {
+	const liquidBalancesResults = combine(
+		json.data.account_balances.liquid_balances.map(balance =>
+			combine([
+				Amount.fromUnsafe(balance.value),
+				ResourceIdentifier.fromUnsafe(balance.token_identifier.rri),
+			]).map(values => ({
+				value: values[0] as AmountT,
+				token_identifier: {
+					rri: values[1] as ResourceIdentifierT,
+				},
+			})),
+		),
+	)
+
+	const stakingAndUnstakingBalancesResult = combine([
+		ResourceIdentifier.fromUnsafe(
+			json.data.account_balances.staked_and_unstaking_balance
+				.token_identifier.rri,
+		),
+		Amount.fromUnsafe(
+			json.data.account_balances.staked_and_unstaking_balance.value,
+		),
+	])
+
+	return combine([
+		liquidBalancesResults.map(balances => ({ balances })),
+		stakingAndUnstakingBalancesResult,
 	])
 		.map(values => ({
 			ledger_state: {
@@ -172,19 +286,125 @@ export const handleAccountBalancesResponse = (
 			},
 		}))
 		.mapErr(e => [e])
+}
 
 export const handleValidatorResponse = (
 	json: ReturnOfAPICall<'validatorPost'>,
 ): Result<ValidatorEndpoint.DecodedResponse, Error[]> =>
-	responseHelper.transformValidator(json.data.validator).mapErr(e => [e])
+	transformValidator(json.data.validator).mapErr(e => [e])
 
 export const handleValidatorsResponse = (
 	json: ReturnOfAPICall<'validatorsPost'>,
 ): Result<ValidatorsEndpoint.DecodedResponse, Error[]> =>
-	combine(json.data.validators.map(responseHelper.transformValidator))
+	combine(json.data.validators.map(transformValidator))
 		.map(validators => ({ validators }))
 		.mapErr(e => [e])
 
+/*
+	
+export const handleStakePositionsResponse = (
+	json: ReturnOfAPICall<'accountStakesPost'>,
+) => combine([
+	
+]).mapErr(e => [e])
+	
+json.stakes.map(stake => combine([
+	ValidatorAddress.fromUnsafe(stake.validatorIdentifier.address),
+	Amount.fromUnsafe(stake.delegatedStake.value)
+]).map(values => ({
+	validator: values[0] as ValidatorAddressT,
+	amount: values[1] as AmountT
+})
+	
+	export const handleUnstakePositionsResponse = (
+		json: ReturnOfAPICall<'accountUnstakesPost'>,
+	) =>
+		JSONDecoding.withDecoders(
+			RRIDecoder('rri'),
+			amountDecoder('value'),
+			validatorAddressDecoder('address'),
+			dateDecoder('timestamp'),
+		)
+			.create<
+				UnstakePositionsEndpoint.Response,
+				UnstakePositionsEndpoint.DecodedResponse
+			>()(json)
+			.andThen(decoded =>
+				hasRequiredProps('unstakePositions', decoded, [
+					'ledger_state',
+					'unstakes',
+				]),
+			)
+	
+	export const handleAccountTransactionsResponse = (
+		json: ReturnOfAPICall<'accountTransactionsPost'>,
+	) =>
+		JSONDecoding.withDecoders(
+			transactionIdentifierDecoder('hash'),
+			dateDecoder('timestamp'),
+			...tokenDecoders,
+		)
+			.create<
+				AccountTransactionsEndpoint.Response,
+				AccountTransactionsEndpoint.DecodedResponse
+			>()(json)
+			.andThen(decoded =>
+				hasRequiredProps('accountTransactions', decoded, [
+					'ledger_state',
+					'total_count',
+					'transactions',
+				]),
+			)
+	
+	export const handleValidatorResponse = (
+		json: ReturnOfAPICall<'validatorPost'>,
+	) =>
+		JSONDecoding.withDecoders(...validatorDecoders, dateDecoder('timestamp'))
+			.create<
+				ValidatorEndpoint.Response,
+				ValidatorEndpoint.DecodedResponse
+			>()(json)
+			.andThen(decoded =>
+				hasRequiredProps('validator', decoded, [
+					'ledger_state',
+					'validator',
+				]),
+			)
+	
+	export const handleValidatorsResponse = (
+		json: ReturnOfAPICall<'validatorsPost'>,
+	) =>
+		JSONDecoding.withDecoders(...validatorDecoders, dateDecoder('timestamp'))
+			.create<
+				ValidatorsEndpoint.Response,
+				ValidatorsEndpoint.DecodedResponse
+			>()(json)
+			.andThen(decoded =>
+				hasRequiredProps('validators', decoded, [
+					'ledger_state',
+					'validators',
+				]),
+			)
+	
+	export const handleTransactionRulesResponse = (
+		json: ReturnOfAPICall<'transactionRulesPost'>,
+	) =>
+		JSONDecoding.withDecoders(
+			amountDecoder('value'),
+			RRIDecoder('rri'),
+			dateDecoder('timestamp'),
+		)
+			.create<
+				TransactionRulesEndpoint.Response,
+				TransactionRulesEndpoint.DecodedResponse
+			>()(json)
+			.andThen(decoded =>
+				hasRequiredProps('transactionRules', decoded, [
+					'ledger_state',
+					'transaction_rules',
+				]),
+			)
+*/
 export const handleBuildTransactionResponse = (
 	json: ReturnOfAPICall<'transactionBuildPost'>,
 ): Result<BuildTransactionEndpoint.DecodedResponse, Error[]> =>
@@ -217,9 +437,112 @@ export const handleSubmitTransactionResponse = (
 		}))
 		.mapErr(e => [e])
 
-export const handleTransactionResponse = ({
-	data: { transaction },
-}: ReturnOfAPICall<'transactionStatusPost'>): Result<
-	TransactionEndpoint.DecodedResponse,
-	Error[]
-> => responseHelper.transformTransaction(transaction)
+export const handleTransactionResponse = (
+	json: ReturnOfAPICall<'transactionStatusPost'>,
+): Result<TransactionEndpoint.DecodedResponse, Error[]> =>
+	handleTx(json.data.transaction)
+
+const handleTx = (
+	transaction: ReturnOfAPICall<'transactionStatusPost'>['data']['transaction'],
+) => {
+	const transformAction = (action: Action): Result<ExecutedAction, Error> => {
+		const transformTransferTokenAction = (action: TransferTokens) =>
+			combine([
+				AccountAddress.fromUnsafe(action.to_account.address),
+				AccountAddress.fromUnsafe(action.from_account.address),
+				...(action.amount ? transformTokenAmount(action.amount) : []),
+			]).map(
+				(actionValue): ExecutedTransferTokensAction => ({
+					type: ActionType.TRANSFER,
+					to_account: actionValue[0] as AccountAddressT,
+					from_account: actionValue[1] as AccountAddressT,
+					amount: actionValue[2] as AmountT,
+					rri: actionValue[3] as ResourceIdentifierT,
+				}),
+			)
+
+		const transformStakeTokenAction = (
+			type: ActionType.STAKE,
+			action: StakeTokens,
+		) =>
+			combine([
+				...transformTokenAmount(action.amount),
+				ValidatorAddress.fromUnsafe(action.to_validator.address),
+				AccountAddress.fromUnsafe(action.from_account.address),
+			]).map(
+				(
+					actionValue,
+				): ExecutedStakeTokensAction | ExecutedUnstakeTokensAction => ({
+					type,
+					amount: actionValue[0] as AmountT,
+					rri: actionValue[1] as ResourceIdentifierT,
+					to_validator: actionValue[2] as ValidatorAddressT,
+					from_account: actionValue[3] as AccountAddressT,
+				}),
+			)
+
+		const transformUnstakeTokenAction = (
+			type: ActionType.UNSTAKE,
+			action: UnstakeTokens,
+		) =>
+			combine([
+				ValidatorAddress.fromUnsafe(action.from_validator.address),
+				AccountAddress.fromUnsafe(action.to_account.address),
+				...(action.amount ? transformTokenAmount(action.amount) : []),
+			]).map(
+				(
+					actionValue,
+				): ExecutedStakeTokensAction | ExecutedUnstakeTokensAction => ({
+					type,
+					from_validator: actionValue[0] as ValidatorAddressT,
+					to_account: actionValue[1] as AccountAddressT,
+					amount: actionValue[2] as AmountT,
+					rri: actionValue[3] as ResourceIdentifierT,
+				}),
+			)
+
+		switch (action.type) {
+			case 'TransferTokens':
+				return transformTransferTokenAction(action as TransferTokens)
+			case 'StakeTokens':
+				return transformStakeTokenAction(
+					ActionType.STAKE,
+					action as StakeTokens,
+				)
+			case 'UnstakeTokens':
+				return transformUnstakeTokenAction(
+					ActionType.UNSTAKE,
+					action as UnstakeTokens,
+				)
+			default:
+				return ok({ ...action, type: ActionType.OTHER })
+		}
+	}
+
+	transaction.transaction_identifier.hash
+
+	return combine([
+		TransactionIdentifier.create(transaction.transaction_identifier.hash),
+		ok(
+			transaction.transaction_status.confirmed_time
+				? new Date(transaction.transaction_status.confirmed_time)
+				: null,
+		),
+		Amount.fromUnsafe(transaction.fee_paid.value),
+		ok(transformMessage(transaction.metadata.message) ?? ''),
+		combine(transaction.actions.map(transformAction)).map(actions => ({
+			actions,
+		})),
+		ok(transaction.transaction_status.status),
+	])
+		.map(value => ({
+			txID: value[0] as TransactionIdentifierT,
+			sentAt: value[1] as Date,
+			fee: value[2] as AmountT,
+			message: value[3] as string,
+			// @ts-ignore
+			actions: value[4].actions as ExecutedAction[],
+			status: value[5] as TransactionStatusEnum,
+		}))
+		.mapErr(e => [e] as Error[])
+}

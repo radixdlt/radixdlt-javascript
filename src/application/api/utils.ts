@@ -1,6 +1,24 @@
-import { log } from '@util'
+import log from 'loglevel'
+import { err, Result, ok } from 'neverthrow'
 import { Observable, throwError, timer } from 'rxjs'
 import { mergeMap } from 'rxjs/operators'
+
+export const hasRequiredProps = <T extends Record<string, unknown>>(
+	methodName: string,
+	obj: T,
+	props: string[],
+): Result<T, Error[]> => {
+	for (const prop of props) {
+		if (obj[prop] === undefined) {
+			return err([
+				Error(
+					`Prop validation failed for ${methodName} response. ${prop} was undefined.`,
+				),
+			])
+		}
+	}
+	return ok(obj)
+}
 
 export const retryOnErrorCode =
 	({

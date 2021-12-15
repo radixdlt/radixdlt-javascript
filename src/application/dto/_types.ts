@@ -278,10 +278,10 @@ export type Validator = {
 	infoURL: URL
 	totalDelegatedStake: AmountT
 	ownerDelegation: AmountT
-	validatorFee: string
+	validatorFee: number
 	registered: boolean
 	isExternalStakeAccepted: boolean
-	uptimePercentage: string
+	uptimePercentage: number
 	proposalsMissed: number
 	proposalsCompleted: number
 }

@@ -49,6 +49,11 @@ export const getAPI = pipe(
 		unstakePositions: callAPI('accountUnstakesPost')(
 			handleUnstakePositionsResponse,
 		),
+		/*
+		deriveTokenIdentifier: callAPI('tokenDerivePost')(
+			handleDeriveTokenIdentifierResponse,
+		),
+		*/
 		accountBalances: callAPI('accountBalancesPost')(
 			handleAccountBalancesResponse,
 		),
@@ -57,9 +62,12 @@ export const getAPI = pipe(
 		),
 		validator: callAPI('validatorPost')(handleValidatorResponse),
 		validators: callAPI('validatorsPost')(handleValidatorsResponse),
-		buildTransaction: callAPI('transactionBuildPost')(
-			handleBuildTransactionResponse,
+		/*
+		transactionRules: callAPI('transactionRulesPost')(
+			handleTransactionRulesResponse,
 		),
+		*/
+		buildTransaction: callAPI('transactionBuildPost')(handleBuildTransactionResponse),
 		finalizeTransaction: callAPI('transactionFinalizePost')(
 			handleFinalizeTransactionResponse,
 		),

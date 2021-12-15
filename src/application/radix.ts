@@ -14,6 +14,7 @@ import {
 	filter,
 	map,
 	mergeMap,
+	retryWhen,
 	share,
 	shareReplay,
 	skipWhile,
@@ -63,10 +64,10 @@ import {
 	TransactionIntent,
 	TransactionStateError,
 	TransactionStateUpdate,
-	TransactionStatus,
 	TransactionTracking,
 	TransactionTrackingEventType,
 	TransactionType,
+	TransactionStatus,
 } from './dto'
 import {
 	IntendedAction,
@@ -139,7 +140,6 @@ const create = () => {
 	const nodeURLSubject = new ReplaySubject<URL>()
 	const radixAPISubject = new ReplaySubject<fromApi.RadixAPI>()
 	const walletSubject = new ReplaySubject<WalletT>()
-	const errorNotificationSubject = new Subject<ErrorT<any>>()
 
 	const deriveNextLocalHDAccountSubject = new Subject<DeriveNextInput>()
 	const addAccountByPrivateKeySubject =
@@ -149,7 +149,6 @@ const create = () => {
 	const wallet$ = walletSubject.asObservable()
 
 	const networkSubject = new ReplaySubject<Network>()
-
 	let walletSubscription: Subscription
 
 	const radixAPIViaNode$ = nodeURLSubject
@@ -528,7 +527,8 @@ const create = () => {
 				error: (transactionStatusError: Error) => {
 					// TODO hmm how to get txID here?
 					txLog.error(
-						`Failed to get status of transaction, error: ${transactionStatusError.message}`,
+						`Failed to get status of transaction`,
+						transactionStatusError,
 					)
 				},
 			}),
@@ -693,10 +693,7 @@ const create = () => {
 					next: url => {
 						radixLog.debug(`Using node ${url.toString()}`)
 						nodeURLSubject.next(url)
-					},
-					error: (error: Error) => {
-						errorNotificationSubject.next(nodeError(error))
-					},
+					}
 				}),
 			)
 			return methods
@@ -755,7 +752,7 @@ const create = () => {
 				password,
 				load: loadKeystore,
 			}).then(signingKeychainResult => {
-				signingKeychainResult.match(
+				signingKeychainResult.map(
 					(signingKeychain: SigningKeychainT) => {
 						walletSubscription = networkSubject.subscribe(
 							network => {
@@ -766,17 +763,12 @@ const create = () => {
 								methods.__withWallet(wallet)
 							},
 						)
-					},
-					error => {
-						errorNotificationSubject.next(walletError(error))
-					},
+					}
 				)
 			})
 
 			return methods
 		},
-
-		errors: errorNotificationSubject.asObservable(),
 
 		deriveNextAccount: (input?: DeriveNextInput) => {
 			const derivation: DeriveNextInput = input ?? {}

@@ -235,7 +235,7 @@ describe('integration API tests', () => {
 */
 
 	// 🟢
-	it.only('should compare token balance before and after transfer', async () => {
+	it('should compare token balance before and after transfer', async () => {
 		const address = await firstValueFrom(radix.activeAddress)
 		await requestFaucet(address.toString())
 
@@ -254,7 +254,7 @@ describe('integration API tests', () => {
 				: UInt256.valueOf(0)
 		}
 
-		const tokenBalancesBefore = (await radix.tokenBalances()).unwrapOr(null)
+		const tokenBalancesBefore = (await radix.tokenBalances())._unsafeUnwrap()
 
 		if (!tokenBalancesBefore) {
 			throw new Error('invalid tokenBalancesBefore output')
@@ -268,7 +268,7 @@ describe('integration API tests', () => {
 				amountToSend,
 				nativeTokenBalance.token_identifier.rri,
 			)
-		).unwrapOr(null)
+		)._unsafeUnwrap()
 
 		if (!transferTokens) {
 			throw new Error('invalid transferTokens output')
@@ -278,13 +278,13 @@ describe('integration API tests', () => {
 
 		const txStatus = (
 			await (await radix.api()).transactionStatus(txID, network)
-		).unwrapOr(null)
+		)._unsafeUnwrap()
 
 		if (!txStatus) {
 			throw new Error('invalid txStatus output')
 		}
 
-		const tokenBalancesAfter = (await radix.tokenBalances()).unwrapOr(null)
+		const tokenBalancesAfter = (await radix.tokenBalances())._unsafeUnwrap()
 
 		if (!tokenBalancesAfter) {
 			throw new Error('invalid tokenBalancesAfter output')

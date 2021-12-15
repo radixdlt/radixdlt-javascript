@@ -3,14 +3,14 @@ import { UInt256 } from '@radixdlt/uint256'
 export type AmountT = UInt256 & { toPrimitive: () => string }
 
 export enum Network {
-	MAINNET = 'MAINNET',
+	MAINNET = 'mainnet',
 	STOKENET = 'stokenet',
-	LOCALHOST = 'LOCALHOST',
-	TESTNET3 = 'TESTNET3',
-	TESTNET4 = 'TESTNET4',
-	TESTNET5 = 'TESTNET5',
-	TESTNET6 = 'TESTNET6',
-	TESTNET7 = 'TESTNET7',
+	LOCALNET = 'localnet',
+	MILESTONENET = 'milestonenet',
+	TESTNET3 = 'testnet3',
+	TESTNET4 = 'testnet4',
+	TESTNET6 = 'testnet6',
+	SANDPITNET = 'sandpitnet',
 }
 
 export const NetworkId = {
@@ -18,10 +18,10 @@ export const NetworkId = {
 	2: Network.STOKENET,
 	3: Network.TESTNET3,
 	4: Network.TESTNET4,
-	5: Network.TESTNET5,
+	5: Network.MILESTONENET,
 	6: Network.TESTNET6,
-	7: Network.TESTNET7,
-	99: Network.LOCALHOST,
+	7: Network.SANDPITNET,
+	99: Network.LOCALNET,
 }
 
 export const hrpFullSuffixLength = 3
@@ -37,7 +37,7 @@ export const HRP = {
 		validator: 'tv',
 		RRI_suffix: '_tr',
 	},
-	[Network.LOCALHOST]: {
+	[Network.LOCALNET]: {
 		account: 'ddx',
 		validator: 'dv',
 		RRI_suffix: '_dr',
@@ -52,7 +52,7 @@ export const HRP = {
 		validator: 'tv4',
 		RRI_suffix: '_tr4',
 	},
-	[Network.TESTNET5]: {
+	[Network.MILESTONENET]: {
 		account: 'tdx5',
 		validator: 'tv5',
 		RRI_suffix: '_tr5',
@@ -62,7 +62,7 @@ export const HRP = {
 		validator: 'tv6',
 		RRI_suffix: '_tr6',
 	},
-	[Network.TESTNET7]: {
+	[Network.SANDPITNET]: {
 		account: 'tdx7',
 		validator: 'tv7',
 		RRI_suffix: '_tr7',
