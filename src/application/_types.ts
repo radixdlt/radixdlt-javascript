@@ -11,7 +11,7 @@ import {
 } from '@account'
 import { PublicKeyT, HDPathRadixT, MnemomicT, KeystoreT } from '@crypto'
 import { Network } from '@primitives'
-import { ErrorNotification, Observable, ReplaySubject } from 'rxjs'
+import { Observable, ReplaySubject } from 'rxjs'
 import {
 	BuiltTransaction,
 	ExecutedTransaction,

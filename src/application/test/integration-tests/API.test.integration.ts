@@ -7,41 +7,25 @@ import axios from 'axios'
 axios.defaults.adapter = require('axios/lib/adapters/http')
 import { Radix } from '../../radix'
 import { ValidatorAddressT } from '@account'
-import { firstValueFrom, interval, Subject, Subscription } from 'rxjs'
-import {
-	delay,
-	filter,
-	map,
-	mergeMap,
-	retry,
-	retryWhen,
-	switchMap,
-	take,
-	tap,
-	toArray,
-} from 'rxjs/operators'
+import { firstValueFrom, interval, ReplaySubject, Subscription } from 'rxjs'
+import { filter, map, switchMap, take, toArray } from 'rxjs/operators'
 import {
 	FinalizedTransaction,
-	PendingTransaction,
 	TransactionStateSuccess,
-	TransactionStateUpdate,
 	TransactionStatus,
 } from '../../dto/_types'
-import { Amount, AmountT, Network } from '@primitives'
+import { Amount, Network } from '@primitives'
 import {
 	TransactionTrackingEventType,
 	KeystoreT,
 	log,
 	restoreDefaultLogLevel,
 	AccountT,
+	ManualUserConfirmTX,
 } from '../..'
 import { UInt256 } from '@radixdlt/uint256'
 import { keystoreForTest, makeWalletWithFunds } from '../util'
-import {
-	AccountBalancesEndpoint,
-	Decoded,
-	StakePositionsEndpoint,
-} from '../../api/open-api/_types'
+import { Decoded, StakePositionsEndpoint } from '../../api/open-api/_types'
 
 const fetch = require('node-fetch')
 
@@ -125,20 +109,20 @@ describe('integration API tests', () => {
 		expect(radix.tokenBalances).toBeDefined() // etc
 	})
 
-	it('emits node connection without wallet', async () => {
-		const radix = Radix.create()
-		await radix.connect(`${NODE_URL}`)
+	// it('emits node connection without wallet', async () => {
+	// const radix = Radix.create()
+	// await radix.connect(`${NODE_URL}`)
 
-		// subs.add(
-		// 	radix.__node.subscribe(
-		// 		node => {
-		// 			expect(node.url.host).toBe(new URL(NODE_URL).host)
-		// 			done()
-		// 		},
-		// 		error => done(error),
-		// 	),
-		// )
-	})
+	// subs.add(
+	// 	radix.__node.subscribe(
+	// 		node => {
+	// 			expect(node.url.host).toBe(new URL(NODE_URL).host)
+	// 			done()
+	// 		},
+	// 		error => done(error),
+	// 	),
+	// )
+	// })
 
 	it('can switch networks', async () => {
 		const radix = Radix.create()
@@ -577,57 +561,34 @@ describe('integration API tests', () => {
 		expect(positions.pendingUnstakes[0]).toBeDefined()
 	})
 
-	/*
+	it('tx events emits expected values', done => {
+		const expectedValues = [
+			TransactionTrackingEventType.INITIATED,
+			TransactionTrackingEventType.BUILT_FROM_INTENT,
+			TransactionTrackingEventType.ASKED_FOR_CONFIRMATION,
+			TransactionTrackingEventType.CONFIRMED,
+			TransactionTrackingEventType.SIGNED,
+			TransactionTrackingEventType.FINALIZED,
+			TransactionTrackingEventType.SUBMITTED,
+			TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
+			TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
+			TransactionTrackingEventType.COMPLETED,
+		]
 
-	
-		describe('make tx single transfer', () => {
-			const tokenTransferInput: TransferTokensInput = {
-				to: accounts[2].address,
-				amount: 1,
-				tokenIdentifier: nativeTokenBalance.token.rri,
-			}
-	
-			let pollTXStatusTrigger: Observable<unknown>
-	
-			const transferTokens = (): TransferTokensOptions => ({
-				transferInput: tokenTransferInput,
-				userConfirmation: 'skip',
-				pollTXStatusTrigger: pollTXStatusTrigger,
-			})
-	
-			let subs: Subscription
-	
-			beforeEach(() => {
-				subs = new Subscription()
-				pollTXStatusTrigger = interval(500)
-			})
-	
-			afterEach(() => {
-				subs.unsubscribe()
-			})
-	
-			it.skip('events emits expected values', done => {
-				// can't see pending state because quick confirmation
-	
-				const expectedValues = [
-					TransactionTrackingEventType.INITIATED,
-					TransactionTrackingEventType.BUILT_FROM_INTENT,
-					TransactionTrackingEventType.ASKED_FOR_CONFIRMATION,
-					TransactionTrackingEventType.CONFIRMED,
-					TransactionTrackingEventType.SIGNED,
-					TransactionTrackingEventType.FINALIZED,
-					TransactionTrackingEventType.SUBMITTED,
-					TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
-					TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
-					TransactionTrackingEventType.COMPLETED,
-				]
-	
+		const amount = Amount.fromUnsafe(`1${'0'.repeat(18)}`)._unsafeUnwrap()
+
+		radix
+			.transferTokens(
+				accounts[2].address,
+				amount,
+				nativeTokenBalance.token_identifier.rri,
+			)
+			.then(result => {
 				subs.add(
-					radix
-						.transferTokens(transferTokens())
+					result
+						._unsafeUnwrap()
 						.events.pipe(
 							map(e => e.eventUpdateType),
-							tap(x => console.log(x)),
 							take(expectedValues.length),
 							toArray(),
 						)
@@ -646,73 +607,34 @@ describe('integration API tests', () => {
 						}),
 				)
 			})
-	
-			it('automatic confirmation', done => {
+	})
+	it('tx manual confirmation', done => {
+		const amount = Amount.fromUnsafe(`1${'0'.repeat(18)}`)._unsafeUnwrap()
+		const userConfirmation = new ReplaySubject<ManualUserConfirmTX>()
+		let hasConfirmed = false
+
+		subs.add(
+			userConfirmation.subscribe(({ confirm }) => {
+				hasConfirmed = true
+				confirm()
+			}),
+		)
+
+		radix
+			.transferTokens(
+				accounts[2].address,
+				amount,
+				nativeTokenBalance.token_identifier.rri,
+				undefined,
+				{ userConfirmation },
+			)
+			.then(result => {
 				subs.add(
-					radix.transferTokens(transferTokens()).completion.subscribe({
-						next: _txID => {},
-						complete: () => {
-							done()
-						},
-						error: e => {
-							done(
-								new Error(
-									`Tx failed, but expected to succeed. Error ${JSON.stringify(
-										e,
-										null,
-										2,
-									)}`,
-								),
-							)
-						},
+					result._unsafeUnwrap().completion.subscribe(() => {
+						expect(hasConfirmed).toBeTruthy()
+						done()
 					}),
 				)
 			})
-	
-			it('manual confirmation', done => {
-				//@ts-ignore
-				let transaction
-				//@ts-ignore
-				let userHasBeenAskedToConfirmTX
-	
-				const confirmTransaction = () => {
-					//@ts-ignore
-					transaction.confirm()
-				}
-	
-				const shouldShowConfirmation = () => {
-					userHasBeenAskedToConfirmTX = true
-					confirmTransaction()
-				}
-	
-				const userConfirmation = new ReplaySubject<ManualUserConfirmTX>()
-	
-				const transactionTracking = radix.transferTokens({
-					...transferTokens(),
-					userConfirmation,
-				})
-	
-				subs.add(
-					userConfirmation.subscribe(txn => {
-						//@ts-ignore
-						transaction = txn
-						shouldShowConfirmation()
-					}),
-				)
-	
-				subs.add(
-					transactionTracking.completion.subscribe({
-						next: _txID => {
-							//@ts-ignore
-							expect(userHasBeenAskedToConfirmTX).toBe(true)
-							done()
-						},
-						error: e => {
-							done(e)
-						},
-					}),
-				)
-			})
-		})
-		*/
+	})
 })
