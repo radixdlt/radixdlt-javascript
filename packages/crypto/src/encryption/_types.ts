@@ -20,6 +20,7 @@ export const MESSAGE_TYPE_BYTES = 1
 export enum MessageType {
 	PLAINTEXT = 0x00,
 	ENCRYPTED = 0x01,
+	HEX = 0x1e,
 }
 
 export enum EncryptionScheme {

@@ -46,19 +46,29 @@ import {
 } from '../..'
 import { ok, combine } from 'neverthrow'
 import { Message } from '@radixdlt/crypto'
-import { AxiosResponse } from 'axios'
 
 const transformTokenAmount = (amount: TokenAmount) => [
 	Amount.fromUnsafe(amount.value),
 	ResourceIdentifier.fromUnsafe(amount.token_identifier.rri),
 ]
 
-const transformMessage = (message?: string) => {
+export const transformMessage = (message?: string) => {
 	if (!message) return undefined
 
 	// Check format
-	if (!/^(00|01)[0-9a-fA-F]+$/.test(message))
+	if (!/^(00|01|30)[0-9a-fA-F]+$/.test(message))
 		return '<Failed to interpret message>'
+
+	if (Message.isHexEncoded(message)) {
+		const decoded = Message.plaintextToString(
+			Buffer.from(message, 'hex'),
+			0,
+		)
+
+		return Message.isPlaintext(decoded)
+			? Message.plaintextToString(Buffer.from(decoded, 'hex'))
+			: message
+	}
 
 	return Message.isPlaintext(message)
 		? Message.plaintextToString(Buffer.from(message, 'hex'))
@@ -137,9 +147,9 @@ export const handleStakePositionsResponse = (
 ): Result<StakePositionsEndpoint.DecodedResponse, Error[]> =>
 	combine(json.data.stakes.map(transformStakeEntry))
 		.andThen(stakes =>
-			combine(json.data.pending_stakes.map(transformStakeEntry)).map(
-				pendingStakes => ({ stakes, pendingStakes }),
-			),
+			combine(
+				json.data.pending_stakes.map(transformStakeEntry),
+			).map(pendingStakes => ({ stakes, pendingStakes })),
 		)
 		.mapErr(e => [e])
 
@@ -284,9 +294,9 @@ export const handleAccountBalancesResponse = (
 				liquid_balances: values[0].balances as Decoded.TokenAmount[],
 				staked_and_unstaking_balance: {
 					token_identifier: {
-						rri: values[1] as unknown as ResourceIdentifierT,
+						rri: (values[1] as unknown) as ResourceIdentifierT,
 					},
-					value: values[2] as unknown as AmountT,
+					value: (values[2] as unknown) as AmountT,
 				},
 			},
 		}))
@@ -474,17 +484,15 @@ const handleTx = (
 				...transformTokenAmount(action.amount),
 				ValidatorAddress.fromUnsafe(action.to_validator.address),
 				AccountAddress.fromUnsafe(action.from_account.address),
-			]).map(
-				(
-					actionValue,
-				): ExecutedStakeTokensAction | ExecutedUnstakeTokensAction => ({
-					type,
-					amount: actionValue[0] as AmountT,
-					rri: actionValue[1] as ResourceIdentifierT,
-					to_validator: actionValue[2] as ValidatorAddressT,
-					from_account: actionValue[3] as AccountAddressT,
-				}),
-			)
+			]).map((actionValue):
+				| ExecutedStakeTokensAction
+				| ExecutedUnstakeTokensAction => ({
+				type,
+				amount: actionValue[0] as AmountT,
+				rri: actionValue[1] as ResourceIdentifierT,
+				to_validator: actionValue[2] as ValidatorAddressT,
+				from_account: actionValue[3] as AccountAddressT,
+			}))
 
 		const transformUnstakeTokenAction = (
 			type: ActionType.UNSTAKE_TOKENS,
@@ -494,17 +502,15 @@ const handleTx = (
 				ValidatorAddress.fromUnsafe(action.from_validator.address),
 				AccountAddress.fromUnsafe(action.to_account.address),
 				...(action.amount ? transformTokenAmount(action.amount) : []),
-			]).map(
-				(
-					actionValue,
-				): ExecutedStakeTokensAction | ExecutedUnstakeTokensAction => ({
-					type,
-					from_validator: actionValue[0] as ValidatorAddressT,
-					to_account: actionValue[1] as AccountAddressT,
-					amount: actionValue[2] as AmountT,
-					rri: actionValue[3] as ResourceIdentifierT,
-				}),
-			)
+			]).map((actionValue):
+				| ExecutedStakeTokensAction
+				| ExecutedUnstakeTokensAction => ({
+				type,
+				from_validator: actionValue[0] as ValidatorAddressT,
+				to_account: actionValue[1] as AccountAddressT,
+				amount: actionValue[2] as AmountT,
+				rri: actionValue[3] as ResourceIdentifierT,
+			}))
 
 		switch (action.type) {
 			case 'TransferTokens':
