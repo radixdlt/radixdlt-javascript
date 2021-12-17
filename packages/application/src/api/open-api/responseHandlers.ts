@@ -55,24 +55,29 @@ const transformTokenAmount = (amount: TokenAmount) => [
 export const transformMessage = (message?: string) => {
 	if (!message) return undefined
 
+	const FAILED_MSG = '<Failed to interpret message>'
+
 	// Check format
-	if (!/^(00|01|30)[0-9a-fA-F]+$/.test(message))
-		return '<Failed to interpret message>'
+	if (!/^(00|01|30)[0-9a-fA-F]+$/.test(message)) return FAILED_MSG
 
-	if (Message.isHexEncoded(message)) {
-		const decoded = Message.plaintextToString(
-			Buffer.from(message, 'hex'),
-			0,
-		)
+	try {
+		if (Message.isHexEncoded(message)) {
+			const decoded = Message.plaintextToString(
+				Buffer.from(message, 'hex'),
+				0,
+			)
 
-		return Message.isPlaintext(decoded)
-			? Message.plaintextToString(Buffer.from(decoded, 'hex'))
+			return Message.isPlaintext(decoded)
+				? Message.plaintextToString(Buffer.from(decoded, 'hex'))
+				: message
+		}
+
+		return Message.isPlaintext(message)
+			? Message.plaintextToString(Buffer.from(message, 'hex'))
 			: message
+	} catch (error) {
+		return FAILED_MSG
 	}
-
-	return Message.isPlaintext(message)
-		? Message.plaintextToString(Buffer.from(message, 'hex'))
-		: message
 }
 
 export const handleGatewayResponse = (
