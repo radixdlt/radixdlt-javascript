@@ -25,7 +25,6 @@ import { Amount, AmountT, Network } from '@primitives'
 import { SimpleTransactionHistory, TransactionIdentifier } from '../..'
 import { ok, combine } from 'neverthrow'
 import { responseHelper } from './responseHelpers'
-import { transformAction } from 'src/application/actions'
 
 export const handleGatewayResponse = (
 	json: ReturnOfAPICall<'gatewayPost'>,

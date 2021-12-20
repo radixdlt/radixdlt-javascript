@@ -1,6 +1,7 @@
-import { openApiClient } from '@networking'
 import axios from 'axios'
 import MockAdapter from 'axios-mock-adapter'
+
+import { openApiClient } from '@networking'
 import { getAPI } from '../api/open-api/interface'
 
 const BASE_URL = 'https://localhost:9000'
@@ -35,7 +36,7 @@ describe('handle error responses', () => {
 			.map(() => {
 				expect(true).toBe(false)
 			})
-			.mapErr(err => {
+			.mapErr((err: any) => {
 				expect(err).toEqual([
 					{
 						error: {

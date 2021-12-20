@@ -1,4 +1,5 @@
 import 'isomorphic-fetch'
+import { log } from '@util'
 import { v4 as uuid } from 'uuid'
 import { Client } from './_types'
 import { err, ok, ResultAsync } from 'neverthrow'
@@ -7,7 +8,6 @@ import { TransactionBuildResponse } from './open-api/api'
 import { DefaultApiFactory } from '.'
 import { AxiosResponse, AxiosError } from 'axios'
 import { Configuration } from './open-api'
-import log from 'loglevel'
 
 const headers = ['X-Radixdlt-Method', 'X-Radixdlt-Correlation-Id']
 
