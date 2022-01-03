@@ -32,6 +32,9 @@ const isPlaintext = (rawHex: string) =>
 const isEncrypted = (rawHex: string) =>
 	parseInt(rawHex.slice(0, 2)) === MessageType.ENCRYPTED
 
+const isHexEncoded = (rawHex: string) =>
+	parseInt(rawHex.slice(0, 2)) === MessageType.HEX
+
 const __validateEncryptedMessageMaxLength: (
 	buffer: Buffer,
 ) => Result<Buffer, Error> = validateMaxLength.bind(
@@ -84,8 +87,10 @@ const createPlaintext = (message: string | Buffer): PlaintextMessageT => ({
 	]),
 })
 
-const plaintextToString = (plaintext: Buffer) =>
-	Buffer.from(plaintext.slice(2).toString('hex'), 'hex').toString('utf-8')
+const plaintextToString = (plaintext: Buffer, startAt = 2) =>
+	Buffer.from(plaintext.slice(startAt).toString('hex'), 'hex').toString(
+		'utf-8',
+	)
 
 const fromBuffer = (
 	buf: Buffer,
@@ -151,4 +156,5 @@ export const Message = {
 	plaintextToString,
 	isPlaintext,
 	isEncrypted,
+	isHexEncoded,
 }

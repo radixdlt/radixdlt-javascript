@@ -25,6 +25,33 @@ import { Amount, AmountT, Network } from '@primitives'
 import { SimpleTransactionHistory, TransactionIdentifier } from '../..'
 import { ok, combine } from 'neverthrow'
 import { responseHelper } from './responseHelpers'
+import { Message } from '@crypto'
+
+export const transformMessage = (message?: string): string | undefined => {
+	if (!message) return undefined
+
+	const FAILED_MSG = '<Failed to interpret message>'
+
+	// Check format
+	if (!/^(00|01|30)[0-9a-fA-F]+$/.test(message)) return FAILED_MSG
+
+	try {
+		if (Message.isHexEncoded(message)) {
+			const decoded = Message.plaintextToString(
+				Buffer.from(message, 'hex'),
+				0,
+			)
+
+			return transformMessage(decoded)
+		}
+
+		return Message.isPlaintext(message)
+			? Message.plaintextToString(Buffer.from(message, 'hex'))
+			: message
+	} catch (error) {
+		return FAILED_MSG
+	}
+}
 
 export const handleGatewayResponse = (
 	json: ReturnOfAPICall<'gatewayPost'>,
@@ -172,9 +199,9 @@ export const handleAccountBalancesResponse = (
 				liquid_balances: values[0].balances as Decoded.TokenAmount[],
 				staked_and_unstaking_balance: {
 					token_identifier: {
-						rri: values[1] as unknown as ResourceIdentifierT,
+						rri: (values[1] as unknown) as ResourceIdentifierT,
 					},
-					value: values[2] as unknown as AmountT,
+					value: (values[2] as unknown) as AmountT,
 				},
 			},
 		}))
