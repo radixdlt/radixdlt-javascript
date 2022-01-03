@@ -45,10 +45,10 @@ export type TransactionConfirmationBeforeFinalization =
 	| 'skip'
 	| ReplaySubject<ManualUserConfirmTX>
 
-export type MessageInTransaction = Readonly<{
-	plaintext: string
-	encrypt: boolean
-}>
+export type TxMessage = {
+	raw: string
+	encrypted: boolean
+}
 
 export type MakeTransactionOptions = Readonly<{
 	userConfirmation: TransactionConfirmationBeforeFinalization
@@ -57,7 +57,7 @@ export type MakeTransactionOptions = Readonly<{
 
 export type TransferTokensOptions = MakeTransactionOptions &
 	Readonly<{
-		message?: MessageInTransaction
+		message?: TxMessage
 		transferInput: TransferTokensInput
 	}>
 

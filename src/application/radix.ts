@@ -47,7 +47,7 @@ import {
 	ManualUserConfirmTX,
 	SwitchAccountInput,
 	TransactionConfirmationBeforeFinalization,
-	MessageInTransaction,
+	TxMessage,
 } from './_types'
 import { ErrorT, nodeError, walletError } from './errors'
 import { log, LogLevel, msgFromError, toObservableFromResult } from '@util'
@@ -581,7 +581,7 @@ const create = () => {
 			return throwError(() => new Error(noMsg))
 		}
 
-		const messageBuffer = Buffer.from(input.message, 'hex')
+		const messageBuffer = Buffer.from(input.message?.raw, 'hex')
 
 		const encryptedMessageResult = Message.fromBuffer(messageBuffer)
 
@@ -894,7 +894,7 @@ const create = () => {
 			to: AccountAddressT,
 			amount: AmountT,
 			tokenIdentifier: ResourceIdentifierT,
-			message?: MessageInTransaction,
+			message?: TxMessage,
 			options: MakeTransactionOptions = { userConfirmation: 'skip' },
 		): Promise<Result<TransactionTracking, Error[]>> => {
 			const account = await firstValueFrom(activeAccount)

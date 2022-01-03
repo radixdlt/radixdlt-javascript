@@ -16,7 +16,7 @@ import { AmountT, BuiltTransactionReadyToSign } from '@primitives'
 import { PublicKeyT, SignatureT } from '@crypto'
 import { Observable } from 'rxjs'
 import { Result } from 'neverthrow'
-import { AccountT, MessageInTransaction } from '../_types'
+import { AccountT, TxMessage } from '../_types'
 import { TransactionIdentifierT } from './transactionIdentifier'
 
 export type StakePosition = {
@@ -33,7 +33,7 @@ export type UnstakePosition = {
 
 export type TransactionIntentBuilderState = {
 	actionInputs: ActionInput[]
-	message?: MessageInTransaction
+	message?: TxMessage
 }
 
 export type TransactionIntentBuilderEncryptOption = {
@@ -58,7 +58,7 @@ export type TransactionIntentBuilderT = {
 	transferTokens: (input: TransferTokensInput) => TransactionIntentBuilderT
 	stakeTokens: (input: StakeTokensInput) => TransactionIntentBuilderT
 	unstakeTokens: (input: UnstakeTokensInput) => TransactionIntentBuilderT
-	message: (msg: MessageInTransaction) => TransactionIntentBuilderT
+	message: (msg: TxMessage) => TransactionIntentBuilderT
 
 	// Build
 	__syncBuildDoNotEncryptMessageIfAny: (
@@ -135,7 +135,7 @@ export type SimpleExecutedTransaction = {
 	sentAt: Date
 	status: TransactionStatus
 	fee: AmountT
-	message?: string
+	message?: TxMessage,
 	actions: ExecutedAction[]
 }
 

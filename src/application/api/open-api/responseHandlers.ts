@@ -14,7 +14,7 @@ import {
 	GatewayEndpoint,
 } from './_types'
 import { AccountUnstakeEntry, ReturnOfAPICall } from '@networking'
-import { Result } from 'neverthrow'
+import { err, Result } from 'neverthrow'
 import {
 	ResourceIdentifier,
 	ResourceIdentifierT,
@@ -22,35 +22,31 @@ import {
 	ValidatorAddressT,
 } from '@account'
 import { Amount, AmountT, Network } from '@primitives'
-import { SimpleTransactionHistory, TransactionIdentifier } from '../..'
+import { TxMessage, SimpleTransactionHistory, TransactionIdentifier } from '../..'
 import { ok, combine } from 'neverthrow'
 import { responseHelper } from './responseHelpers'
 import { Message } from '@crypto'
 
-export const transformMessage = (message?: string): string | undefined => {
-	if (!message) return undefined
+export const transformMessage = (message: string): Result<TxMessage, Error> => {
+	if (!/^(00|01|30)[0-9a-fA-F]+$/.test(message)) return err(Error('Message format invalid.'))
 
-	const FAILED_MSG = '<Failed to interpret message>'
-
-	// Check format
-	if (!/^(00|01|30)[0-9a-fA-F]+$/.test(message)) return FAILED_MSG
-
-	try {
-		if (Message.isHexEncoded(message)) {
-			const decoded = Message.plaintextToString(
-				Buffer.from(message, 'hex'),
-				0,
-			)
-
-			return transformMessage(decoded)
-		}
-
-		return Message.isPlaintext(message)
-			? Message.plaintextToString(Buffer.from(message, 'hex'))
-			: message
-	} catch (error) {
-		return FAILED_MSG
+	if (Message.isHexEncoded(message)) {
+		const decoded = Message.plaintextToString(
+			Buffer.from(message, 'hex'),
+			0,
+		)
+		return transformMessage(decoded)
 	}
+
+	return Message.isPlaintext(message)
+		? ok({
+			raw: Message.plaintextToString(Buffer.from(message, 'hex')),
+			encrypted: false
+		})
+		: ok({
+			raw: message,
+			encrypted: true
+		})
 }
 
 export const handleGatewayResponse = (

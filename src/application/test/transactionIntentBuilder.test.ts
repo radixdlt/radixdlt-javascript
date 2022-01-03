@@ -1,10 +1,11 @@
 import { Amount, uint256Max } from '@primitives'
 import {
 	AccountT,
-	Message,
+	TxMessage,
 	createTransfer,
 	buildTransaction,
 	createStake,
+	Message,
 } from '../'
 import {
 	AccountAddress,
@@ -229,8 +230,8 @@ describe('tx_intent_builder', () => {
 		await testWithMessage(
 			(
 				await buildTransaction(transfer)(aliceAccount, {
-					plaintext,
-					encrypt: true,
+					raw: plaintext,
+					encrypted: true,
 				})
 			)._unsafeUnwrap(),
 			plaintext,
@@ -242,8 +243,8 @@ describe('tx_intent_builder', () => {
 			await buildTransaction(
 				createTransfer(transfS(3, bob))._unsafeUnwrap(),
 			)(aliceAccount, {
-				plaintext,
-				encrypt: false,
+				raw: plaintext,
+				encrypted: false,
 			})
 		)._unsafeUnwrap()
 
@@ -267,9 +268,8 @@ describe('tx_intent_builder', () => {
 				createTransfer(transfS(1, bob))._unsafeUnwrap(),
 				createTransfer(transfS(1, carol))._unsafeUnwrap(),
 			)(aliceAccount, {
-				plaintext:
-					'No one will be able to see this because we will get a crash',
-				encrypt: true,
+				raw: 'No one will be able to see this because we will get a crash',
+				encrypted: true,
 			})
 
 			expect(txResult.isErr()).toBe(true)
@@ -282,8 +282,8 @@ describe('tx_intent_builder', () => {
 				await buildTransaction(
 					createTransfer(transfS(1, alice))._unsafeUnwrap(),
 				)(aliceAccount, {
-					plaintext,
-					encrypt: true,
+					raw: plaintext,
+					encrypted: true,
 				})
 			)._unsafeUnwrap()
 

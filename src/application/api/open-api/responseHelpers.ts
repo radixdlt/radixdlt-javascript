@@ -17,22 +17,12 @@ import {
 	TransactionIdentifier,
 	TransactionIdentifierT,
 	TransactionStatus,
+	TxMessage,
 } from '../..'
 import { ok, combine } from 'neverthrow'
 import { Message } from '@crypto'
 import { ExecutedAction, transformAction } from '../../actions'
-
-const transformMessage = (message?: string) => {
-	if (!message) return undefined
-
-	// Check format
-	if (!/^(00|01)[0-9a-fA-F]+$/.test(message))
-		return '<Failed to interpret message>'
-
-	return Message.isPlaintext(message)
-		? Message.plaintextToString(Buffer.from(message, 'hex'))
-		: message
-}
+import { transformMessage } from './responseHandlers'
 
 const transformUrl = (url: string) => {
 	try {
@@ -53,7 +43,7 @@ const transformTransaction = (
 				: undefined,
 		),
 		Amount.fromUnsafe(transaction.fee_paid.value),
-		ok(transformMessage(transaction.metadata.message) ?? ''),
+		transaction.metadata.message ? transformMessage(transaction.metadata.message) : ok(undefined),
 		combine(transaction.actions.map(transformAction.toComplex)).map(
 			actions => ({
 				actions,
@@ -66,9 +56,10 @@ const transformTransaction = (
 				txID: value[0] as TransactionIdentifierT,
 				sentAt: value[1] as Date,
 				fee: value[2] as AmountT,
-				message: value[3] as string,
+				message: value[3] as TxMessage | undefined,
 				// @ts-ignore
 				actions: value[4].actions as ExecutedAction[],
+				// @ts-ignore
 				status: value[5] as TransactionStatus,
 			}),
 		)

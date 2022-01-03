@@ -3,7 +3,7 @@ import { AccountAddressT } from '@account'
 import { Message } from '@crypto'
 import { pipe } from 'ramda'
 import { firstValueFrom } from 'rxjs'
-import { AccountT } from '../_types'
+import { AccountT, TxMessage } from '../_types'
 import {
 	ActionType,
 	ExecutedAction,
@@ -12,16 +12,10 @@ import {
 	transferTokensAction,
 	unstakeTokensAction,
 } from '../actions'
-import { ExecutedTransaction } from '.'
-
-type Message = {
-	plaintext: string
-	encrypt: boolean
-}
 
 export const buildTransaction =
 	(...actions: IntendedAction[]) =>
-	(sender: AccountT, message?: Message) =>
+	(sender: AccountT, message?: TxMessage) =>
 		pipe(
 			() => checkNumberOfRecipients(actions),
 			(
@@ -32,18 +26,18 @@ export const buildTransaction =
 			) =>
 				recipientResult.asyncMap(async ([actions, recipient]) => ({
 					actions,
-					message: message?.encrypt
+					message: message?.encrypted
 						? (
 								await firstValueFrom(
 									sender.encrypt({
-										plaintext: message.plaintext,
+										plaintext: message.raw,
 										publicKeyOfOtherParty:
 											recipient.publicKey,
 									}),
 								)
 						  ).combined()
-						: message?.plaintext
-						? Message.createPlaintext(message.plaintext).bytes
+						: message?.raw
+						? Message.createPlaintext(message.raw).bytes
 						: undefined,
 				})),
 		)().mapErr(err => err.flat())
