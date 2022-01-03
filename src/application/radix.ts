@@ -444,30 +444,26 @@ const create = () => {
 						)
 						return pendingTx
 					}),
-					mergeMap(tx =>
-						toObservableFromResult(tx).pipe(
-							tap({
-								next: (pendingTx: PendingTransaction) => {
-									txLog.debug(
-										`Submitted transaction with txID='${pendingTx.txID.toPrimitive()}', it is now pending.`,
-									)
-									track({
-										transactionState: pendingTx,
-										eventUpdateType:
-											TransactionTrackingEventType.SUBMITTED,
-									})
-									pendingTXSubject.next(pendingTx)
-								},
-								error: (submitTXError: Error) => {
-									const txID = tx.unwrapOr(null)
-									txLog.error(
-										`Submission of signed transaction with txID=´${txID?.txID}´ to API failed with error: ${submitTXError.message}`,
-									)
-									pendingTXSubject.error(submitTXError)
-								},
-							}),
-						),
-					),
+					mergeMap(tx => toObservableFromResult(tx)),
+					tap({
+						next: (pendingTx: PendingTransaction) => {
+							txLog.debug(
+								`Submitted transaction with txID='${pendingTx.txID.toPrimitive()}', it is now pending.`,
+							)
+							track({
+								transactionState: pendingTx,
+								eventUpdateType:
+									TransactionTrackingEventType.SUBMITTED,
+							})
+							pendingTXSubject.next(pendingTx)
+						},
+						error: (submitTXError: Error) => {
+							txLog.error(
+								`Submission of signed transaction to API failed with error: ${submitTXError.message}`,
+							)
+							pendingTXSubject.error(submitTXError)
+						},
+					}),
 				)
 				.subscribe(),
 		)
