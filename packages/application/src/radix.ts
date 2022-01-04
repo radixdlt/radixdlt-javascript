@@ -925,6 +925,8 @@ const create = () => {
 			.subscribe(),
 	)
 
+	let headerSub: Subscription
+
 	const methods = {
 		// we forward the full `RadixAPI`, but we also provide some convenience methods based on active account/address.
 		ledger: {
@@ -1115,6 +1117,11 @@ const create = () => {
 
 		validators: () =>
 			networkSubject.pipe(mergeMap(network => api.validators(network))),
+
+		setHeaders: (headers: Record<string, string>) => {
+			headerSub.unsubscribe()
+			headerSub = coreAPI$.subscribe(api => api.setHeaders(headers))
+		}
 	}
 
 	return methods

@@ -11,7 +11,7 @@ const spec = require('@radixdlt/open-rpc-spec')
 
 const validateMethod = validate.bind(null, spec)
 
-const headers = ['X-Radixdlt-Method', 'X-Radixdlt-Correlation-Id']
+const defaultHeaders = ['X-Radixdlt-Method', 'X-Radixdlt-Correlation-Id']
 
 enum Endpoint {
 	NETWORK_ID = 'network.get_id',
@@ -61,20 +61,23 @@ const correlationID = uuid()
 export type OpenRPCClientCall = (
 	endpoint: string,
 	params: unknown[] | Record<string, unknown>,
+	headers?: Record<string, string>
 ) => Promise<unknown>
 
 export const RPCClient: Client<'json-rpc'> = (url: URL) => {
 	const call = async (
 		method: string,
 		params: unknown[] | Record<string, unknown>,
+		headers?: Record<string, string>
 	): Promise<unknown> => {
 		// @ts-ignore
 		const endpoint = `${url.toString()}${MethodEndpoints[method]}`
 
 		const transport = new HTTPTransport(endpoint, {
 			headers: {
-				[headers[0]]: method,
-				[headers[1]]: correlationID,
+				[defaultHeaders[0]]: method,
+				[defaultHeaders[1]]: correlationID,
+				...headers
 			},
 		})
 

@@ -21,7 +21,6 @@ import {
 } from './responseHandlers'
 import { pipe } from 'ramda'
 import { Result, ResultAsync } from 'neverthrow'
-import { AxiosResponse } from 'axios'
 
 const callAPIWith =
 	(call: OpenApiClientCall) =>
@@ -31,9 +30,9 @@ const callAPIWith =
 			response: ReturnOfAPICall<M>,
 		) => Result<DecodedResponse, Error[]>,
 	) =>
-	(params: InputOfAPICall<M>): ResultAsync<DecodedResponse, Error[]> =>
+	(params: InputOfAPICall<M>, headers?: Record<string, string>): ResultAsync<DecodedResponse, Error[]> =>
 		pipe(
-			() => call(method, params),
+			() => call(method, params, headers),
 			result => result.mapErr(e => [e]).andThen(handleResponse),
 		)()
 
