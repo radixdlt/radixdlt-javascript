@@ -30,7 +30,9 @@ import {
 	TransactionEndpoint,
 } from './open-api/_types'
 
-export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
+export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {	
+	let headers: Record<string, string>
+
 	const toObs = <I, E, O>(
 		pickFn: (api: NodeAPI) => (input: I) => ResultAsync<O, E | E[]>,
 		input: I,
@@ -39,7 +41,7 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 		defer(() => {
 			const fn = pickFn(api)
 			// @ts-ignore
-			return toObservable(fn(input))
+			return toObservable(fn(input, headers))
 		})
 
 	const toObsMap = <I extends Record<string, unknown>, E, O, P>(
@@ -49,6 +51,8 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 	): Observable<P> => toObs(pickFn, input).pipe(map(o => mapOutput(o)))
 
 	return {
+		setHeaders: (newHeaders: typeof headers) => headers = newHeaders,
+
 		node,
 
 		validators: (

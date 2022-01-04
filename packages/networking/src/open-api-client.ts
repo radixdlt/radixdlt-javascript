@@ -9,7 +9,7 @@ import { DefaultApiFactory } from '.'
 import { AxiosResponse, AxiosError } from 'axios'
 import { Configuration } from './open-api'
 
-const headers = ['X-Radixdlt-Method', 'X-Radixdlt-Correlation-Id']
+const defaultHeaders = ['X-Radixdlt-Method', 'X-Radixdlt-Correlation-Id']
 
 const correlationID = uuid()
 
@@ -45,6 +45,7 @@ const call =
 	<M extends MethodName>(
 		method: M,
 		params: InputOfAPICall<M>,
+		headers?: Record<string, string>
 	): ResultAsync<ReturnOfAPICall<M>, Error> =>
 		// @ts-ignore
 		pipe(
@@ -61,8 +62,9 @@ const call =
 					// @ts-ignore
 					client[method](params, {
 						Headers: {
-							[headers[0]]: method,
-							[headers[1]]: correlationID,
+							[defaultHeaders[0]]: method,
+							[defaultHeaders[1]]: correlationID,
+							...headers
 						},
 					}).then(response => {
 						log.info(

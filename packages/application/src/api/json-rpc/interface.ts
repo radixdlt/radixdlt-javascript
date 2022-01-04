@@ -40,7 +40,7 @@ import {
 const callAPI = <Params extends Record<string, unknown>, DecodedResponse>(
 	endpoint: ApiMethod,
 ) => (
-	call: (endpoint: ApiMethod, params: Params) => Promise<unknown>,
+	call: (endpoint: ApiMethod, params: Params, headers?: Record<string, string>) => Promise<unknown>,
 	handleResponse: (response: unknown) => Result<DecodedResponse, Error[]>,
 ) => (params: Params) =>
 	pipe(call, andThen(handleResponse), value =>
@@ -52,6 +52,7 @@ const setupAPICall = (
 	call: (
 		endpoint: ApiMethod,
 		params: Record<string, unknown>,
+		headers?: Record<string, string>
 	) => Promise<unknown>,
 ) => <I extends Record<string, unknown>, R>(
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -62,6 +63,7 @@ export const getAPI = (
 	call: (
 		endpoint: ApiMethod,
 		params: Record<string, unknown>,
+		headers?: Record<string, string>
 	) => Promise<unknown>,
 ) => {
 	const setupAPIResponse = setupAPICall(call)
