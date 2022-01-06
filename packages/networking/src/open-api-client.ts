@@ -5,11 +5,15 @@ import { Client } from './_types'
 import { err, ok, ResultAsync } from 'neverthrow'
 import { pipe } from 'ramda'
 import { TransactionBuildResponse } from './open-api/api'
-import { DefaultApiFactory } from '.'
+import { apiVersion, DefaultApiFactory } from '.'
 import { AxiosResponse, AxiosError } from 'axios'
 import { Configuration } from './open-api'
 
-const defaultHeaders = ['X-Radixdlt-Method', 'X-Radixdlt-Correlation-Id']
+const defaultHeaders = [
+	'X-Radixdlt-Method',
+	'X-Radixdlt-Correlation-Id',
+	'X-Radixdlt-Target-Gw-Api',
+]
 
 const correlationID = uuid()
 
@@ -64,6 +68,7 @@ const call =
 						Headers: {
 							[defaultHeaders[0]]: method,
 							[defaultHeaders[1]]: correlationID,
+							[defaultHeaders[2]]: apiVersion,
 							...headers
 						},
 					}).then(response => {
