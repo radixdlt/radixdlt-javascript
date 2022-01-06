@@ -5,11 +5,22 @@ import { Client } from './_types'
 import { err, ok, ResultAsync } from 'neverthrow'
 import { pipe } from 'ramda'
 import { TransactionBuildResponse } from './open-api/api'
-import { DefaultApiFactory } from '.'
+import {
+	apiVersion,
+	AccountEndpointApiFactory,
+	ValidatorEndpointApiFactory,
+	TransactionEndpointApiFactory,
+	TokenEndpointApiFactory,
+	GatewayEndpointApiFactory,
+} from '.'
 import { AxiosResponse, AxiosError } from 'axios'
 import { Configuration } from './open-api'
 
-const defaultHeaders = ['X-Radixdlt-Method', 'X-Radixdlt-Correlation-Id']
+const defaultHeaders = [
+	'X-Radixdlt-Method',
+	'X-Radixdlt-Correlation-Id',
+	'X-Radixdlt-Target-Gw-Api',
+]
 
 const correlationID = uuid()
 
@@ -22,7 +33,11 @@ export type InputOfAPICall<Name extends MethodName> = Parameters<
 	ClientInterface[Name]
 >[0]
 
-export type ClientInterface = ReturnType<typeof DefaultApiFactory>
+export type ClientInterface = ReturnType<typeof AccountEndpointApiFactory> &
+	ReturnType<typeof ValidatorEndpointApiFactory> &
+	ReturnType<typeof TransactionEndpointApiFactory> &
+	ReturnType<typeof TokenEndpointApiFactory> &
+	ReturnType<typeof GatewayEndpointApiFactory>
 export type MethodName = keyof ClientInterface
 export type Response = ReturnOfAPICall<MethodName>
 
@@ -64,6 +79,7 @@ const call =
 						Headers: {
 							[defaultHeaders[0]]: method,
 							[defaultHeaders[1]]: correlationID,
+							[defaultHeaders[2]]: apiVersion,
 							...headers
 						},
 					}).then(response => {
@@ -81,11 +97,21 @@ const call =
 
 export type OpenApiClientCall = ReturnType<typeof call>
 
-export const openApiClient: Client<'open-api'> = (url: URL) => ({
-	type: 'open-api',
-	call: call(
-		DefaultApiFactory(
-			new Configuration({ basePath: url.toString().slice(0, -1) }),
-		),
-	),
-})
+export const openApiClient: Client<'open-api'> = (url: URL) => {
+	const configuration = new Configuration({ basePath: url.toString().slice(0, -1) })
+	const api = [
+		AccountEndpointApiFactory,
+		ValidatorEndpointApiFactory,
+		TransactionEndpointApiFactory,
+		TokenEndpointApiFactory,
+		GatewayEndpointApiFactory,
+	].reduce<ClientInterface>((acc, factory) => ({
+			...acc,
+			...factory(configuration),
+		}), {} as ClientInterface)
+
+	return {
+		type: 'open-api',
+		call: call(api),
+	}
+}
