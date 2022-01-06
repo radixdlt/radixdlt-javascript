@@ -275,7 +275,8 @@ export const handleAccountBalancesResponse = (
 		),
 	)
 
-	const stakingAndUnstakingBalancesResult = combine([
+	return combine([
+		liquidBalancesResults.map(balances => ({ balances })),
 		ResourceIdentifier.fromUnsafe(
 			json.data.account_balances.staked_and_unstaking_balance
 				.token_identifier.rri,
@@ -283,11 +284,6 @@ export const handleAccountBalancesResponse = (
 		Amount.fromUnsafe(
 			json.data.account_balances.staked_and_unstaking_balance.value,
 		),
-	])
-
-	return combine([
-		liquidBalancesResults.map(balances => ({ balances })),
-		stakingAndUnstakingBalancesResult,
 	])
 		.map(values => ({
 			ledger_state: {
@@ -534,8 +530,6 @@ const handleTx = (
 				return ok({ ...action, type: ActionType.OTHER })
 		}
 	}
-
-	transaction.transaction_identifier.hash
 
 	return combine([
 		TransactionIdentifier.create(transaction.transaction_identifier.hash),
