@@ -43,7 +43,7 @@ import { retryOnErrorCode } from '../../src/api/utils'
 
 const fetch = require('node-fetch')
 
-const network = Network.SANDPITNET
+const network = Network.STOKENET
 
 // local
 // const NODE_URL = 'http://localhost:8080'
@@ -54,7 +54,7 @@ const network = Network.SANDPITNET
 // release net
 //const NODE_URL = 'https://18.168.73.103'
 
-const NODE_URL = 'https://sandpitnet-gateway.radixdlt.com'
+const NODE_URL = 'https://stokenet-gateway.radixdlt.com'
 
 // const NODE_URL = 'https://milestonenet-gateway.radixdlt.com'
 
@@ -84,7 +84,6 @@ let nativeTokenBalance: Decoded.TokenAmount
 
 describe('integration API tests', () => {
 	beforeAll(async () => {
-		log.setLevel('ERROR')
 		radix = Radix.create()
 		await radix
 			.__withWallet(makeWalletWithFunds(network))
@@ -101,7 +100,7 @@ describe('integration API tests', () => {
 			throw Error('no XRD found')
 		}
 		nativeTokenBalance = maybeTokenBalance
-		log.setLevel('SILENT')
+		log.setLevel('INFO')
 	})
 
 	beforeEach(() => {
