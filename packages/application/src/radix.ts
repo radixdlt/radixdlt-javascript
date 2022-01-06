@@ -6,6 +6,7 @@ import {
 	SigningKeychainT,
 } from '@radixdlt/account'
 import { Network } from '@radixdlt/primitives'
+import {apiVersion} from '@radixdlt/networking'
 import { nodeAPI, NodeT, radixCoreAPI, RadixCoreAPI } from './api'
 
 import {
@@ -1121,7 +1122,9 @@ const create = () => {
 		setHeaders: (headers: Record<string, string>) => {
 			headerSub.unsubscribe()
 			headerSub = coreAPI$.subscribe(api => api.setHeaders(headers))
-		}
+		},
+
+		targetApiVersion: apiVersion,
 	}
 
 	return methods

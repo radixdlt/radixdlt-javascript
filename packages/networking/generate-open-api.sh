@@ -14,3 +14,5 @@ npx @openapitools/openapi-generator-cli generate \
   -i $SCHEMA_PATH \
   -g typescript-axios \
   -o src/open-api
+
+node ./extract-api-version.js
