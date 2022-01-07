@@ -76,7 +76,7 @@ const call =
 				ResultAsync.fromPromise(
 					// @ts-ignore
 					client[method](params, {
-						Headers: {
+						headers: {
 							[defaultHeaders[0]]: method,
 							[defaultHeaders[1]]: correlationID,
 							[defaultHeaders[2]]: apiVersion,
