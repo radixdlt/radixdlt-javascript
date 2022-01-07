@@ -7,6 +7,7 @@ import {
 } from '@account'
 import { AmountT, Network } from '@primitives'
 import * as fromApi from './api'
+import { apiVersion } from '@networking'
 
 import {
 	catchError,
@@ -972,6 +973,7 @@ const create = () => {
 			return getAPICall('validators')(network)
 		},
 		lookupValidator: getAPICall('lookupValidator'),
+		targetApiVersion: apiVersion,
 	}
 
 	return methods
