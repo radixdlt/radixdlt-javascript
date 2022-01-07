@@ -69,7 +69,7 @@ export const transformMessage = (message?: string) => {
 
 			return Message.isPlaintext(decoded)
 				? Message.plaintextToString(Buffer.from(decoded, 'hex'))
-				: message
+				: decoded
 		}
 
 		return Message.isPlaintext(message)
