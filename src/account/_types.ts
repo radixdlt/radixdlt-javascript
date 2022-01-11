@@ -11,13 +11,14 @@ import {
 } from '@crypto'
 import { HardwareWalletT } from '@hardware-wallet'
 import { BuiltTransactionReadyToSign } from '@primitives'
+import { ResultAsync } from 'neverthrow'
 
 export type Signing = Readonly<{
 	signHash: (hashedMessage: Buffer) => Observable<SignatureT>
 	sign: (
 		tx: BuiltTransactionReadyToSign,
 		nonXrdHRP?: string,
-	) => Observable<SignatureT>
+	) => ResultAsync<SignatureT, Error>
 }>
 
 export type SigningKeyEncryptionInput = Readonly<{

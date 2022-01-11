@@ -36,24 +36,15 @@ import { NodeT, RadixAPI, RadixCoreAPI } from './api'
 import { ErrorT } from './errors'
 import { LogLevel } from '@util'
 
-export type ManualUserConfirmTX = {
-	txToConfirm: BuiltTransaction
-	confirm: () => void
-}
-
-export type TransactionConfirmationBeforeFinalization =
-	| 'skip'
-	| ReplaySubject<ManualUserConfirmTX>
-
 export type TxMessage = {
 	raw: string
 	encrypted: boolean
 }
 
-export type MakeTransactionOptions = Readonly<{
-	userConfirmation: TransactionConfirmationBeforeFinalization
+export type MakeTransactionOptions = {
+	userConfirmation?: (confirm: () => void, reject: () => void, tx: BuiltTransaction) => Promise<void>
 	pollTXStatusTrigger?: Observable<unknown>
-}>
+}
 
 export type TransferTokensOptions = MakeTransactionOptions &
 	Readonly<{

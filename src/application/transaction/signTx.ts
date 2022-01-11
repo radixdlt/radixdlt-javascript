@@ -1,5 +1,4 @@
-import { map, Observable, tap, throwError } from 'rxjs'
-import { ActionType, TransferTokensAction } from '../actions'
+import { ActionType, IntendedAction, TransferTokensAction } from '../actions'
 import {
 	BuiltTransaction,
 	SignedTransaction,
@@ -9,54 +8,46 @@ import {
 import { AccountT } from '../_types'
 import { log } from '@util'
 import { Track } from './_types'
+import { errAsync } from 'neverthrow'
 
-const getNonXRDHRPsOfRRIsInTx = ({ actions }: TransactionIntent): string[] =>
-	actions
-		.filter(a => a.type === ActionType.TRANSFER)
-		.map(a => a as TransferTokensAction)
-		.filter(t => t.rri.name !== 'xrd')
-		.map(t => t.rri.name)
+const getUniqueNonXrdTokensFromTransfers = (actions: IntendedAction[]): string[] =>
+	[...new Set(
+		actions
+			.filter(action => action.type === ActionType.TRANSFER)
+			.map(action => action as TransferTokensAction)
+			.filter(transferAction => transferAction.rri.name !== 'xrd')
+			.map(transferAction => transferAction.rri.name)
+	)]
 
-export const signTx =
-	({
-		account,
-		txIntent,
-		track,
-	}: {
-		account: AccountT
-		txIntent: TransactionIntent
-		track: Track
-	}) =>
-	(builtTx: BuiltTransaction): Observable<SignedTransaction> => {
-		const nonXRDHRPsOfRRIsInTx = getNonXRDHRPsOfRRIsInTx(txIntent)
+export const signTx = (
+	track: Track,
+	account: AccountT,
+	txIntent: TransactionIntent
+) => (
+	builtTx: BuiltTransaction
+) => {
+		const nonXrdTokenNames = getUniqueNonXrdTokensFromTransfers(txIntent.actions)
 
-		const uniqueNonXRDHRPsOfRRIsInTx = [...new Set(nonXRDHRPsOfRRIsInTx)]
+		if (nonXrdTokenNames.length > 1)
+			return errAsync(Error(`Cannot sign transaction with multiple non-XRD RRIs. Unsupported by Ledger app.`))
 
-		if (uniqueNonXRDHRPsOfRRIsInTx.length > 1) {
-			const errMsg = `Error cannot sign transaction with multiple non-XRD RRIs. Unsupported by Ledger app.`
-			log.error(errMsg)
-			return throwError(() => new Error(errMsg))
-		}
+		const nonXRDHrp = nonXrdTokenNames[0]
 
-		const nonXRDHrp = uniqueNonXRDHRPsOfRRIsInTx[0]
+		log.debug('Starting signing transaction.')
 
-		log.debug('Starting signing transaction (async).')
-
-		return account.sign(builtTx.transaction, nonXRDHrp).pipe(
-			map((signature): SignedTransaction => {
-				const publicKeyOfSigner = account.publicKey
-				log.debug(`Finished signing transaction`)
-				return {
+		return account.sign(builtTx.transaction, nonXRDHrp)
+			.map(signature => {
+				const signedTx: SignedTransaction = {
 					transaction: builtTx.transaction,
 					signature,
-					publicKeyOfSigner,
+					publicKeyOfSigner: account.publicKey,
 				}
-			}),
-			tap(signedTx => {
+
+				log.debug(`Finished signing transaction`)
 				track({
 					transactionState: signedTx,
-					eventUpdateType: TransactionTrackingEventType.SIGNED,
+					eventUpdateType: TransactionTrackingEventType.SIGNED
 				})
-			}),
-		)
+				return signedTx
+			})
 	}

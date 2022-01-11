@@ -9,45 +9,29 @@ import { RadixAPI } from '../api'
 import { Track, TrackError } from './_types'
 import { Network } from '@application'
 
-export const finalizeTx =
-	({
-		track,
-		trackError,
-		network,
-		radixAPI,
-	}: {
-		track: Track
-		trackError: TrackError
-		network: Network
-		radixAPI: RadixAPI
-	}) =>
-	(signedTx: SignedTransaction) => {
-		log.debug(`Finished signing tx => submitting it to 🛰  API.`)
-
-		return from(radixAPI.finalizeTransaction(network, signedTx)).pipe(
-			mergeMap(x => toObservableFromResult(x)),
-			catchError((e: Error) => {
-				log.error(
-					`API failed to submit transaction, error: ${JSON.stringify(
-						e,
-						null,
-						4,
-					)}`,
-				)
-				trackError({
-					error: e,
-					inStep: TransactionTrackingEventType.FINALIZED,
-				})
-				return EMPTY
-			}),
-			tap<FinalizedTransaction>(finalizedTx => {
-				log.debug(
-					`Received finalized transaction' from API, calling submit.`,
-				)
-				track({
-					transactionState: finalizedTx,
-					eventUpdateType: TransactionTrackingEventType.FINALIZED,
-				})
-			}),
-		)
-	}
+export const finalizeTx = (
+	track: Track,
+	network: Network,
+	radixAPI: RadixAPI,
+	trackError: TrackError
+) => (
+	signedTx: SignedTransaction
+) => radixAPI.finalizeTransaction(network, signedTx).map(finalizedTx => {
+	log.debug(
+		'Successfully finalized transaction.',
+	)
+	track({
+		transactionState: finalizedTx,
+		eventUpdateType: TransactionTrackingEventType.FINALIZED,
+	})
+	return finalizedTx
+}).mapErr(e => {
+	log.error(
+		`API failed to finalize transaction, errors: ${e.forEach(e => e.message)}`,
+	)
+	trackError({
+		errors: e,
+		inStep: TransactionTrackingEventType.FINALIZED,
+	})
+	return e
+})
