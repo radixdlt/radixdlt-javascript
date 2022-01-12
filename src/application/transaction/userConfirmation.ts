@@ -16,9 +16,9 @@ export const userConfirmation = (
 		const confirmTx = () => confirm()
 		const rejectTx = () => reject()
 
-		const confirmation = new Promise<void>((resolve, reject) => {
+		const confirmation = new Promise<void>((resolve, _reject) => {
 			confirm = resolve
-			reject = reject
+			reject = _reject
 		})
 
 		if (!options.userConfirmation) {
