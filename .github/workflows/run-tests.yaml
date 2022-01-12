@@ -24,5 +24,4 @@ jobs:
     - name: Install
       run: |
         yarn policies set-version '^1.22.10'
-    - run: yarn setup-dev
     - run: yarn sanity
