@@ -148,11 +148,11 @@ const fromPrivateKeyNamedOrFromHDPath = (
 ): SigningKeyT => {
 	const { privateKey } = input
 	const publicKey: PublicKeyT = privateKey.publicKey()
+
 	const sign = (
 		tx: BuiltTransactionReadyToSign,
 		_nonXrdHRP?: string,
-	): Observable<SignatureT> =>
-		toObservable(privateKey.sign(Buffer.from(tx.hashOfBlobToSign, 'hex')))
+	) => privateKey.sign(Buffer.from(tx.hashOfBlobToSign, 'hex'))
 
 	const diffieHellman = privateKey.diffieHellman
 
@@ -172,7 +172,7 @@ const fromPrivateKeyNamedOrFromHDPath = (
 		isLocalHDSigningKey: type.isHDSigningKey && !type.isHardwareSigningKey,
 		decrypt: makeDecrypt(diffieHellman),
 		encrypt: makeEncrypt(diffieHellman),
-		sign: sign,
+		sign,
 		signHash: (hashedMessage: Buffer): Observable<SignatureT> =>
 			toObservable(privateKey.sign(hashedMessage)),
 		hdPath:
@@ -239,7 +239,7 @@ const fromHDPathWithHWSigningKey = (
 		sign: (
 			tx: BuiltTransactionReadyToSign,
 			nonXrdHRP?: string,
-		): Observable<SignatureT> => hardwareSigningKey.sign(tx, nonXrdHRP),
+		): ResultAsync<SignatureT, Error> => hardwareSigningKey.sign(tx, nonXrdHRP),
 		signHash: (hashesMessage: Buffer): Observable<SignatureT> =>
 			hardwareSigningKey.signHash(hashesMessage),
 		decrypt: makeDecryptHW(hardwareSigningKey),

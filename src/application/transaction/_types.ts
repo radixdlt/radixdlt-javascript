@@ -13,7 +13,7 @@ import { AccountT } from '../_types'
 export type AskUserToConfirmSubject = Subject<BuiltTransaction>
 
 export type TrackErrorInput = {
-	error: Error
+	errors: Error[]
 	inStep: TransactionTrackingEventType
 }
 

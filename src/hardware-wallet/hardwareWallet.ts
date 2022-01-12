@@ -40,22 +40,22 @@ export const signingKeyWithHardWareWallet = (
 					})
 				},
 				signHash: (hashedMessage: Buffer): Observable<SignatureT> =>
-					hardwareWallet.doSignHash({
+					hardwareWallet.signHash({
 						hashToSign: hashedMessage,
 						path,
 					}),
 				sign: (
 					tx: BuiltTransactionReadyToSign,
 					nonXrdHRP?: string,
-				): Observable<SignatureT> =>
+				) =>
 					hardwareWallet
-						.doSignTransaction({ tx, path, nonXrdHRP })
-						.pipe(map(o => o.signature)),
+						.signTransaction({ tx, path, nonXrdHRP })
+						.map(o => o.signature),
 				keyExchange: (
 					publicKeyOfOtherParty: PublicKeyT,
 					display?: 'encrypt' | 'decrypt',
 				): Observable<ECPointOnCurveT> =>
-					hardwareWallet.doKeyExchange({
+					hardwareWallet.keyExchange({
 						display,
 						path,
 						publicKeyOfOtherParty,

@@ -1,6 +1,7 @@
 import {
 	BehaviorSubject,
 	combineLatest,
+	firstValueFrom,
 	Observable,
 	of,
 	ReplaySubject,
@@ -373,8 +374,7 @@ const create = (
 		sign: (
 			tx: BuiltTransactionReadyToSign,
 			nonXrdHRP?: string,
-		): Observable<SignatureT> =>
-			activeSigningKey$.pipe(mergeMap(a => a.sign(tx, nonXrdHRP))),
+		) => ResultAsync.fromPromise(firstValueFrom(activeSigningKey$), e => e as Error).andThen(key => key.sign(tx, nonXrdHRP)),
 		signHash: (hashedMessage: Buffer): Observable<SignatureT> =>
 			activeSigningKey$.pipe(mergeMap(a => a.signHash(hashedMessage))),
 	}

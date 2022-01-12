@@ -1,47 +1,37 @@
 import { MakeTransactionOptions } from '../_types'
-import { log } from '@util'
-import { mapTo, ReplaySubject, tap } from 'rxjs'
+import { mapTo, tap } from 'rxjs'
 import { BuiltTransaction, TransactionTrackingEventType } from '../dto'
 import { Track } from './_types'
+import { ResultAsync } from 'neverthrow'
 
-export const userConfirmation =
-	({
-		options,
-		userDidConfirmTxSubject,
-		track,
-	}: {
-		options: MakeTransactionOptions
-		userDidConfirmTxSubject: ReplaySubject<void>
-		track: Track
-	}) =>
-	(builtTx: BuiltTransaction) => {
-		track({
-			transactionState: builtTx,
-			eventUpdateType:
-				TransactionTrackingEventType.ASKED_FOR_CONFIRMATION,
+export const userConfirmation = (
+	track: Track,
+	options: MakeTransactionOptions
+) => (
+	tx: BuiltTransaction
+) => {
+		let confirm: () => void
+		let reject: () => void
+
+		const confirmTx = () => confirm()
+		const rejectTx = () => reject()
+
+		const confirmation = new Promise<void>((resolve, _reject) => {
+			confirm = resolve
+			reject = _reject
 		})
 
-		if (options.userConfirmation === 'skip') {
-			log.debug(
-				'Transaction has been setup to be automatically confirmed, requiring no final confirmation input from user.',
-			)
-			userDidConfirmTxSubject.next()
+		if (!options.userConfirmation) {
+			confirmTx()
 		} else {
-			log.log(
-				`Transaction has been setup so that it requires a manual final confirmation from user before being finalized.`,
-			)
-			options.userConfirmation.next({
-				txToConfirm: builtTx,
-				confirm: () => userDidConfirmTxSubject.next(),
-			})
+			options.userConfirmation(confirmTx, rejectTx, tx)
 		}
-		return userDidConfirmTxSubject.pipe(
-			tap(() => {
-				track({
-					transactionState: builtTx,
-					eventUpdateType: TransactionTrackingEventType.CONFIRMED,
-				})
-			}),
-			mapTo(builtTx),
-		)
+
+		return ResultAsync.fromPromise(confirmation.then(_ => {
+			track({
+				transactionState: tx,
+				eventUpdateType: TransactionTrackingEventType.CONFIRMED,
+			})
+			return tx
+		}), _ => Error('Transaction was rejected.'))
 	}

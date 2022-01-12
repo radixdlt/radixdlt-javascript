@@ -21,11 +21,11 @@ import {
 	log,
 	restoreDefaultLogLevel,
 	AccountT,
-	ManualUserConfirmTX,
 } from '../..'
 import { UInt256 } from '@radixdlt/uint256'
 import { keystoreForTest, makeWalletWithFunds } from '../util'
 import { Decoded, StakePositionsEndpoint } from '../../api/open-api/_types'
+import { BuiltTransaction } from '@application'
 
 const fetch = require('node-fetch')
 
@@ -531,7 +531,7 @@ describe('integration API tests', () => {
 		expect(actualStake).toEqual(expectedStake)
 	})
 
-	it('can fetch unstake positions', async () => {
+	it.only('can fetch unstake positions', async () => {
 		const validators = await getValidators()
 
 		const validator = validators.find(v => v.isExternalStakeAccepted)
@@ -564,14 +564,13 @@ describe('integration API tests', () => {
 	it('tx events emits expected values', done => {
 		const expectedValues = [
 			TransactionTrackingEventType.INITIATED,
-			TransactionTrackingEventType.BUILT_FROM_INTENT,
-			TransactionTrackingEventType.ASKED_FOR_CONFIRMATION,
+			TransactionTrackingEventType.BUILT,
 			TransactionTrackingEventType.CONFIRMED,
 			TransactionTrackingEventType.SIGNED,
 			TransactionTrackingEventType.FINALIZED,
 			TransactionTrackingEventType.SUBMITTED,
-			TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
-			TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
+			TransactionTrackingEventType.STATUS_UPDATE,
+			TransactionTrackingEventType.STATUS_UPDATE,
 			TransactionTrackingEventType.COMPLETED,
 		]
 
@@ -610,15 +609,14 @@ describe('integration API tests', () => {
 	})
 	it('tx manual confirmation', done => {
 		const amount = Amount.fromUnsafe(`1${'0'.repeat(18)}`)._unsafeUnwrap()
-		const userConfirmation = new ReplaySubject<ManualUserConfirmTX>()
+
+
 		let hasConfirmed = false
 
-		subs.add(
-			userConfirmation.subscribe(({ confirm }) => {
-				hasConfirmed = true
-				confirm()
-			}),
-		)
+		const userConfirmation = async (confirm: () => void, reject: () => void, tx: BuiltTransaction) => {
+			confirm()
+			hasConfirmed = true
+		}
 
 		radix
 			.transferTokens(
@@ -629,12 +627,10 @@ describe('integration API tests', () => {
 				{ userConfirmation },
 			)
 			.then(result => {
-				subs.add(
-					result._unsafeUnwrap().completion.subscribe(() => {
-						expect(hasConfirmed).toBeTruthy()
-						done()
-					}),
-				)
+				result._unsafeUnwrap().completion.subscribe(() => {
+					expect(hasConfirmed).toBeTruthy()
+					done()
+				})
 			})
 	})
 })

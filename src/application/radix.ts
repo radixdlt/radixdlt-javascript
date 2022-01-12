@@ -10,26 +10,18 @@ import * as fromApi from './api'
 import { apiVersion } from '@networking'
 
 import {
-	catchError,
 	distinctUntilChanged,
 	filter,
 	map,
 	mergeMap,
-	retryWhen,
-	share,
 	shareReplay,
-	skipWhile,
-	switchMap,
 	take,
 	tap,
 	withLatestFrom,
 } from 'rxjs/operators'
 import {
-	combineLatest,
-	EMPTY,
 	firstValueFrom,
 	from,
-	interval,
 	merge,
 	Observable,
 	of,
@@ -45,35 +37,20 @@ import {
 	WalletT,
 	AccountT,
 	MakeTransactionOptions,
-	ManualUserConfirmTX,
 	SwitchAccountInput,
-	TransactionConfirmationBeforeFinalization,
 	TxMessage,
 } from './_types'
-import { ErrorT, nodeError, walletError } from './errors'
-import { log, LogLevel, msgFromError, toObservableFromResult } from '@util'
+import { log, LogLevel, msgFromError } from '@util'
 import {
-	BuiltTransaction,
 	ExecutedTransaction,
-	FinalizedTransaction,
 	flatMapAddressesOf,
-	PendingTransaction,
-	SignedTransaction,
 	SimpleExecutedTransaction,
 	TransactionHistory,
 	TransactionIdentifierT,
-	TransactionIntent,
-	TransactionStateError,
-	TransactionStateUpdate,
 	TransactionTracking,
-	TransactionTrackingEventType,
 	TransactionType,
-	TransactionStatus,
 } from './dto'
 import {
-	IntendedAction,
-	ActionType,
-	TransferTokensAction,
 	ExecutedAction,
 } from './actions'
 import { Wallet } from './wallet'
@@ -87,7 +64,7 @@ import {
 import { Result, ResultAsync } from 'neverthrow'
 import { ResourceIdentifierT, ValidatorAddressT } from '@account'
 import { getRecipients } from './dto'
-import { makeTxFromIntent } from './transaction/makeTxFromIntent'
+import { sendTransaction } from './transaction/sendTransaction'
 
 const txTypeFromActions = (
 	input: Readonly<{
@@ -524,7 +501,7 @@ const create = () => {
 			amount: AmountT,
 			tokenIdentifier: ResourceIdentifierT,
 			message?: TxMessage,
-			options: MakeTransactionOptions = { userConfirmation: 'skip' },
+			options: MakeTransactionOptions = {},
 		): Promise<Result<TransactionTracking, Error[]>> => {
 			const account = await firstValueFrom(activeAccount)
 			const radixAPI = await firstValueFrom(radixAPI$)
@@ -544,7 +521,7 @@ const create = () => {
 					),
 				result =>
 					result.map(actions =>
-						makeTxFromIntent({ account, options, radixAPI, txIntent: actions, network }),
+						sendTransaction({ account, options, radixAPI, txIntent: actions, network }),
 					),
 			)()
 		},
@@ -552,7 +529,7 @@ const create = () => {
 		stakeTokens: async (
 			validator: ValidatorAddressT,
 			amount: AmountT,
-			options: MakeTransactionOptions = { userConfirmation: 'skip' },
+			options: MakeTransactionOptions = {},
 		) => {
 			const account = await firstValueFrom(activeAccount)
 			const rri = await firstValueFrom(xrdRRI$)
@@ -571,7 +548,7 @@ const create = () => {
 				result => result.asyncAndThen(build => build(account)),
 				result =>
 					result.map(actions =>
-						makeTxFromIntent({ account, options, radixAPI, txIntent: actions, network }),
+						sendTransaction({ account, options, radixAPI, txIntent: actions, network }),
 					),
 			)()
 		},
@@ -579,7 +556,7 @@ const create = () => {
 		unstakeTokens: async (
 			validator: ValidatorAddressT,
 			amount: AmountT,
-			options: MakeTransactionOptions = { userConfirmation: 'skip' },
+			options: MakeTransactionOptions = {},
 		) => {
 			const account = await firstValueFrom(activeAccount)
 			const rri = await firstValueFrom(xrdRRI$)
@@ -598,7 +575,7 @@ const create = () => {
 				result => result.asyncAndThen(build => build(account)),
 				result =>
 					result.map(actions =>
-						makeTxFromIntent({ account, options, radixAPI, txIntent: actions, network }),
+						sendTransaction({ account, options, radixAPI, txIntent: actions, network }),
 					),
 			)()
 		},

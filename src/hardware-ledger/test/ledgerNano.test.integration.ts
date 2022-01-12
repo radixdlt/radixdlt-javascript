@@ -135,7 +135,7 @@ describe('hw_ledger_integration', () => {
 
 
 		const ecPointOnCurve = await firstValueFrom(hardwareWallet
-			.doKeyExchange({
+			.keyExchange({
 				// both Account and Address will be hardened.
 				path: HDPathRadix.fromString(
 					`m/44'/1022'/2'/1/3`,
@@ -194,14 +194,12 @@ describe('hw_ledger_integration', () => {
 			)} (atto: ${totalCost.toString(10)})`,
 		)
 
-		const result = await firstValueFrom(hardwareWallet
-			.doSignTransaction({
+		const result = (await hardwareWallet
+			.signTransaction({
 				path,
 				nonXrdHRP: 'btc',
 				tx,
-			})
-		)
-
+			}))._unsafeUnwrap()
 
 		const hashCalculatedByLedger =
 			result.hashCalculatedByLedger
@@ -239,7 +237,7 @@ describe('hw_ledger_integration', () => {
 		console.log(`🔮 Hash: ${hashToSign.toString('hex')}`)
 
 		const signature = await firstValueFrom(hardwareWallet
-			.doSignHash({
+			.signHash({
 				path,
 				hashToSign,
 			})

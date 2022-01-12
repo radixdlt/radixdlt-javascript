@@ -46,12 +46,12 @@ export type Response = ReturnOfAPICall<MethodName>
 const handleError = (error: AxiosError) => {
 	log.debug(error)
 	if (error.isAxiosError && error.response?.data) {
-		return err({
+		return Error(`${JSON.stringify({
 			code: error.response.data.code ?? error.response.status,
 			...(typeof error.response.data === 'object'
 				? error.response.data
-				: { message: error.response.data }),
-		})
+				: { message: error.response.data })
+		})}`)
 	} else {
 		throw error
 	}

@@ -3,7 +3,7 @@ import {
 	TransactionIntent,
 	TransactionTrackingEventType,
 } from '@application'
-import { ResultAsync } from 'neverthrow'
+import { err, ok, ResultAsync } from 'neverthrow'
 import { firstValueFrom } from 'rxjs'
 import { RadixAPI } from '../api'
 import { buildTx as _buildTx } from '../transaction/buildTx'
@@ -19,12 +19,7 @@ const mockRadixApi = {
 	buildTransaction: () => buildTransactionMock,
 } as unknown as RadixAPI
 
-const buildTx = _buildTx({
-	radixAPI: mockRadixApi,
-	account: mockAccount,
-	track: mockTrack,
-	trackError: mockTrackError,
-})
+const buildTx = _buildTx(mockTrack, mockAccount, mockRadixApi, mockTrackError)
 
 describe('buildTx', () => {
 	beforeEach(() => {
@@ -38,20 +33,14 @@ describe('buildTx', () => {
 			actions: ['action 1'],
 		} as unknown as TransactionIntent
 
-		buildTransactionMock.mockReturnValueOnce(
-			ResultAsync.fromSafePromise(Promise.resolve(expected)),
-		)
+		buildTransactionMock.mockReturnValueOnce(ok(expected))
 
-		const builtTx$ = buildTx(txIntent)
+		const builtTx = (await buildTx(txIntent))._unsafeUnwrap()
 
-		expect(await firstValueFrom(builtTx$)).toBe(expected)
+		expect(builtTx).toBe(expected)
 		expect(buildTransactionMock).toHaveBeenLastCalledWith(txIntent)
 		expect(mockTrack).nthCalledWith(1, {
-			eventUpdateType: TransactionTrackingEventType.INITIATED,
-			transactionState: txIntent,
-		})
-		expect(mockTrack).nthCalledWith(2, {
-			eventUpdateType: TransactionTrackingEventType.BUILT_FROM_INTENT,
+			eventUpdateType: TransactionTrackingEventType.BUILT,
 			transactionState: expected,
 		})
 	})
@@ -61,26 +50,17 @@ describe('buildTx', () => {
 			actions: ['action 1'],
 		} as unknown as TransactionIntent
 
-		buildTransactionMock.mockReturnValueOnce(
-			ResultAsync.fromSafePromise(Promise.reject(expected)),
-		)
+		buildTransactionMock.mockReturnValueOnce(err(expected))
 
-		const builtTx$ = buildTx(txIntent)
-		try {
-			await firstValueFrom(builtTx$)
-			expect(true).toBe(false)
-		} catch (error) {
-			expect(error).toBeDefined()
-		}
+		const errors = (await buildTx(txIntent))._unsafeUnwrapErr()
+		
+		expect(errors).toBeDefined()
 
 		expect(buildTransactionMock).toHaveBeenLastCalledWith(txIntent)
-		expect(mockTrack).lastCalledWith({
-			eventUpdateType: TransactionTrackingEventType.INITIATED,
-			transactionState: txIntent,
-		})
+
 		expect(mockTrackError).lastCalledWith({
-			inStep: TransactionTrackingEventType.BUILT_FROM_INTENT,
-			error: expected,
+			inStep: TransactionTrackingEventType.BUILT,
+			errors: expected,
 		})
 	})
 })

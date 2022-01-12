@@ -17,12 +17,12 @@ export type Signer = Readonly<{
 	) => ResultAsync<SignatureT, Error>
 }>
 
-export type SignatureT = Readonly<{
+export type SignatureT = {
 	r: UInt256
 	s: UInt256
 	toDER: () => string
 	equals: (other: SignatureT) => boolean
-}>
+}
 
 // A non-infinity point on the EC curve (e.g. `secp256k1`)
 export type ECPointOnCurveT = Readonly<{
