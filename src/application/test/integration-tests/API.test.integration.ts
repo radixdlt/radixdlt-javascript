@@ -25,7 +25,7 @@ import {
 import { UInt256 } from '@radixdlt/uint256'
 import { keystoreForTest, makeWalletWithFunds } from '../util'
 import { Decoded, StakePositionsEndpoint } from '../../api/open-api/_types'
-import { BuiltTransaction } from 'packages/application/dist'
+import { BuiltTransaction } from '@application'
 
 const fetch = require('node-fetch')
 
