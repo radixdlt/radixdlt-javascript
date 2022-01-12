@@ -6,6 +6,7 @@ import {
 	SignatureT,
 } from '@crypto'
 import { BuiltTransactionReadyToSign, Network } from '@primitives'
+import { ResultAsync } from 'neverthrow'
 
 // Semantic versioning, e.g. 1.0.5
 export type SemVerT = Readonly<{
@@ -62,7 +63,7 @@ export type HardwareSigningKeyT = Readonly<{
 	sign: (
 		tx: BuiltTransactionReadyToSign,
 		nonXrdHRP?: string,
-	) => Observable<SignatureT>
+	) => ResultAsync<SignatureT, Error>
 }>
 
 export type SignTransactionInput = Readonly<{
@@ -74,9 +75,9 @@ export type SignTransactionInput = Readonly<{
 export type HardwareWalletT = Readonly<{
 	getVersion: () => Observable<SemVerT>
 	getPublicKey: (input: GetPublicKeyInput) => Observable<PublicKeyT>
-	doSignHash: (input: SignHashInput) => Observable<SignatureT>
-	doSignTransaction: (input: SignTransactionInput) => Observable<SignTXOutput>
-	doKeyExchange: (input: KeyExchangeInput) => Observable<ECPointOnCurveT>
+	signHash: (input: SignHashInput) => Observable<SignatureT>
+	signTransaction: (input: SignTransactionInput) => ResultAsync<SignTXOutput, Error>
+	keyExchange: (input: KeyExchangeInput) => Observable<ECPointOnCurveT>
 
 	makeSigningKey: (
 		path: HDPathRadixT,

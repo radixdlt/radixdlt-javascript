@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [15.5.x]
+        node-version: [16.x.x]
 
     steps:
     - uses: actions/checkout@v2
@@ -24,5 +24,4 @@ jobs:
     - name: Install
       run: |
         yarn policies set-version '^1.22.10'
-    - run: yarn setup-dev
-    - run: yarn sanity
+    - run: yarn && yarn sanity
