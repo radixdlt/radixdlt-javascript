@@ -109,11 +109,6 @@ export type TransactionState =
 	| FinalizedTransaction
 	| PendingTransaction
 
-export type TransactionTracking = {
-	events: Observable<TransactionStateUpdate>
-	completion: Promise<TransactionIdentifierT>
-}
-
 export type TransactionHistoryOfKnownAddressRequestInput = {
 	size: number
 	cursor?: string

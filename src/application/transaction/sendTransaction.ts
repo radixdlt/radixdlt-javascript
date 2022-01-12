@@ -1,16 +1,12 @@
-import { interval, mergeMap, ReplaySubject, Subject, Subscription } from 'rxjs'
+import { interval, ReplaySubject } from 'rxjs'
 import {
-	SimpleExecutedTransaction,
 	TransactionIdentifierT,
-	TransactionStateError,
 	TransactionStateUpdate,
-	TransactionStatus,
 	TransactionTrackingEventType,
 } from '../dto'
-import { log } from '@util'
 import {
 	MakeTxFromIntentInput as TransactionInput,
-	MakeTxFromIntentOutput as TransactionOutput,
+	SendTxOutput as TransactionOutput,
 	SendTxError,
 	TrackErrorInput,
 } from './_types'
@@ -22,6 +18,7 @@ import { buildTx as _buildTx } from './buildTx'
 import { pollTxStatus as _pollStatusOfTx } from './pollTxStatus'
 import { userConfirmation as _userConfirmation } from './userConfirmation'
 import { handleCompletedTx as _handleCompletedTx } from './handleCompletedTx'
+import { ResultAsync } from 'neverthrow'
 
 export const sendTransaction = ({
 	account,
@@ -88,7 +85,10 @@ export const sendTransaction = ({
 		.map(handleCompletedTx)
 
 	return {
-		completion,
+		completion: ResultAsync.fromPromise<
+			TransactionIdentifierT,
+			SendTxError
+		>(completion, e => e as SendTxError),
 		events: eventSubject.asObservable(),
 	}
 }

@@ -46,7 +46,6 @@ import {
 	SimpleExecutedTransaction,
 	TransactionHistory,
 	TransactionIdentifierT,
-	TransactionTracking,
 	TransactionType,
 } from './dto'
 import { ExecutedAction } from './actions'
@@ -62,6 +61,7 @@ import { Result, ResultAsync } from 'neverthrow'
 import { ResourceIdentifierT, ValidatorAddressT } from '@account'
 import { getRecipients } from './dto'
 import { sendTransaction } from './transaction/sendTransaction'
+import { SendTxOutput } from './transaction/_types'
 
 const txTypeFromActions = (
 	input: Readonly<{
@@ -499,7 +499,7 @@ const create = () => {
 			tokenIdentifier: ResourceIdentifierT,
 			message?: TxMessage,
 			options: MakeTransactionOptions = {},
-		): Promise<Result<TransactionTracking, Error[]>> => {
+		): Promise<Result<SendTxOutput, Error[]>> => {
 			const account = await firstValueFrom(activeAccount)
 			const radixAPI = await firstValueFrom(radixAPI$)
 			const network = await firstValueFrom(networkSubject)
