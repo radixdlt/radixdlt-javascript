@@ -30,6 +30,11 @@ export type MakeTxFromIntentInput = {
 }
 
 export type MakeTxFromIntentOutput = {
-	completion: Observable<TransactionIdentifierT>
+	completion: Promise<TransactionIdentifierT>
 	events: Observable<TransactionStateUpdate>
+}
+
+export type SendTxError = {
+	eventUpdateType: TransactionTrackingEventType
+	errors: Error[]
 }

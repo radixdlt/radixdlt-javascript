@@ -111,7 +111,7 @@ export type TransactionState =
 
 export type TransactionTracking = {
 	events: Observable<TransactionStateUpdate>
-	completion: Observable<TransactionIdentifierT>
+	completion: Promise<TransactionIdentifierT>
 }
 
 export type TransactionHistoryOfKnownAddressRequestInput = {
@@ -132,7 +132,7 @@ export type SimpleExecutedTransaction = {
 	sentAt: Date
 	status: TransactionStatus
 	fee: AmountT
-	message?: TxMessage,
+	message?: TxMessage
 	actions: ExecutedAction[]
 }
 

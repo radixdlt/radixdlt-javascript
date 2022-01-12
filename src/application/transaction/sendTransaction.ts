@@ -11,6 +11,7 @@ import { log } from '@util'
 import {
 	MakeTxFromIntentInput as TransactionInput,
 	MakeTxFromIntentOutput as TransactionOutput,
+	SendTxError,
 	TrackErrorInput,
 } from './_types'
 
@@ -20,6 +21,7 @@ import { signTx as _signTx } from './signTx'
 import { buildTx as _buildTx } from './buildTx'
 import { pollTxStatus as _pollStatusOfTx } from './pollTxStatus'
 import { userConfirmation as _userConfirmation } from './userConfirmation'
+import { handleCompletedTx as _handleCompletedTx } from './handleCompletedTx'
 
 export const sendTransaction = ({
 	account,
@@ -29,7 +31,19 @@ export const sendTransaction = ({
 	options,
 }: TransactionInput): TransactionOutput => {
 	const eventSubject = new ReplaySubject<TransactionStateUpdate>()
-	const completionSubject = new Subject<TransactionIdentifierT>()
+
+	let confirm: (tx: TransactionIdentifierT) => void
+	let reject: (err: SendTxError) => void
+
+	const sendTxSuccess = (tx: TransactionIdentifierT) => confirm(tx)
+	const sendTxError = (err: SendTxError) => reject(err)
+
+	const completion = new Promise<TransactionIdentifierT>(
+		(resolve, _reject) => {
+			confirm = resolve
+			reject = _reject
+		},
+	)
 
 	const track = (event: TransactionStateUpdate) => {
 		eventSubject.next(event)
@@ -40,7 +54,7 @@ export const sendTransaction = ({
 			eventUpdateType: input.inStep,
 			errors: input.errors,
 		}
-		completionSubject.error(errorEvent)
+		sendTxError(errorEvent)
 	}
 
 	const buildTx = _buildTx(track, account, radixAPI, trackError)
@@ -48,31 +62,17 @@ export const sendTransaction = ({
 	const signTx = _signTx(track, account, txIntent)
 	const finalizeTx = _finalizeTx(track, network, radixAPI, trackError)
 	const submitTx = _submitTx(track, network, radixAPI, trackError)
-	const pollStatusOfTx = _pollStatusOfTx(track, network, radixAPI, options.pollTXStatusTrigger ?? interval(1000))
-
-	const handleSuccessfulTx = (tx: SimpleExecutedTransaction, txSub: Subscription) => {
-		log.info(
-			`Transaction with txID='${tx.toString()}' has completed successfully.`,
-		)
-		track({
-			transactionState: tx,
-			eventUpdateType: TransactionTrackingEventType.COMPLETED,
-		})
-
-		completionSubject.next(tx.txID)
-		completionSubject.complete()
-		txSub.unsubscribe()
-	}
-
-	const handleFailedTx = (tx: SimpleExecutedTransaction, txSub: Subscription) => {
-		const errMsg = `API status of tx with id=${tx.txID.toPrimitive()} returned 'FAILED'`
-		log.error(errMsg)
-		trackError({
-			errors: [Error(errMsg)],
-			inStep: TransactionTrackingEventType.STATUS_UPDATE,
-		})
-		txSub.unsubscribe()
-	}
+	const pollStatusOfTx = _pollStatusOfTx(
+		track,
+		network,
+		radixAPI,
+		options.pollTXStatusTrigger ?? interval(1000),
+	)
+	const handleCompletedTx = _handleCompletedTx(
+		track,
+		sendTxSuccess,
+		trackError,
+	)
 
 	track({
 		transactionState: txIntent,
@@ -85,16 +85,10 @@ export const sendTransaction = ({
 		.andThen(finalizeTx)
 		.andThen(submitTx)
 		.map(pollStatusOfTx)
-		.map(obs => {
-			const sub: Subscription = obs.subscribe(tx =>
-				tx.status === TransactionStatus.CONFIRMED
-					? handleSuccessfulTx(tx, sub)
-					: handleFailedTx(tx, sub),
-			)
-		})
+		.map(handleCompletedTx)
 
 	return {
-		completion: completionSubject.asObservable(),
+		completion,
 		events: eventSubject.asObservable(),
 	}
 }

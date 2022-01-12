@@ -49,9 +49,7 @@ import {
 	TransactionTracking,
 	TransactionType,
 } from './dto'
-import {
-	ExecutedAction,
-} from './actions'
+import { ExecutedAction } from './actions'
 import { Wallet } from './wallet'
 import { andThen, pipe } from 'ramda'
 import {
@@ -298,12 +296,12 @@ const create = () => {
 		<
 			Method extends keyof ReturnType<typeof fromApi.radixAPI>,
 			Args extends Parameters<fromApi.RadixAPI[Method]>,
-			>(
-				method: Method,
+		>(
+			method: Method,
 		) =>
-			async (...args: Args): Promise<ReturnType<fromApi.RadixAPI[Method]>> =>
-				// @ts-ignore
-				(await radixAPI())[method](...args)
+		async (...args: Args): Promise<ReturnType<fromApi.RadixAPI[Method]>> =>
+			// @ts-ignore
+			(await radixAPI())[method](...args)
 
 	const methods = {
 		api: radixAPI,
@@ -520,7 +518,13 @@ const create = () => {
 					),
 				result =>
 					result.map(actions =>
-						sendTransaction({ account, options, radixAPI, txIntent: actions, network }),
+						sendTransaction({
+							account,
+							options,
+							radixAPI,
+							txIntent: actions,
+							network,
+						}),
 					),
 			)()
 		},
@@ -547,7 +551,13 @@ const create = () => {
 				result => result.asyncAndThen(build => build(account)),
 				result =>
 					result.map(actions =>
-						sendTransaction({ account, options, radixAPI, txIntent: actions, network }),
+						sendTransaction({
+							account,
+							options,
+							radixAPI,
+							txIntent: actions,
+							network,
+						}),
 					),
 			)()
 		},
@@ -574,7 +584,13 @@ const create = () => {
 				result => result.asyncAndThen(build => build(account)),
 				result =>
 					result.map(actions =>
-						sendTransaction({ account, options, radixAPI, txIntent: actions, network }),
+						sendTransaction({
+							account,
+							options,
+							radixAPI,
+							txIntent: actions,
+							network,
+						}),
 					),
 			)()
 		},
