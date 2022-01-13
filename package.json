@@ -72,7 +72,7 @@
     "test:ledger:account": "yarn test:ledger ./packages/hardware-ledger/test/physical-devices/signingKeychain.test.integration.ts",
     "test:ledger:app": "yarn test:ledger ./packages/hardware-ledger/test/physical-devices/radix.test.integration.ts",
     "format": "prettier --write '**/*.{ts,tsx,js}' --config .prettierrc",
-    "sanity": "yarn format && yarn build && yarn test"
+    "sanity": "yarn build && yarn test"
   },
   "dependencies": {
     "@ledgerhq/hw-transport-node-hid": "^6.20.0",

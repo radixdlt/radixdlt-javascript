@@ -22,7 +22,6 @@ import {
 	TransactionHistory,
 	TransactionHistoryActiveAccountRequestInput,
 	TransactionIdentifierT,
-	TransactionTracking,
 	UnstakePositions,
 } from './dto'
 import {
@@ -35,25 +34,21 @@ import { SigningKeychainT, SigningKeyTypeT } from '@account'
 import { NodeT, RadixAPI, RadixCoreAPI } from './api'
 import { ErrorT } from './errors'
 import { LogLevel } from '@util'
-
-export type ManualUserConfirmTX = {
-	txToConfirm: BuiltTransaction
-	confirm: () => void
-}
-
-export type TransactionConfirmationBeforeFinalization =
-	| 'skip'
-	| ReplaySubject<ManualUserConfirmTX>
+import { SendTxOutput } from './transaction/_types'
 
 export type TxMessage = {
 	raw: string
 	encrypted: boolean
 }
 
-export type MakeTransactionOptions = Readonly<{
-	userConfirmation: TransactionConfirmationBeforeFinalization
+export type MakeTransactionOptions = {
+	userConfirmation?: (
+		confirm: () => void,
+		reject: () => void,
+		tx: BuiltTransaction,
+	) => Promise<void>
 	pollTXStatusTrigger?: Observable<unknown>
-}>
+}
 
 export type TransferTokensOptions = MakeTransactionOptions &
 	Readonly<{
@@ -224,16 +219,16 @@ export type RadixT = Readonly<{
 	) => Observable<ExecutedTransaction>
 
 	// Make TX flow
-	transferTokens: (input: TransferTokensOptions) => TransactionTracking
+	transferTokens: (input: TransferTokensOptions) => SendTxOutput
 
 	transactionStatus: (
 		txID: TransactionIdentifierT,
 		trigger: Observable<number>,
 	) => Observable<StatusOfTransaction>
 
-	stakeTokens: (input: StakeOptions) => TransactionTracking
+	stakeTokens: (input: StakeOptions) => SendTxOutput
 
-	unstakeTokens: (input: UnstakeOptions) => TransactionTracking
+	unstakeTokens: (input: UnstakeOptions) => SendTxOutput
 
 	decryptTransaction: (input: SimpleExecutedTransaction) => Observable<string>
 

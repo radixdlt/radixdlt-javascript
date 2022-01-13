@@ -26,26 +26,20 @@ describe('handle error responses', () => {
 	})
 
 	it('should handle 400 error', done => {
-		mock.onPost(`${BASE_URL}/gateway`).reply(400, {
+		const mockedError = {
 			code: 400,
 			message: 'The network selected is not valid.',
 			details: {},
-		})
+		}
+
+		mock.onPost(`${BASE_URL}/gateway`).reply(400, mockedError)
 
 		api.gateway({})
 			.map(() => {
 				expect(true).toBe(false)
 			})
 			.mapErr((err: any) => {
-				expect(err).toEqual([
-					{
-						error: {
-							code: 400,
-							message: 'The network selected is not valid.',
-							details: {},
-						},
-					},
-				])
+				expect(err).toEqual([Error(JSON.stringify(mockedError))])
 				done()
 			})
 	})

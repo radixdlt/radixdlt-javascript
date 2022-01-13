@@ -1,4 +1,4 @@
-import { from, Observable, of, Subject, Subscription, throwError } from 'rxjs'
+import { firstValueFrom, from, Observable, of, Subject, Subscription, throwError } from 'rxjs'
 import {
 	ECPointOnCurve,
 	ECPointOnCurveT,
@@ -35,7 +35,7 @@ import { BasicLedgerTransport } from './device-connection'
 import { log, BufferReader } from '@util'
 import { Transaction } from '@tx-parser'
 import { InstructionT } from '@tx-parser'
-import { err, Result } from 'neverthrow'
+import { err, errAsync, okAsync, Result, ResultAsync } from 'neverthrow'
 
 const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 	const getPublicKey = (input: GetPublicKeyInput): Observable<PublicKeyT> =>
@@ -207,7 +207,7 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 
 	const doSignTransaction = (
 		input: SignTransactionInput,
-	): Observable<SignTXOutput> => {
+	): ResultAsync<SignTXOutput, Error> => {
 		const displayInstructionContentsOnLedgerDevice = true
 		const displayTXSummaryOnLedgerDevice = true
 
@@ -221,7 +221,7 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 				transactionRes.error,
 			)}`
 			log.error(errMsg)
-			return throwError(new Error(errMsg))
+			return errAsync(Error(errMsg))
 		}
 		const transaction = transactionRes.value
 		const instructions = transaction.instructions
@@ -374,15 +374,15 @@ Bytes: "
 			}),
 		)
 
-		return outputSubject.asObservable().pipe(take(1))
+		return ResultAsync.fromPromise(firstValueFrom(outputSubject), e => e as Error)
 	}
 
 	const hwWithoutSK: HardwareWalletWithoutSK = {
 		getPublicKey,
 		getVersion,
-		doSignHash,
-		doKeyExchange,
-		doSignTransaction,
+		signHash: doSignHash,
+		keyExchange: doKeyExchange,
+		signTransaction: doSignTransaction,
 	}
 
 	return {

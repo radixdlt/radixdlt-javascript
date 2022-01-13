@@ -76,16 +76,13 @@ export type TransactionIntent = {
 }
 
 export enum TransactionTrackingEventType {
-	/* A TransactionIntent was successfully created and any message has been encrypted */
 	INITIATED = 'INITIATED',
-	BUILT_FROM_INTENT = 'BUILT_FROM_INTENT',
+	BUILT = 'BUILT',
 	SIGNED = 'SIGNED',
 	SUBMITTED = 'SUBMITTED',
-	ASKED_FOR_CONFIRMATION = 'ASKED_FOR_CONFIRMATION',
 	CONFIRMED = 'CONFIRMED',
-	/* API has finished "finalizing" / "confirming" the transaction, which now is pending. */
 	FINALIZED = 'FINALIZED',
-	UPDATE_OF_STATUS_OF_PENDING_TX = 'UPDATE_OF_STATUS_OF_PENDING_TX',
+	STATUS_UPDATE = 'STATUS_UPDATE',
 	COMPLETED = 'COMPLETED',
 }
 
@@ -112,11 +109,6 @@ export type TransactionState =
 	| FinalizedTransaction
 	| PendingTransaction
 
-export type TransactionTracking = {
-	events: Observable<TransactionStateUpdate>
-	completion: Observable<TransactionIdentifierT>
-}
-
 export type TransactionHistoryOfKnownAddressRequestInput = {
 	size: number
 	cursor?: string
@@ -135,7 +127,7 @@ export type SimpleExecutedTransaction = {
 	sentAt: Date
 	status: TransactionStatus
 	fee: AmountT
-	message?: TxMessage,
+	message?: TxMessage
 	actions: ExecutedAction[]
 }
 

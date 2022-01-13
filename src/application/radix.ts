@@ -10,26 +10,18 @@ import * as fromApi from './api'
 import { apiVersion } from '@networking'
 
 import {
-	catchError,
 	distinctUntilChanged,
 	filter,
 	map,
 	mergeMap,
-	retryWhen,
-	share,
 	shareReplay,
-	skipWhile,
-	switchMap,
 	take,
 	tap,
 	withLatestFrom,
 } from 'rxjs/operators'
 import {
-	combineLatest,
-	EMPTY,
 	firstValueFrom,
 	from,
-	interval,
 	merge,
 	Observable,
 	of,
@@ -45,37 +37,19 @@ import {
 	WalletT,
 	AccountT,
 	MakeTransactionOptions,
-	ManualUserConfirmTX,
 	SwitchAccountInput,
-	TransactionConfirmationBeforeFinalization,
 	TxMessage,
 } from './_types'
-import { ErrorT, nodeError, walletError } from './errors'
-import { log, LogLevel, msgFromError, toObservableFromResult } from '@util'
+import { log, LogLevel, msgFromError } from '@util'
 import {
-	BuiltTransaction,
 	ExecutedTransaction,
-	FinalizedTransaction,
 	flatMapAddressesOf,
-	PendingTransaction,
-	SignedTransaction,
 	SimpleExecutedTransaction,
 	TransactionHistory,
 	TransactionIdentifierT,
-	TransactionIntent,
-	TransactionStateError,
-	TransactionStateUpdate,
-	TransactionTracking,
-	TransactionTrackingEventType,
 	TransactionType,
-	TransactionStatus,
 } from './dto'
-import {
-	IntendedAction,
-	ActionType,
-	TransferTokensAction,
-	ExecutedAction,
-} from './actions'
+import { ExecutedAction } from './actions'
 import { Wallet } from './wallet'
 import { andThen, pipe } from 'ramda'
 import {
@@ -87,6 +61,8 @@ import {
 import { Result, ResultAsync } from 'neverthrow'
 import { ResourceIdentifierT, ValidatorAddressT } from '@account'
 import { getRecipients } from './dto'
+import { sendTransaction } from './transaction/sendTransaction'
+import { SendTxOutput } from './transaction/_types'
 
 const txTypeFromActions = (
 	input: Readonly<{
@@ -129,10 +105,6 @@ const decorateSimpleExecutedTransactionWithType = (
 		activeAddress,
 	}),
 })
-
-const shouldConfirmTransactionAutomatically = (
-	confirmationScheme: TransactionConfirmationBeforeFinalization,
-): confirmationScheme is 'skip' => confirmationScheme === 'skip'
 
 const create = () => {
 	const subs = new Subscription()
@@ -203,375 +175,6 @@ const create = () => {
 		mergeMap(wallet => wallet.observeAccounts()),
 		shareReplay(1),
 	)
-
-	const __makeTransactionFromIntent = (
-		transactionIntent$: Observable<TransactionIntent>,
-		options: MakeTransactionOptions,
-	): TransactionTracking => {
-		const txLog = radixLog // TODO configure child loggers
-		const txSubs = new Subscription()
-
-		txLog.debug(
-			`Start of transaction flow, inside constructor of 'TransactionTracking'.`,
-		)
-
-		const signUnsignedTx = (
-			unsignedTx: BuiltTransaction,
-		): Observable<SignedTransaction> => {
-			txLog.debug('Starting signing transaction (async).')
-			return combineLatest([
-				transactionIntent$,
-				activeAccount.pipe(take(1)),
-			]).pipe(
-				mergeMap(
-					([
-						transactionIntent,
-						account,
-					]): Observable<SignedTransaction> => {
-						const nonXRDHRPsOfRRIsInTx: string[] =
-							transactionIntent.actions
-								.filter(a => a.type === ActionType.TRANSFER)
-								.map(a => a as TransferTokensAction)
-								.filter(t => t.rri.name !== 'xrd')
-								.map(t => t.rri.name)
-
-						const uniquenonXRDHRPsOfRRIsInTx = [
-							...new Set(nonXRDHRPsOfRRIsInTx),
-						]
-
-						if (uniquenonXRDHRPsOfRRIsInTx.length > 1) {
-							const errMsg = `Error cannot sign transaction with multiple non-XRD RRIs. Unsupported by Ledger app.`
-							log.error(errMsg)
-							return throwError(() => new Error(errMsg))
-						}
-
-						const nonXRDHrp =
-							uniquenonXRDHRPsOfRRIsInTx.length === 1
-								? uniquenonXRDHRPsOfRRIsInTx[0]
-								: undefined
-
-						return account
-							.sign(unsignedTx.transaction, nonXRDHrp)
-							.pipe(
-								map((signature): SignedTransaction => {
-									const publicKeyOfSigner = account.publicKey
-									txLog.debug(`Finished signing transaction`)
-									return {
-										transaction: unsignedTx.transaction,
-										signature,
-										publicKeyOfSigner,
-									}
-								}),
-							)
-					},
-				),
-			)
-		}
-
-		const pendingTXSubject = new Subject<PendingTransaction>()
-
-		const askUserToConfirmSubject = new ReplaySubject<BuiltTransaction>()
-		const userDidConfirmTransactionSubject = new ReplaySubject<0>()
-
-		if (shouldConfirmTransactionAutomatically(options.userConfirmation)) {
-			txLog.debug(
-				'Transaction has been setup to be automatically confirmed, requiring no final confirmation input from user.',
-			)
-			txSubs.add(
-				askUserToConfirmSubject.subscribe(() => {
-					txLog.debug(
-						`askUserToConfirmSubject got 'next', calling 'next' on 'userDidConfirmTransactionSubject'`,
-					)
-					userDidConfirmTransactionSubject.next(0)
-				}),
-			)
-		} else {
-			txLog.debug(
-				`Transaction has been setup so that it requires a manual final confirmation from user before being finalized.`,
-			)
-			const twoWayConfirmationSubject: Subject<ManualUserConfirmTX> =
-				options.userConfirmation
-
-			txSubs.add(
-				askUserToConfirmSubject.subscribe(ux => {
-					txLog.info(
-						`Forwarding signedUnconfirmedTX and 'userDidConfirmTransactionSubject' to subject 'twoWayConfirmationSubject' now (inside subscribe to 'askUserToConfirmSubject')`,
-					)
-
-					const confirmation: ManualUserConfirmTX = {
-						txToConfirm: ux,
-						confirm: () => userDidConfirmTransactionSubject.next(0),
-					}
-					twoWayConfirmationSubject.next(confirmation)
-				}),
-			)
-		}
-
-		const trackingSubject = new ReplaySubject<TransactionStateUpdate>()
-
-		const track = (event: TransactionStateUpdate): void => {
-			trackingSubject.next(event)
-		}
-
-		const completionSubject = new Subject<TransactionIdentifierT>()
-
-		const trackError = (
-			input: Readonly<{
-				error: Error
-				inStep: TransactionTrackingEventType
-			}>,
-		): void => {
-			const errorEvent: TransactionStateError = {
-				eventUpdateType: input.inStep,
-				error: input.error,
-			}
-			txLog.debug(`Forwarding error to 'errorSubject'`)
-			track(errorEvent)
-			completionSubject.error(errorEvent.error)
-		}
-
-		const builtTransaction$ = transactionIntent$.pipe(
-			withLatestFrom(activeAddress),
-			switchMap(([intent, address]) => {
-				txLog.debug(
-					'Transaction intent created => requesting 🛰 API to build it now.',
-				)
-				track({
-					transactionState: intent,
-					eventUpdateType: TransactionTrackingEventType.INITIATED,
-				})
-
-				const builtTx = radixAPI().then(api =>
-					api.buildTransaction(address)(intent),
-				)
-				return from(builtTx)
-			}),
-			// @ts-ignore
-			mergeMap(
-				(x): Observable<BuiltTransaction> =>
-					toObservableFromResult<BuiltTransaction, Error[]>(x),
-			),
-			catchError((e: Error) => {
-				//txLog.error(
-				//	`API failed to build transaction, error: ${e}`,
-				//)
-				trackError({
-					error: e,
-					inStep: TransactionTrackingEventType.BUILT_FROM_INTENT,
-				})
-				return EMPTY
-			}),
-			tap(builtTx => {
-				txLog.debug(
-					'TX built by API => asking for confirmation to sign...',
-				)
-				track({
-					transactionState: builtTx,
-					eventUpdateType:
-						TransactionTrackingEventType.BUILT_FROM_INTENT,
-				})
-				askUserToConfirmSubject.next(builtTx)
-			}),
-			tap(builtTx => {
-				track({
-					transactionState: builtTx,
-					eventUpdateType:
-						TransactionTrackingEventType.ASKED_FOR_CONFIRMATION,
-				})
-			}),
-		)
-
-		const signedTransaction$ = combineLatest([
-			builtTransaction$,
-			userDidConfirmTransactionSubject,
-		]).pipe(
-			map(([signedTx, _]) => signedTx),
-			tap(unsignedTx => {
-				track({
-					transactionState: unsignedTx,
-					eventUpdateType: TransactionTrackingEventType.CONFIRMED,
-				})
-			}),
-			mergeMap(unsignedTx => signUnsignedTx(unsignedTx)),
-			shareReplay(1),
-		)
-
-		const finalizedTx$ = signedTransaction$.pipe(
-			withLatestFrom(networkSubject),
-			mergeMap(([signedTx, network]) => {
-				txLog.debug(`Finished signing tx => submitting it to 🛰  API.`)
-				track({
-					transactionState: signedTx,
-					eventUpdateType: TransactionTrackingEventType.SIGNED,
-				})
-				const finalizedTx = radixAPI().then(api =>
-					api.finalizeTransaction(network, signedTx),
-				)
-				return finalizedTx
-			}),
-			mergeMap(x => toObservableFromResult(x)),
-			catchError((e: Error) => {
-				txLog.error(
-					`API failed to submit transaction, error: ${JSON.stringify(
-						e,
-						null,
-						4,
-					)}`,
-				)
-				trackError({
-					error: e,
-					inStep: TransactionTrackingEventType.FINALIZED,
-				})
-				return EMPTY
-			}),
-			tap<FinalizedTransaction>(finalizedTx => {
-				txLog.debug(
-					`Received finalized transaction' from API, calling submit.`,
-				)
-				track({
-					transactionState: finalizedTx,
-					eventUpdateType: TransactionTrackingEventType.FINALIZED,
-				})
-			}),
-		)
-
-		txSubs.add(
-			finalizedTx$
-				.pipe(
-					withLatestFrom(networkSubject),
-					mergeMap(([finalizedTx, network]) => {
-						const pendingTx = radixAPI().then(api =>
-							api.submitSignedTransaction(network, finalizedTx),
-						)
-						return pendingTx
-					}),
-					mergeMap(tx => toObservableFromResult(tx)),
-					tap({
-						next: (pendingTx: PendingTransaction) => {
-							txLog.debug(
-								`Submitted transaction with txID='${pendingTx.txID.toPrimitive()}', it is now pending.`,
-							)
-							track({
-								transactionState: pendingTx,
-								eventUpdateType:
-									TransactionTrackingEventType.SUBMITTED,
-							})
-							pendingTXSubject.next(pendingTx)
-						},
-						error: (submitTXError: Error) => {
-							txLog.error(
-								`Submission of signed transaction to API failed with error: ${submitTXError.message}`,
-							)
-							pendingTXSubject.error(submitTXError)
-						},
-					}),
-				)
-				.subscribe(),
-		)
-
-		const pollTxStatusTrigger = (
-			options.pollTXStatusTrigger ?? interval(1000)
-		).pipe(share())
-
-		const transactionStatus$ = combineLatest([
-			pollTxStatusTrigger,
-			pendingTXSubject,
-		]).pipe(
-			withLatestFrom(networkSubject),
-			mergeMap(([[_, pendingTx], network]) => {
-				txLog.debug(
-					`Asking API for status of transaction with txID: ${pendingTx.txID.toPrimitive()}`,
-				)
-				return radixAPI().then(api =>
-					api.transactionStatus(pendingTx.txID, network),
-				)
-			}),
-			distinctUntilChanged(
-				(prev, cur) =>
-					prev._unsafeUnwrap().status === cur._unsafeUnwrap().status,
-			),
-			share(),
-		)
-
-		const transactionCompletedWithStatusConfirmed$ =
-			transactionStatus$.pipe(
-				skipWhile(
-					txID =>
-						txID._unsafeUnwrap().status !==
-						TransactionStatus.CONFIRMED,
-				),
-				take(1),
-			)
-
-		const transactionCompletedWithStatusFailed$ = transactionStatus$.pipe(
-			skipWhile(
-				txID =>
-					txID._unsafeUnwrap().status !== TransactionStatus.FAILED,
-			),
-			take(1),
-		)
-
-		txSubs.add(
-			transactionStatus$.subscribe({
-				next: statusOfTransaction => {
-					const { status, txID } = statusOfTransaction._unsafeUnwrap()
-					txLog.debug(
-						`Status ${status.toString()} of transaction with txID='${txID.toString()}'`,
-					)
-					track({
-						transactionState: statusOfTransaction._unsafeUnwrap(),
-						eventUpdateType:
-							TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
-					})
-				},
-				error: (transactionStatusError: Error) => {
-					// TODO hmm how to get txID here?
-					txLog.error(
-						`Failed to get status of transaction`,
-						transactionStatusError,
-					)
-				},
-			}),
-		)
-
-		txSubs.add(
-			transactionCompletedWithStatusConfirmed$.subscribe({
-				next: statusOfTransaction => {
-					const { txID } = statusOfTransaction._unsafeUnwrap()
-					txLog.info(
-						`Transaction with txID='${txID.toString()}' has completed succesfully.`,
-					)
-					track({
-						transactionState: statusOfTransaction._unsafeUnwrap(),
-						eventUpdateType: TransactionTrackingEventType.COMPLETED,
-					})
-
-					completionSubject.next(txID)
-					completionSubject.complete()
-					txSubs.unsubscribe()
-				},
-			}),
-		)
-
-		txSubs.add(
-			transactionCompletedWithStatusFailed$.subscribe(status => {
-				const errMsg = `API status of tx with id=${status
-					._unsafeUnwrap()
-					.txID.toString()} returned 'FAILED'`
-				txLog.error(errMsg)
-				trackError({
-					error: new Error(errMsg),
-					inStep: TransactionTrackingEventType.UPDATE_OF_STATUS_OF_PENDING_TX,
-				})
-				txSubs.unsubscribe()
-			}),
-		)
-
-		return {
-			completion: completionSubject.asObservable(),
-			events: trackingSubject.asObservable(),
-		}
-	}
 
 	const decryptTransaction = (
 		input: SimpleExecutedTransaction,
@@ -896,9 +499,11 @@ const create = () => {
 			amount: AmountT,
 			tokenIdentifier: ResourceIdentifierT,
 			message?: TxMessage,
-			options: MakeTransactionOptions = { userConfirmation: 'skip' },
-		): Promise<Result<TransactionTracking, Error[]>> => {
+			options: MakeTransactionOptions = {},
+		): Promise<Result<SendTxOutput, Error[]>> => {
 			const account = await firstValueFrom(activeAccount)
+			const radixAPI = await firstValueFrom(radixAPI$)
+			const network = await firstValueFrom(networkSubject)
 
 			return pipe(
 				() =>
@@ -914,7 +519,13 @@ const create = () => {
 					),
 				result =>
 					result.map(actions =>
-						__makeTransactionFromIntent(of(actions), options),
+						sendTransaction({
+							account,
+							options,
+							radixAPI,
+							txIntent: actions,
+							network,
+						}),
 					),
 			)()
 		},
@@ -922,10 +533,13 @@ const create = () => {
 		stakeTokens: async (
 			validator: ValidatorAddressT,
 			amount: AmountT,
-			options: MakeTransactionOptions = { userConfirmation: 'skip' },
+			options: MakeTransactionOptions = {},
 		) => {
 			const account = await firstValueFrom(activeAccount)
 			const rri = await firstValueFrom(xrdRRI$)
+			const radixAPI = await firstValueFrom(radixAPI$)
+			const network = await firstValueFrom(networkSubject)
+
 			return pipe(
 				() =>
 					createStake({
@@ -938,7 +552,13 @@ const create = () => {
 				result => result.asyncAndThen(build => build(account)),
 				result =>
 					result.map(actions =>
-						__makeTransactionFromIntent(of(actions), options),
+						sendTransaction({
+							account,
+							options,
+							radixAPI,
+							txIntent: actions,
+							network,
+						}),
 					),
 			)()
 		},
@@ -946,10 +566,12 @@ const create = () => {
 		unstakeTokens: async (
 			validator: ValidatorAddressT,
 			amount: AmountT,
-			options: MakeTransactionOptions = { userConfirmation: 'skip' },
+			options: MakeTransactionOptions = {},
 		) => {
 			const account = await firstValueFrom(activeAccount)
 			const rri = await firstValueFrom(xrdRRI$)
+			const radixAPI = await firstValueFrom(radixAPI$)
+			const network = await firstValueFrom(networkSubject)
 
 			return pipe(
 				() =>
@@ -963,7 +585,13 @@ const create = () => {
 				result => result.asyncAndThen(build => build(account)),
 				result =>
 					result.map(actions =>
-						__makeTransactionFromIntent(of(actions), options),
+						sendTransaction({
+							account,
+							options,
+							radixAPI,
+							txIntent: actions,
+							network,
+						}),
 					),
 			)()
 		},
