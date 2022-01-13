@@ -109,11 +109,6 @@ export type TransactionState =
 	| FinalizedTransaction
 	| PendingTransaction
 
-export type TransactionTracking = {
-	events: Observable<TransactionStateUpdate>
-	completion: Observable<TransactionIdentifierT>
-}
-
 export type TransactionHistoryOfKnownAddressRequestInput = {
 	size: number
 	cursor?: string
@@ -132,7 +127,7 @@ export type SimpleExecutedTransaction = {
 	sentAt: Date
 	status: TransactionStatus
 	fee: AmountT
-	message?: TxMessage,
+	message?: TxMessage
 	actions: ExecutedAction[]
 }
 

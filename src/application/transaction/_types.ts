@@ -1,4 +1,5 @@
 import { MakeTransactionOptions, Network } from '@application'
+import { ResultAsync } from 'neverthrow'
 import { Observable, Subject } from 'rxjs'
 import { RadixAPI } from '../api'
 import {
@@ -29,7 +30,12 @@ export type MakeTxFromIntentInput = {
 	options: MakeTransactionOptions
 }
 
-export type MakeTxFromIntentOutput = {
-	completion: Observable<TransactionIdentifierT>
+export type SendTxError = {
+	eventUpdateType: TransactionTrackingEventType
+	errors: Error[]
+}
+
+export type SendTxOutput = {
+	completion: ResultAsync<TransactionIdentifierT, SendTxError>
 	events: Observable<TransactionStateUpdate>
 }

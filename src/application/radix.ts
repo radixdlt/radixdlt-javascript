@@ -47,12 +47,9 @@ import {
 	SimpleExecutedTransaction,
 	TransactionHistory,
 	TransactionIdentifierT,
-	TransactionTracking,
 	TransactionType,
 } from './dto'
-import {
-	ExecutedAction,
-} from './actions'
+import { ExecutedAction } from './actions'
 import { Wallet } from './wallet'
 import { andThen, pipe } from 'ramda'
 import {
@@ -65,6 +62,7 @@ import { Result, ResultAsync } from 'neverthrow'
 import { ResourceIdentifierT, ValidatorAddressT } from '@account'
 import { getRecipients } from './dto'
 import { sendTransaction } from './transaction/sendTransaction'
+import { SendTxOutput } from './transaction/_types'
 
 const txTypeFromActions = (
 	input: Readonly<{
@@ -299,12 +297,12 @@ const create = () => {
 		<
 			Method extends keyof ReturnType<typeof fromApi.radixAPI>,
 			Args extends Parameters<fromApi.RadixAPI[Method]>,
-			>(
-				method: Method,
+		>(
+			method: Method,
 		) =>
-			async (...args: Args): Promise<ReturnType<fromApi.RadixAPI[Method]>> =>
-				// @ts-ignore
-				(await radixAPI())[method](...args)
+		async (...args: Args): Promise<ReturnType<fromApi.RadixAPI[Method]>> =>
+			// @ts-ignore
+			(await radixAPI())[method](...args)
 
 	const methods = {
 		api: radixAPI,
@@ -502,7 +500,7 @@ const create = () => {
 			tokenIdentifier: ResourceIdentifierT,
 			message?: TxMessage,
 			options: MakeTransactionOptions = {},
-		): Promise<Result<TransactionTracking, Error[]>> => {
+		): Promise<Result<SendTxOutput, Error[]>> => {
 			const account = await firstValueFrom(activeAccount)
 			const radixAPI = await firstValueFrom(radixAPI$)
 			const network = await firstValueFrom(networkSubject)
@@ -521,7 +519,13 @@ const create = () => {
 					),
 				result =>
 					result.map(actions =>
-						sendTransaction({ account, options, radixAPI, txIntent: actions, network }),
+						sendTransaction({
+							account,
+							options,
+							radixAPI,
+							txIntent: actions,
+							network,
+						}),
 					),
 			)()
 		},
@@ -548,7 +552,13 @@ const create = () => {
 				result => result.asyncAndThen(build => build(account)),
 				result =>
 					result.map(actions =>
-						sendTransaction({ account, options, radixAPI, txIntent: actions, network }),
+						sendTransaction({
+							account,
+							options,
+							radixAPI,
+							txIntent: actions,
+							network,
+						}),
 					),
 			)()
 		},
@@ -575,7 +585,13 @@ const create = () => {
 				result => result.asyncAndThen(build => build(account)),
 				result =>
 					result.map(actions =>
-						sendTransaction({ account, options, radixAPI, txIntent: actions, network }),
+						sendTransaction({
+							account,
+							options,
+							radixAPI,
+							txIntent: actions,
+							network,
+						}),
 					),
 			)()
 		},

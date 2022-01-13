@@ -255,10 +255,12 @@ describe('integration API tests', () => {
 			)
 		)._unsafeUnwrap()
 
-		const txID = await firstValueFrom(transferTokens.completion)
+		const txID = await transferTokens.completion
 
 		const txStatus = (
-			await (await radix.api()).transactionStatus(txID, network)
+			await (
+				await radix.api()
+			).transactionStatus(txID._unsafeUnwrap(), network)
 		)._unsafeUnwrap()
 
 		const tokenBalancesAfter = (await radix.tokenBalances())._unsafeUnwrap()
@@ -381,14 +383,14 @@ describe('integration API tests', () => {
 		)._unsafeUnwrap()
 
 		const [txID1, txID2] = await Promise.all([
-			firstValueFrom(tx1.completion),
-			firstValueFrom(tx2.completion),
+			tx1.completion,
+			tx2.completion,
 		])
 
 		const txHistory = (await radix.transactionHistory(2))._unsafeUnwrap()
 
-		expect(txHistory.transactions[0].txID.equals(txID1))
-		expect(txHistory.transactions[1].txID.equals(txID2))
+		expect(txHistory.transactions[0].txID.equals(txID1._unsafeUnwrap()))
+		expect(txHistory.transactions[1].txID.equals(txID2._unsafeUnwrap()))
 	})
 
 	// 🟢
@@ -447,7 +449,7 @@ describe('integration API tests', () => {
 			)
 		)._unsafeUnwrap()
 
-		const txID = await firstValueFrom(completion)
+		const txID = (await completion)._unsafeUnwrap()
 		const tx = (await radix.lookupTransaction(txID))._unsafeUnwrap()
 
 		expect(txID.toPrimitive()).toEqual(tx.txID.toPrimitive())
@@ -519,7 +521,7 @@ describe('integration API tests', () => {
 			await radix.stakeTokens(validator.address, stakeAmount)
 		)._unsafeUnwrap()
 
-		await firstValueFrom(completion)
+		await completion
 
 		const actualStake = getValidatorStakeAmountForAddress(
 			(await radix.stakingPositions())._unsafeUnwrap(),
@@ -531,7 +533,7 @@ describe('integration API tests', () => {
 		expect(actualStake).toEqual(expectedStake)
 	})
 
-	it.only('can fetch unstake positions', async () => {
+	it('can fetch unstake positions', async () => {
 		const validators = await getValidators()
 
 		const validator = validators.find(v => v.isExternalStakeAccepted)
@@ -548,13 +550,13 @@ describe('integration API tests', () => {
 			await radix.stakeTokens(validator.address, stakeAmount)
 		)._unsafeUnwrap()
 
-		await firstValueFrom(completion)
+		await completion
 
 		const unstake = (
 			await radix.unstakeTokens(validator.address, stakeAmount)
 		)._unsafeUnwrap()
 
-		await firstValueFrom(unstake.completion)
+		await unstake.completion
 
 		const positions = (await radix.unstakingPositions())._unsafeUnwrap()
 
@@ -610,10 +612,13 @@ describe('integration API tests', () => {
 	it('tx manual confirmation', done => {
 		const amount = Amount.fromUnsafe(`1${'0'.repeat(18)}`)._unsafeUnwrap()
 
-
 		let hasConfirmed = false
 
-		const userConfirmation = async (confirm: () => void, reject: () => void, tx: BuiltTransaction) => {
+		const userConfirmation = async (
+			confirm: () => void,
+			reject: () => void,
+			tx: BuiltTransaction,
+		) => {
 			confirm()
 			hasConfirmed = true
 		}
@@ -626,11 +631,10 @@ describe('integration API tests', () => {
 				undefined,
 				{ userConfirmation },
 			)
-			.then(result => {
-				result._unsafeUnwrap().completion.subscribe(() => {
-					expect(hasConfirmed).toBeTruthy()
-					done()
-				})
+			.then(result => result._unsafeUnwrap().completion)
+			.then(() => {
+				expect(hasConfirmed).toBeTruthy()
+				done()
 			})
 	})
 })
