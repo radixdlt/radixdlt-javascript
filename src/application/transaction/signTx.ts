@@ -7,7 +7,7 @@ import {
 } from '../dto'
 import { AccountT } from '../_types'
 import { log } from '@util'
-import { Track } from './_types'
+import { Track, TrackError } from './_types'
 import { errAsync } from 'neverthrow'
 
 const getUniqueNonXrdTokensFromTransfers = (
@@ -23,7 +23,12 @@ const getUniqueNonXrdTokensFromTransfers = (
 ]
 
 export const signTx =
-  (track: Track, account: AccountT, txIntent: TransactionIntent) =>
+  (
+    track: Track,
+    account: AccountT,
+    txIntent: TransactionIntent,
+    trackError: TrackError,
+  ) =>
   (builtTx: BuiltTransaction) => {
     const nonXrdTokenNames = getUniqueNonXrdTokensFromTransfers(
       txIntent.actions,
@@ -40,18 +45,35 @@ export const signTx =
 
     log.debug('Starting signing transaction.')
 
-    return account.sign(builtTx.transaction, nonXRDHrp).map(signature => {
-      const signedTx: SignedTransaction = {
-        transaction: builtTx.transaction,
-        signature,
-        publicKeyOfSigner: account.publicKey,
-      }
+    return account
+      .sign(builtTx.transaction, nonXRDHrp)
+      .map(signature => {
+        const signedTx: SignedTransaction = {
+          transaction: builtTx.transaction,
+          signature,
+          publicKeyOfSigner: account.publicKey,
+        }
 
-      log.debug(`Finished signing transaction`)
-      track({
-        transactionState: signedTx,
-        eventUpdateType: TransactionTrackingEventType.SIGNED,
+        log.debug(`Finished signing transaction`)
+        track({
+          transactionState: signedTx,
+          eventUpdateType: TransactionTrackingEventType.SIGNED,
+        })
+        return signedTx
       })
-      return signedTx
-    })
+      .mapErr(e => {
+        const formattedError = Error(
+          JSON.stringify({
+            details: {
+              type: 'SignTransactionError',
+            },
+            message: e,
+          }),
+        )
+        log.error(e)
+        trackError({
+          errors: [formattedError],
+          inStep: TransactionTrackingEventType.SIGNED,
+        })
+      })
   }
