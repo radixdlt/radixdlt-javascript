@@ -1,5 +1,5 @@
 export type SecureRandom = {
-	randomSecureBytes: (byteCount: number) => string
+  randomSecureBytes: (byteCount: number) => string
 }
 
 export type ValidationWitness = Readonly<{ witness: string }>

@@ -4,7 +4,7 @@ import { radixAPI } from './radixAPI'
 export type GatewayAPI = ReturnType<typeof gatewayAPI>
 
 export type NodeT = Readonly<{
-	url: URL
+  url: URL
 }>
 
 export type RadixAPI = Omit<RadixCoreAPI, 'node'>

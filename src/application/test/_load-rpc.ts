@@ -5,29 +5,27 @@
 
 const NodeEnvironment = require('jest-environment-node')
 const RPC_SPEC = require('@radixdlt/open-rpc-spec')
-const parseOpenRPCDocument = require('@open-rpc/schema-utils-js')
-	.parseOpenRPCDocument
+const parseOpenRPCDocument =
+  require('@open-rpc/schema-utils-js').parseOpenRPCDocument
 
 class TestEnvironment extends NodeEnvironment {
-	constructor(config: any) {
-		super(config)
-	}
+  constructor(config: any) {
+    super(config)
+  }
 
-	async setup() {
-		await super.setup()
-		this.global.rpcSpec = await parseOpenRPCDocument(
-			JSON.stringify(RPC_SPEC),
-		)
-	}
+  async setup() {
+    await super.setup()
+    this.global.rpcSpec = await parseOpenRPCDocument(JSON.stringify(RPC_SPEC))
+  }
 
-	async teardown() {
-		this.global.rpcSpec = null
-		await super.teardown()
-	}
+  async teardown() {
+    this.global.rpcSpec = null
+    await super.teardown()
+  }
 
-	runScript(script: any) {
-		return super.runScript(script)
-	}
+  runScript(script: any) {
+    return super.runScript(script)
+  }
 }
 
 module.exports = TestEnvironment
