@@ -5,13 +5,13 @@ import { OpenRPCClientCall } from './open-rpc-client'
 type TransportType = 'json-rpc' | 'open-api'
 
 export type Call<Methods, Params, Return> = <Methods, Params, Return>(
-	method: Methods,
-	param: Params,
+  method: Methods,
+  param: Params,
 ) => ResultAsync<Return, Error>
 
 export type Transport<T extends TransportType> = {
-	type: T
-	call: T extends 'open-api' ? OpenApiClientCall : OpenRPCClientCall
+  type: T
+  call: T extends 'open-api' ? OpenApiClientCall : OpenRPCClientCall
 }
 
 export type Client<T extends TransportType> = (url: URL) => Transport<T>

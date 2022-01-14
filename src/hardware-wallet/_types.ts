@@ -1,86 +1,83 @@
 import { Observable } from 'rxjs'
-import {
-	ECPointOnCurveT,
-	HDPathRadixT,
-	PublicKeyT,
-	SignatureT,
-} from '@crypto'
+import { ECPointOnCurveT, HDPathRadixT, PublicKeyT, SignatureT } from '@crypto'
 import { BuiltTransactionReadyToSign, Network } from '@primitives'
 import { ResultAsync } from 'neverthrow'
 
 // Semantic versioning, e.g. 1.0.5
 export type SemVerT = Readonly<{
-	major: number
-	minor: number
-	patch: number
+  major: number
+  minor: number
+  patch: number
 
-	equals: (other: SemVerT) => boolean
+  equals: (other: SemVerT) => boolean
 
-	// '{major}.{minor}.{patch}'
-	toString: () => string
+  // '{major}.{minor}.{patch}'
+  toString: () => string
 }>
 
 export type AtPath = Readonly<{
-	// defaults to: `m/44'/1022'/0'/0/0`
-	path?: HDPathRadixT
+  // defaults to: `m/44'/1022'/0'/0/0`
+  path?: HDPathRadixT
 }>
 
 export type GetPublicKeyInput = AtPath &
-	Readonly<{
-		display?: boolean
-		/// Only relevant if `display` is true, this skips showing BIP32 Path on display.
-		verifyAddressOnly?: boolean
-	}>
+  Readonly<{
+    display?: boolean
+    /// Only relevant if `display` is true, this skips showing BIP32 Path on display.
+    verifyAddressOnly?: boolean
+  }>
 
 export type SignTXOutput = Readonly<{
-	signature: SignatureT
-	signatureV: number
-	hashCalculatedByLedger: Buffer
+  signature: SignatureT
+  signatureV: number
+  hashCalculatedByLedger: Buffer
 }>
 
 export type SignHashInput = GetPublicKeyInput &
-	Readonly<{
-		hashToSign: Buffer
-	}>
+  Readonly<{
+    hashToSign: Buffer
+  }>
 
 export type KeyExchangeInput = AtPath &
-	Readonly<{
-		publicKeyOfOtherParty: PublicKeyT
-		display?: 'encrypt' | 'decrypt'
-	}>
+  Readonly<{
+    publicKeyOfOtherParty: PublicKeyT
+    display?: 'encrypt' | 'decrypt'
+  }>
 
 export type HardwareSigningKeyT = Readonly<{
-	keyExchange: (
-		publicKeyOfOtherParty: PublicKeyT,
-		display?: 'encrypt' | 'decrypt',
-	) => Observable<ECPointOnCurveT>
-	publicKey: PublicKeyT
+  keyExchange: (
+    publicKeyOfOtherParty: PublicKeyT,
+    display?: 'encrypt' | 'decrypt',
+  ) => Observable<ECPointOnCurveT>
+  publicKey: PublicKeyT
 
-	// Like property `publicKey` but a function and omits BIP32 path on HW display
-	getPublicKeyDisplayOnlyAddress: () => Observable<PublicKeyT>
+  // Like property `publicKey` but a function and omits BIP32 path on HW display
+  getPublicKeyDisplayOnlyAddress: () => Observable<PublicKeyT>
 
-	signHash: (hashedMessage: Buffer) => Observable<SignatureT>
-	sign: (
-		tx: BuiltTransactionReadyToSign,
-		nonXrdHRP?: string,
-	) => ResultAsync<SignatureT, Error>
+  signHash: (hashedMessage: Buffer) => Observable<SignatureT>
+  sign: (
+    tx: BuiltTransactionReadyToSign,
+    nonXrdHRP?: string,
+  ) => ResultAsync<SignatureT, Error>
 }>
 
 export type SignTransactionInput = Readonly<{
-	tx: BuiltTransactionReadyToSign
-	path: HDPathRadixT
-	nonXrdHRP?: string
+  tx: BuiltTransactionReadyToSign
+  path: HDPathRadixT
+  nonXrdHRP?: string
 }>
 
 export type HardwareWalletT = Readonly<{
-	getVersion: () => Observable<SemVerT>
-	getPublicKey: (input: GetPublicKeyInput) => Observable<PublicKeyT>
-	signHash: (input: SignHashInput) => Observable<SignatureT>
-	signTransaction: (input: SignTransactionInput) => ResultAsync<SignTXOutput, Error>
-	keyExchange: (input: KeyExchangeInput) => Observable<ECPointOnCurveT>
+  getVersion: () => Observable<SemVerT>
+  getPublicKey: (input: GetPublicKeyInput) => Observable<PublicKeyT>
+  signHash: (input: SignHashInput) => Observable<SignatureT>
+  signTransaction: (
+    input: SignTransactionInput,
+  ) => ResultAsync<SignTXOutput, Error>
+  keyExchange: (input: KeyExchangeInput) => Observable<ECPointOnCurveT>
 
-	makeSigningKey: (
-		path: HDPathRadixT,
-		verificationPrompt?: boolean,
-	) => Observable<HardwareSigningKeyT>
+  makeSigningKey: (
+    path: HDPathRadixT,
+    verificationPrompt?: boolean,
+  ) => Observable<HardwareSigningKeyT>
 }>

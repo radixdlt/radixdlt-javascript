@@ -1,11 +1,11 @@
 export type Bech32T = Readonly<{
-	hrp: string
+  hrp: string
 
-	// excluding checksum
-	data: Buffer
+  // excluding checksum
+  data: Buffer
 
-	// including checksum
-	toString: () => string
+  // including checksum
+  toString: () => string
 
-	equals: (other: Bech32T) => boolean
+  equals: (other: Bech32T) => boolean
 }>

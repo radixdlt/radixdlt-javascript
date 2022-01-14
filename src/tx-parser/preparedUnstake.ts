@@ -4,12 +4,12 @@ import { makeBaseStakeSubstateFromBuffer } from './preparedStake'
 import { BufferReaderT } from '@util'
 
 export const PreparedUnstake = {
-	fromBufferReader: (
-		bufferReader: BufferReaderT,
-		lengthData: Buffer,
-	): Result<PreparedUnstakeT, Error> =>
-		makeBaseStakeSubstateFromBuffer(SubStateType.PREPARED_UNSTAKE)(
-			bufferReader,
-			lengthData,
-		),
+  fromBufferReader: (
+    bufferReader: BufferReaderT,
+    lengthData: Buffer,
+  ): Result<PreparedUnstakeT, Error> =>
+    makeBaseStakeSubstateFromBuffer(SubStateType.PREPARED_UNSTAKE)(
+      bufferReader,
+      lengthData,
+    ),
 }

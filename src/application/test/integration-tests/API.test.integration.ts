@@ -10,17 +10,17 @@ import { ValidatorAddressT } from '@account'
 import { firstValueFrom, interval, ReplaySubject, Subscription } from 'rxjs'
 import { filter, map, switchMap, take, toArray } from 'rxjs/operators'
 import {
-	FinalizedTransaction,
-	TransactionStateSuccess,
-	TransactionStatus,
+  FinalizedTransaction,
+  TransactionStateSuccess,
+  TransactionStatus,
 } from '../../dto/_types'
 import { Amount, Network } from '@primitives'
 import {
-	TransactionTrackingEventType,
-	KeystoreT,
-	log,
-	restoreDefaultLogLevel,
-	AccountT,
+  TransactionTrackingEventType,
+  KeystoreT,
+  log,
+  restoreDefaultLogLevel,
+  AccountT,
 } from '../..'
 import { UInt256 } from '@radixdlt/uint256'
 import { keystoreForTest, makeWalletWithFunds } from '../util'
@@ -47,20 +47,20 @@ const network = Network.STOKENET
 const NODE_URL = 'https://stokenet-gateway.radixdlt.com'
 
 const loadKeystore = (): Promise<KeystoreT> =>
-	Promise.resolve(keystoreForTest.keystore)
+  Promise.resolve(keystoreForTest.keystore)
 
 const requestFaucet = async (address: string) => {
-	let request = {
-		params: {
-			address,
-		},
-	}
+  let request = {
+    params: {
+      address,
+    },
+  }
 
-	await fetch(`${NODE_URL}/faucet/request`, {
-		method: 'POST',
-		body: JSON.stringify(request),
-		headers: { 'Content-Type': 'application/json' },
-	})
+  await fetch(`${NODE_URL}/faucet/request`, {
+    method: 'POST',
+    body: JSON.stringify(request),
+    headers: { 'Content-Type': 'application/json' },
+  })
 }
 
 let subs: Subscription
@@ -71,95 +71,94 @@ let balances: Decoded.AccountBalances
 let nativeTokenBalance: Decoded.TokenAmount
 
 describe('integration API tests', () => {
-	beforeAll(async () => {
-		radix = Radix.create()
-		await radix
-			.__withWallet(makeWalletWithFunds(network))
-			.connect(`${NODE_URL}`)
-		accounts = (
-			await firstValueFrom(radix.restoreLocalHDAccountsToIndex(2))
-		).all
+  beforeAll(async () => {
+    radix = Radix.create()
+    await radix
+      .__withWallet(makeWalletWithFunds(network))
+      .connect(`${NODE_URL}`)
+    accounts = (await firstValueFrom(radix.restoreLocalHDAccountsToIndex(2)))
+      .all
 
-		balances = (await radix.tokenBalances())._unsafeUnwrap()
-		const maybeTokenBalance = balances.liquid_balances.find(
-			a => a.token_identifier.rri.name.toLowerCase() === 'xrd',
-		)
-		if (!maybeTokenBalance) {
-			throw Error('no XRD found')
-		}
-		nativeTokenBalance = maybeTokenBalance
-		log.setLevel('INFO')
-	})
+    balances = (await radix.tokenBalances())._unsafeUnwrap()
+    const maybeTokenBalance = balances.liquid_balances.find(
+      a => a.token_identifier.rri.name.toLowerCase() === 'xrd',
+    )
+    if (!maybeTokenBalance) {
+      throw Error('no XRD found')
+    }
+    nativeTokenBalance = maybeTokenBalance
+    log.setLevel('INFO')
+  })
 
-	beforeEach(() => {
-		subs = new Subscription()
-	})
-	afterEach(() => {
-		subs.unsubscribe()
-	})
-	afterAll(() => {
-		restoreDefaultLogLevel()
-	})
+  beforeEach(() => {
+    subs = new Subscription()
+  })
+  afterEach(() => {
+    subs.unsubscribe()
+  })
+  afterAll(() => {
+    restoreDefaultLogLevel()
+  })
 
-	it('can connect and is chainable', async () => {
-		const radix = Radix.create()
-		await radix.connect(`${NODE_URL}`)
+  it('can connect and is chainable', async () => {
+    const radix = Radix.create()
+    await radix.connect(`${NODE_URL}`)
 
-		expect(radix).toBeDefined()
-		expect(radix.tokenBalances).toBeDefined() // etc
-	})
+    expect(radix).toBeDefined()
+    expect(radix.tokenBalances).toBeDefined() // etc
+  })
 
-	// it('emits node connection without wallet', async () => {
-	// const radix = Radix.create()
-	// await radix.connect(`${NODE_URL}`)
+  // it('emits node connection without wallet', async () => {
+  // const radix = Radix.create()
+  // await radix.connect(`${NODE_URL}`)
 
-	// subs.add(
-	// 	radix.__node.subscribe(
-	// 		node => {
-	// 			expect(node.url.host).toBe(new URL(NODE_URL).host)
-	// 			done()
-	// 		},
-	// 		error => done(error),
-	// 	),
-	// )
-	// })
+  // subs.add(
+  // 	radix.__node.subscribe(
+  // 		node => {
+  // 			expect(node.url.host).toBe(new URL(NODE_URL).host)
+  // 			done()
+  // 		},
+  // 		error => done(error),
+  // 	),
+  // )
+  // })
 
-	it('can switch networks', async () => {
-		const radix = Radix.create()
+  it('can switch networks', async () => {
+    const radix = Radix.create()
 
-		await radix
-			.login(keystoreForTest.password, loadKeystore)
-			.connect(`${NODE_URL}`)
+    await radix
+      .login(keystoreForTest.password, loadKeystore)
+      .connect(`${NODE_URL}`)
 
-		const address1 = await firstValueFrom(radix.activeAddress)
-		expect(address1.network).toBeDefined()
+    const address1 = await firstValueFrom(radix.activeAddress)
+    expect(address1.network).toBeDefined()
 
-		await radix.connect('https://mainnet-gateway.radixdlt.com')
+    await radix.connect('https://mainnet-gateway.radixdlt.com')
 
-		const address2 = await firstValueFrom(radix.activeAddress)
-		expect(address2.network).toBeDefined()
+    const address2 = await firstValueFrom(radix.activeAddress)
+    expect(address2.network).toBeDefined()
 
-		await radix.connect('https://stokenet-gateway.radixdlt.com')
+    await radix.connect('https://stokenet-gateway.radixdlt.com')
 
-		const address3 = await firstValueFrom(radix.activeAddress)
-		expect(address3.network).toBeDefined()
-	})
+    const address3 = await firstValueFrom(radix.activeAddress)
+    expect(address3.network).toBeDefined()
+  })
 
-	it('returns native token without wallet', async () => {
-		const radix = Radix.create()
-		radix.connect(`${NODE_URL}`)
+  it('returns native token without wallet', async () => {
+    const radix = Radix.create()
+    radix.connect(`${NODE_URL}`)
 
-		const api = await radix.api()
-		const result = await api.nativeToken({
-			network_identifier: { network },
-		})
+    const api = await radix.api()
+    const result = await api.nativeToken({
+      network_identifier: { network },
+    })
 
-		result.map(token => {
-			expect(token.symbol).toBe('xrd')
-		})
-	})
+    result.map(token => {
+      expect(token.symbol).toBe('xrd')
+    })
+  })
 
-	/*
+  /*
 
 		it('deriveNextSigningKey method on radix updates accounts', done => {
 		const expected = [1, 2, 3]
@@ -221,58 +220,48 @@ describe('integration API tests', () => {
 	})
 */
 
-	// 🟢
-	it('should compare token balance before and after transfer', async () => {
-		const address = await firstValueFrom(radix.activeAddress)
-		await requestFaucet(address.toString())
+  // 🟢
+  it('should compare token balance before and after transfer', async () => {
+    const address = await firstValueFrom(radix.activeAddress)
+    await requestFaucet(address.toString())
 
-		const amountToSend = Amount.fromUnsafe(
-			`1${'0'.repeat(18)}`,
-		)._unsafeUnwrap()
+    const amountToSend = Amount.fromUnsafe(`1${'0'.repeat(18)}`)._unsafeUnwrap()
 
-		const getXRDBalanceOrZero = (
-			tokenBalances: Decoded.AccountBalances,
-		) => {
-			const maybeTokenBalance = tokenBalances.liquid_balances.find(
-				a => a.token_identifier.rri.name.toLowerCase() === 'xrd',
-			)
-			return maybeTokenBalance
-				? maybeTokenBalance.value
-				: UInt256.valueOf(0)
-		}
+    const getXRDBalanceOrZero = (tokenBalances: Decoded.AccountBalances) => {
+      const maybeTokenBalance = tokenBalances.liquid_balances.find(
+        a => a.token_identifier.rri.name.toLowerCase() === 'xrd',
+      )
+      return maybeTokenBalance ? maybeTokenBalance.value : UInt256.valueOf(0)
+    }
 
-		const tokenBalancesBefore = (
-			await radix.tokenBalances()
-		)._unsafeUnwrap()
+    const tokenBalancesBefore = (await radix.tokenBalances())._unsafeUnwrap()
 
-		const initialBalance = getXRDBalanceOrZero(tokenBalancesBefore)
+    const initialBalance = getXRDBalanceOrZero(tokenBalancesBefore)
 
-		const transferTokens = (
-			await radix.transferTokens(
-				accounts[2].address,
-				amountToSend,
-				nativeTokenBalance.token_identifier.rri,
-			)
-		)._unsafeUnwrap()
+    const transferTokens = (
+      await radix.transferTokens(
+        accounts[2].address,
+        amountToSend,
+        nativeTokenBalance.token_identifier.rri,
+      )
+    )._unsafeUnwrap()
 
-		const txID = await transferTokens.completion
+    const txID = await transferTokens.completion
 
-		const txStatus = (
-			await (
-				await radix.api()
-			).transactionStatus(txID._unsafeUnwrap(), network)
-		)._unsafeUnwrap()
+    const txStatus = (
+      await (await radix.api()).transactionStatus(txID._unsafeUnwrap(), network)
+    )._unsafeUnwrap()
 
-		const tokenBalancesAfter = (await radix.tokenBalances())._unsafeUnwrap()
+    const tokenBalancesAfter = (await radix.tokenBalances())._unsafeUnwrap()
 
-		const balanceAfterTransfer = getXRDBalanceOrZero(tokenBalancesAfter)
+    const balanceAfterTransfer = getXRDBalanceOrZero(tokenBalancesAfter)
 
-		expect(
-			initialBalance.sub(amountToSend).sub(txStatus.fee).toString(),
-		).toBe(balanceAfterTransfer.toString())
-	})
+    expect(initialBalance.sub(amountToSend).sub(txStatus.fee).toString()).toBe(
+      balanceAfterTransfer.toString(),
+    )
+  })
 
-	/*
+  /*
 
 	// 🟢 can only test this on localnet
 	it.skip('should increment transaction history with a new transaction after transfer', async done => {
@@ -361,280 +350,265 @@ describe('integration API tests', () => {
 
 	*/
 
-	it('should be able to get transaction history', async () => {
-		const amountToSend = Amount.fromUnsafe(
-			`1${'0'.repeat(18)}`,
-		)._unsafeUnwrap()
+  it('should be able to get transaction history', async () => {
+    const amountToSend = Amount.fromUnsafe(`1${'0'.repeat(18)}`)._unsafeUnwrap()
 
-		const tx1 = (
-			await radix.transferTokens(
-				accounts[2].address,
-				amountToSend,
-				nativeTokenBalance.token_identifier.rri,
-			)
-		)._unsafeUnwrap()
+    const tx1 = (
+      await radix.transferTokens(
+        accounts[2].address,
+        amountToSend,
+        nativeTokenBalance.token_identifier.rri,
+      )
+    )._unsafeUnwrap()
 
-		const tx2 = (
-			await radix.transferTokens(
-				accounts[2].address,
-				amountToSend,
-				nativeTokenBalance.token_identifier.rri,
-			)
-		)._unsafeUnwrap()
+    const tx2 = (
+      await radix.transferTokens(
+        accounts[2].address,
+        amountToSend,
+        nativeTokenBalance.token_identifier.rri,
+      )
+    )._unsafeUnwrap()
 
-		const [txID1, txID2] = await Promise.all([
-			tx1.completion,
-			tx2.completion,
-		])
+    const [txID1, txID2] = await Promise.all([tx1.completion, tx2.completion])
 
-		const txHistory = (await radix.transactionHistory(2))._unsafeUnwrap()
+    const txHistory = (await radix.transactionHistory(2))._unsafeUnwrap()
 
-		expect(txHistory.transactions[0].txID.equals(txID1._unsafeUnwrap()))
-		expect(txHistory.transactions[1].txID.equals(txID2._unsafeUnwrap()))
-	})
+    expect(txHistory.transactions[0].txID.equals(txID1._unsafeUnwrap()))
+    expect(txHistory.transactions[1].txID.equals(txID2._unsafeUnwrap()))
+  })
 
-	// 🟢
-	it('should handle transaction status updates', done => {
-		const amountToSend = Amount.fromUnsafe(
-			`1${'0'.repeat(18)}`,
-		)._unsafeUnwrap()
+  // 🟢
+  it('should handle transaction status updates', done => {
+    const amountToSend = Amount.fromUnsafe(`1${'0'.repeat(18)}`)._unsafeUnwrap()
 
-		radix
-			.transferTokens(
-				accounts[2].address,
-				amountToSend,
-				nativeTokenBalance.token_identifier.rri,
-			)
-			.then(res => {
-				res._unsafeUnwrap()
-					.events.pipe(
-						filter(
-							event =>
-								event.eventUpdateType ===
-								TransactionTrackingEventType.FINALIZED,
-						),
-						map(
-							event =>
-								(
-									event as TransactionStateSuccess<FinalizedTransaction>
-								).transactionState.txID,
-						),
-						switchMap(txID =>
-							radix.transactionStatus(txID, interval(1000)),
-						),
-						map(tx => tx.status),
-						take(2),
-						toArray(),
-					)
-					.subscribe(statuses => {
-						expect([
-							TransactionStatus.PENDING,
-							TransactionStatus.CONFIRMED,
-						]).toEqual(statuses)
-						done()
-					})
-			})
-	})
+    radix
+      .transferTokens(
+        accounts[2].address,
+        amountToSend,
+        nativeTokenBalance.token_identifier.rri,
+      )
+      .then(res => {
+        res
+          ._unsafeUnwrap()
+          .events.pipe(
+            filter(
+              event =>
+                event.eventUpdateType ===
+                TransactionTrackingEventType.FINALIZED,
+            ),
+            map(
+              event =>
+                (event as TransactionStateSuccess<FinalizedTransaction>)
+                  .transactionState.txID,
+            ),
+            switchMap(txID => radix.transactionStatus(txID, interval(1000))),
+            map(tx => tx.status),
+            take(2),
+            toArray(),
+          )
+          .subscribe(statuses => {
+            expect([
+              TransactionStatus.PENDING,
+              TransactionStatus.CONFIRMED,
+            ]).toEqual(statuses)
+            done()
+          })
+      })
+  })
 
-	it('can lookup tx', async () => {
-		const amountToSend = Amount.fromUnsafe(
-			`1${'0'.repeat(18)}`,
-		)._unsafeUnwrap()
+  it('can lookup tx', async () => {
+    const amountToSend = Amount.fromUnsafe(`1${'0'.repeat(18)}`)._unsafeUnwrap()
 
-		const { completion } = (
-			await radix.transferTokens(
-				accounts[2].address,
-				amountToSend,
-				nativeTokenBalance.token_identifier.rri,
-			)
-		)._unsafeUnwrap()
+    const { completion } = (
+      await radix.transferTokens(
+        accounts[2].address,
+        amountToSend,
+        nativeTokenBalance.token_identifier.rri,
+      )
+    )._unsafeUnwrap()
 
-		const txID = (await completion)._unsafeUnwrap()
-		const tx = (await radix.lookupTransaction(txID))._unsafeUnwrap()
+    const txID = (await completion)._unsafeUnwrap()
+    const tx = (await radix.lookupTransaction(txID))._unsafeUnwrap()
 
-		expect(txID.toPrimitive()).toEqual(tx.txID.toPrimitive())
-		expect(tx.actions.length).toEqual(1)
-	})
+    expect(txID.toPrimitive()).toEqual(tx.txID.toPrimitive())
+    expect(tx.actions.length).toEqual(1)
+  })
 
-	it('can lookup validator', async () => {
-		const {
-			validators: [validator],
-		} = (await radix.validators())._unsafeUnwrap()
+  it('can lookup validator', async () => {
+    const {
+      validators: [validator],
+    } = (await radix.validators())._unsafeUnwrap()
 
-		const validatorFromLookup = (
-			await radix.lookupValidator(validator.address)
-		)._unsafeUnwrap()
+    const validatorFromLookup = (
+      await radix.lookupValidator(validator.address)
+    )._unsafeUnwrap()
 
-		expect(validatorFromLookup.address.equals(validator.address)).toBe(true)
-	})
+    expect(validatorFromLookup.address.equals(validator.address)).toBe(true)
+  })
 
-	it('should get validators', async () => {
-		const { validators } = (await radix.validators())._unsafeUnwrap()
+  it('should get validators', async () => {
+    const { validators } = (await radix.validators())._unsafeUnwrap()
 
-		expect(validators.length).toBeGreaterThan(0)
-	})
+    expect(validators.length).toBeGreaterThan(0)
+  })
 
-	const getValidators = async () =>
-		(await radix.validators())._unsafeUnwrap().validators
+  const getValidators = async () =>
+    (await radix.validators())._unsafeUnwrap().validators
 
-	const getValidatorStakeAmountForAddress = (
-		{ stakes, pendingStakes }: StakePositionsEndpoint.DecodedResponse,
-		validatorAddress: ValidatorAddressT,
-	) => {
-		const validatorStake = stakes.find(values =>
-			values.validator.equals(validatorAddress),
-		)
-		const validatorPendingStake = pendingStakes.find(values =>
-			values.validator.equals(validatorAddress),
-		)
+  const getValidatorStakeAmountForAddress = (
+    { stakes, pendingStakes }: StakePositionsEndpoint.DecodedResponse,
+    validatorAddress: ValidatorAddressT,
+  ) => {
+    const validatorStake = stakes.find(values =>
+      values.validator.equals(validatorAddress),
+    )
+    const validatorPendingStake = pendingStakes.find(values =>
+      values.validator.equals(validatorAddress),
+    )
 
-		const stakeAmount = validatorStake
-			? validatorStake.amount
-			: Amount.fromUnsafe(0)._unsafeUnwrap()
+    const stakeAmount = validatorStake
+      ? validatorStake.amount
+      : Amount.fromUnsafe(0)._unsafeUnwrap()
 
-		const pendingStakeAmount = validatorPendingStake
-			? validatorPendingStake.amount
-			: Amount.fromUnsafe(0)._unsafeUnwrap()
+    const pendingStakeAmount = validatorPendingStake
+      ? validatorPendingStake.amount
+      : Amount.fromUnsafe(0)._unsafeUnwrap()
 
-		return stakeAmount.add(pendingStakeAmount)
-	}
+    return stakeAmount.add(pendingStakeAmount)
+  }
 
-	it('can fetch stake positions', async () => {
-		const validators = await getValidators()
+  it('can fetch stake positions', async () => {
+    const validators = await getValidators()
 
-		const validator = validators.find(v => v.isExternalStakeAccepted)
+    const validator = validators.find(v => v.isExternalStakeAccepted)
 
-		if (!validator) {
-			throw new Error(`no validator has 'isExternalStakeAccepted'`)
-		}
+    if (!validator) {
+      throw new Error(`no validator has 'isExternalStakeAccepted'`)
+    }
 
-		const initialStake = getValidatorStakeAmountForAddress(
-			(await radix.stakingPositions())._unsafeUnwrap(),
-			validator.address,
-		)
+    const initialStake = getValidatorStakeAmountForAddress(
+      (await radix.stakingPositions())._unsafeUnwrap(),
+      validator.address,
+    )
 
-		const stakeAmount = Amount.fromUnsafe(
-			`90${'0'.repeat(18)}`,
-		)._unsafeUnwrap()
+    const stakeAmount = Amount.fromUnsafe(`90${'0'.repeat(18)}`)._unsafeUnwrap()
 
-		const { completion } = (
-			await radix.stakeTokens(validator.address, stakeAmount)
-		)._unsafeUnwrap()
+    const { completion } = (
+      await radix.stakeTokens(validator.address, stakeAmount)
+    )._unsafeUnwrap()
 
-		await completion
+    await completion
 
-		const actualStake = getValidatorStakeAmountForAddress(
-			(await radix.stakingPositions())._unsafeUnwrap(),
-			validator.address,
-		).toString()
+    const actualStake = getValidatorStakeAmountForAddress(
+      (await radix.stakingPositions())._unsafeUnwrap(),
+      validator.address,
+    ).toString()
 
-		const expectedStake = initialStake.add(stakeAmount).toString()
+    const expectedStake = initialStake.add(stakeAmount).toString()
 
-		expect(actualStake).toEqual(expectedStake)
-	})
+    expect(actualStake).toEqual(expectedStake)
+  })
 
-	it('can fetch unstake positions', async () => {
-		const validators = await getValidators()
+  it('can fetch unstake positions', async () => {
+    const validators = await getValidators()
 
-		const validator = validators.find(v => v.isExternalStakeAccepted)
+    const validator = validators.find(v => v.isExternalStakeAccepted)
 
-		if (!validator) {
-			throw new Error(`no validator has 'isExternalStakeAccepted'`)
-		}
+    if (!validator) {
+      throw new Error(`no validator has 'isExternalStakeAccepted'`)
+    }
 
-		const stakeAmount = Amount.fromUnsafe(
-			`90${'0'.repeat(18)}`,
-		)._unsafeUnwrap()
+    const stakeAmount = Amount.fromUnsafe(`90${'0'.repeat(18)}`)._unsafeUnwrap()
 
-		const { completion } = (
-			await radix.stakeTokens(validator.address, stakeAmount)
-		)._unsafeUnwrap()
+    const { completion } = (
+      await radix.stakeTokens(validator.address, stakeAmount)
+    )._unsafeUnwrap()
 
-		await completion
+    await completion
 
-		const unstake = (
-			await radix.unstakeTokens(validator.address, stakeAmount)
-		)._unsafeUnwrap()
+    const unstake = (
+      await radix.unstakeTokens(validator.address, stakeAmount)
+    )._unsafeUnwrap()
 
-		await unstake.completion
+    await unstake.completion
 
-		const positions = (await radix.unstakingPositions())._unsafeUnwrap()
+    const positions = (await radix.unstakingPositions())._unsafeUnwrap()
 
-		expect(positions.pendingUnstakes[0]).toBeDefined()
-	})
+    expect(positions.pendingUnstakes[0]).toBeDefined()
+  })
 
-	it('tx events emits expected values', done => {
-		const expectedValues = [
-			TransactionTrackingEventType.INITIATED,
-			TransactionTrackingEventType.BUILT,
-			TransactionTrackingEventType.CONFIRMED,
-			TransactionTrackingEventType.SIGNED,
-			TransactionTrackingEventType.FINALIZED,
-			TransactionTrackingEventType.SUBMITTED,
-			TransactionTrackingEventType.STATUS_UPDATE,
-			TransactionTrackingEventType.STATUS_UPDATE,
-			TransactionTrackingEventType.COMPLETED,
-		]
+  it('tx events emits expected values', done => {
+    const expectedValues = [
+      TransactionTrackingEventType.INITIATED,
+      TransactionTrackingEventType.BUILT,
+      TransactionTrackingEventType.CONFIRMED,
+      TransactionTrackingEventType.SIGNED,
+      TransactionTrackingEventType.FINALIZED,
+      TransactionTrackingEventType.SUBMITTED,
+      TransactionTrackingEventType.STATUS_UPDATE,
+      TransactionTrackingEventType.STATUS_UPDATE,
+      TransactionTrackingEventType.COMPLETED,
+    ]
 
-		const amount = Amount.fromUnsafe(`1${'0'.repeat(18)}`)._unsafeUnwrap()
+    const amount = Amount.fromUnsafe(`1${'0'.repeat(18)}`)._unsafeUnwrap()
 
-		radix
-			.transferTokens(
-				accounts[2].address,
-				amount,
-				nativeTokenBalance.token_identifier.rri,
-			)
-			.then(result => {
-				subs.add(
-					result
-						._unsafeUnwrap()
-						.events.pipe(
-							map(e => e.eventUpdateType),
-							take(expectedValues.length),
-							toArray(),
-						)
-						.subscribe({
-							next: values => {
-								expect(values).toStrictEqual(expectedValues)
-								done()
-							},
-							error: e => {
-								done(
-									new Error(
-										`Tx failed, even though we expected it to succeed, error: ${e.toString()}`,
-									),
-								)
-							},
-						}),
-				)
-			})
-	})
-	it('tx manual confirmation', done => {
-		const amount = Amount.fromUnsafe(`1${'0'.repeat(18)}`)._unsafeUnwrap()
+    radix
+      .transferTokens(
+        accounts[2].address,
+        amount,
+        nativeTokenBalance.token_identifier.rri,
+      )
+      .then(result => {
+        subs.add(
+          result
+            ._unsafeUnwrap()
+            .events.pipe(
+              map(e => e.eventUpdateType),
+              take(expectedValues.length),
+              toArray(),
+            )
+            .subscribe({
+              next: values => {
+                expect(values).toStrictEqual(expectedValues)
+                done()
+              },
+              error: e => {
+                done(
+                  new Error(
+                    `Tx failed, even though we expected it to succeed, error: ${e.toString()}`,
+                  ),
+                )
+              },
+            }),
+        )
+      })
+  })
+  it('tx manual confirmation', done => {
+    const amount = Amount.fromUnsafe(`1${'0'.repeat(18)}`)._unsafeUnwrap()
 
-		let hasConfirmed = false
+    let hasConfirmed = false
 
-		const userConfirmation = async (
-			confirm: () => void,
-			reject: () => void,
-			tx: BuiltTransaction,
-		) => {
-			confirm()
-			hasConfirmed = true
-		}
+    const userConfirmation = async (
+      confirm: () => void,
+      reject: () => void,
+      tx: BuiltTransaction,
+    ) => {
+      confirm()
+      hasConfirmed = true
+    }
 
-		radix
-			.transferTokens(
-				accounts[2].address,
-				amount,
-				nativeTokenBalance.token_identifier.rri,
-				undefined,
-				{ userConfirmation },
-			)
-			.then(result => result._unsafeUnwrap().completion)
-			.then(() => {
-				expect(hasConfirmed).toBeTruthy()
-				done()
-			})
-	})
+    radix
+      .transferTokens(
+        accounts[2].address,
+        amount,
+        nativeTokenBalance.token_identifier.rri,
+        undefined,
+        { userConfirmation },
+      )
+      .then(result => result._unsafeUnwrap().completion)
+      .then(() => {
+        expect(hasConfirmed).toBeTruthy()
+        done()
+      })
+  })
 })
