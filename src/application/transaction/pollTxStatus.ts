@@ -3,6 +3,7 @@ import {
   catchError,
   distinctUntilChanged,
   EMPTY,
+  from,
   map,
   mergeMap,
   Observable,
@@ -31,7 +32,8 @@ export const pollTxStatus =
         log.debug(
           `Asking API for status of transaction with txID: ${pendingTx.txID.toPrimitive()}`,
         )
-        return radixAPI.transactionStatus(pendingTx.txID, network)
+
+        return from(radixAPI.transactionStatus(pendingTx.txID, network))
       }),
       map(tx => tx._unsafeUnwrap()),
       distinctUntilChanged((prev, cur) => prev.status === cur.status),
@@ -39,7 +41,7 @@ export const pollTxStatus =
         log.debug(
           `Status ${
             tx.status
-          } of transaction with txID='${tx.txID.toString()}'`,
+          } of transaction with txID='${tx.txID.toPrimitive()}'`,
         )
         track({
           transactionState: tx,
