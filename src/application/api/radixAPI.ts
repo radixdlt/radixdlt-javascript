@@ -28,27 +28,28 @@ import {
 } from '../api/open-api/_types'
 import { ResultAsync } from 'neverthrow'
 import { transformAction } from '../actions'
+import { RadixError } from '@util'
 
 export const radixAPI = (api: GatewayAPI) => ({
   validators: (
     network: string,
-  ): ResultAsync<ValidatorsEndpoint.DecodedResponse, Error[]> =>
+  ): ResultAsync<ValidatorsEndpoint.DecodedResponse, RadixError[]> =>
     api['validators']({ network_identifier: { network } }),
 
   lookupValidator: (
     input: ValidatorAddressT,
-  ): ResultAsync<ValidatorEndpoint.DecodedResponse, Error[]> =>
+  ): ResultAsync<ValidatorEndpoint.DecodedResponse, RadixError[]> =>
     api['validator']({
       network_identifier: { network: input.network },
       validator_identifier: { address: input.toPrimitive() },
     }),
 
-  networkId: (): ResultAsync<GatewayEndpoint.DecodedResponse, Error[]> =>
+  networkId: (): ResultAsync<GatewayEndpoint.DecodedResponse, RadixError[]> =>
     api['gateway']({}),
 
   tokenBalancesForAddress: (
     address: AccountAddressT,
-  ): ResultAsync<AccountBalancesEndpoint.DecodedResponse, Error[]> =>
+  ): ResultAsync<AccountBalancesEndpoint.DecodedResponse, RadixError[]> =>
     api['accountBalances']({
       network_identifier: { network: address.network },
       account_identifier: {
@@ -62,7 +63,7 @@ export const radixAPI = (api: GatewayAPI) => ({
     cursor,
   }: TransactionHistoryRequestInput): ResultAsync<
     AccountTransactionsEndpoint.DecodedResponse,
-    Error[]
+    RadixError[]
   > =>
     api['accountTransactions']({
       account_identifier: {
@@ -75,12 +76,12 @@ export const radixAPI = (api: GatewayAPI) => ({
 
   nativeToken: (
     input: NativeTokenInfoEndpoint.Input,
-  ): ResultAsync<NativeTokenInfoEndpoint.DecodedResponse, Error[]> =>
+  ): ResultAsync<NativeTokenInfoEndpoint.DecodedResponse, RadixError[]> =>
     api['nativeTokenInfo'](input),
 
   tokenInfo: (
     rri: ResourceIdentifierT,
-  ): ResultAsync<TokenInfoEndpoint.DecodedResponse, Error[]> =>
+  ): ResultAsync<TokenInfoEndpoint.DecodedResponse, RadixError[]> =>
     api['tokenInfo']({
       network_identifier: { network: rri.network },
       token_identifier: {
@@ -90,7 +91,7 @@ export const radixAPI = (api: GatewayAPI) => ({
 
   stakesForAddress: (
     address: AccountAddressT,
-  ): ResultAsync<StakePositionsEndpoint.DecodedResponse, Error[]> =>
+  ): ResultAsync<StakePositionsEndpoint.DecodedResponse, RadixError[]> =>
     api['stakePositions']({
       network_identifier: { network: address.network },
       account_identifier: {
@@ -100,7 +101,7 @@ export const radixAPI = (api: GatewayAPI) => ({
 
   unstakesForAddress: (
     address: AccountAddressT,
-  ): ResultAsync<UnstakePositionsEndpoint.DecodedResponse, Error[]> =>
+  ): ResultAsync<UnstakePositionsEndpoint.DecodedResponse, RadixError[]> =>
     api['unstakePositions']({
       network_identifier: { network: address.network },
       account_identifier: {
@@ -111,7 +112,7 @@ export const radixAPI = (api: GatewayAPI) => ({
   transactionStatus: (
     txID: TransactionIdentifierT,
     network: string,
-  ): ResultAsync<TransactionEndpoint.DecodedResponse, Error[]> =>
+  ): ResultAsync<TransactionEndpoint.DecodedResponse, RadixError[]> =>
     api['getTransaction']({
       network_identifier: { network },
       transaction_identifier: {
@@ -138,7 +139,7 @@ export const radixAPI = (api: GatewayAPI) => ({
   finalizeTransaction: (
     network: string,
     signedTransaction: SignedTransaction,
-  ): ResultAsync<FinalizeTransactionEndpoint.DecodedResponse, Error[]> =>
+  ): ResultAsync<FinalizeTransactionEndpoint.DecodedResponse, RadixError[]> =>
     api['finalizeTransaction']({
       network_identifier: { network },
       unsigned_transaction: signedTransaction.transaction.blob,
@@ -153,7 +154,7 @@ export const radixAPI = (api: GatewayAPI) => ({
   submitSignedTransaction: (
     network: string,
     finalizedTx: FinalizedTransaction,
-  ): ResultAsync<SubmitTransactionEndpoint.DecodedResponse, Error[]> =>
+  ): ResultAsync<SubmitTransactionEndpoint.DecodedResponse, RadixError[]> =>
     api['submitTransaction']({
       network_identifier: { network },
       signed_transaction: finalizedTx.blob,

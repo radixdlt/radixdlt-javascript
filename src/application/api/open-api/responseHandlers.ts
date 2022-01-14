@@ -17,20 +17,25 @@ import { ReturnOfAPICall } from '@networking'
 import { Result } from 'neverthrow'
 import { ResourceIdentifier, ResourceIdentifierT } from '@account'
 import { Amount, AmountT, Network } from '@primitives'
-import { SimpleTransactionHistory, TransactionIdentifier } from '../..'
+import {
+  TxMessage,
+  SimpleTransactionHistory,
+  TransactionIdentifier,
+  RadixError,
+} from '../..'
 import { ok, combine } from 'neverthrow'
 import * as responseHelper from './responseHelpers'
 
 export const handleGatewayResponse = (
   json: ReturnOfAPICall<'gatewayPost'>,
-): Result<GatewayEndpoint.DecodedResponse, Error[]> =>
+): Result<GatewayEndpoint.DecodedResponse, RadixError[]> =>
   ok({
     network: json.data.network_identifier.network as Network,
-  }).mapErr(e => [e] as Error[])
+  }).mapErr(e => [e] as RadixError[])
 
 export const handleTokenInfoResponse = (
   json: ReturnOfAPICall<'tokenPost'>,
-): Result<TokenInfoEndpoint.DecodedResponse, Error[]> =>
+): Result<TokenInfoEndpoint.DecodedResponse, RadixError[]> =>
   combine([
     ResourceIdentifier.fromUnsafe(json.data.token.token_identifier.rri),
     Amount.fromUnsafe(json.data.token.token_properties.granularity),
@@ -41,7 +46,7 @@ export const handleTokenInfoResponse = (
 
 export const handleNativeTokenResponse = (
   json: ReturnOfAPICall<'tokenNativePost'>,
-): Result<NativeTokenInfoEndpoint.DecodedResponse, Error[]> =>
+): Result<NativeTokenInfoEndpoint.DecodedResponse, RadixError[]> =>
   combine([
     ResourceIdentifier.fromUnsafe(json.data.token.token_identifier.rri),
     Amount.fromUnsafe(json.data.token.token_properties.granularity),
@@ -52,7 +57,7 @@ export const handleNativeTokenResponse = (
 
 export const handleStakePositionsResponse = (
   json: ReturnOfAPICall<'accountStakesPost'>,
-): Result<StakePositionsEndpoint.DecodedResponse, Error[]> =>
+): Result<StakePositionsEndpoint.DecodedResponse, RadixError[]> =>
   combine(json.data.stakes.map(responseHelper.transformStakeEntry))
     .andThen(stakes =>
       combine(
@@ -63,10 +68,8 @@ export const handleStakePositionsResponse = (
 
 export const handleUnstakePositionsResponse = (
   json: ReturnOfAPICall<'accountUnstakesPost'>,
-): Result<UnstakePositionsEndpoint.DecodedResponse, Error[]> => {
-  return combine(
-    json.data.pending_unstakes.map(responseHelper.transformUnstakeEntry),
-  )
+): Result<UnstakePositionsEndpoint.DecodedResponse, RadixError[]> => {
+  return combine(json.data.pending_unstakes.map(transformUnstakeEntry))
     .map(pendingUnstakes =>
       combine(json.data.unstakes.map(responseHelper.transformUnstakeEntry)).map(
         unstakes => ({
@@ -81,7 +84,7 @@ export const handleUnstakePositionsResponse = (
 
 export const handleAccountTransactionsResponse = (
   json: ReturnOfAPICall<'accountTransactionsPost'>,
-): Result<AccountTransactionsEndpoint.DecodedResponse, Error[]> =>
+): Result<AccountTransactionsEndpoint.DecodedResponse, RadixError[]> =>
   combine(json.data.transactions.map(responseHelper.transformTransaction)).map(
     (transactions): SimpleTransactionHistory => ({
       cursor: json.data.next_cursor || '',
@@ -91,7 +94,7 @@ export const handleAccountTransactionsResponse = (
 
 export const handleAccountBalancesResponse = (
   json: ReturnOfAPICall<'accountBalancesPost'>,
-): Result<AccountBalancesEndpoint.DecodedResponse, Error[]> =>
+): Result<AccountBalancesEndpoint.DecodedResponse, RadixError[]> =>
   combine([
     combine(
       json.data.account_balances.liquid_balances.map(balance =>
@@ -136,19 +139,19 @@ export const handleAccountBalancesResponse = (
 
 export const handleValidatorResponse = (
   json: ReturnOfAPICall<'validatorPost'>,
-): Result<ValidatorEndpoint.DecodedResponse, Error[]> =>
+): Result<ValidatorEndpoint.DecodedResponse, RadixError[]> =>
   responseHelper.transformValidator(json.data.validator).mapErr(e => [e])
 
 export const handleValidatorsResponse = (
   json: ReturnOfAPICall<'validatorsPost'>,
-): Result<ValidatorsEndpoint.DecodedResponse, Error[]> =>
+): Result<ValidatorsEndpoint.DecodedResponse, RadixError[]> =>
   combine(json.data.validators.map(responseHelper.transformValidator))
     .map(validators => ({ validators }))
     .mapErr(e => [e])
 
 export const handleBuildTransactionResponse = (
   json: ReturnOfAPICall<'transactionBuildPost'>,
-): Result<BuildTransactionEndpoint.DecodedResponse, Error[]> =>
+): Result<BuildTransactionEndpoint.DecodedResponse, RadixError[]> =>
   Amount.fromUnsafe(json.data.transaction_build.fee.value)
     .map(amount => ({
       transaction: {
@@ -161,7 +164,7 @@ export const handleBuildTransactionResponse = (
 
 export const handleFinalizeTransactionResponse = (
   json: ReturnOfAPICall<'transactionFinalizePost'>,
-): Result<FinalizeTransactionEndpoint.DecodedResponse, Error[]> =>
+): Result<FinalizeTransactionEndpoint.DecodedResponse, RadixError[]> =>
   TransactionIdentifier.create(json.data.transaction_identifier.hash)
     .map(txID => ({
       blob: json.data.signed_transaction,

@@ -1,4 +1,4 @@
-import { MakeTransactionOptions, Network } from '@application'
+import { MakeTransactionOptions, Network, RadixError } from '@application'
 import { ResultAsync } from 'neverthrow'
 import { Observable, Subject } from 'rxjs'
 import { RadixAPI } from '../api'
@@ -14,7 +14,7 @@ import { AccountT } from '../_types'
 export type AskUserToConfirmSubject = Subject<BuiltTransaction>
 
 export type TrackErrorInput = {
-  errors: Error[]
+  errors: RadixError[]
   inStep: TransactionTrackingEventType
 }
 
@@ -32,7 +32,7 @@ export type MakeTxFromIntentInput = {
 
 export type SendTxError = {
   eventUpdateType: TransactionTrackingEventType
-  errors: Error[]
+  errors: RadixError[]
 }
 
 export type SendTxOutput = {

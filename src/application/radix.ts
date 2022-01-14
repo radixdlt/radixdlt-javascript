@@ -40,7 +40,7 @@ import {
   SwitchAccountInput,
   TxMessage,
 } from './_types'
-import { log, LogLevel, msgFromError } from '@util'
+import { log, LogLevel, msgFromError, RadixError } from '@util'
 import {
   ExecutedTransaction,
   flatMapAddressesOf,
@@ -146,7 +146,7 @@ const create = () => {
   const transactionHistory = async (
     size: number,
     cursor?: string,
-  ): Promise<Result<TransactionHistory, Error[]>> => {
+  ): Promise<Result<TransactionHistory, RadixError[]>> => {
     const address = await firstValueFrom(activeAddress)
 
     return (await radixAPI())

@@ -1,8 +1,8 @@
 import 'isomorphic-fetch'
-import { log } from '@util'
+import { log, radixError, RadixError } from '@util'
 import { v4 as uuid } from 'uuid'
 import { Client } from './_types'
-import { err, ok, ResultAsync } from 'neverthrow'
+import { ResultAsync } from 'neverthrow'
 import { pipe } from 'ramda'
 import { TransactionBuildResponse } from './open-api/api'
 import {
@@ -43,19 +43,29 @@ export type ClientInterface = ReturnType<typeof AccountEndpointApiFactory> &
 export type MethodName = keyof ClientInterface
 export type Response = ReturnOfAPICall<MethodName>
 
-const handleError = (error: AxiosError) => {
-  log.debug(error)
-  if (error.isAxiosError && error.response?.data) {
-    return Error(
-      `${JSON.stringify({
-        code: error.response.data.code ?? error.response.status,
-        ...(typeof error.response.data === 'object'
-          ? error.response.data
-          : { message: error.response.data }),
-      })}`,
-    )
+const handleError = (axiosError: AxiosError) => {
+  if (axiosError.response) {
+    const {
+      message,
+      code,
+      details,
+      trace_id: traceId,
+    } = axiosError.response.data
+    const error = radixError({ message, code, details, traceId })
+    log.error(JSON.stringify(error, null, 2))
+    return error
+  } else if (axiosError.request) {
+    log.debug(axiosError.request)
+    return radixError({ message: axiosError.message })
   } else {
-    throw error
+    log.debug(axiosError)
+    if (axiosError.message === 'Network Error') {
+      return radixError({
+        message: axiosError.message,
+        details: { type: 'NetworkError' },
+      })
+    }
+    throw axiosError
   }
 }
 
@@ -64,7 +74,7 @@ const call =
   <M extends MethodName>(
     method: M,
     params: InputOfAPICall<M>,
-  ): ResultAsync<ReturnOfAPICall<M>, Error> =>
+  ): ResultAsync<ReturnOfAPICall<M>, RadixError> =>
     // @ts-ignore
     pipe(
       () =>

@@ -21,6 +21,7 @@ import {
 } from './responseHandlers'
 import { pipe } from 'ramda'
 import { Result, ResultAsync } from 'neverthrow'
+import { RadixError } from '@util'
 
 const callAPIWith =
   (call: OpenApiClientCall) =>
@@ -28,9 +29,9 @@ const callAPIWith =
   <DecodedResponse>(
     handleResponse: (
       response: ReturnOfAPICall<M>,
-    ) => Result<DecodedResponse, Error[]>,
+    ) => Result<DecodedResponse, RadixError[]>,
   ) =>
-  (params: InputOfAPICall<M>): ResultAsync<DecodedResponse, Error[]> =>
+  (params: InputOfAPICall<M>): ResultAsync<DecodedResponse, RadixError[]> =>
     pipe(
       () => call(method, params),
       result => result.mapErr(e => [e]).andThen(handleResponse),
