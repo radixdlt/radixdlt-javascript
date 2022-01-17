@@ -24,10 +24,11 @@ const defaultHeaders = [
 
 const correlationID = uuid()
 
-export type ReturnOfAPICall<Name extends MethodName> =
-	Name extends 'transactionBuildPost'
-		? AxiosResponse<TransactionBuildResponse>
-		: Awaited<ReturnType<ClientInterface[Name]>>
+export type ReturnOfAPICall<
+	Name extends MethodName
+> = Name extends 'transactionBuildPost'
+	? AxiosResponse<TransactionBuildResponse>
+	: Awaited<ReturnType<ClientInterface[Name]>>
 
 export type InputOfAPICall<Name extends MethodName> = Parameters<
 	ClientInterface[Name]
@@ -51,64 +52,67 @@ const handleError = (error: AxiosError) => {
 				: { message: error.response.data }),
 		})
 	} else {
-		throw error
+		return err({ message: error.message })
 	}
 }
 
-const call =
-	(client: ClientInterface) =>
-	<M extends MethodName>(
-		method: M,
-		params: InputOfAPICall<M>,
-		headers?: Record<string, string>
-	): ResultAsync<ReturnOfAPICall<M>, Error> =>
-		// @ts-ignore
-		pipe(
-			() =>
-				log.info(
-					`Sending api request with method ${method}. ${JSON.stringify(
-						params,
-						null,
-						2,
-					)}`,
-				),
-			() =>
-				ResultAsync.fromPromise(
-					// @ts-ignore
-					client[method](params, {
-						headers: {
-							[defaultHeaders[0]]: method,
-							[defaultHeaders[1]]: correlationID,
-							[defaultHeaders[2]]: apiVersion,
-							...headers
-						},
-					}).then(response => {
-						log.info(
-							`Response from api with method ${method}`,
-							JSON.stringify(response.data, null, 2),
-						)
+const call = (client: ClientInterface) => <M extends MethodName>(
+	method: M,
+	params: InputOfAPICall<M>,
+	headers?: Record<string, string>,
+): ResultAsync<ReturnOfAPICall<M>, Error> =>
+	// @ts-ignore
+	pipe(
+		() =>
+			log.info(
+				`Sending api request with method ${method}. ${JSON.stringify(
+					params,
+					null,
+					2,
+				)}`,
+			),
+		() =>
+			ResultAsync.fromPromise(
+				// @ts-ignore
+				client[method](params, {
+					headers: {
+						[defaultHeaders[0]]: method,
+						[defaultHeaders[1]]: correlationID,
+						[defaultHeaders[2]]: apiVersion,
+						...headers,
+					},
+				}).then(response => {
+					log.info(
+						`Response from api with method ${method}`,
+						JSON.stringify(response.data, null, 2),
+					)
 
-						return response
-					}),
-					// @ts-ignore
-					handleError,
-				),
-		)()
+					return response
+				}),
+				// @ts-ignore
+				handleError,
+			),
+	)()
 
 export type OpenApiClientCall = ReturnType<typeof call>
 
 export const openApiClient: Client<'open-api'> = (url: URL) => {
-	const configuration = new Configuration({ basePath: url.toString().slice(0, -1) })
+	const configuration = new Configuration({
+		basePath: url.toString().slice(0, -1),
+	})
 	const api = [
 		AccountEndpointApiFactory,
 		ValidatorEndpointApiFactory,
 		TransactionEndpointApiFactory,
 		TokenEndpointApiFactory,
 		GatewayEndpointApiFactory,
-	].reduce<ClientInterface>((acc, factory) => ({
+	].reduce<ClientInterface>(
+		(acc, factory) => ({
 			...acc,
 			...factory(configuration),
-		}), {} as ClientInterface)
+		}),
+		{} as ClientInterface,
+	)
 
 	return {
 		type: 'open-api',
