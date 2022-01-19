@@ -1,43 +1,50 @@
-import { Observable } from 'rxjs'
-import { Option } from 'prelude-ts'
 import {
   DiffieHellman,
   EncryptedMessageT,
   HDPathRadixT,
-  MnemomicT,
   PrivateKeyT,
   PublicKeyT,
   SignatureT,
 } from '@crypto'
-import { HardwareWalletT } from '@hardware-wallet'
 import { BuiltTransactionReadyToSign } from '@primitives'
 import { ResultAsync } from 'neverthrow'
+import { Observable } from 'rxjs'
+import { Option } from 'prelude-ts'
 
-export type Signing = Readonly<{
+export type PrivateKeyToSigningKeyInput = Readonly<{
+  privateKey: PrivateKeyT
+  name?: string
+}>
+
+export type AddSigningKeyByPrivateKeyInput = PrivateKeyToSigningKeyInput & {
+  alsoSwitchTo?: boolean
+}
+
+export type Signing = {
   signHash: (hashedMessage: Buffer) => Observable<SignatureT>
   sign: (
     tx: BuiltTransactionReadyToSign,
     nonXrdHRP?: string,
   ) => ResultAsync<SignatureT, Error>
-}>
+}
 
-export type SigningKeyEncryptionInput = Readonly<{
+export type SigningKeyEncryptionInput = {
   plaintext: Buffer | string
   publicKeyOfOtherParty: PublicKeyT
-}>
+}
 
-export type Encrypting = Readonly<{
+export type Encrypting = {
   encrypt: (input: SigningKeyEncryptionInput) => Observable<EncryptedMessageT>
-}>
+}
 
-export type SigningKeyDecryptionInput = Readonly<{
+export type SigningKeyDecryptionInput = {
   encryptedMessage: Buffer | EncryptedMessageT
   publicKeyOfOtherParty: PublicKeyT
-}>
+}
 
-export type Decrypting = Readonly<{
+export type Decrypting = {
   decrypt: (input: SigningKeyDecryptionInput) => Observable<string>
-}>
+}
 
 export enum HDSigningKeyTypeIdentifier {
   LOCAL = 'LOCAL',
@@ -49,45 +56,29 @@ export enum SigningKeyTypeIdentifier {
   NON_HD_SIGNING_KEY = 'NON_HD_SIGNING_KEY',
 }
 
-export type BaseSigningKeyTypeT<T extends SigningKeyTypeIdentifier> = Readonly<{
+export type BaseSigningKeyTypeT<T extends SigningKeyTypeIdentifier> = {
   typeIdentifier: T
   isHDSigningKey: boolean
   isHardwareSigningKey: boolean
   uniqueKey: string
-}>
+}
 
 export type SigningKeyTypeHDT =
-  BaseSigningKeyTypeT<SigningKeyTypeIdentifier.HD_SIGNING_KEY> &
-    Readonly<{
-      hdSigningKeyType: HDSigningKeyTypeIdentifier
-      hdPath: HDPathRadixT
-    }>
+  BaseSigningKeyTypeT<SigningKeyTypeIdentifier.HD_SIGNING_KEY> & {
+    hdSigningKeyType: HDSigningKeyTypeIdentifier
+    hdPath: HDPathRadixT
+  }
 
 export type SigningKeyTypeNonHDT =
-  BaseSigningKeyTypeT<SigningKeyTypeIdentifier.NON_HD_SIGNING_KEY> &
-    Readonly<{
-      name?: string
-    }>
+  BaseSigningKeyTypeT<SigningKeyTypeIdentifier.NON_HD_SIGNING_KEY> & {
+    name?: string
+  }
 
 export type SigningKeyTypeT = SigningKeyTypeHDT | SigningKeyTypeNonHDT
 
-export type PrivateKeyToSigningKeyInput = Readonly<{
-  privateKey: PrivateKeyT
-  name?: string
-}>
-
-export type HWSigningKeyDerivation = 'next' | HDPathRadixT
-export type DeriveHWSigningKeyInput = Readonly<{
-  keyDerivation: HWSigningKeyDerivation
-  hardwareWalletConnection: Observable<HardwareWalletT>
-  alsoSwitchTo: boolean
-  verificationPrompt?: boolean
-}>
-
 export type SigningKeyT = Signing &
   Encrypting &
-  Decrypting &
-  Readonly<{
+  Decrypting & {
     // useful for testing.
     __diffieHellman: DiffieHellman
 
@@ -117,7 +108,7 @@ export type SigningKeyT = Signing &
     isHardwareSigningKey: boolean
     // Sugar for `isHDSigningKey && !isHardwareSigningKey`
     isLocalHDSigningKey: boolean
-  }>
+  }
 
 export type SigningKeysT = Readonly<{
   toString: () => string
@@ -138,52 +129,3 @@ export type SigningKeysT = Readonly<{
   // size of `all.
   size: () => number
 }>
-
-export type SwitchToSigningKey = Readonly<{ toSigningKey: SigningKeyT }>
-export type SwitchToIndex = Readonly<{ toIndex: number }>
-
-export type SwitchSigningKeyInput =
-  | 'first'
-  | 'last'
-  | SwitchToSigningKey
-  | SwitchToIndex
-
-export type DeriveNextInput =
-  | undefined
-  | Readonly<{
-      isHardened?: boolean // defaults to true
-      alsoSwitchTo?: boolean // defaults to false
-    }>
-
-export type AddSigningKeyByPrivateKeyInput = PrivateKeyToSigningKeyInput & {
-  alsoSwitchTo?: boolean
-}
-
-export type SigningKeychainT = Signing &
-  Readonly<{
-    // should only be used for testing
-    __unsafeGetSigningKey: () => SigningKeyT
-
-    revealMnemonic: () => MnemomicT
-
-    restoreLocalHDSigningKeysUpToIndex: (
-      index: number,
-    ) => Observable<SigningKeysT>
-
-    deriveNextLocalHDSigningKey: (
-      input?: DeriveNextInput,
-    ) => Observable<SigningKeyT>
-
-    deriveHWSigningKey: (
-      input: DeriveHWSigningKeyInput,
-    ) => Observable<SigningKeyT>
-
-    addSigningKeyFromPrivateKey: (
-      input: AddSigningKeyByPrivateKeyInput,
-    ) => SigningKeyT
-
-    switchSigningKey: (input: SwitchSigningKeyInput) => SigningKeyT
-
-    observeActiveSigningKey: () => Observable<SigningKeyT>
-    observeSigningKeys: () => Observable<SigningKeysT>
-  }>

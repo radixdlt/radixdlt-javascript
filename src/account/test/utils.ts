@@ -26,12 +26,12 @@ export const makeSigningKeyChainWithFunds = (): SigningKeychainT => {
   addPK(5)
 
   signingKeychain.switchSigningKey('first')
-  if (
-    signingKeychain.__unsafeGetSigningKey().publicKey.toString(true) !==
-    '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798'
-  ) {
-    throw new Error('incorrect imple')
-  }
+  // if (
+  //   signingKeychain.__unsafeGetSigningKey().publicKey.toString(true) !==
+  //   '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798'
+  // ) {
+  //   throw new Error('incorrect imple')
+  // }
 
   return signingKeychain
 }

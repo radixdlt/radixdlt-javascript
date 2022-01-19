@@ -2,7 +2,6 @@ import {
   DiffieHellman,
   ECPointOnCurveT,
   EncryptedMessageT,
-  isPublicKey,
   MessageEncryption,
   PrivateKeyT,
   PublicKeyT,
@@ -289,18 +288,6 @@ const fromHDPathWithHDMasterSeed = (
 ): SigningKeyT => {
   const hdMasterNode = input.hdMasterSeed.masterNode()
   return fromHDPathWithHDMasterNode({ ...input, hdMasterNode })
-}
-
-export const isSigningKey = (something: unknown): something is SigningKeyT => {
-  const inspection = something as SigningKeyT
-  return (
-    inspection.publicKey !== undefined &&
-    isPublicKey(inspection.publicKey) &&
-    inspection.sign !== undefined &&
-    inspection.encrypt !== undefined &&
-    inspection.decrypt !== undefined &&
-    inspection.type !== undefined
-  )
 }
 
 export const SigningKey = {

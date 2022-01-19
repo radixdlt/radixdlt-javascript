@@ -74,7 +74,7 @@ describe('integration API tests', () => {
   beforeAll(async () => {
     radix = Radix.create()
     await radix
-      .__withWallet(makeWalletWithFunds(network))
+      .__withWallet(await makeWalletWithFunds(network))
       .connect(`${NODE_URL}`)
     accounts = (await firstValueFrom(radix.restoreLocalHDAccountsToIndex(2)))
       .all
@@ -431,7 +431,7 @@ describe('integration API tests', () => {
     const tx = (await radix.lookupTransaction(txID))._unsafeUnwrap()
 
     expect(txID.toPrimitive()).toEqual(tx.txID.toPrimitive())
-    expect(tx.actions.length).toEqual(1)
+    expect(tx.actions.length).toEqual(2)
   })
 
   it('can lookup validator', async () => {

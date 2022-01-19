@@ -37,7 +37,7 @@ const txIntent = {
 
 describe('send transaction', () => {
   beforeEach(() => {
-    log.setLevel(LogLevel.DEBUG)
+    log.setLevel(LogLevel.SILENT)
     buildTransactionMock.mockReset()
     signMock.mockReset()
     finalizeTransactionMock.mockReset()
