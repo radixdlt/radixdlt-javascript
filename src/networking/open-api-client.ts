@@ -13,9 +13,30 @@ import {
   TokenEndpointApiFactory,
   GatewayEndpointApiFactory,
 } from '.'
+import axiosRetry from 'axios-retry'
 
-import { AxiosResponse, AxiosError } from 'axios'
+import axios, { AxiosResponse, AxiosError } from 'axios'
 import { Configuration } from './open-api'
+
+axiosRetry(axios, {
+  retries: 3,
+  retryDelay: axiosRetry.exponentialDelay,
+  retryCondition: err => {
+    const isTimeoutOrNetworkError = !err.response
+    const responseStatus = err.response?.status
+    const is500Error = !!(responseStatus && responseStatus >= 500)
+    const shouldRetry = isTimeoutOrNetworkError || is500Error
+
+    if (shouldRetry) {
+      const { method, data } = err.config
+      // @ts-ignore
+      const count = err.config['axios-retry']?.retryCount + 1
+      log.info(`Retrying #${count} api request with method ${method}. ${data}`)
+    }
+
+    return shouldRetry
+  },
+})
 
 const defaultHeaders = [
   'X-Radixdlt-Method',
@@ -43,6 +64,20 @@ export type ClientInterface = ReturnType<typeof AccountEndpointApiFactory> &
 export type MethodName = keyof ClientInterface
 export type Response = ReturnOfAPICall<MethodName>
 
+const prettifyErrorCode = (message: string, errorCode?: string) => {
+  const isNetworkError = message === 'Network Error'
+  if (isNetworkError) {
+    return 'NetworkError'
+  }
+  switch (errorCode) {
+    case 'ECONNABORTED':
+      return 'RequestTimeoutError'
+
+    default:
+      return 'UnknownError'
+  }
+}
+
 const handleError = (axiosError: AxiosError) => {
   if (axiosError.response) {
     const {
@@ -54,18 +89,15 @@ const handleError = (axiosError: AxiosError) => {
     const error = radixError({ message, code, details, traceId })
     log.error(JSON.stringify(error, null, 2))
     return error
-  } else if (axiosError.request) {
-    log.debug(axiosError.request)
-    return radixError({ message: axiosError.message })
   } else {
-    log.debug(axiosError)
-    if (axiosError.message === 'Network Error') {
-      return radixError({
-        message: axiosError.message,
-        details: { type: 'NetworkError' },
-      })
-    }
-    throw axiosError
+    const error = radixError({
+      message: axiosError.message,
+      details: {
+        type: prettifyErrorCode(axiosError.message, axiosError.code),
+      },
+    })
+    log.error(JSON.stringify(error, null, 2))
+    return error
   }
 }
 
@@ -113,6 +145,7 @@ export const openApiClient: Client<'open-api'> = (url: URL) => {
   const configuration = new Configuration({
     basePath: url.toString().slice(0, -1),
   })
+
   const api = [
     AccountEndpointApiFactory,
     ValidatorEndpointApiFactory,

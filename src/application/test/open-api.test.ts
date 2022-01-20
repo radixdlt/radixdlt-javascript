@@ -13,24 +13,24 @@ const mock = new MockAdapter(axios)
 
 describe('handle error responses', () => {
   beforeAll(() => {
-    log.setLevel(LogLevel.DEBUG)
+    log.setLevel(LogLevel.INFO)
   })
   afterEach(() => {
     mock.reset()
   })
-  afterAll(() => {
-    log.setLevel(LogLevel.INFO)
-  })
 
   it('should throw if 500 error', async () => {
-    mock.onPost(`${BASE_URL}/gateway`).reply(500)
-    try {
-      await api.gateway({})
-      expect(true).toBe(false)
-    } catch (error) {
-      expect(error).toBeDefined()
+    const mockedError = {
+      code: 500,
+      message: 'Internal server error',
+      details: {},
     }
-  })
+    mock.onPost(`${BASE_URL}/gateway`).reply(500, mockedError)
+
+    const response = await api.gateway({})
+
+    expect(response._unsafeUnwrapErr()).toEqual([radixError(mockedError)])
+  }, 300000)
 
   it('should handle 400 error', done => {
     const mockedError = {
@@ -64,6 +64,22 @@ describe('handle error responses', () => {
           radixError({
             details: { type: 'NetworkError' },
             message: 'Network Error',
+          }),
+        ])
+      })
+  })
+  it('should handle timeout error', async () => {
+    mock.onPost(`${BASE_URL}/gateway`).timeout()
+    await api
+      .gateway({})
+      .map(() => {
+        expect(true).toBe(false)
+      })
+      .mapErr(error => {
+        expect(error).toEqual([
+          radixError({
+            details: { type: 'RequestTimeoutError' },
+            message: 'timeout of 0ms exceeded',
           }),
         ])
       })
