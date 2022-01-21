@@ -3,26 +3,38 @@ import {
   ReturnOfAPICall,
   Validator as ValidatorRaw,
   AccountStakeEntry,
+  AccountUnstakeEntry,
+  Token,
 } from '@networking'
 import {
   ValidatorAddress,
   ValidatorAddressT,
   AccountAddress,
   AccountAddressT,
+  ResourceIdentifierT,
 } from '@account'
 import { Amount, AmountT } from '@primitives'
 import {
-  ExecutedTransaction,
   SimpleExecutedTransaction,
   TransactionIdentifier,
   TransactionIdentifierT,
   TransactionStatus,
   TxMessage,
 } from '../..'
-import { ok, combine } from 'neverthrow'
+import { ok, combine, Result, err } from 'neverthrow'
 import { Message } from '@crypto'
 import { ExecutedAction, transformAction } from '../../actions'
-import { transformMessage } from './responseHandlers'
+
+export const transformUnstakeEntry = (item: AccountUnstakeEntry) =>
+  combine([
+    ValidatorAddress.fromUnsafe(item.validator_identifier.address),
+    Amount.fromUnsafe(item.unstaking_amount.value),
+    ok<number, Error>(item.epochs_until_unlocked),
+  ]).map(value => ({
+    validator: value[0] as ValidatorAddressT,
+    amount: value[1] as AmountT,
+    epochsUntil: value[2] as number,
+  }))
 
 const transformUrl = (url: string) => {
   try {
@@ -30,6 +42,26 @@ const transformUrl = (url: string) => {
   } catch (error) {
     return undefined
   }
+}
+
+export const transformMessage = (message: string): Result<TxMessage, Error> => {
+  if (!/^(00|01|30)[0-9a-fA-F]+$/.test(message))
+    return err(Error('Message format invalid.'))
+
+  if (Message.isHexEncoded(message)) {
+    const decoded = Message.plaintextToString(Buffer.from(message, 'hex'), 0)
+    return transformMessage(decoded)
+  }
+
+  return Message.isPlaintext(message)
+    ? ok({
+        raw: Message.plaintextToString(Buffer.from(message, 'hex')),
+        encrypted: false,
+      })
+    : ok({
+        raw: message,
+        encrypted: true,
+      })
 }
 
 const transformTransaction = (
@@ -101,8 +133,23 @@ const transformValidator = (validator: ValidatorRaw) =>
     }),
   )
 
+const transformToken =
+  (token: Token) => (values: (ResourceIdentifierT | AmountT)[]) => ({
+    name: token.token_properties.name ?? '',
+    rri: values[0] as ResourceIdentifierT,
+    symbol: token.token_properties.symbol,
+    description: token.token_properties.description,
+    granularity: values[1] as AmountT,
+    isSupplyMutable: token.token_properties.is_supply_mutable,
+    currentSupply: values[2] as AmountT,
+    tokenInfoURL: responseHelper.transformUrl(token.token_properties.url),
+    iconURL: responseHelper.transformUrl(token.token_properties.icon_url),
+  })
+
 export const responseHelper = {
   transformValidator,
   transformStakeEntry,
   transformTransaction,
+  transformUrl,
+  transformToken,
 }

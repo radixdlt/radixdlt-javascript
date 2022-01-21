@@ -13,43 +13,13 @@ import {
   ValidatorsEndpoint,
   GatewayEndpoint,
 } from './_types'
-import { AccountUnstakeEntry, ReturnOfAPICall } from '@networking'
-import { err, Result } from 'neverthrow'
-import {
-  ResourceIdentifier,
-  ResourceIdentifierT,
-  ValidatorAddress,
-  ValidatorAddressT,
-} from '@account'
+import { ReturnOfAPICall } from '@networking'
+import { Result } from 'neverthrow'
+import { ResourceIdentifier, ResourceIdentifierT } from '@account'
 import { Amount, AmountT, Network } from '@primitives'
-import {
-  TxMessage,
-  SimpleTransactionHistory,
-  TransactionIdentifier,
-} from '../..'
+import { SimpleTransactionHistory, TransactionIdentifier } from '../..'
 import { ok, combine } from 'neverthrow'
-import { responseHelper } from './responseHelpers'
-import { Message } from '@crypto'
-
-export const transformMessage = (message: string): Result<TxMessage, Error> => {
-  if (!/^(00|01|30)[0-9a-fA-F]+$/.test(message))
-    return err(Error('Message format invalid.'))
-
-  if (Message.isHexEncoded(message)) {
-    const decoded = Message.plaintextToString(Buffer.from(message, 'hex'), 0)
-    return transformMessage(decoded)
-  }
-
-  return Message.isPlaintext(message)
-    ? ok({
-        raw: Message.plaintextToString(Buffer.from(message, 'hex')),
-        encrypted: false,
-      })
-    : ok({
-        raw: message,
-        encrypted: true,
-      })
-}
+import { responseHelper, transformUnstakeEntry } from './responseHelpers'
 
 export const handleGatewayResponse = (
   json: ReturnOfAPICall<'gatewayPost'>,
@@ -66,21 +36,7 @@ export const handleTokenInfoResponse = (
     Amount.fromUnsafe(json.data.token.token_properties.granularity),
     Amount.fromUnsafe(json.data.token.token_supply.value),
   ])
-    .map(values => ({
-      name: json.data.token.token_properties.name ?? '',
-      rri: values[0] as ResourceIdentifierT,
-      symbol: json.data.token.token_properties.symbol,
-      description: json.data.token.token_properties.description,
-      granularity: values[1] as AmountT,
-      isSupplyMutable: json.data.token.token_properties.is_supply_mutable,
-      currentSupply: values[2] as AmountT,
-      tokenInfoURL: json.data.token.token_properties.url
-        ? new URL(json.data.token.token_properties.url)
-        : undefined,
-      iconURL: json.data.token.token_properties.icon_url
-        ? new URL(json.data.token.token_properties.icon_url)
-        : undefined,
-    }))
+    .map(responseHelper.transformToken(json.data.token))
     .mapErr(e => [e])
 
 export const handleNativeTokenResponse = (
@@ -91,21 +47,7 @@ export const handleNativeTokenResponse = (
     Amount.fromUnsafe(json.data.token.token_properties.granularity),
     Amount.fromUnsafe(json.data.token.token_supply.value),
   ])
-    .map(values => ({
-      name: json.data.token.token_properties.name ?? '',
-      rri: values[0] as ResourceIdentifierT,
-      symbol: json.data.token.token_properties.symbol,
-      description: json.data.token.token_properties.description,
-      granularity: values[1] as AmountT,
-      isSupplyMutable: json.data.token.token_properties.is_supply_mutable,
-      currentSupply: values[2] as AmountT,
-      tokenInfoURL: json.data.token.token_properties.url
-        ? new URL(json.data.token.token_properties.url)
-        : undefined,
-      iconURL: json.data.token.token_properties.icon_url
-        ? new URL(json.data.token.token_properties.icon_url)
-        : undefined,
-    }))
+    .map(responseHelper.transformToken(json.data.token))
     .mapErr(e => [e])
 
 export const handleStakePositionsResponse = (
@@ -118,17 +60,6 @@ export const handleStakePositionsResponse = (
       ).map(pendingStakes => ({ stakes, pendingStakes })),
     )
     .mapErr(e => [e])
-
-const transformUnstakeEntry = (item: AccountUnstakeEntry) =>
-  combine([
-    ValidatorAddress.fromUnsafe(item.validator_identifier.address),
-    Amount.fromUnsafe(item.unstaking_amount.value),
-    ok<number, Error>(item.epochs_until_unlocked),
-  ]).map(value => ({
-    validator: value[0] as ValidatorAddressT,
-    amount: value[1] as AmountT,
-    epochsUntil: value[2] as number,
-  }))
 
 export const handleUnstakePositionsResponse = (
   json: ReturnOfAPICall<'accountUnstakesPost'>,
