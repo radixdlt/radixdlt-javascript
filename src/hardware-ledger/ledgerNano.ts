@@ -1,14 +1,12 @@
 import {
   LedgerNanoT,
-  LedgerResponseCodes,
+  StatusCode,
   prettifyLedgerResponseCode,
   RadixAPDUT,
 } from './_types'
 import { Observable } from 'rxjs'
-
 import { msgFromError, log } from '@util'
-
-import { BasicLedgerTransport, send } from './device-connection'
+import { BasicLedgerTransport, sendAPDU_generic } from './device-connection'
 
 const ledgerAPDUResponseCodeBufferLength = 2 // two bytes
 
@@ -17,7 +15,7 @@ const fromTransport = (
 ): LedgerNanoT => {
   const sendAPDUToDevice = (apdu: RadixAPDUT): Observable<Buffer> =>
     new Observable<Buffer>(subscriber => {
-      send({
+      sendAPDU_generic({
         apdu,
         with: basicLedgerTransport,
       })
@@ -32,16 +30,10 @@ const fromTransport = (
             )}`,
           )
 
-          if (responseFromLedger.length < ledgerAPDUResponseCodeBufferLength) {
-            const errMsg = `Got too short response from Ledger, expected all responses to be at least #${ledgerAPDUResponseCodeBufferLength} bytes, but got: #${responseFromLedger.length} bytes`
-            log.error(errMsg)
-            subscriber.error(new Error(errMsg))
-          }
-
           const responseCodeBuf = responseFromLedger.slice(
             -ledgerAPDUResponseCodeBufferLength,
           )
-          const responseCode: LedgerResponseCodes = parseInt(
+          const responseCode: StatusCode = parseInt(
             responseCodeBuf.toString('hex'),
             16,
           )
@@ -53,10 +45,10 @@ const fromTransport = (
           )
 
           if (
-            !apdu.requiredResponseStatusCodeFromDevice.includes(responseCode)
+            !apdu.statusCodes.includes(responseCode)
           ) {
             const errMsg = `Invalid response code, got ${responseCode}, but requires any of: ${JSON.stringify(
-              apdu.requiredResponseStatusCodeFromDevice,
+              apdu.statusCodes,
               null,
               4,
             )}`
@@ -80,7 +72,7 @@ const fromTransport = (
           if (
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             error.statusCode !== undefined &&
-            error.statusCode === LedgerResponseCodes.SW_CLA_NOT_SUPPORTED
+            error.statusCode === StatusCode.SW_CLA_NOT_SUPPORTED
           ) {
             const errMsg = `🤷‍♀️ Wrong app/Radix app not opened on Ledger yet. ${msgFromError(
               error,
@@ -89,7 +81,7 @@ const fromTransport = (
             subscriber.error(new Error(errMsg))
           } else {
             const ledgerResponseCodesFromError: string | undefined =
-              LedgerResponseCodes[error.statusCode]
+              StatusCode[error.statusCode]
 
             const underlyingError =
               ledgerResponseCodesFromError ?? msgFromError(error)

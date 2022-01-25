@@ -75,6 +75,7 @@
     "sanity": "yarn build && yarn test"
   },
   "dependencies": {
+    "@ledgerhq/hw-transport": "^6.20.0",
     "@ledgerhq/hw-transport-node-hid": "^6.20.0",
     "@open-rpc/client-js": "^1.7.1",
     "@radixdlt/open-rpc-spec": "^1.0.19",

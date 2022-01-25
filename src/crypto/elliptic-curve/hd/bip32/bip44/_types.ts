@@ -1,18 +1,18 @@
 import { BIP32T, BIP32PathComponentT } from '../_types'
 
 export type BIP44T = BIP32T &
-  Readonly<{
+  {
     purpose: BIP32PathComponentT
     coinType: BIP32PathComponentT
     account: BIP32PathComponentT
     change: BIP32PathComponentT
     addressIndex: BIP32PathComponentT
-  }>
+  }
 
 export type BIP44ChangeIndex = 0 | 1
 
 export type HDPathRadixT = BIP44T &
-  Readonly<{
+  {
     purpose: {
       index: 0x8000002c
       isHardened: true
@@ -41,4 +41,4 @@ export type HDPathRadixT = BIP44T &
       level: 5
       name: 'address index'
     }
-  }>
+  }

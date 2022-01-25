@@ -34,11 +34,13 @@ export type InputOfAPICall<Name extends MethodName> = Parameters<
   ClientInterface[Name]
 >[0]
 
-export type ClientInterface = ReturnType<typeof AccountEndpointApiFactory> &
-  ReturnType<typeof ValidatorEndpointApiFactory> &
-  ReturnType<typeof TransactionEndpointApiFactory> &
-  ReturnType<typeof TokenEndpointApiFactory> &
-  ReturnType<typeof GatewayEndpointApiFactory>
+export type ClientInterface = ReturnType<
+  typeof AccountEndpointApiFactory &
+  typeof ValidatorEndpointApiFactory &
+  typeof TransactionEndpointApiFactory &
+  typeof TokenEndpointApiFactory &
+  typeof GatewayEndpointApiFactory
+>
 
 export type MethodName = keyof ClientInterface
 export type Response = ReturnOfAPICall<MethodName>
@@ -103,6 +105,7 @@ export const openApiClient: Client<'open-api'> = (url: URL) => {
   const configuration = new Configuration({
     basePath: url.toString().slice(0, -1),
   })
+  
   const api = [
     AccountEndpointApiFactory,
     ValidatorEndpointApiFactory,

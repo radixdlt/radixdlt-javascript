@@ -32,10 +32,8 @@ import {
   SignTransactionInput,
   SignTXOutput,
 } from '@hardware-wallet'
-import { RadixAPDU } from './apdu'
 import { LedgerNanoT } from './_types'
 import { LedgerNano } from './ledgerNano'
-import { BasicLedgerTransport } from './device-connection'
 import { log, BufferReader } from '@util'
 import { Transaction } from '@tx-parser'
 import { InstructionT } from '@tx-parser'
