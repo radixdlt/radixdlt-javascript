@@ -1,4 +1,4 @@
-import { transformMessage } from '../api/open-api/responseHandlers'
+import { transformMessage } from '../api/open-api/responseHelpers'
 
 describe('transformMessage', () => {
   it.each([
