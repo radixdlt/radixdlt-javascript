@@ -65,17 +65,8 @@ export type MethodName = keyof ClientInterface
 export type Response = ReturnOfAPICall<MethodName>
 
 const prettifyErrorCode = (message: string, errorCode?: string) => {
-  const isNetworkError = message === 'Network Error'
-  if (isNetworkError) {
-    return 'NetworkError'
-  }
-  switch (errorCode) {
-    case 'ECONNABORTED':
-      return 'RequestTimeoutError'
-
-    default:
-      return 'UnknownError'
-  }
+if (message === 'Network Error') return 'NetworkError'
+return errorCode === 'ECONNABORTED' ? 'RequestTimeoutError' : 'UnknownError'
 }
 
 const handleError = (axiosError: AxiosError) => {
