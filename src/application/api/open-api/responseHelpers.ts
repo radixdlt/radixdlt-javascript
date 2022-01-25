@@ -36,7 +36,7 @@ export const transformUnstakeEntry = (item: AccountUnstakeEntry) =>
     epochsUntil: value[2] as number,
   }))
 
-const transformUrl = (url: string) => {
+export const transformUrl = (url: string) => {
   try {
     return new URL(url)
   } catch (error) {
@@ -64,7 +64,7 @@ export const transformMessage = (message: string): Result<TxMessage, Error> => {
       })
 }
 
-const transformTransaction = (
+export const transformTransaction = (
   transaction: ReturnOfAPICall<'transactionStatusPost'>['data']['transaction'],
 ) =>
   combine([
@@ -99,7 +99,7 @@ const transformTransaction = (
     )
     .mapErr(e => [e] as Error[])
 
-const transformStakeEntry = (stake: AccountStakeEntry) =>
+export const transformStakeEntry = (stake: AccountStakeEntry) =>
   combine([
     ValidatorAddress.fromUnsafe(stake.validator_identifier.address),
     Amount.fromUnsafe(stake.delegated_stake.value),
@@ -108,7 +108,7 @@ const transformStakeEntry = (stake: AccountStakeEntry) =>
     amount: value[1] as AmountT,
   }))
 
-const transformValidator = (validator: ValidatorRaw) =>
+export const transformValidator = (validator: ValidatorRaw) =>
   combine([
     ValidatorAddress.fromUnsafe(validator.validator_identifier.address),
     AccountAddress.fromUnsafe(
@@ -133,7 +133,7 @@ const transformValidator = (validator: ValidatorRaw) =>
     }),
   )
 
-const transformToken =
+export const transformToken =
   (token: Token) => (values: (ResourceIdentifierT | AmountT)[]) => ({
     name: token.token_properties.name ?? '',
     rri: values[0] as ResourceIdentifierT,
@@ -142,14 +142,6 @@ const transformToken =
     granularity: values[1] as AmountT,
     isSupplyMutable: token.token_properties.is_supply_mutable,
     currentSupply: values[2] as AmountT,
-    tokenInfoURL: responseHelper.transformUrl(token.token_properties.url),
-    iconURL: responseHelper.transformUrl(token.token_properties.icon_url),
+    tokenInfoURL: transformUrl(token.token_properties.url),
+    iconURL: transformUrl(token.token_properties.icon_url),
   })
-
-export const responseHelper = {
-  transformValidator,
-  transformStakeEntry,
-  transformTransaction,
-  transformUrl,
-  transformToken,
-}

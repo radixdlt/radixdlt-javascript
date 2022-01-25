@@ -19,7 +19,7 @@ import { ResourceIdentifier, ResourceIdentifierT } from '@account'
 import { Amount, AmountT, Network } from '@primitives'
 import { SimpleTransactionHistory, TransactionIdentifier } from '../..'
 import { ok, combine } from 'neverthrow'
-import { responseHelper, transformUnstakeEntry } from './responseHelpers'
+import * as responseHelper from './responseHelpers'
 
 export const handleGatewayResponse = (
   json: ReturnOfAPICall<'gatewayPost'>,
@@ -64,12 +64,16 @@ export const handleStakePositionsResponse = (
 export const handleUnstakePositionsResponse = (
   json: ReturnOfAPICall<'accountUnstakesPost'>,
 ): Result<UnstakePositionsEndpoint.DecodedResponse, Error[]> => {
-  return combine(json.data.pending_unstakes.map(transformUnstakeEntry))
+  return combine(
+    json.data.pending_unstakes.map(responseHelper.transformUnstakeEntry),
+  )
     .map(pendingUnstakes =>
-      combine(json.data.unstakes.map(transformUnstakeEntry)).map(unstakes => ({
-        pendingUnstakes,
-        unstakes,
-      })),
+      combine(json.data.unstakes.map(responseHelper.transformUnstakeEntry)).map(
+        unstakes => ({
+          pendingUnstakes,
+          unstakes,
+        }),
+      ),
     )
     .andThen(res => res)
     .mapErr(e => [e])
