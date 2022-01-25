@@ -22,6 +22,7 @@ import { Option } from 'prelude-ts'
 import { PublicKeyT, HDPathRadixT } from '@crypto'
 import { Network } from '@primitives'
 import { log } from '@util'
+import { withLatestFrom } from 'rxjs/operators'
 
 const create = (
   input: Readonly<{
@@ -72,9 +73,6 @@ const create = (
     signingKeychain.observeActiveSigningKey().pipe(map(skToAccount))
 
   return {
-    __unsafeGetAccount: (): AccountT =>
-      skToAccount(signingKeychain.__unsafeGetSigningKey()),
-
     revealMnemonic: signingKeychain.revealMnemonic,
 
     deriveNextLocalHDAccount: (input?: DeriveNextInput): Observable<AccountT> =>
@@ -86,22 +84,20 @@ const create = (
     displayAddressForActiveHWAccountOnHWDeviceForVerification:
       (): Observable<void> =>
         observeActiveAccount().pipe(
+          withLatestFrom(signingKeychain.observeActiveSigningKey()),
           mergeMap(
-            (a: AccountT): Observable<void> =>
-              signingKeychain
-                .__unsafeGetSigningKey()
-                .getPublicKeyDisplayOnlyAddress()
-                .pipe(
-                  mergeMap((pk: PublicKeyT): Observable<void> => {
-                    if (pk.equals(a.publicKey)) {
-                      return of(undefined)
-                    } else {
-                      const errMsg = `Hardware wallet returned a different public key than the cached one, this is bad. Probably incorrect implementation.`
-                      log.error(errMsg)
-                      return throwError(new Error(errMsg))
-                    }
-                  }),
-                ),
+            ([a, signingKeychain]): Observable<void> =>
+              signingKeychain.getPublicKeyDisplayOnlyAddress().pipe(
+                mergeMap((pk: PublicKeyT): Observable<void> => {
+                  if (pk.equals(a.publicKey)) {
+                    return of(undefined)
+                  } else {
+                    const errMsg = `Hardware wallet returned a different public key than the cached one, this is bad. Probably incorrect implementation.`
+                    log.error(errMsg)
+                    return throwError(new Error(errMsg))
+                  }
+                }),
+              ),
           ),
         ),
 

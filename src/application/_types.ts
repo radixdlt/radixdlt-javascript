@@ -117,9 +117,6 @@ export type SwitchAccountInput =
   | SwitchToIndex
 
 export type WalletT = Readonly<{
-  // should only be used for testing
-  __unsafeGetAccount: () => AccountT
-
   revealMnemonic: () => MnemomicT
 
   restoreLocalHDAccountsToIndex: (index: number) => Observable<AccountsT>

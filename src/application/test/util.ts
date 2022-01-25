@@ -27,9 +27,11 @@ export const createWallet = (
   })
 }
 
-export const makeWalletWithFunds = (network: Network): WalletT => {
+export const makeWalletWithFunds = async (
+  network: Network,
+): Promise<WalletT> => {
   return Wallet.create({
-    signingKeychain: makeSigningKeyChainWithFunds(),
+    signingKeychain: await makeSigningKeyChainWithFunds(),
     network,
   })
 }
