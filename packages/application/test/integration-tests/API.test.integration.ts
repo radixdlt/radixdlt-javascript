@@ -625,7 +625,7 @@ describe('integration API tests', () => {
 
 		const positions = await firstValueFrom(radix.unstakingPositions)
 
-		expect(positions[0].amount).toBeDefined()
+		expect(positions.unstakes[0]).toBeDefined()
 	})
 	/*
 		// 🟢
