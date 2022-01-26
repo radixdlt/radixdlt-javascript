@@ -315,7 +315,10 @@ export namespace StakePositionsEndpoint {
 export namespace UnstakePositionsEndpoint {
 	export type Input = AccountUnstakesRequest
 	export type Response = AccountUnstakesResponse
-	export type DecodedResponse = Omit<UnstakePosition, 'withdrawTxID'>[]
+	export type DecodedResponse = {
+		unstakes: Omit<UnstakePosition, 'withdrawTxID'>[]
+		pendingUnstakes: Omit<UnstakePosition, 'withdrawTxID'>[]
+	}
 }
 
 export namespace AccountTransactionsEndpoint {
