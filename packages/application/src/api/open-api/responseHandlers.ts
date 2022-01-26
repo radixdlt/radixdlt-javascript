@@ -15,6 +15,7 @@ import {
 } from './_types'
 import {
 	AccountStakeEntry,
+	AccountUnstakeEntry,
 	Action,
 	ReturnOfAPICall,
 	StakeTokens,
@@ -147,6 +148,17 @@ const transformStakeEntry = (stake: AccountStakeEntry) =>
 		amount: value[1] as AmountT,
 	}))
 
+const transformUnstakeEntry = (unstake: AccountUnstakeEntry) =>
+	combine([
+		ValidatorAddress.fromUnsafe(unstake.validator_identifier.address),
+		Amount.fromUnsafe(unstake.unstaking_amount.value),
+		ok<number, Error>(unstake.epochs_until_unlocked),
+	]).map(value => ({
+		validator: value[0] as ValidatorAddressT,
+		amount: value[1] as AmountT,
+		epochsUntil: value[2] as number,
+	}))
+
 export const handleStakePositionsResponse = (
 	json: ReturnOfAPICall<'accountStakesPost'>,
 ): Result<StakePositionsEndpoint.DecodedResponse, Error[]> =>
@@ -160,22 +172,21 @@ export const handleStakePositionsResponse = (
 
 export const handleUnstakePositionsResponse = (
 	json: ReturnOfAPICall<'accountUnstakesPost'>,
-): Result<UnstakePositionsEndpoint.DecodedResponse, Error[]> =>
-	combine(
-		json.data.unstakes.map(unstake =>
-			combine([
-				ValidatorAddress.fromUnsafe(
-					unstake.validator_identifier.address,
-				),
-				Amount.fromUnsafe(unstake.unstaking_amount.value),
-				ok<number, Error>(unstake.epochs_until_unlocked),
-			]).map(value => ({
-				validator: value[0] as ValidatorAddressT,
-				amount: value[1] as AmountT,
-				epochsUntil: value[2] as number,
-			})),
-		),
-	).mapErr(e => [e])
+): Result<UnstakePositionsEndpoint.DecodedResponse, Error[]> => {
+	return combine(
+		json.data.pending_unstakes.map(transformUnstakeEntry),
+	)
+		.map(pendingUnstakes =>
+			combine(json.data.unstakes.map(transformUnstakeEntry)).map(
+				unstakes => ({
+					pendingUnstakes,
+					unstakes,
+				}),
+			),
+		)
+		.andThen(res => res)
+		.mapErr(e => [e])
+}
 
 export const handleAccountTransactionsResponse = (
 	json: ReturnOfAPICall<'accountTransactionsPost'>,
@@ -488,12 +499,12 @@ const handleTx = (
 			]).map((actionValue):
 				| ExecutedStakeTokensAction
 				| ExecutedUnstakeTokensAction => ({
-				type,
-				amount: actionValue[0] as AmountT,
-				rri: actionValue[1] as ResourceIdentifierT,
-				to_validator: actionValue[2] as ValidatorAddressT,
-				from_account: actionValue[3] as AccountAddressT,
-			}))
+					type,
+					amount: actionValue[0] as AmountT,
+					rri: actionValue[1] as ResourceIdentifierT,
+					to_validator: actionValue[2] as ValidatorAddressT,
+					from_account: actionValue[3] as AccountAddressT,
+				}))
 
 		const transformUnstakeTokenAction = (
 			type: ActionType.UNSTAKE_TOKENS,
@@ -506,12 +517,12 @@ const handleTx = (
 			]).map((actionValue):
 				| ExecutedStakeTokensAction
 				| ExecutedUnstakeTokensAction => ({
-				type,
-				from_validator: actionValue[0] as ValidatorAddressT,
-				to_account: actionValue[1] as AccountAddressT,
-				amount: actionValue[2] as AmountT,
-				rri: actionValue[3] as ResourceIdentifierT,
-			}))
+					type,
+					from_validator: actionValue[0] as ValidatorAddressT,
+					to_account: actionValue[1] as AccountAddressT,
+					amount: actionValue[2] as AmountT,
+					rri: actionValue[3] as ResourceIdentifierT,
+				}))
 
 		switch (action.type) {
 			case 'TransferTokens':
