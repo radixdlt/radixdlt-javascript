@@ -31,8 +31,7 @@ import {
 	isTransferTokensInput,
 	IntendedStakeTokens,
 	isStakeTokensInput,
-	IntendedUnstakeTokens,
-	isUnstakeTokensInput,
+	IntendedUnstakeTokens
 } from '../actions'
 import { combine, err, ok, Result } from 'neverthrow'
 import {
@@ -317,11 +316,7 @@ const create = (): TransactionIntentBuilderT => {
 							throw new Error('Not stake tokens input')
 						}
 					} else if (intermediateActionType === 'unstake') {
-						if (isUnstakeTokensInput(i)) {
-							return IntendedUnstakeTokens.create(i, from)
-						} else {
-							throw new Error('Not unstake tokens input')
-						}
+						return IntendedUnstakeTokens.create(i as UnstakeTokensInput, from)
 					} else {
 						return err(
 							new Error(
@@ -405,8 +400,8 @@ const create = (): TransactionIntentBuilderT => {
 							message:
 								plaintextMessage !== undefined
 									? MessageEncryption.encodePlaintext(
-											plaintextMessage,
-									  )
+										plaintextMessage,
+									)
 									: undefined,
 						})
 					}

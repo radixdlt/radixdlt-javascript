@@ -40,7 +40,8 @@ export type StakeTokensInput = Readonly<{
 
 export type UnstakeTokensInput = Readonly<{
 	from_validator: ValidatorAddressOrUnsafeInput
-	amount: AmountOrUnsafeInput
+	amount?: AmountOrUnsafeInput
+	unstake_percentage?: AmountOrUnsafeInput
 	tokenIdentifier: ResourceIdentifierOrUnsafeInput
 }>
 
@@ -75,6 +76,7 @@ export type UnstakeTokensProps = Readonly<{
 	to_account: AccountAddressT
 	from_validator: ValidatorAddressT
 	amount: AmountT
+	unstake_percentage: AmountT
 	rri: ResourceIdentifierT
 }>
 

@@ -7,11 +7,11 @@ import { pipe } from 'ramda'
 import { TransactionBuildResponse } from './open-api/api'
 import {
 	apiVersion,
-	AccountEndpointApiFactory,
-	ValidatorEndpointApiFactory,
-	TransactionEndpointApiFactory,
-	TokenEndpointApiFactory,
-	GatewayEndpointApiFactory,
+	AccountApiFactory,
+	ValidatorApiFactory,
+	TransactionApiFactory,
+	TokenApiFactory,
+	StatusApiFactory
 } from '.'
 import { AxiosResponse, AxiosError } from 'axios'
 import { Configuration } from './open-api'
@@ -34,11 +34,12 @@ export type InputOfAPICall<Name extends MethodName> = Parameters<
 	ClientInterface[Name]
 >[0]
 
-export type ClientInterface = ReturnType<typeof AccountEndpointApiFactory> &
-	ReturnType<typeof ValidatorEndpointApiFactory> &
-	ReturnType<typeof TransactionEndpointApiFactory> &
-	ReturnType<typeof TokenEndpointApiFactory> &
-	ReturnType<typeof GatewayEndpointApiFactory>
+export type ClientInterface = ReturnType<typeof AccountApiFactory> &
+	ReturnType<typeof ValidatorApiFactory> &
+	ReturnType<typeof TransactionApiFactory> &
+	ReturnType<typeof TokenApiFactory> & 
+	ReturnType<typeof StatusApiFactory>
+
 export type MethodName = keyof ClientInterface
 export type Response = ReturnOfAPICall<MethodName>
 
@@ -101,11 +102,11 @@ export const openApiClient: Client<'open-api'> = (url: URL) => {
 		basePath: url.toString().slice(0, -1),
 	})
 	const api = [
-		AccountEndpointApiFactory,
-		ValidatorEndpointApiFactory,
-		TransactionEndpointApiFactory,
-		TokenEndpointApiFactory,
-		GatewayEndpointApiFactory,
+		AccountApiFactory,
+		ValidatorApiFactory,
+		TransactionApiFactory,
+		TokenApiFactory,
+		StatusApiFactory
 	].reduce<ClientInterface>(
 		(acc, factory) => ({
 			...acc,

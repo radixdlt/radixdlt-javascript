@@ -2,9 +2,9 @@
 /* eslint-disable */
 /**
  * Radix Gateway API
- * This API is designed to enable clients to efficiently query information on the RadixDLT ledger, and allow clients to simply build and submit transactions to the network.  The API is designed for use by the Radix Foundation\'s [Desktop Wallet](https://wallet.radixdlt.com/) and [Explorer](https://explorer.radixdlt.com/), and replaces the original Olympia \"Archive Node API\".  # Gateway API Overview  The Gateway API is separated into distinct groupings:  * `/gateway` - Information about the Gateway API status * `/account/_*` - To query account-related information * `/token/_*` - To query token-related information * `/validator/_*` and `/validators` - To query validator-related information * `/transaction/_*` - To build, finalize and submit transactions, and to read the status and content of submitted and on-ledger transactions.  The Gateway API is implemented by the [Network Gateway](https://github.com/radixdlt/radixdlt-network-gateway), which is configured to read from full node/s to extract and index data from the network.  # Gateway API Format  The API is designed in a JSON-RPC style, using HTTP as a transport layer, which means that:  * All requests are POST requests. * Any error is returned with an HTTP status code of 500, with a returned error object.   * The error object contains an HTTP-like `code`   * The error object also contains a structured/typed `details` sub-object, with a `type` discriminator,     allowing for structured error interpretation in clients.  # Comparison to other Radix APIs  * [Core API](https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/radixdlt/radixdlt/develop/radixdlt-core/radixdlt/src/main/java/com/radixdlt/api/core/api.yaml) -   The Core API is a low level API exposed by full nodes, and designed for use on internal networks. It is primarily designed   for network integrations such as exchanges, ledger analytics providers, or hosted ledger data dashboards.   The Core API provides endpoints for reading the mempool, constructing transactions and also exposes a stream of committed transactions.  * [System API](https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/radixdlt/radixdlt/develop/radixdlt-core/radixdlt/src/main/java/com/radixdlt/api/system/api.yaml) -   The System API is a private API exposed by full nodes to read system status.  The Gateway API offers a much wider range of query options and is more performant than the Core API. It is built on top of the Core API, ingesting data via the Core API transaction stream into a relational database.  The Gateway API transaction/construction endpoints operate with the concept of \"actions\" - these are higher-levels of intent compared with the Core API, which makes it easier for clients to use. The Core API should be used if you require more power/flexiblity for managing UTXOs, or submitting transactions which can\'t be mapped to a Gateway API action. 
+ * This API is designed to enable clients to efficiently query information on the RadixDLT ledger, and allow clients to simply build and submit transactions to the network.  The API is designed for use by the Radix Foundation\'s [Desktop Wallet](https://wallet.radixdlt.com/) and [Explorer](https://explorer.radixdlt.com/), and replaces the original Olympia \"Archive Node API\".  # Gateway API Overview  The Gateway API is separated into distinct groupings:  * `/gateway` - Information about the Gateway API status * `/account/_*` - To query account-related information * `/token/_*` - To query token-related information * `/validator/_*` and `/validators` - To query validator-related information * `/transaction/_*` - To build, finalize and submit transactions, and to read the status and content of submitted and on-ledger transactions.  The Gateway API is implemented by the [Network Gateway](https://github.com/radixdlt/radixdlt-network-gateway), which is configured to read from full node/s to extract and index data from the network.  # Gateway API Format  The API is designed in a JSON-RPC style, using HTTP as a transport layer, which means that:  * All requests are POST requests. * Any error is returned with an HTTP status code of 500, with a returned error object.   * The error object contains an HTTP-like `code`   * The error object also contains a structured/typed `details` sub-object, with a `type` discriminator, allowing for structured error interpretation in clients.  # Comparison to other Radix APIs  * [Core API](https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/radixdlt/radixdlt/develop/radixdlt-core/radixdlt/src/main/java/com/radixdlt/api/core/api.yaml) - The Core API is a low level API exposed by full nodes, and designed for use on internal networks. It is primarily designed for network integrations such as exchanges, ledger analytics providers, or hosted ledger data dashboards. The Core API provides endpoints for reading the mempool, constructing transactions and also exposes a stream of committed transactions.  * [System API](https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/radixdlt/radixdlt/develop/radixdlt-core/radixdlt/src/main/java/com/radixdlt/api/system/api.yaml) - The System API is a private API exposed by full nodes to read system status.  The Gateway API offers a much wider range of query options and is more performant than the Core API. It is built on top of the Core API, ingesting data via the Core API transaction stream into a relational database.  The Gateway API transaction/construction endpoints operate with the concept of \"actions\" - these are higher-levels of intent compared with the Core API, which makes it easier for clients to use. The Core API should be used if you require more power/flexiblity for managing UTXOs, or submitting transactions which can\'t be mapped to a Gateway API action. 
  *
- * The version of the OpenAPI document: 1.0.2
+ * The version of the OpenAPI document: 1.0.3
  * 
  *
  * NOTE: This class is auto generated by OpenAPI Generator (https://openapi-generator.tech).
@@ -1233,6 +1233,56 @@ export interface NotEnoughTokensForUnstakeErrorAllOf {
     'pending_stake': AccountStakeEntry;
 }
 /**
+ * 
+ * @export
+ * @interface NotSyncedUpError
+ */
+export interface NotSyncedUpError extends GatewayError {
+    /**
+     * The request type that triggered this exception.
+     * @type {string}
+     * @memberof NotSyncedUpError
+     */
+    'request_type': string;
+    /**
+     * The current delay between the Gateway DB and the network ledger round timestamp.
+     * @type {number}
+     * @memberof NotSyncedUpError
+     */
+    'current_sync_delay_seconds': number;
+    /**
+     * The maximum allowed delay between the Gateway DB and the network ledger round timestamp for this `request_type`.
+     * @type {number}
+     * @memberof NotSyncedUpError
+     */
+    'max_allowed_sync_delay_seconds': number;
+}
+/**
+ * 
+ * @export
+ * @interface NotSyncedUpErrorAllOf
+ */
+export interface NotSyncedUpErrorAllOf {
+    /**
+     * The request type that triggered this exception.
+     * @type {string}
+     * @memberof NotSyncedUpErrorAllOf
+     */
+    'request_type': string;
+    /**
+     * The current delay between the Gateway DB and the network ledger round timestamp.
+     * @type {number}
+     * @memberof NotSyncedUpErrorAllOf
+     */
+    'current_sync_delay_seconds': number;
+    /**
+     * The maximum allowed delay between the Gateway DB and the network ledger round timestamp for this `request_type`.
+     * @type {number}
+     * @memberof NotSyncedUpErrorAllOf
+     */
+    'max_allowed_sync_delay_seconds': number;
+}
+/**
  * Optional. Allows a client to request a response referencing an earlier ledger state.
  * @export
  * @interface PartialLedgerStateIdentifier
@@ -1352,7 +1402,7 @@ export interface StakeTokensAllOf {
  */
 export interface TargetLedgerState {
     /**
-     * The latest-seen state version of the tip of the network\'s ledger. If this is singificantly ahead of the current LedgerState version, the Network Gateway is possibly behind and may be reporting out-dated information. 
+     * The latest-seen state version of the tip of the network\'s ledger. If this is singificantly ahead of the current LedgerState version, the Network Gateway is possibly behind and may be reporting outdated information. 
      * @type {number}
      * @memberof TargetLedgerState
      */
@@ -1747,7 +1797,7 @@ export interface TransactionFinalizeRequest {
      */
     'signature': Signature;
     /**
-     * If true, the transaction is immediately submitted after finalization. We recommend, however, that a transaction is submitted in a step after finalization. This ensures that you have a transaction identifier on hand to monitor the transaction status, even if the submission request failed with an uncertain error. 
+     * If true, the transaction is immediately submitted after finalization. However, we recommend that a transaction is submitted in a step after finalization. This ensures that you have a transaction identifier on hand to monitor the transaction status, even if the submission request failed with an uncertain error. 
      * @type {boolean}
      * @memberof TransactionFinalizeRequest
      */
@@ -2420,10 +2470,10 @@ export interface ValidatorsResponse {
 }
 
 /**
- * AccountEndpointApi - axios parameter creator
+ * AccountApi - axios parameter creator
  * @export
  */
-export const AccountEndpointApiAxiosParamCreator = function (configuration?: Configuration) {
+export const AccountApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
          * Returns an account\'s available and staked token balances, given an account address. If an account address is valid, but doesn\'t have any ledger transactions against it, this endpoint still returns a successful response. 
@@ -2433,7 +2483,7 @@ export const AccountEndpointApiAxiosParamCreator = function (configuration?: Con
          * @throws {RequiredError}
          */
         accountBalancesPost: async (accountBalancesRequest: AccountBalancesRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'accountBalancesRequest' is not null or undefined
+            // verify required parameter 'accountBalancesRequest' is not null or unined
             assertParamExists('accountBalancesPost', 'accountBalancesRequest', accountBalancesRequest)
             const localVarPath = `/account/balances`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -2609,11 +2659,11 @@ export const AccountEndpointApiAxiosParamCreator = function (configuration?: Con
 };
 
 /**
- * AccountEndpointApi - functional programming interface
+ * AccountApi - functional programming interface
  * @export
  */
-export const AccountEndpointApiFp = function(configuration?: Configuration) {
-    const localVarAxiosParamCreator = AccountEndpointApiAxiosParamCreator(configuration)
+export const AccountApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = AccountApiAxiosParamCreator(configuration)
     return {
         /**
          * Returns an account\'s available and staked token balances, given an account address. If an account address is valid, but doesn\'t have any ledger transactions against it, this endpoint still returns a successful response. 
@@ -2674,11 +2724,11 @@ export const AccountEndpointApiFp = function(configuration?: Configuration) {
 };
 
 /**
- * AccountEndpointApi - factory interface
+ * AccountApi - factory interface
  * @export
  */
-export const AccountEndpointApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
-    const localVarFp = AccountEndpointApiFp(configuration)
+export const AccountApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = AccountApiFp(configuration)
     return {
         /**
          * Returns an account\'s available and staked token balances, given an account address. If an account address is valid, but doesn\'t have any ledger transactions against it, this endpoint still returns a successful response. 
@@ -2734,22 +2784,22 @@ export const AccountEndpointApiFactory = function (configuration?: Configuration
 };
 
 /**
- * AccountEndpointApi - object-oriented interface
+ * AccountApi - object-oriented interface
  * @export
- * @class AccountEndpointApi
+ * @class AccountApi
  * @extends {BaseAPI}
  */
-export class AccountEndpointApi extends BaseAPI {
+export class AccountApi extends BaseAPI {
     /**
      * Returns an account\'s available and staked token balances, given an account address. If an account address is valid, but doesn\'t have any ledger transactions against it, this endpoint still returns a successful response. 
      * @summary Get Account Balances
      * @param {AccountBalancesRequest} accountBalancesRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof AccountEndpointApi
+     * @memberof AccountApi
      */
     public accountBalancesPost(accountBalancesRequest: AccountBalancesRequest, options?: AxiosRequestConfig) {
-        return AccountEndpointApiFp(this.configuration).accountBalancesPost(accountBalancesRequest, options).then((request) => request(this.axios, this.basePath));
+        return AccountApiFp(this.configuration).accountBalancesPost(accountBalancesRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -2758,10 +2808,10 @@ export class AccountEndpointApi extends BaseAPI {
      * @param {AccountDeriveRequest} accountDeriveRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof AccountEndpointApi
+     * @memberof AccountApi
      */
     public accountDerivePost(accountDeriveRequest: AccountDeriveRequest, options?: AxiosRequestConfig) {
-        return AccountEndpointApiFp(this.configuration).accountDerivePost(accountDeriveRequest, options).then((request) => request(this.axios, this.basePath));
+        return AccountApiFp(this.configuration).accountDerivePost(accountDeriveRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -2770,10 +2820,10 @@ export class AccountEndpointApi extends BaseAPI {
      * @param {AccountStakesRequest} accountStakesRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof AccountEndpointApi
+     * @memberof AccountApi
      */
     public accountStakesPost(accountStakesRequest: AccountStakesRequest, options?: AxiosRequestConfig) {
-        return AccountEndpointApiFp(this.configuration).accountStakesPost(accountStakesRequest, options).then((request) => request(this.axios, this.basePath));
+        return AccountApiFp(this.configuration).accountStakesPost(accountStakesRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -2782,10 +2832,10 @@ export class AccountEndpointApi extends BaseAPI {
      * @param {AccountTransactionsRequest} accountTransactionsRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof AccountEndpointApi
+     * @memberof AccountApi
      */
     public accountTransactionsPost(accountTransactionsRequest: AccountTransactionsRequest, options?: AxiosRequestConfig) {
-        return AccountEndpointApiFp(this.configuration).accountTransactionsPost(accountTransactionsRequest, options).then((request) => request(this.axios, this.basePath));
+        return AccountApiFp(this.configuration).accountTransactionsPost(accountTransactionsRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -2794,19 +2844,19 @@ export class AccountEndpointApi extends BaseAPI {
      * @param {AccountUnstakesRequest} accountUnstakesRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof AccountEndpointApi
+     * @memberof AccountApi
      */
     public accountUnstakesPost(accountUnstakesRequest: AccountUnstakesRequest, options?: AxiosRequestConfig) {
-        return AccountEndpointApiFp(this.configuration).accountUnstakesPost(accountUnstakesRequest, options).then((request) => request(this.axios, this.basePath));
+        return AccountApiFp(this.configuration).accountUnstakesPost(accountUnstakesRequest, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
 
 /**
- * GatewayEndpointApi - axios parameter creator
+ * StatusApi - axios parameter creator
  * @export
  */
-export const GatewayEndpointApiAxiosParamCreator = function (configuration?: Configuration) {
+export const StatusApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
          * Returns the Gateway API version, network and current ledger state.
@@ -2848,11 +2898,11 @@ export const GatewayEndpointApiAxiosParamCreator = function (configuration?: Con
 };
 
 /**
- * GatewayEndpointApi - functional programming interface
+ * StatusApi - functional programming interface
  * @export
  */
-export const GatewayEndpointApiFp = function(configuration?: Configuration) {
-    const localVarAxiosParamCreator = GatewayEndpointApiAxiosParamCreator(configuration)
+export const StatusApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = StatusApiAxiosParamCreator(configuration)
     return {
         /**
          * Returns the Gateway API version, network and current ledger state.
@@ -2869,11 +2919,11 @@ export const GatewayEndpointApiFp = function(configuration?: Configuration) {
 };
 
 /**
- * GatewayEndpointApi - factory interface
+ * StatusApi - factory interface
  * @export
  */
-export const GatewayEndpointApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
-    const localVarFp = GatewayEndpointApiFp(configuration)
+export const StatusApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = StatusApiFp(configuration)
     return {
         /**
          * Returns the Gateway API version, network and current ledger state.
@@ -2889,34 +2939,34 @@ export const GatewayEndpointApiFactory = function (configuration?: Configuration
 };
 
 /**
- * GatewayEndpointApi - object-oriented interface
+ * StatusApi - object-oriented interface
  * @export
- * @class GatewayEndpointApi
+ * @class StatusApi
  * @extends {BaseAPI}
  */
-export class GatewayEndpointApi extends BaseAPI {
+export class StatusApi extends BaseAPI {
     /**
      * Returns the Gateway API version, network and current ledger state.
      * @summary Get Gateway Info
      * @param {object} body 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof GatewayEndpointApi
+     * @memberof StatusApi
      */
     public gatewayPost(body: object, options?: AxiosRequestConfig) {
-        return GatewayEndpointApiFp(this.configuration).gatewayPost(body, options).then((request) => request(this.axios, this.basePath));
+        return StatusApiFp(this.configuration).gatewayPost(body, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
 
 /**
- * TokenEndpointApi - axios parameter creator
+ * TokenApi - axios parameter creator
  * @export
  */
-export const TokenEndpointApiAxiosParamCreator = function (configuration?: Configuration) {
+export const TokenApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Returns the Radix Resource Identifier of a newly created token an account with the given public key.
+         * Returns the Radix Resource Identifier of a token with the given symbol, created by an account with the given public key.
          * @summary Derive Token Identifier
          * @param {TokenDeriveRequest} tokenDeriveRequest 
          * @param {*} [options] Override http request option.
@@ -3027,14 +3077,14 @@ export const TokenEndpointApiAxiosParamCreator = function (configuration?: Confi
 };
 
 /**
- * TokenEndpointApi - functional programming interface
+ * TokenApi - functional programming interface
  * @export
  */
-export const TokenEndpointApiFp = function(configuration?: Configuration) {
-    const localVarAxiosParamCreator = TokenEndpointApiAxiosParamCreator(configuration)
+export const TokenApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = TokenApiAxiosParamCreator(configuration)
     return {
         /**
-         * Returns the Radix Resource Identifier of a newly created token an account with the given public key.
+         * Returns the Radix Resource Identifier of a token with the given symbol, created by an account with the given public key.
          * @summary Derive Token Identifier
          * @param {TokenDeriveRequest} tokenDeriveRequest 
          * @param {*} [options] Override http request option.
@@ -3070,14 +3120,14 @@ export const TokenEndpointApiFp = function(configuration?: Configuration) {
 };
 
 /**
- * TokenEndpointApi - factory interface
+ * TokenApi - factory interface
  * @export
  */
-export const TokenEndpointApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
-    const localVarFp = TokenEndpointApiFp(configuration)
+export const TokenApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = TokenApiFp(configuration)
     return {
         /**
-         * Returns the Radix Resource Identifier of a newly created token an account with the given public key.
+         * Returns the Radix Resource Identifier of a token with the given symbol, created by an account with the given public key.
          * @summary Derive Token Identifier
          * @param {TokenDeriveRequest} tokenDeriveRequest 
          * @param {*} [options] Override http request option.
@@ -3110,22 +3160,22 @@ export const TokenEndpointApiFactory = function (configuration?: Configuration, 
 };
 
 /**
- * TokenEndpointApi - object-oriented interface
+ * TokenApi - object-oriented interface
  * @export
- * @class TokenEndpointApi
+ * @class TokenApi
  * @extends {BaseAPI}
  */
-export class TokenEndpointApi extends BaseAPI {
+export class TokenApi extends BaseAPI {
     /**
-     * Returns the Radix Resource Identifier of a newly created token an account with the given public key.
+     * Returns the Radix Resource Identifier of a token with the given symbol, created by an account with the given public key.
      * @summary Derive Token Identifier
      * @param {TokenDeriveRequest} tokenDeriveRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof TokenEndpointApi
+     * @memberof TokenApi
      */
     public tokenDerivePost(tokenDeriveRequest: TokenDeriveRequest, options?: AxiosRequestConfig) {
-        return TokenEndpointApiFp(this.configuration).tokenDerivePost(tokenDeriveRequest, options).then((request) => request(this.axios, this.basePath));
+        return TokenApiFp(this.configuration).tokenDerivePost(tokenDeriveRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -3134,10 +3184,10 @@ export class TokenEndpointApi extends BaseAPI {
      * @param {TokenNativeRequest} tokenNativeRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof TokenEndpointApi
+     * @memberof TokenApi
      */
     public tokenNativePost(tokenNativeRequest: TokenNativeRequest, options?: AxiosRequestConfig) {
-        return TokenEndpointApiFp(this.configuration).tokenNativePost(tokenNativeRequest, options).then((request) => request(this.axios, this.basePath));
+        return TokenApiFp(this.configuration).tokenNativePost(tokenNativeRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -3146,19 +3196,19 @@ export class TokenEndpointApi extends BaseAPI {
      * @param {TokenRequest} tokenRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof TokenEndpointApi
+     * @memberof TokenApi
      */
     public tokenPost(tokenRequest: TokenRequest, options?: AxiosRequestConfig) {
-        return TokenEndpointApiFp(this.configuration).tokenPost(tokenRequest, options).then((request) => request(this.axios, this.basePath));
+        return TokenApiFp(this.configuration).tokenPost(tokenRequest, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
 
 /**
- * TransactionEndpointApi - axios parameter creator
+ * TransactionApi - axios parameter creator
  * @export
  */
-export const TransactionEndpointApiAxiosParamCreator = function (configuration?: Configuration) {
+export const TransactionApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
          * Returns a built unsigned transaction payload, from a set of intended actions.
@@ -3269,7 +3319,7 @@ export const TransactionEndpointApiAxiosParamCreator = function (configuration?:
             };
         },
         /**
-         * Returns the status and contents of the transaction with the given transaction identifier. Transaction identifiers which aren\'t recognised as either belonging to a committed transaction or a transaction submitted through this Network Gateway may return a `TransactionNotFoundError`. Transaction identifiers relating to failed transactions will, after a delay, also be report a `TransactionNotFoundError`. 
+         * Returns the status and contents of the transaction with the given transaction identifier. Transaction identifiers which aren\'t recognised as either belonging to a committed transaction or a transaction submitted through this Network Gateway may return a `TransactionNotFoundError`. Transaction identifiers relating to failed transactions will, after a delay, also be reported as a `TransactionNotFoundError`. 
          * @summary Transaction Status
          * @param {TransactionStatusRequest} transactionStatusRequest 
          * @param {*} [options] Override http request option.
@@ -3344,11 +3394,11 @@ export const TransactionEndpointApiAxiosParamCreator = function (configuration?:
 };
 
 /**
- * TransactionEndpointApi - functional programming interface
+ * TransactionApi - functional programming interface
  * @export
  */
-export const TransactionEndpointApiFp = function(configuration?: Configuration) {
-    const localVarAxiosParamCreator = TransactionEndpointApiAxiosParamCreator(configuration)
+export const TransactionApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = TransactionApiAxiosParamCreator(configuration)
     return {
         /**
          * Returns a built unsigned transaction payload, from a set of intended actions.
@@ -3384,7 +3434,7 @@ export const TransactionEndpointApiFp = function(configuration?: Configuration) 
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         * Returns the status and contents of the transaction with the given transaction identifier. Transaction identifiers which aren\'t recognised as either belonging to a committed transaction or a transaction submitted through this Network Gateway may return a `TransactionNotFoundError`. Transaction identifiers relating to failed transactions will, after a delay, also be report a `TransactionNotFoundError`. 
+         * Returns the status and contents of the transaction with the given transaction identifier. Transaction identifiers which aren\'t recognised as either belonging to a committed transaction or a transaction submitted through this Network Gateway may return a `TransactionNotFoundError`. Transaction identifiers relating to failed transactions will, after a delay, also be reported as a `TransactionNotFoundError`. 
          * @summary Transaction Status
          * @param {TransactionStatusRequest} transactionStatusRequest 
          * @param {*} [options] Override http request option.
@@ -3409,11 +3459,11 @@ export const TransactionEndpointApiFp = function(configuration?: Configuration) 
 };
 
 /**
- * TransactionEndpointApi - factory interface
+ * TransactionApi - factory interface
  * @export
  */
-export const TransactionEndpointApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
-    const localVarFp = TransactionEndpointApiFp(configuration)
+export const TransactionApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = TransactionApiFp(configuration)
     return {
         /**
          * Returns a built unsigned transaction payload, from a set of intended actions.
@@ -3446,7 +3496,7 @@ export const TransactionEndpointApiFactory = function (configuration?: Configura
             return localVarFp.transactionRulesPost(transactionRulesRequest, options).then((request) => request(axios, basePath));
         },
         /**
-         * Returns the status and contents of the transaction with the given transaction identifier. Transaction identifiers which aren\'t recognised as either belonging to a committed transaction or a transaction submitted through this Network Gateway may return a `TransactionNotFoundError`. Transaction identifiers relating to failed transactions will, after a delay, also be report a `TransactionNotFoundError`. 
+         * Returns the status and contents of the transaction with the given transaction identifier. Transaction identifiers which aren\'t recognised as either belonging to a committed transaction or a transaction submitted through this Network Gateway may return a `TransactionNotFoundError`. Transaction identifiers relating to failed transactions will, after a delay, also be reported as a `TransactionNotFoundError`. 
          * @summary Transaction Status
          * @param {TransactionStatusRequest} transactionStatusRequest 
          * @param {*} [options] Override http request option.
@@ -3469,22 +3519,22 @@ export const TransactionEndpointApiFactory = function (configuration?: Configura
 };
 
 /**
- * TransactionEndpointApi - object-oriented interface
+ * TransactionApi - object-oriented interface
  * @export
- * @class TransactionEndpointApi
+ * @class TransactionApi
  * @extends {BaseAPI}
  */
-export class TransactionEndpointApi extends BaseAPI {
+export class TransactionApi extends BaseAPI {
     /**
      * Returns a built unsigned transaction payload, from a set of intended actions.
      * @summary Build Transaction
      * @param {TransactionBuildRequest} transactionBuildRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof TransactionEndpointApi
+     * @memberof TransactionApi
      */
     public transactionBuildPost(transactionBuildRequest: TransactionBuildRequest, options?: AxiosRequestConfig) {
-        return TransactionEndpointApiFp(this.configuration).transactionBuildPost(transactionBuildRequest, options).then((request) => request(this.axios, this.basePath));
+        return TransactionApiFp(this.configuration).transactionBuildPost(transactionBuildRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -3493,10 +3543,10 @@ export class TransactionEndpointApi extends BaseAPI {
      * @param {TransactionFinalizeRequest} transactionFinalizeRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof TransactionEndpointApi
+     * @memberof TransactionApi
      */
     public transactionFinalizePost(transactionFinalizeRequest: TransactionFinalizeRequest, options?: AxiosRequestConfig) {
-        return TransactionEndpointApiFp(this.configuration).transactionFinalizePost(transactionFinalizeRequest, options).then((request) => request(this.axios, this.basePath));
+        return TransactionApiFp(this.configuration).transactionFinalizePost(transactionFinalizeRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -3505,22 +3555,22 @@ export class TransactionEndpointApi extends BaseAPI {
      * @param {TransactionRulesRequest} transactionRulesRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof TransactionEndpointApi
+     * @memberof TransactionApi
      */
     public transactionRulesPost(transactionRulesRequest: TransactionRulesRequest, options?: AxiosRequestConfig) {
-        return TransactionEndpointApiFp(this.configuration).transactionRulesPost(transactionRulesRequest, options).then((request) => request(this.axios, this.basePath));
+        return TransactionApiFp(this.configuration).transactionRulesPost(transactionRulesRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * Returns the status and contents of the transaction with the given transaction identifier. Transaction identifiers which aren\'t recognised as either belonging to a committed transaction or a transaction submitted through this Network Gateway may return a `TransactionNotFoundError`. Transaction identifiers relating to failed transactions will, after a delay, also be report a `TransactionNotFoundError`. 
+     * Returns the status and contents of the transaction with the given transaction identifier. Transaction identifiers which aren\'t recognised as either belonging to a committed transaction or a transaction submitted through this Network Gateway may return a `TransactionNotFoundError`. Transaction identifiers relating to failed transactions will, after a delay, also be reported as a `TransactionNotFoundError`. 
      * @summary Transaction Status
      * @param {TransactionStatusRequest} transactionStatusRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof TransactionEndpointApi
+     * @memberof TransactionApi
      */
     public transactionStatusPost(transactionStatusRequest: TransactionStatusRequest, options?: AxiosRequestConfig) {
-        return TransactionEndpointApiFp(this.configuration).transactionStatusPost(transactionStatusRequest, options).then((request) => request(this.axios, this.basePath));
+        return TransactionApiFp(this.configuration).transactionStatusPost(transactionStatusRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -3529,19 +3579,19 @@ export class TransactionEndpointApi extends BaseAPI {
      * @param {TransactionSubmitRequest} transactionSubmitRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof TransactionEndpointApi
+     * @memberof TransactionApi
      */
     public transactionSubmitPost(transactionSubmitRequest: TransactionSubmitRequest, options?: AxiosRequestConfig) {
-        return TransactionEndpointApiFp(this.configuration).transactionSubmitPost(transactionSubmitRequest, options).then((request) => request(this.axios, this.basePath));
+        return TransactionApiFp(this.configuration).transactionSubmitPost(transactionSubmitRequest, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
 
 /**
- * ValidatorEndpointApi - axios parameter creator
+ * ValidatorApi - axios parameter creator
  * @export
  */
-export const ValidatorEndpointApiAxiosParamCreator = function (configuration?: Configuration) {
+export const ValidatorApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
          * Returns the validator address associated with the given public key.
@@ -3616,7 +3666,7 @@ export const ValidatorEndpointApiAxiosParamCreator = function (configuration?: C
             };
         },
         /**
-         * Returns information about all validators, given a validator address.
+         * Returns information about all validators.
          * @summary Get Validators
          * @param {ValidatorsRequest} validatorsRequest 
          * @param {*} [options] Override http request option.
@@ -3655,11 +3705,11 @@ export const ValidatorEndpointApiAxiosParamCreator = function (configuration?: C
 };
 
 /**
- * ValidatorEndpointApi - functional programming interface
+ * ValidatorApi - functional programming interface
  * @export
  */
-export const ValidatorEndpointApiFp = function(configuration?: Configuration) {
-    const localVarAxiosParamCreator = ValidatorEndpointApiAxiosParamCreator(configuration)
+export const ValidatorApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = ValidatorApiAxiosParamCreator(configuration)
     return {
         /**
          * Returns the validator address associated with the given public key.
@@ -3684,7 +3734,7 @@ export const ValidatorEndpointApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         * Returns information about all validators, given a validator address.
+         * Returns information about all validators.
          * @summary Get Validators
          * @param {ValidatorsRequest} validatorsRequest 
          * @param {*} [options] Override http request option.
@@ -3698,11 +3748,11 @@ export const ValidatorEndpointApiFp = function(configuration?: Configuration) {
 };
 
 /**
- * ValidatorEndpointApi - factory interface
+ * ValidatorApi - factory interface
  * @export
  */
-export const ValidatorEndpointApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
-    const localVarFp = ValidatorEndpointApiFp(configuration)
+export const ValidatorApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = ValidatorApiFp(configuration)
     return {
         /**
          * Returns the validator address associated with the given public key.
@@ -3725,7 +3775,7 @@ export const ValidatorEndpointApiFactory = function (configuration?: Configurati
             return localVarFp.validatorPost(validatorRequest, options).then((request) => request(axios, basePath));
         },
         /**
-         * Returns information about all validators, given a validator address.
+         * Returns information about all validators.
          * @summary Get Validators
          * @param {ValidatorsRequest} validatorsRequest 
          * @param {*} [options] Override http request option.
@@ -3738,22 +3788,22 @@ export const ValidatorEndpointApiFactory = function (configuration?: Configurati
 };
 
 /**
- * ValidatorEndpointApi - object-oriented interface
+ * ValidatorApi - object-oriented interface
  * @export
- * @class ValidatorEndpointApi
+ * @class ValidatorApi
  * @extends {BaseAPI}
  */
-export class ValidatorEndpointApi extends BaseAPI {
+export class ValidatorApi extends BaseAPI {
     /**
      * Returns the validator address associated with the given public key.
      * @summary Get Validator Identifier
      * @param {ValidatorDeriveRequest} validatorDeriveRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ValidatorEndpointApi
+     * @memberof ValidatorApi
      */
     public validatorDerivePost(validatorDeriveRequest: ValidatorDeriveRequest, options?: AxiosRequestConfig) {
-        return ValidatorEndpointApiFp(this.configuration).validatorDerivePost(validatorDeriveRequest, options).then((request) => request(this.axios, this.basePath));
+        return ValidatorApiFp(this.configuration).validatorDerivePost(validatorDeriveRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -3762,22 +3812,22 @@ export class ValidatorEndpointApi extends BaseAPI {
      * @param {ValidatorRequest} validatorRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ValidatorEndpointApi
+     * @memberof ValidatorApi
      */
     public validatorPost(validatorRequest: ValidatorRequest, options?: AxiosRequestConfig) {
-        return ValidatorEndpointApiFp(this.configuration).validatorPost(validatorRequest, options).then((request) => request(this.axios, this.basePath));
+        return ValidatorApiFp(this.configuration).validatorPost(validatorRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * Returns information about all validators, given a validator address.
+     * Returns information about all validators.
      * @summary Get Validators
      * @param {ValidatorsRequest} validatorsRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ValidatorEndpointApi
+     * @memberof ValidatorApi
      */
     public validatorsPost(validatorsRequest: ValidatorsRequest, options?: AxiosRequestConfig) {
-        return ValidatorEndpointApiFp(this.configuration).validatorsPost(validatorsRequest, options).then((request) => request(this.axios, this.basePath));
+        return ValidatorApiFp(this.configuration).validatorsPost(validatorsRequest, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

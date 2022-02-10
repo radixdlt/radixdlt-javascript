@@ -513,6 +513,7 @@ const handleTx = (
 			combine([
 				ValidatorAddress.fromUnsafe(action.from_validator.address),
 				AccountAddress.fromUnsafe(action.to_account.address),
+				Amount.fromUnsafe(action.unstake_percentage ?? 0),
 				...(action.amount ? transformTokenAmount(action.amount) : []),
 			]).map((actionValue):
 				| ExecutedStakeTokensAction
@@ -520,8 +521,9 @@ const handleTx = (
 					type,
 					from_validator: actionValue[0] as ValidatorAddressT,
 					to_account: actionValue[1] as AccountAddressT,
-					amount: actionValue[2] as AmountT,
-					rri: actionValue[3] as ResourceIdentifierT,
+					unstake_percentage: actionValue[2] as AmountT,
+					amount: actionValue[3] as AmountT,
+					rri: actionValue[4] as ResourceIdentifierT,
 				}))
 
 		switch (action.type) {

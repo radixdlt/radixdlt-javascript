@@ -593,11 +593,8 @@ describe('integration API tests', () => {
 			'100000000000000000000',
 		)._unsafeUnwrap()
 
-		const unstakeAmount = Amount.fromUnsafe(
-			'100000000000000000',
-		)._unsafeUnwrap()
 		const validator = (await firstValueFrom(radix.validators()))
-			.validators[0]
+			.validators[30]
 
 		const stake = await radix.stakeTokens({
 			stakeInput: {
@@ -612,7 +609,7 @@ describe('integration API tests', () => {
 
 		const unstake = await radix.unstakeTokens({
 			unstakeInput: {
-				amount: unstakeAmount,
+				unstake_percentage: 100,
 				from_validator: validator.address,
 			},
 			userConfirmation: 'skip',
