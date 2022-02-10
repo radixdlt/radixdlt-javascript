@@ -13,18 +13,7 @@ import {
 	ValidatorAddressT,
 } from '@radixdlt/account'
 import { combine, Result } from 'neverthrow'
-import { Amount, AmountT, isAmountOrUnsafeInput } from '@radixdlt/primitives'
-
-export const isUnstakeTokensInput = (
-	something: unknown,
-): something is UnstakeTokensInput => {
-	const inspection = something as UnstakeTokensInput
-	return (
-		isValidatorAddressOrUnsafeInput(inspection.from_validator) &&
-		isAmountOrUnsafeInput(inspection.amount) &&
-		isResourceIdentifierOrUnsafeInput(inspection.tokenIdentifier)
-	)
-}
+import { Amount, AmountT } from '@radixdlt/primitives'
 
 const create = (
 	input: UnstakeTokensInput,
@@ -32,17 +21,20 @@ const create = (
 ): Result<IntendedUnstakeTokensAction, Error> =>
 	combine([
 		ValidatorAddress.fromUnsafe(input.from_validator),
-		Amount.fromUnsafe(input.amount),
+		Amount.fromUnsafe(input.amount ?? 0),
+		Amount.fromUnsafe(input.unstake_percentage ?? 0),
 		ResourceIdentifier.fromUnsafe(input.tokenIdentifier),
 	]).map(
 		(resultList): IntendedUnstakeTokensAction => {
 			const from_validator = resultList[0] as ValidatorAddressT
 			const amount = resultList[1] as AmountT
-			const rri = resultList[2] as ResourceIdentifierT
+			const unstake_percentage = resultList[2] as AmountT
+			const rri = resultList[3] as ResourceIdentifierT
 
 			return {
 				from_validator,
 				amount,
+				unstake_percentage,
 				type: ActionType.UNSTAKE_TOKENS,
 				to_account,
 				rri,

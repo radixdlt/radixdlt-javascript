@@ -30,7 +30,7 @@ import {
 	TransactionEndpoint,
 } from './open-api/_types'
 
-export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {	
+export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 	let headers: Record<string, string>
 
 	const toObs = <I, E, O>(
@@ -158,22 +158,22 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 				actions: transactionIntent.actions.map(action =>
 					action.type === ActionType.TOKEN_TRANSFER
 						? {
-								type: 'TransferTokens',
-								from_account: {
-									address: action.from_account.toString(),
+							type: 'TransferTokens',
+							from_account: {
+								address: action.from_account.toString(),
+							},
+							to_account: {
+								address: action.to_account.toString(),
+							},
+							amount: {
+								value: action.amount.toString(),
+								token_identifier: {
+									rri: action.rri.toString(),
 								},
-								to_account: {
-									address: action.to_account.toString(),
-								},
-								amount: {
-									value: action.amount.toString(),
-									token_identifier: {
-										rri: action.rri.toString(),
-									},
-								},
-						  }
+							},
+						}
 						: action.type === ActionType.STAKE_TOKENS
-						? {
+							? {
 								type: 'StakeTokens',
 								from_account: {
 									address: action.from_account.toString(),
@@ -187,22 +187,25 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 										rri: action.rri.toString(),
 									},
 								},
-						  }
-						: {
+							}
+							: Object.assign({
 								type: 'UnstakeTokens',
 								from_validator: {
 									address: action.from_validator.toString(),
 								},
 								to_account: {
 									address: action.to_account.toString(),
-								},
+								}
+							}, action.amount.valueOf() != 0 ? {
 								amount: {
 									value: action.amount.toString(),
 									token_identifier: {
 										rri: action.rri.toString(),
 									},
 								},
-						  },
+							} : {
+								unstake_percentage: action.unstake_percentage.valueOf()
+							}),
 				),
 				fee_payer: {
 					address: from.toString(),
