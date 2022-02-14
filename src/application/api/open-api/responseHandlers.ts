@@ -42,7 +42,7 @@ export const handleTokenInfoResponse = (
     Amount.fromUnsafe(json.data.token.token_supply.value),
   ])
     .map(responseHelper.transformToken(json.data.token))
-    .mapErr(e => [e])
+    .mapErr(e => [e] as RadixError[])
 
 export const handleNativeTokenResponse = (
   json: ReturnOfAPICall<'tokenNativePost'>,
@@ -53,23 +53,24 @@ export const handleNativeTokenResponse = (
     Amount.fromUnsafe(json.data.token.token_supply.value),
   ])
     .map(responseHelper.transformToken(json.data.token))
-    .mapErr(e => [e])
+    .mapErr(e => [e] as RadixError[])
 
 export const handleStakePositionsResponse = (
   json: ReturnOfAPICall<'accountStakesPost'>,
 ): Result<StakePositionsEndpoint.DecodedResponse, RadixError[]> =>
-  combine(json.data.stakes.map(responseHelper.transformStakeEntry))
-    .andThen(stakes =>
+  combine(json.data.stakes.map(responseHelper.transformStakeEntry)).andThen(
+    stakes =>
       combine(
         json.data.pending_stakes.map(responseHelper.transformStakeEntry),
       ).map(pendingStakes => ({ stakes, pendingStakes })),
-    )
-    .mapErr(e => [e])
+  )
 
 export const handleUnstakePositionsResponse = (
   json: ReturnOfAPICall<'accountUnstakesPost'>,
 ): Result<UnstakePositionsEndpoint.DecodedResponse, RadixError[]> => {
-  return combine(json.data.pending_unstakes.map(transformUnstakeEntry))
+  return combine(
+    json.data.pending_unstakes.map(responseHelper.transformUnstakeEntry),
+  )
     .map(pendingUnstakes =>
       combine(json.data.unstakes.map(responseHelper.transformUnstakeEntry)).map(
         unstakes => ({
@@ -79,7 +80,7 @@ export const handleUnstakePositionsResponse = (
       ),
     )
     .andThen(res => res)
-    .mapErr(e => [e])
+    .mapErr(e => [e] as RadixError[])
 }
 
 export const handleAccountTransactionsResponse = (
@@ -135,19 +136,19 @@ export const handleAccountBalancesResponse = (
         },
       },
     }))
-    .mapErr(e => [e])
+    .mapErr(e => [e] as RadixError[])
 
 export const handleValidatorResponse = (
   json: ReturnOfAPICall<'validatorPost'>,
 ): Result<ValidatorEndpoint.DecodedResponse, RadixError[]> =>
-  responseHelper.transformValidator(json.data.validator).mapErr(e => [e])
+  responseHelper.transformValidator(json.data.validator)
 
 export const handleValidatorsResponse = (
   json: ReturnOfAPICall<'validatorsPost'>,
 ): Result<ValidatorsEndpoint.DecodedResponse, RadixError[]> =>
-  combine(json.data.validators.map(responseHelper.transformValidator))
-    .map(validators => ({ validators }))
-    .mapErr(e => [e])
+  combine(json.data.validators.map(responseHelper.transformValidator)).map(
+    validators => ({ validators }),
+  )
 
 export const handleBuildTransactionResponse = (
   json: ReturnOfAPICall<'transactionBuildPost'>,
@@ -160,7 +161,7 @@ export const handleBuildTransactionResponse = (
       },
       fee: amount,
     }))
-    .mapErr(e => [e])
+    .mapErr(e => [e] as RadixError[])
 
 export const handleFinalizeTransactionResponse = (
   json: ReturnOfAPICall<'transactionFinalizePost'>,
@@ -170,7 +171,7 @@ export const handleFinalizeTransactionResponse = (
       blob: json.data.signed_transaction,
       txID,
     }))
-    .mapErr(e => [e] as Error[])
+    .mapErr(e => [e] as RadixError[])
 
 export const handleSubmitTransactionResponse = (
   json: ReturnOfAPICall<'transactionSubmitPost'>,
@@ -179,11 +180,11 @@ export const handleSubmitTransactionResponse = (
     .map(txID => ({
       txID,
     }))
-    .mapErr(e => [e])
+    .mapErr(e => [e] as RadixError[])
 
 export const handleTransactionResponse = ({
   data: { transaction },
 }: ReturnOfAPICall<'transactionStatusPost'>): Result<
   TransactionEndpoint.DecodedResponse,
-  Error[]
+  RadixError[]
 > => responseHelper.transformTransaction(transaction)

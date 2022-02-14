@@ -3,7 +3,7 @@ import MockAdapter from 'axios-mock-adapter'
 
 import { openApiClient } from '@networking'
 import { getAPI } from '../api/open-api/interface'
-import { log, LogLevel, radixError } from '@util'
+import { log, LogLevel, radixAPIError } from '@util'
 
 const BASE_URL = 'https://localhost:9000'
 
@@ -23,20 +23,18 @@ describe('handle error responses', () => {
     const mockedError = {
       code: 500,
       message: 'Internal server error',
-      details: {},
     }
     mock.onPost(`${BASE_URL}/gateway`).reply(500, mockedError)
 
     const response = await api.gateway({})
 
-    expect(response._unsafeUnwrapErr()).toEqual([radixError(mockedError)])
+    expect(response._unsafeUnwrapErr()).toEqual([radixAPIError(mockedError)])
   }, 300000)
 
   it('should handle 400 error', done => {
     const mockedError = {
       code: 400,
       message: 'The network selected is not valid.',
-      details: {},
     }
 
     mock.onPost(`${BASE_URL}/gateway`).reply(400, mockedError)
@@ -47,7 +45,7 @@ describe('handle error responses', () => {
         expect(true).toBe(false)
       })
       .mapErr((err: any) => {
-        expect(err).toEqual([radixError(mockedError)])
+        expect(err).toEqual([radixAPIError(mockedError)])
         done()
       })
   })
@@ -61,7 +59,7 @@ describe('handle error responses', () => {
       })
       .mapErr(error => {
         expect(error).toEqual([
-          radixError({
+          radixAPIError({
             details: { type: 'NetworkError' },
             message: 'Network Error',
           }),
@@ -77,7 +75,7 @@ describe('handle error responses', () => {
       })
       .mapErr(error => {
         expect(error).toEqual([
-          radixError({
+          radixAPIError({
             details: { type: 'RequestTimeoutError' },
             message: 'timeout of 0ms exceeded',
           }),

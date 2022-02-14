@@ -1,5 +1,5 @@
 import 'isomorphic-fetch'
-import { log, radixError, RadixError } from '@util'
+import { log, radixError, RadixError, radixAPIError } from '@util'
 import { v4 as uuid } from 'uuid'
 import { Client } from './_types'
 import { ResultAsync } from 'neverthrow'
@@ -65,8 +65,8 @@ export type MethodName = keyof ClientInterface
 export type Response = ReturnOfAPICall<MethodName>
 
 const prettifyErrorCode = (message: string, errorCode?: string) => {
-if (message === 'Network Error') return 'NetworkError'
-return errorCode === 'ECONNABORTED' ? 'RequestTimeoutError' : 'UnknownError'
+  if (message === 'Network Error') return 'NetworkError'
+  return errorCode === 'ECONNABORTED' ? 'RequestTimeoutError' : 'UnknownError'
 }
 
 const handleError = (axiosError: AxiosError) => {
@@ -77,11 +77,11 @@ const handleError = (axiosError: AxiosError) => {
       details,
       trace_id: traceId,
     } = axiosError.response.data
-    const error = radixError({ message, code, details, traceId })
+    const error = radixAPIError({ message, code, details, traceId })
     log.error(JSON.stringify(error, null, 2))
     return error
   } else {
-    const error = radixError({
+    const error = radixAPIError({
       message: axiosError.message,
       details: {
         type: prettifyErrorCode(axiosError.message, axiosError.code),

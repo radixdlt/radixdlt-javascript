@@ -1,12 +1,36 @@
-type RadixErrorInput = {
+type RadixAPIError = {
   message: string
   code?: number
   details?: {
     type: string
-  } & any
+  } & Record<string, any>
   traceId?: string
 }
 
-export const radixError = (error: RadixErrorInput) => error
+enum ErrorType {
+  API = 'API',
+  HARDWARE_WALLET = 'HardwareWallet',
+}
 
-export type RadixError = ReturnType<typeof radixError>
+type ErrorParams = {
+  [ErrorType.API]: RadixAPIError
+  [ErrorType.HARDWARE_WALLET]: { message: string }
+}
+
+export const radixError =
+  <T extends ErrorType>(type: T) =>
+  <Params extends ErrorParams[T]>(params: Params) => ({
+    ...Error(params.message),
+    type,
+    ...params,
+  })
+
+export const radixAPIError = radixError<ErrorType.API>(ErrorType.API)
+type APIError = ReturnType<typeof radixAPIError>
+
+export const hwWrapper = radixError<ErrorType.HARDWARE_WALLET>(
+  ErrorType.HARDWARE_WALLET,
+)
+type HWError = ReturnType<typeof hwWrapper>
+
+export type RadixError = APIError | HWError
