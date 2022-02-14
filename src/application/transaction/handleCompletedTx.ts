@@ -1,4 +1,4 @@
-import { log } from '@util'
+import { log, radixAPIError } from '@util'
 import { Observable, Subscription, tap } from 'rxjs'
 import {
   SimpleExecutedTransaction,
@@ -37,7 +37,7 @@ export const handleCompletedTx =
       const errMsg = `API status of tx with id=${tx.txID.toPrimitive()} returned 'FAILED'`
       log.error(errMsg)
       trackError({
-        errors: [Error(errMsg)],
+        errors: [radixAPIError({ message: errMsg })],
         inStep: TransactionTrackingEventType.STATUS_UPDATE,
       })
       sub.unsubscribe()

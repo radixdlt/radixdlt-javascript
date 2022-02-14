@@ -87,7 +87,7 @@ describe('integration API tests', () => {
       throw Error('no XRD found')
     }
     nativeTokenBalance = maybeTokenBalance
-    log.setLevel('INFO')
+    log.setLevel('ERROR')
   })
 
   beforeEach(() => {

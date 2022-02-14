@@ -15,6 +15,8 @@ import {
 } from '@account'
 import { Amount, AmountT } from '@primitives'
 import {
+  ExecutedTransaction,
+  RadixError,
   SimpleExecutedTransaction,
   TransactionIdentifier,
   TransactionIdentifierT,
@@ -97,16 +99,18 @@ export const transformTransaction = (
         status: value[5] as TransactionStatus,
       }),
     )
-    .mapErr(e => [e] as Error[])
+    .mapErr(e => [e] as RadixError[])
 
 export const transformStakeEntry = (stake: AccountStakeEntry) =>
   combine([
     ValidatorAddress.fromUnsafe(stake.validator_identifier.address),
     Amount.fromUnsafe(stake.delegated_stake.value),
-  ]).map(value => ({
-    validator: value[0] as ValidatorAddressT,
-    amount: value[1] as AmountT,
-  }))
+  ])
+    .map(value => ({
+      validator: value[0] as ValidatorAddressT,
+      amount: value[1] as AmountT,
+    }))
+    .mapErr(e => [e] as RadixError[])
 
 export const transformValidator = (validator: ValidatorRaw) =>
   combine([
@@ -116,22 +120,24 @@ export const transformValidator = (validator: ValidatorRaw) =>
     ),
     Amount.fromUnsafe(validator.stake.value),
     Amount.fromUnsafe(validator.info.owner_stake.value),
-  ]).map(
-    (values): ValidatorEndpoint.DecodedResponse => ({
-      address: values[0] as ValidatorAddressT,
-      ownerAddress: values[1] as AccountAddressT,
-      name: validator.properties.name,
-      infoURL: transformUrl(validator.properties.url),
-      totalDelegatedStake: values[2] as AmountT,
-      ownerDelegation: values[3] as AmountT,
-      validatorFee: validator.properties.validator_fee_percentage,
-      registered: validator.properties.registered,
-      isExternalStakeAccepted: validator.properties.external_stake_accepted,
-      uptimePercentage: validator.info.uptime.uptime_percentage,
-      proposalsMissed: validator.info.uptime.proposals_missed,
-      proposalsCompleted: validator.info.uptime.proposals_completed,
-    }),
-  )
+  ])
+    .map(
+      (values): ValidatorEndpoint.DecodedResponse => ({
+        address: values[0] as ValidatorAddressT,
+        ownerAddress: values[1] as AccountAddressT,
+        name: validator.properties.name,
+        infoURL: transformUrl(validator.properties.url),
+        totalDelegatedStake: values[2] as AmountT,
+        ownerDelegation: values[3] as AmountT,
+        validatorFee: validator.properties.validator_fee_percentage,
+        registered: validator.properties.registered,
+        isExternalStakeAccepted: validator.properties.external_stake_accepted,
+        uptimePercentage: validator.info.uptime.uptime_percentage,
+        proposalsMissed: validator.info.uptime.proposals_missed,
+        proposalsCompleted: validator.info.uptime.proposals_completed,
+      }),
+    )
+    .mapErr(e => [e] as RadixError[])
 
 export const transformToken =
   (token: Token) => (values: (ResourceIdentifierT | AmountT)[]) => ({

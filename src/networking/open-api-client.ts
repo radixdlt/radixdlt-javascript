@@ -1,8 +1,8 @@
 import 'isomorphic-fetch'
-import { log } from '@util'
+import { log, radixError, RadixError, radixAPIError } from '@util'
 import { v4 as uuid } from 'uuid'
 import { Client } from './_types'
-import { err, ok, ResultAsync } from 'neverthrow'
+import { ResultAsync } from 'neverthrow'
 import { pipe } from 'ramda'
 import { TransactionBuildResponse } from './open-api/api'
 import {
@@ -13,9 +13,30 @@ import {
   TokenEndpointApiFactory,
   GatewayEndpointApiFactory,
 } from '.'
+import axiosRetry from 'axios-retry'
 
-import { AxiosResponse, AxiosError } from 'axios'
+import axios, { AxiosResponse, AxiosError } from 'axios'
 import { Configuration } from './open-api'
+
+axiosRetry(axios, {
+  retries: 3,
+  retryDelay: axiosRetry.exponentialDelay,
+  retryCondition: err => {
+    const isTimeoutOrNetworkError = !err.response
+    const responseStatus = err.response?.status
+    const is500Error = !!(responseStatus && responseStatus >= 500)
+    const shouldRetry = isTimeoutOrNetworkError || is500Error
+
+    if (shouldRetry) {
+      const { method, data } = err.config
+      // @ts-ignore
+      const count = err.config['axios-retry']?.retryCount + 1
+      log.info(`Retrying #${count} api request with method ${method}. ${data}`)
+    }
+
+    return shouldRetry
+  },
+})
 
 const defaultHeaders = [
   'X-Radixdlt-Method',
@@ -43,19 +64,31 @@ export type ClientInterface = ReturnType<typeof AccountEndpointApiFactory> &
 export type MethodName = keyof ClientInterface
 export type Response = ReturnOfAPICall<MethodName>
 
-const handleError = (error: AxiosError) => {
-  log.debug(error)
-  if (error.isAxiosError && error.response?.data) {
-    return Error(
-      `${JSON.stringify({
-        code: error.response.data.code ?? error.response.status,
-        ...(typeof error.response.data === 'object'
-          ? error.response.data
-          : { message: error.response.data }),
-      })}`,
-    )
+const prettifyErrorCode = (message: string, errorCode?: string) => {
+  if (message === 'Network Error') return 'NetworkError'
+  return errorCode === 'ECONNABORTED' ? 'RequestTimeoutError' : 'UnknownError'
+}
+
+const handleError = (axiosError: AxiosError) => {
+  if (axiosError.response) {
+    const {
+      message,
+      code,
+      details,
+      trace_id: traceId,
+    } = axiosError.response.data
+    const error = radixAPIError({ message, code, details, traceId })
+    log.error(JSON.stringify(error, null, 2))
+    return error
   } else {
-    throw error
+    const error = radixAPIError({
+      message: axiosError.message,
+      details: {
+        type: prettifyErrorCode(axiosError.message, axiosError.code),
+      },
+    })
+    log.error(JSON.stringify(error, null, 2))
+    return error
   }
 }
 
@@ -64,7 +97,7 @@ const call =
   <M extends MethodName>(
     method: M,
     params: InputOfAPICall<M>,
-  ): ResultAsync<ReturnOfAPICall<M>, Error> =>
+  ): ResultAsync<ReturnOfAPICall<M>, RadixError> =>
     // @ts-ignore
     pipe(
       () =>
@@ -103,6 +136,7 @@ export const openApiClient: Client<'open-api'> = (url: URL) => {
   const configuration = new Configuration({
     basePath: url.toString().slice(0, -1),
   })
+
   const api = [
     AccountEndpointApiFactory,
     ValidatorEndpointApiFactory,

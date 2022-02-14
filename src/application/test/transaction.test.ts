@@ -6,7 +6,7 @@ import {
 } from '@application'
 import { Network } from '@primitives'
 import { err, ok, ResultAsync } from 'neverthrow'
-import { LogLevel } from '@util'
+import { LogLevel, radixAPIError } from '@util'
 import { RadixAPI } from '../api'
 import { buildTx as _buildTx } from '../transaction/buildTx'
 import { sendTransaction } from '../transaction/sendTransaction'
@@ -117,14 +117,17 @@ describe('send transaction', () => {
 
   describe('unhappy paths', () => {
     it('should handle signTx error', async () => {
-      const errorMsg =
-        'Failed to sign tx with Ledger, underlying error while streaming tx bytes'
-      const expectedError = {
-        details: { type: 'SignTransactionError' },
-        message: errorMsg,
-      }
+      const errorMsg = new Error(
+        'Failed to sign tx with Ledger, underlying error while streaming tx bytes',
+      )
+
       const expected = {
-        errors: [Error(JSON.stringify(expectedError))],
+        errors: [
+          radixAPIError({
+            details: { type: 'SignTransactionError' },
+            message: errorMsg.message,
+          }),
+        ],
         eventUpdateType: 'SIGNED',
       }
       buildTransactionMock.mockReturnValueOnce(ok('builtTx'))

@@ -17,53 +17,57 @@ import { ReturnOfAPICall } from '@networking'
 import { Result } from 'neverthrow'
 import { ResourceIdentifier, ResourceIdentifierT } from '@account'
 import { Amount, AmountT, Network } from '@primitives'
-import { SimpleTransactionHistory, TransactionIdentifier } from '../..'
+import {
+  TxMessage,
+  SimpleTransactionHistory,
+  TransactionIdentifier,
+  RadixError,
+} from '../..'
 import { ok, combine } from 'neverthrow'
 import * as responseHelper from './responseHelpers'
 
 export const handleGatewayResponse = (
   json: ReturnOfAPICall<'gatewayPost'>,
-): Result<GatewayEndpoint.DecodedResponse, Error[]> =>
+): Result<GatewayEndpoint.DecodedResponse, RadixError[]> =>
   ok({
     network: json.data.network_identifier.network as Network,
-  }).mapErr(e => [e] as Error[])
+  }).mapErr(e => [e] as RadixError[])
 
 export const handleTokenInfoResponse = (
   json: ReturnOfAPICall<'tokenPost'>,
-): Result<TokenInfoEndpoint.DecodedResponse, Error[]> =>
+): Result<TokenInfoEndpoint.DecodedResponse, RadixError[]> =>
   combine([
     ResourceIdentifier.fromUnsafe(json.data.token.token_identifier.rri),
     Amount.fromUnsafe(json.data.token.token_properties.granularity),
     Amount.fromUnsafe(json.data.token.token_supply.value),
   ])
     .map(responseHelper.transformToken(json.data.token))
-    .mapErr(e => [e])
+    .mapErr(e => [e] as RadixError[])
 
 export const handleNativeTokenResponse = (
   json: ReturnOfAPICall<'tokenNativePost'>,
-): Result<NativeTokenInfoEndpoint.DecodedResponse, Error[]> =>
+): Result<NativeTokenInfoEndpoint.DecodedResponse, RadixError[]> =>
   combine([
     ResourceIdentifier.fromUnsafe(json.data.token.token_identifier.rri),
     Amount.fromUnsafe(json.data.token.token_properties.granularity),
     Amount.fromUnsafe(json.data.token.token_supply.value),
   ])
     .map(responseHelper.transformToken(json.data.token))
-    .mapErr(e => [e])
+    .mapErr(e => [e] as RadixError[])
 
 export const handleStakePositionsResponse = (
   json: ReturnOfAPICall<'accountStakesPost'>,
-): Result<StakePositionsEndpoint.DecodedResponse, Error[]> =>
-  combine(json.data.stakes.map(responseHelper.transformStakeEntry))
-    .andThen(stakes =>
+): Result<StakePositionsEndpoint.DecodedResponse, RadixError[]> =>
+  combine(json.data.stakes.map(responseHelper.transformStakeEntry)).andThen(
+    stakes =>
       combine(
         json.data.pending_stakes.map(responseHelper.transformStakeEntry),
       ).map(pendingStakes => ({ stakes, pendingStakes })),
-    )
-    .mapErr(e => [e])
+  )
 
 export const handleUnstakePositionsResponse = (
   json: ReturnOfAPICall<'accountUnstakesPost'>,
-): Result<UnstakePositionsEndpoint.DecodedResponse, Error[]> => {
+): Result<UnstakePositionsEndpoint.DecodedResponse, RadixError[]> => {
   return combine(
     json.data.pending_unstakes.map(responseHelper.transformUnstakeEntry),
   )
@@ -76,12 +80,12 @@ export const handleUnstakePositionsResponse = (
       ),
     )
     .andThen(res => res)
-    .mapErr(e => [e])
+    .mapErr(e => [e] as RadixError[])
 }
 
 export const handleAccountTransactionsResponse = (
   json: ReturnOfAPICall<'accountTransactionsPost'>,
-): Result<AccountTransactionsEndpoint.DecodedResponse, Error[]> =>
+): Result<AccountTransactionsEndpoint.DecodedResponse, RadixError[]> =>
   combine(json.data.transactions.map(responseHelper.transformTransaction)).map(
     (transactions): SimpleTransactionHistory => ({
       cursor: json.data.next_cursor || '',
@@ -91,7 +95,7 @@ export const handleAccountTransactionsResponse = (
 
 export const handleAccountBalancesResponse = (
   json: ReturnOfAPICall<'accountBalancesPost'>,
-): Result<AccountBalancesEndpoint.DecodedResponse, Error[]> =>
+): Result<AccountBalancesEndpoint.DecodedResponse, RadixError[]> =>
   combine([
     combine(
       json.data.account_balances.liquid_balances.map(balance =>
@@ -132,23 +136,23 @@ export const handleAccountBalancesResponse = (
         },
       },
     }))
-    .mapErr(e => [e])
+    .mapErr(e => [e] as RadixError[])
 
 export const handleValidatorResponse = (
   json: ReturnOfAPICall<'validatorPost'>,
-): Result<ValidatorEndpoint.DecodedResponse, Error[]> =>
-  responseHelper.transformValidator(json.data.validator).mapErr(e => [e])
+): Result<ValidatorEndpoint.DecodedResponse, RadixError[]> =>
+  responseHelper.transformValidator(json.data.validator)
 
 export const handleValidatorsResponse = (
   json: ReturnOfAPICall<'validatorsPost'>,
-): Result<ValidatorsEndpoint.DecodedResponse, Error[]> =>
-  combine(json.data.validators.map(responseHelper.transformValidator))
-    .map(validators => ({ validators }))
-    .mapErr(e => [e])
+): Result<ValidatorsEndpoint.DecodedResponse, RadixError[]> =>
+  combine(json.data.validators.map(responseHelper.transformValidator)).map(
+    validators => ({ validators }),
+  )
 
 export const handleBuildTransactionResponse = (
   json: ReturnOfAPICall<'transactionBuildPost'>,
-): Result<BuildTransactionEndpoint.DecodedResponse, Error[]> =>
+): Result<BuildTransactionEndpoint.DecodedResponse, RadixError[]> =>
   Amount.fromUnsafe(json.data.transaction_build.fee.value)
     .map(amount => ({
       transaction: {
@@ -157,17 +161,17 @@ export const handleBuildTransactionResponse = (
       },
       fee: amount,
     }))
-    .mapErr(e => [e])
+    .mapErr(e => [e] as RadixError[])
 
 export const handleFinalizeTransactionResponse = (
   json: ReturnOfAPICall<'transactionFinalizePost'>,
-): Result<FinalizeTransactionEndpoint.DecodedResponse, Error[]> =>
+): Result<FinalizeTransactionEndpoint.DecodedResponse, RadixError[]> =>
   TransactionIdentifier.create(json.data.transaction_identifier.hash)
     .map(txID => ({
       blob: json.data.signed_transaction,
       txID,
     }))
-    .mapErr(e => [e] as Error[])
+    .mapErr(e => [e] as RadixError[])
 
 export const handleSubmitTransactionResponse = (
   json: ReturnOfAPICall<'transactionSubmitPost'>,
@@ -176,11 +180,11 @@ export const handleSubmitTransactionResponse = (
     .map(txID => ({
       txID,
     }))
-    .mapErr(e => [e])
+    .mapErr(e => [e] as RadixError[])
 
 export const handleTransactionResponse = ({
   data: { transaction },
 }: ReturnOfAPICall<'transactionStatusPost'>): Result<
   TransactionEndpoint.DecodedResponse,
-  Error[]
+  RadixError[]
 > => responseHelper.transformTransaction(transaction)

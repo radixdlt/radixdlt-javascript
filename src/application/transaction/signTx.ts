@@ -6,7 +6,7 @@ import {
   TransactionTrackingEventType,
 } from '../dto'
 import { AccountT } from '../_types'
-import { log } from '@util'
+import { log, radixAPIError } from '@util'
 import { Track, TrackError } from './_types'
 import { errAsync } from 'neverthrow'
 
@@ -62,14 +62,12 @@ export const signTx =
         return signedTx
       })
       .mapErr(e => {
-        const formattedError = Error(
-          JSON.stringify({
-            details: {
-              type: 'SignTransactionError',
-            },
-            message: e,
-          }),
-        )
+        const formattedError = radixAPIError({
+          details: {
+            type: 'SignTransactionError',
+          },
+          message: e.message,
+        })
         log.error(e)
         trackError({
           errors: [formattedError],
