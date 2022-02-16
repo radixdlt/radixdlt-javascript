@@ -290,7 +290,6 @@ export const verifyTx =
       .andThen(verifyTxIntent(txIntent))
       .map(() => tx)
       .mapErr(errors => {
-        debugger
         trackError({
           errors: [
             radixAPIError({
