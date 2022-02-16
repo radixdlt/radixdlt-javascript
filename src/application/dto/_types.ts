@@ -78,6 +78,7 @@ export type TransactionIntent = {
 export enum TransactionTrackingEventType {
   INITIATED = 'INITIATED',
   BUILT = 'BUILT',
+  VERIFIED = 'VERIFIED',
   SIGNED = 'SIGNED',
   SUBMITTED = 'SUBMITTED',
   CONFIRMED = 'CONFIRMED',

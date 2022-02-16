@@ -6,7 +6,7 @@
 import axios from 'axios'
 axios.defaults.adapter = require('axios/lib/adapters/http')
 import { Radix } from '../../radix'
-import { ValidatorAddressT } from '@account'
+import { SigningKeychain, ValidatorAddressT } from '@account'
 import { firstValueFrom, interval, ReplaySubject, Subscription } from 'rxjs'
 import { filter, map, switchMap, take, toArray } from 'rxjs/operators'
 import {
@@ -87,6 +87,7 @@ describe('integration API tests', () => {
       throw Error('no XRD found')
     }
     nativeTokenBalance = maybeTokenBalance
+
     log.setLevel('ERROR')
   })
 
@@ -220,6 +221,79 @@ describe('integration API tests', () => {
 	})
 */
 
+  it('should be able to send non xrd token', async () => {
+    const address = await firstValueFrom(radix.activeAddress)
+    await requestFaucet(address.toString())
+
+    const amountToSend = Amount.fromUnsafe(`0${'0'.repeat(18)}`)._unsafeUnwrap()
+
+    const nonXrdRri = balances.liquid_balances.find(
+      item => item.token_identifier.rri.name.toLowerCase() !== 'xrd',
+    )
+
+    if (!nonXrdRri) {
+      throw new Error('non xrd token not found')
+    }
+
+    const transferTokens = await radix.transferTokens(
+      address,
+      amountToSend,
+      nonXrdRri.token_identifier.rri,
+    )
+
+    const txID = await transferTokens._unsafeUnwrap().completion
+
+    if (txID.isErr()) {
+      log.error(JSON.stringify(txID.error, null, 2))
+    }
+
+    const txStatus = (
+      await (await radix.api()).transactionStatus(txID._unsafeUnwrap(), network)
+    )._unsafeUnwrap()
+  })
+
+  it('should be able to self transfer', async () => {
+    const address = await firstValueFrom(radix.activeAddress)
+    await requestFaucet(address.toString())
+
+    const amountToSend = Amount.fromUnsafe(`0${'0'.repeat(18)}`)._unsafeUnwrap()
+
+    const getXRDBalanceOrZero = (tokenBalances: Decoded.AccountBalances) => {
+      const maybeTokenBalance = tokenBalances.liquid_balances.find(
+        a => a.token_identifier.rri.name.toLowerCase() === 'xrd',
+      )
+      return maybeTokenBalance ? maybeTokenBalance.value : UInt256.valueOf(0)
+    }
+
+    const tokenBalancesBefore = (await radix.tokenBalances())._unsafeUnwrap()
+
+    const initialBalance = getXRDBalanceOrZero(tokenBalancesBefore)
+
+    const transferTokens = await radix.transferTokens(
+      address,
+      amountToSend,
+      nativeTokenBalance.token_identifier.rri,
+    )
+
+    const txID = await transferTokens._unsafeUnwrap().completion
+
+    if (txID.isErr()) {
+      log.error(JSON.stringify(txID.error, null, 2))
+    }
+
+    const txStatus = (
+      await (await radix.api()).transactionStatus(txID._unsafeUnwrap(), network)
+    )._unsafeUnwrap()
+
+    const tokenBalancesAfter = (await radix.tokenBalances())._unsafeUnwrap()
+
+    const balanceAfterTransfer = getXRDBalanceOrZero(tokenBalancesAfter)
+
+    expect(initialBalance.sub(amountToSend).sub(txStatus.fee).toString()).toBe(
+      balanceAfterTransfer.toString(),
+    )
+  })
+
   // 🟢
   it('should compare token balance before and after transfer', async () => {
     const address = await firstValueFrom(radix.activeAddress)
@@ -238,15 +312,18 @@ describe('integration API tests', () => {
 
     const initialBalance = getXRDBalanceOrZero(tokenBalancesBefore)
 
-    const transferTokens = (
-      await radix.transferTokens(
-        accounts[2].address,
-        amountToSend,
-        nativeTokenBalance.token_identifier.rri,
-      )
-    )._unsafeUnwrap()
+    const transferTokens = await radix.transferTokens(
+      accounts[2].address,
+      amountToSend,
+      nativeTokenBalance.token_identifier.rri,
+    )
 
-    const txID = await transferTokens.completion
+    const txID = await transferTokens._unsafeUnwrap().completion
+
+    if (txID.isErr()) {
+      log.error(JSON.stringify(txID.error, null, 2))
+      throw txID.error
+    }
 
     const txStatus = (
       await (await radix.api()).transactionStatus(txID._unsafeUnwrap(), network)

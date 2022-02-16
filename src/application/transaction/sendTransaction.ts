@@ -18,6 +18,7 @@ import { buildTx as _buildTx } from './buildTx'
 import { pollTxStatus as _pollStatusOfTx } from './pollTxStatus'
 import { userConfirmation as _userConfirmation } from './userConfirmation'
 import { handleCompletedTx as _handleCompletedTx } from './handleCompletedTx'
+import { verifyTx as _verifyTx } from './verifyTx'
 import { ResultAsync } from 'neverthrow'
 
 export const sendTransaction = ({
@@ -53,6 +54,7 @@ export const sendTransaction = ({
   }
 
   const buildTx = _buildTx(track, account, radixAPI, trackError)
+  const verifyTx = _verifyTx(txIntent, trackError)
   const userConfirmation = _userConfirmation(track, options)
   const signTx = _signTx(track, account, txIntent, trackError)
   const finalizeTx = _finalizeTx(track, network, radixAPI, trackError)
@@ -71,6 +73,7 @@ export const sendTransaction = ({
   })
 
   buildTx(txIntent)
+    .andThen(verifyTx)
     .andThen(userConfirmation)
     .andThen(signTx)
     .andThen(finalizeTx)
