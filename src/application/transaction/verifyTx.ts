@@ -273,7 +273,7 @@ const verifyTxIntent =
   }
 
 export const verifyTx =
-  (txIntent: TransactionIntent, trackError: TrackError) =>
+  (txIntent: TransactionIntent, network: Network, trackError: TrackError) =>
   (tx: BuiltTransaction) => {
     return Transaction.fromBuffer(Buffer.from(tx.transaction.blob, 'hex'))
       .map(tx => {
@@ -282,7 +282,7 @@ export const verifyTx =
       })
       .map(filterUpAndEndInstructions)
       .map(groupInstructionsByActions)
-      .map(parseGroupData(Network.STOKENET))
+      .map(parseGroupData(network))
       .andThen(group => combine(group))
       .map(groups =>
         groups.filter((group): group is InstructionGroup => group.length > 0),

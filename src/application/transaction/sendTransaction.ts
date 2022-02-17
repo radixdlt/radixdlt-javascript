@@ -54,7 +54,7 @@ export const sendTransaction = ({
   }
 
   const buildTx = _buildTx(track, account, radixAPI, trackError)
-  const verifyTx = _verifyTx(txIntent, trackError)
+  const verifyTx = _verifyTx(txIntent, network, trackError)
   const userConfirmation = _userConfirmation(track, options)
   const signTx = _signTx(track, account, txIntent, trackError)
   const finalizeTx = _finalizeTx(track, network, radixAPI, trackError)
