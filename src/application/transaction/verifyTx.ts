@@ -104,15 +104,13 @@ const parseGroupData = (network: Network) => (groups: Ins_UP[][]) =>
       group.map(({ substate }) => {
         switch (substate.substateType) {
           case SubStateType.TOKENS: {
-            return combine([
-              accountAddressFromREAddressAndNetwork({
-                reAddress: substate.owner,
-                network,
-              }),
-            ]).map(
-              ([owner]): Tokens => ({
+            return accountAddressFromREAddressAndNetwork({
+              reAddress: substate.owner,
+              network,
+            }).map(
+              (owner): Tokens => ({
                 amount: substate.amount,
-                owner: owner as AccountAddressT,
+                owner,
                 resource: substate.resource.toBuffer().toString('hex'),
                 substateType: substate.substateType,
               }),
