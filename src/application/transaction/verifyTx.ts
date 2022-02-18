@@ -224,7 +224,9 @@ const verifyStake = (
     assertAccountAddress('to', action.to_validator, to.validator),
     assertResource(action.rri, from.resource),
     assertAmount(action.amount, to.amount),
-  ])
+  ]).map(flattenNullArray)
+  
+  const flattenNullArray = (n: null[]) => n[0]
 }
 
 const verifyUnstake = (
