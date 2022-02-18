@@ -205,7 +205,7 @@ const verifyTransfer = (
     assertAccountAddress('to', action.to_account, to.owner),
     assertResource(action.rri, from.resource),
     assertResource(action.rri, to.resource),
-    isSelfTransfer ? ok(null) : assertAmount(action.amount, to.amount),
+    isSelfTransfer ? ok<null, string>(null) : assertAmount(action.amount, to.amount),
   ])
 }
 
