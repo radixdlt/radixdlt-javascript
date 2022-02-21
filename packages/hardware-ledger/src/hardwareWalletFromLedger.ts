@@ -37,6 +37,14 @@ import { Transaction } from '@radixdlt/tx-parser'
 import { InstructionT } from '@radixdlt/tx-parser'
 import { err, Result } from 'neverthrow'
 
+const hardwareError = (message: string) =>
+	new Error(
+		JSON.stringify({
+			type: 'HARDWARE',
+			message,
+		}),
+	)
+
 const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 	const getPublicKey = (input: GetPublicKeyInput): Observable<PublicKeyT> =>
 		ledgerNano
@@ -63,7 +71,7 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 								publicKeyLengthResult.error,
 							)}`
 							log.error(errMsg)
-							return throwError(new Error(errMsg))
+							return throwError(() => hardwareError(errMsg))
 						}
 						const publicKeyLength = publicKeyLengthResult.value.readUIntBE(
 							0,
@@ -78,7 +86,7 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 								publicKeyBytesResult.error,
 							)}`
 							log.error(errMsg)
-							return throwError(new Error(errMsg))
+							return throwError(() => hardwareError(errMsg))
 						}
 						const publicKeyBytes = publicKeyBytesResult.value
 
@@ -110,7 +118,7 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 				signatureDERlengthResult.error,
 			)}`
 			log.error(errMsg)
-			return err(new Error(errMsg))
+			return err(hardwareError(errMsg))
 		}
 		const signatureDERlength = signatureDERlengthResult.value.readUIntBE(
 			0,
@@ -125,7 +133,7 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 				signatureDERBytesResult.error,
 			)}`
 			log.error(errMsg)
-			return err(new Error(errMsg))
+			return err(hardwareError(errMsg))
 		}
 		const signatureDERBytes = signatureDERBytesResult.value
 
@@ -177,7 +185,7 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 								sharedKeyPointLengthResult.error,
 							)}`
 							log.error(errMsg)
-							return throwError(new Error(errMsg))
+							return throwError(() => hardwareError(errMsg))
 						}
 						const sharedKeyPointLength = sharedKeyPointLengthResult.value.readUIntBE(
 							0,
@@ -193,7 +201,7 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 								sharedKeyPointBytesResult.error,
 							)}`
 							log.error(errMsg)
-							return throwError(new Error(errMsg))
+							return throwError(() => hardwareError(errMsg))
 						}
 						const sharedKeyPointBytes =
 							sharedKeyPointBytesResult.value
@@ -221,7 +229,7 @@ const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 				transactionRes.error,
 			)}`
 			log.error(errMsg)
-			return throwError(new Error(errMsg))
+			return throwError(() => hardwareError(errMsg))
 		}
 		const transaction = transactionRes.value
 		const instructions = transaction.instructions
@@ -298,20 +306,21 @@ Bytes: "
 						const instructionBytes = nextInstruction.toBuffer()
 						if (instructionBytes.length > maxBytesPerExchange) {
 							const errMsg = `Failed to send instruction, it is longer than max allowed payload size of ${maxBytesPerExchange}, specifically #${instructionBytes.length} bytes.`
-							return throwError(new Error(errMsg))
+							return throwError(() => hardwareError(errMsg))
 						}
 						return of(instructionBytes)
 					}),
 					mergeMap(
-						(instructionBytes): Observable<Buffer> =>
-							ledgerNano.sendAPDUToDevice(
+						(instructionBytes): Observable<Buffer> => {
+							return ledgerNano.sendAPDUToDevice(
 								RadixAPDU.signTX.singleInstruction({
 									instructionBytes,
 									isLastInstruction: !moreInstructionsToSend(),
 									displayInstructionContentsOnLedgerDevice,
 									displayTXSummaryOnLedgerDevice,
 								}),
-							),
+							)
+						},
 					),
 					tap({
 						next: (responseFromLedger: Buffer) => {
@@ -331,7 +340,7 @@ Bytes: "
 							error,
 						)}'`
 						log.error(errMsg)
-						outputSubject.error(new Error(errMsg))
+						outputSubject.error(hardwareError(errMsg))
 					},
 				}),
 		)
@@ -346,7 +355,7 @@ Bytes: "
 							parsedResult.error,
 						)}'`
 						log.error(errMsg)
-						outputSubject.error(new Error(errMsg))
+						outputSubject.error(hardwareError(errMsg))
 						return
 					}
 					const signature: SignatureT = parsedResult.value.signature
@@ -357,7 +366,10 @@ Bytes: "
 					if (hash.length !== 32) {
 						const errMsg = `Expected hash to have 32 bytes length`
 						log.error(errMsg)
-						outputSubject.error(new Error(errMsg))
+						outputSubject.error({
+							type: 'HARDWARE',
+							error: new Error(errMsg),
+						})
 						return
 					}
 
