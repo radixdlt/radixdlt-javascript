@@ -555,6 +555,20 @@ const create = () => {
 			}),
 			mergeMap(unsignedTx => signUnsignedTx(unsignedTx)),
 			shareReplay(1),
+			catchError((e: Error) => {
+				txLog.error(
+					`API failed to sign transaction, error: ${JSON.stringify(
+						e,
+						null,
+						4,
+					)}`,
+				)
+				trackError({
+					error: e,
+					inStep: TransactionTrackingEventType.SIGNED,
+				})
+				return EMPTY
+			}),
 		)
 
 		const finalizedTx$ = signedTransaction$.pipe(
