@@ -64,18 +64,19 @@ const fromBufferReader = (
             .toString('hex')}, amount: U256 { raw: ${amount.toString()} } }`,
         toHumanReadableString: () =>
           `Tokens { 
-						reserved: ${reserved},
-						owner: ${AccountAddress.fromUnsafe(owner.toBuffer().slice(1))
-              ._unsafeUnwrap()
-              .toString()}
-						resource: ${
-              resource.toBuffer().length === 1
-                ? ResourceIdentifier.fromUnsafe(resource.toBuffer())
-                    ._unsafeUnwrap()
-                    .toString()
-                : resource.toBuffer().toString('hex')
-            }, 
-							, amount: ${stringifyUInt256(amount)} }`,
+  reserved: ${reserved},
+  owner: ${AccountAddress.fromUnsafe(owner.toBuffer().slice(1))
+    ._unsafeUnwrap()
+    .toPrimitive()}
+  resource: ${
+    resource.toBuffer().length === 1
+      ? ResourceIdentifier.fromUnsafe(resource.toBuffer())
+          ._unsafeUnwrap()
+          .toPrimitive()
+      : resource.toBuffer().toString('hex')
+  }, 
+  amount: ${stringifyUInt256(amount)} 
+}`,
       }
     })
 

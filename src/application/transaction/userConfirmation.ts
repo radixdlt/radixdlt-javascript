@@ -1,5 +1,4 @@
 import { MakeTransactionOptions } from '../_types'
-import { mapTo, tap } from 'rxjs'
 import { BuiltTransaction, TransactionTrackingEventType } from '../dto'
 import { Track } from './_types'
 import { ResultAsync } from 'neverthrow'
