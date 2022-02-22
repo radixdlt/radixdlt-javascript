@@ -16,18 +16,20 @@ const signMock = jest.fn()
 const finalizeTransactionMock = jest.fn()
 const submitSignedTransactionMock = jest.fn()
 const transactionStatusMock = jest.fn()
+const verifyTxMock = jest.fn()
 
 const mockTrack = jest.fn()
 const mockTrackError = jest.fn()
 
-const mockAccount = { address: '123', sign: signMock } as unknown as AccountT
+const mockAccount = ({ address: '123', sign: signMock } as unknown) as AccountT
 
-const mockRadixApi = {
+const mockRadixApi = ({
   buildTransaction: () => buildTransactionMock,
   finalizeTransaction: finalizeTransactionMock,
   submitSignedTransaction: submitSignedTransactionMock,
   transactionStatus: transactionStatusMock,
-} as unknown as RadixAPI
+  verifyTx: verifyTxMock,
+} as unknown) as RadixAPI
 
 const buildTx = _buildTx(mockTrack, mockAccount, mockRadixApi, mockTrackError)
 
@@ -43,6 +45,7 @@ describe('send transaction', () => {
     finalizeTransactionMock.mockReset()
     submitSignedTransactionMock.mockReset()
     transactionStatusMock.mockReset()
+    verifyTxMock.mockReset()
     mockTrack.mockReset()
     mockTrackError.mockReset()
   })
@@ -82,7 +85,9 @@ describe('send transaction', () => {
 
   describe('happy paths', () => {
     it('should send tx', async () => {
-      buildTransactionMock.mockReturnValueOnce(ok('builtTx'))
+      buildTransactionMock.mockReturnValueOnce(
+        ok({ transaction: { blob: '' } }),
+      )
       signMock.mockReturnValueOnce(ok('signedTx'))
       finalizeTransactionMock.mockReturnValueOnce(ok('finalizedTx'))
       submitSignedTransactionMock.mockReturnValueOnce(
@@ -130,7 +135,9 @@ describe('send transaction', () => {
         ],
         eventUpdateType: 'SIGNED',
       }
-      buildTransactionMock.mockReturnValueOnce(ok('builtTx'))
+      buildTransactionMock.mockReturnValueOnce(
+        ok({ transaction: { blob: '' } }),
+      )
       signMock.mockReturnValue(
         ResultAsync.fromPromise(Promise.reject(errorMsg), e => e),
       )
