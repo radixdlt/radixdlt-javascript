@@ -198,10 +198,12 @@ const assertSelfTransfer = (
 ): Result<null, Error> =>
   isSelfTransfer ? ok(null) : assertAmount(expected, actual)
 
+const flattenNullArray = (n: null[]) => n[0]
+
 const verifyTransfer = (
   action: IntendedTransferTokensAction,
   instructions: TokensGroup,
-): Result<null[], Error[]> => {
+): Result<null, Error[]> => {
   const [from, to] = instructions
   const isSelfTransfer = from.owner.equals(to.owner)
 
@@ -216,13 +218,13 @@ const verifyTransfer = (
     assertResource(action.rri, from.resource),
     assertResource(action.rri, to.resource),
     assertSelfTransfer(isSelfTransfer, action.amount, to.amount),
-  ])
+  ]).map(flattenNullArray)
 }
 
 const verifyStake = (
   action: IntendedStakeTokensAction,
   instructions: PreparedStakeGroup,
-): Result<null[], Error[]> => {
+): Result<null, Error[]> => {
   const [from, to] = instructions
   return combineWithAllErrors([
     assertNumberOfInstructions(2, instructions.length),
@@ -234,13 +236,13 @@ const verifyStake = (
     assertAddress('to', action.to_validator, to.validator),
     assertResource(action.rri, from.resource),
     assertAmount(action.amount, to.amount),
-  ])
+  ]).map(flattenNullArray)
 }
 
 const verifyUnstake = (
   action: IntendedUnstakeTokensAction,
   instructions: PreparedUnstakeGroup,
-): Result<null[], Error[]> => {
+): Result<null, Error[]> => {
   const [from, to] = instructions
   return combineWithAllErrors([
     assertSubstateTypes(
@@ -249,7 +251,7 @@ const verifyUnstake = (
     ),
     assertAddress('from', action.from_validator, from.validator),
     assertAddress('to', action.to_account, to.owner),
-  ])
+  ]).map(flattenNullArray)
 }
 
 const verifyTxIntent = (txIntent: TransactionIntent) => (
@@ -260,7 +262,7 @@ const verifyTxIntent = (txIntent: TransactionIntent) => (
   return combine(
     txIntent.actions
       .map(
-        (action, index): Result<null[], Error[]> => {
+        (action, index): Result<null, Error[]> => {
           const currentGroup = instructionGroups[index]
 
           switch (action.type) {
@@ -274,7 +276,7 @@ const verifyTxIntent = (txIntent: TransactionIntent) => (
               return verifyUnstake(action, currentGroup as PreparedUnstakeGroup)
 
             default:
-              return ok([null])
+              return ok(null)
           }
         },
       )
@@ -311,7 +313,7 @@ export const verifyTx = (
               errors: Array.isArray(errors)
                 ? errors
                 : errors === null
-                ? errors
+                ? []
                 : [errors],
             },
           }),
