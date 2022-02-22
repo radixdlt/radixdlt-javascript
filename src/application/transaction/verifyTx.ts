@@ -71,12 +71,12 @@ const accountAddressFromREAddressAndNetwork = ({
     : err(null)
 }
 
-const filterInstructions =
-  <RT extends InstructionT>(types: InstructionType[]) =>
-  (instructions: InstructionT[]) =>
-    instructions.filter((instruction): instruction is RT =>
-      types.includes(instruction.instructionType),
-    )
+const filterInstructions = <RT extends InstructionT>(
+  types: InstructionType[],
+) => (instructions: InstructionT[]) =>
+  instructions.filter((instruction): instruction is RT =>
+    types.includes(instruction.instructionType),
+  )
 
 const filterUpAndEndInstructions = filterInstructions<Ins_UP | Ins_END>([
   InstructionType.END,
@@ -122,17 +122,18 @@ const parseGroupData = (network: Network) => (groups: Ins_UP[][]) =>
             return accountAddressFromREAddressAndNetwork({
               reAddress: substate.owner,
               network,
-            }).map(
-              (owner): PreparedStake | PreparedUnstake | StakeOwnership => ({
-                amount: substate.amount,
-                owner,
-                validator: ValidatorAddress.fromPublicKeyAndNetwork({
-                  publicKey: substate.validator,
-                  network,
-                }),
-                substateType: substate.substateType,
+            }).map((owner):
+              | PreparedStake
+              | PreparedUnstake
+              | StakeOwnership => ({
+              amount: substate.amount,
+              owner,
+              validator: ValidatorAddress.fromPublicKeyAndNetwork({
+                publicKey: substate.validator,
+                network,
               }),
-            )
+              substateType: substate.substateType,
+            }))
           }
 
           default:
@@ -142,8 +143,10 @@ const parseGroupData = (network: Network) => (groups: Ins_UP[][]) =>
     ),
   )
 
-const assert = (condition: boolean, errorMessage: string) =>
-  condition ? ok(null) : err(errorMessage)
+const assert = (
+  condition: boolean,
+  errorMessage: string,
+): Result<null, Error> => (condition ? ok(null) : err(Error(errorMessage)))
 
 const assertSubstateTypes = (
   expectedSubStateTypes: SubStateType[],
@@ -158,7 +161,7 @@ const assertSubstateTypes = (
     )}'`,
   )
 
-const assertAccountAddress = (
+const assertAddress = (
   type: 'from' | 'to',
   expected: AccountAddressT | ValidatorAddressT,
   actual: AccountAddressT | ValidatorAddressT,
@@ -188,10 +191,17 @@ const assertResource = (expected: ResourceIdentifierT, actual: string) => {
   )
 }
 
+const assertSelfTransfer = (
+  isSelfTransfer: boolean,
+  expected: AmountT,
+  actual: AmountT,
+): Result<null, Error> =>
+  isSelfTransfer ? ok(null) : assertAmount(expected, actual)
+
 const verifyTransfer = (
   action: IntendedTransferTokensAction,
   instructions: TokensGroup,
-) => {
+): Result<null[], Error[]> => {
   const [from, to] = instructions
   const isSelfTransfer = from.owner.equals(to.owner)
 
@@ -201,18 +211,18 @@ const verifyTransfer = (
       [SubStateType.TOKENS],
       instructions.map(({ substateType }) => substateType),
     ),
-    assertAccountAddress('from', action.from_account, from.owner),
-    assertAccountAddress('to', action.to_account, to.owner),
+    assertAddress('from', action.from_account, from.owner),
+    assertAddress('to', action.to_account, to.owner),
     assertResource(action.rri, from.resource),
     assertResource(action.rri, to.resource),
-    isSelfTransfer ? ok(null) : assertAmount(action.amount, to.amount),
+    assertSelfTransfer(isSelfTransfer, action.amount, to.amount),
   ])
 }
 
 const verifyStake = (
   action: IntendedStakeTokensAction,
   instructions: PreparedStakeGroup,
-) => {
+): Result<null[], Error[]> => {
   const [from, to] = instructions
   return combineWithAllErrors([
     assertNumberOfInstructions(2, instructions.length),
@@ -220,8 +230,8 @@ const verifyStake = (
       [SubStateType.TOKENS, SubStateType.PREPARED_STAKE],
       instructions.map(({ substateType }) => substateType),
     ),
-    assertAccountAddress('from', action.from_account, from.owner),
-    assertAccountAddress('to', action.to_validator, to.validator),
+    assertAddress('from', action.from_account, from.owner),
+    assertAddress('to', action.to_validator, to.validator),
     assertResource(action.rri, from.resource),
     assertAmount(action.amount, to.amount),
   ])
@@ -230,26 +240,27 @@ const verifyStake = (
 const verifyUnstake = (
   action: IntendedUnstakeTokensAction,
   instructions: PreparedUnstakeGroup,
-) => {
+): Result<null[], Error[]> => {
   const [from, to] = instructions
   return combineWithAllErrors([
-    assertNumberOfInstructions(2, instructions.length),
     assertSubstateTypes(
       [SubStateType.PREPARED_UNSTAKE, SubStateType.STAKE_OWNERSHIP],
       instructions.map(({ substateType }) => substateType),
     ),
-    assertAccountAddress('from', action.from_validator, from.validator),
-    assertAccountAddress('to', action.to_account, to.owner),
+    assertAddress('from', action.from_validator, from.validator),
+    assertAddress('to', action.to_account, to.owner),
   ])
 }
 
-const verifyTxIntent =
-  (txIntent: TransactionIntent) => (groups: InstructionGroup[]) => {
-    const [, ...instructionGroups] = groups
+const verifyTxIntent = (txIntent: TransactionIntent) => (
+  groups: InstructionGroup[],
+) => {
+  const [, ...instructionGroups] = groups
 
-    return combine(
-      txIntent.actions
-        .map((action, index) => {
+  return combine(
+    txIntent.actions
+      .map(
+        (action, index): Result<null[], Error[]> => {
           const currentGroup = instructionGroups[index]
 
           switch (action.type) {
@@ -263,40 +274,50 @@ const verifyTxIntent =
               return verifyUnstake(action, currentGroup as PreparedUnstakeGroup)
 
             default:
-              return ok('')
+              return ok([null])
           }
-        })
-        .flatMap(item => item),
-    )
-  }
-
-export const verifyTx =
-  (txIntent: TransactionIntent, network: Network, trackError: TrackError) =>
-  (tx: BuiltTransaction) => {
-    return Transaction.fromBuffer(Buffer.from(tx.transaction.blob, 'hex'))
-      .map(tx => {
-        log.info(tx.toString())
-        return tx.instructions
-      })
-      .map(filterUpAndEndInstructions)
-      .map(groupInstructionsByActions)
-      .map(parseGroupData(network))
-      .andThen(group => combine(group))
-      .map(groups =>
-        groups.filter((group): group is InstructionGroup => group.length > 0),
+        },
       )
-      .andThen(verifyTxIntent(txIntent))
-      .map(() => tx)
-      .mapErr(errors => {
-        trackError({
-          errors: [
-            radixAPIError({
-              message: 'transaction intent does not match built transaction',
-              details: { type: 'VerifyBuiltTransactionError', errors },
-            }),
-          ],
-          inStep: TransactionTrackingEventType.VERIFIED,
-        })
-        return errors
+      .flatMap(item => item),
+  )
+}
+
+export const verifyTx = (
+  txIntent: TransactionIntent,
+  network: Network,
+  trackError: TrackError,
+) => (tx: BuiltTransaction) => {
+  return Transaction.fromBuffer(Buffer.from(tx.transaction.blob, 'hex'))
+    .map(tx => {
+      log.info(tx.toString())
+      return tx.instructions
+    })
+    .map(filterUpAndEndInstructions)
+    .map(groupInstructionsByActions)
+    .map(parseGroupData(network))
+    .andThen(group => combine(group))
+    .map(groups =>
+      groups.filter((group): group is InstructionGroup => group.length > 0),
+    )
+    .andThen(verifyTxIntent(txIntent))
+    .map(() => tx)
+    .mapErr(errors => {
+      trackError({
+        errors: [
+          radixAPIError({
+            message: 'transaction intent does not match built transaction',
+            details: {
+              type: 'VerifyBuiltTransactionError',
+              errors: Array.isArray(errors)
+                ? errors
+                : errors === null
+                ? errors
+                : [errors],
+            },
+          }),
+        ],
+        inStep: TransactionTrackingEventType.VERIFIED,
       })
-  }
+      return errors
+    })
+}
