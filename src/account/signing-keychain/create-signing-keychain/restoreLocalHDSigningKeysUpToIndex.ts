@@ -1,6 +1,4 @@
-import { BIP32T, HDNodeT } from '@crypto'
 import {
-  BehaviorSubject,
   combineLatest,
   mergeMap,
   Observable,

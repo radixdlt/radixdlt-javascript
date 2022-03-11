@@ -2,7 +2,6 @@ import {
   AccountT,
   TransactionStatus,
   TransactionTrackingEventType,
-  log,
 } from '@application'
 import { Network } from '@primitives'
 import { err, ok, ResultAsync } from 'neverthrow'
@@ -10,6 +9,7 @@ import { LogLevel, radixAPIError } from '@util'
 import { RadixAPI } from '../api'
 import { buildTx as _buildTx } from '../transaction/buildTx'
 import { sendTransaction } from '../transaction/sendTransaction'
+import log from 'loglevel'
 
 const buildTransactionMock = jest.fn()
 const signMock = jest.fn()

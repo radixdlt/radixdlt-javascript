@@ -7,7 +7,7 @@ import {
 import { log, toObservableFromResult } from '@util'
 import { RadixAPI } from '../api'
 import { Track, TrackError } from './_types'
-import { Network } from '@application'
+import { Network } from '@primitives'
 
 export const finalizeTx =
   (

@@ -1,5 +1,5 @@
 import 'isomorphic-fetch'
-import { log, radixError, RadixError, radixAPIError } from '@util'
+import { log, RadixError, radixAPIError } from '@util'
 import { v4 as uuid } from 'uuid'
 import { Client } from './_types'
 import { ResultAsync } from 'neverthrow'
@@ -13,30 +13,9 @@ import {
   TokenEndpointApiFactory,
   GatewayEndpointApiFactory,
 } from '.'
-import axiosRetry from 'axios-retry'
 
-import axios, { AxiosResponse, AxiosError } from 'axios'
+import { AxiosResponse, AxiosError } from 'axios'
 import { Configuration } from './open-api'
-
-axiosRetry(axios, {
-  retries: 3,
-  retryDelay: axiosRetry.exponentialDelay,
-  retryCondition: err => {
-    const isTimeoutOrNetworkError = !err.response
-    const responseStatus = err.response?.status
-    const is500Error = !!(responseStatus && responseStatus >= 500)
-    const shouldRetry = isTimeoutOrNetworkError || is500Error
-
-    if (shouldRetry) {
-      const { method, data } = err.config
-      // @ts-ignore
-      const count = err.config['axios-retry']?.retryCount + 1
-      log.info(`Retrying #${count} api request with method ${method}. ${data}`)
-    }
-
-    return shouldRetry
-  },
-})
 
 const defaultHeaders = [
   'X-Radixdlt-Method',

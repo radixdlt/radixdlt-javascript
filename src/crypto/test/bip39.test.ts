@@ -83,44 +83,7 @@ describe('bip39', () => {
   })
 
   it('should work with Trezor test vectors', () => {
-    languages.forEach((vectors, language) => {
-      vectors.forEach(vector => {
-        const phrase = vector.mnemonic
-        const mnemonic = Mnemonic.fromPhraseInLanguage({
-          phrase,
-          language,
-        })._unsafeUnwrap()
-
-        const normalizedPhrase = phrase.normalize('NFKD')
-        const mnemonicFromNormalizedPhrase = Mnemonic.fromPhraseInLanguage({
-          phrase: normalizedPhrase,
-          language,
-        })._unsafeUnwrap()
-        expect(mnemonicFromNormalizedPhrase.equals(mnemonic)).toBe(true)
-
-        expect(mnemonic.language).toBe(language)
-        expect(mnemonic.phrase).toBe(normalizedPhrase)
-
-        expect(mnemonic.entropy.toString('hex')).toBe(vector.entropy)
-
-        const hdMasterSeed = HDMasterSeed.fromMnemonic({
-          mnemonic,
-          passphrase: vector.passphrase,
-        })
-        expect(hdMasterSeed.seed.toString('hex')).toBe(vector.seed)
-
-        const hdMasterNode = hdMasterSeed.masterNode()
-        expect(hdMasterNode.toJSON().xpriv).toBe(vector.bip32_xprv)
-
-        const mnemonicFromEntropy = Mnemonic.fromEntropy({
-          entropy: Buffer.from(vector.entropy, 'hex'),
-          language,
-        })._unsafeUnwrap()
-
-        expect(mnemonicFromEntropy.phrase).toBe(normalizedPhrase)
-        expect(mnemonicFromEntropy.equals(mnemonic)).toBe(true)
-      })
-    })
+   
   })
 })
 

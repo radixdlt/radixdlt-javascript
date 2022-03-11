@@ -1,4 +1,6 @@
-import { MakeTransactionOptions, Network, RadixError } from '@application'
+import { MakeTransactionOptions } from '@application'
+import { Network } from '@primitives'
+import { RadixError } from '@util'
 import { ResultAsync } from 'neverthrow'
 import { Observable, Subject } from 'rxjs'
 import { RadixAPI } from '../api'

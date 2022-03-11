@@ -5,7 +5,6 @@ import {
   createTransfer,
   buildTransaction,
   createStake,
-  Message,
 } from '../'
 import {
   AccountAddress,
@@ -24,6 +23,7 @@ import {
   IntendedTransferTokensAction,
   TransferTokensAction,
 } from '../actions'
+import { Message } from '@crypto'
 
 const xrd = {
   name: 'Rad',

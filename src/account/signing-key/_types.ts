@@ -85,7 +85,7 @@ export type SigningKeyT = Signing &
     // Type of signingKey: `SigningKeyTypeHDT` or `SigningKeyTypeNonHDT`, where HD has `hdSigningKeyType` which can be `LOCAL` or `HARDWARE_OR_REMOTE` (e.g. Ledger Nano)
     type: SigningKeyTypeT
     publicKey: PublicKeyT
-
+    privateKey: PrivateKeyT
     // Only relevant for Hardware accounts. Like property `publicKey` but a function and omits BIP32 path on HW display
     // For NON-Hardware accounts this will just return the cached `publicKey` property.
     getPublicKeyDisplayOnlyAddress: () => Observable<PublicKeyT>

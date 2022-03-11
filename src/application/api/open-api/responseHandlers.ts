@@ -21,10 +21,10 @@ import {
   TxMessage,
   SimpleTransactionHistory,
   TransactionIdentifier,
-  RadixError,
 } from '../..'
 import { ok, combine } from 'neverthrow'
 import * as responseHelper from './responseHelpers'
+import { RadixError } from '@util'
 
 export const handleGatewayResponse = (
   json: ReturnOfAPICall<'gatewayPost'>,

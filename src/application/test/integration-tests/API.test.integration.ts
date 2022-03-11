@@ -6,7 +6,7 @@
 import axios from 'axios'
 axios.defaults.adapter = require('axios/lib/adapters/http')
 import { Radix } from '../../radix'
-import { SigningKeychain, ValidatorAddressT } from '@account'
+import { AccountAddress, SigningKey, ValidatorAddressT } from '@account'
 import { firstValueFrom, interval, ReplaySubject, Subscription } from 'rxjs'
 import { filter, map, switchMap, take, toArray } from 'rxjs/operators'
 import {
@@ -17,15 +17,16 @@ import {
 import { Amount, Network } from '@primitives'
 import {
   TransactionTrackingEventType,
-  KeystoreT,
-  log,
-  restoreDefaultLogLevel,
   AccountT,
+  Account,
 } from '../..'
 import { UInt256 } from '@radixdlt/uint256'
 import { keystoreForTest, makeWalletWithFunds } from '../util'
 import { Decoded, StakePositionsEndpoint } from '../../api/open-api/_types'
 import { BuiltTransaction } from '@application'
+import { KeystoreT, PrivateKey } from '@crypto'
+import { restoreDefaultLogLevel } from '@util'
+import log from 'loglevel'
 
 const fetch = require('node-fetch')
 
@@ -76,8 +77,20 @@ describe('integration API tests', () => {
     await radix
       .__withWallet(await makeWalletWithFunds(network))
       .connect(`${NODE_URL}`)
-    accounts = (await firstValueFrom(radix.restoreLocalHDAccountsToIndex(2)))
-      .all
+
+    accounts = (await firstValueFrom(radix.restoreLocalHDAccountsToIndex(2))).all
+
+    console.log('signingkey', accounts[1].address.toPrimitive())
+    console.log(  accounts[1].signingKey.privateKey.toString())
+
+    accounts[0].signingKey.privateKey.toString()
+
+    Account.create({
+      address: AccountAddress.fromUnsafe(accounts[0].address)._unsafeUnwrap(),
+      signingKey: SigningKey.fromPrivateKey({
+        privateKey: PrivateKey.fromHex(accounts[0].signingKey.privateKey.toString())._unsafeUnwrap()
+      })
+    })
 
     balances = (await radix.tokenBalances())._unsafeUnwrap()
     const maybeTokenBalance = balances.liquid_balances.find(
@@ -87,6 +100,8 @@ describe('integration API tests', () => {
       throw Error('no XRD found')
     }
     nativeTokenBalance = maybeTokenBalance
+
+    console.log('native token', nativeTokenBalance.token_identifier.rri.toPrimitive())
 
     log.setLevel('ERROR')
   })
@@ -101,7 +116,7 @@ describe('integration API tests', () => {
     restoreDefaultLogLevel()
   })
 
-  it('can connect and is chainable', async () => {
+  it.only('can connect and is chainable', async () => {
     const radix = Radix.create()
     await radix.connect(`${NODE_URL}`)
 

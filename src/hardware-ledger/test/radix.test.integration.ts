@@ -3,9 +3,9 @@
  */
 import { log } from '@util'
 import { Observable, Subscription } from 'rxjs'
-import { Radix, SigningKeychain, Wallet, WalletT } from '@application'
+import { Radix, Wallet, WalletT } from '@application'
 import { Mnemonic } from '@crypto'
-import { SigningKeyTypeHDT, SigningKeyTypeIdentifier } from '@account'
+import { SigningKeychain, SigningKeyTypeHDT, SigningKeyTypeIdentifier } from '@account'
 import { HDSigningKeyTypeIdentifier, HWSigningKeyDerivation } from '@account'
 import { Network } from '@primitives'
 import { HardwareWalletT } from '@hardware-wallet'

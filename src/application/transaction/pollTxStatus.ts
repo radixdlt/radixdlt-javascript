@@ -1,4 +1,4 @@
-import { Network, RadixAPI } from '@application'
+import { RadixAPI } from '@application'
 import {
   catchError,
   distinctUntilChanged,
@@ -18,6 +18,7 @@ import {
 } from '../dto'
 import { log } from '@util'
 import { Track } from './_types'
+import { Network } from '@primitives'
 
 export const pollTxStatus =
   (

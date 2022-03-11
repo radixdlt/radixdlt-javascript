@@ -16,8 +16,9 @@ import {
   Transaction,
 } from '@tx-parser'
 import { log, radixAPIError } from '@util'
-import { AccountAddress, AccountAddressT, AmountT, Network } from '@application'
 import {
+  AccountAddress,
+  AccountAddressT,
   ResourceIdentifierT,
   ValidatorAddress,
   ValidatorAddressT,
@@ -28,6 +29,7 @@ import {
   IntendedTransferTokensAction,
   IntendedUnstakeTokensAction,
 } from '../actions'
+import { AmountT, Network } from '@primitives'
 
 type Instruction<T extends SubStateType> = {
   substateType: T

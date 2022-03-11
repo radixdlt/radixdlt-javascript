@@ -2,6 +2,7 @@
   "compilerOptions": {
     "outDir": "./build",
     "allowSyntheticDefaultImports": true,
+    "allowJs": true,
     "baseUrl": ".",
     "declaration": true,
     "declarationMap": true,

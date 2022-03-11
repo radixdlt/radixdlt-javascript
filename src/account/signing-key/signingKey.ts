@@ -175,6 +175,7 @@ const fromPrivateKeyNamedOrFromHDPath = (
         ? undefined
         : input.pathOrName,
     publicKey,
+    privateKey,
     getPublicKeyDisplayOnlyAddress: (): Observable<PublicKeyT> => of(publicKey),
     type,
     uniqueIdentifier: type.uniqueKey,
@@ -225,6 +226,7 @@ const fromHDPathWithHWSigningKey = (
     ...type, // forward sugar for boolean signingKey type getters
     isLocalHDSigningKey: false, // hardware is not local
     publicKey: hardwareSigningKey.publicKey,
+    privateKey: '' as any,
     hdPath,
     getPublicKeyDisplayOnlyAddress: (): Observable<PublicKeyT> =>
       hardwareSigningKey.getPublicKeyDisplayOnlyAddress(),

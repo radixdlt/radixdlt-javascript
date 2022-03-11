@@ -16,7 +16,6 @@ import {
 import { Amount, AmountT } from '@primitives'
 import {
   ExecutedTransaction,
-  RadixError,
   SimpleExecutedTransaction,
   TransactionIdentifier,
   TransactionIdentifierT,
@@ -26,6 +25,7 @@ import {
 import { ok, combine, Result, err } from 'neverthrow'
 import { Message } from '@crypto'
 import { ExecutedAction, transformAction } from '../../actions'
+import { RadixError } from '@util'
 
 export const transformUnstakeEntry = (item: AccountUnstakeEntry) =>
   combine([

@@ -4,7 +4,7 @@ import { UInt256 } from '@radixdlt/uint256'
 import { ec } from 'elliptic'
 import { uint256FromBN } from '@primitives'
 import BN from 'bn.js'
-const __js_DER = require('./indutnyEllipticImportDER')
+import * as __js_DER from './indutnyEllipticImportDER'
 
 const __fromRSAndDER = (
   input: Readonly<{
@@ -75,8 +75,8 @@ const fromDER = (buffer: Buffer | string): Result<SignatureT, Error> => {
   }
   return ok(
     __fromRSAndDER({
-      r: importedDER.r,
-      s: importedDER.s,
+      r: importedDER.r as any as UInt256,
+      s: importedDER.s as any as UInt256,
       der: buffer.toString('hex'),
     }),
   )

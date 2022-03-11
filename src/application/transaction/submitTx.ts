@@ -1,4 +1,4 @@
-import { Network, RadixAPI } from '@application'
+import { RadixAPI } from '@application'
 import {
   FinalizedTransaction,
   PendingTransaction,
@@ -6,6 +6,7 @@ import {
 } from '../dto'
 import { log } from '@util'
 import { Track, TrackError } from './_types'
+import { Network } from '@primitives'
 
 export const submitTx =
   (
