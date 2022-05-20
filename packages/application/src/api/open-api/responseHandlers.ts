@@ -53,34 +53,6 @@ const transformTokenAmount = (amount: TokenAmount) => [
 	ResourceIdentifier.fromUnsafe(amount.token_identifier.rri),
 ]
 
-export const transformMessage = (message?: string) => {
-	if (!message) return undefined
-
-	const FAILED_MSG = '<Failed to interpret message>'
-
-	// Check format
-	if (!/^(00|01|30)[0-9a-fA-F]+$/.test(message)) return FAILED_MSG
-
-	try {
-		if (Message.isHexEncoded(message)) {
-			const decoded = Message.plaintextToString(
-				Buffer.from(message, 'hex'),
-				0,
-			)
-
-			return Message.isPlaintext(decoded)
-				? Message.plaintextToString(Buffer.from(decoded, 'hex'))
-				: decoded
-		}
-
-		return Message.isPlaintext(message)
-			? Message.plaintextToString(Buffer.from(message, 'hex'))
-			: message
-	} catch (error) {
-		return FAILED_MSG
-	}
-}
-
 export const handleGatewayResponse = (
 	json: ReturnOfAPICall<'gatewayPost'>,
 ): Result<GatewayEndpoint.DecodedResponse, Error[]> =>
@@ -552,7 +524,7 @@ const handleTx = (
 				: null,
 		),
 		Amount.fromUnsafe(transaction.fee_paid.value),
-		ok(transformMessage(transaction.metadata.message) ?? ''),
+		ok(transaction.metadata.message ?? ''),
 		combine(transaction.actions.map(transformAction)).map(actions => ({
 			actions,
 		})),
