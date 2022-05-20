@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.0.17](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@4.0.16...@radixdlt/application@4.0.17) (2022-05-20)
+
+
+### Bug Fixes
+
+* return raw encoded messages ([#200](https://github.com/radixdlt/radixdlt-javascript/issues/200)) ([f85cbfd](https://github.com/radixdlt/radixdlt-javascript/commit/f85cbfd146c0459309d17dfd07a7312da732d30d))
+
+
+
+
+
 ## [4.0.16](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@4.0.15...@radixdlt/application@4.0.16) (2022-02-21)
 
 **Note:** Version bump only for package @radixdlt/application
