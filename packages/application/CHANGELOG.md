@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.0.18](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@4.0.17...@radixdlt/application@4.0.18) (2022-06-07)
+
+
+### Bug Fixes
+
+* Ignore Active Address for HW Verification ([#202](https://github.com/radixdlt/radixdlt-javascript/issues/202)) ([2b1f9e2](https://github.com/radixdlt/radixdlt-javascript/commit/2b1f9e22ea5444a92a5adba3b3d47256ed441b82))
+
+
+
+
+
 ## [4.0.17](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/application@4.0.16...@radixdlt/application@4.0.17) (2022-05-20)
 
 
