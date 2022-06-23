@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.0.9](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/account@3.0.8...@radixdlt/account@3.0.9) (2022-06-23)
+
+
+### Bug Fixes
+
+* Signing Keychain sending multiple signals ([#203](https://github.com/radixdlt/radixdlt-javascript/issues/203)) ([400598b](https://github.com/radixdlt/radixdlt-javascript/commit/400598be381a41bba88142941e8e0e5e8c46dfc0))
+
+
+
+
+
 ## [3.0.8](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/account@3.0.7...@radixdlt/account@3.0.8) (2022-01-26)
 
 **Note:** Version bump only for package @radixdlt/account
