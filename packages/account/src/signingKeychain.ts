@@ -190,6 +190,7 @@ const create = (
 			input.keyDerivation === 'next' ? nextPath() : input.keyDerivation
 
 		return input.hardwareWalletConnection.pipe(
+			take(1),
 			mergeMap(
 				(
 					hardwareWallet: HardwareWalletT,
