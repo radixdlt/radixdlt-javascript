@@ -2,9 +2,9 @@
 /* eslint-disable */
 /**
  * Radix Gateway API
- * This API is designed to enable clients to efficiently query information on the RadixDLT ledger, and allow clients to simply build and submit transactions to the network.  The API is designed for use by the Radix Foundation\'s [Desktop Wallet](https://wallet.radixdlt.com/) and [Explorer](https://explorer.radixdlt.com/), and replaces the original Olympia \"Archive Node API\".  # Gateway API Overview  The Gateway API is separated into distinct groupings:  * `/gateway` - Information about the Gateway API status * `/account/_*` - To query account-related information * `/token/_*` - To query token-related information * `/validator/_*` and `/validators` - To query validator-related information * `/transaction/_*` - To build, finalize and submit transactions, and to read the status and content of submitted and on-ledger transactions.  The Gateway API is implemented by the [Network Gateway](https://github.com/radixdlt/radixdlt-network-gateway), which is configured to read from full node/s to extract and index data from the network.  # Gateway API Format  The API is designed in a JSON-RPC style, using HTTP as a transport layer, which means that:  * All requests are POST requests. * Any error is returned with an HTTP status code of 500, with a returned error object.   * The error object contains an HTTP-like `code`   * The error object also contains a structured/typed `details` sub-object, with a `type` discriminator, allowing for structured error interpretation in clients.  # Comparison to other Radix APIs  * [Core API](https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/radixdlt/radixdlt/develop/radixdlt-core/radixdlt/src/main/java/com/radixdlt/api/core/api.yaml) - The Core API is a low level API exposed by full nodes, and designed for use on internal networks. It is primarily designed for network integrations such as exchanges, ledger analytics providers, or hosted ledger data dashboards. The Core API provides endpoints for reading the mempool, constructing transactions and also exposes a stream of committed transactions.  * [System API](https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/radixdlt/radixdlt/develop/radixdlt-core/radixdlt/src/main/java/com/radixdlt/api/system/api.yaml) - The System API is a private API exposed by full nodes to read system status.  The Gateway API offers a much wider range of query options and is more performant than the Core API. It is built on top of the Core API, ingesting data via the Core API transaction stream into a relational database.  The Gateway API transaction/construction endpoints operate with the concept of \"actions\" - these are higher-levels of intent compared with the Core API, which makes it easier for clients to use. The Core API should be used if you require more power/flexiblity for managing UTXOs, or submitting transactions which can\'t be mapped to a Gateway API action. 
+ * This API is designed to enable clients to efficiently query information on the RadixDLT ledger, and allow clients to simply build and submit transactions to the network.  The API is designed for use by the Radix Foundation\'s [Desktop Wallet](https://wallet.radixdlt.com/) and [Explorer](https://explorer.radixdlt.com/), and replaces the original Olympia \"Archive Node API\".  # Gateway API Overview  The Gateway API is separated into distinct groupings:  * `/gateway` - Information about the Gateway API status * `/account/_*` - To query account-related information * `/token/_*` - To query token-related information * `/validator/_*` and `/validators` - To query validator-related information * `/transaction/_*` - To build, finalize and submit transactions, and to read the status and content of submitted and on-ledger transactions.  The Gateway API is implemented by the [Network Gateway](https://github.com/radixdlt/radixdlt-network-gateway), which is configured to read from full node/s to extract and index data from the network.  # Gateway API Format  The API is designed in a JSON-RPC style, using HTTP as a transport layer, which means that:  * All requests are POST requests. * Any error is returned with an HTTP status code of 500, with a returned error object.   * The error object contains an HTTP-like `code`   * The error object also contains a structured/typed `details` sub-object, with a `type` discriminator, allowing for structured error interpretation in clients.  # Comparison to other Radix APIs  * [Core API](https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/radixdlt/radixdlt/main/radixdlt-core/radixdlt/src/main/java/com/radixdlt/api/core/api.yaml) - The Core API is a low level API exposed by full nodes, and designed for use on internal networks. It is primarily designed for network integrations such as exchanges, ledger analytics providers, or hosted ledger data dashboards. The Core API provides endpoints for reading the mempool, constructing transactions and also exposes a stream of committed transactions.  * [System API](https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/radixdlt/radixdlt/main/radixdlt-core/radixdlt/src/main/java/com/radixdlt/api/system/api.yaml) - The System API is a private API exposed by full nodes to read system status.  The Gateway API offers a much wider range of query options and is more performant than the Core API. It is built on top of the Core API, ingesting data via the Core API transaction stream into a relational database.  The Gateway API transaction/construction endpoints operate with the concept of \"actions\" - these are higher-levels of intent compared with the Core API, which makes it easier for clients to use. The Core API should be used if you require more power/flexiblity for managing UTXOs, or submitting transactions which can\'t be mapped to a Gateway API action. 
  *
- * The version of the OpenAPI document: 1.0.3
+ * The version of the OpenAPI document: 1.1.6
  * 
  *
  * NOTE: This class is auto generated by OpenAPI Generator (https://openapi-generator.tech).
@@ -1329,6 +1329,88 @@ export interface PublicKey {
 /**
  * 
  * @export
+ * @interface RecentTransactionsRequest
+ */
+export interface RecentTransactionsRequest {
+    /**
+     * 
+     * @type {NetworkIdentifier}
+     * @memberof RecentTransactionsRequest
+     */
+    'network_identifier': NetworkIdentifier;
+    /**
+     * 
+     * @type {PartialLedgerStateIdentifier}
+     * @memberof RecentTransactionsRequest
+     */
+    'at_state_identifier'?: PartialLedgerStateIdentifier;
+    /**
+     * This cursor allows forward pagination, by providing the cursor from the previous request.
+     * @type {string}
+     * @memberof RecentTransactionsRequest
+     */
+    'cursor'?: string;
+    /**
+     * The page size requested. The maximum value is 30 at present.
+     * @type {number}
+     * @memberof RecentTransactionsRequest
+     */
+    'limit'?: number;
+}
+/**
+ * 
+ * @export
+ * @interface RecentTransactionsResponse
+ */
+export interface RecentTransactionsResponse {
+    /**
+     * 
+     * @type {LedgerState}
+     * @memberof RecentTransactionsResponse
+     */
+    'ledger_state': LedgerState;
+    /**
+     * The cursor to be provided for the next page of results. If missing, this is the last page of results.
+     * @type {string}
+     * @memberof RecentTransactionsResponse
+     */
+    'next_cursor'?: string;
+    /**
+     * The page of user transactions.
+     * @type {Array<TransactionInfo>}
+     * @memberof RecentTransactionsResponse
+     */
+    'transactions': Array<TransactionInfo>;
+}
+/**
+ * 
+ * @export
+ * @interface RegisterValidator
+ */
+export interface RegisterValidator extends Action {
+    /**
+     * 
+     * @type {ValidatorIdentifier}
+     * @memberof RegisterValidator
+     */
+    'validator': ValidatorIdentifier;
+}
+/**
+ * 
+ * @export
+ * @interface RegisterValidatorAllOf
+ */
+export interface RegisterValidatorAllOf {
+    /**
+     * 
+     * @type {ValidatorIdentifier}
+     * @memberof RegisterValidatorAllOf
+     */
+    'validator': ValidatorIdentifier;
+}
+/**
+ * 
+ * @export
  * @interface Signature
  */
 export interface Signature {
@@ -1339,7 +1421,7 @@ export interface Signature {
      */
     'public_key': PublicKey;
     /**
-     * The signature in DER format, hex-encoded.
+     * An ECDSA signature of the payload to sign with the given `public_key`. The ECDSA signature should be created using the secp256k1 curve and should be encoded in DER format, and then encoded as a hex string.
      * @type {string}
      * @memberof Signature
      */
@@ -2137,6 +2219,19 @@ export interface TransferTokensAllOf {
     'amount': TokenAmount;
 }
 /**
+ * 
+ * @export
+ * @interface UnregisterValidator
+ */
+export interface UnregisterValidator extends Action {
+    /**
+     * 
+     * @type {ValidatorIdentifier}
+     * @memberof UnregisterValidator
+     */
+    'validator': ValidatorIdentifier;
+}
+/**
  * An action to unstake tokens. Exactly one of amount or unstake_percentage is required.
  * @export
  * @interface UnstakeTokens
@@ -2247,6 +2342,55 @@ export interface Validator {
      * @memberof Validator
      */
     'properties': ValidatorProperties;
+    /**
+     * 
+     * @type {ValidatorForkSignal}
+     * @memberof Validator
+     */
+    'latest_fork_readiness_signal'?: ValidatorForkSignal;
+}
+/**
+ * 
+ * @export
+ * @interface ValidatorAccountStake
+ */
+export interface ValidatorAccountStake {
+    /**
+     * 
+     * @type {AccountIdentifier}
+     * @memberof ValidatorAccountStake
+     */
+    'account': AccountIdentifier;
+    /**
+     * 
+     * @type {ValidatorIdentifier}
+     * @memberof ValidatorAccountStake
+     */
+    'validator': ValidatorIdentifier;
+    /**
+     * 
+     * @type {TokenAmount}
+     * @memberof ValidatorAccountStake
+     */
+    'total_pending_stake'?: TokenAmount;
+    /**
+     * 
+     * @type {TokenAmount}
+     * @memberof ValidatorAccountStake
+     */
+    'total_stake'?: TokenAmount;
+    /**
+     * 
+     * @type {TokenAmount}
+     * @memberof ValidatorAccountStake
+     */
+    'total_pending_unstake'?: TokenAmount;
+    /**
+     * 
+     * @type {TokenAmount}
+     * @memberof ValidatorAccountStake
+     */
+    'total_unstaking'?: TokenAmount;
 }
 /**
  * 
@@ -2279,6 +2423,31 @@ export interface ValidatorDeriveResponse {
      * @memberof ValidatorDeriveResponse
      */
     'account_identifier': ValidatorIdentifier;
+}
+/**
+ * 
+ * @export
+ * @interface ValidatorForkSignal
+ */
+export interface ValidatorForkSignal {
+    /**
+     * 
+     * @type {LedgerState}
+     * @memberof ValidatorForkSignal
+     */
+    'signalled_at': LedgerState;
+    /**
+     * The logical fork id, which is used for counting votes. The logical id encodes the name, as well as the thresholds when the fork would activate. If a signal is cleared, this field may be empty. 
+     * @type {string}
+     * @memberof ValidatorForkSignal
+     */
+    'fork_id'?: string;
+    /**
+     * The human-readable fork name. If a signal is cleared, this field may be empty. 
+     * @type {string}
+     * @memberof ValidatorForkSignal
+     */
+    'fork_name'?: string;
 }
 /**
  * 
@@ -2402,6 +2571,74 @@ export interface ValidatorResponse {
 /**
  * 
  * @export
+ * @interface ValidatorStakesRequest
+ */
+export interface ValidatorStakesRequest {
+    /**
+     * 
+     * @type {NetworkIdentifier}
+     * @memberof ValidatorStakesRequest
+     */
+    'network_identifier': NetworkIdentifier;
+    /**
+     * 
+     * @type {PartialLedgerStateIdentifier}
+     * @memberof ValidatorStakesRequest
+     */
+    'at_state_identifier'?: PartialLedgerStateIdentifier;
+    /**
+     * 
+     * @type {ValidatorIdentifier}
+     * @memberof ValidatorStakesRequest
+     */
+    'validator_identifier': ValidatorIdentifier;
+    /**
+     * This cursor allows forward pagination, by providing the cursor from the previous request.
+     * @type {string}
+     * @memberof ValidatorStakesRequest
+     */
+    'cursor'?: string;
+    /**
+     * The page size requested. The maximum value is 30 at present.
+     * @type {number}
+     * @memberof ValidatorStakesRequest
+     */
+    'limit'?: number;
+}
+/**
+ * 
+ * @export
+ * @interface ValidatorStakesResponse
+ */
+export interface ValidatorStakesResponse {
+    /**
+     * 
+     * @type {LedgerState}
+     * @memberof ValidatorStakesResponse
+     */
+    'ledger_state': LedgerState;
+    /**
+     * The total number of accounts delegating stake to the validator in some state.
+     * @type {number}
+     * @memberof ValidatorStakesResponse
+     */
+    'total_count': number;
+    /**
+     * The cursor to be provided for the next page of results. If missing, this is the last page of results.
+     * @type {string}
+     * @memberof ValidatorStakesResponse
+     */
+    'next_cursor'?: string;
+    /**
+     * The page of account stake delegations.
+     * @type {Array<ValidatorAccountStake>}
+     * @memberof ValidatorStakesResponse
+     */
+    'account_stake_delegations': Array<ValidatorAccountStake>;
+}
+/**
+ * 
+ * @export
  * @interface ValidatorUptime
  */
 export interface ValidatorUptime {
@@ -2483,7 +2720,7 @@ export const AccountApiAxiosParamCreator = function (configuration?: Configurati
          * @throws {RequiredError}
          */
         accountBalancesPost: async (accountBalancesRequest: AccountBalancesRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'accountBalancesRequest' is not null or unined
+            // verify required parameter 'accountBalancesRequest' is not null or undefined
             assertParamExists('accountBalancesPost', 'accountBalancesRequest', accountBalancesRequest)
             const localVarPath = `/account/balances`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -3283,6 +3520,42 @@ export const TransactionApiAxiosParamCreator = function (configuration?: Configu
             };
         },
         /**
+         * Returns user-initiated transactions which have been succesfully committed to the ledger. The transactions are returned in a paginated format, ordered by most recent. 
+         * @summary Get Recent Transactions
+         * @param {RecentTransactionsRequest} recentTransactionsRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        transactionRecentPost: async (recentTransactionsRequest: RecentTransactionsRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'recentTransactionsRequest' is not null or undefined
+            assertParamExists('transactionRecentPost', 'recentTransactionsRequest', recentTransactionsRequest)
+            const localVarPath = `/transaction/recent`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(recentTransactionsRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Returns the current rules used to build and validate transactions in the Radix Engine.
          * @summary Get Transaction Rules
          * @param {TransactionRulesRequest} transactionRulesRequest 
@@ -3423,6 +3696,17 @@ export const TransactionApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Returns user-initiated transactions which have been succesfully committed to the ledger. The transactions are returned in a paginated format, ordered by most recent. 
+         * @summary Get Recent Transactions
+         * @param {RecentTransactionsRequest} recentTransactionsRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async transactionRecentPost(recentTransactionsRequest: RecentTransactionsRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RecentTransactionsResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.transactionRecentPost(recentTransactionsRequest, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Returns the current rules used to build and validate transactions in the Radix Engine.
          * @summary Get Transaction Rules
          * @param {TransactionRulesRequest} transactionRulesRequest 
@@ -3486,6 +3770,16 @@ export const TransactionApiFactory = function (configuration?: Configuration, ba
             return localVarFp.transactionFinalizePost(transactionFinalizeRequest, options).then((request) => request(axios, basePath));
         },
         /**
+         * Returns user-initiated transactions which have been succesfully committed to the ledger. The transactions are returned in a paginated format, ordered by most recent. 
+         * @summary Get Recent Transactions
+         * @param {RecentTransactionsRequest} recentTransactionsRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        transactionRecentPost(recentTransactionsRequest: RecentTransactionsRequest, options?: any): AxiosPromise<RecentTransactionsResponse> {
+            return localVarFp.transactionRecentPost(recentTransactionsRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Returns the current rules used to build and validate transactions in the Radix Engine.
          * @summary Get Transaction Rules
          * @param {TransactionRulesRequest} transactionRulesRequest 
@@ -3547,6 +3841,18 @@ export class TransactionApi extends BaseAPI {
      */
     public transactionFinalizePost(transactionFinalizeRequest: TransactionFinalizeRequest, options?: AxiosRequestConfig) {
         return TransactionApiFp(this.configuration).transactionFinalizePost(transactionFinalizeRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Returns user-initiated transactions which have been succesfully committed to the ledger. The transactions are returned in a paginated format, ordered by most recent. 
+     * @summary Get Recent Transactions
+     * @param {RecentTransactionsRequest} recentTransactionsRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TransactionApi
+     */
+    public transactionRecentPost(recentTransactionsRequest: RecentTransactionsRequest, options?: AxiosRequestConfig) {
+        return TransactionApiFp(this.configuration).transactionRecentPost(recentTransactionsRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -3666,6 +3972,42 @@ export const ValidatorApiAxiosParamCreator = function (configuration?: Configura
             };
         },
         /**
+         * Returns paginated results about the delegated stakes from accounts to a validator. The results are totalled by account, and ordered by account age (oldest to newest). 
+         * @summary Get Validator Stakes
+         * @param {ValidatorStakesRequest} validatorStakesRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        validatorStakesPost: async (validatorStakesRequest: ValidatorStakesRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'validatorStakesRequest' is not null or undefined
+            assertParamExists('validatorStakesPost', 'validatorStakesRequest', validatorStakesRequest)
+            const localVarPath = `/validator/stakes`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(validatorStakesRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Returns information about all validators.
          * @summary Get Validators
          * @param {ValidatorsRequest} validatorsRequest 
@@ -3734,6 +4076,17 @@ export const ValidatorApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Returns paginated results about the delegated stakes from accounts to a validator. The results are totalled by account, and ordered by account age (oldest to newest). 
+         * @summary Get Validator Stakes
+         * @param {ValidatorStakesRequest} validatorStakesRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async validatorStakesPost(validatorStakesRequest: ValidatorStakesRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ValidatorStakesResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.validatorStakesPost(validatorStakesRequest, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Returns information about all validators.
          * @summary Get Validators
          * @param {ValidatorsRequest} validatorsRequest 
@@ -3773,6 +4126,16 @@ export const ValidatorApiFactory = function (configuration?: Configuration, base
          */
         validatorPost(validatorRequest: ValidatorRequest, options?: any): AxiosPromise<ValidatorResponse> {
             return localVarFp.validatorPost(validatorRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Returns paginated results about the delegated stakes from accounts to a validator. The results are totalled by account, and ordered by account age (oldest to newest). 
+         * @summary Get Validator Stakes
+         * @param {ValidatorStakesRequest} validatorStakesRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        validatorStakesPost(validatorStakesRequest: ValidatorStakesRequest, options?: any): AxiosPromise<ValidatorStakesResponse> {
+            return localVarFp.validatorStakesPost(validatorStakesRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * Returns information about all validators.
@@ -3816,6 +4179,18 @@ export class ValidatorApi extends BaseAPI {
      */
     public validatorPost(validatorRequest: ValidatorRequest, options?: AxiosRequestConfig) {
         return ValidatorApiFp(this.configuration).validatorPost(validatorRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Returns paginated results about the delegated stakes from accounts to a validator. The results are totalled by account, and ordered by account age (oldest to newest). 
+     * @summary Get Validator Stakes
+     * @param {ValidatorStakesRequest} validatorStakesRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ValidatorApi
+     */
+    public validatorStakesPost(validatorStakesRequest: ValidatorStakesRequest, options?: AxiosRequestConfig) {
+        return ValidatorApiFp(this.configuration).validatorStakesPost(validatorStakesRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
