@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.1.13](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/crypto@2.1.12...@radixdlt/crypto@2.1.13) (2022-07-18)
+
+
+### Bug Fixes
+
+* Calculate Shared Secret ([#204](https://github.com/radixdlt/radixdlt-javascript/issues/204)) ([db5a198](https://github.com/radixdlt/radixdlt-javascript/commit/db5a1984067d6f3a572f3136156f2c90f02fbb64))
+
+
+
+
+
 ## [2.1.12](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/crypto@2.1.11...@radixdlt/crypto@2.1.12) (2022-01-26)
 
 **Note:** Version bump only for package @radixdlt/crypto
