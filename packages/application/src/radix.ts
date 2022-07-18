@@ -59,6 +59,7 @@ import {
 	nativeTokenErr,
 	networkIdErr,
 	nodeError,
+	recentTransactionsErr,
 	stakesForAddressErr,
 	submitSignedTxErr,
 	tokenBalancesErr,
@@ -209,6 +210,11 @@ const create = () => {
 		transactionHistory: fwdAPICall(
 			a => a.transactionHistory,
 			m => transactionHistoryErr(m),
+		),
+
+		recentTransactions: fwdAPICall(
+			a => a.recentTransactions,
+			m => recentTransactionsErr(m)
 		),
 
 		nativeToken: fwdAPICall(

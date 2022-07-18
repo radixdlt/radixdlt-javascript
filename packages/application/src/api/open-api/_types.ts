@@ -36,6 +36,8 @@ import {
 	ValidatorResponse,
 	TransactionFinalizeResponse,
 	TokenResponse,
+	RecentTransactionsRequest,
+	RecentTransactionsResponse
 } from '@radixdlt/networking'
 import { AmountT, Network } from '@radixdlt/primitives'
 import {
@@ -383,4 +385,10 @@ export namespace TransactionEndpoint {
 	export type Input = TransactionStatusRequest
 	export type Response = TransactionStatusResponse
 	export type DecodedResponse = SimpleExecutedTransaction
+}
+
+export namespace RecentTransactionEndpoint {
+	export type Input = RecentTransactionsRequest
+	export type Response = RecentTransactionsResponse
+	export type DecodedResponse = SimpleTransactionHistory
 }

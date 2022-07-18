@@ -421,6 +421,14 @@ describe('integration API tests', () => {
 		expect(txHistory.transactions[1].txID.equals(txID2))
 	})
 
+	it('should be able to get recent transactions', async () => {
+		const recentTX = await firstValueFrom(
+			radix.ledger.recentTransactions({ network })
+		)
+
+		expect(recentTX.transactions.length).toBeGreaterThan(0)
+	})
+
 	// 🟢
 	it('should handle transaction status updates', done => {
 		const txTracking = radix.transferTokens({

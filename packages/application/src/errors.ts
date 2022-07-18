@@ -43,6 +43,7 @@ export type APIErrorObject = { code: number; message: string }
 export enum APIErrorCause {
 	TOKEN_BALANCES_FAILED = 'TOKEN_BALANCES_FAILED',
 	TRANSACTION_HISTORY_FAILED = 'TRANSACTION_HISTORY_FAILED',
+	RECENT_TRANSACTIONS_FAILED = 'RECENT_TRANSACTIONS_FAILED',
 	NATIVE_TOKEN_FAILED = 'NATIVE_TOKEN_FAILED',
 	TOKEN_INFO_FAILED = 'TOKEN_INFO_FAILED',
 	STAKES_FOR_ADDRESS_FAILED = 'STAKES_FOR_ADDRESS_FAILED',
@@ -81,6 +82,9 @@ export const walletError = (error: Error): ErrorT<'wallet'> => ({
 export const tokenBalancesErr = APIError(APIErrorCause.TOKEN_BALANCES_FAILED)
 export const transactionHistoryErr = APIError(
 	APIErrorCause.TRANSACTION_HISTORY_FAILED,
+)
+export const recentTransactionsErr = APIError(
+	APIErrorCause.RECENT_TRANSACTIONS_FAILED
 )
 export const nativeTokenErr = APIError(APIErrorCause.NATIVE_TOKEN_FAILED)
 export const tokenInfoErr = APIError(APIErrorCause.TOKEN_INFO_FAILED)

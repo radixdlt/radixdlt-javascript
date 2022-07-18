@@ -18,6 +18,7 @@ import {
 	handleAccountTransactionsResponse,
 	handleValidatorResponse,
 	handleValidatorsResponse,
+	handleRecentTransactionResponse
 } from './responseHandlers'
 import { pipe } from 'ramda'
 import { Result, ResultAsync } from 'neverthrow'
@@ -77,5 +78,6 @@ export const getAPI = pipe(
 		getTransaction: callAPI('transactionStatusPost')(
 			handleTransactionResponse,
 		),
+		recentTransactions: callAPI('transactionRecentPost')(handleRecentTransactionResponse),
 	}),
 )
