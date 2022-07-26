@@ -11,6 +11,7 @@ import {
 	FinalizedTransaction,
 	SignedTransaction,
 	TransactionHistoryRequestInput,
+	RecentTransactionsRequestInput,
 	TransactionIntent,
 	TransactionIdentifierT,
 } from '../dto'
@@ -28,6 +29,7 @@ import {
 	ValidatorsEndpoint,
 	FinalizeTransactionEndpoint,
 	TransactionEndpoint,
+	RecentTransactionEndpoint,
 } from './open-api/_types'
 
 export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
@@ -99,6 +101,14 @@ export const radixCoreAPI = (node: NodeT, api: NodeAPI) => {
 				network_identifier: { network: input.address.network },
 				limit: input.size,
 				cursor: input.cursor?.toString(),
+			}),
+
+		recentTransactions: (
+			input: RecentTransactionsRequestInput,
+		): Observable<RecentTransactionEndpoint.DecodedResponse> =>
+			toObs(a => a['recentTransactions'], {
+				cursor: input.cursor?.toString(),
+				network_identifier: { network: input.network },
 			}),
 
 		nativeToken: (

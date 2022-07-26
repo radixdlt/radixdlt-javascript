@@ -12,6 +12,7 @@ import {
 	ValidatorEndpoint,
 	ValidatorsEndpoint,
 	GatewayEndpoint,
+	RecentTransactionEndpoint
 } from './_types'
 import {
 	AccountStakeEntry,
@@ -168,6 +169,17 @@ export const handleAccountTransactionsResponse = (
 			cursor: json.data.next_cursor as string,
 			// @ts-ignore
 			transactions,
+		}),
+	)
+
+export const handleRecentTransactionResponse = (
+	json: ReturnOfAPICall<'transactionRecentPost'>,
+): Result<RecentTransactionEndpoint.DecodedResponse, Error[]> => 
+	combine(json.data.transactions.map(handleTx)).map(
+		(transactions): SimpleTransactionHistory => ({
+			cursor: json.data.next_cursor as string,
+			// @ts-ignore
+			transactions
 		}),
 	)
 

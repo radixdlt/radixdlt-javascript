@@ -12,7 +12,7 @@ import {
 	TransferTokensInput,
 	UnstakeTokensInput,
 } from '../actions'
-import { AmountT, BuiltTransactionReadyToSign } from '@radixdlt/primitives'
+import { AmountT, BuiltTransactionReadyToSign, Network } from '@radixdlt/primitives'
 import { PublicKeyT, SignatureT } from '@radixdlt/crypto'
 import { Observable } from 'rxjs'
 import { Result } from 'neverthrow'
@@ -146,6 +146,12 @@ export type TransactionHistoryRequestInput =
 		Readonly<{
 			address: AccountAddressT
 		}>
+
+export type RecentTransactionsRequestInput =
+	Readonly<{
+		network: Network,
+		cursor?: string
+	}>
 
 export type SimpleExecutedTransaction = Readonly<{
 	txID: TransactionIdentifierT
