@@ -29,10 +29,10 @@ const networkFromHRP: NetworkFromHRP = hrp =>
 		? ok(Network.STOKENET)
 		: hrp === HRP.localnet.validator
 		? ok(Network.LOCALNET)
-		: hrp === HRP.testnet3.validator
-		? ok(Network.TESTNET3)
-		: hrp === HRP.testnet4.validator
-		? ok(Network.TESTNET4)
+		: hrp === HRP.releasenet.validator
+		? ok(Network.RELEASENET)
+		: hrp === HRP.rcnet.validator
+		? ok(Network.RCNET)
 		: hrp === HRP.milestonenet.validator
 		? ok(Network.MILESTONENET)
 		: hrp === HRP.testnet6.validator

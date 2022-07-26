@@ -33,10 +33,10 @@ const networkFromHRP: NetworkFromHRP = hrp =>
 		? ok(Network.STOKENET)
 		: hrp === HRP.localnet.account
 		? ok(Network.LOCALNET)
-		: hrp === HRP.testnet3.account
-		? ok(Network.TESTNET3)
-		: hrp === HRP.testnet4.account
-		? ok(Network.TESTNET4)
+		: hrp === HRP.releasenet.account
+		? ok(Network.RELEASENET)
+		: hrp === HRP.rcnet.account
+		? ok(Network.RCNET)
 		: hrp === HRP.milestonenet.account
 		? ok(Network.MILESTONENET)
 		: hrp === HRP.testnet6.account
