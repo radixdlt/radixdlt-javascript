@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.1.21](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/tx-parser@2.1.20...@radixdlt/tx-parser@2.1.21) (2022-08-22)
+
+**Note:** Version bump only for package @radixdlt/tx-parser
+
+
+
+
+
 ## [2.1.20](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/tx-parser@2.1.19...@radixdlt/tx-parser@2.1.20) (2022-07-26)
 
 **Note:** Version bump only for package @radixdlt/tx-parser
