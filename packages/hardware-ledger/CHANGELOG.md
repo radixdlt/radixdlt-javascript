@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.1.36](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/hardware-ledger@2.1.35...@radixdlt/hardware-ledger@2.1.36) (2022-08-22)
+
+
+### Bug Fixes
+
+* Truncate nonXrdHRP when signing transactions with a ledger ([#207](https://github.com/radixdlt/radixdlt-javascript/issues/207)) ([fbbc2f4](https://github.com/radixdlt/radixdlt-javascript/commit/fbbc2f49411c2a695297aae5f3b1753460eeec6f))
+
+
+
+
+
 ## [2.1.35](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/hardware-ledger@2.1.34...@radixdlt/hardware-ledger@2.1.35) (2022-07-26)
 
 **Note:** Version bump only for package @radixdlt/hardware-ledger
