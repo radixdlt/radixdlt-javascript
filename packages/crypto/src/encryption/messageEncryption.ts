@@ -41,8 +41,9 @@ const calculateSharedSecret = (
 	return diffieHellmanPoint().map((dhKey: ECPointOnCurveT) => {
 		const ephemeralPoint = input.ephemeralPublicKey.decodeToPointOnCurve()
 		const sharedSecretPoint = dhKey.add(ephemeralPoint)
+		const data = sharedSecretPoint.x.toString(16)
 		const buf = Buffer.alloc(32)
-		buf.write(sharedSecretPoint.x.toString(16), 'hex')
+		buf.write(data.padStart(64, '0'), 'hex')
 		return buf
 	})
 }
