@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.1.16](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/crypto@2.1.15...@radixdlt/crypto@2.1.16) (2022-08-30)
+
+
+### Bug Fixes
+
+* Allocating a buffer to a fixed size does not pad it's contents ([#208](https://github.com/radixdlt/radixdlt-javascript/issues/208)) ([2521bef](https://github.com/radixdlt/radixdlt-javascript/commit/2521bef5bcfd05b5dc31d3c01d2358e29ea97f6c))
+
+
+
+
+
 ## [2.1.15](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/crypto@2.1.14...@radixdlt/crypto@2.1.15) (2022-08-22)
 
 **Note:** Version bump only for package @radixdlt/crypto
