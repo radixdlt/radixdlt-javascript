@@ -41,10 +41,10 @@ const create = (
 			const rri = resultList[2] as ResourceIdentifierT
 
 			return {
-				to_validator,
+				to_validator: to_validator.toString(),
 				amount,
 				type: ActionType.STAKE_TOKENS,
-				from_account,
+				from_account: from_account.toString(),
 				rri,
 			}
 		},

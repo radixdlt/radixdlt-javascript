@@ -310,13 +310,13 @@ export const handleValidatorsResponse = (
 		.mapErr(e => [e])
 
 /*
-	
+
 export const handleStakePositionsResponse = (
 	json: ReturnOfAPICall<'accountStakesPost'>,
 ) => combine([
-	
+
 ]).mapErr(e => [e])
-	
+
 json.stakes.map(stake => combine([
 	ValidatorAddress.fromUnsafe(stake.validatorIdentifier.address),
 	Amount.fromUnsafe(stake.delegatedStake.value)
@@ -324,7 +324,7 @@ json.stakes.map(stake => combine([
 	validator: values[0] as ValidatorAddressT,
 	amount: values[1] as AmountT
 })
-	
+
 	export const handleUnstakePositionsResponse = (
 		json: ReturnOfAPICall<'accountUnstakesPost'>,
 	) =>
@@ -344,7 +344,7 @@ json.stakes.map(stake => combine([
 					'unstakes',
 				]),
 			)
-	
+
 	export const handleAccountTransactionsResponse = (
 		json: ReturnOfAPICall<'accountTransactionsPost'>,
 	) =>
@@ -364,7 +364,7 @@ json.stakes.map(stake => combine([
 					'transactions',
 				]),
 			)
-	
+
 	export const handleValidatorResponse = (
 		json: ReturnOfAPICall<'validatorPost'>,
 	) =>
@@ -379,7 +379,7 @@ json.stakes.map(stake => combine([
 					'validator',
 				]),
 			)
-	
+
 	export const handleValidatorsResponse = (
 		json: ReturnOfAPICall<'validatorsPost'>,
 	) =>
@@ -394,7 +394,7 @@ json.stakes.map(stake => combine([
 					'validators',
 				]),
 			)
-	
+
 	export const handleTransactionRulesResponse = (
 		json: ReturnOfAPICall<'transactionRulesPost'>,
 	) =>
@@ -457,16 +457,14 @@ const handleTx = (
 	const transformAction = (action: Action): Result<ExecutedAction, Error> => {
 		const transformTransferTokenAction = (action: TransferTokens) =>
 			combine([
-				AccountAddress.fromUnsafe(action.to_account.address),
-				AccountAddress.fromUnsafe(action.from_account.address),
 				...(action.amount ? transformTokenAmount(action.amount) : []),
 			]).map(
 				(actionValue): ExecutedTransferTokensAction => ({
 					type: ActionType.TOKEN_TRANSFER,
-					to_account: actionValue[0] as AccountAddressT,
-					from_account: actionValue[1] as AccountAddressT,
-					amount: actionValue[2] as AmountT,
-					rri: actionValue[3] as ResourceIdentifierT,
+					to_account: action.to_account.address,
+					from_account: action.from_account.address,
+					amount: actionValue[0] as AmountT,
+					rri: actionValue[1] as ResourceIdentifierT,
 				}),
 			)
 
@@ -474,38 +472,34 @@ const handleTx = (
 			type: ActionType.STAKE_TOKENS,
 			action: StakeTokens,
 		) =>
-			combine([
-				...transformTokenAmount(action.amount),
-				ValidatorAddress.fromUnsafe(action.to_validator.address),
-				AccountAddress.fromUnsafe(action.from_account.address),
-			]).map((actionValue):
-				| ExecutedStakeTokensAction
-				| ExecutedUnstakeTokensAction => ({
-				type,
-				amount: actionValue[0] as AmountT,
-				rri: actionValue[1] as ResourceIdentifierT,
-				to_validator: actionValue[2] as ValidatorAddressT,
-				from_account: actionValue[3] as AccountAddressT,
-			}))
+			combine([...transformTokenAmount(action.amount)]).map(
+				(
+					actionValue,
+				): ExecutedStakeTokensAction | ExecutedUnstakeTokensAction => ({
+					type,
+					amount: actionValue[0] as AmountT,
+					rri: actionValue[1] as ResourceIdentifierT,
+					to_validator: action.to_validator.address,
+					from_account: action.from_account.address,
+				}),
+			)
 
 		const transformUnstakeTokenAction = (
 			type: ActionType.UNSTAKE_TOKENS,
 			action: UnstakeTokens,
 		) =>
 			combine([
-				ValidatorAddress.fromUnsafe(action.from_validator.address),
-				AccountAddress.fromUnsafe(action.to_account.address),
 				Amount.fromUnsafe(action.unstake_percentage ?? 0),
 				...(action.amount ? transformTokenAmount(action.amount) : []),
 			]).map((actionValue):
 				| ExecutedStakeTokensAction
 				| ExecutedUnstakeTokensAction => ({
 				type,
-				from_validator: actionValue[0] as ValidatorAddressT,
-				to_account: actionValue[1] as AccountAddressT,
-				unstake_percentage: actionValue[2] as AmountT,
-				amount: actionValue[3] as AmountT,
-				rri: actionValue[4] as ResourceIdentifierT,
+				from_validator: action.from_validator.address,
+				to_account: action.to_account.address,
+				unstake_percentage: actionValue[0] as AmountT,
+				amount: actionValue[1] as AmountT,
+				rri: actionValue[2] as ResourceIdentifierT,
 			}))
 
 		switch (action.type) {

@@ -40,11 +40,11 @@ const create = (
 			const rri = resultList[2] as ResourceIdentifierT
 
 			return {
-				to_account,
+				to_account: to_account.toString(),
 				amount,
 				rri,
 				type: ActionType.TOKEN_TRANSFER,
-				from_account,
+				from_account: from_account.toString(),
 			}
 		},
 	)

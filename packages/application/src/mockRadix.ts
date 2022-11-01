@@ -615,8 +615,8 @@ export const deterministicRandomTxHistoryWithInput = (
 										case ActionType.TOKEN_TRANSFER:
 											executedAction = {
 												type: ActionType.TOKEN_TRANSFER,
-												from_account: address,
-												to_account: detRandomAddress(),
+												from_account: address.toString(),
+												to_account: detRandomAddress().toString(),
 												amount: tokenAndAmount.amount,
 												rri: tokenAndAmount.token.rri,
 											}

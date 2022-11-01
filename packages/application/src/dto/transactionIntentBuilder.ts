@@ -20,8 +20,8 @@ import {
 	TransactionIntentBuilderT,
 } from './_types'
 import {
+	AccountAddress,
 	AccountAddressT,
-	isAccountAddress,
 	isResourceIdentifier,
 } from '../../../account'
 import { isObservable, Observable, of, throwError } from 'rxjs'
@@ -109,8 +109,8 @@ export const isTransferTokensAction = (
 	const inspection = something as TransferTokensAction
 	return (
 		inspection.type === ActionType.TOKEN_TRANSFER &&
-		isAccountAddress(inspection.to_account) &&
-		isAccountAddress(inspection.from_account) &&
+		!!inspection.to_account &&
+		!!inspection.from_account &&
 		isAmount(inspection.amount) &&
 		isResourceIdentifier(inspection.rri)
 	)
@@ -122,8 +122,8 @@ export const isStakeTokensAction = (
 	const inspection = something as StakeTokensAction
 	return (
 		inspection.type === ActionType.STAKE_TOKENS &&
-		isAccountAddress(inspection.from_account) &&
-		isAccountAddress(inspection.to_validator) &&
+		!!inspection.from_account &&
+		!!inspection.to_validator &&
 		isAmount(inspection.amount)
 	)
 }
@@ -134,10 +134,15 @@ export const isUnstakeTokensAction = (
 	const inspection = something as UnstakeTokensAction
 	return (
 		inspection.type === ActionType.UNSTAKE_TOKENS &&
-		isAccountAddress(inspection.from_validator) &&
-		isAccountAddress(inspection.to_account) &&
+		!!inspection.from_validator &&
+		!!inspection.to_account &&
 		isAmount(inspection.amount)
 	)
+}
+
+const decodeApiAddress = (address: string): AccountAddressT => {
+	const result = AccountAddress.fromUnsafe(address)
+	return result._unsafeUnwrap()
 }
 
 type UserAction = IntendedAction | ExecutedAction
@@ -154,22 +159,22 @@ export const getUniqueAddresses = (
 	if (isTransferTokensAction(action)) {
 		const addresses: AccountAddressT[] = []
 		if (includeTo) {
-			addresses.push(action.to_account)
+			addresses.push(decodeApiAddress(action.to_account))
 		}
 		if (includeFrom) {
-			addresses.push(action.from_account)
+			addresses.push(decodeApiAddress(action.from_account))
 		}
 		return addresses
 	} else if (isStakeTokensAction(action)) {
 		const addresses: AccountAddressT[] = []
 		if (includeFrom) {
-			addresses.push(action.from_account)
+			addresses.push(decodeApiAddress(action.from_account))
 		}
 		return addresses
 	} else if (isUnstakeTokensAction(action)) {
 		const addresses: AccountAddressT[] = []
 		if (includeFrom) {
-			addresses.push(action.to_account)
+			addresses.push(decodeApiAddress(action.to_account))
 		}
 		return addresses
 	} else {

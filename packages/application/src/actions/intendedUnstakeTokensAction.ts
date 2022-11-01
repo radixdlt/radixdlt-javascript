@@ -32,11 +32,11 @@ const create = (
 			const rri = resultList[3] as ResourceIdentifierT
 
 			return {
-				from_validator,
+				from_validator: from_validator.toString(),
 				amount,
 				unstake_percentage,
 				type: ActionType.UNSTAKE_TOKENS,
-				to_account,
+				to_account: to_account.toString(),
 				rri,
 			}
 		},
