@@ -12,7 +12,11 @@ import {
 	TransferTokensInput,
 	UnstakeTokensInput,
 } from '../actions'
-import { AmountT, BuiltTransactionReadyToSign, Network } from '@radixdlt/primitives'
+import {
+	AmountT,
+	BuiltTransactionReadyToSign,
+	Network,
+} from '@radixdlt/primitives'
 import { PublicKeyT, SignatureT } from '@radixdlt/crypto'
 import { Observable } from 'rxjs'
 import { Result } from 'neverthrow'
@@ -106,7 +110,7 @@ export enum TransactionTrackingEventType {
 }
 
 export type TransactionStateSuccess<
-	T extends TransactionState = TransactionState,
+	T extends TransactionState = TransactionState
 > = Readonly<{
 	eventUpdateType: TransactionTrackingEventType
 	transactionState: T
@@ -118,7 +122,7 @@ export type TransactionStateError = Readonly<{
 }>
 
 export type TransactionStateUpdate<
-	T extends TransactionState = TransactionState,
+	T extends TransactionState = TransactionState
 > = TransactionStateSuccess<T> | TransactionStateError
 
 export type TransactionState =
@@ -138,20 +142,17 @@ export type TransactionHistoryOfKnownAddressRequestInput = Readonly<{
 	cursor?: string
 }>
 
-export type TransactionHistoryActiveAccountRequestInput =
-	TransactionHistoryOfKnownAddressRequestInput
+export type TransactionHistoryActiveAccountRequestInput = TransactionHistoryOfKnownAddressRequestInput
 
-export type TransactionHistoryRequestInput =
-	TransactionHistoryOfKnownAddressRequestInput &
-		Readonly<{
-			address: AccountAddressT
-		}>
-
-export type RecentTransactionsRequestInput =
+export type TransactionHistoryRequestInput = TransactionHistoryOfKnownAddressRequestInput &
 	Readonly<{
-		network: Network,
-		cursor?: string
+		address: AccountAddressT
 	}>
+
+export type RecentTransactionsRequestInput = Readonly<{
+	network: Network
+	cursor?: string
+}>
 
 export type SimpleExecutedTransaction = Readonly<{
 	txID: TransactionIdentifierT
@@ -241,14 +242,13 @@ export type RawExecutedActionBase<T extends ActionType> = Readonly<{
 
 export type RawOtherExecutedAction = RawExecutedActionBase<ActionType.OTHER>
 
-export type RawTransferAction =
-	RawExecutedActionBase<ActionType.TOKEN_TRANSFER> &
-		Readonly<{
-			from: string
-			to: string
-			amount: string
-			rri: string
-		}>
+export type RawTransferAction = RawExecutedActionBase<ActionType.TOKEN_TRANSFER> &
+	Readonly<{
+		from: string
+		to: string
+		amount: string
+		rri: string
+	}>
 
 export type RawStakesAction = RawExecutedActionBase<ActionType.STAKE_TOKENS> &
 	Readonly<{
@@ -257,13 +257,12 @@ export type RawStakesAction = RawExecutedActionBase<ActionType.STAKE_TOKENS> &
 		amount: string
 	}>
 
-export type RawUnstakesAction =
-	RawExecutedActionBase<ActionType.UNSTAKE_TOKENS> &
-		Readonly<{
-			from: string
-			validator: string
-			amount: string
-		}>
+export type RawUnstakesAction = RawExecutedActionBase<ActionType.UNSTAKE_TOKENS> &
+	Readonly<{
+		from: string
+		validator: string
+		amount: string
+	}>
 
 export type NetworkTransactionThroughput = Readonly<{
 	tps: number

@@ -12,7 +12,7 @@ import {
 	ValidatorEndpoint,
 	ValidatorsEndpoint,
 	GatewayEndpoint,
-	RecentTransactionEndpoint
+	RecentTransactionEndpoint,
 } from './_types'
 import {
 	AccountStakeEntry,
@@ -146,9 +146,7 @@ export const handleStakePositionsResponse = (
 export const handleUnstakePositionsResponse = (
 	json: ReturnOfAPICall<'accountUnstakesPost'>,
 ): Result<UnstakePositionsEndpoint.DecodedResponse, Error[]> => {
-	return combine(
-		json.data.pending_unstakes.map(transformUnstakeEntry),
-	)
+	return combine(json.data.pending_unstakes.map(transformUnstakeEntry))
 		.map(pendingUnstakes =>
 			combine(json.data.unstakes.map(transformUnstakeEntry)).map(
 				unstakes => ({
@@ -174,12 +172,12 @@ export const handleAccountTransactionsResponse = (
 
 export const handleRecentTransactionResponse = (
 	json: ReturnOfAPICall<'transactionRecentPost'>,
-): Result<RecentTransactionEndpoint.DecodedResponse, Error[]> => 
+): Result<RecentTransactionEndpoint.DecodedResponse, Error[]> =>
 	combine(json.data.transactions.map(handleTx)).map(
 		(transactions): SimpleTransactionHistory => ({
 			cursor: json.data.next_cursor as string,
 			// @ts-ignore
-			transactions
+			transactions,
 		}),
 	)
 
@@ -483,12 +481,12 @@ const handleTx = (
 			]).map((actionValue):
 				| ExecutedStakeTokensAction
 				| ExecutedUnstakeTokensAction => ({
-					type,
-					amount: actionValue[0] as AmountT,
-					rri: actionValue[1] as ResourceIdentifierT,
-					to_validator: actionValue[2] as ValidatorAddressT,
-					from_account: actionValue[3] as AccountAddressT,
-				}))
+				type,
+				amount: actionValue[0] as AmountT,
+				rri: actionValue[1] as ResourceIdentifierT,
+				to_validator: actionValue[2] as ValidatorAddressT,
+				from_account: actionValue[3] as AccountAddressT,
+			}))
 
 		const transformUnstakeTokenAction = (
 			type: ActionType.UNSTAKE_TOKENS,
@@ -502,13 +500,13 @@ const handleTx = (
 			]).map((actionValue):
 				| ExecutedStakeTokensAction
 				| ExecutedUnstakeTokensAction => ({
-					type,
-					from_validator: actionValue[0] as ValidatorAddressT,
-					to_account: actionValue[1] as AccountAddressT,
-					unstake_percentage: actionValue[2] as AmountT,
-					amount: actionValue[3] as AmountT,
-					rri: actionValue[4] as ResourceIdentifierT,
-				}))
+				type,
+				from_validator: actionValue[0] as ValidatorAddressT,
+				to_account: actionValue[1] as AccountAddressT,
+				unstake_percentage: actionValue[2] as AmountT,
+				amount: actionValue[3] as AmountT,
+				rri: actionValue[4] as ResourceIdentifierT,
+			}))
 
 		switch (action.type) {
 			case 'TransferTokens':
