@@ -1,6 +1,4 @@
-import {
-	handleAccountBalancesResponse,
-} from '../src/api/open-api/responseHandlers'
+import { handleAccountBalancesResponse } from '../src/api/open-api/responseHandlers'
 
 const fixtures = [
 	{
@@ -22,19 +20,22 @@ const fixtures = [
 					{
 						value: '100000000000000000000000',
 						token_identifier: {
-							rri: 'fire_tr1qvs4gje6qfxmu5wfn9jd5x9ku20ds7fcucn6tzcnyxwq7n02zx',
+							rri:
+								'fire_tr1qvs4gje6qfxmu5wfn9jd5x9ku20ds7fcucn6tzcnyxwq7n02zx',
 						},
 					},
 					{
 						value: '99999894000000100000000',
 						token_identifier: {
-							rri: 'buzzsaw_tr1q0aymplntjgcdsc5fuxcgq9me47yu26qf929cqexduxs7c299n',
+							rri:
+								'buzzsaw_tr1q0aymplntjgcdsc5fuxcgq9me47yu26qf929cqexduxs7c299n',
 						},
 					},
 					{
 						value: '99971993105302200000000',
 						token_identifier: {
-							rri: 'captainfr33domst0000000000000ken_tr1q09jf8c05v3lfj3tqc04x7nlp0sag8yq5k6qpaexxnrs004s7q',
+							rri:
+								'captainfr33domst0000000000000ken_tr1q09jf8c05v3lfj3tqc04x7nlp0sag8yq5k6qpaexxnrs004s7q',
 						},
 					},
 					{
@@ -46,7 +47,8 @@ const fixtures = [
 					{
 						value: '5999999999999999999',
 						token_identifier: {
-							rri: 'sptve_tr1qvddj7vg004cstsqvu6nar0ssr4x8v2r7rnry2e66n7q0nmaus',
+							rri:
+								'sptve_tr1qvddj7vg004cstsqvu6nar0ssr4x8v2r7rnry2e66n7q0nmaus',
 						},
 					},
 				],
@@ -64,11 +66,12 @@ describe('handleAccountBalancesResponse', () => {
 		const expectedLiquidBalances =
 			fixtures[0].data.account_balances.liquid_balances
 
-		const actualLiquidBalances =
-			actual.account_balances.liquid_balances.map(item => ({
+		const actualLiquidBalances = actual.account_balances.liquid_balances.map(
+			item => ({
 				value: item.value.toString(),
 				token_identifier: { rri: item.token_identifier.rri.toString() },
-			}))
+			}),
+		)
 
 		const expectedStakedBalance =
 			fixtures[0].data.account_balances.staked_and_unstaking_balance

@@ -423,7 +423,7 @@ describe('integration API tests', () => {
 
 	it('should be able to get recent transactions', async () => {
 		const recentTX = await firstValueFrom(
-			radix.ledger.recentTransactions({ network })
+			radix.ledger.recentTransactions({ network }),
 		)
 
 		expect(recentTX.transactions.length).toBeGreaterThan(0)

@@ -60,12 +60,10 @@ export enum APIErrorCause {
 	NETWORK_ID_FAILED = 'NETWORK_ID_FAILED',
 }
 
-const APIError =
-	(cause: APIErrorCause) =>
-	(error: any): APIError => ({
-		cause,
-		...error,
-	})
+const APIError = (cause: APIErrorCause) => (error: any): APIError => ({
+	cause,
+	...error,
+})
 
 export const nodeError = (error: Error): ErrorT<'node'> => ({
 	cause: NodeErrorCause.GET_NODE_FAILED,
@@ -84,7 +82,7 @@ export const transactionHistoryErr = APIError(
 	APIErrorCause.TRANSACTION_HISTORY_FAILED,
 )
 export const recentTransactionsErr = APIError(
-	APIErrorCause.RECENT_TRANSACTIONS_FAILED
+	APIErrorCause.RECENT_TRANSACTIONS_FAILED,
 )
 export const nativeTokenErr = APIError(APIErrorCause.NATIVE_TOKEN_FAILED)
 export const tokenInfoErr = APIError(APIErrorCause.TOKEN_INFO_FAILED)

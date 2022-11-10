@@ -61,14 +61,14 @@ const correlationID = uuid()
 export type OpenRPCClientCall = (
 	endpoint: string,
 	params: unknown[] | Record<string, unknown>,
-	headers?: Record<string, string>
+	headers?: Record<string, string>,
 ) => Promise<unknown>
 
 export const RPCClient: Client<'json-rpc'> = (url: URL) => {
 	const call = async (
 		method: string,
 		params: unknown[] | Record<string, unknown>,
-		headers?: Record<string, string>
+		headers?: Record<string, string>,
 	): Promise<unknown> => {
 		// @ts-ignore
 		const endpoint = `${url.toString()}${MethodEndpoints[method]}`
@@ -77,7 +77,7 @@ export const RPCClient: Client<'json-rpc'> = (url: URL) => {
 			headers: {
 				[defaultHeaders[0]]: method,
 				[defaultHeaders[1]]: correlationID,
-				...headers
+				...headers,
 			},
 		})
 

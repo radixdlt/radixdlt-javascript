@@ -7,7 +7,7 @@ type TransportType = 'json-rpc' | 'open-api'
 export type Call<Methods, Params, Return> = <Methods, Params, Return>(
 	method: Methods,
 	param: Params,
-	headers?: Record<string, string>
+	headers?: Record<string, string>,
 ) => ResultAsync<Return, Error>
 
 export type Transport<T extends TransportType> = {

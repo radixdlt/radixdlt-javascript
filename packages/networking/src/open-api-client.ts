@@ -11,7 +11,7 @@ import {
 	ValidatorApiFactory,
 	TransactionApiFactory,
 	TokenApiFactory,
-	StatusApiFactory
+	StatusApiFactory,
 } from '.'
 import { AxiosResponse, AxiosError } from 'axios'
 import { Configuration } from './open-api'
@@ -37,7 +37,7 @@ export type InputOfAPICall<Name extends MethodName> = Parameters<
 export type ClientInterface = ReturnType<typeof AccountApiFactory> &
 	ReturnType<typeof ValidatorApiFactory> &
 	ReturnType<typeof TransactionApiFactory> &
-	ReturnType<typeof TokenApiFactory> & 
+	ReturnType<typeof TokenApiFactory> &
 	ReturnType<typeof StatusApiFactory>
 
 export type MethodName = keyof ClientInterface
@@ -106,7 +106,7 @@ export const openApiClient: Client<'open-api'> = (url: URL) => {
 		ValidatorApiFactory,
 		TransactionApiFactory,
 		TokenApiFactory,
-		StatusApiFactory
+		StatusApiFactory,
 	].reduce<ClientInterface>(
 		(acc, factory) => ({
 			...acc,

@@ -56,8 +56,8 @@ export type ActionInput =
 // ####                         #####
 // ##################################
 export type TransferTokensProps = Readonly<{
-	to_account: AccountAddressT
-	from_account: AccountAddressT
+	to_account: string
+	from_account: string
 	amount: AmountT
 	rri: ResourceIdentifierT
 }>
@@ -66,15 +66,15 @@ export type TransferTokensAction = TransferTokensProps &
 	Action<ActionType.TOKEN_TRANSFER>
 
 export type StakeTokensProps = Readonly<{
-	from_account: AccountAddressT
-	to_validator: ValidatorAddressT
+	from_account: string
+	to_validator: string
 	amount: AmountT
 	rri: ResourceIdentifierT
 }>
 
 export type UnstakeTokensProps = Readonly<{
-	to_account: AccountAddressT
-	from_validator: ValidatorAddressT
+	to_account: string
+	from_validator: string
 	amount: AmountT
 	unstake_percentage: AmountT
 	rri: ResourceIdentifierT

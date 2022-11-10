@@ -45,8 +45,8 @@ const hardwareError = (message: string) =>
 		}),
 	)
 const truncate = (str: string, n: number): string =>
-	(str.length > n) ? str.slice(0, n) : str;
-	
+	str.length > n ? str.slice(0, n) : str
+
 const withLedgerNano = (ledgerNano: LedgerNanoT): HardwareWalletT => {
 	const getPublicKey = (input: GetPublicKeyInput): Observable<PublicKeyT> =>
 		ledgerNano
@@ -288,7 +288,9 @@ Bytes: "
 						path: input.path ?? path000H,
 						txByteCount: input.tx.blob.length / 2, // 2 hex chars per byte
 						numberOfInstructions,
-						nonNativeTokenRriHRP: input.nonXrdHRP ? truncate(input.nonXrdHRP, 11) : undefined,
+						nonNativeTokenRriHRP: input.nonXrdHRP
+							? truncate(input.nonXrdHRP, 11)
+							: undefined,
 					}),
 				)
 				.subscribe({
