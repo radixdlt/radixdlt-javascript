@@ -18,6 +18,9 @@ import {
 	AccountStakeEntry,
 	AccountUnstakeEntry,
 	Action,
+	BurnTokens,
+	CreateTokenDefinition,
+	MintTokens,
 	ReturnOfAPICall,
 	StakeTokens,
 	TokenAmount,
@@ -38,6 +41,9 @@ import { Amount, AmountT, Network } from '@radixdlt/primitives'
 import {
 	ActionType,
 	ExecutedAction,
+	ExecutedBurnTokensAction,
+	ExecutedCreateTokenDefinitionAction,
+	ExecutedMintTokensAction,
 	ExecutedStakeTokensAction,
 	ExecutedTransferTokensAction,
 	ExecutedUnstakeTokensAction,
@@ -47,7 +53,6 @@ import {
 	TransactionStatus as TransactionStatusEnum,
 } from '../..'
 import { ok, combine } from 'neverthrow'
-import { Message } from '@radixdlt/crypto'
 
 const transformTokenAmount = (amount: TokenAmount) => [
 	Amount.fromUnsafe(amount.value),
@@ -502,6 +507,54 @@ const handleTx = (
 				rri: actionValue[2] as ResourceIdentifierT,
 			}))
 
+		const transformMintTokenAction = (
+			type: ActionType.MINT_TOKENS,
+			action: MintTokens,
+		) =>
+			combine(transformTokenAmount(action.amount)).map(
+				(actionValue): ExecutedMintTokensAction => ({
+					type: ActionType.MINT_TOKENS,
+					to_account: action.to_account.address,
+					amount: actionValue[0] as AmountT,
+					rri: actionValue[1] as ResourceIdentifierT,
+				}),
+			)
+
+		const transformBurnTokenAction = (
+			type: ActionType.BURN_TOKENS,
+			action: BurnTokens,
+		) =>
+			combine(transformTokenAmount(action.amount)).map(
+				(actionValue): ExecutedBurnTokensAction => ({
+					type: ActionType.BURN_TOKENS,
+					from_account: action.from_account.address,
+					amount: actionValue[0] as AmountT,
+					rri: actionValue[1] as ResourceIdentifierT,
+				}),
+			)
+
+		const transformCreateTokenDefinitionAction = (
+			type: ActionType.CREATE_TOKEN_DEFINITION,
+			action: CreateTokenDefinition,
+		) =>
+			combine(transformTokenAmount(action.token_supply)).map(
+				(actionValue): ExecutedCreateTokenDefinitionAction => ({
+					type: ActionType.CREATE_TOKEN_DEFINITION,
+					amount: actionValue[0] as AmountT,
+					rri: actionValue[1] as ResourceIdentifierT,
+					owner: action.token_properties.owner?.address,
+					to_account: action.to_account?.address,
+					name: action.token_properties.name,
+					description: action.token_properties.description,
+					icon_url: action.token_properties.icon_url,
+					url: action.token_properties.url,
+					symbol: action.token_properties.symbol,
+					granularity: action.token_properties.granularity,
+					is_supply_mutable:
+						action.token_properties.is_supply_mutable,
+				}),
+			)
+
 		switch (action.type) {
 			case 'TransferTokens':
 				return transformTransferTokenAction(action as TransferTokens)
@@ -514,6 +567,22 @@ const handleTx = (
 				return transformUnstakeTokenAction(
 					ActionType.UNSTAKE_TOKENS,
 					action as UnstakeTokens,
+				)
+			case 'MintTokens':
+				return transformMintTokenAction(
+					ActionType.MINT_TOKENS,
+					action as MintTokens,
+				)
+			case 'BurnTokens':
+				return transformBurnTokenAction(
+					ActionType.BURN_TOKENS,
+					action as BurnTokens,
+				)
+
+			case 'CreateTokenDefinition':
+				return transformCreateTokenDefinitionAction(
+					ActionType.CREATE_TOKEN_DEFINITION,
+					action as CreateTokenDefinition,
 				)
 			default:
 				return ok({ ...action, type: ActionType.OTHER })

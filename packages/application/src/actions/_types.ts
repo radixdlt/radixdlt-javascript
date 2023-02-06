@@ -1,7 +1,5 @@
 import {
 	AddressOrUnsafeInput,
-	AccountAddressT,
-	ValidatorAddressT,
 	ValidatorAddressOrUnsafeInput,
 	ResourceIdentifierOrUnsafeInput,
 	ResourceIdentifierT,
@@ -12,6 +10,9 @@ export enum ActionType {
 	TOKEN_TRANSFER = 'TokenTransfer',
 	STAKE_TOKENS = 'StakeTokens',
 	UNSTAKE_TOKENS = 'UnstakeTokens',
+	MINT_TOKENS = 'MintTokens',
+	BURN_TOKENS = 'BurnTokens',
+	CREATE_TOKEN_DEFINITION = 'CreateTokenDefinition',
 	OTHER = 'Other',
 }
 
@@ -80,11 +81,40 @@ export type UnstakeTokensProps = Readonly<{
 	rri: ResourceIdentifierT
 }>
 
+export type MintTokensProps = Readonly<{
+	to_account: string
+	amount: AmountT
+	rri: ResourceIdentifierT
+}>
+
+export type BurnTokensProps = Readonly<{
+	from_account: string
+	amount: AmountT
+	rri: ResourceIdentifierT
+}>
+
+export type CreateTokenDefinitionProps = Readonly<{
+	name: string
+	description: string
+	icon_url: string
+	url: string
+	symbol: string
+	is_supply_mutable: boolean
+	granularity: string
+	owner?: string
+	to_account?: string
+	amount: AmountT
+	rri: ResourceIdentifierT
+}>
+
 export type StakeTokensAction = StakeTokensProps &
 	Action<ActionType.STAKE_TOKENS>
 export type UnstakeTokensAction = UnstakeTokensProps &
 	Action<ActionType.UNSTAKE_TOKENS>
-
+export type MintTokensAction = MintTokensProps & Action<ActionType.MINT_TOKENS>
+export type BurnTokensAction = BurnTokensProps & Action<ActionType.BURN_TOKENS>
+export type CreateTokenDefinitionAction = CreateTokenDefinitionProps &
+	Action<ActionType.CREATE_TOKEN_DEFINITION>
 // An intended action specified by the user. Not yet accepted by
 // Radix Core API.
 export type IntendedActionBase<T extends ActionType> = Action<T>
@@ -122,6 +152,15 @@ export type ExecutedStakeTokensAction = ExecutedActionBase<ActionType.STAKE_TOKE
 export type ExecutedUnstakeTokensAction = ExecutedActionBase<ActionType.UNSTAKE_TOKENS> &
 	UnstakeTokensAction
 
+export type ExecutedMintTokensAction = ExecutedActionBase<ActionType.MINT_TOKENS> &
+	MintTokensAction
+
+export type ExecutedBurnTokensAction = ExecutedActionBase<ActionType.BURN_TOKENS> &
+	BurnTokensAction
+
+export type ExecutedCreateTokenDefinitionAction = ExecutedActionBase<ActionType.CREATE_TOKEN_DEFINITION> &
+	CreateTokenDefinitionAction
+
 // OTHER (Only "Executed")
 export type ExecutedOtherAction = ExecutedActionBase<ActionType.OTHER>
 
@@ -129,4 +168,7 @@ export type ExecutedAction =
 	| ExecutedTransferTokensAction
 	| ExecutedStakeTokensAction
 	| ExecutedUnstakeTokensAction
+	| ExecutedMintTokensAction
+	| ExecutedBurnTokensAction
+	| ExecutedCreateTokenDefinitionAction
 	| ExecutedOtherAction
