@@ -31,7 +31,7 @@
   },
   "engines": {
     "yarn": "^1.22.10",
-    "node": "^15.5.0"
+    "node": ">=15.5.0 <18"
   },
   "homepage": "https://github.com/radixdlt/radixdlt-javascript#README",
   "keywords": [
