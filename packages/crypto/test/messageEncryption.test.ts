@@ -9,6 +9,15 @@ import {
 } from '../src'
 import { UInt256 } from '@radixdlt/uint256'
 import { PrivateKeyT } from '../src'
+import * as c from "@radixdlt/crypto";
+import * as a from "@radixdlt/application";
+import { PrivateKey as PrivKey } from "@radixdlt/radix-engine-toolkit"
+import { signatureFromHexStrings } from './utils';
+import { TextEncoder, TextDecoder } from 'util'
+
+global.TextEncoder = TextEncoder
+// @ts-ignore
+global.TextDecoder = TextDecoder
 
 describe('message encryption', () => {
 	describe('can decrypt newly encrypted message', () => {
@@ -212,5 +221,40 @@ describe('message encryption', () => {
 		//		}
 		//	)
 		//})
+	})
+
+	it('should convert to a valid babylon private key', async () => {
+		const HD_PATH = "m/44'/1022'/0'/0/0";
+
+		const mnemonic = c.Mnemonic.fromEnglishPhrase('empty only laundry young sure sadness family beef rotate local web unfair')._unsafeUnwrap()
+
+		const hdMasterSeed = c.HDMasterSeed.fromMnemonic({ mnemonic })
+
+		const olympiaSigningKey = a.SigningKey.fromHDPathWithHDMasterSeed({
+			hdPath: c.HDPathRadix.fromString(HD_PATH)._unsafeUnwrap(),
+			hdMasterSeed
+		})
+
+		const olympiaKeyPair = hdMasterSeed.masterNode().derive(c.HDPathRadix.fromString(HD_PATH)._unsafeUnwrap())
+
+		const babylonPrivateKey = new PrivKey.Secp256k1(olympiaKeyPair.privateKey.toString())
+
+		const secret = c.sha256('secret');
+
+		const _signature = babylonPrivateKey.signToSignature(secret).bytes
+
+		const r = Buffer.from(_signature.slice(1, 33)).toString('hex')
+		const s = Buffer.from(_signature.slice(33, 65)).toString('hex')
+
+		const signature = signatureFromHexStrings({ r, s })
+
+		const isValid = olympiaSigningKey.publicKey.isValidSignature(
+			{
+				signature,
+				hashedMessage: secret
+			}
+		)
+
+		expect(isValid).toEqual(true)
 	})
 })

@@ -47,6 +47,7 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "@radixdlt/radix-engine-toolkit": "^1.0.2",
     "@types/elliptic": "^6.4.12",
     "@types/node-forge": "^0.9.7",
     "@types/scrypt-js": "^2.0.4",
