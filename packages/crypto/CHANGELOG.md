@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.1.17](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/crypto@2.1.16...@radixdlt/crypto@2.1.17) (2023-10-04)
+
+
+### Bug Fixes
+
+* babylon private key conversion ([#212](https://github.com/radixdlt/radixdlt-javascript/issues/212)) ([9fffbfb](https://github.com/radixdlt/radixdlt-javascript/commit/9fffbfba62e7168e12810b68de8c4def067eaffc))
+
+
+
+
+
 ## [2.1.16](https://github.com/radixdlt/radixdlt-javascript/compare/@radixdlt/crypto@2.1.15...@radixdlt/crypto@2.1.16) (2022-08-30)
 
 
