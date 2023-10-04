@@ -22,6 +22,7 @@ import {
 } from './_types'
 import { Hasher } from '../_types'
 import { Signature } from './signature'
+import { toPrivateKeyHex } from '../utils'
 
 const __signDataWithPrivateKey = (
 	input: Readonly<{
@@ -88,7 +89,8 @@ const __privateKeyFromValidatedScalar = (scalar: UInt256): PrivateKeyT => {
 		publicKey: () => {
 			throw new Error('Overridden below.')
 		},
-		toString: (): string => scalar.toString(16),
+
+		toString: () => toPrivateKeyHex(scalar),
 		scalar: scalar,
 	}
 

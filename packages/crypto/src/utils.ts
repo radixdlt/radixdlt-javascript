@@ -1,5 +1,6 @@
 import { err, ok, Result } from 'neverthrow'
 import { log } from '@radixdlt/util'
+import { UInt256 } from '@radixdlt/uint256'
 
 const ensureNum = (num: number): void => {
 	if (!num || Number.isNaN(num)) {
@@ -17,10 +18,10 @@ export const validateMaxLength = (
 
 	return buffer.length > expectedMaxLength
 		? err(
-				new Error(
-					`Incorrect length of ${name}, expected max: #${expectedMaxLength} bytes, but got: #${buffer.length}.`,
-				),
-		  )
+			new Error(
+				`Incorrect length of ${name}, expected max: #${expectedMaxLength} bytes, but got: #${buffer.length}.`,
+			),
+		)
 		: ok(buffer)
 }
 
@@ -32,10 +33,10 @@ export const validateMinLength = (
 	ensureNum(expectedMinLength)
 	return buffer.length < expectedMinLength
 		? err(
-				new Error(
-					`Incorrect length of ${name}, expected min: #${expectedMinLength} bytes, but got: #${buffer.length}.`,
-				),
-		  )
+			new Error(
+				`Incorrect length of ${name}, expected min: #${expectedMinLength} bytes, but got: #${buffer.length}.`,
+			),
+		)
 		: ok(buffer)
 }
 
@@ -47,9 +48,16 @@ export const validateLength = (
 	ensureNum(expectedLength)
 	return buffer.length !== expectedLength
 		? err(
-				new Error(
-					`Incorrect length of ${name}, expected: #${expectedLength} bytes, but got: #${buffer.length}.`,
-				),
-		  )
+			new Error(
+				`Incorrect length of ${name}, expected: #${expectedLength} bytes, but got: #${buffer.length}.`,
+			),
+		)
 		: ok(buffer)
+}
+
+export const toPrivateKeyHex = function (scalar: UInt256) {
+	return [...new Uint8Array(scalar.buffer!)]
+		.reverse()
+		.map(x => x.toString(16).padStart(2, '0'))
+		.join('');
 }
